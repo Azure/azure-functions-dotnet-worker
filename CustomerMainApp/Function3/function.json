@@ -1,0 +1,16 @@
+{
+  "bindings": [
+    {
+      "type": "httpTrigger",
+      "methods": [
+        "get",
+        "post"
+      ],
+      "authLevel": "anonymous",
+      "name": "req"
+    }
+  ],
+  "disabled": false,
+  "scriptFile": "../bin/CustomerMainApp.dll",
+  "entryPoint": "CustomerMainApp.Function3.Run"
+}

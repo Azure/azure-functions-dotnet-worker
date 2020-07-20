@@ -1,0 +1,31 @@
+{
+  "generatedBy": "Microsoft.NET.Sdk.FunctionsWorker-5.0.0-preview1",
+  "bindings": [
+    {
+      "type": "httpTrigger",
+      "methods": [
+        "get",
+        "post"
+      ],
+      "authLevel": "anonymous",
+      "name": "req"
+    },
+    {
+      "name": "$return",
+      "type": "queue",
+      "direction": "out",
+      "queueName": "functionstesting2",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "name": "myBlob",
+      "type": "blob",
+      "direction": "in",
+      "path": "test-samples/sample1.txt",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "disabled": false,
+  "scriptFile": "../bin/CustomerMainApp.dll",
+  "entryPoint": "CustomerMainApp.Function1.Run"
+}

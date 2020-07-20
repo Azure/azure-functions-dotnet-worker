@@ -1,0 +1,20 @@
+{
+  "bindings": [
+    {
+      "type": "queueTrigger",
+      "connection": "AzureWebJobsStorage",
+      "queueName": "functionstesting2",
+      "name": "myQueueItem"
+    },
+    {
+      "name": "myBlob",
+      "type": "blob",
+      "direction": "in",
+      "path": "test-samples/sample1.txt",
+      "connection": "AzureWebJobsStorage"
+    }
+  ],
+  "disabled": false,
+  "scriptFile": "../bin/CustomerMainApp.dll",
+  "entryPoint": "CustomerMainApp.Function2.Run"
+}

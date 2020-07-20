@@ -19,7 +19,7 @@
   </ItemGroup>
     
   <ItemGroup>
-     <Protobuf Include=".\protos\src\proto\**\*.proto" ProtoRoot=".\protos\src\proto" />
+     <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
   </ItemGroup>
 
     <ItemGroup>

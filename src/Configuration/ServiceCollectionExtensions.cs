@@ -6,8 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
 using FunctionsDotNetWorker.Converters;
-using System.Collections.Concurrent;
+using System.Threading.Channels;
 using FunctionsDotNetWorker.Logging;
+using System.ComponentModel.DataAnnotations;
 
 namespace FunctionsDotNetWorker.Configuration
 {
@@ -17,18 +18,21 @@ namespace FunctionsDotNetWorker.Configuration
         {
             services.AddSingleton<IParameterConverter, HttpRequestDataConverter>();
             services.AddSingleton<IParameterConverter, JsonPocoConverter>();
-            services.AddSingleton<WorkerLogManager>();
             services.AddSingleton<ParameterConverterManager>();
             services.AddSingleton<FunctionBroker>();
-            services.AddSingleton<BlockingCollection<StreamingMessage>>();
+            services.AddSingleton(ch => 
+            {
+                return System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>();
+            });
 
             services.AddSingleton(p =>
             {
                 IOptions<WorkerArguments> argumentsOptions = p.GetService<IOptions<WorkerArguments>>();
                 WorkerArguments arguments = argumentsOptions.Value;
 
-                Channel channel = new Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure);
-                return new FunctionRpcClient(new FunctionRpc.FunctionRpcClient(channel), arguments.WorkerId, p.GetService<FunctionBroker>(), p.GetService<WorkerLogManager>());
+                Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure);
+         
+                return new FunctionRpcClient(new FunctionRpc.FunctionRpcClient(grpcChannel), arguments.WorkerId, p.GetService<FunctionBroker>(), p.GetService<Channel<StreamingMessage>>());
             });
 
             services.AddSingleton<IHostedService, MyHostedService>();

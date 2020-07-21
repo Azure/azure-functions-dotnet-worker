@@ -1,6 +1,9 @@
 ﻿using FunctionsDotNetWorker;
 using FunctionsDotNetWorker.Converters;
+using Grpc.Core;
+using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Moq;
+using System.Threading.Channels;
 using Xunit;
 
 namespace FunctionsDotNetWorkerTests
@@ -8,11 +11,12 @@ namespace FunctionsDotNetWorkerTests
     public class FunctionInvokeTests
     {
         private readonly Mock<ParameterConverterManager> _parameterConverterManagerMock = new Mock<ParameterConverterManager>(MockBehavior.Strict);
-        private readonly FunctionBroker _functionBroker;
+        private readonly Mock<Channel<StreamingMessage>> _workerChannelMock = new Mock<Channel<StreamingMessage>>(MockBehavior.Strict);
+        private FunctionBroker _functionBroker;
 
         public FunctionInvokeTests()
         {
-            _functionBroker = new FunctionBroker(_parameterConverterManagerMock.Object);
+            _functionBroker = new FunctionBroker(_parameterConverterManagerMock.Object, _workerChannelMock.Object);
         }
 
         [Fact]

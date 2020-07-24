@@ -7,7 +7,7 @@ using System.Text.Json;
 
 namespace FunctionsDotNetWorker.Converters
 {
-    class JsonPocoConverter : IParameterConverter
+    public class JsonPocoConverter : IParameterConverter
     {
         public bool TryConvert(object source, Type targetType, string name, out object target)
         {

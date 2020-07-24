@@ -19,13 +19,15 @@ namespace FunctionsDotNetWorker.Converters
                 switch (bindingVar)
                 {
                     case OutputBinding<string> str:
-                        var extractedStr = (OutputBinding<string>)bindingVar;
-                        extractedResult = extractedStr.getValue();
+                        extractedResult = str.getValue();
                         break;
                     case OutputBinding<int> num:
-                        var extractedInt= (OutputBinding<int>)bindingVar;
-                        extractedResult = extractedInt.getValue();
+                        extractedResult = num.getValue();
                         break;
+                    case OutputBinding<HttpResponseData> httpResponse:
+                        extractedResult = httpResponse.getValue();
+                        break;
+
                     //TODO: lists of types and other types we might need to support?
                 }
 

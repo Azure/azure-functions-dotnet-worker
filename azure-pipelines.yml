@@ -19,8 +19,7 @@ steps:
   inputs:
     packageType: sdk
     version: 5.0.100-preview.6.20318.15
-    installationPath: $(Agent.ToolsDirectory)/dotnet
-
+    
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
@@ -29,4 +28,5 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
+    arguments: '-v d'
     projects: 'FunctionsDotNetWorkerTests/*.csproj'

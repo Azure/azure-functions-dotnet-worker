@@ -98,7 +98,7 @@ namespace FunctionsDotNetWorker
                 request.RequestId,
                 StreamingMessage.ContentOneofCase.WorkerInitResponse,
                 out StatusResult status);
-            _workerChannel.Writer.WriteAsync(response);
+            _workerChannel.Writer.TryWrite(response);
         }
 
         internal Task<StreamingMessage> WorkerTerminateRequest(StreamingMessage request)
@@ -120,7 +120,7 @@ namespace FunctionsDotNetWorker
                 StreamingMessage.ContentOneofCase.FunctionLoadResponse,
                 out StatusResult status);
             response.FunctionLoadResponse.FunctionId = functionLoadRequest.FunctionId;
-            _workerChannel.Writer.WriteAsync(response);
+            _workerChannel.Writer.TryWrite(response);
 
         }
 
@@ -155,7 +155,7 @@ namespace FunctionsDotNetWorker
                 // failure + cancellation might need to be separated 
             }
 
-            _workerChannel.Writer.WriteAsync(response);
+            _workerChannel.Writer.TryWrite(response);
         }
 
         internal void FunctionEnvironmentReloadRequestHandler(StreamingMessage request)
@@ -164,7 +164,7 @@ namespace FunctionsDotNetWorker
                 request.RequestId,
                 StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse,
                 out StatusResult status);
-            _workerChannel.Writer.WriteAsync(response);
+            _workerChannel.Writer.TryWrite(response);
         }
 
         public async Task<bool> RpcStream()

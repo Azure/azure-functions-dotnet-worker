@@ -1,7 +1,6 @@
 ﻿using CommandLine;
 using FunctionsDotNetWorker;
 using FunctionsDotNetWorker.Converters;
-using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Moq;
 using System;
@@ -23,7 +22,7 @@ namespace FunctionsDotNetWorkerTests
         {
             object source = new List<string>();
             object target;
-            System.Type targetType = typeof(HttpRequestData);
+            Type targetType = typeof(HttpRequestData);
             var result = _httpConverter.TryConvert(source, targetType, "name", out target);
             Assert.False(result);
         }
@@ -43,7 +42,7 @@ namespace FunctionsDotNetWorkerTests
         {
             object source = new RpcHttp();
             object target;
-            System.Type targetType = typeof(HttpRequestData);
+            Type targetType = typeof(HttpRequestData);
             var result = _httpConverter.TryConvert(source, targetType, "name", out target);
             Assert.True(result);
         }

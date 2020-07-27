@@ -37,7 +37,7 @@ namespace FunctionsDotNetWorker.Logging
             var response = new StreamingMessage();
             string message = formatter(state, exception);
             response.RpcLog = new RpcLog() { InvocationId = _invocationId, EventId = eventId.ToString(), Message = message};
-            _channelWriter.WriteAsync(response);
+            _channelWriter.TryWrite(response);
         }
     }
 }

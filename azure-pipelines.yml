@@ -17,7 +17,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
-    projects: 'CustomerMainApp/*.csproj for'
+    projects: '**/*.csproj'
 - task: NuGetToolInstaller@1
 
 - task: NuGetCommand@2

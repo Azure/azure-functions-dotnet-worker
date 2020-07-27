@@ -10,12 +10,12 @@ namespace FunctionsDotNetWorker
     {
         private T val;
 
-        public T getValue()
+        public T GetValue()
         {
             return val;
         }
 
-        public void setValue(T value)
+        public void SetValue(T value)
         {
             val = value; 
         }

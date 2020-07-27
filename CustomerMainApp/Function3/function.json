@@ -8,6 +8,18 @@
       ],
       "authLevel": "anonymous",
       "name": "req"
+    },
+    {
+      "name": "name",
+      "type": "queue",
+      "direction": "out",
+      "queueName": "functionstesting3",
+      "connection": "AzureWebJobsStorage"
+    },
+    {
+      "name": "$return",
+      "type": "http",
+      "direction": "out"
     }
   ],
   "disabled": false,

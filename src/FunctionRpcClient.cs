@@ -15,6 +15,7 @@ using MsgType = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StreamingMessage.Co
 using System.Text.Json;
 using FunctionsDotNetWorker.Converters;
 using FunctionsDotNetWorker.Logging;
+using System.Threading.Channels;
 
 namespace FunctionsDotNetWorker
 {
@@ -27,21 +28,20 @@ namespace FunctionsDotNetWorker
         IDictionary<string, IDisposable> _outboundEventSubscriptions = new Dictionary<string, IDisposable>();
         private List<IDisposable> _eventSubscriptions = new List<IDisposable>();
         private ConcurrentBag<StreamingMessage> invokeRes = new ConcurrentBag<StreamingMessage>();
-        private BlockingCollection<StreamingMessage> _blockingCollectionQueue = new BlockingCollection<StreamingMessage>();
+        private Channel<StreamingMessage> _workerChannel;
         private readonly AsyncDuplexStreamingCall<StreamingMessage, StreamingMessage> _call;
         IClientStreamWriter<StreamingMessage> _requestStream;
         FunctionBroker _functionBroker;
-        WorkerLogManager _workerLogManager;
 
-        public FunctionRpcClient(FunctionRpc.FunctionRpcClient client, string workerId, FunctionBroker functionBroker, WorkerLogManager workerLogManager)
+        public FunctionRpcClient(FunctionRpc.FunctionRpcClient client, string workerId, FunctionBroker functionBroker, Channel<StreamingMessage> workerChannel)
         {
             this.client = client;
             _call = client.EventStream();
             _workerId = workerId;
             _eventManager = new ScriptEventManager();
             _functionBroker = functionBroker;
-            _workerLogManager = workerLogManager;
-            _workerLogManager.AddBlockingQueue(_blockingCollectionQueue);
+            _workerChannel = workerChannel;
+            //_workerLogManager.AddBlockingQueue(_blockingCollectionQueue);
 
             _inboundWorkerEvents = _eventManager.OfType<InboundEvent>()
                 .Where(msg => msg.WorkerId == _workerId);
@@ -98,7 +98,7 @@ namespace FunctionsDotNetWorker
                 request.RequestId,
                 StreamingMessage.ContentOneofCase.WorkerInitResponse,
                 out StatusResult status);
-            _blockingCollectionQueue.Add(response);
+            _workerChannel.Writer.TryWrite(response);
         }
 
         internal Task<StreamingMessage> WorkerTerminateRequest(StreamingMessage request)
@@ -120,7 +120,7 @@ namespace FunctionsDotNetWorker
                 StreamingMessage.ContentOneofCase.FunctionLoadResponse,
                 out StatusResult status);
             response.FunctionLoadResponse.FunctionId = functionLoadRequest.FunctionId;
-            _blockingCollectionQueue.Add(response);
+            _workerChannel.Writer.TryWrite(response);
 
         }
 
@@ -135,7 +135,7 @@ namespace FunctionsDotNetWorker
             try
             {
                 List<ParameterBinding> parameterBindings;
-                var result = _functionBroker.Invoke(request.InvocationRequest, out parameterBindings, _workerLogManager);
+                var result = _functionBroker.Invoke(request.InvocationRequest, out parameterBindings);
 
                 foreach(var paramBinding in parameterBindings)
                 {
@@ -154,8 +154,8 @@ namespace FunctionsDotNetWorker
 
                 // failure + cancellation might need to be separated 
             }
-            
-            _blockingCollectionQueue.Add(response);
+
+            _workerChannel.Writer.TryWrite(response);
         }
 
         internal void FunctionEnvironmentReloadRequestHandler(StreamingMessage request)
@@ -164,7 +164,7 @@ namespace FunctionsDotNetWorker
                 request.RequestId,
                 StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadResponse,
                 out StatusResult status);
-            _blockingCollectionQueue.Add(response);
+            _workerChannel.Writer.TryWrite(response);
         }
 
         public async Task<bool> RpcStream()
@@ -180,7 +180,7 @@ namespace FunctionsDotNetWorker
             await _call.RequestStream.WriteAsync(startStream);
             var consumer = Task.Run(async () =>
             {
-                foreach (var rpcWriteMsg in _blockingCollectionQueue.GetConsumingEnumerable())
+                await foreach (var rpcWriteMsg in _workerChannel.Reader.ReadAllAsync())
                 {
                     await _call.RequestStream.WriteAsync(rpcWriteMsg);
                 }

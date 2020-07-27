@@ -25,7 +25,8 @@ namespace FunctionsDotNetWorker.Converters
             else if (value is string str)
             {
                 typedData.String = str;
-            } else if (value is HttpResponseData response)
+            } 
+            else if (value is HttpResponseData response)
             {
                 typedData = response.ToRpcHttp();
             }
@@ -37,7 +38,6 @@ namespace FunctionsDotNetWorker.Converters
             {
                 typedData = value.ToRpcDefault();
             }
-            //missing arrays, http to Rpc 
 
             return typedData;
         }

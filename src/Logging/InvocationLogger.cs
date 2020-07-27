@@ -3,7 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using Grpc.Core;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 
@@ -12,12 +14,12 @@ namespace FunctionsDotNetWorker.Logging
     public class InvocationLogger : ILogger
     {
         private string _invocationId;
-        private BlockingCollection<StreamingMessage> _blockingQueue;
+        private ChannelWriter<StreamingMessage> _channelWriter;
 
-        public InvocationLogger(string invocationId, BlockingCollection<StreamingMessage> messageQueue)
+        public InvocationLogger(string invocationId, ChannelWriter<StreamingMessage> channelWriter)
         {
             _invocationId = invocationId;
-            _blockingQueue = messageQueue;
+            _channelWriter = channelWriter;
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -35,7 +37,7 @@ namespace FunctionsDotNetWorker.Logging
             var response = new StreamingMessage();
             string message = formatter(state, exception);
             response.RpcLog = new RpcLog() { InvocationId = _invocationId, EventId = eventId.ToString(), Message = message};
-            _blockingQueue.Add(response);
+            _channelWriter.TryWrite(response);
         }
     }
 }

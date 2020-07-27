@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using System.Threading.Channels;
 using FunctionsDotNetWorker.Converters;
 using FunctionsDotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -14,11 +15,13 @@ namespace FunctionsDotNetWorker
     public class FunctionBroker : IFunctionBroker
     {
         private readonly ParameterConverterManager _converterManager;
+        private Channel<StreamingMessage> _workerChannel; 
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
 
-        public FunctionBroker(ParameterConverterManager converterManager)
+        public FunctionBroker(ParameterConverterManager converterManager, Channel<StreamingMessage> workerChannel)
         {
             _converterManager = converterManager;
+            _workerChannel = workerChannel;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
@@ -28,7 +31,7 @@ namespace FunctionsDotNetWorker
             _functionMap.Add(functionDescriptor.FunctionID, functionDescriptor);
         }
 
-        public object Invoke(InvocationRequest invocationRequest, out List<ParameterBinding> parameterBindings, WorkerLogManager workerLogManager)
+        public object Invoke(InvocationRequest invocationRequest, out List<ParameterBinding> parameterBindings)
         {
             parameterBindings = new List<ParameterBinding>();
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
@@ -58,7 +61,7 @@ namespace FunctionsDotNetWorker
                 }
                 else if (parameterType == typeof(FunctionExecutionContext))
                 {
-                    paramObject = new FunctionExecutionContext(invocationRequest, functionDescriptor.FuncName, workerLogManager);
+                    paramObject = new FunctionExecutionContext(invocationRequest, functionDescriptor.FuncName, _workerChannel.Writer);
                 }
                 else
                 {
@@ -73,11 +76,12 @@ namespace FunctionsDotNetWorker
 
             foreach(var binding in bindingParametersDict)
             {
-                var rpcVal = OutBindingConverter.ExtractValue(binding.Value);
+                dynamic d = binding.Value;
+                var rpcVal = d.GetValue();
                 var parameterBinding = new ParameterBinding
                 {
                     Name = binding.Key,
-                    Data = rpcVal.ToRpc() 
+                    Data = ToRpcConverter.ToRpc(rpcVal)
                 };
                 parameterBindings.Add(parameterBinding);
             }

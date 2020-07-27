@@ -7,6 +7,6 @@ namespace FunctionsDotNetWorker
     public interface IFunctionBroker
     {
         void AddFunction(FunctionLoadRequest functionLoadRequest);
-        object Invoke(InvocationRequest invocationRequest, out List<ParameterBinding> parameterBindings, WorkerLogManager workerLogManager);
+        object Invoke(InvocationRequest invocationRequest, out List<ParameterBinding> parameterBindings);
     }
 }

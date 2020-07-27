@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using FunctionsDotNetWorker.Logging;
+using Grpc.Core;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 
@@ -12,12 +14,12 @@ namespace FunctionsDotNetWorker
 {
     public class FunctionExecutionContext
     {
-        public FunctionExecutionContext(InvocationRequest invocationRequest, string funcName, WorkerLogManager workerLogManager)
+        public FunctionExecutionContext(InvocationRequest invocationRequest, string funcName, ChannelWriter<StreamingMessage> channelWriter)
         {
             InvocationId = invocationRequest.InvocationId;
             FunctionName = funcName;
             TraceContext = invocationRequest.TraceContext;
-            Logger = workerLogManager.GetInvocationLogger(InvocationId); 
+            Logger = new InvocationLogger(InvocationId, channelWriter);
         }
 
         public FunctionExecutionContext(string invocationId, string funcName, RpcTraceContext traceContext)

@@ -76,11 +76,12 @@ namespace FunctionsDotNetWorker
 
             foreach(var binding in bindingParametersDict)
             {
-                var rpcVal = OutBindingConverter.ExtractValue(binding.Value);
+                dynamic d = binding.Value;
+                var rpcVal = d.GetValue();
                 var parameterBinding = new ParameterBinding
                 {
                     Name = binding.Key,
-                    Data = rpcVal.ToRpc() 
+                    Data = ToRpcConverter.ToRpc(rpcVal)
                 };
                 parameterBindings.Add(parameterBinding);
             }

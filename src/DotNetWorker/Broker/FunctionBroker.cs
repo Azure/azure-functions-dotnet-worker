@@ -13,11 +13,13 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         private readonly ParameterConverterManager _converterManager;
         private Channel<StreamingMessage> _workerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
+        private IFunctionInstanceFactory _functionInstanceFactory;
 
-        public FunctionBroker(ParameterConverterManager converterManager, Channel<StreamingMessage> workerChannel)
+        public FunctionBroker(ParameterConverterManager converterManager, Channel<StreamingMessage> workerChannel, IFunctionInstanceFactory functionInstanceFactory)
         {
             _converterManager = converterManager;
             _workerChannel = workerChannel;
+            _functionInstanceFactory = functionInstanceFactory;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
@@ -94,7 +96,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             }
             else
             {
-                object instanceObject = Activator.CreateInstance(functionDescriptor.FunctionType);
+                object instanceObject = _functionInstanceFactory.CreateInstance(functionDescriptor.FunctionType);
                 return mi.Invoke(instanceObject, invocationParamArray);
             }
         }

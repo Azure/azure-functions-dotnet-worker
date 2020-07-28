@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             services.AddSingleton<IParameterConverter, HttpRequestDataConverter>();
             services.AddSingleton<IParameterConverter, JsonPocoConverter>();
             services.AddSingleton<ParameterConverterManager>();
-            services.AddSingleton<IFunctionInstanceFactory>();
+            services.AddSingleton<IFunctionInstanceFactory, DefaultFunctionInstanceFactory>();
             services.AddSingleton<FunctionBroker>();
             services.AddSingleton(ch =>
             {

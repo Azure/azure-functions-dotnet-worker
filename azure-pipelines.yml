@@ -27,5 +27,4 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    arguments: '-v d'
     projects: 'FunctionsDotNetWorkerTests/*.csproj'

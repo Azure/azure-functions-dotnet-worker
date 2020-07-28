@@ -16,6 +16,6 @@
     }
   ],
   "disabled": false,
-  "scriptFile": "../bin/CustomerMainApp.dll",
-  "entryPoint": "CustomerMainApp.Function4.Run"
+  "scriptFile": "../bin/FunctionApp.dll",
+  "entryPoint": "FunctionApp.Function4.Run"
 }

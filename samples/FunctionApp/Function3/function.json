@@ -23,6 +23,6 @@
     }
   ],
   "disabled": false,
-  "scriptFile": "../bin/CustomerMainApp.dll",
-  "entryPoint": "CustomerMainApp.Function3.Run"
+  "scriptFile": "../bin/FunctionApp.dll",
+  "entryPoint": "FunctionApp.Function3.Run"
 }

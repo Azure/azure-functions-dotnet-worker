@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
 
-        public FunctionBroker(ParameterConverterManager converterManager, Channel<StreamingMessage> workerChannel, IFunctionInstanceFactory functionInstanceFactory)
+        public FunctionBroker(ParameterConverterManager converterManager, Channel<StreamingMessage> workerChannel, DefaultFunctionInstanceFactory functionInstanceFactory)
         {
             _converterManager = converterManager;
             _workerChannel = workerChannel;

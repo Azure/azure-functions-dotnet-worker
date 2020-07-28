@@ -1,8 +1,0 @@
-{
-  "description": {
-    "language": "dotnet5",
-    "extensions": [ ".dll" ],
-    "defaultExecutablePath": "dotnet",
-    "defaultWorkerPath": "bin/CustomerMainApp.dll"
-  }
-}

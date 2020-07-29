@@ -2,9 +2,9 @@
 using Google.Protobuf;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Converters
+namespace Microsoft.Azure.Functions.DotNetWorker
 {
-    internal static class ToRpcConverter
+    internal static class RpcExtensions
     {
         public static TypedData ToRpc(this object value)
         {
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Converters
             return typedData;
         }
 
-        public static TypedData ToRpcCollection(object value)
+        public static TypedData ToRpcCollection(this object value)
         {
             TypedData typedData;
             if (value is byte[][] arrBytes)

@@ -2,20 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Channels;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
-    public class FunctionBroker : IFunctionBroker
+    internal class FunctionBroker : IFunctionBroker
     {
         private readonly ParameterConverterManager _converterManager;
-        private Channel<StreamingMessage> _workerChannel;
+        private FunctionsHostChannelWriter _workerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
 
-        public FunctionBroker(ParameterConverterManager converterManager, Channel<StreamingMessage> workerChannel, DefaultFunctionInstanceFactory functionInstanceFactory)
+        public FunctionBroker(ParameterConverterManager converterManager, FunctionsHostChannelWriter workerChannel, IFunctionInstanceFactory functionInstanceFactory)
         {
             _converterManager = converterManager;
             _workerChannel = workerChannel;
@@ -79,7 +78,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 var parameterBinding = new ParameterBinding
                 {
                     Name = binding.Key,
-                    Data = ToRpcConverter.ToRpc(rpcVal)
+                    Data = RpcExtensions.ToRpc(rpcVal)
                 };
                 parameterBindings.Add(parameterBinding);
             }

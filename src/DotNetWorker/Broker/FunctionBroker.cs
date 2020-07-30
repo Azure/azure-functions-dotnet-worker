@@ -10,11 +10,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     internal class FunctionBroker : IFunctionBroker
     {
         private readonly ParameterConverterManager _converterManager;
-        private FunctionsHostChannelWriter _workerChannel;
+        private FunctionsHostOutputChannel _workerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
 
-        public FunctionBroker(ParameterConverterManager converterManager, FunctionsHostChannelWriter workerChannel, IFunctionInstanceFactory functionInstanceFactory)
+        public FunctionBroker(ParameterConverterManager converterManager, FunctionsHostOutputChannel workerChannel, IFunctionInstanceFactory functionInstanceFactory)
         {
             _converterManager = converterManager;
             _workerChannel = workerChannel;
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 }
                 else if (parameterType == typeof(FunctionExecutionContext))
                 {
-                    paramObject = new FunctionExecutionContext(invocationRequest, functionDescriptor.FuncName, _workerChannel.Writer);
+                    paramObject = new FunctionExecutionContext(invocationRequest, functionDescriptor.FuncName, _workerChannel.Channel.Writer);
                 }
                 else
                 {

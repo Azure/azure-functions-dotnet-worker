@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
             try
             {
-                var result = _functionBroker.Invoke(request, out List<ParameterBinding> parameterBindings);
+                var result = _functionBroker.InvokeAsync(request, out List<ParameterBinding> parameterBindings);
 
                 foreach (var paramBinding in parameterBindings)
                 {

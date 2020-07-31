@@ -8,8 +8,8 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
     public interface IInvocationPipelineBuilder<FunctionExecutionContext>
     {
-        IInvocationPipelineBuilder<FunctionExecutionContext> Use(Func<EventDelegate<FunctionExecutionContext>, EventDelegate<FunctionExecutionContext>> middleware);
+        IInvocationPipelineBuilder<FunctionExecutionContext> Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware);
 
-        EventDelegate<FunctionExecutionContext> Build();
+        FunctionExecutionDelegate Build();
     }
 }

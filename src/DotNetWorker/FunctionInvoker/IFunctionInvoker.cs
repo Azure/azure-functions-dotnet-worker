@@ -8,6 +8,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
 {
     interface IFunctionInvoker
     {
-        Task<object> InvokeAsync(FunctionExecutionContext context);
+        Task InvokeAsync(FunctionExecutionContext context);
     }
 }

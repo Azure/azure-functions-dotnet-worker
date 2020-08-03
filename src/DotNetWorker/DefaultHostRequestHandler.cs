@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             return Task.FromResult(response);
         }
 
-        public Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request)
+        public async Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request)
         {
             InvocationResponse response = new InvocationResponse
             {
@@ -34,7 +34,9 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
             try
             {
-                var result = _functionBroker.InvokeAsync(request, out List<ParameterBinding> parameterBindings);
+                FunctionExecutionContext executionContext = await _functionBroker.InvokeAsync(request);
+                var parameterBindings = executionContext.ParameterBindings;
+                var result = executionContext.InvocationResult;
 
                 foreach (var paramBinding in parameterBindings)
                 {
@@ -54,7 +56,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 response.Result = new StatusResult { Status = Status.Failure };
             }
 
-            return Task.FromResult(response);
+            return response;
         }
 
         public Task<FunctionLoadResponse> LoadFunctionAsync(FunctionLoadRequest request)

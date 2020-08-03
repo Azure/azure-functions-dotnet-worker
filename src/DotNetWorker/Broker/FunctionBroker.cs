@@ -37,20 +37,14 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             _functionMap.Add(functionDescriptor.FunctionID, functionDescriptor);
         }
 
-        public object InvokeAsync(InvocationRequest invocationRequest, out List<ParameterBinding> parameterBindings)
+        public async Task<FunctionExecutionContext> InvokeAsync(InvocationRequest invocationRequest)
         {
-            parameterBindings = new List<ParameterBinding>();
             FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
             FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
 
-            var result = (Task<object>) _functionExecutionDelegate(executionContext);
+            await _functionExecutionDelegate(executionContext);
 
-            if (executionContext.ParameterBindings != null)
-            {
-                parameterBindings = executionContext.ParameterBindings;
-            }
-
-            return result.Result;
+            return executionContext;
         }
     }
 

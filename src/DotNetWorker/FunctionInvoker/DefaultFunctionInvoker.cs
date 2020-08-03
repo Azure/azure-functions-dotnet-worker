@@ -10,9 +10,9 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
 {
-    class DefaultFunctionInvoker : IFunctionInvoker
+    internal class DefaultFunctionInvoker : IFunctionInvoker
     {
-        public Task<object> InvokeAsync(FunctionExecutionContext context)
+        public Task InvokeAsync(FunctionExecutionContext context)
         {
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
             List<object> invocationParameters = new List<object>();
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
                     else
                     {
                         TypedData value = invocationRequest.InputData.Where(p => p.Name == param.Name).First().Data;
-                        paramObject = getParamObject(param, value, context.ParameterConverterManager);
+                        paramObject = ConvertParameter(param, value, context.ParameterConverterManager);
                     }
                 }
                 else if (parameterType == typeof(FunctionExecutionContext))
@@ -48,13 +48,13 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
                 else
                 {
                     TypedData value = invocationRequest.InputData.Where(p => p.Name == param.Name).First().Data;
-                    paramObject = getParamObject(param, value, context.ParameterConverterManager);
+                    paramObject = ConvertParameter(param, value, context.ParameterConverterManager);
                 }
                 invocationParameters.Add(paramObject);
             }
 
             var invocationParamArray = invocationParameters.ToArray();
-            object result = invokeFunction(functionDescriptor, invocationParamArray, context.FunctionInstanceFactory);
+            object result = InvokeFunction(functionDescriptor, invocationParamArray, context.FunctionInstanceFactory);
 
             foreach (var binding in bindingParametersDict)
             {
@@ -68,10 +68,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
                 context.ParameterBindings.Add(parameterBinding);
             }
 
-            return Task.FromResult(result);
+            context.InvocationResult = result;
+            return Task.CompletedTask;
         }
 
-        private object getParamObject(ParameterInfo param, TypedData value, ParameterConverterManager converterManager)
+        private object ConvertParameter(ParameterInfo param, TypedData value, ParameterConverterManager converterManager)
         {
             Type targetType = param.ParameterType;
             object source;
@@ -101,7 +102,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
             return target;
         }
 
-        private object invokeFunction(FunctionDescriptor functionDescriptor, object[] invocationParamArray, IFunctionInstanceFactory functionInstanceFactory)
+        private object InvokeFunction(FunctionDescriptor functionDescriptor, object[] invocationParamArray, IFunctionInstanceFactory functionInstanceFactory)
         {
             MethodInfo mi = functionDescriptor.FuncMethodInfo;
             if (mi.IsStatic)

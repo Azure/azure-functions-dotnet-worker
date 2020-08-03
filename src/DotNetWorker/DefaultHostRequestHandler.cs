@@ -25,10 +25,9 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             return Task.FromResult(response);
         }
 
-        public async Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request)
+        public Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request)
         {
-            var result = await _functionBroker.InvokeAsync(request);
-            return result;
+            return _functionBroker.InvokeAsync(request);
         }
 
         public Task<FunctionLoadResponse> LoadFunctionAsync(FunctionLoadRequest request)

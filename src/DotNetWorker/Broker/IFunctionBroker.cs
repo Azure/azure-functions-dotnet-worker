@@ -9,6 +9,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     public interface IFunctionBroker
     {
         void AddFunction(FunctionLoadRequest functionLoadRequest);
-        Task<FunctionExecutionContext> InvokeAsync(InvocationRequest invocationRequest);
+        Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest);
     }
 }

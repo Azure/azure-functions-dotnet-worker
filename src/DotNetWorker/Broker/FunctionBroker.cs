@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
 using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
@@ -37,14 +35,41 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             _functionMap.Add(functionDescriptor.FunctionID, functionDescriptor);
         }
 
-        public async Task<FunctionExecutionContext> InvokeAsync(InvocationRequest invocationRequest)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)
         {
-            FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
-            FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
+            InvocationResponse response = new InvocationResponse
+            {
+                InvocationId = invocationRequest.InvocationId
+            };
 
-            await _functionExecutionDelegate(executionContext);
+            try
+            {
+                FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
+                FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
 
-            return executionContext;
+                await _functionExecutionDelegate(executionContext);
+                var parameterBindings = executionContext.ParameterBindings;
+                var result = executionContext.InvocationResult;
+
+                foreach (var paramBinding in parameterBindings)
+                {
+                    response.OutputData.Add(paramBinding);
+                }
+                if (result != null)
+                {
+                    var returnVal = result.ToRpc();
+
+                    response.ReturnValue = returnVal;
+                }
+
+                response.Result = new StatusResult { Status = Status.Success };
+            }
+            catch (Exception)
+            {
+                response.Result = new StatusResult { Status = Status.Failure };
+            }
+
+            return response;
         }
     }
 

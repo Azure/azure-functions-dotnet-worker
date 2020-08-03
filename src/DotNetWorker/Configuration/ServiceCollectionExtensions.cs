@@ -22,33 +22,21 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             services.AddSingleton<ParameterConverterManager>();
 
             // Channels
-            services.AddSingleton<FunctionsHostChannelManager>(s =>
+            services.AddSingleton<FunctionsHostOutputChannel>(s =>
             {
-                BoundedChannelOptions inputOptions = new BoundedChannelOptions(1000)
-                {
-                    SingleWriter = true,
-                    SingleReader = false,
-                    AllowSynchronousContinuations = true,
-                    FullMode = BoundedChannelFullMode.Wait
-                };
-                var inputChannel = System.Threading.Channels.Channel.CreateBounded<StreamingMessage>(inputOptions);
-
-                BoundedChannelOptions outputOptions = new BoundedChannelOptions(1000)
+                UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
                 {
                     SingleWriter = false,
                     SingleReader = true,
-                    AllowSynchronousContinuations = true,
-                    FullMode = BoundedChannelFullMode.Wait
+                    AllowSynchronousContinuations = true
                 };
-                var outputChannel = System.Threading.Channels.Channel.CreateBounded<StreamingMessage>(outputOptions);
 
-                return new FunctionsHostChannelManager(inputChannel, outputChannel);
+                return new FunctionsHostOutputChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>(outputOptions));
             });
-            services.AddSingleton<FunctionsHostChannelWriter>();
 
             // Request handling
+            services.AddSingleton<IFunctionsHostClient, DefaultFunctionsHostClient>();
             services.AddSingleton<IHostRequestHandler, DefaultHostRequestHandler>();
-            services.AddSingleton<IFunctionsHostClient, RxFunctionsHostClient>();
             services.AddSingleton<IFunctionInstanceFactory, DefaultFunctionInstanceFactory>();
             services.AddSingleton<IFunctionBroker, FunctionBroker>();
             services.AddSingleton<IFunctionInvoker, DefaultFunctionInvoker>();

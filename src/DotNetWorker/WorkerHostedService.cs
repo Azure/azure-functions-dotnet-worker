@@ -13,16 +13,16 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     {
         private readonly WorkerStartupOptions _options;
         private readonly FunctionRpcClient _rpcClient;
-        private readonly FunctionsHostChannelManager _channelManager;
+        private readonly FunctionsHostOutputChannel _outputChannel;
         private readonly IFunctionsHostClient _client;
 
         private Task? _writerTask;
         private Task? _readerTask;
 
-        public WorkerHostedService(FunctionRpcClient rpcClient, FunctionsHostChannelManager channelManager, IFunctionsHostClient client, IOptions<WorkerStartupOptions> options)
+        public WorkerHostedService(FunctionRpcClient rpcClient, FunctionsHostOutputChannel outputChannel, IFunctionsHostClient client, IOptions<WorkerStartupOptions> options)
         {
             _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
-            _channelManager = channelManager ?? throw new ArgumentNullException(nameof(channelManager));
+            _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             _writerTask = StartWriterAsync(eventStream.RequestStream);
             _readerTask = StartReaderAsync(eventStream.ResponseStream);
 
-            await SendStartStreamMessage(eventStream.RequestStream);
+            await SendStartStreamMessageAsync(eventStream.RequestStream);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             return Task.CompletedTask;
         }
 
-        public async Task SendStartStreamMessage(IClientStreamWriter<StreamingMessage> requestStream)
+        public async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
             StartStream str = new StartStream()
             {
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
         public async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
-            await foreach (StreamingMessage rpcWriteMsg in _channelManager.OutputChannel.Reader.ReadAllAsync())
+            await foreach (StreamingMessage rpcWriteMsg in _outputChannel.Channel.Reader.ReadAllAsync())
             {
                 await requestStream.WriteAsync(rpcWriteMsg);
             }

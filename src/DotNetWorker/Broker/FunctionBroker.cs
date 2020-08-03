@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     internal class FunctionBroker : IFunctionBroker
     {
         private readonly ParameterConverterManager _converterManager;
-        private FunctionsHostChannelWriter _workerChannel;
+        private FunctionsHostOutputChannel _workerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
         private IFunctionInvoker _functionInvoker;

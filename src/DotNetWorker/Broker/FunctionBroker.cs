@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
 using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
@@ -14,17 +15,17 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     internal class FunctionBroker : IFunctionBroker
     {
         private readonly ParameterConverterManager _converterManager;
-        private FunctionsHostOutputChannel _workerChannel;
+        private ChannelWriter<StreamingMessage> _writerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
         private IFunctionInvoker _functionInvoker;
 
-        public FunctionBroker(ParameterConverterManager converterManager, IFunctionInvoker functionInvoker, FunctionsHostChannelWriter workerChannel, IFunctionInstanceFactory functionInstanceFactory)
+        public FunctionBroker(ParameterConverterManager converterManager, IFunctionInvoker functionInvoker, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory)
         {
             _converterManager = converterManager;
-            _workerChannel = workerChannel;
             _functionInstanceFactory = functionInstanceFactory;
             _functionInvoker = functionInvoker;
+            _writerChannel = outputChannel.Channel.Writer;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
@@ -38,11 +39,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         {
             parameterBindings = new List<ParameterBinding>();
             FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
-            FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _workerChannel.Writer, _functionInstanceFactory);
+            FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
 
             var result = _functionInvoker.InvokeAsync(executionContext);
-            
-            if(executionContext.ParameterBindings != null) 
+
+            if (executionContext.ParameterBindings != null)
             {
                 parameterBindings = executionContext.ParameterBindings;
             }

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Channels;
+using Grpc.Core;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.DotNetWorker

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             _functionMap.Add(functionDescriptor.FunctionID, functionDescriptor);
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)
+        public Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)
         {
             InvocationResponse response = new InvocationResponse
             {
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
                 FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
 
-                await _functionExecutionDelegate(executionContext);
+                _functionExecutionDelegate(executionContext);
                 var parameterBindings = executionContext.ParameterBindings;
                 var result = executionContext.InvocationResult;
 
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 response.Result = new StatusResult { Status = Status.Failure };
             }
 
-            return response;
+            return Task.FromResult(response);
         }
     }
 

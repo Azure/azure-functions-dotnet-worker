@@ -19,13 +19,15 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
         private IFunctionInvoker _functionInvoker;
+        private FunctionExecutionDelegate _functionExecutionDelegate;
 
-        public FunctionBroker(ParameterConverterManager converterManager, IFunctionInvoker functionInvoker, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory)
+        public FunctionBroker(ParameterConverterManager converterManager, IFunctionInvoker functionInvoker, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory, FunctionExecutionDelegate functionExecutionDelegate)
         {
             _converterManager = converterManager;
             _functionInstanceFactory = functionInstanceFactory;
             _functionInvoker = functionInvoker;
             _writerChannel = outputChannel.Channel.Writer;
+            _functionExecutionDelegate = functionExecutionDelegate;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
@@ -41,7 +43,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
             FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
 
-            var result = _functionInvoker.InvokeAsync(executionContext);
+            var result = (Task<object>) _functionExecutionDelegate(executionContext);
 
             if (executionContext.ParameterBindings != null)
             {

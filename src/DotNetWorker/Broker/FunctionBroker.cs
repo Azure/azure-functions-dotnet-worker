@@ -62,6 +62,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             {
                 response.Result = new StatusResult { Status = Status.Failure };
             }
+            finally
+            {
+                executionContext = (DefaultFunctionExecutionContext) executionContext; 
+                executionContext.Dispose();
+            }
       
             return response;
         }

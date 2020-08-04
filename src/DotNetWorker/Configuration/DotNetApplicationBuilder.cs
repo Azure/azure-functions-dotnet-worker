@@ -7,14 +7,14 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
 {
     class DotNetApplicationBuilder : IDotNetApplicationBuilder
     {
-        private readonly IInvocationPipelineBuilder<DefaultFunctionExecutionContext> _pipelineBuilder;
+        private readonly IInvocationPipelineBuilder<FunctionExecutionContext> _pipelineBuilder;
 
         public IServiceCollection Services { get; private set; }
 
         public DotNetApplicationBuilder(IServiceCollection services)
         {
             Services = services;
-            _pipelineBuilder = new DefaultInvocationPipelineBuilder<DefaultFunctionExecutionContext>();
+            _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
 
             Services.AddSingleton<FunctionExecutionDelegate>(sp =>
             {

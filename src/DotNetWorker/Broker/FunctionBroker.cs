@@ -64,8 +64,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             }
             finally
             {
-                executionContext = (DefaultFunctionExecutionContext) executionContext; 
-                executionContext.Dispose();
+                (executionContext as IDisposable)?.Dispose();
             }
       
             return response;

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using System;
 using System.Collections.Generic;
@@ -12,6 +13,17 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
 {
     internal class DefaultFunctionInvoker : IFunctionInvoker
     {
+        ParameterConverterManager _parameterConverterManager;
+        ChannelWriter<StreamingMessage> _workerChannel;
+        private IFunctionInstanceFactory _functionInstanceFactory;
+
+        public DefaultFunctionInvoker(ParameterConverterManager parameterConverterManager, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory)
+        {
+            _parameterConverterManager = parameterConverterManager;
+            _workerChannel = outputChannel.Channel.Writer;
+            _functionInstanceFactory = functionInstanceFactory;
+        }
+
         public Task InvokeAsync(FunctionExecutionContext context)
         {
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
@@ -19,8 +31,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
             FunctionDescriptor functionDescriptor = context.FunctionDescriptor;
             var pi = functionDescriptor.FuncParamInfo;
             InvocationRequest invocationRequest = context.InvocationRequest;
-            ChannelWriter<StreamingMessage> _workerChannel = context.ChannelWriter;
-
             foreach (var param in pi)
             {
                 object paramObject;
@@ -38,23 +48,24 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
                     else
                     {
                         TypedData value = invocationRequest.InputData.Where(p => p.Name == param.Name).First().Data;
-                        paramObject = ConvertParameter(param, value, context.ParameterConverterManager);
+                        paramObject = ConvertParameter(param, value, _parameterConverterManager);
                     }
                 }
                 else if (parameterType == typeof(FunctionExecutionContext))
                 {
+                    context.Logger = new InvocationLogger(context.InvocationRequest.InvocationId, _workerChannel);
                     paramObject = context;
                 }
                 else
                 {
                     TypedData value = invocationRequest.InputData.Where(p => p.Name == param.Name).First().Data;
-                    paramObject = ConvertParameter(param, value, context.ParameterConverterManager);
+                    paramObject = ConvertParameter(param, value, _parameterConverterManager);
                 }
                 invocationParameters.Add(paramObject);
             }
 
             var invocationParamArray = invocationParameters.ToArray();
-            object result = InvokeFunction(functionDescriptor, invocationParamArray, context.FunctionInstanceFactory);
+            object result = InvokeFunction(functionDescriptor, invocationParamArray, _functionInstanceFactory);
 
             foreach (var binding in bindingParametersDict)
             {

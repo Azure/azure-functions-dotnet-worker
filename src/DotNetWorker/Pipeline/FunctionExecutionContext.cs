@@ -6,48 +6,57 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
-    public class FunctionExecutionContext
+    public class FunctionExecutionContext : IDisposable
     {
-        public FunctionExecutionContext()
-        {
-            Items = new Dictionary<object, object>();
-        }
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private IServiceScope _instanceServicesScope;
+        private IServiceProvider _instanceServices;
 
-        public FunctionExecutionContext(IServiceProvider invocationServices, InvocationRequest invocationRequest)
+        public FunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, InvocationRequest invocationRequest)
         {
-            InvocationServices = invocationServices;
+            _serviceScopeFactory = serviceScopeFactory;
             InvocationRequest = invocationRequest;
             TraceContext = invocationRequest.TraceContext;
         }
 
-        public FunctionExecutionContext(FunctionDescriptor functionDescriptor, ParameterConverterManager paramConverterManager, InvocationRequest invocationRequest, ChannelWriter<StreamingMessage> channelWriter, IFunctionInstanceFactory functionInstanceFactory)
-        {
-            TraceContext = invocationRequest.TraceContext;
-            Logger = new InvocationLogger(invocationRequest.InvocationId, channelWriter);
-            FunctionDescriptor = functionDescriptor;
-            FunctionInstanceFactory = functionInstanceFactory;
-            InvocationRequest = invocationRequest;
-            ParameterConverterManager = paramConverterManager;
-        }
+        // created on construction
+        public RpcTraceContext TraceContext { get; }
+        public InvocationRequest InvocationRequest { get; }
+        public IDictionary<object, object> Items { get; } = new Dictionary<object, object>();
 
-        public IFunctionInstanceFactory FunctionInstanceFactory { get; private set; }
-        public IServiceProvider InvocationServices { get; }
-        public FunctionDescriptor FunctionDescriptor { get; private set; }
-        public RpcTraceContext TraceContext { get; private set; }
-        public InvocationLogger Logger { get; private set; }
-        public List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
-        public InvocationRequest InvocationRequest { get; private set; }
-        public ChannelWriter<StreamingMessage> ChannelWriter {get; private set;} 
-
-        public ParameterConverterManager ParameterConverterManager { get; private set; }
+        // settable properties
+        public FunctionDescriptor FunctionDescriptor { get; set; }
         public object InvocationResult { get; set; }
+        public InvocationLogger Logger { get; set; }
+        public List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
 
-        /// <summary>
-        /// Gets a key/value collection that can be used to share data within the scope of this invocation.
-        /// </summary>
-        public IDictionary<object, object> Items { get; }
+        public IServiceProvider InstanceServices
+        {
+            get
+            {
+                if (_instanceServicesScope == null && _serviceScopeFactory != null)
+                {
+                    _instanceServicesScope = _serviceScopeFactory.CreateScope();
+                    _instanceServices = _instanceServicesScope.ServiceProvider;
+                }
+
+                return _instanceServices;
+            }
+        }
+
+        public void Dispose()
+        {
+            if (_instanceServicesScope != null)
+            {
+                _instanceServicesScope.Dispose();
+            }
+
+            _instanceServicesScope = null;
+            _instanceServices = null;
+        }
     }
 }

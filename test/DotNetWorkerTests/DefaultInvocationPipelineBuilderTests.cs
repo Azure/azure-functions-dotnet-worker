@@ -1,5 +1,8 @@
 ﻿using Microsoft.Azure.Functions.DotNetWorker;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -9,6 +12,15 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 {
     public class DefaultInvocationPipelineBuilderTests
     {
+        Mock<IServiceScopeFactory> _mockServiceScopeFactory;
+        InvocationRequest _invocationRequest;
+
+        public DefaultInvocationPipelineBuilderTests()
+        {
+            _invocationRequest = new InvocationRequest();
+            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+        }
+
         [Fact]
         public void Build_BuildsInCorrectOrder()
         {
@@ -33,7 +45,7 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 
             var pipeline = builder.Build();
 
-            var context = new FunctionExecutionContext();
+            var context = new FunctionExecutionContext(_mockServiceScopeFactory.Object, _invocationRequest);
 
             pipeline(context);
 
@@ -65,7 +77,7 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 
             var pipeline = builder.Build();
 
-            var context = new FunctionExecutionContext();
+            var context = new FunctionExecutionContext(_mockServiceScopeFactory.Object, _invocationRequest);
 
             pipeline(context);
 

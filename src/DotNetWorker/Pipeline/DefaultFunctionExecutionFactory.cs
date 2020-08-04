@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
         public FunctionExecutionContext Create(InvocationRequest request)
         {
             IServiceProvider serviceProvider = _serviceScopeFactory.CreateScope().ServiceProvider;
-            var context = new FunctionExecutionContext(serviceProvider);
+            var context = new FunctionExecutionContext(serviceProvider, request);
 
             return context;
         }

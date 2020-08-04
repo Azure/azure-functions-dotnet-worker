@@ -16,9 +16,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             Items = new Dictionary<object, object>();
         }
 
-        public FunctionExecutionContext(IServiceProvider invocationServices)
+        public FunctionExecutionContext(IServiceProvider invocationServices, InvocationRequest invocationRequest)
         {
             InvocationServices = invocationServices;
+            InvocationRequest = invocationRequest;
+            TraceContext = invocationRequest.TraceContext;
         }
 
         public FunctionExecutionContext(FunctionDescriptor functionDescriptor, ParameterConverterManager paramConverterManager, InvocationRequest invocationRequest, ChannelWriter<StreamingMessage> channelWriter, IFunctionInstanceFactory functionInstanceFactory)

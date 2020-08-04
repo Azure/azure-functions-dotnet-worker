@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Dynamic;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -15,6 +16,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             Items = new Dictionary<object, object>();
         }
 
+        public FunctionExecutionContext(IServiceProvider invocationServices)
+        {
+            InvocationServices = invocationServices;
+        }
+
         public FunctionExecutionContext(FunctionDescriptor functionDescriptor, ParameterConverterManager paramConverterManager, InvocationRequest invocationRequest, ChannelWriter<StreamingMessage> channelWriter, IFunctionInstanceFactory functionInstanceFactory)
         {
             TraceContext = invocationRequest.TraceContext;
@@ -25,13 +31,15 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             ParameterConverterManager = paramConverterManager;
         }
 
+        public IFunctionInstanceFactory FunctionInstanceFactory { get; private set; }
+        public IServiceProvider InvocationServices { get; }
         public FunctionDescriptor FunctionDescriptor { get; private set; }
         public RpcTraceContext TraceContext { get; private set; }
         public InvocationLogger Logger { get; private set; }
         public List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
         public InvocationRequest InvocationRequest { get; private set; }
         public ChannelWriter<StreamingMessage> ChannelWriter {get; private set;} 
-        public IFunctionInstanceFactory FunctionInstanceFactory { get; private set; }
+
         public ParameterConverterManager ParameterConverterManager { get; private set; }
         public object InvocationResult { get; set; }
 

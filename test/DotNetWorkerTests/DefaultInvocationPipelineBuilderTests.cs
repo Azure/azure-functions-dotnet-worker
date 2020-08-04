@@ -12,13 +12,12 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 {
     public class DefaultInvocationPipelineBuilderTests
     {
-        Mock<IServiceScopeFactory> _mockServiceScopeFactory;
-        InvocationRequest _invocationRequest;
+        private Mock<FunctionExecutionContext> _mockContext = new Mock<FunctionExecutionContext>();
 
         public DefaultInvocationPipelineBuilderTests()
         {
-            _invocationRequest = new InvocationRequest();
-            _mockServiceScopeFactory = new Mock<IServiceScopeFactory>();
+            _mockContext = new Mock<FunctionExecutionContext>();
+            _mockContext.SetupAllProperties();
         }
 
         [Fact]
@@ -45,7 +44,8 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 
             var pipeline = builder.Build();
 
-            var context = new FunctionExecutionContext(_mockServiceScopeFactory.Object, _invocationRequest);
+            var context = _mockContext.Object;
+            context.Items = new Dictionary<object, object>();
 
             pipeline(context);
 
@@ -77,7 +77,8 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 
             var pipeline = builder.Build();
 
-            var context = new FunctionExecutionContext(_mockServiceScopeFactory.Object, _invocationRequest);
+            var context = _mockContext.Object;
+            context.Items = new Dictionary<object, object>();
 
             pipeline(context);
 

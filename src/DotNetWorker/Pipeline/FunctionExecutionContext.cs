@@ -1,62 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Dynamic;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
+﻿using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
-using Microsoft.Extensions.DependencyInjection;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
-    public class FunctionExecutionContext : IDisposable
+    public abstract class FunctionExecutionContext
     {
-        private readonly IServiceScopeFactory _serviceScopeFactory;
-        private IServiceScope _instanceServicesScope;
-        private IServiceProvider _instanceServices;
-
-        public FunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, InvocationRequest invocationRequest)
-        {
-            _serviceScopeFactory = serviceScopeFactory;
-            InvocationRequest = invocationRequest;
-            TraceContext = invocationRequest.TraceContext;
-        }
-
         // created on construction
-        public RpcTraceContext TraceContext { get; }
-        public InvocationRequest InvocationRequest { get; }
-        public IDictionary<object, object> Items { get; } = new Dictionary<object, object>();
+        public abstract RpcTraceContext TraceContext { get; }
+        public abstract InvocationRequest InvocationRequest { get; }
+        public abstract IServiceProvider InstanceServices { get; }
 
         // settable properties
-        public FunctionDescriptor FunctionDescriptor { get; set; }
-        public object InvocationResult { get; set; }
-        public InvocationLogger Logger { get; set; }
-        public List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
+        public abstract FunctionDescriptor FunctionDescriptor { get; set; }
+        public abstract object InvocationResult { get; set; }
+        public abstract InvocationLogger Logger { get; set; }
+        public abstract List<ParameterBinding> ParameterBindings { get; set; }
+        public abstract IDictionary<object, object> Items { get; set; }
 
-        public IServiceProvider InstanceServices
-        {
-            get
-            {
-                if (_instanceServicesScope == null && _serviceScopeFactory != null)
-                {
-                    _instanceServicesScope = _serviceScopeFactory.CreateScope();
-                    _instanceServices = _instanceServicesScope.ServiceProvider;
-                }
 
-                return _instanceServices;
-            }
-        }
-
-        public void Dispose()
-        {
-            if (_instanceServicesScope != null)
-            {
-                _instanceServicesScope.Dispose();
-            }
-
-            _instanceServicesScope = null;
-            _instanceServices = null;
-        }
     }
 }

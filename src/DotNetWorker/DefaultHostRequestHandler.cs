@@ -27,34 +27,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
         public Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request)
         {
-            InvocationResponse response = new InvocationResponse
-            {
-                InvocationId = request.InvocationId
-            };
-
-            try
-            {
-                var result = _functionBroker.Invoke(request, out List<ParameterBinding> parameterBindings);
-
-                foreach (var paramBinding in parameterBindings)
-                {
-                    response.OutputData.Add(paramBinding);
-                }
-                if (result != null)
-                {
-                    var returnVal = result.ToRpc();
-
-                    response.ReturnValue = returnVal;
-                }
-
-                response.Result = new StatusResult { Status = Status.Success };
-            }
-            catch (Exception)
-            {
-                response.Result = new StatusResult { Status = Status.Failure };
-            }
-
-            return Task.FromResult(response);
+            return _functionBroker.InvokeAsync(request);
         }
 
         public Task<FunctionLoadResponse> LoadFunctionAsync(FunctionLoadRequest request)

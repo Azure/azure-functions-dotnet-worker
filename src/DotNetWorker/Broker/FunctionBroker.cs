@@ -1,24 +1,31 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Threading.Channels;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
+using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
     internal class FunctionBroker : IFunctionBroker
     {
         private readonly ParameterConverterManager _converterManager;
-        private FunctionsHostOutputChannel _workerChannel;
+        private ChannelWriter<StreamingMessage> _writerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
         private IFunctionInstanceFactory _functionInstanceFactory;
+        private IFunctionInvoker _functionInvoker;
+        private FunctionExecutionDelegate _functionExecutionDelegate;
 
-        public FunctionBroker(ParameterConverterManager converterManager, FunctionsHostOutputChannel workerChannel, IFunctionInstanceFactory functionInstanceFactory)
+        public FunctionBroker(ParameterConverterManager converterManager, IFunctionInvoker functionInvoker, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory, FunctionExecutionDelegate functionExecutionDelegate)
         {
             _converterManager = converterManager;
-            _workerChannel = workerChannel;
             _functionInstanceFactory = functionInstanceFactory;
+            _functionInvoker = functionInvoker;
+            _writerChannel = outputChannel.Channel.Writer;
+            _functionExecutionDelegate = functionExecutionDelegate;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
@@ -28,106 +35,41 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             _functionMap.Add(functionDescriptor.FunctionID, functionDescriptor);
         }
 
-        public object Invoke(InvocationRequest invocationRequest, out List<ParameterBinding> parameterBindings)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)
         {
-            parameterBindings = new List<ParameterBinding>();
-            Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
-            List<object> invocationParameters = new List<object>();
-            FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
-            var pi = functionDescriptor.FuncParamInfo;
-
-            foreach (var param in pi)
+            InvocationResponse response = new InvocationResponse
             {
-                object paramObject;
-                Type parameterType = param.ParameterType;
-                if (parameterType.IsGenericType)
+                InvocationId = invocationRequest.InvocationId
+            };
+
+            try
+            {
+                FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
+                FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
+
+                await _functionExecutionDelegate(executionContext);
+                var parameterBindings = executionContext.ParameterBindings;
+                var result = executionContext.InvocationResult;
+
+                foreach (var paramBinding in parameterBindings)
                 {
-                    var genericType = parameterType.GetGenericTypeDefinition();
-                    var elementType = parameterType.GetGenericArguments()[0];
-                    if (genericType == typeof(OutputBinding<>))
-                    {
-                        Type constructed = genericType.MakeGenericType(new Type[] { elementType });
-                        paramObject = Activator.CreateInstance(constructed);
-                        bindingParametersDict.Add(param.Name, paramObject);
-                    }
-                    else
-                    {
-                        TypedData value = invocationRequest.InputData.Where(p => p.Name == param.Name).First().Data;
-                        paramObject = getParamObject(param, value);
-                    }
+                    response.OutputData.Add(paramBinding);
                 }
-                else if (parameterType == typeof(FunctionExecutionContext))
+                if (result != null)
                 {
-                    paramObject = new FunctionExecutionContext(invocationRequest, functionDescriptor.FuncName, _workerChannel.Channel.Writer);
+                    var returnVal = result.ToRpc();
+
+                    response.ReturnValue = returnVal;
                 }
-                else
-                {
-                    TypedData value = invocationRequest.InputData.Where(p => p.Name == param.Name).First().Data;
-                    paramObject = getParamObject(param, value);
-                }
-                invocationParameters.Add(paramObject);
+
+                response.Result = new StatusResult { Status = Status.Success };
             }
-
-            var invocationParamArray = invocationParameters.ToArray();
-            object result = invokeFunction(functionDescriptor, invocationParamArray);
-
-            foreach (var binding in bindingParametersDict)
+            catch (Exception)
             {
-                dynamic d = binding.Value;
-                var rpcVal = d.GetValue();
-                var parameterBinding = new ParameterBinding
-                {
-                    Name = binding.Key,
-                    Data = RpcExtensions.ToRpc(rpcVal)
-                };
-                parameterBindings.Add(parameterBinding);
+                response.Result = new StatusResult { Status = Status.Failure };
             }
 
-            return result;
-        }
-
-        private object invokeFunction(FunctionDescriptor functionDescriptor, object[] invocationParamArray)
-        {
-            MethodInfo mi = functionDescriptor.FuncMethodInfo;
-            if (mi.IsStatic)
-            {
-                return mi.Invoke(null, invocationParamArray);
-            }
-            else
-            {
-                object instanceObject = _functionInstanceFactory.CreateInstance(functionDescriptor.FunctionType);
-                return mi.Invoke(instanceObject, invocationParamArray);
-            }
-        }
-
-        private object getParamObject(ParameterInfo param, TypedData value)
-        {
-            Type targetType = param.ParameterType;
-            object source;
-            object target;
-
-            switch (value.DataCase)
-            {
-                case TypedData.DataOneofCase.Http:
-                    source = value.Http;
-                    break;
-                case TypedData.DataOneofCase.String:
-                    source = value.String;
-                    break;
-                default:
-                    throw new NotSupportedException($"{value.DataCase} is not supported yet.");
-            }
-
-            if (source.GetType() == targetType)
-            {
-                target = source;
-            }
-            else if (!_converterManager.TryConvert(source, targetType, param.Name, out target))
-            {
-                throw new InvalidOperationException($"Unable to convert to {targetType}");
-            }
-
-            return target;
+            return response;
         }
     }
 

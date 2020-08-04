@@ -36,11 +36,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 InvocationId = invocationRequest.InvocationId
             };
 
+            FunctionExecutionContext executionContext = _functionExecutionContextFactory.Create(invocationRequest);
+            executionContext.FunctionDescriptor = _functionMap[invocationRequest.FunctionId];
+
             try
             {
-                FunctionExecutionContext executionContext = _functionExecutionContextFactory.Create(invocationRequest);
-                executionContext.FunctionDescriptor = _functionMap[invocationRequest.FunctionId]; 
-
                 await _functionExecutionDelegate(executionContext);
                 var parameterBindings = executionContext.ParameterBindings;
                 var result = executionContext.InvocationResult;
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             {
                 response.Result = new StatusResult { Status = Status.Failure };
             }
-
+      
             return response;
         }
     }

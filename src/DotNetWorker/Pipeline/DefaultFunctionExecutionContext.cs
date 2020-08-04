@@ -11,7 +11,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
-    public class DefaultFunctionExecutionContext : FunctionExecutionContext, IDisposable
+    public class DefaultFunctionExecutionContext : FunctionExecutionContext
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private IServiceScope _instanceServicesScope;
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if (_instanceServicesScope != null)
             {

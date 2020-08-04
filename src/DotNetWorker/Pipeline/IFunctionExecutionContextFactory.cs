@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
-    interface IFunctionExecutionContextFactory
+    public interface IFunctionExecutionContextFactory
     {
         FunctionExecutionContext Create(InvocationRequest request);
     }

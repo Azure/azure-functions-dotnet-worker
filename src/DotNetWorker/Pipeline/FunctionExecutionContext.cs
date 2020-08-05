@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
-    public abstract class FunctionExecutionContext : IDisposable
+    public abstract class FunctionExecutionContext
     {
         // created on construction
         public abstract RpcTraceContext TraceContext { get; }
@@ -21,7 +21,5 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
         public abstract InvocationLogger Logger { get; set; }
         public abstract List<ParameterBinding> ParameterBindings { get; set; }
         public abstract IDictionary<object, object> Items { get; set; }
-        public abstract void Dispose();
-
     }
 }

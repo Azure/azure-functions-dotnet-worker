@@ -36,11 +36,13 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 InvocationId = invocationRequest.InvocationId
             };
 
-            FunctionExecutionContext executionContext = _functionExecutionContextFactory.Create(invocationRequest);
-            executionContext.FunctionDescriptor = _functionMap[invocationRequest.FunctionId];
+            FunctionExecutionContext executionContext = null;  
 
             try
             {
+                executionContext = _functionExecutionContextFactory.Create(invocationRequest);
+                executionContext.FunctionDescriptor = _functionMap[invocationRequest.FunctionId];
+
                 await _functionExecutionDelegate(executionContext);
                 var parameterBindings = executionContext.ParameterBindings;
                 var result = executionContext.InvocationResult;

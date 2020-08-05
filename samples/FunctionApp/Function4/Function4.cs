@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Microsoft.Azure.Functions.DotNetWorker;
+using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;

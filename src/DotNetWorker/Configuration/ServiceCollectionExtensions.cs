@@ -3,6 +3,7 @@ using System.Threading.Channels;
 using Grpc.Core;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
 using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
+using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,6 +41,9 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             services.AddSingleton<IFunctionInstanceFactory, DefaultFunctionInstanceFactory>();
             services.AddSingleton<IFunctionBroker, FunctionBroker>();
             services.AddSingleton<IFunctionInvoker, DefaultFunctionInvoker>();
+
+            // Function Execution Contexts
+            services.AddSingleton<IFunctionExecutionContextFactory, DefaultFunctionExecutionFactory>();
 
             // gRpc
             services.AddSingleton<FunctionRpcClient>(p =>

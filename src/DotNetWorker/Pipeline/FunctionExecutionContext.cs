@@ -1,43 +1,25 @@
-﻿using System.Collections.Generic;
-using System.Dynamic;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
+﻿using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
-    public class FunctionExecutionContext
+    public abstract class FunctionExecutionContext
     {
-        public FunctionExecutionContext()
-        {
-            Items = new Dictionary<object, object>();
-        }
+        // created on construction
+        public abstract RpcTraceContext TraceContext { get; }
+        public abstract InvocationRequest InvocationRequest { get; }
+        public abstract IServiceProvider InstanceServices { get; }
 
-        public FunctionExecutionContext(FunctionDescriptor functionDescriptor, ParameterConverterManager paramConverterManager, InvocationRequest invocationRequest, ChannelWriter<StreamingMessage> channelWriter, IFunctionInstanceFactory functionInstanceFactory)
-        {
-            TraceContext = invocationRequest.TraceContext;
-            Logger = new InvocationLogger(invocationRequest.InvocationId, channelWriter);
-            FunctionDescriptor = functionDescriptor;
-            FunctionInstanceFactory = functionInstanceFactory;
-            InvocationRequest = invocationRequest;
-            ParameterConverterManager = paramConverterManager;
-        }
-
-        public FunctionDescriptor FunctionDescriptor { get; private set; }
-        public RpcTraceContext TraceContext { get; private set; }
-        public InvocationLogger Logger { get; private set; }
-        public List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
-        public InvocationRequest InvocationRequest { get; private set; }
-        public ChannelWriter<StreamingMessage> ChannelWriter {get; private set;} 
-        public IFunctionInstanceFactory FunctionInstanceFactory { get; private set; }
-        public ParameterConverterManager ParameterConverterManager { get; private set; }
-        public object InvocationResult { get; set; }
-
-        /// <summary>
-        /// Gets a key/value collection that can be used to share data within the scope of this invocation.
-        /// </summary>
-        public IDictionary<object, object> Items { get; }
+        // settable properties
+        public abstract FunctionDescriptor FunctionDescriptor { get; set; }
+        public abstract object InvocationResult { get; set; }
+        public abstract InvocationLogger Logger { get; set; }
+        public abstract List<ParameterBinding> ParameterBindings { get; set; }
+        public abstract IDictionary<object, object> Items { get; set; }
     }
 }

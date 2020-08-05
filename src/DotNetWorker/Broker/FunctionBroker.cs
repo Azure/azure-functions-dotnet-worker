@@ -12,20 +12,14 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 {
     internal class FunctionBroker : IFunctionBroker
     {
-        private readonly ParameterConverterManager _converterManager;
-        private ChannelWriter<StreamingMessage> _writerChannel;
         private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
-        private IFunctionInstanceFactory _functionInstanceFactory;
-        private IFunctionInvoker _functionInvoker;
         private FunctionExecutionDelegate _functionExecutionDelegate;
+        private IFunctionExecutionContextFactory _functionExecutionContextFactory;
 
-        public FunctionBroker(ParameterConverterManager converterManager, IFunctionInvoker functionInvoker, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory, FunctionExecutionDelegate functionExecutionDelegate)
+        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory)
         {
-            _converterManager = converterManager;
-            _functionInstanceFactory = functionInstanceFactory;
-            _functionInvoker = functionInvoker;
-            _writerChannel = outputChannel.Channel.Writer;
             _functionExecutionDelegate = functionExecutionDelegate;
+            _functionExecutionContextFactory = functionExecutionContextFactory;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
@@ -42,10 +36,12 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 InvocationId = invocationRequest.InvocationId
             };
 
+            FunctionExecutionContext executionContext = null;  
+
             try
             {
-                FunctionDescriptor functionDescriptor = _functionMap[invocationRequest.FunctionId];
-                FunctionExecutionContext executionContext = new FunctionExecutionContext(functionDescriptor, _converterManager, invocationRequest, _writerChannel, _functionInstanceFactory);
+                executionContext = _functionExecutionContextFactory.Create(invocationRequest);
+                executionContext.FunctionDescriptor = _functionMap[invocationRequest.FunctionId];
 
                 await _functionExecutionDelegate(executionContext);
                 var parameterBindings = executionContext.ParameterBindings;
@@ -68,7 +64,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             {
                 response.Result = new StatusResult { Status = Status.Failure };
             }
-
+            finally
+            {
+                (executionContext as IDisposable)?.Dispose();
+            }
+      
             return response;
         }
     }

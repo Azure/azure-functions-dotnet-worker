@@ -28,23 +28,25 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
         }
 
         [Fact]
-        public void InstanceServicesCreatedSuccessfullyTest()
+        public void CreateAndDisposeInstanceServicesTest()
         {
             var services = _defaultFunctionExecutionContext.InstanceServices;
             Assert.NotNull(services);
-            Assert.NotNull(services.GetService<SingletonService>());
-            Assert.NotNull(services.GetService<TransientService>());
-            Assert.NotNull(services.GetService<ScopedService>());
-        }
+            var singletonService = services.GetService<SingletonService>();
+            var transientService = services.GetService<TransientService>();
+            var scopedService = services.GetService<ScopedService>();
+            Assert.NotNull(scopedService);
+            Assert.NotNull(transientService);
+            Assert.NotNull(singletonService);
 
-        [Fact]
-        public void InstanceServicesDisposedSuccessfullyTest()
-        {
-            var services = _defaultFunctionExecutionContext.InstanceServices;
             _defaultFunctionExecutionContext.Dispose();
+
             Assert.Throws<ObjectDisposedException>(services.GetService<SingletonService>);
             Assert.Throws<ObjectDisposedException>(services.GetService<TransientService>);
             Assert.Throws<ObjectDisposedException>(services.GetService<ScopedService>);
+            Assert.True(scopedService.IsDisposed);
+            Assert.True(transientService.IsDisposed);
+            Assert.False(singletonService.IsDisposed);
         }
 
         // service classes for testing

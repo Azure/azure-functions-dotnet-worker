@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
         {
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
             List<object> invocationParameters = new List<object>();
-            FunctionDescriptor functionDescriptor = context.FunctionDescriptor;
+            IFunctionDescriptor functionDescriptor = context.FunctionDescriptor;
             var pi = functionDescriptor.FuncParamInfo;
             InvocationRequest invocationRequest = context.InvocationRequest;
             foreach (var param in pi)
@@ -113,7 +114,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
             return target;
         }
 
-        private object InvokeFunction(FunctionDescriptor functionDescriptor, object[] invocationParamArray, IFunctionInstanceFactory functionInstanceFactory)
+        private object InvokeFunction(IFunctionDescriptor functionDescriptor, object[] invocationParamArray, IFunctionInstanceFactory functionInstanceFactory)
         {
             MethodInfo mi = functionDescriptor.FuncMethodInfo;
             if (mi.IsStatic)

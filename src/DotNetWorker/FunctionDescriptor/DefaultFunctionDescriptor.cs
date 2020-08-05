@@ -1,15 +1,16 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Reflection;
+using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
-    public class FunctionDescriptor
+    internal class DefaultFunctionDescriptor : IFunctionDescriptor
     {
         private string assemblyName;
 
-        public FunctionDescriptor(FunctionLoadRequest funcLoadRequest)
+        public DefaultFunctionDescriptor(FunctionLoadRequest funcLoadRequest)
         {
             PathToAssembly = funcLoadRequest.Metadata.ScriptFile;
             EntryPoint = funcLoadRequest.Metadata.EntryPoint;

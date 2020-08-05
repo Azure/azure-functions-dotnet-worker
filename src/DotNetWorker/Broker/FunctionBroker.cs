@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
+using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
@@ -12,20 +10,21 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 {
     internal class FunctionBroker : IFunctionBroker
     {
-        private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
+        private Dictionary<string, IFunctionDescriptor> _functionMap = new Dictionary<string, IFunctionDescriptor>();
         private FunctionExecutionDelegate _functionExecutionDelegate;
         private IFunctionExecutionContextFactory _functionExecutionContextFactory;
+        private IFunctionDescriptorFactory _functionDescriptorFactory;
 
-        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory)
+        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory, IFunctionDescriptorFactory functionDescriptorFactory)
         {
             _functionExecutionDelegate = functionExecutionDelegate;
             _functionExecutionContextFactory = functionExecutionContextFactory;
+            _functionDescriptorFactory = functionDescriptorFactory;
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
         {
-            FunctionDescriptor functionDescriptor = new FunctionDescriptor(functionLoadRequest);
-
+            IFunctionDescriptor functionDescriptor = _functionDescriptorFactory.Create(functionLoadRequest);
             _functionMap.Add(functionDescriptor.FunctionID, functionDescriptor);
         }
 

@@ -1,10 +1,8 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker.Logging;
+﻿using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
+using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
@@ -16,7 +14,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
         public abstract IServiceProvider InstanceServices { get; }
 
         // settable properties
-        public abstract FunctionDescriptor FunctionDescriptor { get; set; }
+        public abstract IFunctionDescriptor FunctionDescriptor { get; set; }
         public abstract object InvocationResult { get; set; }
         public abstract InvocationLogger Logger { get; set; }
         public abstract List<ParameterBinding> ParameterBindings { get; set; }

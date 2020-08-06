@@ -1,5 +1,4 @@
 ﻿using System;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,12 +16,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
             Services.AddSingleton<FunctionExecutionDelegate>(sp =>
             {
-                _pipelineBuilder.Use(next => context =>
-                {
-                    IFunctionInvoker invoker = sp.GetService<IFunctionInvoker>();
-                    return invoker.InvokeAsync(context);
-                });
-
                 return _pipelineBuilder.Build();
             });
         }

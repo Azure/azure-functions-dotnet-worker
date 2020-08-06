@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             return builder;
         }
 
-        public static IDotNetApplicationBuilder UseDispatcherMiddleware(this IDotNetApplicationBuilder builder)
+        public static IDotNetApplicationBuilder UseFunctionExecutionMiddleware(this IDotNetApplicationBuilder builder)
         {
             builder.Services.AddSingleton<FunctionExecutionMiddleware>();
 
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
                 {
                     var middleware = context.InstanceServices.GetRequiredService<FunctionExecutionMiddleware>();
 
-                    return middleware.Invoke(context, next);
+                    return middleware.Invoke(context);
                 };
             });
 

@@ -20,6 +20,7 @@ namespace FunctionApp
                 })
                 .ConfigureDotNetWorker((c, b) =>
                 {
+                    b.UseFunctionExecutionMiddleware();
                 })
                 .Build();
 

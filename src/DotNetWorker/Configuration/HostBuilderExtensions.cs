@@ -1,4 +1,6 @@
 ﻿using System;
+using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
@@ -31,6 +33,23 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
                 IDotNetApplicationBuilder appBuilder = services.AddDotNetWorker(configureOptions);
 
                 configure(context, appBuilder);
+            });
+
+            return builder;
+        }
+
+        public static IDotNetApplicationBuilder UseFunctionExecutionMiddleware(this IDotNetApplicationBuilder builder)
+        {
+            builder.Services.AddSingleton<FunctionExecutionMiddleware>();
+
+            builder.Use(next =>
+            {
+                return context =>
+                {
+                    var middleware = context.InstanceServices.GetRequiredService<FunctionExecutionMiddleware>();
+
+                    return middleware.Invoke(context);
+                };
             });
 
             return builder;

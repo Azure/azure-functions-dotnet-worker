@@ -2,7 +2,7 @@
 using System.Threading.Channels;
 using Grpc.Core;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
+using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
 using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;

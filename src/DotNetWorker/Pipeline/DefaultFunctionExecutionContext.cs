@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
+using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -30,7 +26,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         public override InvocationRequest InvocationRequest { get; }
 
         // settable properties
-        public override IFunctionDescriptor FunctionDescriptor { get; set; }
+        public override FunctionDescriptor FunctionDescriptor { get; set; }
         public override object InvocationResult { get; set; }
         public override InvocationLogger Logger { get; set; }
         public override List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();

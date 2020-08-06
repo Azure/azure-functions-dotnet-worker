@@ -1,5 +1,5 @@
 ﻿using Microsoft.Azure.Functions.DotNetWorker;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionDescriptor;
+using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -18,7 +18,6 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
         Mock<FunctionExecutionDelegate> _mockFunctionExecutionDelegate = new Mock<FunctionExecutionDelegate>();
         Mock<IFunctionExecutionContextFactory> _mockFunctionExecutionContextFactory = new Mock<IFunctionExecutionContextFactory>();
         Mock<IFunctionDescriptorFactory> _mockFunctionDescriptorFactory = new Mock<IFunctionDescriptorFactory>();
-        Mock<IFunctionDescriptor> _mockFunctionDescriptor = new Mock<IFunctionDescriptor>();
 
         public FunctionBrokerTests()
         {
@@ -30,15 +29,16 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
         {
             InvocationRequest invocationRequest = new InvocationRequest();
             invocationRequest.FunctionId = "123";
+            FunctionDescriptor functionDescriptor = new FunctionDescriptor();
+            functionDescriptor.FunctionId = "123";
             TestFunctionExecutionContext context = new TestFunctionExecutionContext();
-            _mockFunctionDescriptor.Setup(p => p.FunctionID).Returns("123");
-            _mockFunctionDescriptorFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(_mockFunctionDescriptor.Object);
+            _mockFunctionDescriptorFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(functionDescriptor);
             _mockFunctionExecutionContextFactory.Setup(p => p.Create(It.IsAny<InvocationRequest>())).Returns(context);
             _mockFunctionExecutionDelegate.Setup(p => p(It.IsAny<FunctionExecutionContext>())).Returns(Task.CompletedTask);
 
-            FunctionLoadRequest funcLoadRequest = new FunctionLoadRequest();
-            _functionBroker.AddFunction(funcLoadRequest);
+            _functionBroker.AddFunction(It.IsAny<FunctionLoadRequest>());
             var result = await _functionBroker.InvokeAsync(invocationRequest);
+            Assert.Equal(StatusResult.Types.Status.Success, result.Result.Status);
             Assert.True(context.IsDisposed);
         }
 
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.DotNetWorkerTests
 
             public override IServiceProvider InstanceServices { get; }
 
-            public override IFunctionDescriptor FunctionDescriptor { get; set; }
+            public override FunctionDescriptor FunctionDescriptor { get; set; }
             public override object InvocationResult { get; set; }
             public override InvocationLogger Logger { get; set; }
             public override List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();

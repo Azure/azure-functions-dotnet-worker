@@ -1,4 +1,5 @@
 ﻿using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;

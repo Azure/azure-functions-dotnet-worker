@@ -1,11 +1,11 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
+﻿using System;
+using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
 {
-    class DotNetApplicationBuilder : IDotNetApplicationBuilder
+    internal class DotNetApplicationBuilder : IDotNetApplicationBuilder
     {
         private readonly IInvocationPipelineBuilder<FunctionExecutionContext> _pipelineBuilder;
 
@@ -15,7 +15,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
         {
             Services = services;
             _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
-
             Services.AddSingleton<FunctionExecutionDelegate>(sp =>
             {
                 _pipelineBuilder.Use(next => context =>
@@ -26,7 +25,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
 
                 return _pipelineBuilder.Build();
             });
-
         }
 
         public IDotNetApplicationBuilder Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)

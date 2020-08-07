@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
@@ -14,6 +15,7 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\SourceGenerator\SourceGenerator.csproj" OutputItemType="Analyzer" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
   <ItemGroup>

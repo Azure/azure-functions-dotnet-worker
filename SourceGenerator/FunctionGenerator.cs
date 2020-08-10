@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace SourceGenerator
 {
     [Generator]
-    public class FunctionGenerator : ISourceGenerator
+    public class FunctionProvider : ISourceGenerator
     {
         public void Execute(SourceGeneratorContext context)
         {
@@ -17,7 +17,7 @@ namespace SourceGenerator
             using System.Threading.Tasks;
             namespace FunctionProviderGenerator
              {
-                public class DefaultFunctionProvider: IFunctionProvider
+                public class DefaultFunctionProvider : IFunctionProvider
                 {
                     private List<FunctionMetadata> _metadataList;
                     public DefaultFunctionProvider()

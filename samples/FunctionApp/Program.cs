@@ -13,8 +13,6 @@ namespace FunctionApp
 #if DEBUG
             Debugger.Launch();
 #endif
-            HelloWorldGenerated.HelloWorld.SayHello();
-
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(c =>
                 {

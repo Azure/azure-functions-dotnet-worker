@@ -17,25 +17,28 @@ namespace SourceGenerator
             using System.Threading.Tasks;
             namespace FunctionProviderGenerator
              {
-                internal class FunctionGenerator: IFunctionProvider
+                public class DefaultFunctionProvider: IFunctionProvider
                 {
                     private List<FunctionMetadata> _metadataList;
-                    public FunctionGenerator(FunctionMetadata metadata)
+                    public DefaultFunctionProvider()
                     {
                         _metadataList = new List<FunctionMetadata>();
-                        _metadataList.Add(metadata);
                     }
                     public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }
                     public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
                     {
                         return Task.FromResult(_metadataList.ToImmutableArray());
                     }
+                    
+                    public void LoadFunctionMetadata()
+                    {
+                    }
                 }
              }");
 
 
             // inject the created source into the users compilation
-            context.AddSource("functionGenerator", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+            context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
         }
 
         public void Initialize(InitializationContext context)

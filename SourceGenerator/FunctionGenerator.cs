@@ -1,6 +1,10 @@
-﻿using System.Text;
+﻿using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
+using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Mono.Cecil;
 
 namespace SourceGenerator
 {
@@ -19,22 +23,78 @@ namespace SourceGenerator
              {
                 public class DefaultFunctionProvider : IFunctionProvider
                 {
-                    private List<FunctionMetadata> _metadataList;
-                    public DefaultFunctionProvider()
-                    {
-                        _metadataList = new List<FunctionMetadata>();
-                    }
                     public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }
+
                     public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
                     {
-                        return Task.FromResult(_metadataList.ToImmutableArray());
+                        var metadataList = new List<FunctionMetadata>();");
+
+            //var compilation = context.Compilation;
+            //var assembly = compilation.Assembly;
+            var assemblyPath = Assembly.GetExecutingAssembly().Location;
+            var assemblyRoot = Path.GetDirectoryName(assemblyPath);
+
+            var resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(assemblyRoot);
+
+            var readerParams = new ReaderParameters
+            {
+                AssemblyResolver = resolver
+            };
+
+            var module = ModuleDefinition.ReadModule(assemblyPath, readerParams);
+
+            IEnumerable<TypeDefinition> types = module.Types;
+
+            foreach (TypeDefinition type in types)
+            {
+                foreach (var method in type.Methods)
+                {
+                    if (method.HasFunctionNameAttribute())
+                    {
+                        if (method.HasUnsuportedAttributes(out string error))
+                        {
+                            //_logger.LogError(error);
+                            //yield return null;
+                        }
+                        else if (method.IsWebJobsSdkMethod())
+                        {
+                            var functionName = method.GetSdkFunctionName();
+                            sourceBuilder.Append(@" 
+                                var metadata = new FunctionMetadata
+                                {
+                                    Name = """);
+                            sourceBuilder.Append(functionName);
+                            sourceBuilder.Append(@" "",
+                                    ScriptFile = ""this dll"",
+                                    EntryPoint = ""the method"",
+                                    Language = ""dotnet5""
+                                }; ");
+                        }
+
+                    }
+                }
+            }
+
+            sourceBuilder.Append(@"
+                            // Add all bindings
+                            metadata.Bindings.Add(new BindingMetadata
+                        {
+                            Name = ""req"",
+                            Direction = BindingDirection.In,
+                            Type = ""HttpTrigger""
+                        });");
+
+            sourceBuilder.Append(@"
+                        metadataList.Add(metadata);
+                        return Task.FromResult(metadataList.ToImmutableArray());
                     }
                     
                     public void LoadFunctionMetadata()
                     {
                     }
-                }
-             }");
+                   }
+                 }");
 
 
             // inject the created source into the users compilation
@@ -45,6 +105,7 @@ namespace SourceGenerator
         {
             // No initialization required for this one
         }
+
     }
 
 }

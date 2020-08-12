@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
@@ -10,12 +9,12 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 {
     internal class FunctionBroker : IFunctionBroker
     {
-        private Dictionary<string, FunctionDescriptor> _functionMap = new Dictionary<string, FunctionDescriptor>();
+        private Dictionary<string, FunctionDefinition> _functionMap = new Dictionary<string, FunctionDefinition>();
         private FunctionExecutionDelegate _functionExecutionDelegate;
         private IFunctionExecutionContextFactory _functionExecutionContextFactory;
-        private IFunctionDescriptorFactory _functionDescriptorFactory;
+        private IFunctionDefinitionFactory _functionDescriptorFactory;
 
-        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory, IFunctionDescriptorFactory functionDescriptorFactory)
+        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory, IFunctionDefinitionFactory functionDescriptorFactory)
         {
             _functionExecutionDelegate = functionExecutionDelegate;
             _functionExecutionContextFactory = functionExecutionContextFactory;
@@ -24,8 +23,8 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
         {
-            FunctionDescriptor functionDescriptor = _functionDescriptorFactory.Create(functionLoadRequest);
-            _functionMap.Add(functionDescriptor.FunctionId, functionDescriptor);
+            FunctionDefinition functionDefinition = _functionDescriptorFactory.Create(functionLoadRequest);
+            _functionMap.Add(functionDefinition.Metadata.FunctionId, functionDefinition);
         }
 
         public async Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)
@@ -35,12 +34,12 @@ namespace Microsoft.Azure.Functions.DotNetWorker
                 InvocationId = invocationRequest.InvocationId
             };
 
-            FunctionExecutionContext executionContext = null;  
+            FunctionExecutionContext executionContext = null;
 
             try
             {
                 executionContext = _functionExecutionContextFactory.Create(invocationRequest);
-                executionContext.FunctionDescriptor = _functionMap[invocationRequest.FunctionId];
+                executionContext.FunctionDefinition = _functionMap[invocationRequest.FunctionId];
 
                 await _functionExecutionDelegate(executionContext);
                 var parameterBindings = executionContext.ParameterBindings;
@@ -67,7 +66,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             {
                 (executionContext as IDisposable)?.Dispose();
             }
-      
+
             return response;
         }
     }

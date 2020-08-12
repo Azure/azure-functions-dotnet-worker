@@ -1,36 +1,33 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.DotNetWorker.Logging;
+using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
+namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
 {
-    internal class DefaultFunctionInvoker : IFunctionInvoker
+    internal class DefaultFunctionExecutor : IFunctionExecutor
     {
-        ParameterConverterManager _parameterConverterManager;
-        ChannelWriter<StreamingMessage> _workerChannel;
-        private IFunctionInstanceFactory _functionInstanceFactory;
+        private readonly ParameterConverterManager _parameterConverterManager;
+        private readonly ChannelWriter<StreamingMessage> _workerChannel;
 
-        public DefaultFunctionInvoker(ParameterConverterManager parameterConverterManager, FunctionsHostOutputChannel outputChannel, IFunctionInstanceFactory functionInstanceFactory)
+        public DefaultFunctionExecutor(ParameterConverterManager parameterConverterManager, FunctionsHostOutputChannel outputChannel)
         {
             _parameterConverterManager = parameterConverterManager;
             _workerChannel = outputChannel.Channel.Writer;
-            _functionInstanceFactory = functionInstanceFactory;
         }
 
-        public Task InvokeAsync(FunctionExecutionContext context)
+        public async Task ExecuteAsync(FunctionExecutionContext context)
         {
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
             List<object> invocationParameters = new List<object>();
-            FunctionDescriptor functionDescriptor = context.FunctionDescriptor;
-            var pi = functionDescriptor.FuncParamInfo;
+            FunctionMetadata functionMetadata = context.FunctionDefinition.Metadata;
+            var pi = functionMetadata.FuncParamInfo;
             InvocationRequest invocationRequest = context.InvocationRequest;
             foreach (var param in pi)
             {
@@ -66,7 +63,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
             }
 
             var invocationParamArray = invocationParameters.ToArray();
-            object result = InvokeFunction(functionDescriptor, invocationParamArray, _functionInstanceFactory);
+            object result = await InvokeFunctionAsync(context, invocationParamArray);
 
             foreach (var binding in bindingParametersDict)
             {
@@ -81,7 +78,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
             }
 
             context.InvocationResult = result;
-            return Task.CompletedTask;
         }
 
         private object ConvertParameter(ParameterInfo param, TypedData value, ParameterConverterManager converterManager)
@@ -114,18 +110,17 @@ namespace Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker
             return target;
         }
 
-        private object InvokeFunction(FunctionDescriptor functionDescriptor, object[] invocationParamArray, IFunctionInstanceFactory functionInstanceFactory)
+        private Task<object> InvokeFunctionAsync(FunctionExecutionContext context, object[] invocationParamArray)
         {
-            MethodInfo mi = functionDescriptor.FuncMethodInfo;
-            if (mi.IsStatic)
+            IFunctionInvoker? invoker = context.FunctionDefinition.Invoker;
+
+            if (invoker == null)
             {
-                return mi.Invoke(null, invocationParamArray);
+                throw new InvalidOperationException("Invoker cannot be null.");
             }
-            else
-            {
-                object instanceObject = functionInstanceFactory.CreateInstance(functionDescriptor.FunctionType);
-                return mi.Invoke(instanceObject, invocationParamArray);
-            }
+
+            object instance = invoker.CreateInstance(context.InstanceServices);
+            return invoker.InvokeAsync(instance, invocationParamArray);
         }
     }
 }

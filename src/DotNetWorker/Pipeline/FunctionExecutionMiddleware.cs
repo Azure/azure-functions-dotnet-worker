@@ -1,20 +1,20 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
+using Microsoft.Azure.Functions.DotNetWorker.Invocation;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
     internal class FunctionExecutionMiddleware
     {
-        IFunctionInvoker _functionInvoker;
+        IFunctionExecutor _functionExecutor;
 
-        public FunctionExecutionMiddleware(IFunctionInvoker functionInvoker)
+        public FunctionExecutionMiddleware(IFunctionExecutor functionExecutor)
         {
-            _functionInvoker = functionInvoker;
+            _functionExecutor = functionExecutor;
         }
 
         public Task Invoke(FunctionExecutionContext context)
         {
-            return _functionInvoker.InvokeAsync(context);
+            return _functionExecutor.ExecuteAsync(context);
         }
     }
 }

@@ -8,11 +8,11 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
-    internal class DefaultFunctionExecutionFactory : IFunctionExecutionContextFactory
+    internal class DefaultFunctionExecutionContextFactory : IFunctionExecutionContextFactory
     {
         private IServiceScopeFactory _serviceScopeFactory;
 
-        public DefaultFunctionExecutionFactory(IServiceScopeFactory serviceScopeFactory)
+        public DefaultFunctionExecutionContextFactory(IServiceScopeFactory serviceScopeFactory)
         {
             _serviceScopeFactory = serviceScopeFactory;
         }

@@ -2,8 +2,7 @@
 using System.Threading.Channels;
 using Grpc.Core;
 using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
-using Microsoft.Azure.Functions.DotNetWorker.FunctionInvoker;
+using Microsoft.Azure.Functions.DotNetWorker.Invocation;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
@@ -39,15 +38,19 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             // Request handling
             services.AddSingleton<IFunctionsHostClient, DefaultFunctionsHostClient>();
             services.AddSingleton<IHostRequestHandler, DefaultHostRequestHandler>();
-            services.AddSingleton<IFunctionInstanceFactory, DefaultFunctionInstanceFactory>();
             services.AddSingleton<IFunctionBroker, FunctionBroker>();
-            services.AddSingleton<IFunctionInvoker, DefaultFunctionInvoker>();
+
+            // Execution
+            services.AddSingleton<IFunctionInvokerFactory, DefaultFunctionInvokerFactory>();
+            services.AddSingleton<IMethodInvokerFactory, DefaultMethodInvokerFactory>();
+            services.AddSingleton<IFunctionActivator, DefaultFunctionActivator>();
+            services.AddSingleton<IFunctionExecutor, DefaultFunctionExecutor>();
 
             // Function Execution Contexts
-            services.AddSingleton<IFunctionExecutionContextFactory, DefaultFunctionExecutionFactory>();
+            services.AddSingleton<IFunctionExecutionContextFactory, DefaultFunctionExecutionContextFactory>();
 
-            // Function Descriptor
-            services.AddSingleton<IFunctionDescriptorFactory, DefaultFunctionDescriptorFactory>();
+            // Function Definition
+            services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();
 
             // gRpc
             services.AddSingleton<FunctionRpcClient>(p =>

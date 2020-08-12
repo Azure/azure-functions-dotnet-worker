@@ -159,5 +159,16 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
             return typedData;
         }
+
+        internal static FunctionMetadata ToFunctionMetadata(this FunctionLoadRequest loadRequest)
+        {
+            return new FunctionMetadata
+            {
+                EntryPoint = loadRequest.Metadata.EntryPoint,
+                FuncName = loadRequest.Metadata.Name,
+                PathToAssembly = loadRequest.Metadata.ScriptFile,
+                FunctionId = loadRequest.FunctionId
+            };
+        }
     }
 }

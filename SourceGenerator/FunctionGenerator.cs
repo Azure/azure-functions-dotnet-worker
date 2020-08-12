@@ -23,6 +23,7 @@ namespace SourceGenerator
             using Microsoft.Azure.WebJobs;
             using Microsoft.Azure.WebJobs.Hosting;
             using Microsoft.Extensions.DependencyInjection;
+            using 
 
             [assembly: WebJobsStartup(typeof(Startup))]
 

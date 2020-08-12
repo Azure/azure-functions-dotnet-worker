@@ -19,8 +19,23 @@ namespace SourceGenerator
             using System.Collections.Immutable;
             using System.Collections.Generic;
             using System.Threading.Tasks;
+            using FunctionApp;
+            using Microsoft.Azure.WebJobs;
+            using Microsoft.Azure.WebJobs.Hosting;
+            using Microsoft.Extensions.DependencyInjection;
+
+            [assembly: WebJobsStartup(typeof(Startup))]
+
             namespace FunctionProviderGenerator
              {
+                public class Startup : IWebJobsStartup
+                {
+                    public void Configure(IWebJobsBuilder builder)
+                    {
+                        builder.Services.AddSingleton<IFunctionProvider, DefaultFunctionProvider>();
+                    }
+                }
+
                 public class DefaultFunctionProvider : IFunctionProvider
                 {
                     public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }

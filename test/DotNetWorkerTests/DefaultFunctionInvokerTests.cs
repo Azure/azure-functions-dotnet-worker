@@ -1,0 +1,196 @@
+﻿using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Channels;
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.DotNetWorker;
+using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.DotNetWorker.Invocation;
+using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Xunit;
+
+namespace Microsoft.Azure.Functions.DotNetWorkerTests
+{
+    public class DefaultFunctionInvokerTests
+    {
+        private readonly DefaultFunctionExecutor _executor;
+        private readonly Channel<StreamingMessage> _channel;
+        private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
+
+        public DefaultFunctionInvokerTests()
+        {
+            _channel = Channel.CreateUnbounded<StreamingMessage>();
+            var outputChannel = new FunctionsHostOutputChannel(_channel);
+
+            var converters = Enumerable.Empty<IParameterConverter>();
+            _executor = new DefaultFunctionExecutor(new ParameterConverterManager(converters), outputChannel);
+
+            var functionActivator = new DefaultFunctionActivator();
+            var methodInvokerFactory = new DefaultMethodInvokerFactory();
+            _functionInvokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, functionActivator);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_FunctionWithReturn()
+        {
+            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithVoidReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Null(context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_FunctionWithVoidReturn()
+        {
+            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Equal("done", context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_FunctionWithTaskReturn()
+        {
+
+            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithTaskReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Equal("done", context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_FunctionWithVoidTaskReturn()
+        {
+            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithVoidTaskReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Null(context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_StaticFunctionWithReturn()
+        {
+            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Null(context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_StaticFunctionWithVoidReturn()
+        {
+            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Equal("done", context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_StaticFunctionWithTaskReturn()
+        {
+
+            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithTaskReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Equal("done", context.InvocationResult);
+        }
+
+        [Fact]
+        public async Task InvokeAsync_StaticFunctionWithVoidTaskReturn()
+        {
+            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidTaskReturn));
+
+            var context = CreateContext(mi);
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Null(context.InvocationResult);
+        }
+
+        private FunctionExecutionContext CreateContext(MethodInfo mi)
+        {
+            var context = new TestFunctionExecutionContext();
+
+            var metadata = new FunctionMetadata
+            {
+                FuncParamInfo = mi.GetParameters().ToImmutableArray()
+            };
+
+            context.FunctionDefinition = new FunctionDefinition
+            {
+                Metadata = metadata,
+                Invoker = _functionInvokerFactory.Create(mi)
+            };
+
+            return context;
+        }
+
+        private class Functions
+        {
+            public void FunctionWithVoidReturn()
+            {
+            }
+
+            public string FunctionWithReturn()
+            {
+                return "done";
+            }
+
+            public async Task FunctionWithVoidTaskReturn()
+            {
+                await Task.Delay(100);
+            }
+
+            public async Task<string> FunctionWithTaskReturn()
+            {
+                await Task.Delay(100);
+                return "done";
+            }
+        }
+
+        private static class StaticFunctions
+        {
+            public static void StaticFunctionWithVoidReturn()
+            {
+            }
+
+            public static string StaticFunctionWithReturn()
+            {
+                return "done";
+            }
+
+            public static async Task StaticFunctionWithVoidTaskReturn()
+            {
+                await Task.Delay(100);
+            }
+
+            public static async Task<string> StaticFunctionWithTaskReturn()
+            {
+                await Task.Delay(100);
+                return "done";
+            }
+        }
+    }
+}

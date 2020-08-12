@@ -1,23 +1,26 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
+﻿using System;
+using System.Collections.Generic;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
-using System;
-using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
 {
     public abstract class FunctionExecutionContext
     {
-        // created on construction
-        public abstract RpcTraceContext TraceContext { get; }
-        public abstract InvocationRequest InvocationRequest { get; }
-        public abstract IServiceProvider InstanceServices { get; }
+        public abstract RpcTraceContext TraceContext { get; set; }
 
-        // settable properties
-        public abstract FunctionDescriptor FunctionDescriptor { get; set; }
+        public abstract InvocationRequest InvocationRequest { get; set; }
+
+        public abstract IServiceProvider InstanceServices { get; set; }
+
+        public abstract FunctionDefinition FunctionDefinition { get; set; }
+
         public abstract object InvocationResult { get; set; }
+
         public abstract InvocationLogger Logger { get; set; }
+
         public abstract List<ParameterBinding> ParameterBindings { get; set; }
+
         public abstract IDictionary<object, object> Items { get; set; }
     }
 }

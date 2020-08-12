@@ -1,6 +1,4 @@
-﻿using System.Reflection;
-using System.Resources;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
 
 [assembly: InternalsVisibleTo("Microsoft.Azure.Functions.DotNetWorkerTests")]
+[assembly: InternalsVisibleTo("DynamicProxyGenAssembly2")]

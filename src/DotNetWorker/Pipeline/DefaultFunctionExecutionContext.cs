@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.DotNetWorker.Descriptor;
 using Microsoft.Azure.Functions.DotNetWorker.Logging;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -11,8 +10,9 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     public class DefaultFunctionExecutionContext : FunctionExecutionContext, IDisposable
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
-        private IServiceScope _instanceServicesScope;
-        private IServiceProvider _instanceServices;
+
+        private IServiceScope? _instanceServicesScope;
+        private IServiceProvider? _instanceServices;
 
         public DefaultFunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, InvocationRequest invocationRequest)
         {
@@ -21,18 +21,21 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             TraceContext = invocationRequest.TraceContext;
         }
 
-        // created on construction
-        public override RpcTraceContext TraceContext { get; }
-        public override InvocationRequest InvocationRequest { get; }
+        public override RpcTraceContext TraceContext { get; set; }
 
-        // settable properties
-        public override FunctionDescriptor FunctionDescriptor { get; set; }
+        public override InvocationRequest InvocationRequest { get; set; }
+
+        public override FunctionDefinition FunctionDefinition { get; set; }
+
         public override object InvocationResult { get; set; }
+
         public override InvocationLogger Logger { get; set; }
+
         public override List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
+
         public override IDictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
 
-        public override IServiceProvider InstanceServices
+        public override IServiceProvider? InstanceServices
         {
             get
             {
@@ -44,6 +47,8 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 
                 return _instanceServices;
             }
+
+            set { _instanceServices = value; }
         }
 
         public void Dispose()

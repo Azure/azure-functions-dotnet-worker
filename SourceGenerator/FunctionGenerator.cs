@@ -1,10 +1,8 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
-using Mono.Cecil;
 
 namespace SourceGenerator
 {
@@ -19,99 +17,55 @@ namespace SourceGenerator
             using System.Collections.Immutable;
             using System.Collections.Generic;
             using System.Threading.Tasks;
-            using FunctionApp;
+            using FunctionProviderGenerator;
             using Microsoft.Azure.WebJobs;
             using Microsoft.Azure.WebJobs.Hosting;
             using Microsoft.Extensions.DependencyInjection;
-            using 
-
+ 
             [assembly: WebJobsStartup(typeof(Startup))]
-
+ 
             namespace FunctionProviderGenerator
              {
                 public class Startup : IWebJobsStartup
                 {
                     public void Configure(IWebJobsBuilder builder)
-                    {
-                        builder.Services.AddSingleton<IFunctionProvider, DefaultFunctionProvider>();
+                    {              
                     }
                 }
+             }");
 
-                public class DefaultFunctionProvider : IFunctionProvider
-                {
-                    public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }
+            // retreive the populated receiver 
+            if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+                return;
 
-                    public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
-                    {
-                        var metadataList = new List<FunctionMetadata>();");
+            Compilation compilation = context.Compilation;
 
-            //var compilation = context.Compilation;
-            //var assembly = compilation.Assembly;
-            var assemblyPath = Assembly.GetExecutingAssembly().Location;
-            var assemblyRoot = Path.GetDirectoryName(assemblyPath);
-
-            var resolver = new DefaultAssemblyResolver();
-            resolver.AddSearchDirectory(assemblyRoot);
-
-            var readerParams = new ReaderParameters
+            // loop over the candidate fields, and keep the ones that are actually annotated
+            List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
+            foreach (ParameterSyntax parameter in receiver.CandidateParameters)
             {
-                AssemblyResolver = resolver
-            };
+                SemanticModel model = compilation.GetSemanticModel(parameter.SyntaxTree);
 
-            var module = ModuleDefinition.ReadModule(assemblyPath, readerParams);
-
-            IEnumerable<TypeDefinition> types = module.Types;
-
-            foreach (TypeDefinition type in types)
-            {
-                foreach (var method in type.Methods)
+                foreach (AttributeListSyntax attribute in parameter.AttributeLists)
                 {
-                    if (method.HasFunctionNameAttribute())
-                    {
-                        if (method.HasUnsuportedAttributes(out string error))
-                        {
-                            //_logger.LogError(error);
-                            //yield return null;
-                        }
-                        else if (method.IsWebJobsSdkMethod())
-                        {
-                            var functionName = method.GetSdkFunctionName();
-                            sourceBuilder.Append(@" 
-                                var metadata = new FunctionMetadata
-                                {
-                                    Name = """);
-                            sourceBuilder.Append(functionName);
-                            sourceBuilder.Append(@" "",
-                                    ScriptFile = ""this dll"",
-                                    EntryPoint = ""the method"",
-                                    Language = ""dotnet5""
-                                }; ");
-                        }
+                    // get functionName
+                    var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
+                    var functionName = functionClass.Identifier.ValueText;
+                    // get ScriptFile
+                    var scriptFile = parameter.SyntaxTree.FilePath;
+                    // get entry point (method name i think)
+                    var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
+                    var entryPoint = functionMethod.Identifier.ValueText;
+                    var language = "dotnet5";
 
-                    }
+                    // build new function metadata with info above
+
+                    // create binding metadata w/ info below and add to function metadata created above
+                    var triggerName = parameter.Identifier.ValueText; // correct
+                    var triggerDirection = "BindingDirection.In"; //hard code binding direction for now? 
+                    var triggerType = "trigger"; // parameter.Type.ToString(); returns the type like HttpRequestData not TriggerType
                 }
             }
-
-            sourceBuilder.Append(@"
-                            // Add all bindings
-                            metadata.Bindings.Add(new BindingMetadata
-                        {
-                            Name = ""req"",
-                            Direction = BindingDirection.In,
-                            Type = ""HttpTrigger""
-                        });");
-
-            sourceBuilder.Append(@"
-                        metadataList.Add(metadata);
-                        return Task.FromResult(metadataList.ToImmutableArray());
-                    }
-                    
-                    public void LoadFunctionMetadata()
-                    {
-                    }
-                   }
-                 }");
-
 
             // inject the created source into the users compilation
             context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
@@ -119,9 +73,30 @@ namespace SourceGenerator
 
         public void Initialize(InitializationContext context)
         {
-            // No initialization required for this one
+            // Register a syntax receiver that will be created for each generation pass
+            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
+        /// <summary>
+        /// Created on demand before each generation pass
+        /// </summary>
+        private class SyntaxReceiver : ISyntaxReceiver
+        {
+            public List<ParameterSyntax> CandidateParameters { get; } = new List<ParameterSyntax>();
+
+            /// <summary>
+            /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
+            /// </summary>
+            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+            {
+                // any field with at least one attribute is a candidate for property generation
+                if (syntaxNode is ParameterSyntax parameterSyntax
+                    && parameterSyntax.AttributeLists.Count > 0)
+                {
+                    CandidateParameters.Add(parameterSyntax);
+                }
+            }
+        }
     }
 
 }

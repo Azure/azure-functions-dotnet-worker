@@ -31,8 +31,16 @@ namespace SourceGenerator
                     public void Configure(IWebJobsBuilder builder)
                     {              
                     }
-                }
-             }");
+                }");
+
+            sourceBuilder.Append(@"
+             public class DefaultFunctionProvider : IFunctionProvider
+            {
+                public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }
+
+                public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
+                {
+                    var metadataList = new List<FunctionMetadata>();");
 
             // retreive the populated receiver 
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
@@ -48,24 +56,51 @@ namespace SourceGenerator
 
                 foreach (AttributeListSyntax attribute in parameter.AttributeLists)
                 {
-                    // get functionName
-                    var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
-                    var functionName = functionClass.Identifier.ValueText;
-                    // get ScriptFile
-                    var scriptFile = parameter.SyntaxTree.FilePath;
-                    // get entry point (method name i think)
-                    var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
-                    var entryPoint = functionMethod.Identifier.ValueText;
-                    var language = "dotnet5";
+                    var attributeName = attribute.Attributes.First().Name.ToString(); // idk if this works how many attributes are gonna be on a parameter
 
-                    // build new function metadata with info above
+                    if (attributeName.Contains("Trigger"))
+                    {
+                        // get functionName
+                        var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
+                        var functionName = functionClass.Identifier.ValueText;
+                        // get ScriptFile
+                        var scriptFile = parameter.SyntaxTree.FilePath;
+                        // get entry point (method name i think)
+                        var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
+                        var entryPoint = functionMethod.Identifier.ValueText;
+                        var language = "dotnet5";
 
-                    // create binding metadata w/ info below and add to function metadata created above
-                    var triggerName = parameter.Identifier.ValueText; // correct
-                    var triggerDirection = "BindingDirection.In"; //hard code binding direction for now? 
-                    var triggerType = "trigger"; // parameter.Type.ToString(); returns the type like HttpRequestData not TriggerType
+                        // create binding metadata w/ info below and add to function metadata created above
+                        var triggerName = parameter.Identifier.ValueText; // correct? 
+                        var triggerType = attributeName;
+
+                        /*sourceBuilder.Append(@"
+                             var metadata = new FunctionMetadata
+                             {
+                                 Name = """ + functionName + @""",
+                                 ScriptFile = """ + scriptFile + @""",
+                                 EntryPoint = """ + entryPoint + @""",
+                                 Language = ""dotnet5""
+                             };
+
+                             metadata.Bindings.Add(new BindingMetadata
+                             {
+                                 Name = """ + triggerName + @""",
+                                 Direction = ""BindingDirection.In"",
+                                 Type = """ + triggerType + @"""
+                             });
+                             metadataList.Add(metadata);");*/
+                    }
                 }
             }
+
+
+
+            sourceBuilder.Append(@"
+                    return Task.FromResult(metadataList.ToImmutableArray());
+                  }
+               }
+            }");
 
             // inject the created source into the users compilation
             context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));

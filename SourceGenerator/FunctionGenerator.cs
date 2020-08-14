@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -64,32 +65,35 @@ namespace SourceGenerator
                         var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
                         var functionName = functionClass.Identifier.ValueText;
                         // get ScriptFile
-                        var scriptFile = parameter.SyntaxTree.FilePath;
+                        var scriptFile = Path.Combine(parameter.SyntaxTree.FilePath).Replace(@"\", @"\\");
                         // get entry point (method name i think)
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
                         var entryPoint = functionMethod.Identifier.ValueText;
-                        var language = "dotnet5";
 
                         // create binding metadata w/ info below and add to function metadata created above
                         var triggerName = parameter.Identifier.ValueText; // correct? 
                         var triggerType = attributeName;
 
-                        /*sourceBuilder.Append(@"
-                             var metadata = new FunctionMetadata
+                        sourceBuilder.Append(@"
+                             var " + functionName + @"= new FunctionMetadata
                              {
-                                 Name = """ + functionName + @""",
-                                 ScriptFile = """ + scriptFile + @""",
-                                 EntryPoint = """ + entryPoint + @""",
+                                 Name = """ + functionName);
+                        sourceBuilder.Append(@""",
+                                ScriptFile = """ + scriptFile);
+                        sourceBuilder.Append(@""",
+                                 EntryPoint = """ + entryPoint);
+                        sourceBuilder.Append(@""",
                                  Language = ""dotnet5""
-                             };
-
-                             metadata.Bindings.Add(new BindingMetadata
+                             };" +
+                             functionName + @".Bindings.Add(new BindingMetadata
                              {
-                                 Name = """ + triggerName + @""",
-                                 Direction = ""BindingDirection.In"",
-                                 Type = """ + triggerType + @"""
-                             });
-                             metadataList.Add(metadata);");*/
+                                 Name = """ + triggerName);
+                        sourceBuilder.Append(@""",
+                                 Direction = BindingDirection.In,
+                                 Type = """ + triggerType);
+                        sourceBuilder.Append(@"""
+                            });
+                             metadataList.Add(" + functionName + ");");
                     }
                 }
             }

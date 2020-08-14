@@ -30,7 +30,8 @@ namespace SourceGenerator
                 public class Startup : IWebJobsStartup
                 {
                     public void Configure(IWebJobsBuilder builder)
-                    {              
+                    {           
+                        builder.Services.AddSingleton<IFunctionProvider, DefaultFunctionProvider>();
                     }
                 }");
 

@@ -55,6 +55,7 @@ namespace SourceGenerator
             foreach (ParameterSyntax parameter in receiver.CandidateParameters)
             {
                 SemanticModel model = compilation.GetSemanticModel(parameter.SyntaxTree);
+                var assemblyName = compilation.Assembly.Name;
 
                 foreach (AttributeListSyntax attribute in parameter.AttributeLists)
                 {
@@ -69,7 +70,7 @@ namespace SourceGenerator
                         var scriptFile = Path.Combine(parameter.SyntaxTree.FilePath).Replace(@"\", @"\\");
                         // get entry point (method name i think)
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
-                        var entryPoint = functionMethod.Identifier.ValueText;
+                        var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;
 
                         // create binding metadata w/ info below and add to function metadata created above
                         var triggerName = parameter.Identifier.ValueText; // correct? 

@@ -68,6 +68,7 @@ namespace SourceGenerator
                         var functionName = functionClass.Identifier.ValueText;
                         // get ScriptFile
                         var scriptFile = Path.Combine(parameter.SyntaxTree.FilePath).Replace(@"\", @"\\");
+                        //var scriptFile = "../bin/FunctionApp.dll";
                         // get entry point (method name i think)
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
                         var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;

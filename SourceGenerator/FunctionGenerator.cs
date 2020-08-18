@@ -22,6 +22,9 @@ namespace SourceGenerator
             using Microsoft.Azure.WebJobs;
             using Microsoft.Azure.WebJobs.Hosting;
             using Microsoft.Extensions.DependencyInjection;
+            using Newtonsoft.Json;
+            using Newtonsoft.Json.Converters;
+            using Newtonsoft.Json.Linq;
  
             [assembly: WebJobsStartup(typeof(Startup))]
  
@@ -42,7 +45,8 @@ namespace SourceGenerator
 
                 public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
                 {
-                    var metadataList = new List<FunctionMetadata>();");
+                    var metadataList = new List<FunctionMetadata>();
+                    var raw = new JObject();");
 
             // retreive the populated receiver 
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
@@ -63,19 +67,21 @@ namespace SourceGenerator
 
                     if (attributeName.Contains("Trigger"))
                     {
-                        // get functionName
                         var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
                         var functionName = functionClass.Identifier.ValueText;
-                        // get ScriptFile
                         var scriptFile = Path.Combine(parameter.SyntaxTree.FilePath).Replace(@"\", @"\\");
                         //var scriptFile = "../bin/FunctionApp.dll";
-                        // get entry point (method name i think)
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
                         var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;
 
                         // create binding metadata w/ info below and add to function metadata created above
                         var triggerName = parameter.Identifier.ValueText; // correct? 
                         var triggerType = attributeName;
+
+                        sourceBuilder.Append(@"raw = new JObject();
+                        raw[""name""] = """ + triggerName + @""";
+                        raw[""direction""] = ""Binding.In"";
+                        raw[""type""] = """ + triggerType + @""";");
 
                         sourceBuilder.Append(@"
                              var " + functionName + @"= new FunctionMetadata
@@ -86,16 +92,9 @@ namespace SourceGenerator
                         sourceBuilder.Append(@""",
                                  EntryPoint = """ + entryPoint);
                         sourceBuilder.Append(@""",
-                                 Language = ""dotnet5""
+                                 Language = ""dotnet5"", 
                              };" +
-                             functionName + @".Bindings.Add(new BindingMetadata
-                             {
-                                 Name = """ + triggerName);
-                        sourceBuilder.Append(@""",
-                                 Direction = BindingDirection.In,
-                                 Type = """ + triggerType);
-                        sourceBuilder.Append(@"""
-                            });
+                             functionName + @".Bindings.Add(BindingMetadata.Create(raw));
                              metadataList.Add(" + functionName + ");");
                     }
                 }
@@ -115,8 +114,12 @@ namespace SourceGenerator
 
         public void Initialize(InitializationContext context)
         {
+#if DEBUG
+            //Debugger.Launch();
+#endif
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+
         }
 
         /// <summary>

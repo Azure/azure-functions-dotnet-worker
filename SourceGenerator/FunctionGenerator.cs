@@ -1,5 +1,8 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,6 +24,7 @@ namespace SourceGenerator
             using FunctionProviderGenerator;
             using Microsoft.Azure.WebJobs;
             using Microsoft.Azure.WebJobs.Hosting;
+            using Microsoft.Azure.WebJobs.Extensions.Http;
             using Microsoft.Extensions.DependencyInjection;
             using Newtonsoft.Json;
             using Newtonsoft.Json.Converters;
@@ -63,13 +67,17 @@ namespace SourceGenerator
 
                 foreach (AttributeListSyntax attribute in parameter.AttributeLists)
                 {
-                    var attributeName = attribute.Attributes.First().Name.ToString(); // idk if this works how many attributes are gonna be on a parameter
+                    var attributeName = attribute.Attributes.First().Name.ToString(); // TODO: see how this is affected when there are multiple attributes, but should only have one trigger at a time anyways
+                    var attributeSymbolInfo = model.GetSymbolInfo(attribute.Attributes.First().Name);
+                    var attributeType = attributeSymbolInfo.Symbol.ContainingType;
+                    var attributeAssembly = attributeSymbolInfo.Symbol.ContainingAssembly;
 
                     if (attributeName.Contains("Trigger"))
                     {
+
                         var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
                         var functionName = functionClass.Identifier.ValueText;
-                        var scriptFile = Path.Combine(parameter.SyntaxTree.FilePath).Replace(@"\", @"\\");
+                        var scriptFile = Path.Combine("../bin/" + assemblyName + ".dll");
                         //var scriptFile = "../bin/FunctionApp.dll";
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
                         var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;
@@ -78,10 +86,16 @@ namespace SourceGenerator
                         var triggerName = parameter.Identifier.ValueText; // correct? 
                         var triggerType = attributeName;
 
+                        // create raw JObject for the BindingMetadata
                         sourceBuilder.Append(@"raw = new JObject();
                         raw[""name""] = """ + triggerName + @""";
                         raw[""direction""] = ""in"";
                         raw[""type""] = """ + triggerType + @""";");
+
+                        Assembly assembly = Assembly.LoadFrom("./bin/Debug/net5.0/" + attributeAssembly.Name.ToString() + ".dll");
+                        var triggerObjectType = assembly.GetType(attributeType.Name.ToString());
+                        var triggerObject = Activator.CreateInstance(triggerObjectType);
+
 
                         sourceBuilder.Append(@"
                              var " + functionName + @"= new FunctionMetadata
@@ -115,7 +129,7 @@ namespace SourceGenerator
         public void Initialize(InitializationContext context)
         {
 #if DEBUG
-            //Debugger.Launch();
+            Debugger.Launch();
 #endif
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());

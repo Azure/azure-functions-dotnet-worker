@@ -80,7 +80,7 @@ namespace SourceGenerator
 
                         sourceBuilder.Append(@"raw = new JObject();
                         raw[""name""] = """ + triggerName + @""";
-                        raw[""direction""] = ""Binding.In"";
+                        raw[""direction""] = ""in"";
                         raw[""type""] = """ + triggerType + @""";");
 
                         sourceBuilder.Append(@"

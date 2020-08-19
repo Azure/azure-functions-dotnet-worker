@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -50,7 +48,8 @@ namespace SourceGenerator
                 public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
                 {
                     var metadataList = new List<FunctionMetadata>();
-                    var raw = new JObject();");
+                    var raw = new JObject();
+                    var httpMethod = new JArray();");
 
             // retreive the populated receiver 
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
@@ -69,8 +68,8 @@ namespace SourceGenerator
                 {
                     var attributeName = attribute.Attributes.First().Name.ToString(); // TODO: see how this is affected when there are multiple attributes, but should only have one trigger at a time anyways
                     var attributeSymbolInfo = model.GetSymbolInfo(attribute.Attributes.First().Name);
-                    var attributeType = attributeSymbolInfo.Symbol.ContainingType;
-                    var attributeAssembly = attributeSymbolInfo.Symbol.ContainingAssembly;
+                    //var attributeType = attributeSymbolInfo.Symbol.ContainingType;
+                    //var attributeAssembly = attributeSymbolInfo.Symbol.ContainingAssembly;
 
                     if (attributeName.Contains("Trigger"))
                     {
@@ -90,11 +89,45 @@ namespace SourceGenerator
                         sourceBuilder.Append(@"raw = new JObject();
                         raw[""name""] = """ + triggerName + @""";
                         raw[""direction""] = ""in"";
-                        raw[""type""] = """ + triggerType + @""";");
+                        raw[""type""] = """ + triggerType + @""";
+                        httpMethod = new JArray();");
 
-                        Assembly assembly = Assembly.LoadFrom("./bin/Debug/net5.0/" + attributeAssembly.Name.ToString() + ".dll");
-                        var triggerObjectType = assembly.GetType(attributeType.Name.ToString());
-                        var triggerObject = Activator.CreateInstance(triggerObjectType);
+                        var triggerArguments = attribute.Attributes.First().ArgumentList.Arguments;
+                        foreach (var arg in triggerArguments)
+                        {
+                            if (arg.Expression is LiteralExpressionSyntax)
+                            {
+                                if (triggerType == "HttpTrigger")
+                                {
+                                    sourceBuilder.Append(@"
+                                    if (raw[""method""] != null)
+                                    {
+                                        httpMethod.Add(" + arg.Expression.ToString() + @");
+                                    }
+                                    else
+                                    {
+                                        raw[""method""] = httpMethod;
+                                        httpMethod.Add(" + arg.Expression.ToString() + @");
+                                    }
+                                    ");
+                                }
+                                else if (triggerType == "QueueTrigger")
+                                {
+                                    sourceBuilder.Append(@"raw[""queueName""] = " + arg.Expression.ToString() + @";");
+                                }
+                            }
+                            else
+                            {
+                                var argSymbol = model.GetSymbolInfo(arg.Expression);
+                                var argVal = argSymbol.Symbol.Name;
+                                var argType = argSymbol.Symbol.ContainingType.Name;
+                            }
+                        }
+
+                        //Assembly assembly = Assembly.LoadFile("C:\\repos\\azure-functions-dotnet-worker\\samples\\FunctionApp\\bin\\Debug\\net5.0\\Microsoft.Azure.WebJobs.Extensions.Http.dll");
+                        //var types = assembly.GetTypes();
+                        //var triggerObjectType = assembly.GetType(attributeType.Name.ToString());
+                        //var triggerObject = Activator.CreateInstance(triggerObjectType);
 
 
                         sourceBuilder.Append(@"

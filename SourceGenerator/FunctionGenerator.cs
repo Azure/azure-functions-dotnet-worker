@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -68,8 +69,6 @@ namespace SourceGenerator
                 {
                     var attributeName = attribute.Attributes.First().Name.ToString(); // TODO: see how this is affected when there are multiple attributes, but should only have one trigger at a time anyways
                     var attributeSymbolInfo = model.GetSymbolInfo(attribute.Attributes.First().Name);
-                    //var attributeType = attributeSymbolInfo.Symbol.ContainingType;
-                    //var attributeAssembly = attributeSymbolInfo.Symbol.ContainingAssembly;
 
                     if (attributeName.Contains("Trigger"))
                     {
@@ -77,7 +76,6 @@ namespace SourceGenerator
                         var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
                         var functionName = functionClass.Identifier.ValueText;
                         var scriptFile = Path.Combine("../bin/" + assemblyName + ".dll");
-                        //var scriptFile = "../bin/FunctionApp.dll";
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
                         var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;
 
@@ -95,32 +93,52 @@ namespace SourceGenerator
                         var triggerArguments = attribute.Attributes.First().ArgumentList.Arguments;
                         foreach (var arg in triggerArguments)
                         {
-                            if (arg.Expression is LiteralExpressionSyntax)
+                            if (arg.NameEquals != null)
+                            {
+                                var argType = arg.NameEquals.ToString().ToLower();
+                                argType = argType.Remove(argType.LastIndexOf("="));
+                                argType = argType.Trim();
+                                var argVal = arg.Expression.ToString().Replace("\"", "");
+                                if (argType == "route" && argVal == "null")
+                                {
+                                    Console.WriteLine("Skipping because route set to null"); // not sure what this does, wasn't put inside function.json from sdk anyways and seems to mess up the host loading
+                                }
+                                else
+                                {
+                                    sourceBuilder.Append(@"
+                                    raw[""" + argType + @"""] = """ + argVal + @""";
+                                    ");
+                                }
+                            }
+                            else
                             {
                                 if (triggerType == "HttpTrigger")
                                 {
-                                    sourceBuilder.Append(@"
-                                    if (raw[""method""] != null)
+                                    if (arg.Expression.ToString().Contains("Authorization"))
                                     {
-                                        httpMethod.Add(" + arg.Expression.ToString() + @");
+
+                                        sourceBuilder.Append(@"
+                                        raw[""authLevel""] = ""anonymous""; "); // TODO: actually check the value later
                                     }
                                     else
                                     {
-                                        raw[""method""] = httpMethod;
-                                        httpMethod.Add(" + arg.Expression.ToString() + @");
+                                        sourceBuilder.Append(@"
+                                        if (raw[""method""] != null)
+                                        {
+                                            httpMethod.Add(" + arg.Expression.ToString() + @");
+                                        }
+                                        else
+                                        {
+                                            raw[""method""] = httpMethod;
+                                            httpMethod.Add(" + arg.Expression.ToString() + @");
+                                        }
+                                        ");
                                     }
-                                    ");
                                 }
                                 else if (triggerType == "QueueTrigger")
                                 {
                                     sourceBuilder.Append(@"raw[""queueName""] = " + arg.Expression.ToString() + @";");
                                 }
-                            }
-                            else
-                            {
-                                var argSymbol = model.GetSymbolInfo(arg.Expression);
-                                var argVal = argSymbol.Symbol.Name;
-                                var argType = argSymbol.Symbol.ContainingType.Name;
                             }
                         }
 

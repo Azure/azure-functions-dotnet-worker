@@ -71,7 +71,6 @@ namespace SourceGenerator
                 foreach (AttributeListSyntax attribute in parameter.AttributeLists)
                 {
                     var model = compilation.GetSemanticModel(parameter.SyntaxTree);
-
                     IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameter) as IParameterSymbol;
                     AttributeData attributeData = parameterSymbol.GetAttributes().First();
 
@@ -91,10 +90,18 @@ namespace SourceGenerator
                         var triggerName = parameter.Identifier.ValueText; // correct? 
                         var triggerType = attributeName;
 
+                        var bindingDirection = "in";
+                        if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
+                            parameterNamedType.IsGenericType &&
+                            parameterNamedType.ConstructUnboundGenericType().ToString() == "Microsoft.Azure.Functions.DotNetWorker.OutputBinding<>")
+                        {
+                            bindingDirection = "out";
+                        }
+
                         // create raw JObject for the BindingMetadata
                         sourceBuilder.Append(@"raw = new JObject();
                         raw[""name""] = """ + triggerName + @""";
-                        raw[""direction""] = ""in"";
+                        raw[""direction""] = """ + bindingDirection + @""";
                         raw[""type""] = """ + triggerType + @""";");
 
                         foreach (var prop in a.GetType().GetProperties())

@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,6 +16,10 @@ namespace SourceGenerator
     {
         public void Execute(SourceGeneratorContext context)
         {
+            Compilation compilation = context.Compilation;
+
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) => CurrentDomain_AssemblyResolve(sender, args, compilation);
+
             // begin creating the source we'll inject into the users compilation
             var sourceBuilder = new StringBuilder(@"
             using Microsoft.Azure.WebJobs.Script.Description;
@@ -56,20 +62,23 @@ namespace SourceGenerator
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
                 return;
 
-            Compilation compilation = context.Compilation;
 
             // loop over the candidate fields, and keep the ones that are actually annotated
             List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
             foreach (ParameterSyntax parameter in receiver.CandidateParameters)
             {
-                SemanticModel model = compilation.GetSemanticModel(parameter.SyntaxTree);
                 var assemblyName = compilation.Assembly.Name;
 
                 foreach (AttributeListSyntax attribute in parameter.AttributeLists)
                 {
-                    var attributeName = attribute.Attributes.First().Name.ToString(); // TODO: see how this is affected when there are multiple attributes, but should only have one trigger at a time anyways
-                    var attributeSymbolInfo = model.GetSymbolInfo(attribute.Attributes.First().Name);
+                    var model = compilation.GetSemanticModel(parameter.SyntaxTree);
 
+                    IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameter) as IParameterSymbol;
+                    AttributeData attributeData = parameterSymbol.GetAttributes().First();
+
+                    Attribute a = CreateAttribute(compilation, attributeData);
+
+                    string attributeName = attributeData.AttributeClass.Name;
                     if (attributeName.Contains("Trigger"))
                     {
 
@@ -177,6 +186,13 @@ namespace SourceGenerator
             context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
         }
 
+        private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args, Compilation compilation)
+        {
+            string assemblyName = new AssemblyName(args.Name).Name;
+            var attributeAssemblyReference = compilation.ExternalReferences.First(r => r.Display.Contains(assemblyName));
+            return Assembly.LoadFile(attributeAssemblyReference.Display);
+        }
+
         public void Initialize(InitializationContext context)
         {
 #if DEBUG
@@ -184,7 +200,6 @@ namespace SourceGenerator
 #endif
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
-
         }
 
         /// <summary>
@@ -199,13 +214,81 @@ namespace SourceGenerator
             /// </summary>
             public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
             {
-                // any field with at least one attribute is a candidate for property generation
                 if (syntaxNode is ParameterSyntax parameterSyntax
                     && parameterSyntax.AttributeLists.Count > 0)
                 {
                     CandidateParameters.Add(parameterSyntax);
                 }
             }
+        }
+
+        public static Attribute CreateAttribute(Compilation compilation, AttributeData attributeData)
+        {
+            Type attributeType = ConvertToType(compilation, attributeData.AttributeClass);
+
+            List<object> arguments = new List<object>();
+            List<Type> constructorTypes = new List<Type>();
+
+            foreach (TypedConstant arg in attributeData.ConstructorArguments)
+            {
+                constructorTypes.Add(ConvertToType(compilation, arg.Type));
+
+                switch (arg.Kind)
+                {
+                    case TypedConstantKind.Error:
+                        break;
+                    case TypedConstantKind.Primitive:
+                    case TypedConstantKind.Enum:
+                        arguments.Add(arg.Value);
+                        break;
+                    case TypedConstantKind.Type:
+                        break;
+                    case TypedConstantKind.Array:
+                        var arrayValues = arg.Values.Select(a => a.Value.ToString()).ToArray();
+                        arguments.Add(arrayValues);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            var constructorInfo = attributeType.GetConstructor(constructorTypes.ToArray());
+
+            Attribute attribute = constructorInfo.Invoke(arguments.ToArray()) as Attribute;
+
+            // now apply the named 
+            foreach (var namedArgument in attributeData.NamedArguments)
+            {
+                attributeType.GetProperty(namedArgument.Key)?.SetValue(attribute, namedArgument.Value.Value);
+                attributeType.GetField(namedArgument.Key)?.SetValue(attribute, namedArgument.Value.Value);
+            }
+
+            return attribute;
+        }
+
+        public static Type ConvertToType(Compilation compilation, ITypeSymbol typeSymbol)
+        {
+            string typeString = $"{typeSymbol.ContainingNamespace}.{typeSymbol.Name}";
+
+            if (typeSymbol is IArrayTypeSymbol arrayType)
+            {
+                var elementType = arrayType.ElementType;
+                typeString = $"{elementType.ContainingNamespace}.{elementType.Name}[]";
+            }
+
+            Type t = Type.GetType(typeString);
+
+            if (t == null)
+            {
+                var attributeAssemblyName = typeSymbol.ContainingAssembly.Modules.Single().Locations.Single().MetadataModule.Name;
+
+                //// Find assembly full path
+                var attributeAssemblyReference = compilation.ExternalReferences.First(r => r.Display.EndsWith(attributeAssemblyName));
+                var a = Assembly.LoadFile(attributeAssemblyReference.Display);
+                t = a.GetType(typeSymbol.ToString());
+            }
+
+            return t;
         }
     }
 

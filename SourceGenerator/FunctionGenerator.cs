@@ -55,8 +55,7 @@ namespace SourceGenerator
                 public Task<ImmutableArray<FunctionMetadata>> GetFunctionMetadataAsync()
                 {
                     var metadataList = new List<FunctionMetadata>();
-                    var raw = new JObject();
-                    var httpMethod = new JArray();");
+                    var raw = new JObject();");
 
             // retreive the populated receiver 
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
@@ -96,66 +95,24 @@ namespace SourceGenerator
                         sourceBuilder.Append(@"raw = new JObject();
                         raw[""name""] = """ + triggerName + @""";
                         raw[""direction""] = ""in"";
-                        raw[""type""] = """ + triggerType + @""";
-                        httpMethod = new JArray();");
+                        raw[""type""] = """ + triggerType + @""";");
 
-                        var triggerArguments = attribute.Attributes.First().ArgumentList.Arguments;
-                        foreach (var arg in triggerArguments)
+                        foreach (var prop in a.GetType().GetProperties())
                         {
-                            if (arg.NameEquals != null)
+
+                            var propertyName = prop.Name;
+                            var propertyValue = prop.GetValue(a);
+                            if (propertyValue != null)
                             {
-                                var argType = arg.NameEquals.ToString().ToLower();
-                                argType = argType.Remove(argType.LastIndexOf("="));
-                                argType = argType.Trim();
-                                var argVal = arg.Expression.ToString().Replace("\"", "");
-                                if (argType == "route" && argVal == "null")
-                                {
-                                    Console.WriteLine("Skipping because route set to null"); // not sure what this does, wasn't put inside function.json from sdk anyways and seems to mess up the host loading
-                                }
-                                else
-                                {
-                                    sourceBuilder.Append(@"
-                                    raw[""" + argType + @"""] = """ + argVal + @""";
-                                    ");
-                                }
+                                propertyValue = "\"" + propertyValue + "\"";
                             }
                             else
                             {
-                                if (triggerType == "HttpTrigger")
-                                {
-                                    if (arg.Expression.ToString().Contains("Authorization"))
-                                    {
-
-                                        sourceBuilder.Append(@"
-                                        raw[""authLevel""] = ""anonymous""; "); // TODO: actually check the value later
-                                    }
-                                    else
-                                    {
-                                        sourceBuilder.Append(@"
-                                        if (raw[""method""] != null)
-                                        {
-                                            httpMethod.Add(" + arg.Expression.ToString() + @");
-                                        }
-                                        else
-                                        {
-                                            raw[""method""] = httpMethod;
-                                            httpMethod.Add(" + arg.Expression.ToString() + @");
-                                        }
-                                        ");
-                                    }
-                                }
-                                else if (triggerType == "QueueTrigger")
-                                {
-                                    sourceBuilder.Append(@"raw[""queueName""] = " + arg.Expression.ToString() + @";");
-                                }
+                                propertyValue = "null";
                             }
+                            sourceBuilder.Append(@"
+                           raw[""" + propertyName + @"""] =" + propertyValue + ";");
                         }
-
-                        //Assembly assembly = Assembly.LoadFile("C:\\repos\\azure-functions-dotnet-worker\\samples\\FunctionApp\\bin\\Debug\\net5.0\\Microsoft.Azure.WebJobs.Extensions.Http.dll");
-                        //var types = assembly.GetTypes();
-                        //var triggerObjectType = assembly.GetType(attributeType.Name.ToString());
-                        //var triggerObject = Activator.CreateInstance(triggerObjectType);
-
 
                         sourceBuilder.Append(@"
                              var " + functionName + @"= new FunctionMetadata

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -14,6 +15,8 @@ namespace SourceGenerator
     [Generator]
     public class FunctionProvider : ISourceGenerator
     {
+        private static int arrayCount = 0;
+
         public void Execute(SourceGeneratorContext context)
         {
             Compilation compilation = context.Compilation;
@@ -61,7 +64,6 @@ namespace SourceGenerator
             if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
                 return;
 
-
             // loop over the candidate fields, and keep the ones that are actually annotated
             List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
             foreach (ParameterSyntax parameter in receiver.CandidateParameters)
@@ -79,16 +81,15 @@ namespace SourceGenerator
                     string attributeName = attributeData.AttributeClass.Name;
                     if (attributeName.Contains("Trigger"))
                     {
-
                         var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
                         var functionName = functionClass.Identifier.ValueText;
-                        var scriptFile = Path.Combine("../bin/" + assemblyName + ".dll");
+                        var scriptFile = Path.Combine("bin/" + assemblyName + ".dll");
                         var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
                         var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;
 
                         // create binding metadata w/ info below and add to function metadata created above
-                        var triggerName = parameter.Identifier.ValueText; // correct? 
-                        var triggerType = attributeName;
+                        var triggerName = parameter.Identifier.ValueText; // correct?
+                        var triggerType = attributeName.Replace("Attribute", "");
 
                         var bindingDirection = "in";
                         if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
@@ -106,19 +107,23 @@ namespace SourceGenerator
 
                         foreach (var prop in a.GetType().GetProperties())
                         {
-
                             var propertyName = prop.Name;
-                            var propertyValue = prop.GetValue(a);
-                            if (propertyValue != null)
+                            var propertyValue = FormatObject(prop.GetValue(a));
+
+                            if (prop.PropertyType.IsArray)
                             {
-                                propertyValue = "\"" + propertyValue + "\"";
+                                string jarr = FormatArray(prop.GetValue(a) as IEnumerable);
+                                sourceBuilder.AppendLine(jarr);
+                                sourceBuilder.Append(@"
+                           raw[""" + propertyName + @$"""] = jarr{arrayCount};");
+
+                                arrayCount++;
                             }
                             else
                             {
-                                propertyValue = "null";
-                            }
-                            sourceBuilder.Append(@"
+                                sourceBuilder.Append(@"
                            raw[""" + propertyName + @"""] =" + propertyValue + ";");
+                            }
                         }
 
                         sourceBuilder.Append(@"
@@ -138,8 +143,6 @@ namespace SourceGenerator
                 }
             }
 
-
-
             sourceBuilder.Append(@"
                     return Task.FromResult(metadataList.ToImmutableArray());
                   }
@@ -148,6 +151,54 @@ namespace SourceGenerator
 
             // inject the created source into the users compilation
             context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+        }
+
+        private static string FormatObject(object propValue)
+        {
+            string s = null;
+
+            if (propValue != null)
+            {
+                s = "\"" + propValue.ToString() + "\"";
+            }
+            else
+            {
+                s = "null";
+            }
+
+            return s;
+        }
+
+        private static string FormatArray(IEnumerable enumerableValues)
+        {
+            string code;
+            Type propType = enumerableValues?.GetType();
+
+            Type elementType = propType.GetElementType();
+
+            code = $"var arr{arrayCount} = new {elementType}[] {{";
+
+            bool first = true;
+            foreach (var o in enumerableValues)
+            {
+                if (!first)
+                {
+                    code += ", ";
+                }
+                else
+                {
+                    first = false;
+                }
+
+                code += FormatObject(o);
+            }
+
+            code.TrimEnd(',', ' ');
+            code += "};";
+
+            code += $"var jarr{arrayCount} = new JArray(arr{arrayCount});";
+
+            return code;
         }
 
         private Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs args, Compilation compilation)

@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Configuration;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
 
 namespace FunctionApp
@@ -10,7 +11,7 @@ namespace FunctionApp
         static async Task Main(string[] args)
         {
 #if DEBUG
-            //Debugger.Launch();
+            Debugger.Launch();
 #endif
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(c =>

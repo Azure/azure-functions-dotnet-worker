@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.IO;
+using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
@@ -166,7 +167,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
             {
                 EntryPoint = loadRequest.Metadata.EntryPoint,
                 FuncName = loadRequest.Metadata.Name,
-                PathToAssembly = loadRequest.Metadata.ScriptFile,
+                PathToAssembly = Path.GetFullPath(loadRequest.Metadata.ScriptFile),
                 FunctionId = loadRequest.FunctionId
             };
         }

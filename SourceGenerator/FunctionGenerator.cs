@@ -66,81 +66,96 @@ namespace SourceGenerator
 
             // loop over the candidate fields, and keep the ones that are actually annotated
             List<IFieldSymbol> fieldSymbols = new List<IFieldSymbol>();
-            foreach (ParameterSyntax parameter in receiver.CandidateParameters)
+            foreach (MethodDeclarationSyntax method in receiver.CandidateMethods)
             {
                 var assemblyName = compilation.Assembly.Name;
+                var functionClass = (ClassDeclarationSyntax)method.Parent;
+                var functionName = functionClass.Identifier.ValueText;
+                var scriptFile = Path.Combine("bin/" + assemblyName + ".dll");
+                var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
 
-                foreach (AttributeListSyntax attribute in parameter.AttributeLists)
+                sourceBuilder.Append(@"
+                             var " + functionName + @"= new FunctionMetadata
+                             {
+                                 Name = """ + functionName);
+                sourceBuilder.Append(@""",
+                                ScriptFile = """ + scriptFile);
+                sourceBuilder.Append(@""",
+                                 EntryPoint = """ + entryPoint);
+                sourceBuilder.Append(@""",
+                                 Language = ""dotnet5"", 
+                             };");
+
+                var model = compilation.GetSemanticModel(method.SyntaxTree);
+
+                foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
                 {
-                    var model = compilation.GetSemanticModel(parameter.SyntaxTree);
+                    if (parameter.AttributeLists.Count == 0)
+                    {
+                        continue;
+                    }
+
                     IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameter) as IParameterSymbol;
                     AttributeData attributeData = parameterSymbol.GetAttributes().First();
 
                     Attribute a = CreateAttribute(compilation, attributeData);
 
                     string attributeName = attributeData.AttributeClass.Name;
-                    if (attributeName.Contains("Trigger"))
+
+                    // create binding metadata w/ info below and add to function metadata created above
+                    var triggerName = parameter.Identifier.ValueText; // correct?
+                    var triggerType = attributeName.Replace("Attribute", "");
+
+                    var bindingDirection = "in";
+
+                    if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
+                        parameterNamedType.IsGenericType &&
+                        parameterNamedType.ConstructUnboundGenericType().ToString() == "Microsoft.Azure.Functions.DotNetWorker.OutputBinding<>")
                     {
-                        var functionClass = (ClassDeclarationSyntax)parameter.Parent.Parent.Parent;
-                        var functionName = functionClass.Identifier.ValueText;
-                        var scriptFile = Path.Combine("bin/" + assemblyName + ".dll");
-                        var functionMethod = (MethodDeclarationSyntax)parameter.Parent.Parent;
-                        var entryPoint = assemblyName + "." + functionName + "." + functionMethod.Identifier.ValueText;
+                        bindingDirection = "out";
+                    }
 
-                        // create binding metadata w/ info below and add to function metadata created above
-                        var triggerName = parameter.Identifier.ValueText; // correct?
-                        var triggerType = attributeName.Replace("Attribute", "");
-
-                        var bindingDirection = "in";
-                        if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
-                            parameterNamedType.IsGenericType &&
-                            parameterNamedType.ConstructUnboundGenericType().ToString() == "Microsoft.Azure.Functions.DotNetWorker.OutputBinding<>")
-                        {
-                            bindingDirection = "out";
-                        }
-
-                        // create raw JObject for the BindingMetadata
-                        sourceBuilder.Append(@"raw = new JObject();
+                    // create raw JObject for the BindingMetadata
+                    sourceBuilder.Append(@"raw = new JObject();
                         raw[""name""] = """ + triggerName + @""";
                         raw[""direction""] = """ + bindingDirection + @""";
                         raw[""type""] = """ + triggerType + @""";");
 
-                        foreach (var prop in a.GetType().GetProperties())
-                        {
-                            var propertyName = prop.Name;
-                            var propertyValue = FormatObject(prop.GetValue(a));
+                    foreach (var prop in a.GetType().GetProperties())
+                    {
+                        var propertyName = prop.Name;
+                        var propertyValue = FormatObject(prop.GetValue(a));
 
-                            if (prop.PropertyType.IsArray)
-                            {
-                                string jarr = FormatArray(prop.GetValue(a) as IEnumerable);
-                                sourceBuilder.AppendLine(jarr);
-                                sourceBuilder.Append(@"
+                        if (prop.PropertyType.IsArray)
+                        {
+                            string jarr = FormatArray(prop.GetValue(a) as IEnumerable);
+                            sourceBuilder.AppendLine(jarr);
+                            sourceBuilder.Append(@"
                            raw[""" + propertyName + @$"""] = jarr{arrayCount};");
 
-                                arrayCount++;
-                            }
-                            else
-                            {
-                                sourceBuilder.Append(@"
-                           raw[""" + propertyName + @"""] =" + propertyValue + ";");
-                            }
+                            arrayCount++;
                         }
+                        else
+                        {
+                            sourceBuilder.Append(@"
+                           raw[""" + propertyName + @"""] =" + propertyValue + ";");
+                        }
+                    }
 
-                        sourceBuilder.Append(@"
-                             var " + functionName + @"= new FunctionMetadata
-                             {
-                                 Name = """ + functionName);
-                        sourceBuilder.Append(@""",
-                                ScriptFile = """ + scriptFile);
-                        sourceBuilder.Append(@""",
-                                 EntryPoint = """ + entryPoint);
-                        sourceBuilder.Append(@""",
-                                 Language = ""dotnet5"", 
-                             };" +
-                             functionName + @".Bindings.Add(BindingMetadata.Create(raw));
-                             metadataList.Add(" + functionName + ");");
+                    sourceBuilder.Append(functionName + @".Bindings.Add(BindingMetadata.Create(raw));");
+
+                    // auto-add a return type for http for now
+                    if (string.Equals(triggerType, "httptrigger", StringComparison.OrdinalIgnoreCase))
+                    {
+                        sourceBuilder.Append(@"raw = new JObject();
+                        raw[""name""] = ""$return"";
+                        raw[""direction""] = ""out"";
+                        raw[""type""] = ""http"";");
+
+                        sourceBuilder.AppendLine(functionName + @".Bindings.Add(BindingMetadata.Create(raw));");
                     }
                 }
+                sourceBuilder.AppendLine("metadataList.Add(" + functionName + ");");
             }
 
             sourceBuilder.Append(@"
@@ -222,17 +237,23 @@ namespace SourceGenerator
         /// </summary>
         private class SyntaxReceiver : ISyntaxReceiver
         {
-            public List<ParameterSyntax> CandidateParameters { get; } = new List<ParameterSyntax>();
+            public List<MethodDeclarationSyntax> CandidateMethods { get; } = new List<MethodDeclarationSyntax>();
 
             /// <summary>
             /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
             /// </summary>
             public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
             {
-                if (syntaxNode is ParameterSyntax parameterSyntax
-                    && parameterSyntax.AttributeLists.Count > 0)
+                if (syntaxNode is MethodDeclarationSyntax methodSyntax)
                 {
-                    CandidateParameters.Add(parameterSyntax);
+                    foreach (var p in methodSyntax.ParameterList.Parameters)
+                    {
+                        if (p.AttributeLists.Count > 0)
+                        {
+                            CandidateMethods.Add(methodSyntax);
+                            break;
+                        }
+                    }
                 }
             }
         }

@@ -1,4 +1,5 @@
 ﻿
+using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Azure.Functions.DotNetWorker;
 using Microsoft.Azure.WebJobs;
@@ -10,10 +11,22 @@ namespace FunctionApp
     {
 
         [FunctionName("Function1")]
-        public static Book Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, string myBlob)
+        public static HttpResponseData Run(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, [Blob("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob,
+              [Queue("functionstesting2", Connection = "AzureWebJobsStorage")] OutputBinding<Book> book)
         {
-            return (Book)JsonSerializer.Deserialize(myBlob, typeof(Book)); ;
+            var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
+            book.SetValue(bookVal);
+            var response = new HttpResponseData();
+            var headers = new Dictionary<string, string>();
+            headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
+            headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
+
+            response.Headers = headers;
+            response.StatusCode = "200";
+            response.Body = "Book Sent to Queue!";
+
+            return response;
         }
 
         public class Book

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -226,7 +225,7 @@ namespace SourceGenerator
         public void Initialize(InitializationContext context)
         {
 #if DEBUG
-            Debugger.Launch();
+            //Debugger.Launch();
 #endif
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());

@@ -73,17 +73,14 @@ namespace SourceGenerator
                 var scriptFile = Path.Combine("bin/" + assemblyName + ".dll");
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
 
-                sourceBuilder.Append(@"
-                             var " + functionName + @"= new FunctionMetadata
-                             {
-                                 Name = """ + functionName);
-                sourceBuilder.Append(@""",
-                                ScriptFile = """ + scriptFile);
-                sourceBuilder.Append(@""",
-                                 EntryPoint = """ + entryPoint);
-                sourceBuilder.Append(@""",
-                                 Language = ""dotnet5"", 
-                             };");
+                sourceBuilder.AppendLine($"var {functionName} = new FunctionMetadata");
+                sourceBuilder.AppendLine("{");
+                sourceBuilder.AppendLine($"Name = \"{functionName}\",");
+                sourceBuilder.AppendLine($"ScriptFile = \"{scriptFile}\",");
+                sourceBuilder.AppendLine($"EntryPoint = \"{entryPoint}\",");
+                sourceBuilder.AppendLine($"Language = \"dotnet5\",");
+                sourceBuilder.AppendLine("};");
+                sourceBuilder.AppendLine($"{functionName}.Properties[\"IsCodeless\"] = false;");
 
                 var model = compilation.GetSemanticModel(method.SyntaxTree);
 

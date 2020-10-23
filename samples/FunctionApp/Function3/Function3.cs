@@ -9,7 +9,7 @@ namespace FunctionApp
 
         [FunctionName("Function3")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            OutputBinding<string> name)
+            [Queue("functionstesting2", Connection = "AzureWebJobsStorage")] OutputBinding<string> name)
         {
             var response = new HttpResponseData();
             response.StatusCode = "200";

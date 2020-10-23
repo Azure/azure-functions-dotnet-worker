@@ -23,7 +23,7 @@ namespace FunctionApp
 
             response.Headers = headers;
             response.StatusCode = "200";
-            response.Body = "Success!!";
+            response.Body = "Welcome to .NET 5!!";
 
             return response;
         }

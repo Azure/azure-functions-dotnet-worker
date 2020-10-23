@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
 {
     internal class FunctionBroker : IFunctionBroker
     {
-        private Dictionary<string, FunctionDefinition> _functionMap = new Dictionary<string, FunctionDefinition>();
+        private ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private FunctionExecutionDelegate _functionExecutionDelegate;
         private IFunctionExecutionContextFactory _functionExecutionContextFactory;
         private IFunctionDefinitionFactory _functionDescriptorFactory;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
         {
             FunctionDefinition functionDefinition = _functionDescriptorFactory.Create(functionLoadRequest);
-            _functionMap.Add(functionDefinition.Metadata.FunctionId, functionDefinition);
+            _functionMap.TryAdd(functionDefinition.Metadata.FunctionId, functionDefinition);
         }
 
         public async Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)

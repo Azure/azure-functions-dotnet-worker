@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Microsoft.Azure.Functions.DotNetWorker.Configuration;
 using Microsoft.Extensions.Configuration;
+using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
 
 namespace FunctionApp

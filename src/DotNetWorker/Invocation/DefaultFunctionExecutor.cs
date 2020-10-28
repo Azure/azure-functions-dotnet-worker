@@ -25,13 +25,13 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
         public async Task ExecuteAsync(FunctionExecutionContext context)
         {
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
-            List<object> invocationParameters = new List<object>();
+            List<object?> invocationParameters = new List<object?>();
             FunctionMetadata functionMetadata = context.FunctionDefinition.Metadata;
             var pi = functionMetadata.FuncParamInfo;
             InvocationRequest invocationRequest = context.InvocationRequest;
             foreach (var param in pi)
             {
-                object paramObject;
+                object? paramObject;
                 Type parameterType = param.ParameterType;
                 if (parameterType.IsGenericType)
                 {
@@ -80,10 +80,10 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
             context.InvocationResult = result;
         }
 
-        private object ConvertParameter(ParameterInfo param, TypedData value, ParameterConverterManager converterManager)
+        private object? ConvertParameter(ParameterInfo param, TypedData value, ParameterConverterManager converterManager)
         {
             Type targetType = param.ParameterType;
-            object source;
+            object? source;
             object target;
 
             switch (value.DataCase)
@@ -94,11 +94,18 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
                 case TypedData.DataOneofCase.String:
                     source = value.String;
                     break;
+                case TypedData.DataOneofCase.None:
+                    source = null;
+                    break;
                 default:
                     throw new NotSupportedException($"{value.DataCase} is not supported yet.");
             }
 
-            if (source.GetType() == targetType)
+            if (source is null)
+            {
+                return null;
+            }
+            else if (source.GetType() == targetType)
             {
                 target = source;
             }

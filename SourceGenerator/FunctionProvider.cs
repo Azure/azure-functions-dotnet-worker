@@ -17,6 +17,30 @@ namespace SourceGenerator
 
         public void Execute(SourceGeneratorContext context)
         {
+            // Suggested here: https://github.com/dotnet/roslyn/issues/46084
+            // Though the underlying issue is fixed, the default severity set there is warning.
+            // This way allows us to throw an actual error on any failure.
+            try
+            {
+                ExecuteInternal(context);
+            }
+            catch (Exception e)
+            {
+                context.ReportDiagnostic(Diagnostic.Create(
+                    new DiagnosticDescriptor(
+                        "AFG1001",
+                        "An exception was thrown by the Functions generator",
+                        "An exception was thrown by the Functions generator: '{0}'",
+                        "SourceGenerator",
+                        DiagnosticSeverity.Error,
+                        isEnabledByDefault: true),
+                    Location.None,
+                    e.ToString()));
+            }
+        }
+
+        private void ExecuteInternal(SourceGeneratorContext context)
+        {
             Compilation compilation = context.Compilation;
 
             // begin creating the source we'll inject into the users compilation

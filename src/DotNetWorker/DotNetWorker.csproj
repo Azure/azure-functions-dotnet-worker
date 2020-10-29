@@ -11,11 +11,11 @@
     <RootNamespace>Microsoft.Azure.Functions.DotNetWorker</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.12.3" />
-    <PackageReference Include="Grpc.Core" Version="2.29.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.29.0" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.23.2" />
-    <PackageReference Include="Grpc.Tools" Version="2.29.0">
+    <PackageReference Include="Google.Protobuf" Version="3.13.0" />
+    <PackageReference Include="Grpc.Core" Version="2.33.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.33.1" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.33.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.33.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

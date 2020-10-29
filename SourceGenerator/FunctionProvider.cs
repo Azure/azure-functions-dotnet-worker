@@ -15,7 +15,7 @@ namespace SourceGenerator
     {
         private static int arrayCount = 0;
 
-        public void Execute(SourceGeneratorContext context)
+        public void Execute(GeneratorExecutionContext context)
         {
             // Suggested here: https://github.com/dotnet/roslyn/issues/46084
             // Though the underlying issue is fixed, the default severity set there is warning.
@@ -39,7 +39,7 @@ namespace SourceGenerator
             }
         }
 
-        private void ExecuteInternal(SourceGeneratorContext context)
+        private void ExecuteInternal(GeneratorExecutionContext context)
         {
             Compilation compilation = context.Compilation;
 
@@ -237,7 +237,7 @@ namespace SourceGenerator
             return code;
         }
 
-        public void Initialize(InitializationContext context)
+        public void Initialize(GeneratorInitializationContext context)
         {
 #if DEBUG
             // Debugger.Launch();

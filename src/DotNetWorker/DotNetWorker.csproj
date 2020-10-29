@@ -1,5 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <VersionPrefix>0.1.0-preview1</VersionPrefix>
+    <MajorMinorProductVersion>0.1</MajorMinorProductVersion>
+    <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
+    <FileVersion>$(MajorMinorProductVersion).$(BuildNumber).0</FileVersion>
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -18,15 +22,18 @@
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.5" />
   </ItemGroup>
-    
+
   <ItemGroup>
      <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
   </ItemGroup>
 
-    <ItemGroup>
-        <None Update="worker.config.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-    </ItemGroup>
+  <ItemGroup>
+    <Content Include="worker.config.json">
+      <CopyToOutput>true</CopyToOutput>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Pack>true</Pack>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+    </Content>
+  </ItemGroup>
 
 </Project>

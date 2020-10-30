@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>0.1.0-preview1</VersionPrefix>
-    <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionPrefix).$(VersionSuffix)</Version>
-    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)</Version>
     <MajorMinorProductVersion>0.1</MajorMinorProductVersion>
+    <VersionPrefix>$(MajorMinorProductVersion).0-preview1</VersionPrefix>
+    <Version Condition=" '$(VersionSuffix)' != '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
+    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)</Version>
     <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
     <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>

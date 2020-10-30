@@ -8,6 +8,8 @@ pool:
   vmImage: 'windows-latest'
 
 variables:
+  ${{ if not(startswith(variables['Build.SourceBranchName'], 'release' )) }}:
+    versionSuffix: $(Build.BuildNumber)
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
@@ -28,3 +30,16 @@ steps:
   inputs:
     command: 'test'
     projects: 'test/**/*.csproj'
+
+- task: DotNetCoreCLI@2
+  displayName: 'Build packages'
+  inputs:
+    command: 'custom'
+    custom: 'pack'
+    arguments: '-o packages -p:VersionSuffix=$(versionSuffix) -p:CommitHash=$(Build.SourceVersion)'
+    projects: |
+      **\DotNetWorker.csproj
+      **\SourceGenerator.csproj
+
+- publish: $(System.DefaultWorkingDirectory)/packages
+  artifact: drop

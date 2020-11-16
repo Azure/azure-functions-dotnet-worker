@@ -10,7 +10,6 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
     {
         private readonly IMethodInvokerFactory _methodInvokerFactory;
         private readonly IFunctionActivator _functionActivator;
-        private IFunctionActivator functionActivator;
 
         public DefaultFunctionInvokerFactory(IMethodInvokerFactory methodInvokerFactory, IFunctionActivator functionActivator)
         {

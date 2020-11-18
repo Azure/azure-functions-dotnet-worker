@@ -11,7 +11,8 @@ pool:
 
 variables:
   ${{ if not(startswith(variables['Build.SourceBranchName'], 'release' )) }}:
-    versionSuffix: $(Build.BuildNumber)
+    versionSuffixTemp: $(Build.BuildNumber)
+  versionSuffix: $[variables.versionSuffixTemp]
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'

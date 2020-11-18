@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.DotNetWorker.Configuration;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FunctionApp
 {
@@ -21,6 +22,10 @@ namespace FunctionApp
                 .ConfigureDotNetWorker((c, b) =>
                 {
                     b.UseFunctionExecutionMiddleware();
+                })
+                .ConfigureServices(s =>
+                {
+                    s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
                 })
                 .Build();
 

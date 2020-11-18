@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Microsoft.Azure.Functions.DotNetWorker
 {
@@ -6,7 +7,9 @@ namespace Microsoft.Azure.Functions.DotNetWorker
     {
         public T CreateInstance<T>(IServiceProvider services)
         {
-            return Activator.CreateInstance<T>();
+            return ActivatorUtilities.CreateInstance<T>(services, Array.Empty<object>());
         }
     }
+
+
 }

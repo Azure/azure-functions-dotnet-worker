@@ -21,6 +21,11 @@ namespace Microsoft.Azure.Functions.DotNetWorker
         {
             FunctionMetadata metadata = request.ToFunctionMetadata();
 
+            if (metadata.PathToAssembly == null)
+            {
+                throw new InvalidOperationException("The path to the function assembly is null.");
+            }
+
             string? assemblyName = AssemblyName.GetAssemblyName(metadata.PathToAssembly).Name;
             string typeName = $"{assemblyName}.{metadata.FuncName}";
 

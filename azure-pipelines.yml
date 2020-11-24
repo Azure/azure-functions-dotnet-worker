@@ -11,8 +11,8 @@ pool:
 
 variables:
   ${{ if not(startswith(variables['Build.SourceBranchName'], 'release' )) }}:
-    versionSuffixTemp: $(Build.BuildNumber)
-  versionSuffix: $[variables.versionSuffixTemp]
+    buildNumberTemp: $(Build.BuildNumber)
+  buildNumber: $[variables.buildNumberTemp]
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
@@ -39,7 +39,7 @@ steps:
   inputs:
     command: 'custom'
     custom: 'pack'
-    arguments: '-o packages -p:VersionSuffix=$(versionSuffix) -p:CommitHash=$(Build.SourceVersion)'
+    arguments: '-o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion)'
     projects: |
       **\DotNetWorker.csproj
       **\SourceGenerator.csproj

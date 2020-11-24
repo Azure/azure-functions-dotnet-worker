@@ -11,8 +11,8 @@
 		<InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
 		<TargetFramework>netstandard2.0</TargetFramework>
 		<LangVersion>preview</LangVersion>
-		<AssemblyName>Microsoft.Azure.Functions.DotNetWorker.SourceGenerator</AssemblyName>
-		<RootNamespace>Microsoft.Azure.Functions.DotNetWorker.SourceGenerator</RootNamespace>
+		<AssemblyName>Microsoft.Azure.Functions.Worker.SourceGenerator</AssemblyName>
+		<RootNamespace>Microsoft.Azure.Functions.Worker.SourceGenerator</RootNamespace>
 	</PropertyGroup>
 
 	<PropertyGroup>

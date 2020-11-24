@@ -3,12 +3,12 @@
 
 using System;
 using System.Reflection;
-using Microsoft.Azure.Functions.DotNetWorker;
-using Microsoft.Azure.Functions.DotNetWorker.Invocation;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Invocation;
 using Moq;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class DefaultFunctionInvokerFactoryTests
     {

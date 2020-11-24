@@ -1,10 +1,10 @@
 ﻿using System.Collections.Generic;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
+namespace Microsoft.Azure.Functions.Worker.Configuration
 {
-    public class DotNetWorkerOptions
+    public class WorkerOptions
     {
-        public DotNetWorkerOptions()
+        public WorkerOptions()
         {
             Capabilities = new List<string>();
 

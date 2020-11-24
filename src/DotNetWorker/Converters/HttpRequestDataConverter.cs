@@ -1,7 +1,7 @@
 ﻿using System;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Converters
+namespace Microsoft.Azure.Functions.Worker.Converters
 {
     public class HttpRequestDataConverter : IParameterConverter
     {

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.DotNetWorker;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class HttpConverterTests
     {

@@ -1,12 +1,9 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+﻿using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
-using Moq;
 using System;
-using System.Runtime.Serialization;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class DefaultFunctionExecutionContextTests
     {

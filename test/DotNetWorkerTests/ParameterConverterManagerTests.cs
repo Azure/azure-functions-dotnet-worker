@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Moq;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class ParameterConverterManagerTests
     {

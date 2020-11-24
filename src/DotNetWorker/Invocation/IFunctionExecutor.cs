@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
+namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal interface IFunctionExecutor
     {

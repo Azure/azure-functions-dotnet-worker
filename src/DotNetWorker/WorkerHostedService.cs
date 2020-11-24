@@ -7,7 +7,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.FunctionRpc;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     internal class WorkerHostedService : IHostedService
     {

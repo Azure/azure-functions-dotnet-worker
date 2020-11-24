@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
+namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
     internal class DefaultInvocationPipelineBuilder<FunctionExecutionContext> : IInvocationPipelineBuilder<FunctionExecutionContext>
     {

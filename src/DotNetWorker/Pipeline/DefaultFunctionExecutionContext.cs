@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Logging;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     public class DefaultFunctionExecutionContext : FunctionExecutionContext, IDisposable
     {

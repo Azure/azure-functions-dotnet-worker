@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Converters
+namespace Microsoft.Azure.Functions.Worker.Converters
 {
     public interface IParameterConverter
     {

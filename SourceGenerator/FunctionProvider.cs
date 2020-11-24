@@ -134,7 +134,7 @@ namespace SourceGenerator
 
                     if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
                         parameterNamedType.IsGenericType &&
-                        parameterNamedType.ConstructUnboundGenericType().ToString() == "Microsoft.Azure.Functions.DotNetWorker.OutputBinding<>")
+                        parameterNamedType.ConstructUnboundGenericType().ToString() == "Microsoft.Azure.Functions.Worker.OutputBinding<>")
                     {
                         bindingDirection = "out";
                     }

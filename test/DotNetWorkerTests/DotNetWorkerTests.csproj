@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>Microsoft.Azure.Functions.DotNetWorkerTests</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.DotNetWorkerTests</RootNamespace>
+    <AssemblyName>Microsoft.Azure.Functions.WorkerTests</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.WorkerTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

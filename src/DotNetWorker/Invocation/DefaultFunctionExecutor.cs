@@ -4,12 +4,12 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Logging;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
+namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal class DefaultFunctionExecutor : IFunctionExecutor
     {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     public interface IFunctionDefinitionFactory
     {

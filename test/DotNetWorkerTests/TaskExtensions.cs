@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public static class TaskExtensions
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     public interface IFunctionActivator
     {

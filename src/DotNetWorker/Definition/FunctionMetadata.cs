@@ -1,7 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     public class FunctionMetadata
     {

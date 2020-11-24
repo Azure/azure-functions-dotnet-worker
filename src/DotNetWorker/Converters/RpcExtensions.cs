@@ -3,7 +3,7 @@ using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     internal static class RpcExtensions
     {

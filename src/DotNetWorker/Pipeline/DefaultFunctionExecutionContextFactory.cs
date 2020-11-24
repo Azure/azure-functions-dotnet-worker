@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
+namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
     internal class DefaultFunctionExecutionContextFactory : IFunctionExecutionContextFactory
     {

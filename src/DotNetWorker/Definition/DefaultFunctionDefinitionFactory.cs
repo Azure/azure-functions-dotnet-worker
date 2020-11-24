@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Reflection;
-using Microsoft.Azure.Functions.DotNetWorker.Invocation;
+using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     internal class DefaultFunctionDefinitionFactory : IFunctionDefinitionFactory
     {

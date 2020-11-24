@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
+namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal interface IMethodInvoker<TInstance, TReturn>
     {

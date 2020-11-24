@@ -1,4 +1,4 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker;
+﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 

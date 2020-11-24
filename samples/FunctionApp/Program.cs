@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker.Configuration;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker.Configuration;
 
 namespace FunctionApp
 {
@@ -19,7 +19,7 @@ namespace FunctionApp
                 {
                     c.AddCommandLine(args);
                 })
-                .ConfigureDotNetWorker((c, b) =>
+                .ConfigureFunctionsWorker((c, b) =>
                 {
                     b.UseFunctionExecutionMiddleware();
                 })

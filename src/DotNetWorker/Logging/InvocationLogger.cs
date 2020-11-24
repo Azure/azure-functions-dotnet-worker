@@ -3,7 +3,7 @@ using System.Threading.Channels;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Logging
+namespace Microsoft.Azure.Functions.Worker.Logging
 {
     public class InvocationLogger : ILogger
     {

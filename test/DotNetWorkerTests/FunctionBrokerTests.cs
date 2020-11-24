@@ -1,11 +1,11 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Azure.Functions.DotNetWorker;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Moq;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class FunctionBrokerTests
     {

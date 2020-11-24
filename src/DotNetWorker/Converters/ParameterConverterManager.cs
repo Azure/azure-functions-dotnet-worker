@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Converters
+namespace Microsoft.Azure.Functions.Worker.Converters
 {
     public class ParameterConverterManager
     {

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.DotNetWorker;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Logging;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorkerTests
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     internal class TestFunctionExecutionContext : FunctionExecutionContext, IDisposable
     {

@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.DotNetWorker.Logging;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Pipeline
+namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
     public abstract class FunctionExecutionContext
     {

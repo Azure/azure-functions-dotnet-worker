@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Invocation
+namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal class VoidTaskMethodInvoker<TReflected, TReturnType> : IMethodInvoker<TReflected, TReturnType>
     {

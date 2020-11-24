@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Threading.Channels;
 using Grpc.Core;
-using Microsoft.Azure.Functions.DotNetWorker.Converters;
-using Microsoft.Azure.Functions.DotNetWorker.Invocation;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,11 +11,11 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.FunctionRpc;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
+namespace Microsoft.Azure.Functions.Worker.Configuration
 {
     public static class ServiceCollectionExtensions
     {
-        public static IDotNetApplicationBuilder AddDotNetWorker(this IServiceCollection services, Action<DotNetWorkerOptions> configure)
+        public static IFunctionsWorkerApplicationBuilder AddFunctionsWorker(this IServiceCollection services, Action<WorkerOptions> configure)
         {
             // ParameterConverters
             services.AddSingleton<IParameterConverter, HttpRequestDataConverter>();
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
                     config.Bind(arguments);
                 });
 
-            return new DotNetApplicationBuilder(services);
+            return new FunctionsWorkerApplicationBuilder(services);
         }
     }
 }

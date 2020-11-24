@@ -1,16 +1,16 @@
 ﻿using System;
-using Microsoft.Azure.Functions.DotNetWorker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
+namespace Microsoft.Azure.Functions.Worker.Configuration
 {
-    internal class DotNetApplicationBuilder : IDotNetApplicationBuilder
+    internal class FunctionsWorkerApplicationBuilder : IFunctionsWorkerApplicationBuilder
     {
         private readonly IInvocationPipelineBuilder<FunctionExecutionContext> _pipelineBuilder;
 
         public IServiceCollection Services { get; private set; }
 
-        public DotNetApplicationBuilder(IServiceCollection services)
+        public FunctionsWorkerApplicationBuilder(IServiceCollection services)
         {
             Services = services;
             _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.DotNetWorker.Configuration
             });
         }
 
-        public IDotNetApplicationBuilder Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)
+        public IFunctionsWorkerApplicationBuilder Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)
         {
             _pipelineBuilder.Use(middleware);
             return this;

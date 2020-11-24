@@ -1,6 +1,6 @@
-﻿using Microsoft.Azure.Functions.DotNetWorker.Invocation;
+﻿using Microsoft.Azure.Functions.Worker.Invocation;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     public class FunctionDefinition
     {

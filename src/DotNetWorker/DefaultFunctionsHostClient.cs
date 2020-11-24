@@ -5,7 +5,7 @@ using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using MsgType = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     internal class DefaultFunctionsHostClient : IFunctionsHostClient
     {

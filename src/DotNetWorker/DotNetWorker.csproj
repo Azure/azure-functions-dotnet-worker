@@ -11,8 +11,8 @@
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <AssemblyName>Microsoft.Azure.Functions.DotNetWorker</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.DotNetWorker</RootNamespace>
+    <AssemblyName>Microsoft.Azure.Functions.Worker</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.13.0" />

@@ -2,7 +2,7 @@
 using System.Threading.Channels;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.DotNetWorker
+namespace Microsoft.Azure.Functions.Worker
 {
     internal class FunctionsHostOutputChannel
     {

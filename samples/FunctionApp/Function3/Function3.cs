@@ -1,4 +1,5 @@
-﻿using Microsoft.Azure.Functions.Worker;
+﻿using System.Net;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 
@@ -11,8 +12,7 @@ namespace FunctionApp
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             [Queue("functionstesting2", Connection = "AzureWebJobsStorage")] OutputBinding<string> name)
         {
-            var response = new HttpResponseData();
-            response.StatusCode = "200";
+            var response = new HttpResponseData(HttpStatusCode.OK);
             response.Body = "Success!!";
 
             name.SetValue("some name");

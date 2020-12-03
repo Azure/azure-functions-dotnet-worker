@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs;
@@ -16,13 +17,12 @@ namespace FunctionApp
         {
             var logger = executionContext.Logger;
             logger.LogInformation("message logged");
-            var response = new HttpResponseData();
+            var response = new HttpResponseData(HttpStatusCode.OK);
             var headers = new Dictionary<string, string>();
             headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
 
             response.Headers = headers;
-            response.StatusCode = "200";
             response.Body = "Welcome to .NET 5!!";
 
             return response;

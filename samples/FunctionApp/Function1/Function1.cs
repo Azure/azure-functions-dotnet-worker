@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Generic;
+using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.WebJobs;
@@ -17,13 +18,12 @@ namespace FunctionApp
         {
             var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
             book.SetValue(bookVal);
-            var response = new HttpResponseData();
+            var response = new HttpResponseData(HttpStatusCode.OK);
             var headers = new Dictionary<string, string>();
             headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
 
             response.Headers = headers;
-            response.StatusCode = "200";
             response.Body = "Book Sent to Queue!";
 
             return response;

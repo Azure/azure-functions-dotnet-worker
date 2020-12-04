@@ -1,17 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\build\Common.props" />
   <PropertyGroup>
-    <MajorMinorProductVersion>1.1</MajorMinorProductVersion>
-    <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
-    <VersionSuffix>preview2</VersionSuffix>
-    <Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
-    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
-    <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-    <FileVersion>$(Version)</FileVersion>
-    <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
-    <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
     <OutputType>Library</OutputType>
     <TargetFramework>net5.0</TargetFramework>
-    <Nullable>enable</Nullable>
     <AssemblyName>Microsoft.Azure.Functions.Worker</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
   </PropertyGroup>
@@ -33,11 +24,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="worker.config.json">
-      <CopyToOutput>true</CopyToOutput>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    <Content Include=".\Build\**\*">
       <Pack>true</Pack>
-      <PackageCopyToOutput>true</PackageCopyToOutput>
+      <PackagePath>build\</PackagePath>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="worker.config.json">
+      <Pack>true</Pack>
     </Content>
   </ItemGroup>
 

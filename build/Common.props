@@ -1,0 +1,18 @@
+﻿<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <MajorMinorProductVersion>1.1</MajorMinorProductVersion>
+    <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
+    <VersionSuffix>preview1</VersionSuffix>
+    <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>
+    <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local$([System.DateTime]::Now.ToString(yyyyMMddmmss))</BuildNumber>
+    <Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
+    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
+    <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
+    <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

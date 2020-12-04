@@ -1,15 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
+  <Import Project="..\build\Common.props"/>
   <PropertyGroup>
-    <MajorMinorProductVersion>1.1</MajorMinorProductVersion>
-    <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
-    <VersionSuffix>preview3</VersionSuffix>
-    <Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
-    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
-    <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-    <FileVersion>$(Version)</FileVersion>
-    <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
-    <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.SourceGenerator</AssemblyName>

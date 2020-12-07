@@ -65,12 +65,12 @@ namespace SourceGenerator
                 {
                     public void Configure(IWebJobsBuilder builder)
                     {           
-                        builder.Services.AddSingleton<IFunctionProvider, DefaultFunctionProvider>();
+                        builder.Services.AddSingleton<IFunctionProvider, _GeneratedFunctionProvider>();
                     }
                 }");
 
             sourceBuilder.Append(@"
-             public class DefaultFunctionProvider : IFunctionProvider
+            internal class _GeneratedFunctionProvider : IFunctionProvider
             {
                 public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }
 
@@ -207,7 +207,7 @@ namespace SourceGenerator
             }");
 
             // inject the created source into the users compilation
-            context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+            context.AddSource("_GeneratedFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
         }
 
         private static string FormatObject(object propValue)

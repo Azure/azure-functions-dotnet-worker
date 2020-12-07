@@ -1,7 +1,7 @@
 ﻿<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <MajorMinorProductVersion>1.1</MajorMinorProductVersion>
+    <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
     <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
     <VersionSuffix>preview1</VersionSuffix>
     <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>

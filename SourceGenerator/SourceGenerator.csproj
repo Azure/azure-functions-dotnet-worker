@@ -1,29 +1,29 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<MajorMinorProductVersion>1.1</MajorMinorProductVersion>
-		<VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
-		<VersionSuffix>preview2</VersionSuffix>
-		<Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
-		<Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
-		<AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-		<FileVersion>$(Version)</FileVersion>
-		<CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
-		<InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
-		<TargetFramework>netstandard2.0</TargetFramework>
-		<LangVersion>preview</LangVersion>
-		<AssemblyName>Microsoft.Azure.Functions.Worker.SourceGenerator</AssemblyName>
-		<RootNamespace>Microsoft.Azure.Functions.Worker.SourceGenerator</RootNamespace>
-	</PropertyGroup>
+  <PropertyGroup>
+    <MajorMinorProductVersion>1.1</MajorMinorProductVersion>
+    <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
+    <VersionSuffix>preview3</VersionSuffix>
+    <Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
+    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
+    <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
+    <FileVersion>$(Version)</FileVersion>
+    <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
+    <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.SourceGenerator</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.SourceGenerator</RootNamespace>
+  </PropertyGroup>
 
-	<PropertyGroup>
-		<RestoreAdditionalProjectSources>https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
-	</PropertyGroup>
+  <PropertyGroup>
+    <RestoreAdditionalProjectSources>https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet5/nuget/v3/index.json ;$(RestoreAdditionalProjectSources)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
-		<PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1" PrivateAssets="all" />
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.8.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.1" PrivateAssets="all" />
+  </ItemGroup>
 
   <ItemGroup>
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />

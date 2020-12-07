@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -58,20 +57,20 @@ namespace SourceGenerator
             using Newtonsoft.Json.Converters;
             using Newtonsoft.Json.Linq;
  
-            [assembly: WebJobsStartup(typeof(Startup))]
+            [assembly: WebJobsStartup(typeof(_GeneratedStartup))]
  
             namespace FunctionProviderGenerator
              {
-                public class Startup : IWebJobsStartup
+                internal class _GeneratedStartup : IWebJobsStartup
                 {
                     public void Configure(IWebJobsBuilder builder)
                     {           
-                        builder.Services.AddSingleton<IFunctionProvider, DefaultFunctionProvider>();
+                        builder.Services.AddSingleton<IFunctionProvider, _GeneratedFunctionProvider>();
                     }
                 }");
 
             sourceBuilder.Append(@"
-             public class DefaultFunctionProvider : IFunctionProvider
+            internal class _GeneratedFunctionProvider : IFunctionProvider
             {
                 public ImmutableDictionary<string, ImmutableArray<string>> FunctionErrors { get; }
 
@@ -80,18 +79,42 @@ namespace SourceGenerator
                     var metadataList = new List<FunctionMetadata>();
                     var raw = new JObject();");
 
-            // retreive the populated receiver 
-            if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+            if (context.SyntaxReceiver is not SyntaxReceiver receiver)
+            {
                 return;
+            }
 
-            // loop over the candidate fields, and keep the ones that are actually annotated
+            // loop over the candidate methods
             foreach (MethodDeclarationSyntax method in receiver.CandidateMethods)
             {
+                var model = compilation.GetSemanticModel(method.SyntaxTree);
+                var methodModel = model.GetDeclaredSymbol(method);
+
+                // Find function name on [FunctionName("Function1")]
+                string functionName = null;
+                foreach (var attr in methodModel.GetAttributes())
+                {
+                    IMethodSymbol attributeSymbol = attr.AttributeConstructor;
+                    if (attributeSymbol.ContainingType.ToString() == "Microsoft.Azure.WebJobs.FunctionNameAttribute")
+                    {
+                        var props = GetAttributeProperties(attributeSymbol, attr);
+                        functionName = props["name"].ToString();
+
+                        // there can only be one
+                        break;
+                    }
+                }
+
+                // If there isn't a function name, this is not a Function
+                if (functionName == null)
+                {
+                    return;
+                }
+
                 var assemblyName = compilation.Assembly.Name;
-                var functionClass = (ClassDeclarationSyntax)method.Parent;
-                var functionName = functionClass.Identifier.ValueText;
-                var scriptFile = Path.Combine("bin/" + assemblyName + ".dll");
-                var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
+                var functionClass = methodModel.ContainingType;
+                var scriptFile = $"bin/{assemblyName}.dll";
+                var entryPoint = $"{functionClass}.{method.Identifier.ValueText}";
 
                 sourceBuilder.AppendLine($"var {functionName} = new FunctionMetadata");
                 sourceBuilder.AppendLine("{");
@@ -101,8 +124,6 @@ namespace SourceGenerator
                 sourceBuilder.AppendLine($"Language = \"dotnet5\",");
                 sourceBuilder.AppendLine("};");
                 sourceBuilder.AppendLine($"{functionName}.Properties[\"IsCodeless\"] = false;");
-
-                var model = compilation.GetSemanticModel(method.SyntaxTree);
 
                 foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
                 {
@@ -186,7 +207,7 @@ namespace SourceGenerator
             }");
 
             // inject the created source into the users compilation
-            context.AddSource("DefaultFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
+            context.AddSource("_GeneratedFunctionProvider.cs", SourceText.From(sourceBuilder.ToString(), Encoding.UTF8));
         }
 
         private static string FormatObject(object propValue)
@@ -240,7 +261,7 @@ namespace SourceGenerator
         public void Initialize(GeneratorInitializationContext context)
         {
 #if DEBUG
-            // Debugger.Launch();
+            //Debugger.Launch();
 #endif
             // Register a syntax receiver that will be created for each generation pass
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());

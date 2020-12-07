@@ -85,9 +85,20 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var http = new RpcHttp()
             {
-                StatusCode = response.StatusCode,
-                Body = response.Body.ToRpc()
+                StatusCode = ((int)response.StatusCode).ToString()
             };
+
+            if (response.Body != null)
+            {
+                http.Body = response.Body.ToRpc();
+            }
+            else
+            {
+                // TODO: Is this correct? Passing a null body causes the entire
+                //       response to become the body in functions. Need to investigate.
+                http.Body = string.Empty.ToRpc();
+            }
+
             if (response.Headers != null)
             {
                 foreach (var pair in response.Headers)

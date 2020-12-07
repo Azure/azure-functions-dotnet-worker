@@ -1,9 +1,10 @@
-﻿using Microsoft.Azure.Functions.Worker;
+﻿using System.Collections.Generic;
+using System.Net;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
 
 namespace FunctionApp
 {
@@ -41,13 +42,12 @@ namespace FunctionApp
 
         public HttpResponseData ProcessRequest(HttpRequestData httpRequest)
         {
-            var response = new HttpResponseData();
+            var response = new HttpResponseData(HttpStatusCode.OK);
             var headers = new Dictionary<string, string>();
             headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
 
             response.Headers = headers;
-            response.StatusCode = "200";
             response.Body = "Welcome to .NET 5!!";
 
             return response;

@@ -23,17 +23,4 @@
      <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Include=".\Build\**\*">
-      <Pack>true</Pack>
-      <PackagePath>build\</PackagePath>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="worker.config.json">
-      <Pack>true</Pack>
-    </Content>
-  </ItemGroup>
-
 </Project>

@@ -1,6 +1,7 @@
 ﻿<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    
     <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
     <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
     <VersionSuffix>preview1</VersionSuffix>
@@ -12,7 +13,17 @@
     <FileVersion>$(Version)</FileVersion>
     <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
     <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
+    <Authors>Microsoft</Authors>
+    <Company>Microsoft</Company>
+    <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
+    <RepositoryUrl>https://github.com/Azure/azure-functions-dotnet-worker-preview</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <PackageLicenseUrl>https://go.microsoft.com/fwlink/?linkid=2028464</PackageLicenseUrl>
+
     <Nullable>enable</Nullable>
+    <DebugType>embedded</DebugType>
+
   </PropertyGroup>
 
 </Project>

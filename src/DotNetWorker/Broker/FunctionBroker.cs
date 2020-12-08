@@ -58,9 +58,13 @@ namespace Microsoft.Azure.Functions.Worker
 
                 response.Result = new StatusResult { Status = Status.Success };
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                response.Result = new StatusResult { Status = Status.Failure };
+                response.Result = new StatusResult
+                {
+                    Exception = ex.ToRpcException(),
+                    Status = Status.Failure
+                };
             }
             finally
             {

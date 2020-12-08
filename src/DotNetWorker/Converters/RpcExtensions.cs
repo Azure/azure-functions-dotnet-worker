@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -180,6 +181,21 @@ namespace Microsoft.Azure.Functions.Worker
                 FuncName = loadRequest.Metadata.Name,
                 PathToAssembly = Path.GetFullPath(loadRequest.Metadata.ScriptFile),
                 FunctionId = loadRequest.FunctionId
+            };
+        }
+
+        internal static RpcException? ToRpcException(this Exception exception)
+        {
+            if (exception == null)
+            {
+                return null;
+            }
+
+            return new RpcException
+            {
+                Message = exception.Message,
+                Source = exception.Source,
+                StackTrace = exception.StackTrace
             };
         }
     }

@@ -12,7 +12,8 @@ namespace SourceGenerator
     [Generator]
     public class FunctionProvider : ISourceGenerator
     {
-        private static int arrayCount = 0;
+        private const string _workerName = "dotnet-isolated";
+        private static int _arrayCount = 0;
 
         public void Execute(GeneratorExecutionContext context)
         {
@@ -43,7 +44,7 @@ namespace SourceGenerator
             Compilation compilation = context.Compilation;
 
             // begin creating the source we'll inject into the users compilation
-            var sourceBuilder = new StringBuilder(@"
+            var sourceBuilder = new StringBuilder(@$"
             using Microsoft.Azure.WebJobs.Script.Description;
             using System.Collections.Immutable;
             using System.Collections.Generic;
@@ -52,6 +53,7 @@ namespace SourceGenerator
             using Microsoft.Azure.WebJobs;
             using Microsoft.Azure.WebJobs.Hosting;
             using Microsoft.Azure.WebJobs.Extensions.Http;
+            using Microsoft.Extensions.Configuration;
             using Microsoft.Extensions.DependencyInjection;
             using Newtonsoft.Json;
             using Newtonsoft.Json.Converters;
@@ -60,14 +62,22 @@ namespace SourceGenerator
             [assembly: WebJobsStartup(typeof(_GeneratedStartup))]
  
             namespace FunctionProviderGenerator
-             {
-                internal class _GeneratedStartup : IWebJobsStartup
-                {
+            {{
+                internal class _GeneratedStartup : IWebJobsStartup, IWebJobsConfigurationStartup
+                {{
                     public void Configure(IWebJobsBuilder builder)
-                    {           
+                    {{           
                         builder.Services.AddSingleton<IFunctionProvider, _GeneratedFunctionProvider>();
-                    }
-                }");
+                    }}
+                    
+                    public void Configure(WebJobsBuilderContext context, IWebJobsConfigurationBuilder builder)
+                    {{                        
+                        builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
+                        {{
+                            {{ ""languageWorkers:{_workerName}:workerDirectory"", context.ApplicationRootPath }}
+                        }});
+                    }}
+                }}");
 
             sourceBuilder.Append(@"
             internal class _GeneratedFunctionProvider : IFunctionProvider
@@ -121,7 +131,7 @@ namespace SourceGenerator
                 sourceBuilder.AppendLine($"Name = \"{functionName}\",");
                 sourceBuilder.AppendLine($"ScriptFile = \"{scriptFile}\",");
                 sourceBuilder.AppendLine($"EntryPoint = \"{entryPoint}\",");
-                sourceBuilder.AppendLine($"Language = \"dotnet5\",");
+                sourceBuilder.AppendLine($"Language = \"{_workerName}\",");
                 sourceBuilder.AppendLine("};");
                 sourceBuilder.AppendLine($"{functionName}.Properties[\"IsCodeless\"] = false;");
 
@@ -175,7 +185,7 @@ namespace SourceGenerator
                         {
                             string jarr = FormatArray(prop.Value as IEnumerable);
                             sourceBuilder.AppendLine(jarr);
-                            sourceBuilder.Append(@"raw[""" + propertyName + @$"""] = jarr{arrayCount++};");
+                            sourceBuilder.Append(@"raw[""" + propertyName + @$"""] = jarr{_arrayCount++};");
                         }
                         else
                         {
@@ -233,7 +243,7 @@ namespace SourceGenerator
 
             Type elementType = propType.GetElementType();
 
-            code = $"var arr{arrayCount} = new {elementType}[] {{";
+            code = $"var arr{_arrayCount} = new {elementType}[] {{";
 
             bool first = true;
             foreach (var o in enumerableValues)
@@ -253,7 +263,7 @@ namespace SourceGenerator
             code.TrimEnd(',', ' ');
             code += "};";
 
-            code += $"var jarr{arrayCount} = new JArray(arr{arrayCount});";
+            code += $"var jarr{_arrayCount} = new JArray(arr{_arrayCount});";
 
             return code;
         }

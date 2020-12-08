@@ -1,6 +1,6 @@
 {
   "description": {
-    "language": "dotnet5",
+    "language": "dotnet-isolated",
     "extensions": [ ".dll" ],
     "defaultExecutablePath": "dotnet",
     "defaultWorkerPath": "bin/$functionAssembly$"

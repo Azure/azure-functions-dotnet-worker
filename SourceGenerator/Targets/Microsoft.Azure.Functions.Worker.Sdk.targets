@@ -1,0 +1,196 @@
+﻿<!--
+***********************************************************************************************
+Microsoft.Azure.Functions.Worker.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+<Project ToolsVersion="14.0"
+         xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <Target Name="Replace" AfterTargets="CoreCompile">
+    <PropertyGroup>
+      <InputFile>$(MSBuildThisFileDirectory)\..\content\worker.config.json</InputFile>
+      <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
+    </PropertyGroup>
+    <WriteLinesToFile
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Overwrite="true"
+        Encoding="Unicode"/>
+  </Target>
+
+  <!-- 
+  The targets below are temporary and can be removed once the change to allow running with an extensions.json
+  file in the script root directory has been deployed: https://github.com/Azure/azure-functions-host/pull/6889
+  -->
+  
+  <!--
+  Build targets from Functions SDK
+  -->
+  <Target Name="_GenerateFunctionsPostBuild"
+        AfterTargets="Build"
+        DependsOnTargets="_FunctionsPostBuildCollectFiles;_FunctionsPostBuildCopyFiles">
+  </Target>
+
+  <Target Name="_FunctionsPostBuildCollectFiles">
+
+    <ItemGroup>
+      <FunctionsBuildAssemblies Include="$(TargetDir)*.deps.json;
+                                         $(TargetDir)*.runtimeconfig*.json;
+                                         $(TargetDir)**\*.dll;
+                                         $(TargetDir)**\*.pdb"
+                                Exclude="$(TargetDir)bin\**;
+                                         $(TargetDir)worker.config.json"/>
+
+      <FunctionsBuildRuntimes Include="$(TargetDir)runtimes\**" />
+
+    </ItemGroup>
+
+  </Target>
+
+  <Target Name="_FunctionsPostBuildCopyFiles"
+          Inputs="@(FunctionsBuildAssemblies)"
+          Outputs="$(TargetDir)bin\%(RecursiveDir)%(Filename)%(Extension)">
+
+    <!-- Copy the assemblies to the bin folder-->
+    <Copy SourceFiles="@(FunctionsBuildAssemblies)"
+          DestinationFiles="$(TargetDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
+          OverwriteReadOnlyFiles="true" />
+
+  </Target>
+
+  <Target Name="_FunctionsPostBuildCopyRuntimes" BeforeTargets="_FunctionsPostBuildCopyFiles"
+          Inputs="@(FunctionsBuildRuntimes)"
+          Outputs="$(TargetDir)bin\runtimes\%(RecursiveDir)%(Filename)%(Extension)">
+
+    <!-- Copy the runtimes folder to the bin folder-->
+    <Copy SourceFiles="@(FunctionsBuildRuntimes)"
+          DestinationFiles="$(TargetDir)bin\runtimes\%(RecursiveDir)%(Filename)%(Extension)"
+          OverwriteReadOnlyFiles="true" />
+
+  </Target>
+
+  <Target
+    Name="_CleanFunctions"
+    AfterTargets="Clean">
+
+    <ItemGroup>
+      <_FilesInTargetDir Include="$(TargetDir)**\*" />
+    </ItemGroup>
+
+    <Delete Files="@(_FilesInTargetDir)"
+            ContinueOnError="true" />
+
+    <RemoveDir Directories="$(TargetDir)"
+               ContinueOnError="true" />
+  </Target>
+  
+  <!--
+  Publish targets from Functions SDK
+  -->
+  
+  <Target Name="_InitializeDotNetPublishProperties"
+          BeforeTargets="PrepareForPublish"
+          Condition="'$(DeployOnBuild)' != 'true'">
+
+    <ConvertToAbsolutePath Paths="$(PublishDir)">
+      <Output TaskParameter="AbsolutePaths"
+              PropertyName="FunctionsDir"/>
+    </ConvertToAbsolutePath>
+
+    <PropertyGroup>
+      <PublishDir>$(FunctionsDir)</PublishDir>
+      <PublishDir Condition="!HasTrailingSlash('$(PublishDir)')">$(PublishDir)\</PublishDir>
+      <FunctionsTargetPath>$(PublishDir)bin\$(TargetFileName)</FunctionsTargetPath>
+      <FunctionsOutputPath>$(FunctionsDir)</FunctionsOutputPath>
+    </PropertyGroup>
+
+  </Target>
+
+  <Target Name="_InitializeDeployOnBuildProperties" >
+
+    <ConvertToAbsolutePath Paths="$(PublishIntermediateOutputPath)">
+      <Output TaskParameter="AbsolutePaths"
+              PropertyName="PublishIntermediateOutputPath"/>
+    </ConvertToAbsolutePath>
+
+    <PropertyGroup>
+      <PublishDir>$(PublishIntermediateOutputPath)</PublishDir>
+      <PublishDir Condition="!HasTrailingSlash('$(PublishDir)')">$(PublishDir)\</PublishDir>
+      <FunctionsTargetPath>$(PublishDir)bin\$(TargetFileName)</FunctionsTargetPath>
+      <FunctionsOutputPath>$(PublishIntermediateOutputPath)</FunctionsOutputPath>
+    </PropertyGroup>
+
+    <!-- Remove all the files from the temp directory first-->
+    <ItemGroup>
+      <_PublishTempFiles Include="$(PublishIntermediateOutputPath)**\*.*" />
+    </ItemGroup>
+
+    <Delete Files="@(_PublishTempFiles)"
+            ContinueOnError="true" />
+
+    <RemoveDir Directories="$(PublishIntermediateOutputPath)"
+               ContinueOnError="true"
+               Condition="Exists('$(PublishIntermediateOutputPath)')" />
+
+    <MakeDir Directories="$(PublishIntermediateOutputPath)"
+             Condition="!Exists('$(PublishIntermediateOutputPath)')"/>
+
+  </Target>
+
+  <Target Name="_FunctionsPostPublish"
+          AfterTargets="Publish"
+          DependsOnTargets="_GenerateFunctionsAndCopyContentFiles"
+          >
+  </Target>
+
+
+  <PropertyGroup>
+    <CorePublishDependsOn>
+      _InitializeDeployOnBuildProperties;
+      Publish;
+      $(_DotNetPublishFiles);
+    </CorePublishDependsOn>
+  </PropertyGroup>
+
+  <Target Name="_GenerateFunctionsAndCopyContentFiles">
+
+    <ItemGroup>
+      <FunctionsPublishAssemblies Include="$(PublishDir)*.deps.json;
+                                           $(PublishDir)*.runtimeconfig*.json;
+                                           $(PublishDir)*.dll;
+                                           $(PublishDir)*.pdb" />
+    </ItemGroup>
+
+    <!-- Move the additional assemblies to the bin folder. 
+    we move the assemblies rather than copy because we want to reduce the publish payload -->
+    <Move SourceFiles="@(FunctionsPublishAssemblies)"
+      DestinationFiles="$(PublishDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
+      OverwriteReadOnlyFiles="true" />
+
+  </Target>
+
+  <!--
+    ============================================================
+                  _ResolveCopyLocalAssetsForPublishFunctions
+
+    Moves all CopyLocal assemblies to bin folder.
+    ============================================================
+    -->
+  <Target
+   Name="_ResolveCopyLocalAssetsForPublishFunctions"
+   AfterTargets="_ResolveCopyLocalAssetsForPublish">
+
+    <ItemGroup>
+      <_ResolvedCopyLocalPublishAssets>
+        <DestinationSubDirectory>bin\%(_ResolvedCopyLocalPublishAssets.DestinationSubDirectory)</DestinationSubDirectory>
+      </_ResolvedCopyLocalPublishAssets>
+    </ItemGroup>
+
+  </Target>
+
+</Project>

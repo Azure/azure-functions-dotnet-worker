@@ -3,6 +3,6 @@
     "language": "dotnet5",
     "extensions": [ ".dll" ],
     "defaultExecutablePath": "dotnet",
-    "defaultWorkerPath": "bin/FunctionApp.dll"
+    "defaultWorkerPath": "bin/$functionAssembly$"
   }
 }

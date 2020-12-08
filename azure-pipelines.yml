@@ -39,7 +39,7 @@ steps:
   inputs:
     command: 'custom'
     custom: 'pack'
-    arguments: '-o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion)'
+    arguments: '-o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
     projects: |
       **\DotNetWorker.csproj
       **\SourceGenerator.csproj

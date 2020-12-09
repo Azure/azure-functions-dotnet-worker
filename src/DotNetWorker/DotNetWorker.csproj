@@ -5,6 +5,8 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Worker</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.13.0" />
@@ -22,5 +24,4 @@
   <ItemGroup>
      <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
   </ItemGroup>
-
 </Project>

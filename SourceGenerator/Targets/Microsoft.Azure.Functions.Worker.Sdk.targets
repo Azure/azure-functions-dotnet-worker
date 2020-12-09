@@ -11,16 +11,28 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project ToolsVersion="14.0"
          xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
-  <Target Name="Replace" AfterTargets="CoreCompile">
+  <PropertyGroup>
+    <WorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\content\worker.config.json</WorkerConfigInputFile>
+  </PropertyGroup>
+
+  <Target Name="_FunctionsGenerateWorkerConfigBuild" AfterTargets="Build">
     <PropertyGroup>
-      <InputFile>$(MSBuildThisFileDirectory)\..\content\worker.config.json</InputFile>
       <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
     </PropertyGroup>
     <WriteLinesToFile
         File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(InputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
-        Overwrite="true"
-        Encoding="Unicode"/>
+        Lines="$([System.IO.File]::ReadAllText($(WorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Overwrite="true" />
+  </Target>
+
+  <Target Name="_FunctionsGenerateWorkerConfigPublish" AfterTargets="Publish">
+    <PropertyGroup>
+      <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
+    </PropertyGroup>
+    <WriteLinesToFile
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(WorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Overwrite="true" />
   </Target>
 
   <!-- 

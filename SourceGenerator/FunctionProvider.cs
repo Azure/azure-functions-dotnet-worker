@@ -181,6 +181,14 @@ namespace SourceGenerator
                         var propertyName = prop.Key;
                         var propertyValue = FormatObject(prop.Value);
 
+                        // Temporary fix for timer trigger attribute property being different
+                        // from what is expected in FunctionMetadata
+                        // https://github.com/Azure/azure-functions-host/issues/6989
+                        if (string.Equals(propertyName, "scheduleExpression", StringComparison.OrdinalIgnoreCase))
+                        {
+                            propertyName = "schedule";
+                        }
+
                         if (prop.Value.GetType().IsArray)
                         {
                             string jarr = FormatArray(prop.Value as IEnumerable);

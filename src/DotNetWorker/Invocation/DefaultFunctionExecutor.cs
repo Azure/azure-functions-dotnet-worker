@@ -97,6 +97,9 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
                 case TypedData.DataOneofCase.None:
                     source = null;
                     break;
+                case TypedData.DataOneofCase.Json:
+                    source = value.Json;
+                    break;
                 default:
                     throw new NotSupportedException($"{value.DataCase} is not supported yet.");
             }

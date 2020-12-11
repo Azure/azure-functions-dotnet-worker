@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Channels;
 using Grpc.Core;
+using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -57,7 +58,11 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
             {
                 IOptions<WorkerStartupOptions> argumentsOptions = p.GetService<IOptions<WorkerStartupOptions>>();
                 WorkerStartupOptions arguments = argumentsOptions.Value;
-                Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure);
+
+                GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{arguments.Host}:{arguments.Port}", new GrpcChannelOptions()
+                {
+                    Credentials = ChannelCredentials.Insecure
+                });
 
                 return new FunctionRpcClient(grpcChannel);
             });

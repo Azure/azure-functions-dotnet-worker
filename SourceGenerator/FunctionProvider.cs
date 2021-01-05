@@ -118,7 +118,7 @@ namespace SourceGenerator
                 // If there isn't a function name, this is not a Function
                 if (functionName == null)
                 {
-                    return;
+                    continue;
                 }
 
                 var assemblyName = compilation.Assembly.Name;

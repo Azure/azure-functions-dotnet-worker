@@ -1,0 +1,59 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\build\Common.props" />
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include=".\Targets\**\*">
+      <Pack>true</Pack>
+      <PackagePath>build</PackagePath>
+    </None>
+  
+    <None Include="worker.config.json">
+      <Pack>true</Pack>
+      <PackagePath>tools</PackagePath>
+    </None>
+
+    <None Include="$(OutputPath)Microsoft.Azure.Functions.Worker.Sdk.dll">
+      <Pack>true</Pack>
+      <PackagePath>tools</PackagePath>
+    </None>   
+    
+    <None Include="$(OutputPath)System.Reflection.MetadataLoadContext.dll">
+      <Pack>true</Pack>
+      <PackagePath>tools</PackagePath>
+    </None>   
+
+  </ItemGroup>  
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />
+    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0" />
+  </ItemGroup>
+  
+  <Target Name="IncludeFunctionMetadataLoaderExtension" BeforeTargets="AfterBuild">
+    <MSBuild Projects="..\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" BuildInParallel="$(BuildInParallel)" Targets="Build">
+      <Output TaskParameter="TargetOutputs" ItemName="FunctionMetadataLoaderExtensionOutput" />
+    </MSBuild>
+    
+    <ItemGroup>
+      <None Include="@(FunctionMetadataLoaderExtensionOutput)">
+        <Pack>true</Pack>
+        <PackagePath>tools</PackagePath>
+        <PackageCopyToOutput>true</PackageCopyToOutput>
+      </None>
+    </ItemGroup>
+  
+  </Target>
+
+</Project>

@@ -1,15 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <IsPackable>false</IsPackable>
-    <AssemblyName>Microsoft.Azure.Functions.WorkerTests</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.WorkerTests</RootNamespace>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Microsoft.Azure.Functions.FunctionMetadataGeneratorTests</AssemblyName>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
-
-  <ItemGroup>
+  
+    <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="Moq" Version="4.15.2" />    
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -20,7 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.23" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.2-preview" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" />
+    <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
   </ItemGroup>
 
 </Project>

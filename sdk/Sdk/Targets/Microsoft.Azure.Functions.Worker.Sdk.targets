@@ -12,28 +12,44 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
          xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <WorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\content\worker.config.json</WorkerConfigInputFile>
+    <_FunctionsTaskFramework>netcoreapp3.1</_FunctionsTaskFramework>
+    <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
+    <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
+    <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(MSBuildThisFileDirectory)..\tools\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
   </PropertyGroup>
 
-  <Target Name="_FunctionsGenerateWorkerConfigBuild" AfterTargets="Build">
+  <UsingTask TaskName="GenerateFunctionMetadata"
+           AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+
+  <Target Name="_FunctionsPostBuild" AfterTargets="Build">    
+    <GenerateFunctionMetadata AssemblyPath="$(TargetDir)$(AssemblyName).dll" OutputPath="$(TargetDir)"/>
+
+    <Copy 
+      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+      DestinationFolder="$(TargetDir)"
+      OverwriteReadOnlyFiles="true" />
+    
     <PropertyGroup>
       <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
     </PropertyGroup>
     <WriteLinesToFile
         File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(WorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
         Overwrite="true" />
   </Target>
 
-  <Target Name="_FunctionsGenerateWorkerConfigPublish" AfterTargets="Publish">
+  <Target Name="_FunctionsPostPublish" AfterTargets="Publish">
+    <GenerateFunctionMetadata AssemblyPath="$(OutDir)$(AssemblyName).dll" OutputPath="$(PublishDir)"/>
+
     <PropertyGroup>
       <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
     </PropertyGroup>
     <WriteLinesToFile
         File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(WorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
         Overwrite="true" />
   </Target>
+
 
   <!-- 
   The targets below are temporary and can be removed once the change to allow running with an extensions.json

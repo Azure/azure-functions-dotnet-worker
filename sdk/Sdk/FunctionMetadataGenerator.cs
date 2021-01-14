@@ -13,8 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     {
         public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath)
         {
-            var functions = new List<SdkFunctionMetadata>();
-
             string[] runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
             string[] outputAssemblies = Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*.dll");
 
@@ -25,35 +23,46 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             using (var loadContext = new MetadataLoadContext(resolver, typeof(object).Assembly.FullName))
             {
+                var functions = new List<SdkFunctionMetadata>();
 
                 Assembly assembly = loadContext.LoadFromAssemblyPath(assemblyPath);
-                AssemblyName name = assembly.GetName();
 
                 foreach (Type t in assembly.GetTypes())
                 {
-                    foreach (MethodInfo method in t.GetMethods())
-                    {
-                        if (!TryCreateFunctionMetadata(method, out SdkFunctionMetadata metadata))
-                        {
-                            continue;
-                        }
-
-                        foreach (var binding in CreateBindingMetadata(method))
-                        {
-                            metadata.Bindings.Add(binding);
-                        }
-
-                        functions.Add(metadata);
-                    }
+                    functions.AddRange(GenerateFunctionMetadata(t));
                 }
+
+                return functions;
+            }
+        }
+
+        internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(Type t)
+        {
+            var functions = new List<SdkFunctionMetadata>();
+
+            foreach (MethodInfo method in t.GetMethods())
+            {
+                if (!TryCreateFunctionMetadata(method, out SdkFunctionMetadata? metadata)
+                    || metadata == null)
+                {
+                    continue;
+                }
+
+                foreach (var binding in CreateBindingMetadata(method))
+                {
+                    metadata.Bindings.Add(binding);
+                }
+
+                functions.Add(metadata);
             }
 
             return functions;
         }
 
-        private IEnumerable<object> CreateBindingMetadata(MethodInfo method)
+
+        private IEnumerable<ExpandoObject> CreateBindingMetadata(MethodInfo method)
         {
-            var bindingMetadata = new List<object>();
+            var bindingMetadata = new List<ExpandoObject>();
 
             foreach (var parameter in method.GetParameters())
             {
@@ -106,23 +115,64 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 var arg = attribute.ConstructorArguments[i];
                 var param = constructorParams[i];
 
-                string paramName = param.Name;
-                object paramValue = arg.Value;
-
-                if (param.ParameterType.IsEnum)
+                if (param == null)
                 {
-                    paramValue = Enum.GetName(param.ParameterType, arg.Value);
-                }
-                else if (param.ParameterType.IsArray)
-                {
-                    var arrayValue = arg.Value as ReadOnlyCollection<CustomAttributeTypedArgument>;
-                    paramValue = arrayValue.Select(p => p.Value);
+                    continue;
                 }
 
-                properties[paramName] = paramValue;
+                string? paramName = param.Name;
+                object? paramValue = arg.Value;
+
+                if (paramName == null || paramValue == null)
+                {
+                    continue;
+                }
+
+                // Temporary fix for timer trigger attribute property being different
+                // from what is expected in FunctionMetadata
+                // https://github.com/Azure/azure-functions-host/issues/6989
+                if (string.Equals(paramName, "scheduleExpression", StringComparison.OrdinalIgnoreCase))
+                {
+                    paramName = "schedule";
+                }
+
+                paramValue = GetParamValue(param.ParameterType, paramValue);
+
+                properties[paramName] = paramValue!;
+            }
+
+            foreach (var namedArgument in attribute.NamedArguments)
+            {
+                object? argValue = namedArgument.TypedValue.Value;
+
+                if (argValue == null)
+                {
+                    continue;
+                }
+
+                argValue = GetParamValue(namedArgument.TypedValue.ArgumentType, argValue);
+
+                properties[namedArgument.MemberName] = argValue!;
             }
 
             return properties;
+        }
+
+        internal static object? GetParamValue(Type paramType, object arg)
+        {
+            if (paramType.IsEnum)
+            {
+                return Enum.GetName(paramType, arg);
+            }
+            else if (paramType.IsArray)
+            {
+                var arrayValue = arg as ReadOnlyCollection<CustomAttributeTypedArgument>;
+                return arrayValue.Select(p => p.Value).ToArray();
+            }
+            else
+            {
+                return arg;
+            }
         }
 
         private string GetBindingDirection(ParameterInfo parameter)
@@ -142,7 +192,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 .Any(p => p.AttributeType.FullName == "Microsoft.Azure.WebJobs.Description.BindingAttribute");
         }
 
-        private static bool TryCreateFunctionMetadata(MethodInfo method, out SdkFunctionMetadata function)
+        private static bool TryCreateFunctionMetadata(MethodInfo method, out SdkFunctionMetadata? function)
         {
             function = null;
 
@@ -150,13 +200,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 if (attribute.AttributeType.FullName == "Microsoft.Azure.WebJobs.FunctionNameAttribute")
                 {
-                    string assemblyName = method.DeclaringType.Assembly.GetName().Name;
+                    Type? declaringType = method.DeclaringType;
+
+                    if (declaringType == null)
+                    {
+                        return false;
+                    }
+
+                    string? assemblyName = declaringType.Assembly.GetName().Name;
+
+                    if (string.IsNullOrEmpty(assemblyName))
+                    {
+                        return false;
+                    }
+
+                    var functionName = attribute.ConstructorArguments.SingleOrDefault().Value?.ToString();
+
+                    if (string.IsNullOrEmpty(functionName))
+                    {
+                        return false;
+                    }
 
                     function = new SdkFunctionMetadata
                     {
-                        Name = attribute.ConstructorArguments.Single().Value.ToString(),
+                        Name = functionName,
                         ScriptFile = $"bin/{assemblyName}.dll",
-                        EntryPoint = $"{method.DeclaringType.FullName}.{method.Name}",
+                        EntryPoint = $"{declaringType.FullName}.{method.Name}",
                         Language = "dotnet-isolated"
                     };
 

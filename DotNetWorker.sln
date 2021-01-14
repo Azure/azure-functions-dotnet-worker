@@ -22,9 +22,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{1B6B4B62
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk", "sdk\Sdk\Sdk.csproj", "{E28BAAEF-4E70-4CAB-8475-759ECBAF1AF5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionMetadataGeneratorTests", "test\FunctionMetadataGeneratorTests\FunctionMetadataGeneratorTests.csproj", "{5C38C5A3-83A5-4E2F-9B32-204C2225E890}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkTests", "test\FunctionMetadataGeneratorTests\SdkTests.csproj", "{5C38C5A3-83A5-4E2F-9B32-204C2225E890}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionMetadataLoaderExtension", "sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj", "{6B64FE04-BA90-49FC-893A-DF12EF15280C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionMetadataLoaderExtension", "sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj", "{6B64FE04-BA90-49FC-893A-DF12EF15280C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

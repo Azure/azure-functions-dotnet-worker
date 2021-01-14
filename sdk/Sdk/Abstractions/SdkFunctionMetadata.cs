@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Dynamic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -18,6 +19,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 
-        public Collection<object> Bindings { get; set; } = new Collection<object>();
+        public Collection<ExpandoObject> Bindings { get; set; } = new Collection<ExpandoObject>();
     }
 }

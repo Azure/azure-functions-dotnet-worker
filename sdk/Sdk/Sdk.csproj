@@ -10,6 +10,7 @@
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <IncludeBuildOutput>false</IncludeBuildOutput>
+    <FunctionsGeneratorOutputPath>..\FunctionMetadataLoaderExtension\bin\$(Configuration)\netstandard2.0\</FunctionsGeneratorOutputPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -33,27 +34,17 @@
       <PackagePath>tools\netstandard2.0</PackagePath>
     </None>
 
+    <None Include="$(FunctionsGeneratorOutputPath)Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll">
+      <Pack>true</Pack>
+      <PackagePath>tools\netstandard2.0</PackagePath>
+    </None>
+
   </ItemGroup>  
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />    
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
-  </ItemGroup>
-  
-  <Target Name="IncludeFunctionMetadataLoaderExtension" BeforeTargets="Pack">
-    <MSBuild Projects="..\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" BuildInParallel="$(BuildInParallel)" Targets="Build">
-      <Output TaskParameter="TargetOutputs" ItemName="FunctionMetadataLoaderExtensionOutput" />
-    </MSBuild>
-    
-    <ItemGroup>
-      <None Include="@(FunctionMetadataLoaderExtensionOutput)">
-        <Pack>true</Pack>
-        <PackagePath>tools\netstandard2.0</PackagePath>
-        <PackageCopyToOutput>true</PackageCopyToOutput>
-      </None>
-    </ItemGroup>
-  
-  </Target>
+  </ItemGroup>  
 
 </Project>

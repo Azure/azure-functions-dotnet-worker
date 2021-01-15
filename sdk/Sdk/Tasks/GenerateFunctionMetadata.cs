@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -12,10 +13,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         [Required]
         public string? OutputPath { get; set; }
 
+        [Required]
+        public ITaskItem[] ReferencePaths { get; set; }
+
         public override bool Execute()
         {
             var generator = new FunctionMetadataGenerator(MSBuildLogger);
-            var functions = generator.GenerateFunctionMetadata(AssemblyPath!);
+            var functions = generator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
 
             FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
 

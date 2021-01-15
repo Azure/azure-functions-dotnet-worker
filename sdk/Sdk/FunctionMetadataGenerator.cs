@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             _logger = new IndentableLogger(log);
         }
 
-        public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath)
+        public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath, IEnumerable<string> referencePaths)
         {
             string sourcePath = Path.GetDirectoryName(assemblyPath);
             string[] targetAssemblies = Directory.GetFiles(sourcePath, "*.dll");
@@ -42,6 +42,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         try
                         {
                             BaseAssemblyResolver resolver = new DefaultAssemblyResolver();
+
+                            foreach (string referencePath in referencePaths.Select(p => Path.GetDirectoryName(p)).Distinct())
+                            {
+                                resolver.AddSearchDirectory(referencePath);
+                            }
+
                             resolver.AddSearchDirectory(Path.GetDirectoryName(path));
 
                             ReaderParameters readerParams = new ReaderParameters { AssemblyResolver = resolver };
@@ -50,9 +56,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                             functions.AddRange(GenerateFunctionMetadata(moduleDefintion));
                         }
+                        catch (BadImageFormatException)
+                        {
+                            _logger.LogMessage($"Skipping file '{Path.GetFileName(path)}' because of a {nameof(BadImageFormatException)}.");
+                        }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning($"Could not evaluate '{Path.GetFileName(path)}' for functions metadata. Exception message: {ex.Message}");
+                            _logger.LogWarning($"Could not evaluate '{Path.GetFileName(path)}' for functions metadata. Exception message: {ex.ToString()}");
                         }
                     }
                 }

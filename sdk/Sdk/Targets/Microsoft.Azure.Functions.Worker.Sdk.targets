@@ -22,7 +22,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
   <Target Name="_FunctionsPostBuild" AfterTargets="Build">    
-    <GenerateFunctionMetadata AssemblyPath="$(TargetDir)$(AssemblyName).dll" OutputPath="$(TargetDir)"/>
+    
+    <GenerateFunctionMetadata 
+      AssemblyPath="$(TargetDir)$(AssemblyName).dll" 
+      ReferencePaths="@(ReferencePath)"
+      OutputPath="$(TargetDir)"/>
 
     <Copy 
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
@@ -36,24 +40,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         File="$(OutputFile)"
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
         Overwrite="true" />
-  </Target>
-
-  <Target Name="_FunctionsGenerateFunctionsMetadataPostPublish" DependsOnTargets="_GenerateFunctionsAndCopyContentFiles">
-    <GenerateFunctionMetadata AssemblyPath="$(PublishDir)\bin\$(AssemblyName).dll" OutputPath="$(PublishDir)"/>
-    
-    <Copy
-      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(PublishDir)\bin"
-      OverwriteReadOnlyFiles="true" />
-
-    <PropertyGroup>
-      <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
-    </PropertyGroup>
-    <WriteLinesToFile
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
-        Overwrite="true" />
-  </Target>
+  </Target> 
 
   <!-- 
   The targets below are temporary and can be removed once the change to allow running with an extensions.json
@@ -176,7 +163,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="_FunctionsPostPublish"
         AfterTargets="Publish"
-        DependsOnTargets="_FunctionsGenerateFunctionsMetadataPostPublish"
+        DependsOnTargets="_GenerateFunctionsAndCopyContentFiles"
           >
   </Target>  
   
@@ -202,6 +189,24 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Move SourceFiles="@(FunctionsPublishAssemblies)"
           DestinationFiles="$(PublishDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
           OverwriteReadOnlyFiles="true" />
+
+    <GenerateFunctionMetadata
+      AssemblyPath="$(PublishDir)\bin\$(AssemblyName).dll"
+      ReferencePaths="@(ReferencePath)"
+      OutputPath="$(PublishDir)"/>
+    
+    <Copy
+      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+      DestinationFolder="$(PublishDir)\bin"
+      OverwriteReadOnlyFiles="true" />
+
+    <PropertyGroup>
+      <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
+    </PropertyGroup>
+    <WriteLinesToFile
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Overwrite="true" />
 
   </Target>
 

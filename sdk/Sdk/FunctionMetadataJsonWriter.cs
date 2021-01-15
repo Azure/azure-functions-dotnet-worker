@@ -12,14 +12,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static JsonSerializerOptions CreateSerializerOptions()
         {
+            var namingPolicy = new FunctionsJsonNamingPolicy();
+
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,
                 IgnoreNullValues = true,
                 PropertyNameCaseInsensitive = true,
                 IgnoreReadOnlyProperties = true,
-                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase,
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                DictionaryKeyPolicy = namingPolicy,
+                PropertyNamingPolicy = namingPolicy
             };
 
             options.Converters.Add(new JsonStringEnumConverter());

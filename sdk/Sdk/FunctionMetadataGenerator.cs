@@ -1,17 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
+using Mono.Cecil;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class FunctionMetadataGenerator
     {
-        private readonly Action<TraceLevel, string> _log;
+        private readonly IndentableLogger _logger;
 
         public FunctionMetadataGenerator()
             : this((l, m) => { })
@@ -20,41 +19,71 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         public FunctionMetadataGenerator(Action<TraceLevel, string> log)
         {
-            _log = log ?? throw new ArgumentNullException(nameof(log));
+            _logger = new IndentableLogger(log);
         }
 
         public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath)
         {
-            string path = Path.GetDirectoryName(typeof(object).Assembly.Location);
+            string sourcePath = Path.GetDirectoryName(assemblyPath);
+            string[] targetAssemblies = Directory.GetFiles(sourcePath, "*.dll");
 
-            string[] runtimeAssemblies = Directory.GetFiles(path, "*.dll");
-            string[] outputAssemblies = Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*.dll");
+            var functions = new List<SdkFunctionMetadata>();
 
-            var paths = new List<string>(runtimeAssemblies);
-            paths.AddRange(outputAssemblies);
+            _logger.LogMessage($"Found { targetAssemblies.Length} assemblies to evaluate in '{sourcePath}':");
 
-            var resolver = new PathAssemblyResolver(paths);
-
-            using (var loadContext = new MetadataLoadContext(resolver, typeof(object).Assembly.FullName))
+            foreach (var path in targetAssemblies)
             {
-                var functions = new List<SdkFunctionMetadata>();
-
-                Assembly assembly = loadContext.LoadFromAssemblyPath(assemblyPath);
-
-                foreach (Type t in assembly.GetTypes())
+                using (_logger.Indent())
                 {
-                    functions.AddRange(GenerateFunctionMetadata(t));
-                }
+                    _logger.LogMessage($"{Path.GetFileName(path)}");
 
-                return functions;
+                    using (_logger.Indent())
+                    {
+                        try
+                        {
+                            BaseAssemblyResolver resolver = new DefaultAssemblyResolver();
+                            resolver.AddSearchDirectory(Path.GetDirectoryName(path));
+
+                            ReaderParameters readerParams = new ReaderParameters { AssemblyResolver = resolver };
+
+                            var moduleDefintion = ModuleDefinition.ReadModule(path, readerParams);
+
+                            functions.AddRange(GenerateFunctionMetadata(moduleDefintion));
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"Could not evaluate '{Path.GetFileName(path)}' for functions metadata. Exception message: {ex.Message}");
+                        }
+                    }
+                }
             }
+
+            return functions;
         }
 
-        internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(Type t)
+        internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(ModuleDefinition module)
         {
             var functions = new List<SdkFunctionMetadata>();
 
-            foreach (MethodInfo method in t.GetMethods())
+            foreach (TypeDefinition type in module.Types)
+            {
+                var functionsResult = GenerateFunctionMetadata(type).ToArray();
+                if (functionsResult.Length > 0)
+                {
+                    _logger.LogMessage($"Found {functionsResult.Length} functions in '{type.GetReflectionFullName()}'.");
+                }
+
+                functions.AddRange(functionsResult);
+            }
+
+            return functions;
+        }
+
+        internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(TypeDefinition type)
+        {
+            var functions = new List<SdkFunctionMetadata>();
+
+            foreach (MethodDefinition method in type.Methods)
             {
                 if (!TryCreateFunctionMetadata(method, out SdkFunctionMetadata? metadata)
                     || metadata == null)
@@ -74,24 +103,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         }
 
 
-        private IEnumerable<ExpandoObject> CreateBindingMetadata(MethodInfo method)
+        private IEnumerable<ExpandoObject> CreateBindingMetadata(MethodDefinition method)
         {
             var bindingMetadata = new List<ExpandoObject>();
 
-            foreach (var parameter in method.GetParameters())
+            foreach (ParameterDefinition parameter in method.Parameters)
             {
-                foreach (var attribute in parameter.GetCustomAttributesData())
+                foreach (CustomAttribute attribute in parameter.CustomAttributes)
                 {
                     if (IsWebJobsBinding(attribute))
                     {
                         string bindingType = attribute.AttributeType.Name.Replace("Attribute", string.Empty);
 
-                        dynamic binding = new ExpandoObject();
-                        binding.Name = parameter.Name;
-                        binding.Type = bindingType;
-                        binding.Direction = GetBindingDirection(parameter);
-
+                        ExpandoObject binding = new ExpandoObject();
                         var bindingDict = (IDictionary<string, object>)binding;
+                        bindingDict["Name"] = parameter.Name;
+                        bindingDict["Type"] = bindingType;
+                        bindingDict["Direction"] = GetBindingDirection(parameter);
+
                         foreach (var property in GetAttributeProperties(attribute))
                         {
                             bindingDict.Add(property.Key, property.Value);
@@ -103,12 +132,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         // auto-add a return type for http for now
                         if (string.Equals(bindingType, "httptrigger", StringComparison.OrdinalIgnoreCase))
                         {
-                            dynamic returnBinding = new ExpandoObject();
-                            returnBinding.Name = "$return";
-                            returnBinding.Type = "http";
-                            returnBinding.Direction = "Out";
+                            IDictionary<string, object> returnBinding = new ExpandoObject();
+                            returnBinding["Name"] = "$return";
+                            returnBinding["Type"] = "http";
+                            returnBinding["Direction"] = "Out";
 
-                            bindingMetadata.Add(returnBinding);
+                            bindingMetadata.Add((ExpandoObject)returnBinding);
                         }
                     }
                 }
@@ -117,13 +146,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return bindingMetadata;
         }
 
-        private IDictionary<string, object> GetAttributeProperties(CustomAttributeData attribute)
+        private IDictionary<string, object> GetAttributeProperties(CustomAttribute attribute)
         {
             var properties = new Dictionary<string, object>();
 
             // To avoid needing to instantiate any types, assume that the constructor
             // argument names are equal to property names.
-            var constructorParams = attribute.Constructor.GetParameters();
+            var constructorParams = attribute.Constructor.Resolve().Parameters;
             for (int i = 0; i < attribute.ConstructorArguments.Count; i++)
             {
                 var arg = attribute.ConstructorArguments[i];
@@ -155,32 +184,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 properties[paramName] = paramValue!;
             }
 
-            foreach (var namedArgument in attribute.NamedArguments)
+            foreach (var namedArgument in attribute.Properties)
             {
-                object? argValue = namedArgument.TypedValue.Value;
+                object? argValue = namedArgument.Argument.Value;
 
                 if (argValue == null)
                 {
                     continue;
                 }
 
-                argValue = GetParamValue(namedArgument.TypedValue.ArgumentType, argValue);
+                argValue = GetParamValue(namedArgument.Argument.Type, argValue);
 
-                properties[namedArgument.MemberName] = argValue!;
+                properties[namedArgument.Name] = argValue!;
             }
 
             return properties;
         }
 
-        internal static object? GetParamValue(Type paramType, object arg)
+        internal static object? GetParamValue(TypeReference paramType, object arg)
         {
-            if (paramType.IsEnum)
+            if (TryGetEnumName(paramType.Resolve(), arg, out string? enumName))
             {
-                return Enum.GetName(paramType, arg);
+                return enumName;
             }
             else if (paramType.IsArray)
             {
-                var arrayValue = arg as ReadOnlyCollection<CustomAttributeTypedArgument>;
+                var arrayValue = arg as IEnumerable<CustomAttributeArgument>;
                 return arrayValue.Select(p => p.Value).ToArray();
             }
             else
@@ -189,10 +218,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
         }
 
-        private string GetBindingDirection(ParameterInfo parameter)
+        private static bool TryGetEnumName(TypeDefinition typeDef, object enumValue, out string? enumName)
         {
-            if (parameter.ParameterType.IsGenericType &&
-                parameter.ParameterType.GetGenericTypeDefinition().FullName == "Microsoft.Azure.Functions.Worker.OutputBinding`1")
+            if (typeDef.IsEnum)
+            {
+                enumName = typeDef.Fields.Single(f => Equals(f.Constant, enumValue)).Name;
+                return true;
+            }
+
+            enumName = null;
+            return false;
+        }
+
+        private string GetBindingDirection(ParameterDefinition parameter)
+        {
+            if (parameter.ParameterType.IsGenericInstance &&
+                parameter.ParameterType.Resolve().FullName == "Microsoft.Azure.Functions.Worker.OutputBinding`1")
             {
                 return "Out";
             }
@@ -200,36 +241,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return "In";
         }
 
-        private static bool IsWebJobsBinding(CustomAttributeData attribute)
+        private static bool IsWebJobsBinding(CustomAttribute attribute)
         {
-            return attribute.AttributeType.GetCustomAttributesData()
+            return attribute.AttributeType.Resolve().CustomAttributes
                 .Any(p => p.AttributeType.FullName == "Microsoft.Azure.WebJobs.Description.BindingAttribute");
         }
 
-        private bool TryCreateFunctionMetadata(MethodInfo method, out SdkFunctionMetadata? function)
+        private bool TryCreateFunctionMetadata(MethodDefinition method, out SdkFunctionMetadata? function)
         {
             function = null;
 
-
-            foreach (CustomAttributeData attribute in method.GetCustomAttributesData())
+            foreach (CustomAttribute attribute in method.CustomAttributes)
             {
-                if (attribute.AttributeType != null) //.Name == "Microsoft.Azure.WebJobs.FunctionNameAttribute")
+                if (attribute.AttributeType.FullName == "Microsoft.Azure.WebJobs.FunctionNameAttribute")
                 {
-                    Type? declaringType = method.DeclaringType;
+                    TypeDefinition declaringType = method.DeclaringType;
 
-                    if (declaringType == null)
-                    {
-                        continue; ;
-                    }
+                    string assemblyName = declaringType.Module.Assembly.Name.Name;
 
-                    string? assemblyName = declaringType.Assembly.GetName().Name;
-
-                    if (string.IsNullOrEmpty(assemblyName))
-                    {
-                        continue;
-                    }
-
-                    var functionName = attribute.ConstructorArguments.SingleOrDefault().Value?.ToString();
+                    var functionName = attribute.ConstructorArguments.SingleOrDefault().Value.ToString();
 
                     if (string.IsNullOrEmpty(functionName))
                     {
@@ -240,7 +270,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     {
                         Name = functionName,
                         ScriptFile = $"bin/{assemblyName}.dll",
-                        EntryPoint = $"{declaringType.FullName}.{method.Name}",
+                        EntryPoint = $"{declaringType.GetReflectionFullName()}.{method.Name}",
                         Language = "dotnet-isolated"
                     };
 

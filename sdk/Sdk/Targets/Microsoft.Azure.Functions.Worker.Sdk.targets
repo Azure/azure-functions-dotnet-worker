@@ -38,8 +38,13 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Overwrite="true" />
   </Target>
 
-  <Target Name="_FunctionsPostPublish" AfterTargets="Publish">
-    <GenerateFunctionMetadata AssemblyPath="$(OutDir)$(AssemblyName).dll" OutputPath="$(PublishDir)"/>
+  <Target Name="_FunctionsGenerateFunctionsMetadataPostPublish" DependsOnTargets="_GenerateFunctionsAndCopyContentFiles">
+    <GenerateFunctionMetadata AssemblyPath="$(PublishDir)\bin\$(AssemblyName).dll" OutputPath="$(PublishDir)"/>
+    
+    <Copy
+      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+      DestinationFolder="$(PublishDir)\bin"
+      OverwriteReadOnlyFiles="true" />
 
     <PropertyGroup>
       <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
@@ -170,12 +175,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="_FunctionsPostPublish"
-          AfterTargets="Publish"
-          DependsOnTargets="_GenerateFunctionsAndCopyContentFiles"
+        AfterTargets="Publish"
+        DependsOnTargets="_FunctionsGenerateFunctionsMetadataPostPublish"
           >
-  </Target>
-
-
+  </Target>  
+  
   <PropertyGroup>
     <CorePublishDependsOn>
       _InitializeDeployOnBuildProperties;
@@ -196,8 +200,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <!-- Move the additional assemblies to the bin folder. 
     we move the assemblies rather than copy because we want to reduce the publish payload -->
     <Move SourceFiles="@(FunctionsPublishAssemblies)"
-      DestinationFiles="$(PublishDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
-      OverwriteReadOnlyFiles="true" />
+          DestinationFiles="$(PublishDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
+          OverwriteReadOnlyFiles="true" />
 
   </Target>
 

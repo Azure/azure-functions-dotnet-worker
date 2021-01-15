@@ -21,8 +21,8 @@ namespace SdkTests
         public void BasicHttpFunction()
         {
             var generator = new FunctionMetadataGenerator();
-
-            var functions = generator.GenerateFunctionMetadata(typeof(BasicHttp));
+            var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttp));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
 
             ValidateFunction(functions.Single(), BasicHttp.FunctionName, GetEntryPoint(nameof(BasicHttp), nameof(BasicHttp.Http)),
                 b => ValidateTrigger(b),
@@ -50,14 +50,16 @@ namespace SdkTests
                     { "Direction", "Out" }
                 });
             }
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
         }
 
         [Fact]
         public void StorageFunctions()
         {
             var generator = new FunctionMetadataGenerator();
-
-            var functions = generator.GenerateFunctionMetadata(typeof(Storage));
+            var typeDef = TestUtility.GetTypeDefinition(typeof(Storage));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
 
             Assert.Equal(2, functions.Count());
 
@@ -124,8 +126,8 @@ namespace SdkTests
         public void TimerFunction()
         {
             var generator = new FunctionMetadataGenerator();
-
-            var functions = generator.GenerateFunctionMetadata(typeof(Timer));
+            var typeDef = TestUtility.GetTypeDefinition(typeof(Timer));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
 
             ValidateFunction(functions.Single(), "TimerFunction", GetEntryPoint(nameof(Timer), nameof(Timer.RunTimer)),
                 b => ValidateTrigger(b));

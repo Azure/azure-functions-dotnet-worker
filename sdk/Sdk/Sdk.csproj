@@ -28,7 +28,7 @@
       <PackagePath>tools</PackagePath>
     </None>
     
-    <None Include="$(OutputPath)System.Reflection.MetadataLoadContext.dll">
+    <None Include="$(OutputPath)Mono.Cecil.dll">
       <Pack>true</Pack>
       <PackagePath>tools</PackagePath>
     </None>
@@ -36,9 +36,8 @@
   </ItemGroup>  
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />    
+    <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>
   

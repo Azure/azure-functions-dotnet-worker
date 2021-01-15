@@ -50,7 +50,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Overwrite="true" />
   </Target>
 
-
   <!-- 
   The targets below are temporary and can be removed once the change to allow running with an extensions.json
   file in the script root directory has been deployed: https://github.com/Azure/azure-functions-host/pull/6889

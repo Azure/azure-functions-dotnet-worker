@@ -1,4 +1,5 @@
-﻿using Microsoft.Build.Framework;
+﻿using System.Diagnostics;
+using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
@@ -6,19 +7,41 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     public class GenerateFunctionMetadata : Task
     {
         [Required]
-        public string AssemblyPath { get; set; }
+        public string? AssemblyPath { get; set; }
 
         [Required]
-        public string OutputPath { get; set; }
+        public string? OutputPath { get; set; }
 
         public override bool Execute()
         {
-            var generator = new FunctionMetadataGenerator();
-            var functions = generator.GenerateFunctionMetadata(AssemblyPath);
+            var generator = new FunctionMetadataGenerator(MSBuildLogger);
+            var functions = generator.GenerateFunctionMetadata(AssemblyPath!);
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath);
+            FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
 
             return true;
+        }
+
+        private void MSBuildLogger(TraceLevel level, string message)
+        {
+            switch (level)
+            {
+                case TraceLevel.Error:
+                    Log.LogError(message);
+                    break;
+                case TraceLevel.Info:
+                    Log.LogMessage(message);
+                    break;
+                case TraceLevel.Verbose:
+                    Log.LogMessage(MessageImportance.Low, message);
+                    break;
+                case TraceLevel.Warning:
+                    Log.LogWarning(message);
+                    break;
+                case TraceLevel.Off:
+                default:
+                    break;
+            }
         }
     }
 }

@@ -2,7 +2,7 @@
 
   <Import Project="..\..\build\Common.props" />
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk</RootNamespace>
@@ -26,17 +26,18 @@
     <None Include="$(OutputPath)Microsoft.Azure.Functions.Worker.Sdk.dll">
       <Pack>true</Pack>
       <PackagePath>tools</PackagePath>
-    </None>   
+    </None>
     
     <None Include="$(OutputPath)System.Reflection.MetadataLoadContext.dll">
       <Pack>true</Pack>
       <PackagePath>tools</PackagePath>
-    </None>   
+    </None>
 
   </ItemGroup>  
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
     <PackageReference Include="System.Reflection.MetadataLoadContext" Version="5.0.0" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>

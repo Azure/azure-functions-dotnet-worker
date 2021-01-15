@@ -1,19 +1,33 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class FunctionMetadataGenerator
     {
+        private readonly Action<TraceLevel, string> _log;
+
+        public FunctionMetadataGenerator()
+            : this((l, m) => { })
+        {
+        }
+
+        public FunctionMetadataGenerator(Action<TraceLevel, string> log)
+        {
+            _log = log ?? throw new ArgumentNullException(nameof(log));
+        }
+
         public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath)
         {
-            string[] runtimeAssemblies = Directory.GetFiles(RuntimeEnvironment.GetRuntimeDirectory(), "*.dll");
+            string path = Path.GetDirectoryName(typeof(object).Assembly.Location);
+
+            string[] runtimeAssemblies = Directory.GetFiles(path, "*.dll");
             string[] outputAssemblies = Directory.GetFiles(Path.GetDirectoryName(assemblyPath), "*.dll");
 
             var paths = new List<string>(runtimeAssemblies);
@@ -192,33 +206,34 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 .Any(p => p.AttributeType.FullName == "Microsoft.Azure.WebJobs.Description.BindingAttribute");
         }
 
-        private static bool TryCreateFunctionMetadata(MethodInfo method, out SdkFunctionMetadata? function)
+        private bool TryCreateFunctionMetadata(MethodInfo method, out SdkFunctionMetadata? function)
         {
             function = null;
 
+
             foreach (CustomAttributeData attribute in method.GetCustomAttributesData())
             {
-                if (attribute.AttributeType.FullName == "Microsoft.Azure.WebJobs.FunctionNameAttribute")
+                if (attribute.AttributeType != null) //.Name == "Microsoft.Azure.WebJobs.FunctionNameAttribute")
                 {
                     Type? declaringType = method.DeclaringType;
 
                     if (declaringType == null)
                     {
-                        return false;
+                        continue; ;
                     }
 
                     string? assemblyName = declaringType.Assembly.GetName().Name;
 
                     if (string.IsNullOrEmpty(assemblyName))
                     {
-                        return false;
+                        continue;
                     }
 
                     var functionName = attribute.ConstructorArguments.SingleOrDefault().Value?.ToString();
 
                     if (string.IsNullOrEmpty(functionName))
                     {
-                        return false;
+                        continue;
                     }
 
                     function = new SdkFunctionMetadata

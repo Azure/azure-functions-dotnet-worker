@@ -3,6 +3,7 @@
   <Import Project="..\..\build\Common.props" />
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader</AssemblyName>
     <RootNamespace>Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader</RootNamespace>
     <SignAssembly>true</SignAssembly>

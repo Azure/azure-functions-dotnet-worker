@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Azure.WebJobs.Script.Description;
@@ -63,33 +62,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             else
             {
                 return ImmutableArray<FunctionMetadata>.Empty;
-            }
-        }
-
-        // The Bindings property is a read-only collection, so doing this to allow us it to deserialize.
-        private class FunctionMetadataWrapper : FunctionMetadata
-        {
-            public new Collection<BindingMetadata> Bindings
-            {
-                get => null;
-
-                set
-                {
-                    if (value == null)
-                    {
-                        return;
-                    }
-
-                    foreach (var binding in value)
-                    {
-                        base.Bindings.Add(binding);
-                    }
-                }
-            }
-
-            public FunctionMetadata ToFunctionMetadata()
-            {
-                return (FunctionMetadata)this;
             }
         }
     }

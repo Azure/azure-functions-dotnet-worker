@@ -25,12 +25,12 @@
 
     <None Include="$(OutputPath)Microsoft.Azure.Functions.Worker.Sdk.dll">
       <Pack>true</Pack>
-      <PackagePath>tools</PackagePath>
+      <PackagePath>tools\netstandard2.0</PackagePath>
     </None>
     
     <None Include="$(OutputPath)Mono.Cecil.dll">
       <Pack>true</Pack>
-      <PackagePath>tools</PackagePath>
+      <PackagePath>tools\netstandard2.0</PackagePath>
     </None>
 
   </ItemGroup>  
@@ -41,7 +41,7 @@
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>
   
-  <Target Name="IncludeFunctionMetadataLoaderExtension" BeforeTargets="AfterBuild">
+  <Target Name="IncludeFunctionMetadataLoaderExtension" BeforeTargets="Pack">
     <MSBuild Projects="..\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" BuildInParallel="$(BuildInParallel)" Targets="Build">
       <Output TaskParameter="TargetOutputs" ItemName="FunctionMetadataLoaderExtensionOutput" />
     </MSBuild>
@@ -49,7 +49,7 @@
     <ItemGroup>
       <None Include="@(FunctionMetadataLoaderExtensionOutput)">
         <Pack>true</Pack>
-        <PackagePath>tools</PackagePath>
+        <PackagePath>tools\netstandard2.0</PackagePath>
         <PackageCopyToOutput>true</PackageCopyToOutput>
       </None>
     </ItemGroup>

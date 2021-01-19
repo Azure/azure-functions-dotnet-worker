@@ -145,7 +145,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
-        private static string GetEntryPoint(string className, string methodName) => $"{nameof(SdkTests)}.{nameof(FunctionMetadataGeneratorTests)}+{className}.{methodName}";
+        private static string GetEntryPoint(string className, string methodName) => $"{typeof(FunctionMetadataGeneratorTests).FullName}+{className}.{methodName}";
 
         private void ValidateFunction(SdkFunctionMetadata sdkFunctionMetadata, string name, string entryPoint, params Action<ExpandoObject>[] bindingValidations)
         {

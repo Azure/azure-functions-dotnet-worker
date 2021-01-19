@@ -11,7 +11,7 @@ using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
 using Xunit;
 
-namespace SdkTests
+namespace Microsoft.Azure.Functions.SdkTests
 {
     public class FunctionMetadataGeneratorTests
     {

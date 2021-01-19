@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public string? OutputPath { get; set; }
 
         [Required]
-        public ITaskItem[] ReferencePaths { get; set; }
+        public ITaskItem[]? ReferencePaths { get; set; }
 
         public override bool Execute()
         {

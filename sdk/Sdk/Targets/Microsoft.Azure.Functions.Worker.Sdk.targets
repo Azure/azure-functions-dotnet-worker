@@ -12,28 +12,35 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
          xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <WorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\content\worker.config.json</WorkerConfigInputFile>
+    <_FunctionsTaskFramework>netcoreapp3.1</_FunctionsTaskFramework>
+    <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
+    <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
+    <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
   </PropertyGroup>
 
-  <Target Name="_FunctionsGenerateWorkerConfigBuild" AfterTargets="Build">
+  <UsingTask TaskName="GenerateFunctionMetadata"
+           AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+
+  <Target Name="_FunctionsPostBuild" AfterTargets="Build">    
+    
+    <GenerateFunctionMetadata 
+      AssemblyPath="$(TargetDir)$(AssemblyName).dll" 
+      ReferencePaths="@(ReferencePath)"
+      OutputPath="$(TargetDir)"/>
+
+    <Copy 
+      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+      DestinationFolder="$(TargetDir)"
+      OverwriteReadOnlyFiles="true" />
+    
     <PropertyGroup>
       <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
     </PropertyGroup>
     <WriteLinesToFile
         File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(WorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
         Overwrite="true" />
-  </Target>
-
-  <Target Name="_FunctionsGenerateWorkerConfigPublish" AfterTargets="Publish">
-    <PropertyGroup>
-      <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
-    </PropertyGroup>
-    <WriteLinesToFile
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(WorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
-        Overwrite="true" />
-  </Target>
+  </Target> 
 
   <!-- 
   The targets below are temporary and can be removed once the change to allow running with an extensions.json
@@ -155,12 +162,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="_FunctionsPostPublish"
-          AfterTargets="Publish"
-          DependsOnTargets="_GenerateFunctionsAndCopyContentFiles"
+        AfterTargets="Publish"
+        DependsOnTargets="_GenerateFunctionsAndCopyContentFiles"
           >
-  </Target>
-
-
+  </Target>  
+  
   <PropertyGroup>
     <CorePublishDependsOn>
       _InitializeDeployOnBuildProperties;
@@ -181,8 +187,26 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <!-- Move the additional assemblies to the bin folder. 
     we move the assemblies rather than copy because we want to reduce the publish payload -->
     <Move SourceFiles="@(FunctionsPublishAssemblies)"
-      DestinationFiles="$(PublishDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
+          DestinationFiles="$(PublishDir)bin\%(RecursiveDir)%(Filename)%(Extension)"
+          OverwriteReadOnlyFiles="true" />
+
+    <GenerateFunctionMetadata
+      AssemblyPath="$(PublishDir)\bin\$(AssemblyName).dll"
+      ReferencePaths="@(ReferencePath)"
+      OutputPath="$(PublishDir)"/>
+    
+    <Copy
+      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+      DestinationFolder="$(PublishDir)\bin"
       OverwriteReadOnlyFiles="true" />
+
+    <PropertyGroup>
+      <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
+    </PropertyGroup>
+    <WriteLinesToFile
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Overwrite="true" />
 
   </Target>
 

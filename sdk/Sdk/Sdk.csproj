@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\build\Common.props" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <FunctionsGeneratorOutputPath>..\FunctionMetadataLoaderExtension\bin\$(Configuration)\netstandard2.0\</FunctionsGeneratorOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include=".\Targets\**\*">
+      <Pack>true</Pack>
+      <PackagePath>build</PackagePath>
+    </None>
+  
+    <None Include="worker.config.json">
+      <Pack>true</Pack>
+      <PackagePath>tools</PackagePath>
+    </None>
+
+    <None Include="$(OutputPath)Microsoft.Azure.Functions.Worker.Sdk.dll">
+      <Pack>true</Pack>
+      <PackagePath>tools\netstandard2.0</PackagePath>
+    </None>
+    
+    <None Include="$(OutputPath)Mono.Cecil.dll">
+      <Pack>true</Pack>
+      <PackagePath>tools\netstandard2.0</PackagePath>
+    </None>
+
+    <None Include="$(FunctionsGeneratorOutputPath)Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll">
+      <Pack>true</Pack>
+      <PackagePath>tools\netstandard2.0</PackagePath>
+    </None>
+
+  </ItemGroup>  
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />    
+    <PackageReference Include="Mono.Cecil" Version="0.11.3" />
+    <PackageReference Include="System.Text.Json" Version="5.0.0" />
+  </ItemGroup>  
+
+</Project>

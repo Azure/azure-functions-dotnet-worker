@@ -4,9 +4,9 @@
     
     <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
     <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
-    <VersionSuffix>preview2</VersionSuffix>
+    <VersionSuffix>preview3</VersionSuffix>
     <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>
-    <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local$([System.DateTime]::Now.ToString(yyyyMMddHHmmss))</BuildNumber>
+    <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local$([System.DateTime]::Now.ToString(yyyyMMddHHmm))</BuildNumber>
     <Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
     <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
     <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>

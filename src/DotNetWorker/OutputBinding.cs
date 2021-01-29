@@ -1,17 +1,9 @@
 ﻿namespace Microsoft.Azure.Functions.Worker
 {
-    public class OutputBinding<T>
+    public abstract class OutputBinding<T>
     {
-        private T val;
+        internal abstract T GetValue();
 
-        public T GetValue()
-        {
-            return val;
-        }
-
-        public void SetValue(T value)
-        {
-            val = value;
-        }
+        public abstract void SetValue(T value);
     }
 }

@@ -1,28 +1,39 @@
 ﻿using System;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
-    public class JsonPocoConverter : IParameterConverter
+    internal class JsonPocoConverter : IConverter
     {
-        public bool TryConvert(object source, Type targetType, string name, out object target)
-        {
-            target = null;
+        private readonly IOptions<JsonSerializerOptions> _options;
 
-            if (!(source is string stringData))
+        public JsonPocoConverter(IOptions<JsonSerializerOptions> options)
+        {
+            _options = options ?? throw new ArgumentNullException(nameof(options));
+        }
+
+        public bool TryConvert(ConverterContext context, out object? target)
+        {
+            target = default;
+
+            if (context.Parameter.Type == typeof(string) ||
+                context.Source is not string sourceString ||
+                string.IsNullOrEmpty(sourceString))
             {
                 return false;
             }
 
             try
             {
-                target = JsonSerializer.Deserialize(stringData, targetType);
+                target = JsonSerializer.Deserialize(sourceString, context.Parameter.Type, _options.Value);
                 return true;
             }
-            catch
+            catch (JsonException)
             {
-                return false;
             }
+
+            return false;
         }
     }
 }

@@ -2,6 +2,8 @@
 using System.Threading.Channels;
 using Grpc.Core;
 using Grpc.Net.Client;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -12,29 +14,17 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.FunctionRpc;
 
-namespace Microsoft.Azure.Functions.Worker.Configuration
+namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
         public static IFunctionsWorkerApplicationBuilder AddFunctionsWorker(this IServiceCollection services, Action<WorkerOptions> configure)
         {
-            // ParameterConverters
-            services.AddSingleton<IParameterConverter, HttpRequestDataConverter>();
-            services.AddSingleton<IParameterConverter, JsonPocoConverter>();
-            services.AddSingleton<ParameterConverterManager>();
+            // Converters
+            services.RegisterDefaultConverters();
 
             // Channels
-            services.AddSingleton<FunctionsHostOutputChannel>(s =>
-            {
-                UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
-                {
-                    SingleWriter = false,
-                    SingleReader = true,
-                    AllowSynchronousContinuations = true
-                };
-
-                return new FunctionsHostOutputChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>(outputOptions));
-            });
+            services.RegisterOutputChannel();
 
             // Request handling
             services.AddSingleton<IFunctionsHostClient, DefaultFunctionsHostClient>();
@@ -76,6 +66,28 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
                 });
 
             return new FunctionsWorkerApplicationBuilder(services);
+        }
+
+        internal static IServiceCollection RegisterDefaultConverters(this IServiceCollection services)
+        {
+            return services.AddSingleton<IConverter, OutputBindingConverter>()
+                           .AddSingleton<IConverter, ExactMatchConverter>()
+                           .AddSingleton<IConverter, JsonPocoConverter>();
+        }
+
+        internal static IServiceCollection RegisterOutputChannel(this IServiceCollection services)
+        {
+            return services.AddSingleton<FunctionsHostOutputChannel>(s =>
+            {
+                UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
+                {
+                    SingleWriter = false,
+                    SingleReader = true,
+                    AllowSynchronousContinuations = true
+                };
+
+                return new FunctionsHostOutputChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>(outputOptions));
+            });
         }
     }
 }

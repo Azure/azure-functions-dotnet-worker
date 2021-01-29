@@ -1,8 +1,8 @@
-﻿using Microsoft.Azure.Functions.Worker.Pipeline;
+﻿using System;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 
-namespace Microsoft.Azure.Functions.Worker.Configuration
+namespace Microsoft.Azure.Functions.Worker
 {
     public interface IFunctionsWorkerApplicationBuilder
     {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
@@ -27,27 +28,40 @@ namespace Microsoft.Azure.Functions.Worker
             _functionMap.TryAdd(functionDefinition.Metadata.FunctionId, functionDefinition);
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest)
+        public async Task<InvocationResponse> InvokeAsync(FunctionInvocation invocation)
         {
+            // TODO: File InvocationResponse removal issue
             InvocationResponse response = new InvocationResponse
             {
-                InvocationId = invocationRequest.InvocationId
+                InvocationId = invocation.InvocationId
             };
 
-            FunctionExecutionContext executionContext = null;
+            FunctionExecutionContext? executionContext = null;
 
             try
             {
-                executionContext = _functionExecutionContextFactory.Create(invocationRequest);
-                executionContext.FunctionDefinition = _functionMap[invocationRequest.FunctionId];
+                executionContext = _functionExecutionContextFactory.Create(invocation, _functionMap[invocation.FunctionId]);
 
                 await _functionExecutionDelegate(executionContext);
-                var parameterBindings = executionContext.ParameterBindings;
+
+                var parameterBindings = executionContext.OutputBindings;
                 var result = executionContext.InvocationResult;
 
                 foreach (var paramBinding in parameterBindings)
                 {
-                    response.OutputData.Add(paramBinding);
+                    // TODO: ParameterBinding shouldn't happen here
+
+                    foreach (var binding in executionContext.OutputBindings)
+                    {
+                        dynamic d = binding.Value;
+                        var rpcVal = d.GetValue();
+                        var parameterBinding = new ParameterBinding
+                        {
+                            Name = binding.Key,
+                            Data = RpcExtensions.ToRpc(rpcVal)
+                        };
+                        response.OutputData.Add(parameterBinding);
+                    }
                 }
                 if (result != null)
                 {

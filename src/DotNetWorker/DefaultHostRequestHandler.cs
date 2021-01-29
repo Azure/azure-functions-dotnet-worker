@@ -1,6 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
 
@@ -25,13 +25,14 @@ namespace Microsoft.Azure.Functions.Worker
             return Task.FromResult(response);
         }
 
-        public Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request)
+        public Task<InvocationResponse> InvokeFunctionAsync(FunctionInvocation invocation)
         {
-            return _functionBroker.InvokeAsync(request);
+            return _functionBroker.InvokeAsync(invocation);
         }
 
         public Task<FunctionLoadResponse> LoadFunctionAsync(FunctionLoadRequest request)
         {
+            // instead, use request.Metadata.IsProxy
             if (!string.IsNullOrEmpty(request.Metadata?.ScriptFile))
             {
                 _functionBroker.AddFunction(request);

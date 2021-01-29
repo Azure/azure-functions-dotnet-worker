@@ -1,5 +1,5 @@
 ﻿using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Moq;
@@ -22,20 +22,20 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async void DiposeExecutionContextTestAsync()
         {
-            var invocationRequest = new InvocationRequest();
+            var invocationRequest = new TestFunctionInvocation();
             invocationRequest.FunctionId = "123";
 
             var functionDescriptor = new FunctionMetadata();
             functionDescriptor.FunctionId = "123";
 
-            var definition = new FunctionDefinition
+            var definition = new TestFunctionDefinition
             {
                 Metadata = functionDescriptor
             };
 
             var context = new TestFunctionExecutionContext();
             _mockFunctionDefinitionFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(definition);
-            _mockFunctionExecutionContextFactory.Setup(p => p.Create(It.IsAny<InvocationRequest>())).Returns(context);
+            _mockFunctionExecutionContextFactory.Setup(p => p.Create(It.IsAny<FunctionInvocation>(), definition)).Returns(context);
             _mockFunctionExecutionDelegate.Setup(p => p(It.IsAny<FunctionExecutionContext>())).Returns(Task.CompletedTask);
 
             _functionBroker.AddFunction(It.IsAny<FunctionLoadRequest>());

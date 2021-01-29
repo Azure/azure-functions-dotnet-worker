@@ -7,6 +7,6 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     {
         object CreateInstance(IServiceProvider instanceServices);
 
-        Task<object> InvokeAsync(object instance, object[] arguments);
+        Task<object> InvokeAsync(object instance, object?[] arguments);
     }
 }

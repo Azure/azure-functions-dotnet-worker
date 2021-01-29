@@ -1,10 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -27,12 +27,12 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             Dictionary<string, object> bindingParametersDict = new Dictionary<string, object>();
             List<object?> invocationParameters = new List<object?>();
             FunctionMetadata functionMetadata = context.FunctionDefinition.Metadata;
-            var pi = functionMetadata.FuncParamInfo;
+            var pi = context.FunctionDefinition.Parameters;
             InvocationRequest invocationRequest = context.InvocationRequest;
             foreach (var param in pi)
             {
                 object? paramObject;
-                Type parameterType = param.ParameterType;
+                Type parameterType = param.Type;
                 if (parameterType.IsGenericType)
                 {
                     var genericType = parameterType.GetGenericTypeDefinition();
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
                     {
                         Type constructed = genericType.MakeGenericType(new Type[] { elementType });
                         paramObject = Activator.CreateInstance(constructed);
-                        bindingParametersDict.Add(param.Name, paramObject);
+                        context.OutputBindings.Add(param.Name, paramObject);
                     }
                     else
                     {
@@ -65,24 +65,12 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             var invocationParamArray = invocationParameters.ToArray();
             object result = await InvokeFunctionAsync(context, invocationParamArray);
 
-            foreach (var binding in bindingParametersDict)
-            {
-                dynamic d = binding.Value;
-                var rpcVal = d.GetValue();
-                var parameterBinding = new ParameterBinding
-                {
-                    Name = binding.Key,
-                    Data = RpcExtensions.ToRpc(rpcVal)
-                };
-                context.ParameterBindings.Add(parameterBinding);
-            }
-
             context.InvocationResult = result;
         }
 
-        private object? ConvertParameter(ParameterInfo param, TypedData value, ParameterConverterManager converterManager)
+        private object? ConvertParameter(FunctionParameter param, TypedData value, ParameterConverterManager converterManager)
         {
-            Type targetType = param.ParameterType;
+            Type targetType = param.Type;
             object? source;
             object target;
 

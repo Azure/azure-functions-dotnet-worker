@@ -1,7 +1,5 @@
-﻿using System.Collections.Generic;
-using System.Threading.Channels;
-using System.Threading.Tasks;
-using Grpc.Core;
+﻿using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -9,6 +7,6 @@ namespace Microsoft.Azure.Functions.Worker
     public interface IFunctionBroker
     {
         void AddFunction(FunctionLoadRequest functionLoadRequest);
-        Task<InvocationResponse> InvokeAsync(InvocationRequest invocationRequest);
+        Task<InvocationResponse> InvokeAsync(FunctionInvocation invocation);
     }
 }

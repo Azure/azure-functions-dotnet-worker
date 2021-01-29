@@ -3,8 +3,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <IsPackable>false</IsPackable>
-    <AssemblyName>Microsoft.Azure.Functions.WorkerTests</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.WorkerTests</RootNamespace>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Tests</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Tests</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

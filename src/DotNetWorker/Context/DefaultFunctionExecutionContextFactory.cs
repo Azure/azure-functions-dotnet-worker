@@ -1,10 +1,5 @@
-﻿using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+﻿using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
@@ -17,9 +12,9 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
             _serviceScopeFactory = serviceScopeFactory;
         }
 
-        public FunctionExecutionContext Create(InvocationRequest request)
+        public FunctionExecutionContext Create(FunctionInvocation invocation, FunctionDefinition definition)
         {
-            var context = new DefaultFunctionExecutionContext(_serviceScopeFactory, request);
+            var context = new DefaultFunctionExecutionContext(_serviceScopeFactory, invocation, definition);
 
             return context;
         }

@@ -13,9 +13,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         public string? FunctionId { get; set; }
 
-        public string? FuncName { get; set; }
-
-        // TODO: Relocate this. Potentially to Invoker?
-        public ImmutableArray<ParameterInfo> FuncParamInfo { get; set; }
+        public string? FuncName { get; set; }        
     }
 }

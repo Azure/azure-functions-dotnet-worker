@@ -1,14 +1,9 @@
-﻿using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Microsoft.Azure.Functions.Worker.Context;
 
 namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
-    public interface IFunctionExecutionContextFactory
+    internal interface IFunctionExecutionContextFactory
     {
-        FunctionExecutionContext Create(InvocationRequest request);
+        FunctionExecutionContext Create(FunctionInvocation invocation, FunctionDefinition definition);
     }
 }

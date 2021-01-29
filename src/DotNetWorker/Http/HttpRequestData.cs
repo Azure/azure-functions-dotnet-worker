@@ -1,20 +1,15 @@
 ﻿using System.Collections.Immutable;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public class HttpRequestData
+    public abstract class HttpRequestData
     {
-        private RpcHttp httpData;
+        public abstract IImmutableDictionary<string, string> Headers { get; }
 
-        public HttpRequestData(RpcHttp httpData)
-        {
-            this.httpData = httpData;
-        }
+        public abstract string Body { get; }
 
-        public IImmutableDictionary<string, string> Headers => httpData.Headers.ToImmutableDictionary<string, string>();
-        public string Body => httpData.Body.ToString();
-        public IImmutableDictionary<string, string> Params => httpData.Params.ToImmutableDictionary<string, string>();
-        public IImmutableDictionary<string, string> Query => httpData.Query.ToImmutableDictionary<string, string>();
+        public abstract IImmutableDictionary<string, string> Params { get; }
+
+        public abstract IImmutableDictionary<string, string> Query { get; }
     }
 }

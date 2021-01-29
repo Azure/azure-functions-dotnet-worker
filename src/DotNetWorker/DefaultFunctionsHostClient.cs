@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using MsgType = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
@@ -39,13 +40,16 @@ namespace Microsoft.Azure.Functions.Worker
                 MsgType.FunctionLoadRequest => FunctionLoadRequestHandlerAsync(request),
                 MsgType.InvocationRequest => InvocationRequestHandlerAsync(request),
                 MsgType.FunctionEnvironmentReloadRequest => FunctionEnvironmentReloadRequestHandlerAsync(request),
+                // TODO: Trace that we missed this MsgType
                 _ => Task.CompletedTask,
             };
         }
 
         internal async Task InvocationRequestHandlerAsync(StreamingMessage request)
         {
-            InvocationResponse response = await _handler.InvokeFunctionAsync(request.InvocationRequest);
+            var invocation = new GrpcFunctionInvocation(request.InvocationRequest);
+
+            InvocationResponse response = await _handler.InvokeFunctionAsync(invocation);
 
             StreamingMessage responseMessage = new StreamingMessage
             {

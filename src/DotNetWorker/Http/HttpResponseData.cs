@@ -14,6 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public HttpStatusCode StatusCode { get; set; }
 
+        // TODO: Custom body type (BodyContent)
         public string? Body { get; set; }
 
         public Dictionary<string, string> Headers { get; set; }

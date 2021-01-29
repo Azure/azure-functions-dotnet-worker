@@ -2,6 +2,7 @@
 
 namespace Microsoft.Azure.Functions.Worker.Configuration
 {
+    // TODO: Slim this down.
     public class WorkerOptions
     {
         public WorkerOptions()

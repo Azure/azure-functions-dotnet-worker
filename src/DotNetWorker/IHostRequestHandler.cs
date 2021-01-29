@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -9,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         Task<FunctionLoadResponse> LoadFunctionAsync(FunctionLoadRequest request);
 
-        Task<InvocationResponse> InvokeFunctionAsync(InvocationRequest request);
+        Task<InvocationResponse> InvokeFunctionAsync(FunctionInvocation invocation);
 
         Task<FunctionEnvironmentReloadResponse> ReloadEnvironmentAsync(FunctionEnvironmentReloadRequest request);
     }

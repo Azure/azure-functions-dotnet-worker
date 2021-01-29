@@ -1,8 +1,10 @@
 ﻿using System;
-using System.Collections.Immutable;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.RegularExpressions;
+using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
@@ -29,18 +31,21 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("The path to the function assembly is null.");
             }
 
+            if (metadata.EntryPoint == null)
+            {
+                throw new InvalidOperationException("The entry point is null.");
+            }
+
             var entryPointMatch = _entryPointRegex.Match(metadata.EntryPoint);
             if (!entryPointMatch.Success)
             {
                 throw new InvalidOperationException("Invalid entry point configuration. The function entry point must be defined in the format <fulltypename>.<methodname>");
             }
 
-            AssemblyName assemblyName = AssemblyName.GetAssemblyName(metadata.PathToAssembly);
-
             string typeName = entryPointMatch.Groups["typename"].Value;
             string methodName = entryPointMatch.Groups["methodname"].Value;
 
-            Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyName(assemblyName);
+            Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(metadata.PathToAssembly);
 
             Type? functionType = assembly.GetType(typeName);
 
@@ -48,13 +53,9 @@ namespace Microsoft.Azure.Functions.Worker
 
             IFunctionInvoker invoker = _functionInvokerFactory.Create(methodInfo);
 
-            metadata.FuncParamInfo = methodInfo.GetParameters().ToImmutableArray();
+            IEnumerable<FunctionParameter> parameters = methodInfo.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            return new FunctionDefinition
-            {
-                Metadata = metadata,
-                Invoker = invoker
-            };
+            return new DefaultFunctionDefinition(metadata, invoker, parameters);
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -96,7 +97,7 @@ namespace Microsoft.Azure.Functions.Worker
             else
             {
                 // TODO: Is this correct? Passing a null body causes the entire
-                //       response to become the body in functions. Need to investigate.
+                //       response to become the body in functions. Need to investigate.                
                 http.Body = string.Empty.ToRpc();
             }
 

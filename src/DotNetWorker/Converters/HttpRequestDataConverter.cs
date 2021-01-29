@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return false;
             }
 
-            target = new HttpRequestData(httpData);
+            target = new GrpcHttpRequestData(httpData);
             return true;
         }
     }

@@ -1,41 +1,41 @@
 ﻿using System;
 using System.Collections.Generic;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public class DefaultFunctionExecutionContext : FunctionExecutionContext, IDisposable
+    internal class DefaultFunctionExecutionContext : FunctionExecutionContext, IDisposable
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         private IServiceScope? _instanceServicesScope;
         private IServiceProvider? _instanceServices;
 
-        public DefaultFunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, InvocationRequest invocationRequest)
+        public DefaultFunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, FunctionInvocation invocation,
+            FunctionDefinition definition)
         {
             _serviceScopeFactory = serviceScopeFactory;
-            InvocationRequest = invocationRequest;
-            TraceContext = invocationRequest.TraceContext;
+            Invocation = invocation;
+            FunctionDefinition = definition;
+            OutputBindings = new Dictionary<string, object>();
         }
 
-        public override RpcTraceContext TraceContext { get; set; }
-
-        public override InvocationRequest InvocationRequest { get; set; }
+        public override FunctionInvocation Invocation { get; set; }
 
         public override FunctionDefinition FunctionDefinition { get; set; }
 
-        public override object InvocationResult { get; set; }
+        public override object? InvocationResult { get; set; }
 
         public override InvocationLogger Logger { get; set; }
 
-        public override List<ParameterBinding> ParameterBindings { get; set; } = new List<ParameterBinding>();
+        public override IDictionary<string, object> OutputBindings { get; }
 
         public override IDictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
 
-        public override IServiceProvider? InstanceServices
+        public override IServiceProvider InstanceServices
         {
             get
             {
@@ -48,10 +48,13 @@ namespace Microsoft.Azure.Functions.Worker
                 return _instanceServices;
             }
 
-            set { _instanceServices = value; }
+            set
+            {
+                _instanceServices = value;
+            }
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             if (_instanceServicesScope != null)
             {

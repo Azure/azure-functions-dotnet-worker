@@ -1,13 +1,13 @@
-﻿using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+﻿using System;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Extensions.DependencyInjection;
-using System;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class DefaultFunctionExecutionContextTests
     {
-        InvocationRequest _invocationRequest;
         DefaultFunctionExecutionContext _defaultFunctionExecutionContext;
         IServiceScopeFactory _serviceScopeFactory;
         IServiceProvider _serviceProvider;
@@ -20,8 +20,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             serviceCollection.AddScoped<ScopedService>();
             _serviceProvider = serviceCollection.BuildServiceProvider();
             _serviceScopeFactory = _serviceProvider.GetService<IServiceScopeFactory>();
-            _invocationRequest = new InvocationRequest();
-            _defaultFunctionExecutionContext = new DefaultFunctionExecutionContext(_serviceScopeFactory, _invocationRequest);
+
+            var invocation = new Mock<FunctionInvocation>(MockBehavior.Strict).Object;
+            var definition = new Mock<FunctionDefinition>(MockBehavior.Strict).Object;
+
+            _defaultFunctionExecutionContext = new DefaultFunctionExecutionContext(_serviceScopeFactory, invocation, definition);
         }
 
         [Fact]
@@ -56,7 +59,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 IsDisposed = true;
             }
         }
+
         private class TransientService : SingletonService { }
+
         private class ScopedService : SingletonService { }
     }
 }

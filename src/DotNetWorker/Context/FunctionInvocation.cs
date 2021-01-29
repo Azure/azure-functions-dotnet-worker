@@ -2,8 +2,6 @@
 {
     public abstract class FunctionInvocation
     {
-        public abstract IValueProvider ValueProvider { get; set; }
-
         public abstract string InvocationId { get; set; }
 
         public abstract string FunctionId { get; set; }

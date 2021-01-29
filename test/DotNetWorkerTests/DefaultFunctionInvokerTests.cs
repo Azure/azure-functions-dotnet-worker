@@ -1,10 +1,9 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -132,17 +131,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private FunctionExecutionContext CreateContext(MethodInfo mi)
         {
             var context = new TestFunctionExecutionContext();
+            var metadata = new FunctionMetadata();
+            var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            var metadata = new FunctionMetadata
-            {
-                FuncParamInfo = mi.GetParameters().ToImmutableArray()
-            };
-
-            context.FunctionDefinition = new FunctionDefinition
-            {
-                Metadata = metadata,
-                Invoker = _functionInvokerFactory.Create(mi)
-            };
+            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters);
 
             return context;
         }

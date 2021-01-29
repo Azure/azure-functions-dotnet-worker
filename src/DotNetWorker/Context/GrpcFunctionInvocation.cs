@@ -10,11 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Context
             FunctionId = invocationRequest.FunctionId;
             TraceParent = invocationRequest.TraceContext.TraceParent;
             TraceState = invocationRequest.TraceContext.TraceState;
-
-            ValueProvider = new GrpcValueProvider(invocationRequest.InputData);
         }
-
-        public override IValueProvider ValueProvider { get; set; }
 
         public override string InvocationId { get; set; }
 

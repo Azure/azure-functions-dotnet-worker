@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Logging;
@@ -29,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             List<object?> invocationParameters = new List<object?>();
             FunctionMetadata functionMetadata = context.FunctionDefinition.Metadata;
             var pi = context.FunctionDefinition.Parameters;
-            FunctionInvocation invocationRequest = context.Invocation;
+            InvocationRequest invocationRequest = context.InvocationRequest;
             foreach (var param in pi)
             {
                 object? paramObject;

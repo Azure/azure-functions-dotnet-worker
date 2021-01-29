@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -25,8 +24,6 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         public override FunctionInvocation Invocation { get; set; }
-
-        public override InvocationRequest InvocationRequest { get; set; }
 
         public override FunctionDefinition FunctionDefinition { get; set; }
 

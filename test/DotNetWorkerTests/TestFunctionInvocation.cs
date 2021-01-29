@@ -11,6 +11,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             FunctionId = Guid.NewGuid().ToString();
         }
 
+        public override IValueProvider ValueProvider { get; set; }
+
         public override string InvocationId { get; set; }
 
         public override string FunctionId { get; set; }

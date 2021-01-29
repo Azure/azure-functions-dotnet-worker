@@ -2,7 +2,6 @@
 using System.Reflection;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -19,11 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public DefaultFunctionInvokerTests()
         {
-            _channel = Channel.CreateUnbounded<StreamingMessage>();
-            var outputChannel = new FunctionsHostOutputChannel(_channel);
-
-            var converters = Enumerable.Empty<IParameterConverter>();
-            _executor = new DefaultFunctionExecutor(new ParameterConverterManager(converters), outputChannel);
+            _executor = new DefaultFunctionExecutor();
 
             var functionActivator = new DefaultFunctionActivator();
             var methodInvokerFactory = new DefaultMethodInvokerFactory();

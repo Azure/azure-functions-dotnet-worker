@@ -7,6 +7,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Tests</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -40,6 +41,9 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
 
         public static IFunctionsWorkerApplicationBuilder UseFunctionExecutionMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
+            // We want to keep this internal for now.
+            builder.UseConverterMiddleware();
+
             builder.Services.AddSingleton<FunctionExecutionMiddleware>();
 
             builder.Use(next =>
@@ -49,6 +53,23 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
                     var middleware = context.InstanceServices.GetRequiredService<FunctionExecutionMiddleware>();
 
                     return middleware.Invoke(context);
+                };
+            });
+
+            return builder;
+        }
+
+        internal static IFunctionsWorkerApplicationBuilder UseConverterMiddleware(this IFunctionsWorkerApplicationBuilder builder)
+        {
+            builder.Services.AddSingleton<ConverterMiddleware>();
+
+            builder.Use(next =>
+            {
+                return context =>
+                {
+                    var middleware = context.InstanceServices.GetRequiredService<ConverterMiddleware>();
+
+                    return middleware.Invoke(context, next);
                 };
             });
 

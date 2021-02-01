@@ -7,9 +7,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public DefaultConverterContext(FunctionParameter parameter, object? source, FunctionExecutionContext context)
         {
-            Parameter = parameter;
+            Parameter = parameter ?? throw new System.ArgumentNullException(nameof(parameter));
+            ExecutionContext = context ?? throw new System.ArgumentNullException(nameof(context));
             Source = source;
-            ExecutionContext = context;
         }
 
         public override object? Source { get; set; }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -10,23 +11,30 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal class FunctionBroker : IFunctionBroker
     {
-        private ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
-        private FunctionExecutionDelegate _functionExecutionDelegate;
-        private IFunctionExecutionContextFactory _functionExecutionContextFactory;
-        private IFunctionDefinitionFactory _functionDescriptorFactory;
+        private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
+        private readonly FunctionExecutionDelegate _functionExecutionDelegate;
+        private readonly IFunctionExecutionContextFactory _functionExecutionContextFactory;
+        private readonly IFunctionDefinitionFactory _functionDescriptorFactory;
 
         public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory, IFunctionDefinitionFactory functionDescriptorFactory)
         {
-            _functionExecutionDelegate = functionExecutionDelegate;
-            _functionExecutionContextFactory = functionExecutionContextFactory;
-            _functionDescriptorFactory = functionDescriptorFactory;
+            _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
+            _functionExecutionContextFactory = functionExecutionContextFactory ?? throw new ArgumentNullException(nameof(functionExecutionContextFactory));
+            _functionDescriptorFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDescriptorFactory));
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
         {
             FunctionDefinition functionDefinition = _functionDescriptorFactory.Create(functionLoadRequest);
+
+            if (functionDefinition.Metadata.FunctionId is null)
+            {
+                throw new InvalidOperationException("The function ID for the current load request is invalid");
+            }
+
             _functionMap.TryAdd(functionDefinition.Metadata.FunctionId, functionDefinition);
         }
+
 
         public async Task<InvocationResponse> InvokeAsync(FunctionInvocation invocation)
         {

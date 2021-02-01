@@ -26,7 +26,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkTests", "test\FunctionMe
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionMetadataLoaderExtension", "sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj", "{6B64FE04-BA90-49FC-893A-DF12EF15280C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkE2ETests", "test\SdkE2ETests\SdkE2ETests.csproj", "{BFB2832E-C3AB-4F09-B285-B24E535EC858}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkE2ETests", "test\SdkE2ETests\SdkE2ETests.csproj", "{BFB2832E-C3AB-4F09-B285-B24E535EC858}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{42CB3DE7-B070-4BA1-8A7A-ACB237BEAA4E}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -21,10 +21,10 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             return FunctionActivator.CreateInstance<TInstance>(instanceServices);
         }
 
-        public Task<object> InvokeAsync(object instance, object[] arguments)
+        public Task<object?> InvokeAsync(object instance, object[] arguments)
         {
             return _methodInvoker.InvokeAsync((TInstance)instance, arguments)
-                .ContinueWith(t => (object)t.Result);
+                .ContinueWith<object?>(t => t.Result);
         }
     }
 }

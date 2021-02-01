@@ -11,6 +11,11 @@ namespace Microsoft.Azure.Functions.Worker.Context
 
         public GrpcValueProvider(IEnumerable<ParameterBinding> inputData)
         {
+            if (inputData is null)
+            {
+                throw new ArgumentNullException(nameof(inputData));
+            }
+
             _inputData = inputData.ToDictionary(k => k.Name);
         }
 

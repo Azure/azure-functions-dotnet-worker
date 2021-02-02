@@ -13,7 +13,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
-    public class FunctionAppFixture : IDisposable
+    public class FunctionAppFixture : IAsyncLifetime
     {
         private readonly ILogger _logger;
         private bool _disposed;
@@ -26,7 +26,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             TestLogs = new TestLoggerProvider(messageSink);
             loggerFactory.AddProvider(TestLogs);
             _logger = loggerFactory.CreateLogger<FunctionAppFixture>();
+        }
 
+        public async Task InitializeAsync()
+        {
             // start host via CLI if testing locally
             if (Constants.FunctionsHostUrl.Contains("localhost"))
             {
@@ -42,42 +45,37 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 string fileName = _funcProcess.StartInfo.FileName;
                 _logger.LogInformation($"  File name:   '${fileName}' Exists: '{File.Exists(fileName)}'");
 
+                await CosmosDBHelpers.CreateDocumentCollections();
+
                 FixtureHelpers.StartProcessWithLogging(_funcProcess, _logger);
 
-                TestUtility.RetryAsync(() =>
+                await TestUtility.RetryAsync(() =>
                 {
                     return Task.FromResult(TestLogs.CoreToolsLogs.Contains("Host lock lease acquired by instance ID"));
-                }).GetAwaiter().GetResult();
+                });
             }
-
-            CosmosDBHelpers.CreateDocumentCollections().GetAwaiter().GetResult();
         }
 
         internal TestLoggerProvider TestLogs { get; private set; }
 
-        protected virtual void Dispose(bool disposing)
+
+        public Task DisposeAsync()
         {
             if (!_disposed)
             {
-                if (disposing)
+                _logger.LogInformation("FunctionAppFixture disposing.");
+
+                if (_funcProcess != null)
                 {
-                    _logger.LogInformation("FunctionAppFixture disposing.");
-
-                    if (_funcProcess != null)
-                    {
-                        _logger.LogInformation($"Shutting down functions host for {Constants.FunctionAppCollectionName}");
-                        _funcProcess.Kill();
-                        _funcProcess.Dispose();
-                    }
+                    _logger.LogInformation($"Shutting down functions host for {Constants.FunctionAppCollectionName}");
+                    _funcProcess.Kill();
+                    _funcProcess.Dispose();
                 }
-
-                _disposed = true;
             }
-        }
 
-        public void Dispose()
-        {
-            Dispose(true);
+            _disposed = true;
+
+            return Task.CompletedTask;
         }
     }
 

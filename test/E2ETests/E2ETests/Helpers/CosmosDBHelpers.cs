@@ -82,10 +82,18 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Database db = await _docDbClient.CreateDatabaseIfNotExistsAsync(new Database { Id = Constants.CosmosDB.DbName });
             Uri dbUri = UriFactory.CreateDatabaseUri(db.Id);
 
+            Console.WriteLine(_docDbClient.ServiceEndpoint);
+
             await CreateCollection(dbUri, Constants.CosmosDB.InputCollectionName);
             await CreateCollection(dbUri, Constants.CosmosDB.OutputCollectionName);
             await CreateCollection(dbUri, Constants.CosmosDB.LeaseCollectionName);
 
+            var q = _docDbClient.CreateDocumentCollectionQuery(db.SelfLink);
+            foreach (var c in q)
+            {
+                Console.WriteLine(c.Id);
+                Console.WriteLine(c.SelfLink);
+            }
         }
         public async static Task DeleteDocumentCollections()
         {

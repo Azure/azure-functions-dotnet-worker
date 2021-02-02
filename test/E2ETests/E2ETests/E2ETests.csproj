@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\TestUtility\TestUtility.csproj" />
+    <ProjectReference Include="..\E2EApps\CosmosApp\E2EApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

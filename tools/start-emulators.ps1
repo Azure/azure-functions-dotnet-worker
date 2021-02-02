@@ -6,5 +6,5 @@ $cosmosStatus = Get-CosmosDbEmulatorStatus
 Write-Host "Cosmos status: $cosmosStatus"
 
 Write-Host "Starting Storage emulator"
-& "$env:ProgramFiles(x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" "init" "/server" "(localdb)\MsSqlLocalDb"
-& "$env:ProgramFiles(x86)\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" "start"
+& "${Env:ProgramFiles(x86)}\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" "init" "/server" "(localdb)\MsSqlLocalDb"
+& "${Env:ProgramFiles(x86)}\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" "start"

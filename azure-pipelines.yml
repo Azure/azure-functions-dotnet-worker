@@ -40,7 +40,7 @@ steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'test'
-    projects: 'test/**/*.csproj'
+    projects: 'test/**/*Tests.csproj'
 
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'Sdk: ESRP CodeSigning - Authenticode'

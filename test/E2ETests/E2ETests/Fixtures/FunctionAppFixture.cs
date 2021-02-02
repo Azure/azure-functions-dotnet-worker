@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.E2ETests.Helpers;
@@ -34,8 +35,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 FixtureHelpers.KillExistingFuncHosts();
 
                 // start functions process
-                _logger.LogInformation($"Starting functions host for {Constants.FunctionAppCollectionName}..");
+                _logger.LogInformation($"Starting functions host for {Constants.FunctionAppCollectionName}...");
                 _funcProcess = FixtureHelpers.GetFuncHostProcess();
+                string workingDir = _funcProcess.StartInfo.WorkingDirectory;
+                _logger.LogInformation($"  Working dir: '${workingDir}' Exists: '{File.Exists(workingDir)}'");
+                string fileName = _funcProcess.StartInfo.FileName;
+                _logger.LogInformation($"  File name:   '${fileName}' Exists: '{File.Exists(fileName)}'");
 
                 FixtureHelpers.StartProcessWithLogging(_funcProcess, _logger);
 

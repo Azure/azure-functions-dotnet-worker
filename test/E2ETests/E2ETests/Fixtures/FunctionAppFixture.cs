@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
                 TestUtility.RetryAsync(() =>
                 {
-                    return Task.FromResult(TestLogs.CoreToolsLogs.Contains("For detailed output, run func with --verbose flag."));
+                    return Task.FromResult(TestLogs.CoreToolsLogs.Contains("Host lock lease acquired by instance ID"));
                 }).GetAwaiter().GetResult();
             }
 

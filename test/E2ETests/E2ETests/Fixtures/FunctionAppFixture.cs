@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 _logger.LogInformation($"Starting functions host for {Constants.FunctionAppCollectionName}...");
                 _funcProcess = FixtureHelpers.GetFuncHostProcess();
                 string workingDir = _funcProcess.StartInfo.WorkingDirectory;
-                _logger.LogInformation($"  Working dir: '${workingDir}' Exists: '{File.Exists(workingDir)}'");
+                _logger.LogInformation($"  Working dir: '${workingDir}' Exists: '{Directory.Exists(workingDir)}'");
                 string fileName = _funcProcess.StartInfo.FileName;
                 _logger.LogInformation($"  File name:   '${fileName}' Exists: '{File.Exists(fileName)}'");
 
@@ -49,6 +49,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     return Task.FromResult(TestLogs.CoreToolsLogs.Contains("For detailed output, run func with --verbose flag."));
                 }).GetAwaiter().GetResult();
             }
+
+            CosmosDBHelpers.CreateDocumentCollections().GetAwaiter().GetResult();
         }
 
         internal TestLoggerProvider TestLogs { get; private set; }

@@ -36,7 +36,7 @@ if(!$skipCliDownload)
   $wc.DownloadFile($env:CORE_TOOLS_URL, $output)
 
   Write-Host "Extracting Functions Core Tools...."
-  Expand-Archive ".\Azure.Functions.Cli.zip" -DestinationPath ".\Azure.Functions.Cli"  
+  Expand-Archive ".\Azure.Functions.Cli.zip" -DestinationPath ".\Azure.Functions.Cli"
 }
 
 if (Test-Path $output) 

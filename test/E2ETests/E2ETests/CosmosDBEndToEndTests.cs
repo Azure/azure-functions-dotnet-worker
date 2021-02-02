@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -26,9 +26,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             string expectedDocId = Guid.NewGuid().ToString();
             try
             {
-                //Setup
-                await CosmosDBHelpers.CreateDocumentCollections();
-
                 //Trigger            
                 await CosmosDBHelpers.CreateDocument(expectedDocId);
 

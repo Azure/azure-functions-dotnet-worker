@@ -21,6 +21,9 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- pwsh: ./tools/start-emulators.ps1
+  displayName: "Start emulators"
+
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk'
   inputs:

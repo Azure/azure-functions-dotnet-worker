@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -51,7 +50,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
                 await TestUtility.RetryAsync(() =>
                 {
-                    return Task.FromResult(TestLogs.CoreToolsLogs.Contains("Host lock lease acquired by instance ID"));
+                    return Task.FromResult(TestLogs.CoreToolsLogs.Any(p => p.Contains("Host lock lease acquired by instance ID")));
                 });
             }
         }

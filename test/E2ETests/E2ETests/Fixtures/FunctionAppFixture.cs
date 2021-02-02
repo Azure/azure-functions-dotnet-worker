@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
     {
         private readonly ILogger _logger;
         private bool _disposed;
-        private Process? _funcProcess;
+        private Process _funcProcess;
 
         public FunctionAppFixture(IMessageSink messageSink)
         {

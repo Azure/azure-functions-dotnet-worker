@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
     internal class TestLoggerProvider : ILoggerProvider, ILogger
     {
         private readonly IMessageSink _messageSink;
-        private ITestOutputHelper? _currentTestOutput;
+        private ITestOutputHelper _currentTestOutput;
         IList<string> _logs = new List<string>();
 
         public TestLoggerProvider(IMessageSink messageSink)
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
             return new DisposableOutput(this);
         }
 
-        public IDisposable? BeginScope<TState>(TState state)
+        public IDisposable BeginScope<TState>(TState state)
         {
             return null;
         }

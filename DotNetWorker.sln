@@ -28,14 +28,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionMetadataLoaderExten
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkE2ETests", "test\SdkE2ETests\SdkE2ETests.csproj", "{BFB2832E-C3AB-4F09-B285-B24E535EC858}"
 EndProject
-<<<<<<< Updated upstream
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{42CB3DE7-B070-4BA1-8A7A-ACB237BEAA4E}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 	EndProjectSection
-=======
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtility", "test\TestUtility\TestUtility.csproj", "{C30B77A7-4085-422E-AADE-A4322989F5F8}"
->>>>>>> Stashed changes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestUtility", "test\TestUtility\TestUtility.csproj", "{C30B77A7-4085-422E-AADE-A4322989F5F8}"
 EndProject

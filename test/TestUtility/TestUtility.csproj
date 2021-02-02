@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Tests.TestUtility</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Tests.TestUtility</RootNamespace>
     <Nullable>disable</Nullable>

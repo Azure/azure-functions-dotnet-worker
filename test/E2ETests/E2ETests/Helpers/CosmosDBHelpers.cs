@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -35,10 +35,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         // keep
-        public async static Task<string?> ReadDocument(string docId)
+        public async static Task<string> ReadDocument(string docId)
         {
             var docUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName, docId);
-            Document? retrievedDocument = null;
+            Document retrievedDocument = null;
             await TestUtility.RetryAsync(async () =>
             {
                 try

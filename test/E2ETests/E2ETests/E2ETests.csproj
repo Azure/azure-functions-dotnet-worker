@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Worker.E2ETests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.E2ETests</RootNamespace>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,7 +21,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\TestUtility\TestUtility.csproj" />
-    <ProjectReference Include="..\E2EApps\CosmosApp\E2EApp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

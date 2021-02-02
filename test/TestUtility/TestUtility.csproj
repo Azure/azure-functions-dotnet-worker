@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Tests.TestUtility</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Tests.TestUtility</RootNamespace>
-    <Nullable>enable</Nullable>
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

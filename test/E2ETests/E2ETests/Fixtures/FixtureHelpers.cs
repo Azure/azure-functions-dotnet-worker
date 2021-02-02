@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
@@ -14,12 +16,27 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             var funcProcess = new Process();
             var rootDir = Path.GetFullPath(@"..\..\..\..\..\..");
+            var e2eAppBinPath = Path.Combine(rootDir, @"Test\E2ETests\E2EApps\CosmosApp\bin");
+            string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
+
+            if (e2eHostJson == null)
+            {
+                throw new InvalidOperationException($"Could not find a built worker app under '{e2eAppBinPath}'");
+            }
+
+            var e2eAppPath = Path.GetDirectoryName(e2eHostJson);
+
+            var cliPath = Path.Combine(rootDir, @"Azure.Functions.Cli\func.exe");
+            if (!File.Exists(cliPath))
+            {
+                throw new InvalidOperationException($"Could not find '{cliPath}'. Try running '{Path.Combine(rootDir, "setup-e2e-tests.ps1")}' to install it.");
+            }
 
             funcProcess.StartInfo.UseShellExecute = false;
             funcProcess.StartInfo.RedirectStandardError = true;
             funcProcess.StartInfo.RedirectStandardOutput = true;
             funcProcess.StartInfo.CreateNoWindow = true;
-            funcProcess.StartInfo.WorkingDirectory = Path.Combine(rootDir, @"Test\E2ETests\E2EApps\CosmosApp\bin\Debug\net5.0");
+            funcProcess.StartInfo.WorkingDirectory = e2eAppPath;
             funcProcess.StartInfo.FileName = Path.Combine(rootDir, @"Azure.Functions.Cli\func.exe");
             funcProcess.StartInfo.ArgumentList.Add("host");
             funcProcess.StartInfo.ArgumentList.Add("start");

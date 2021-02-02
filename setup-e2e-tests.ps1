@@ -44,5 +44,6 @@ if (Test-Path $output)
   Remove-Item $output
 }
 
+./tools/start-emulators.ps1
+
 StopOnFailedExecution
-cd $currDir

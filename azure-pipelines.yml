@@ -21,9 +21,6 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- pwsh: ./tools/start-emulators.ps1
-  displayName: "Start emulators"
-
 - task: UseDotNet@2
   displayName: 'Use .NET Core sdk'
   inputs:
@@ -36,6 +33,9 @@ steps:
     command: 'build'
     arguments: '-c Release'
     projects: '**/*.csproj'
+
+- pwsh: ./setup-e2e-tests.ps1
+  displayName: "Setup E2E tests"
 
 - task: DotNetCoreCLI@2
   inputs:

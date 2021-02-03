@@ -1,5 +1,7 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
+
+#nullable disable
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
                 if (argumentType.IsByRef)
                 {
                     // The type of the local variable (and object in the arguments array) should be T rather than T&.
-                    argumentType = argumentType.GetElementType();
+                    argumentType = argumentType.GetElementType()!;
                 }
 
                 // T argumentN

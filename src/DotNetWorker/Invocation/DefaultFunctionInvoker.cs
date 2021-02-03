@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+#nullable disable
+
 using System;
 using System.Threading.Tasks;
 
@@ -19,15 +21,15 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         // For testing
         internal IFunctionActivator FunctionActivator { get; }
 
-        public object? CreateInstance(IServiceProvider instanceServices)
+        public object CreateInstance(IServiceProvider instanceServices)
         {
             return FunctionActivator.CreateInstance<TInstance>(instanceServices);
         }
 
-        public Task<object?> InvokeAsync(object instance, object?[] arguments)
+        public Task<object> InvokeAsync(object instance, object[] arguments)
         {
             return _methodInvoker.InvokeAsync((TInstance)instance, arguments)
-                .ContinueWith<object?>(t => t.Result);
+                .ContinueWith<object>(t => t.Result);
         }
     }
 }

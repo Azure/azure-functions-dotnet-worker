@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public static NullFunctionActivator Instance { get; } = new NullFunctionActivator();
 
-        public T CreateInstance<T>(IServiceProvider services)
+        public T? CreateInstance<T>(IServiceProvider services)
         {
             return default(T);
         }

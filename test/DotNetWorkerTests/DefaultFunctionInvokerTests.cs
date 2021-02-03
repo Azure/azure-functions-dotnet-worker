@@ -3,12 +3,10 @@
 
 using System.Linq;
 using System.Reflection;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests

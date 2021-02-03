@@ -6,13 +6,12 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E2ETests", "E2ETests.csproj", "{D8F06DF8-BA70-46B6-A4FC-FCC5A4B2C5ED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Apps", "Apps", "{A5270BA7-7A26-41E0-B48E-26EBEF1A6AF2}"
-	ProjectSection(SolutionItems) = preProject
-		..\E2EApps\E2EApp\E2EApp.csproj = ..\E2EApps\E2EApp\E2EApp.csproj
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtility", "..\..\TestUtility\TestUtility.csproj", "{1EC49D94-DFE9-4C4D-8D3E-E683AC930085}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker", "..\..\..\src\DotNetWorker\DotNetWorker.csproj", "{30E9E94D-B936-4ECA-97F2-1B54824CE045}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "E2EApp", "..\E2EApps\E2EApp\E2EApp.csproj", "{D37818A3-3821-4F7F-B92B-41E4038C63CC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,9 +31,16 @@ Global
 		{30E9E94D-B936-4ECA-97F2-1B54824CE045}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{30E9E94D-B936-4ECA-97F2-1B54824CE045}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{30E9E94D-B936-4ECA-97F2-1B54824CE045}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D37818A3-3821-4F7F-B92B-41E4038C63CC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D37818A3-3821-4F7F-B92B-41E4038C63CC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D37818A3-3821-4F7F-B92B-41E4038C63CC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D37818A3-3821-4F7F-B92B-41E4038C63CC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D37818A3-3821-4F7F-B92B-41E4038C63CC} = {A5270BA7-7A26-41E0-B48E-26EBEF1A6AF2}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89DAAC07-473A-4DEC-957E-62A8D7F2494B}

@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Net.Http;
-using System.Net.Http;
 using System.Text.Json;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Definition;

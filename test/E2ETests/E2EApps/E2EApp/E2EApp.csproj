@@ -9,8 +9,8 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   
-  <ItemGroup>    
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.0.0-preview3-20210115.10" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.0.0-preview4-local202102030723" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="3.0.8" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.2" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator" Version="1.2.0" />    

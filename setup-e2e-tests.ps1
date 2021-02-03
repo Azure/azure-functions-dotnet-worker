@@ -7,6 +7,9 @@ function StopOnFailedExecution {
   }
 }
 
+Write-Host
+Write-Host "---Core Tools download---"
+
 $skipCliDownload = $false
 if($args[0])
 {
@@ -27,7 +30,7 @@ if(!$skipCliDownload)
     $env:CORE_TOOLS_URL = "https://functionsclibuilds.blob.core.windows.net/builds/3/latest/Azure.Functions.Cli.win-x86.zip"
   }
 
-  Write-Host "Downloading Functions Core Tools...."
+  Write-Host "Downloading Functions Core Tools to $output"
   Invoke-RestMethod -Uri 'https://functionsclibuilds.blob.core.windows.net/builds/3/latest/version.txt' -OutFile version.txt
   Write-Host "Using Functions Core Tools version: $(Get-Content -Raw version.txt)"
   Remove-Item version.txt
@@ -35,8 +38,9 @@ if(!$skipCliDownload)
   $wc = New-Object System.Net.WebClient
   $wc.DownloadFile($env:CORE_TOOLS_URL, $output)
 
-  Write-Host "Extracting Functions Core Tools...."
-  Expand-Archive ".\Azure.Functions.Cli.zip" -DestinationPath ".\Azure.Functions.Cli"
+  $destinationPath = ".\Azure.Functions.Cli"
+  Write-Host "Extracting Functions Core Tools to $destinationPath"
+  Expand-Archive ".\Azure.Functions.Cli.zip" -DestinationPath $destinationPath
 }
 
 if (Test-Path $output) 
@@ -44,6 +48,10 @@ if (Test-Path $output)
   Remove-Item $output
 }
 
-./tools/start-emulators.ps1
+Write-Host "------"
+
+.\tools\devpack.ps1 -E2E
+
+.\tools\start-emulators.ps1
 
 StopOnFailedExecution

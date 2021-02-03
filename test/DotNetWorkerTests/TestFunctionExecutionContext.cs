@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override FunctionDefinition FunctionDefinition { get; set; }
 
-        public override object? InvocationResult { get; set; }
+        public override object InvocationResult { get; set; }
 
         public override InvocationLogger Logger { get; set; }
 

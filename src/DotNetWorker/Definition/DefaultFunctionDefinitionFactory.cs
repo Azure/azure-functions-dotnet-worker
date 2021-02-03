@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -54,9 +54,16 @@ namespace Microsoft.Azure.Functions.Worker
 
             MethodInfo? methodInfo = functionType?.GetMethod(methodName);
 
+            if (methodInfo == null)
+            {
+                throw new InvalidOperationException($"Method '{methodName}' specified in {nameof(FunctionMetadata.EntryPoint)} was not found. This function cannot be created.");
+            }
+
             IFunctionInvoker invoker = _functionInvokerFactory.Create(methodInfo);
 
-            IEnumerable<FunctionParameter> parameters = methodInfo.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
+            IEnumerable<FunctionParameter> parameters = methodInfo.GetParameters()
+                .Where(p => p.Name != null)
+                .Select(p => new FunctionParameter(p.Name!, p.ParameterType));
 
             return new DefaultFunctionDefinition(metadata, invoker, parameters);
         }

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
 
         public abstract object? InvocationResult { get; set; }
 
-        public abstract InvocationLogger Logger { get; set; }
+        public abstract InvocationLogger? Logger { get; set; }
 
         // TODO: Double-check previous projects for layout of FunctionInvocation, Bindings, etc
         public abstract IDictionary<string, object> OutputBindings { get; }

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var source = "[ \"a\", \"b\", \"c\" ]";
             var context = new TestConverterContext("input", typeof(IEnumerable<string>), source);
 
-            Assert.True(_jsonPocoConverter.TryConvert(context, out object? target));
+            Assert.True(_jsonPocoConverter.TryConvert(context, out object target));
 
             var targetEnum = TestUtility.AssertIsTypeAndConvert<IEnumerable<string>>(target);
             Assert.Collection(targetEnum,

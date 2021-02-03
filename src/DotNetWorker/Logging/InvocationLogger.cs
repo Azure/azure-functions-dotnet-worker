@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return null;
+            return EmptyDisposable.Instance;
         }
 
         public bool IsEnabled(LogLevel logLevel)
@@ -65,6 +65,15 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                 case LogLevel.None:
                 default:
                     return Level.None;
+            }
+        }
+
+        private class EmptyDisposable : IDisposable
+        {
+            public static IDisposable Instance = new EmptyDisposable();
+
+            public void Dispose()
+            {
             }
         }
     }

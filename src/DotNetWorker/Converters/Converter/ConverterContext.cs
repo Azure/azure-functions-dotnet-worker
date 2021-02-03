@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Azure.Functions.Worker.Definition;
@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public abstract FunctionParameter Parameter { get; set; }
 
-        public abstract object Source { get; set; }
+        public abstract object? Source { get; set; }
 
         public abstract FunctionExecutionContext ExecutionContext { get; set; }
     }

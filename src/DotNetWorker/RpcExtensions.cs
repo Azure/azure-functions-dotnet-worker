@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker
             else
             {
                 // TODO: Is this correct? Passing a null body causes the entire
-                //       response to become the body in functions. Need to investigate.                
+                //       response to become the body in functions. Need to investigate.
                 http.Body = string.Empty.ToRpc();
             }
 

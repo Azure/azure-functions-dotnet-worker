@@ -22,22 +22,27 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .NET Core sdk'
+  displayName: 'Use .NET 5 sdk'
   inputs:
     packageType: sdk
     version: 5.0.100
     performMultiLevelLookup: true
     
 - task: DotNetCoreCLI@2
+  displayName: 'Build projects'
   inputs:
     command: 'build'
     arguments: '-c Release'
     projects: '**/*.csproj'
 
+- pwsh: ./setup-e2e-tests.ps1
+  displayName: "Setup E2E tests"
+
 - task: DotNetCoreCLI@2
+  displayName: 'Run tests'
   inputs:
     command: 'test'
-    projects: 'test/**/*.csproj'
+    projects: 'test/**/*Tests.csproj'
 
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'Sdk: ESRP CodeSigning - Authenticode'

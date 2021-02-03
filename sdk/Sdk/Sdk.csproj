@@ -32,12 +32,12 @@
     <None Include="$(OutputPath)Mono.Cecil.dll">
       <Pack>true</Pack>
       <PackagePath>tools\netstandard2.0</PackagePath>
-    </None>
+    </None>    
 
     <None Include="$(FunctionsGeneratorOutputPath)Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll">
       <Pack>true</Pack>
       <PackagePath>tools\netstandard2.0</PackagePath>
-    </None>
+    </None>    
 
   </ItemGroup>  
 
@@ -46,5 +46,11 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
   </ItemGroup>  
+
+  <ItemGroup>
+    <ProjectReference Include="..\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj">
+      <PrivateAssets>all</PrivateAssets>
+    </ProjectReference>
+    </ItemGroup>  
 
 </Project>

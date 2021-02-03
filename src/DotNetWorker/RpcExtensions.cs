@@ -1,11 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
-using System.Net.Http;
 using System.Text.Json;
 using Google.Protobuf;
+using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -177,16 +176,7 @@ namespace Microsoft.Azure.Functions.Worker
             return typedData;
         }
 
-        internal static FunctionMetadata ToFunctionMetadata(this FunctionLoadRequest loadRequest)
-        {
-            return new FunctionMetadata
-            {
-                EntryPoint = loadRequest.Metadata.EntryPoint,
-                FuncName = loadRequest.Metadata.Name,
-                PathToAssembly = Path.GetFullPath(loadRequest.Metadata.ScriptFile),
-                FunctionId = loadRequest.FunctionId
-            };
-        }
+        internal static FunctionMetadata ToFunctionMetadata(this FunctionLoadRequest loadRequest) => new GrpcFunctionMetadata(loadRequest);
 
         internal static RpcException? ToRpcException(this Exception exception)
         {

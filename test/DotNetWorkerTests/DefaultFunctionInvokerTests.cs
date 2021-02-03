@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Linq;
@@ -16,7 +16,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class DefaultFunctionInvokerTests
     {
         private readonly DefaultFunctionExecutor _executor;
-        private readonly Channel<StreamingMessage> _channel;
         private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
 
         public DefaultFunctionInvokerTests()
@@ -129,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private FunctionExecutionContext CreateContext(MethodInfo mi)
         {
             var context = new TestFunctionExecutionContext();
-            var metadata = new FunctionMetadata();
+            var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
             context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters);

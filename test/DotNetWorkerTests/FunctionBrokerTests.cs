@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var invocationRequest = new TestFunctionInvocation();
             invocationRequest.FunctionId = "123";
 
-            var functionDescriptor = new FunctionMetadata();
+            var functionDescriptor = new TestFunctionMetadata();
             functionDescriptor.FunctionId = "123";
 
             var definition = new TestFunctionDefinition

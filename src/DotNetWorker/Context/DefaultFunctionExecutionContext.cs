@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -20,9 +20,9 @@ namespace Microsoft.Azure.Functions.Worker
         public DefaultFunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, FunctionInvocation invocation,
             FunctionDefinition definition)
         {
-            _serviceScopeFactory = serviceScopeFactory;
-            Invocation = invocation;
-            FunctionDefinition = definition;
+            _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+            Invocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
+            FunctionDefinition = definition ?? throw new ArgumentNullException(nameof(definition));
             OutputBindings = new Dictionary<string, object>();
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override object? InvocationResult { get; set; }
 
-        public override InvocationLogger Logger { get; set; }
+        public override InvocationLogger? Logger { get; set; }
 
         public override IDictionary<string, object> OutputBindings { get; }
 
@@ -42,19 +42,16 @@ namespace Microsoft.Azure.Functions.Worker
         {
             get
             {
-                if (_instanceServicesScope == null && _serviceScopeFactory != null)
+                if (_instanceServicesScope == null)
                 {
                     _instanceServicesScope = _serviceScopeFactory.CreateScope();
                     _instanceServices = _instanceServicesScope.ServiceProvider;
                 }
 
-                return _instanceServices;
+                return _instanceServices!;
             }
 
-            set
-            {
-                _instanceServices = value;
-            }
+            set => _instanceServices = value;
         }
 
         public virtual void Dispose()

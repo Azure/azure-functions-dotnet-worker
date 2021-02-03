@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 namespace Microsoft.Azure.Functions.Worker.Converters
@@ -7,7 +7,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public bool TryConvert(ConverterContext context, out object? target)
         {
-            if (context.Source.GetType() == context.Parameter.Type)
+            if (context.Source?.GetType() == context.Parameter.Type)
             {
                 target = context.Source;
                 return true;

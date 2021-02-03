@@ -1,14 +1,12 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Reflection;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -16,7 +14,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class DefaultFunctionInvokerTests
     {
         private readonly DefaultFunctionExecutor _executor;
-        private readonly Channel<StreamingMessage> _channel;
         private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
 
         public DefaultFunctionInvokerTests()
@@ -129,7 +126,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private FunctionExecutionContext CreateContext(MethodInfo mi)
         {
             var context = new TestFunctionExecutionContext();
-            var metadata = new FunctionMetadata();
+            var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
             context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters);

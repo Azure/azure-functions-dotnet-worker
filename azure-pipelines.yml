@@ -12,7 +12,10 @@ pool:
 variables:
   ${{ if not(startswith(variables['Build.SourceBranchName'], 'release' )) }}:
     buildNumberTemp: $(Build.BuildNumber)
+  ${{ if startswith(variables['Build.SourceBranchName'], 'release' ) }}:
+    isReleaseBuildTemp: true
   buildNumber: $[variables.buildNumberTemp]
+  isReleaseBuild: $[variables.isReleaseBuildTemp]
   solution: '**/*.sln'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
@@ -38,6 +41,7 @@ steps:
 
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'Sdk: ESRP CodeSigning - Authenticode'
+  condition: eq(variables.isReleaseBuild, true)
   inputs:
     ConnectedServiceName: 'ESRP Service'
     FolderPath: 'sdk\sdk\bin\Release'
@@ -69,6 +73,7 @@ steps:
 
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'MetadataLoader: ESRP CodeSigning - Authenticode'
+  condition: eq(variables.isReleaseBuild, true)
   inputs:
     ConnectedServiceName: 'ESRP Service'
     FolderPath: 'sdk\FunctionMetadataLoaderExtension\bin\Release'
@@ -100,6 +105,7 @@ steps:
 
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'DotnetWorker: ESRP CodeSigning - Authenticode'
+  condition: eq(variables.isReleaseBuild, true)
   inputs:
     ConnectedServiceName: 'ESRP Service'
     FolderPath: 'src\DotNetWorker\bin\Release'
@@ -130,6 +136,7 @@ steps:
       ]
 - task: DeleteFiles@1
   displayName: 'Delete CodeSignSummary files'
+  condition: eq(variables.isReleaseBuild, true)
   inputs:
     contents: '**\CodeSignSummary-*.md'
 
@@ -145,6 +152,7 @@ steps:
 
 - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
   displayName: 'ESRP CodeSigning: Nupkg'
+  condition: eq(variables.isReleaseBuild, true)
   inputs:
     ConnectedServiceName: 'ESRP Service'
     FolderPath: 'packages'
@@ -169,6 +177,7 @@ steps:
       ]
 - task: DeleteFiles@1
   displayName: 'Delete CodeSignSummary files'
+  condition: eq(variables.isReleaseBuild, true)
   inputs:
     contents: '**\CodeSignSummary-*.md'
 

@@ -1,8 +1,9 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage;
 
 namespace FunctionApp
 {
@@ -10,7 +11,7 @@ namespace FunctionApp
     {
         [FunctionName("Function2")]
         public static Book Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
-            [Blob("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)
+            [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)
         {
             Console.WriteLine(myBlob);
             return myQueueItem;

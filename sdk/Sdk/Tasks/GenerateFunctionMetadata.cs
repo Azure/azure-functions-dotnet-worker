@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Diagnostics;
@@ -17,12 +17,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public string? OutputPath { get; set; }
 
         [Required]
+        public string? ExtensionsCsProjFilePath { get; set; }
+
+        [Required]
         public ITaskItem[]? ReferencePaths { get; set; }
 
         public override bool Execute()
         {
-            var generator = new FunctionMetadataGenerator(MSBuildLogger);
-            var functions = generator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
+            var functionGenerator = new FunctionMetadataGenerator(MSBuildLogger);
+            var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
+
+            var extensions = functionGenerator.Extensions;
+            var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!);
+
+            extensionsCsProjGenerator.Generate();
 
             FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
 

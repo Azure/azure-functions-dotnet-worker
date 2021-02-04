@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <Import Project="..\..\build\Common.props" />
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <ProjectReference Include="..\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

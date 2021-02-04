@@ -1,7 +1,7 @@
 [
   {
     "name": "Function1",
-    "scriptFile": "bin/FunctionApp.dll",
+    "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.Function1.Run",
     "language": "dotnet-isolated",
     "properties": {
@@ -41,7 +41,7 @@
   },
   {
     "name": "Function2",
-    "scriptFile": "bin/FunctionApp.dll",
+    "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.Function2.Run",
     "language": "dotnet-isolated",
     "properties": {
@@ -66,7 +66,7 @@
   },
   {
     "name": "Function3",
-    "scriptFile": "bin/FunctionApp.dll",
+    "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.Function3.Run",
     "language": "dotnet-isolated",
     "properties": {
@@ -99,7 +99,7 @@
   },
   {
     "name": "Function4",
-    "scriptFile": "bin/FunctionApp.dll",
+    "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.Function4.Run",
     "language": "dotnet-isolated",
     "properties": {
@@ -125,7 +125,7 @@
   },
   {
     "name": "Function5",
-    "scriptFile": "bin/FunctionApp.dll",
+    "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.Function5.Run",
     "language": "dotnet-isolated",
     "properties": {

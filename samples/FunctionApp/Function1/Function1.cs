@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 
@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 
 namespace FunctionApp
 {
@@ -15,12 +17,14 @@ namespace FunctionApp
     {
 
         [FunctionName("Function1")]
+        [QueueOutput("book", "functionstesting2", Connection = "AzureWebJobsStorage")]
         public static HttpResponseData Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, [Blob("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob,
-              [Queue("functionstesting2", Connection = "AzureWebJobsStorage")] OutputBinding<Book> book)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionExecutionContext context)
         {
             var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
-            book.SetValue(bookVal);
+            context.OutputBindings["book"] = bookVal;
+
             var response = new HttpResponseData(HttpStatusCode.OK);
             var headers = new Dictionary<string, string>();
             headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");

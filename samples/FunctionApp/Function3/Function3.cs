@@ -1,10 +1,12 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 
 namespace FunctionApp
 {
@@ -12,13 +14,14 @@ namespace FunctionApp
     {
 
         [FunctionName("Function3")]
+        [QueueOutput("name", "functionstesting2", Connection = "AzureWebJobsStorage")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [Queue("functionstesting2", Connection = "AzureWebJobsStorage")] OutputBinding<string> name)
+            FunctionExecutionContext context)
         {
             var response = new HttpResponseData(HttpStatusCode.OK);
             response.Body = "Success!!";
 
-            name.SetValue("some name");
+            context.OutputBindings["name"] = "some name";
 
             return response;
         }

@@ -8,10 +8,7 @@
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   
-    <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="4.0.1" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Http" Version="3.0.8" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="4.0.3" />
+  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
     <PackageReference Include="Moq" Version="4.15.2" />    
     <PackageReference Include="xunit" Version="2.4.1" />
@@ -27,6 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />

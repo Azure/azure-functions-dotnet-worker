@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -39,14 +39,14 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
 
-            // Make sure files are in /bin
-            string additionalBinDir = Path.Combine(outputDir, "bin");
-            Assert.True(Directory.Exists(additionalBinDir));
-            var files = Directory.EnumerateFiles(additionalBinDir);
+            // Make sure files are in /.azurefunctions
+            string azureFunctionsDir = Path.Combine(outputDir, ".azurefunctions");
+            Assert.True(Directory.Exists(azureFunctionsDir));
+            var files = Directory.EnumerateFiles(azureFunctionsDir);
 
             // Verify files are present
-            string metadataLoaderPath = Path.Combine(additionalBinDir, "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
-            string extensionsJsonPath = Path.Combine(additionalBinDir, "extensions.json");
+            string metadataLoaderPath = Path.Combine(azureFunctionsDir, "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
+            string extensionsJsonPath = Path.Combine(outputDir, "extensions.json");
             string functionsMetadataPath = Path.Combine(outputDir, "functions.metadata");
             Assert.True(File.Exists(metadataLoaderPath));
             Assert.True(File.Exists(extensionsJsonPath));
@@ -59,8 +59,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             {
                 extensions = new[]
                 {
-                    new Extension("Startup", "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c"),
-                    new Extension("AzureStorage", "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage, Version=4.0.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35")
+                    new Extension("Startup",
+                        "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"),
+                    new Extension("AzureStorage",
+                        "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage, Version=4.0.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.dll")
                 }
             });
             Assert.True(JToken.DeepEquals(extensionsJsonContents, expected), $"Actual: {extensionsJsonContents}{Environment.NewLine}Expected: {expected}");
@@ -71,10 +75,11 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         private class Extension
         {
-            public Extension(string name, string typeName)
+            public Extension(string name, string typeName, string hintPath)
             {
                 Name = name;
                 TypeName = typeName;
+                HintPath = hintPath;
             }
 
             [JsonProperty("name")]
@@ -82,6 +87,9 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             [JsonProperty("typeName")]
             public string TypeName { get; set; }
+
+            [JsonProperty("hintPath")]
+            public string HintPath { get; set; }
         }
     }
 }

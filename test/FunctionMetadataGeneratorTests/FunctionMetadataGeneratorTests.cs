@@ -1,17 +1,18 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Dynamic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage;
+using Microsoft.Azure.Functions.Worker.Extensions.Timer;
 using Microsoft.Azure.Functions.Worker.Sdk;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkTests
@@ -26,6 +27,11 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttp));
             var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+            });
 
             ValidateFunction(functions.Single(), BasicHttp.FunctionName, GetEntryPoint(nameof(BasicHttp), nameof(BasicHttp.Http)),
                 b => ValidateTrigger(b),
@@ -63,6 +69,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var typeDef = TestUtility.GetTypeDefinition(typeof(Storage));
             var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
 
             Assert.Equal(2, functions.Count());
 
@@ -72,6 +79,11 @@ namespace Microsoft.Azure.Functions.SdkTests
             ValidateFunction(queueToBlob, "QueueToBlobFunction", GetEntryPoint(nameof(Storage), nameof(Storage.QueueToBlob)),
                 b => ValidateQueueTrigger(b),
                 b => ValidateBlobOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" }
+            });
 
             void ValidateQueueTrigger(ExpandoObject b)
             {
@@ -89,12 +101,11 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
-                    { "Name", "blobOutput" },
+                    { "name", "blobOutput" },
                     { "Type", "Blob" },
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" },
-                    { "access", "ReadWrite" }
+                    { "Connection", "MyOtherConnection" }
                 });
             }
 
@@ -113,11 +124,12 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
+            // TODO: Callout - output binding will have different case for "name"
             void ValidateQueueOutput(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
-                    { "Name", "queueOutput" },
+                    { "name", "queueOutput" },
                     { "Type", "Queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
@@ -131,9 +143,15 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var typeDef = TestUtility.GetTypeDefinition(typeof(Timer));
             var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
 
             ValidateFunction(functions.Single(), "TimerFunction", GetEntryPoint(nameof(Timer), nameof(Timer.RunTimer)),
                 b => ValidateTrigger(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions", "4.0.1" }
+            });
 
             void ValidateTrigger(ExpandoObject b)
             {
@@ -153,7 +171,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         private void ValidateFunction(SdkFunctionMetadata sdkFunctionMetadata, string name, string entryPoint, params Action<ExpandoObject>[] bindingValidations)
         {
             Assert.Equal(name, sdkFunctionMetadata.Name);
-            Assert.Equal($"bin/{_thisAssembly.GetName().Name}.dll", sdkFunctionMetadata.ScriptFile);
+            Assert.Equal($"{_thisAssembly.GetName().Name}.dll", sdkFunctionMetadata.ScriptFile);
             Assert.Equal("dotnet-isolated", sdkFunctionMetadata.Language);
             Assert.Equal(sdkFunctionMetadata.EntryPoint, entryPoint);
             Assert.Null(sdkFunctionMetadata.FunctionDirectory);
@@ -167,6 +185,11 @@ namespace Microsoft.Azure.Functions.SdkTests
         {
             var dict = (IDictionary<string, object>)expando;
 
+            AssertDictionary(dict, expected);
+        }
+
+        private static void AssertDictionary<K,V>(IDictionary<K, V> dict, IDictionary<K, V> expected)
+        {
             Assert.Equal(expected.Count, dict.Count);
 
             foreach (var kvp in expected)
@@ -193,17 +216,17 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
 
             [FunctionName("QueueToBlobFunction")]
+            [BlobOutput("blobOutput", "container1/hello.txt", Connection = "MyOtherConnection")]
             public void QueueToBlob(
-                [QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload,
-                [Blob("container1/hello.txt", FileAccess.ReadWrite, Connection = "MyOtherConnection")] OutputBinding<string> blobOutput)
+                [QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
             {
                 throw new NotImplementedException();
             }
 
             [FunctionName("BlobToQueueFunction")]
+            [QueueOutput("queueOutput", "queue2")]
             public void BlobToQueue(
-                [BlobTrigger("container2/%file%")] string blob,
-                [Queue("queue2")] OutputBinding<string> queueOutput)
+                [BlobTrigger("container2/%file%")] string blob)
 
             {
                 throw new NotImplementedException();

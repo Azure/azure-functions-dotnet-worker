@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Diagnostics;
@@ -14,9 +14,9 @@ namespace FunctionApp
     {
         static async Task Main(string[] args)
         {
-#if DEBUG
-            Debugger.Launch();
-#endif
+// #if DEBUG
+//             Debugger.Launch();
+// #endif
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(c =>
                 {

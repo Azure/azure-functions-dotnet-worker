@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -9,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public bool TryConvert(ConverterContext context, out object? target)
         {
-            if (IsSameOrSubclassOf(context.Source?.GetType(), context.Parameter.Type))
+            if (IsSameOrExtensionOf(context.Source?.GetType(), context.Parameter.Type))
             {
                 target = context.Source;
                 return true;
@@ -19,9 +20,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             return false;
         }
 
-        private static bool IsSameOrSubclassOf(Type? A, Type B)
+        private static bool IsSameOrExtensionOf(Type? A, Type B)
         {
-            return A == B || (A?.IsSubclassOf(B) ?? false);
+            return A == B
+                || (A?.IsSubclassOf(B) ?? false)
+                || (A?.GetInterfaces().Any(i => i == B) ?? false);
         }
     }
 }

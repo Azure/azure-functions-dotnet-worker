@@ -7,7 +7,8 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public bool TryConvert(ConverterContext context, out object? target)
         {
-            if (context.Source?.GetType() == context.Parameter.Type)
+            if (context.Source?.GetType() == context.Parameter.Type
+                || context.Source.GetType().IsSubclassOf(context.Parameter.Type))
             {
                 target = context.Source;
                 return true;

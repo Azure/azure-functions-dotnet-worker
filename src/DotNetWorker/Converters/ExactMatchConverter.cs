@@ -1,14 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     internal class ExactMatchConverter : IConverter
     {
         public bool TryConvert(ConverterContext context, out object? target)
         {
-            if (context.Source?.GetType() == context.Parameter.Type
-                || context.Source?.GetType().IsSubclassOf(context.Parameter.Type))
+            if (IsSameOrSubclassOf(context.Source?.GetType(), context.Parameter.Type))
             {
                 target = context.Source;
                 return true;
@@ -16,6 +17,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             target = default;
             return false;
+        }
+
+        private static bool IsSameOrSubclassOf(Type? A, Type B)
+        {
+            return A == B || (A?.IsSubclassOf(B) ?? false);
         }
     }
 }

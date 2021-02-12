@@ -110,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker
         private static class Log
         {
             private static readonly Action<ILogger, string, string, Exception?> _functionDefinitionCreated =
-                LoggerMessage.Define<string, string>(LogLevel.Trace, new EventId(1, nameof(FunctionDefinitionCreated)),
+                WorkerMessage.Define<string, string>(LogLevel.Trace, new EventId(1, nameof(FunctionDefinitionCreated)),
                     "Function definition for '{functionName}' created with id '{functionid}'.");
 
             public static void FunctionDefinitionCreated(ILogger<FunctionBroker> logger, FunctionDefinition functionDefinition)

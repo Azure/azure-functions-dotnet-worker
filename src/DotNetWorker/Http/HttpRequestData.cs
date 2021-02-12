@@ -1,18 +1,46 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// A representation of the HTTP request sent by the host.
+    /// </summary>
     public abstract class HttpRequestData
     {
-        public abstract IImmutableDictionary<string, string> Headers { get; }
+        /// <summary>
+        /// A representation of the HTTP request sent by the host.
+        /// </summary>
+        public abstract ReadOnlyMemory<byte>? Body { get; }
 
-        public abstract string Body { get; }
+        /// <summary>
+        /// Gets an <see cref="IImmutableDictionary{string, string}"/> containing the request headers.
+        /// </summary>
+        public abstract HttpHeadersCollection Headers { get; }
 
-        public abstract IImmutableDictionary<string, string> Params { get; }
+        /// <summary>
+        /// Gets an <see cref="IReadOnlyCollection{IHttpCookie}"/> containing the request cookies.
+        /// </summary>
+        public abstract IReadOnlyCollection<IHttpCookie> Cookies { get; }
 
-        public abstract IImmutableDictionary<string, string> Query { get; }
+        /// <summary>
+        /// Gets the <see cref="Uri"/> for this request.
+        /// </summary>
+        public abstract Uri Url { get; }
+
+        /// <summary>
+        /// Gets an <see cref="IEnumerable{ClaimsIdentity}"/> containing the request identities.
+        /// </summary>
+        public abstract IEnumerable<ClaimsIdentity> Identities { get; }
+
+        /// <summary>
+        /// Gets the HTTP method for this request.
+        /// </summary>
+        public abstract string Method { get; }
     }
 }

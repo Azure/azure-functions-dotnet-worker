@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -63,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 EventId = eventId,
                 State = state as IEnumerable<KeyValuePair<string, object>>,
                 Scope = GetScopeDictionaryOrNull(_scopeProvider),
-                IsSystemLog = WorkerLogger.IsSystemLog,
+                IsSystemLog = WorkerMessage.IsSystemLog,
                 Exception = exception,
                 FormattedMessage = formatter(state, exception),
                 Category = Category,
@@ -80,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             IDictionary<string, object> result = null;
 
-            scopeProvider.ForEachScope((scope, _) =>
+            scopeProvider?.ForEachScope((scope, _) =>
             {
                 if (scope is IEnumerable<KeyValuePair<string, object>> kvps)
                 {

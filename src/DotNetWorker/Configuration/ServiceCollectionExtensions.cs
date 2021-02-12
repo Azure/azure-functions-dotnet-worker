@@ -35,7 +35,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddLogging(logging =>
             {
                 logging.Services.AddSingleton<ILoggerProvider, GrpcFunctionsHostLoggerProvider>();
-                logging.Services.AddSingleton(typeof(ILogger<>), typeof(WorkerLogger<>));
             });
 
             // Request handling

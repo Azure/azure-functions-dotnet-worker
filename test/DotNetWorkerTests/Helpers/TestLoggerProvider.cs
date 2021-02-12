@@ -6,7 +6,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -14,20 +13,25 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class TestLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         private IExternalScopeProvider _scopeProvider;
+        private Lazy<ILoggerFactory> _lazyFactory;
+
+        public TestLoggerProvider()
+        {
+            _lazyFactory = new Lazy<ILoggerFactory>(() =>
+            {
+                return new ServiceCollection()
+                            .AddLogging(b =>
+                            {
+                                b.AddProvider(this);
+                            })
+                            .BuildServiceProvider()
+                            .GetService<ILoggerFactory>();
+            });
+        }
 
         private ConcurrentDictionary<string, TestLogger> LoggerCache { get; } = new ConcurrentDictionary<string, TestLogger>();
 
-        public ILoggerFactory CreateFactory()
-        {
-            return new HostBuilder()
-                .ConfigureLogging(b =>
-                {
-                    b.AddProvider(this);
-                })
-                .Build()
-                .Services
-                .GetService<ILoggerFactory>();
-        }
+        public ILoggerFactory Factory => _lazyFactory.Value;
 
         public IEnumerable<TestLogger> CreatedLoggers => LoggerCache.Values;
 

@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
             _channelWriter = outputChannel.Channel.Writer;
         }
 
-        public ILogger CreateLogger(string categoryName) => new GrpcFunctionsHostLogger(_channelWriter, _scopeProvider!);
+        public ILogger CreateLogger(string categoryName) => new GrpcFunctionsHostLogger(categoryName, _channelWriter, _scopeProvider!);
 
         public void Dispose()
         {

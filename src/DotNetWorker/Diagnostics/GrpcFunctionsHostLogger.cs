@@ -16,11 +16,13 @@ namespace Microsoft.Azure.Functions.Worker.Logging
     /// </summary>
     internal class GrpcFunctionsHostLogger : ILogger
     {
+        private readonly string _category;
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private IExternalScopeProvider _scopeProvider;
 
-        public GrpcFunctionsHostLogger(ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider)
+        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider)
         {
+            _category = category ?? throw new ArgumentNullException(nameof(category));
             _channelWriter = channelWriter ?? throw new ArgumentNullException(nameof(channelWriter));
             _scopeProvider = scopeProvider ?? throw new ArgumentNullException(nameof(scopeProvider));
         }
@@ -44,7 +46,8 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             {
                 EventId = eventId.ToString(),
                 Exception = exception.ToRpcException(),
-                LogCategory = WorkerLogger.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
+                Category = _category,
+                LogCategory = WorkerMessage.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
                 Level = ToRpcLogLevel(logLevel),
                 Message = message
             };

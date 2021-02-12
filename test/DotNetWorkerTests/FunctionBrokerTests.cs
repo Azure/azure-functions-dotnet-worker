@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -19,7 +20,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public FunctionBrokerTests()
         {
-            _functionBroker = new FunctionBroker(_mockFunctionExecutionDelegate.Object, _mockFunctionContextFactory.Object, _mockFunctionDefinitionFactory.Object);
+            _functionBroker = new FunctionBroker(_mockFunctionExecutionDelegate.Object, _mockFunctionContextFactory.Object,
+                _mockFunctionDefinitionFactory.Object, NullLogger<FunctionBroker>.Instance);
         }
 
         [Fact]

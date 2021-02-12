@@ -2,47 +2,72 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Channels;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.RpcLog.Types;
 
 namespace Microsoft.Azure.Functions.Worker.Logging
 {
-    public class InvocationLogger : ILogger
+    /// <summary>
+    /// A logger that sends logs back to the Functions host.
+    /// </summary>
+    internal class GrpcFunctionsHostLogger : ILogger
     {
-        private string _invocationId;
-        private ChannelWriter<StreamingMessage> _channelWriter;
+        private readonly ChannelWriter<StreamingMessage> _channelWriter;
+        private IExternalScopeProvider _scopeProvider;
 
-        public InvocationLogger(string invocationId, ChannelWriter<StreamingMessage> channelWriter)
+        public GrpcFunctionsHostLogger(ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider)
         {
-            _invocationId = invocationId;
-            _channelWriter = channelWriter;
+            _channelWriter = channelWriter ?? throw new ArgumentNullException(nameof(channelWriter));
+            _scopeProvider = scopeProvider ?? throw new ArgumentNullException(nameof(scopeProvider));
         }
 
         public IDisposable BeginScope<TState>(TState state)
         {
-            return EmptyDisposable.Instance;
+            // The built-in DI wire-up guarantees that scope provider will be set.
+            return _scopeProvider!.Push(state);
         }
 
         public bool IsEnabled(LogLevel logLevel)
         {
-            return true;
+            return logLevel != LogLevel.None;
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
             var response = new StreamingMessage();
             string message = formatter(state, exception);
-            response.RpcLog = new RpcLog
+            var rpcLog = new RpcLog
             {
                 EventId = eventId.ToString(),
                 Exception = exception.ToRpcException(),
-                LogCategory = RpcLogCategory.User,
+                LogCategory = WorkerLogger.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
                 Level = ToRpcLogLevel(logLevel),
-                InvocationId = _invocationId,
                 Message = message
             };
+
+            // Grab the invocation id from the current scope, if present.
+            _scopeProvider.ForEachScope((scope, log) =>
+            {
+                if (scope is IEnumerable<KeyValuePair<string, object>> properties)
+                {
+                    foreach (KeyValuePair<string, object> pair in properties)
+                    {
+                        if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
+                        {
+                            log.InvocationId = pair.Value?.ToString();
+                            break;
+                        }
+                    }
+                }
+            },
+            rpcLog);
+
+            response.RpcLog = rpcLog;
+
             _channelWriter.TryWrite(response);
         }
 

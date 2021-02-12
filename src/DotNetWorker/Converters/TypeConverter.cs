@@ -17,6 +17,15 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return true;
             }
 
+            context.Parameter.Type.IsAssignableFrom(context.Source?.GetType());
+
+            // Special handling for the context.
+            if (context.Parameter.Type == typeof(FunctionExecutionContext))
+            {
+                target = context.ExecutionContext;
+                return true;
+            }
+
             target = default;
             return false;
         }

@@ -5,8 +5,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Extensions.Logging;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -16,24 +18,28 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
         private readonly IFunctionContextFactory _functionContextFactory;
-        private readonly IFunctionDefinitionFactory _functionDescriptorFactory;
+        private readonly IFunctionDefinitionFactory _functionDefinitionFactory;
+        private readonly ILogger<FunctionBroker> _logger;
 
-        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory, IFunctionDefinitionFactory functionDescriptorFactory)
+        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
+            IFunctionDefinitionFactory functionDescriptorFactory, ILogger<FunctionBroker> logger)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
-            _functionDescriptorFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDescriptorFactory));
+            _functionDefinitionFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDescriptorFactory));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public void AddFunction(FunctionLoadRequest functionLoadRequest)
         {
-            FunctionDefinition functionDefinition = _functionDescriptorFactory.Create(functionLoadRequest);
+            FunctionDefinition functionDefinition = _functionDefinitionFactory.Create(functionLoadRequest);
 
             if (functionDefinition.Metadata.FunctionId is null)
             {
                 throw new InvalidOperationException("The function ID for the current load request is invalid");
             }
 
+            Log.FunctionDefinitionCreated(_logger, functionDefinition);
             _functionMap.TryAdd(functionDefinition.Metadata.FunctionId, functionDefinition);
         }
 
@@ -47,54 +53,70 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             FunctionContext? executionContext = null;
+            var functionDefinition = _functionMap[invocation.FunctionId];
 
-            try
+            var scope = new FunctionInvocationScope(functionDefinition.Metadata.Name, invocation.InvocationId);
+            using (_logger.BeginScope(scope))
             {
-                executionContext = _functionContextFactory.Create(invocation, _functionMap[invocation.FunctionId]);
-
-                await _functionExecutionDelegate(executionContext);
-
-                var parameterBindings = executionContext.OutputBindings;
-                var result = executionContext.InvocationResult;
-
-                foreach (var paramBinding in parameterBindings)
+                try
                 {
-                    // TODO: ParameterBinding shouldn't happen here
+                    executionContext = _functionContextFactory.Create(invocation, functionDefinition);
 
-                    foreach (var binding in executionContext.OutputBindings)
+                    await _functionExecutionDelegate(executionContext);
+
+                    var parameterBindings = executionContext.OutputBindings;
+                    var result = executionContext.InvocationResult;
+
+                    foreach (var paramBinding in parameterBindings)
                     {
-                        var parameterBinding = new ParameterBinding
+                        // TODO: ParameterBinding shouldn't happen here
+
+                        foreach (var binding in executionContext.OutputBindings)
                         {
-                            Name = binding.Key,
-                            Data = binding.Value.ToRpc()
-                        };
-                        response.OutputData.Add(parameterBinding);
+                            var parameterBinding = new ParameterBinding
+                            {
+                                Name = binding.Key,
+                                Data = binding.Value.ToRpc()
+                            };
+                            response.OutputData.Add(parameterBinding);
+                        }
                     }
-                }
-                if (result != null)
-                {
-                    var returnVal = result.ToRpc();
+                    if (result != null)
+                    {
+                        var returnVal = result.ToRpc();
 
-                    response.ReturnValue = returnVal;
-                }
+                        response.ReturnValue = returnVal;
+                    }
 
-                response.Result = new StatusResult { Status = Status.Success };
-            }
-            catch (Exception ex)
-            {
-                response.Result = new StatusResult
+                    response.Result = new StatusResult { Status = Status.Success };
+                }
+                catch (Exception ex)
                 {
-                    Exception = ex.ToRpcException(),
-                    Status = Status.Failure
-                };
-            }
-            finally
-            {
-                (executionContext as IDisposable)?.Dispose();
+                    response.Result = new StatusResult
+                    {
+                        Exception = ex.ToRpcException(),
+                        Status = Status.Failure
+                    };
+                }
+                finally
+                {
+                    (executionContext as IDisposable)?.Dispose();
+                }
             }
 
             return response;
         }
-    }
 
+        private static class Log
+        {
+            private static readonly Action<ILogger, string, string, Exception?> _functionDefinitionCreated =
+                LoggerMessage.Define<string, string>(LogLevel.Trace, new EventId(1, nameof(FunctionDefinitionCreated)),
+                    "Function definition for '{functionName}' created with id '{functionid}'.");
+
+            public static void FunctionDefinitionCreated(ILogger<FunctionBroker> logger, FunctionDefinition functionDefinition)
+            {
+                _functionDefinitionCreated(logger, functionDefinition.Metadata.Name, functionDefinition.Metadata.FunctionId, null);
+            }
+        }
+    }
 }

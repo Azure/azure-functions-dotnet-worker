@@ -3,11 +3,11 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
-    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Timer</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Timer</RootNamespace>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
-    <Version>4.0.1-preview1</Version>
+    <Version>1.0.0-beta</Version>
     <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
     <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
     <Authors>Microsoft</Authors>

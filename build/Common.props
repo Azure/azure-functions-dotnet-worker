@@ -16,11 +16,11 @@
     <Authors>Microsoft</Authors>
     <Company>Microsoft</Company>
     <Copyright>© Microsoft Corporation. All rights reserved.</Copyright>
-    <RepositoryUrl>https://github.com/Azure/azure-functions-dotnet-worker-preview</RepositoryUrl>
+    <RepositoryUrl>https://github.com/Azure/azure-functions-dotnet-worker</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
     <PackageLicenseUrl>https://go.microsoft.com/fwlink/?linkid=2028464</PackageLicenseUrl>
-    <PackageProjectUrl>https://github.com/Azure/azure-functions-dotnet-worker-preview</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/Azure/azure-functions-dotnet-worker</PackageProjectUrl>
     <Nullable>enable</Nullable>
     <DebugType>embedded</DebugType>
 

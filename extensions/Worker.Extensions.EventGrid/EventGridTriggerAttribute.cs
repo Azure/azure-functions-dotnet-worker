@@ -3,4 +3,9 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4")]
+namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid
+{
+    public sealed class EventGridTriggerAttribute : TriggerBindingAttribute
+    {
+    }
+}

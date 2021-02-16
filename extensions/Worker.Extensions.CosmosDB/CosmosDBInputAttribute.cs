@@ -1,18 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
 {
-    public sealed class CosmosDBOutputAttribute : OutputBindingAttribute
+    public sealed class CosmosDBInputAttribute : InputBindingAttribute
     {
         /// <summary>
         /// Constructs a new instance.
         /// </summary>
         /// <param name="databaseName">The CosmosDB database name.</param>
         /// <param name="collectionName">The CosmosDB collection name.</param>
-        public CosmosDBOutputAttribute(string name, string databaseName, string collectionName) : base(name)
+        public CosmosDBInputAttribute(string databaseName, string collectionName)
         {
             DatabaseName = databaseName;
             CollectionName = collectionName;
@@ -31,17 +31,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
         public string CollectionName { get; private set; }
 
         /// <summary>
-        /// Optional.
-        /// Only applies to output bindings.
-        /// If true, the database and collection will be automatically created if they do not exist.
-        /// </summary>
-        public bool CreateIfNotExists { get; set; }
-
-        /// <summary>
         /// Optional. A string value indicating the app setting to use as the CosmosDB connection string, if different
         /// than the one specified in the <see cref="CosmosDBOptions"/>.
         /// </summary>
         public string? ConnectionStringSetting { get; set; }
+
+        /// <summary>
+        /// Optional. The Id of the document to retrieve from the collection.
+        /// May include binding parameters.
+        /// </summary>
+        public string? Id { get; set; }
 
         /// <summary>
         /// Optional.
@@ -54,16 +53,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
 
         /// <summary>
         /// Optional.
-        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the throughput of the created
-        /// collection.
+        /// When specified on an input binding using an <see cref="System.Collections.Generic.IEnumerable{T}"/>, defines the query to run against the collection.
+        /// May include binding parameters.
         /// </summary>
-        public int CollectionThroughput { get; set; }
-
-        /// <summary>
-        /// Optional.
-        /// Enable to use with Multi Master accounts.
-        /// </summary>
-        public bool UseMultipleWriteLocations { get; set; }
+        public string? SqlQuery { get; set; }
 
         /// <summary>
         /// Optional.

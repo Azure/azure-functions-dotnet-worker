@@ -1,9 +1,34 @@
-﻿param(
+param(
     [Parameter(Mandatory=$false)]
     [Switch]
     $E2E
 )
 
+
+function Get-LatestPackage-Version([string] $packageName, [string] $packagePath)
+{
+    $packageVersion = $null
+
+    Get-ChildItem "$packagePath" -Name |
+    Foreach-Object {
+        if ($_ -Match "$packageName")
+        {
+            # Converts the nupkg file name to a version
+            $currentVersion = $_ -replace "$packageName.", ""
+            $currentVersion = $currentVersion -replace ".nupkg", ""
+
+            # Gets the highest version
+            $packageVersion = @($packageVersion, $currentVersion) | Sort-Object -Descending | Select-Object -First 1
+        }
+    }
+
+    if ($null -eq $packageVersion)
+    {
+        Throw "Did not find any package versions for '$packageName' in '$packagePath'"
+    }
+
+    return $packageVersion
+}
 
 # Packs the SDK locally, and (by default) updates the Sample to use this package, then builds.
 # Specify --E2E to instead target the E2E test app.
@@ -24,7 +49,8 @@ Write-Host "Packing SDK to $localPack"
 Write-Host
 Write-Host "Updating SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"
-& "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-s" "$localPack" "--prerelease"
+$newestPackage = Get-LatestPackage-Version "Microsoft.Azure.Functions.Worker.Sdk" $localPack
+& "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-s" "$localPack" "-v" "$newestPackage"
 Write-Host
 Write-Host "Building $project"
 & "dotnet" "build" $project "-v" "q" "-nologo"

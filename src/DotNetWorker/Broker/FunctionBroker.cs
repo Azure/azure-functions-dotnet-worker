@@ -4,10 +4,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
 
@@ -20,13 +22,15 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IFunctionContextFactory _functionContextFactory;
         private readonly IFunctionDefinitionFactory _functionDefinitionFactory;
         private readonly ILogger<FunctionBroker> _logger;
+        private readonly IOptions<WorkerOptions> _workerOptions;
 
         public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
-            IFunctionDefinitionFactory functionDescriptorFactory, ILogger<FunctionBroker> logger)
+            IFunctionDefinitionFactory functionDefinitionFactory, ILogger<FunctionBroker> logger)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
-            _functionDefinitionFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDescriptorFactory));
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
+            _functionDefinitionFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDefinitionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -71,19 +75,19 @@ namespace Microsoft.Azure.Functions.Worker
                     {
                         // TODO: ParameterBinding shouldn't happen here
 
-                        foreach (var binding in executionContext.OutputBindings)
-                        {
-                            var parameterBinding = new ParameterBinding
-                            {
-                                Name = binding.Key,
-                                Data = binding.Value.ToRpc()
-                            };
-                            response.OutputData.Add(parameterBinding);
-                        }
-                    }
-                    if (result != null)
+                    foreach (var binding in executionContext.OutputBindings)
                     {
-                        var returnVal = result.ToRpc();
+                        var parameterBinding = new ParameterBinding
+                        {
+                            Name = binding.Key,
+                            Data = binding.Value.ToRpc(_workerOptions.Value.Serializer)
+                        };
+                        response.OutputData.Add(parameterBinding);
+                    }
+                }
+                if (result != null)
+                {
+                    var returnVal = result.ToRpc(_workerOptions.Value.Serializer);
 
                         response.ReturnValue = returnVal;
                     }

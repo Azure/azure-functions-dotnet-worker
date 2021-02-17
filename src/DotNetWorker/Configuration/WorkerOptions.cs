@@ -1,29 +1,27 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
+using System.Text.Json;
+using Azure.Core.Serialization;
 
-namespace Microsoft.Azure.Functions.Worker.Configuration
+namespace Microsoft.Azure.Functions.Worker
 {
-    // TODO: Slim this down.
     public class WorkerOptions
     {
         public WorkerOptions()
         {
-            Capabilities = new List<string>();
+            var serializerOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
 
-            // Default value for HeartBeatRateFactor is 6
-            HeartBeatRateFactor = 6;
+            Serializer = new JsonObjectSerializer(serializerOptions);
         }
 
-        public string? ApplicationId { get; set; }
-
-        public string? ApplicationVersion { get; set; }
-
-        public string? InstanceId { get; set; }
-
-        public List<string> Capabilities { get; }
-
-        public int HeartBeatRateFactor { get; set; }
+        /// <summary>
+        /// The <see cref="ObjectSerializer"/> to use for all JSON serialization and deserialization. By default,
+        /// this is a <see cref="JsonObjectSerializer"/> with <see cref="JsonSerializerOptions.PropertyNameCaseInsensitive"/> set to true.        
+        /// </summary>
+        public ObjectSerializer Serializer { get; set; }
     }
 }

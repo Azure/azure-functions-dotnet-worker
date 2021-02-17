@@ -1,19 +1,23 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Text.Json;
+using System.IO;
+using System.Text;
+using System.Threading;
+using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     internal class JsonPocoConverter : IConverter
     {
-        private readonly IOptions<JsonSerializerOptions> _options;
+        private readonly ObjectSerializer _serializer;
 
-        public JsonPocoConverter(IOptions<JsonSerializerOptions> options)
+        public JsonPocoConverter(IOptions<WorkerOptions> options)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _serializer = options?.Value?.Serializer ?? throw new ArgumentNullException(nameof(options));
         }
 
         public bool TryConvert(ConverterContext context, out object? target)
@@ -29,14 +33,17 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             try
             {
-                target = JsonSerializer.Deserialize(sourceString, context.Parameter.Type, _options.Value);
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(sourceString)))
+                {
+                    target = _serializer.Deserialize(stream, context.Parameter.Type, CancellationToken.None);
+                }
+
                 return true;
             }
-            catch (JsonException)
+            catch
             {
+                return false;
             }
-
-            return false;
         }
     }
 }

@@ -4,7 +4,7 @@ trigger:
 
 pr:
 - main
-- release
+- release/*
 
 pool:
   vmImage: 'windows-latest'

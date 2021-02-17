@@ -18,7 +18,10 @@ function Get-LatestPackage-Version([string] $packageName, [string] $packagePath)
             $currentVersion = $currentVersion -replace ".nupkg", ""
 
             # Gets the highest version
-            $packageVersion = @($packageVersion, $currentVersion) | Sort-Object -Descending | Select-Object -First 1
+            if ($currentVersion -gt $packageVersion)
+            {
+                $packageVersion = $currentVersion
+            }
         }
     }
 

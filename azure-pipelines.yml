@@ -1,6 +1,6 @@
 trigger:
 - main
-- release
+- release/*
 
 pr:
 - main

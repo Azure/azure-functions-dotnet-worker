@@ -3,21 +3,64 @@
 
 using System;
 using Azure.Core.Serialization;
+using System.Threading.Tasks;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Definition;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     internal static class RpcExtensions
     {
-        public static TypedData ToRpc(this object value, ObjectSerializer serializer)
+        private static TypedData _emptyTypedData = new();
+        private static Task<TypedData> _emptyTypedDataResult = Task.FromResult(_emptyTypedData);
+
+        public static Task<TypedData> ToRpcAsync(this object value, ObjectSerializer serializer)
         {
-            TypedData typedData = new TypedData();
             if (value == null)
             {
-                return typedData;
+                return _emptyTypedDataResult;
             }
+
+            var typedData = new TypedData();
+            if (value is byte[] arr)
+            {
+                typedData.Bytes = ByteString.CopyFrom(arr);
+            }
+            if (value is HttpResponseData response)
+            {
+                return response.ToRpcHttpAsync(serializer).ContinueWith(t =>
+                {
+                    typedData.Http = t.Result;
+                    return typedData;
+                });
+            }
+            else if (value is string str)
+            {
+                typedData.String = str;
+            }
+            else if (value.GetType().IsArray)
+            {
+                typedData = ToRpcCollection(value, serializer);
+            }
+            else
+            {
+                typedData = value.ToRpcDefault(serializer);
+            }
+
+            return Task.FromResult(typedData);
+        }
+
+        public static TypedData ToRpc(this object value, ObjectSerializer serializer)
+        {
+             if (value == null)
+            {
+                return _emptyTypedData;
+            }
+
+            var typedData = new TypedData();
+
             if (value is byte[] arr)
             {
                 typedData.Bytes = ByteString.CopyFrom(arr);
@@ -25,10 +68,6 @@ namespace Microsoft.Azure.Functions.Worker
             else if (value is string str)
             {
                 typedData.String = str;
-            }
-            else if (value is HttpResponseData response)
-            {
-                typedData = response.ToRpcHttp(serializer);
             }
             else if (value.GetType().IsArray)
             {
@@ -85,8 +124,15 @@ namespace Microsoft.Azure.Functions.Worker
             return typedData;
         }
 
-        internal static TypedData ToRpcHttp(this HttpResponseData response, ObjectSerializer serializer)
+        internal static Task<RpcHttp> ToRpcHttpAsync(this HttpResponseData response, ObjectSerializer serializer)
         {
+            if (response is GrpcHttpResponseData rpcResponse)
+            {
+                return rpcResponse.GetRpcHttpAsync();
+            }
+
+            // TODO: Review non-RPC response implementations
+            // which will be handled by the code below
             var http = new RpcHttp()
             {
                 StatusCode = ((int)response.StatusCode).ToString()
@@ -111,11 +157,8 @@ namespace Microsoft.Azure.Functions.Worker
                     http.Headers.Add(pair.Key.ToLowerInvariant(), pair.Value.ToString());
                 }
             }
-            var typedData = new TypedData
-            {
-                Http = http
-            };
-            return typedData;
+
+            return Task.FromResult(http);
         }
 
         internal static TypedData ToRpcByteArray(this byte[][] arrBytes)

@@ -3,10 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Security.Claims;
-using Microsoft.Azure.Functions.Worker.Http;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Worker.Http
 {
     /// <summary>
     /// A representation of the HTTP request sent by the host.
@@ -14,12 +14,12 @@ namespace Microsoft.Azure.Functions.Worker
     public abstract class HttpRequestData
     {
         /// <summary>
-        /// A representation of the HTTP request sent by the host.
+        /// A <see cref="Stream"/> containing the HTTP body data.
         /// </summary>
-        public abstract ReadOnlyMemory<byte>? Body { get; }
+        public abstract Stream Body { get; }
 
         /// <summary>
-        /// Gets an <see cref="IImmutableDictionary{string, string}"/> containing the request headers.
+        /// Gets a <see cref="HttpHeadersCollection"/> containing the request headers.
         /// </summary>
         public abstract HttpHeadersCollection Headers { get; }
 
@@ -42,5 +42,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the HTTP method for this request.
         /// </summary>
         public abstract string Method { get; }
+
+        /// <summary>
+        /// Creates a response for this request.
+        /// </summary>
+        /// <returns>The response instance.</returns>
+        public abstract HttpResponseData CreateResponse();
     }
 }

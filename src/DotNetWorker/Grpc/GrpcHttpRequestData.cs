@@ -3,41 +3,63 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class GrpcHttpRequestData : HttpRequestData
+    internal class GrpcHttpRequestData : HttpRequestData, IAsyncDisposable, IDisposable
     {
         private readonly RpcHttp _httpData;
         private Uri? _url;
         private IEnumerable<ClaimsIdentity>? _identities;
         private HttpHeadersCollection? _headers;
+        private Stream? _bodyStream;
+        private bool _disposed;
 
         public GrpcHttpRequestData(RpcHttp httpData)
         {
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
         }
 
-        public override ReadOnlyMemory<byte>? Body
+        public override Stream Body
         {
             get
             {
-                if (_httpData.Body is null)
+                if (_bodyStream is null)
                 {
-                    return null;
+                    if (_httpData.Body is null)
+                    {
+                        _bodyStream = Stream.Null;
+                    }
+                    else
+                    {
+                        // Based on the advertised worker capabilities, the payload should always be binary data
+                        if (_httpData.Body.DataCase != TypedData.DataOneofCase.Bytes)
+                        {
+                            throw new NotSupportedException($"{nameof(GrpcHttpRequestData)} expects binary data only. The provided data type was '{_httpData.Body.DataCase}'.");
+                        }
+
+                        ReadOnlyMemory<byte> memory = _httpData.Body.Bytes.Memory;
+
+                        if (memory.IsEmpty)
+                        {
+                            _bodyStream = Stream.Null;
+                        }
+
+                        var stream = new MemoryStream(memory.Length);
+                        stream.Write(memory.Span);
+                        stream.Position = 0;
+
+                        _bodyStream = stream;
+                    }
                 }
 
-                // Based on the advertised worker capabilities, the payload should always be binary data
-                if (_httpData.Body.DataCase != TypedData.DataOneofCase.Bytes)
-                {
-                    throw new NotSupportedException($"{nameof(GrpcHttpRequestData)} expects binary data only. The provided data type was '{_httpData.Body.DataCase}'.");
-                }
-
-                return _httpData.Body.Bytes.Memory;
+                return _bodyStream;
             }
         }
 
@@ -68,5 +90,34 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         public override string Method => _httpData.Method;
+
+        public override HttpResponseData CreateResponse()
+        {
+            return new GrpcHttpResponseData(System.Net.HttpStatusCode.OK);
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            return _bodyStream?.DisposeAsync() ?? ValueTask.CompletedTask;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!_disposed)
+            {
+                if (disposing)
+                {
+                    _bodyStream?.Dispose();
+                }
+
+                _disposed = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
     }
 }

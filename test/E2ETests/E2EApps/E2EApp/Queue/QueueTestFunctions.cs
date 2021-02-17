@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
@@ -54,11 +55,13 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 
                 context.OutputBindings["output"] = outputItems;
 
-                return new HttpResponseData(HttpStatusCode.OK, queueMessageId);
+                HttpResponseData response = request.CreateResponse(HttpStatusCode.OK);
+                response.WriteString(queueMessageId);
+                return response;
             }
             else
             {
-                return new HttpResponseData(HttpStatusCode.BadRequest);
+                return request.CreateResponse(HttpStatusCode.BadRequest);
             }
         }
 

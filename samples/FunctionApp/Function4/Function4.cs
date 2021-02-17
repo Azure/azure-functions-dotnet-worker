@@ -6,6 +6,7 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Http;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
@@ -20,13 +21,13 @@ namespace FunctionApp
             var logger = executionContext.GetLogger("FunctionApp.Function4");
 
             logger.LogInformation("message logged");
-            var response = new HttpResponseData(HttpStatusCode.OK);
-            var headers = new Dictionary<string, string>();
-            headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
-            headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
 
-            response.Headers = headers;
-            response.Body = "Welcome to .NET 5!!";
+            var response = req.CreateResponse(HttpStatusCode.OK);
+
+            response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
+            response.Headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
+
+            response.WriteString("Welcome to .NET 5!!");
 
             return response;
         }

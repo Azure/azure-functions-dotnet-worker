@@ -14,9 +14,9 @@ namespace SampleApp
     {
         static async Task Main(string[] args)
         {
-// #if DEBUG
-//             Debugger.Launch();
-// #endif
+ #if DEBUG
+             Debugger.Launch();
+ #endif
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(c =>
                 {

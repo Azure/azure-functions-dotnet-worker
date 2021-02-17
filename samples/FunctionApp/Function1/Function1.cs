@@ -9,7 +9,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage;
-using Microsoft.Azure.Functions.Worker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace FunctionApp
 {
@@ -25,13 +25,11 @@ namespace FunctionApp
             var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
             context.OutputBindings["book"] = bookVal;
 
-            var response = new HttpResponseData(HttpStatusCode.OK);
-            var headers = new Dictionary<string, string>();
-            headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
-            headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
-
-            response.Headers = headers;
-            response.Body = "Book Sent to Queue!";
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            
+            response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
+            response.Headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
+            response.WriteString("Book Sent to Queue!");
 
             return response;
         }

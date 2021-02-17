@@ -3,11 +3,12 @@
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
-    public enum SameSite
+    public abstract class HttpCookies
     {
-        None = 0,
-        Lax = 1,
-        Strict = 2,
-        ExplicitNone = 3,
+        public abstract void Append(string name, string value);
+
+        public abstract void Append(IHttpCookie cookie);
+
+        public abstract IHttpCookie CreateNew();
     }
 }

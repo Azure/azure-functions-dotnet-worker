@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage;
 using Microsoft.Azure.Functions.Worker.Extensions.Timer;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 

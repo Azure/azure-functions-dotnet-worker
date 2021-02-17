@@ -86,7 +86,7 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                     if (result != null)
                     {
-                        var returnVal = result.ToRpc(_workerOptions.Value.Serializer);
+                        TypedData? returnVal = await result.ToRpcAsync(_workerOptions.Value.Serializer);
 
                         response.ReturnValue = returnVal;
                     }

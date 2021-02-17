@@ -19,6 +19,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         public Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
+            // TODO: The value needs to be moved to the context
+            // parameters values should be properly associated with the context
+            // and support disposal.
             foreach (var param in context.FunctionDefinition.Parameters)
             {
                 object? source = context.Invocation.ValueProvider.GetValue(param.Name);

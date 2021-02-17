@@ -3,8 +3,11 @@
 
 using System;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Worker.Http
 {
+    /// <summary>
+    /// A representation of an HTTP cookie
+    /// </summary>
     public interface IHttpCookie
     {
         string Domain { get; }

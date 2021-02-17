@@ -1,10 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Timer;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp
@@ -13,7 +13,7 @@ namespace SampleApp
     {
         [FunctionName("TimerFunction")]
         public static void Run([TimerTrigger("0 */5 * * * *")] MyInfo timerInfo,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             var logger = context.Logger;
             logger.LogInformation($"Function Ran. Next timer schedule = {timerInfo.ScheduleStatus.Next}");

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -9,13 +9,13 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    public class DefaultFunctionExecutionContextTests
+    public class DefaultFunctionContextTests
     {
-        DefaultFunctionExecutionContext _defaultFunctionExecutionContext;
+        DefaultFunctionContext _defaultFunctionContext;
         IServiceScopeFactory _serviceScopeFactory;
         IServiceProvider _serviceProvider;
 
-        public DefaultFunctionExecutionContextTests()
+        public DefaultFunctionContextTests()
         {
             IServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<SingletonService>();
@@ -27,13 +27,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var invocation = new Mock<FunctionInvocation>(MockBehavior.Strict).Object;
             var definition = new Mock<FunctionDefinition>(MockBehavior.Strict).Object;
 
-            _defaultFunctionExecutionContext = new DefaultFunctionExecutionContext(_serviceScopeFactory, invocation, definition);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, invocation, definition);
         }
 
         [Fact]
         public void CreateAndDisposeInstanceServicesTest()
         {
-            var services = _defaultFunctionExecutionContext.InstanceServices;
+            var services = _defaultFunctionContext.InstanceServices;
             Assert.NotNull(services);
             var singletonService = services.GetService<SingletonService>();
             var transientService = services.GetService<TransientService>();
@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.NotNull(transientService);
             Assert.NotNull(singletonService);
 
-            _defaultFunctionExecutionContext.Dispose();
+            _defaultFunctionContext.Dispose();
 
             Assert.Throws<ObjectDisposedException>(services.GetService<SingletonService>);
             Assert.Throws<ObjectDisposedException>(services.GetService<TransientService>);

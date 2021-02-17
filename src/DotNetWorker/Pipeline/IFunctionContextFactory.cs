@@ -5,8 +5,8 @@ using Microsoft.Azure.Functions.Worker.Context;
 
 namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
-    internal interface IFunctionExecutionContextFactory
+    internal interface IFunctionContextFactory
     {
-        FunctionExecutionContext Create(FunctionInvocation invocation, FunctionDefinition definition);
+        FunctionContext Create(FunctionInvocation invocation, FunctionDefinition definition);
     }
 }

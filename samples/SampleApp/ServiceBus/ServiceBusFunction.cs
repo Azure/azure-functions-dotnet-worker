@@ -1,10 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp
@@ -14,7 +14,7 @@ namespace SampleApp
         [FunctionName("ServiceBusFunction")]
         [ServiceBusOutput("output", "outputQueue", Connection = "ServiceBusConnection")]
         public static void Run([ServiceBusTrigger("queue", Connection = "ServiceBusConnection")] string item,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             var logger = context.Logger;
 

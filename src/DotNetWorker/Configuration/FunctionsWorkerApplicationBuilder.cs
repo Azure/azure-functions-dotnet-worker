@@ -9,14 +9,14 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
 {
     internal class FunctionsWorkerApplicationBuilder : IFunctionsWorkerApplicationBuilder
     {
-        private readonly IInvocationPipelineBuilder<FunctionExecutionContext> _pipelineBuilder;
+        private readonly IInvocationPipelineBuilder<FunctionContext> _pipelineBuilder;
 
         public IServiceCollection Services { get; private set; }
 
         public FunctionsWorkerApplicationBuilder(IServiceCollection services)
         {
             Services = services;
-            _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
+            _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionContext>();
             Services.AddSingleton<FunctionExecutionDelegate>(sp =>
             {
                 return _pipelineBuilder.Build();

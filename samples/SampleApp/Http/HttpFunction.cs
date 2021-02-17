@@ -15,7 +15,7 @@ namespace SampleApp
     {
         [FunctionName("HttpFunction")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            FunctionExecutionContext executionContext)
+            FunctionContext executionContext)
         {
             var logger = executionContext.Logger;
             logger.LogInformation("message logged");

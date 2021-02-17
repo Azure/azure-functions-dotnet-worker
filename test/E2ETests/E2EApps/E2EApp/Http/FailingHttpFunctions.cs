@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         [FunctionName(nameof(ExceptionFunction))]
         public static HttpResponseData ExceptionFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             context.Logger.LogInformation(".NET Worker HTTP trigger function processed a request");
             throw new Exception("This should never succeed!");

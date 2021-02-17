@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var outputBinding = TestUtility.AssertIsTypeAndConvert<OutputBinding<string>>(target);
             outputBinding.SetValue("abc");
 
-            var outputs = context.ExecutionContext.OutputBindings;
+            var outputs = context.FunctionContext.OutputBindings;
             Assert.Equal("abc", outputs["output"]);
         }
     }

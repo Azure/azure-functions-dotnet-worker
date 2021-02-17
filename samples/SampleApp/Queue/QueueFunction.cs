@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp
@@ -13,7 +13,7 @@ namespace SampleApp
         [FunctionName("QueueFunction")]
         [QueueOutput("output", "functionstesting2", Connection = "AzureWebJobsStorage")]
         public static void Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             var logger = context.Logger;
             logger.LogInformation($"Book name = {myQueueItem.Name}");

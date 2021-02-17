@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         [FunctionName(nameof(HelloFromQuery))]
         public static HttpResponseData HelloFromQuery(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             context.Logger.LogInformation(".NET Worker HTTP trigger function processed a request");
             var queryName = HttpUtility.ParseQueryString(req.Url.Query)["name"];
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         [FunctionName(nameof(HelloFromJsonBody))]
         public static HttpResponseData HelloFromJsonBody(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             context.Logger.LogInformation(".NET Worker HTTP trigger function processed a request");
             var body = Encoding.UTF8.GetString(req.Body.Value.Span);

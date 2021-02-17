@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal class DefaultFunctionExecutor : IFunctionExecutor
     {
-        public async Task ExecuteAsync(FunctionExecutionContext context)
+        public async Task ExecuteAsync(FunctionContext context)
         {
             var invoker = context.FunctionDefinition.Invoker;
             object? instance = invoker.CreateInstance(context.InstanceServices);

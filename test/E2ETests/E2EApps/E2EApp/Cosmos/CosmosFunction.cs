@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             collectionName: "%CosmosCollIn%",
             ConnectionStringSetting = "CosmosConnection",
             LeaseCollectionName = "leases",
-            CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<MyDocument> input, FunctionExecutionContext context)
+            CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<MyDocument> input, FunctionContext context)
         {
             if (input != null && input.Count > 0)
             {

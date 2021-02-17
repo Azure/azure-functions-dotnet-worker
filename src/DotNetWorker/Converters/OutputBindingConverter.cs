@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 {
                     var elementType = param.Type.GetGenericArguments()[0];
                     Type constructed = defaultBindingType.MakeGenericType(new Type[] { elementType });
-                    target = Activator.CreateInstance(constructed, context.Parameter, context.ExecutionContext.OutputBindings);
+                    target = Activator.CreateInstance(constructed, context.Parameter, context.FunctionContext.OutputBindings);
                     return true;
                 }
             }

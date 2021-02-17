@@ -19,11 +19,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             _channel = channel;
         }
 
-        public Task Invoke(FunctionExecutionContext context, FunctionExecutionDelegate next)
+        public Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
             foreach (var param in context.FunctionDefinition.Parameters)
             {
-                if (param.Type == typeof(FunctionExecutionContext))
+                if (param.Type == typeof(FunctionContext))
                 {
                     context.Logger = new InvocationLogger(context.Invocation.InvocationId, _channel.Channel.Writer);
                     param.Value = context;

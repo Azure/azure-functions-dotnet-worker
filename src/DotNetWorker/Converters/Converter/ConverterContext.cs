@@ -12,6 +12,6 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         public abstract object? Source { get; set; }
 
-        public abstract FunctionExecutionContext ExecutionContext { get; set; }
+        public abstract FunctionContext FunctionContext { get; set; }
     }
 }

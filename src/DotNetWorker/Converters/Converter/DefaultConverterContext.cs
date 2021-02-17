@@ -8,10 +8,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 {
     internal class DefaultConverterContext : ConverterContext
     {
-        public DefaultConverterContext(FunctionParameter parameter, object? source, FunctionExecutionContext context)
+        public DefaultConverterContext(FunctionParameter parameter, object? source, FunctionContext context)
         {
             Parameter = parameter ?? throw new System.ArgumentNullException(nameof(parameter));
-            ExecutionContext = context ?? throw new System.ArgumentNullException(nameof(context));
+            FunctionContext = context ?? throw new System.ArgumentNullException(nameof(context));
             Source = source;
         }
 
@@ -19,6 +19,6 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         public override FunctionParameter Parameter { get; set; }
 
-        public override FunctionExecutionContext ExecutionContext { get; set; }
+        public override FunctionContext FunctionContext { get; set; }
     }
 }

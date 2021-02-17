@@ -14,12 +14,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         private readonly FunctionBroker _functionBroker;
         private readonly Mock<FunctionExecutionDelegate> _mockFunctionExecutionDelegate = new Mock<FunctionExecutionDelegate>();
-        private readonly Mock<IFunctionExecutionContextFactory> _mockFunctionExecutionContextFactory = new Mock<IFunctionExecutionContextFactory>();
+        private readonly Mock<IFunctionContextFactory> _mockFunctionContextFactory = new Mock<IFunctionContextFactory>();
         private readonly Mock<IFunctionDefinitionFactory> _mockFunctionDefinitionFactory = new Mock<IFunctionDefinitionFactory>();
 
         public FunctionBrokerTests()
         {
-            _functionBroker = new FunctionBroker(_mockFunctionExecutionDelegate.Object, _mockFunctionExecutionContextFactory.Object, _mockFunctionDefinitionFactory.Object);
+            _functionBroker = new FunctionBroker(_mockFunctionExecutionDelegate.Object, _mockFunctionContextFactory.Object, _mockFunctionDefinitionFactory.Object);
         }
 
         [Fact]
@@ -36,10 +36,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 Metadata = functionDescriptor
             };
 
-            var context = new TestFunctionExecutionContext();
+            var context = new TestFunctionContext();
             _mockFunctionDefinitionFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(definition);
-            _mockFunctionExecutionContextFactory.Setup(p => p.Create(It.IsAny<FunctionInvocation>(), definition)).Returns(context);
-            _mockFunctionExecutionDelegate.Setup(p => p(It.IsAny<FunctionExecutionContext>())).Returns(Task.CompletedTask);
+            _mockFunctionContextFactory.Setup(p => p.Create(It.IsAny<FunctionInvocation>(), definition)).Returns(context);
+            _mockFunctionExecutionDelegate.Setup(p => p(It.IsAny<FunctionContext>())).Returns(Task.CompletedTask);
 
             _functionBroker.AddFunction(It.IsAny<FunctionLoadRequest>());
             var result = await _functionBroker.InvokeAsync(invocationRequest);

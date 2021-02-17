@@ -9,7 +9,7 @@ using Microsoft.Azure.Functions.Worker.Pipeline;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestFunctionExecutionContext : FunctionExecutionContext, IDisposable
+    internal class TestFunctionContext : FunctionContext, IDisposable
     {
         public bool IsDisposed { get; private set; }
 

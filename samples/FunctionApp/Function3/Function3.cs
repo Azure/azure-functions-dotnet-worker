@@ -16,7 +16,7 @@ namespace FunctionApp
         [FunctionName("Function3")]
         [QueueOutput("name", "functionstesting2", Connection = "AzureWebJobsStorage")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            FunctionExecutionContext context)
+            FunctionContext context)
         {
             var response = new HttpResponseData(HttpStatusCode.OK);
             response.Body = "Success!!";

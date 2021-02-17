@@ -15,13 +15,13 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
-        private readonly IFunctionExecutionContextFactory _functionExecutionContextFactory;
+        private readonly IFunctionContextFactory _functionContextFactory;
         private readonly IFunctionDefinitionFactory _functionDescriptorFactory;
 
-        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionExecutionContextFactory functionExecutionContextFactory, IFunctionDefinitionFactory functionDescriptorFactory)
+        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory, IFunctionDefinitionFactory functionDescriptorFactory)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
-            _functionExecutionContextFactory = functionExecutionContextFactory ?? throw new ArgumentNullException(nameof(functionExecutionContextFactory));
+            _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
             _functionDescriptorFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDescriptorFactory));
         }
 
@@ -46,11 +46,11 @@ namespace Microsoft.Azure.Functions.Worker
                 InvocationId = invocation.InvocationId
             };
 
-            FunctionExecutionContext? executionContext = null;
+            FunctionContext? executionContext = null;
 
             try
             {
-                executionContext = _functionExecutionContextFactory.Create(invocation, _functionMap[invocation.FunctionId]);
+                executionContext = _functionContextFactory.Create(invocation, _functionMap[invocation.FunctionId]);
 
                 await _functionExecutionDelegate(executionContext);
 

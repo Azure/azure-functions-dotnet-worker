@@ -123,9 +123,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Null(context.InvocationResult);
         }
 
-        private FunctionExecutionContext CreateContext(MethodInfo mi)
+        private FunctionContext CreateContext(MethodInfo mi)
         {
-            var context = new TestFunctionExecutionContext();
+            var context = new TestFunctionContext();
             var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 

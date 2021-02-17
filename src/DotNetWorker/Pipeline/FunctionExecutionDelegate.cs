@@ -14,5 +14,5 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
     /// </summary>
     /// <param name="context">The context for the event invocation.</param>
     /// <returns>A <see cref="Task"/> that represents the invocation process.</returns>
-    public delegate Task FunctionExecutionDelegate(FunctionExecutionContext context);
+    public delegate Task FunctionExecutionDelegate(FunctionContext context);
 }

@@ -15,18 +15,18 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class DefaultInvocationPipelineBuilderTests
     {
-        private Mock<FunctionExecutionContext> _mockContext = new Mock<FunctionExecutionContext>();
+        private Mock<FunctionContext> _mockContext = new Mock<FunctionContext>();
 
         public DefaultInvocationPipelineBuilderTests()
         {
-            _mockContext = new Mock<FunctionExecutionContext>();
+            _mockContext = new Mock<FunctionContext>();
             _mockContext.SetupAllProperties();
         }
 
         [Fact]
         public void Build_BuildsInCorrectOrder()
         {
-            var builder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
+            var builder = new DefaultInvocationPipelineBuilder<FunctionContext>();
             builder.Use(next => context =>
             {
                 context.Items.Add("Middleware1", null);
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void Middleware_ShortCircuitsPipeline()
         {
-            var builder = new DefaultInvocationPipelineBuilder<FunctionExecutionContext>();
+            var builder = new DefaultInvocationPipelineBuilder<FunctionContext>();
             builder.Use(next => context =>
             {
                 context.Items.Add("Middleware1", null);

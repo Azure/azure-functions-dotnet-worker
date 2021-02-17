@@ -20,7 +20,7 @@ namespace FunctionApp
         [QueueOutput("book", "functionstesting2", Connection = "AzureWebJobsStorage")]
         public static HttpResponseData Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionExecutionContext context)
+            [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionContext context)
         {
             var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
             context.OutputBindings["book"] = bookVal;

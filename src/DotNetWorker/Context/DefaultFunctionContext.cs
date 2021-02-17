@@ -10,14 +10,14 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class DefaultFunctionExecutionContext : FunctionExecutionContext, IDisposable
+    internal class DefaultFunctionContext : FunctionContext, IDisposable
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
 
         private IServiceScope? _instanceServicesScope;
         private IServiceProvider? _instanceServices;
 
-        public DefaultFunctionExecutionContext(IServiceScopeFactory serviceScopeFactory, FunctionInvocation invocation,
+        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, FunctionInvocation invocation,
             FunctionDefinition definition)
         {
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
-    internal class DefaultInvocationPipelineBuilder<FunctionExecutionContext> : IInvocationPipelineBuilder<FunctionExecutionContext>
+    internal class DefaultInvocationPipelineBuilder<Context> : IInvocationPipelineBuilder<Context>
     {
         private readonly IList<Func<FunctionExecutionDelegate, FunctionExecutionDelegate>> _middlewareCollection = 
             new List<Func<FunctionExecutionDelegate, FunctionExecutionDelegate>>();
 
-        public IInvocationPipelineBuilder<FunctionExecutionContext> Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)
+        public IInvocationPipelineBuilder<Context> Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)
         {
             _middlewareCollection.Add(middleware);
 

@@ -41,7 +41,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IFunctionExecutor, DefaultFunctionExecutor>();
 
             // Function Execution Contexts
-            services.AddSingleton<IFunctionExecutionContextFactory, DefaultFunctionExecutionContextFactory>();
+            services.AddSingleton<IFunctionContextFactory, DefaultFunctionContextFactory>();
 
             // Function Definition
             services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();

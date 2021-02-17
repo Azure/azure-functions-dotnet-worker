@@ -76,6 +76,11 @@ namespace Microsoft.Extensions.DependencyInjection
                     config.Bind(arguments);
                 });
 
+            if (configure != null)
+            {
+                services.Configure(configure);
+            }
+
             return new FunctionsWorkerApplicationBuilder(services);
         }
 

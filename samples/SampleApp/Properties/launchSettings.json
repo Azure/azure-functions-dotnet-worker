@@ -1,7 +1,0 @@
-{
-  "profiles": {
-    "FunctionApp": {
-      "commandName": "Project"
-    }
-  }
-}

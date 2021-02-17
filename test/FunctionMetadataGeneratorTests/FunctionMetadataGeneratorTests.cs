@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" }
+                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4" }
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -148,10 +148,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             ValidateFunction(functions.Single(), "TimerFunction", GetEntryPoint(nameof(Timer), nameof(Timer.RunTimer)),
                 b => ValidateTrigger(b));
 
-            AssertDictionary(extensions, new Dictionary<string, string>
-            {
-                { "Microsoft.Azure.WebJobs.Extensions", "4.0.1" }
-            });
+            AssertDictionary(extensions, new Dictionary<string, string>());
 
             void ValidateTrigger(ExpandoObject b)
             {

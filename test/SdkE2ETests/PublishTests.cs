@@ -63,7 +63,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                         "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"),
                     new Extension("AzureStorage",
-                        "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage, Version=4.0.3.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+                        "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage, Version=4.0.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.dll")
                 }
             });

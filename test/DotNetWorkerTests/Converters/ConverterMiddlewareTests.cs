@@ -1,7 +1,9 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Text.Json;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Xunit;
 
@@ -9,7 +11,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 {
     public class ConverterMiddlewareTests
     {
-        private ConverterMiddleware _paramConverterManager = TestUtility.GetDefaultConverterMiddleware(o => o.PropertyNameCaseInsensitive = true);
+        private ConverterMiddleware _paramConverterManager;
+
+        public ConverterMiddlewareTests()
+        {
+            // Test overriding serialization settings.
+            var serializer = new JsonObjectSerializer(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            _paramConverterManager = TestUtility.GetDefaultConverterMiddleware(o => o.Serializer = serializer);
+        }
 
         [Fact]
         public void ExactMatch()

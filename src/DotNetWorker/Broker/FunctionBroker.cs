@@ -9,6 +9,7 @@ using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -20,13 +21,15 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IFunctionContextFactory _functionContextFactory;
         private readonly IFunctionDefinitionFactory _functionDefinitionFactory;
         private readonly ILogger<FunctionBroker> _logger;
+        private readonly IOptions<WorkerOptions> _workerOptions;
 
         public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
-            IFunctionDefinitionFactory functionDescriptorFactory, ILogger<FunctionBroker> logger)
+            IFunctionDefinitionFactory functionDefinitionFactory, IOptions<WorkerOptions> workerOptions, ILogger<FunctionBroker> logger)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
-            _functionDefinitionFactory = functionDescriptorFactory ?? throw new ArgumentNullException(nameof(functionDescriptorFactory));
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
+            _functionDefinitionFactory = functionDefinitionFactory ?? throw new ArgumentNullException(nameof(functionDefinitionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -76,14 +79,14 @@ namespace Microsoft.Azure.Functions.Worker
                             var parameterBinding = new ParameterBinding
                             {
                                 Name = binding.Key,
-                                Data = binding.Value.ToRpc()
+                                Data = binding.Value.ToRpc(_workerOptions.Value.Serializer)
                             };
                             response.OutputData.Add(parameterBinding);
                         }
                     }
                     if (result != null)
                     {
-                        var returnVal = result.ToRpc();
+                        var returnVal = result.ToRpc(_workerOptions.Value.Serializer);
 
                         response.ReturnValue = returnVal;
                     }

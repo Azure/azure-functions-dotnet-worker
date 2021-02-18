@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Text.Json;
+using Azure.Core.Serialization;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal static class RpcExtensions
     {
-        public static TypedData ToRpc(this object value)
+        public static TypedData ToRpc(this object value, ObjectSerializer serializer)
         {
             TypedData typedData = new TypedData();
             if (value == null)
@@ -28,27 +28,27 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (value is HttpResponseData response)
             {
-                typedData = response.ToRpcHttp();
+                typedData = response.ToRpcHttp(serializer);
             }
             else if (value.GetType().IsArray)
             {
-                typedData = ToRpcCollection(value);
+                typedData = ToRpcCollection(value, serializer);
             }
             else
             {
-                typedData = value.ToRpcDefault();
+                typedData = value.ToRpcDefault(serializer);
             }
 
             return typedData;
         }
 
-        internal static TypedData ToRpcDefault(this object value)
+        internal static TypedData ToRpcDefault(this object value, ObjectSerializer serializer)
         {
             // attempt POCO / array of pocos
             TypedData typedData = new TypedData();
             try
             {
-                typedData.Json = JsonSerializer.Serialize(value);
+                typedData.Json = serializer.Serialize(value)?.ToString();
             }
             catch
             {
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker
             return typedData;
         }
 
-        public static TypedData ToRpcCollection(this object value)
+        public static TypedData ToRpcCollection(this object value, ObjectSerializer serializer)
         {
             TypedData typedData;
             if (value is byte[][] arrBytes)
@@ -79,13 +79,13 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                typedData = value.ToRpcDefault();
+                typedData = value.ToRpcDefault(serializer);
             }
 
             return typedData;
         }
 
-        internal static TypedData ToRpcHttp(this HttpResponseData response)
+        internal static TypedData ToRpcHttp(this HttpResponseData response, ObjectSerializer serializer)
         {
             var http = new RpcHttp()
             {
@@ -94,13 +94,13 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (response.Body != null)
             {
-                http.Body = response.Body.ToRpc();
+                http.Body = response.Body.ToRpc(serializer);
             }
             else
             {
                 // TODO: Is this correct? Passing a null body causes the entire
                 //       response to become the body in functions. Need to investigate.
-                http.Body = string.Empty.ToRpc();
+                http.Body = string.Empty.ToRpc(serializer);
             }
 
             if (response.Headers != null)

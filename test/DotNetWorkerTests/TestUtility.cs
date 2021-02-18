@@ -1,8 +1,7 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Text.Json;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Sdk;
@@ -13,10 +12,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         public static string DefaultPropertyName = "input";
 
-        public static ConverterMiddleware GetDefaultConverterMiddleware(Action<JsonSerializerOptions> configure = null)
+        public static ConverterMiddleware GetDefaultConverterMiddleware(Action<WorkerOptions> configure = null)
         {
             return new ServiceCollection()
-                .Configure<JsonSerializerOptions>(o => configure?.Invoke(o))
+                .Configure<WorkerOptions>(o => configure?.Invoke(o))
                 .AddSingleton<ConverterMiddleware>()
                 .RegisterOutputChannel()
                 .RegisterDefaultConverters()

@@ -23,8 +23,13 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     public static class ServiceCollectionExtensions
     {
-        public static IFunctionsWorkerApplicationBuilder AddFunctionsWorker(this IServiceCollection services, Action<WorkerOptions> configure)
+        public static IFunctionsWorkerApplicationBuilder AddFunctionsWorker(this IServiceCollection services, Action<WorkerOptions>? configure = null)
         {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
             // Converters
             services.RegisterDefaultConverters();
 
@@ -75,6 +80,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     config.Bind(arguments);
                 });
+
+            if (configure != null)
+            {
+                services.Configure(configure);
+            }
 
             return new FunctionsWorkerApplicationBuilder(services);
         }

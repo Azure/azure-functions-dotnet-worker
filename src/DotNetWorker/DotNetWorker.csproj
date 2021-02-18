@@ -11,6 +11,7 @@
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.9.0" />
     <PackageReference Include="Google.Protobuf" Version="3.13.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.33.1" />
     <PackageReference Include="Grpc.Net.ClientFactory" Version="2.33.1" />

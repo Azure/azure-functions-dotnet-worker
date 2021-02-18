@@ -6,7 +6,6 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using Azure.Core.Serialization;
-using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
@@ -17,7 +16,12 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         public JsonPocoConverter(IOptions<WorkerOptions> options)
         {
-            _serializer = options?.Value?.Serializer ?? throw new ArgumentNullException(nameof(options));
+            if (options == null)
+            {
+                throw new ArgumentNullException(nameof(options));
+            }
+
+            _serializer = options.Value.Serializer;
         }
 
         public bool TryConvert(ConverterContext context, out object? target)

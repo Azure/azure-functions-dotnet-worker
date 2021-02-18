@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using Azure.Core.Serialization;
-using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -36,8 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         [Fact]
         public void SuccessfulConversion()
         {
-            // Also validate that this is, by default, case insensitive
-            string source = "{ \"title\": \"a\", \"Author\": \"b\" }";
+            string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
             var context = new TestConverterContext("input", typeof(Book), source);
 
             Assert.True(_jsonPocoConverter.TryConvert(context, out object bookObj));
@@ -46,7 +44,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             Assert.Equal("a", book.Title);
             Assert.Equal("b", book.Author);
         }
-
 
         [Fact]
         public void ConvertJsonStringArrayToIEnumerableOfT()

@@ -8,20 +8,16 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public class WorkerOptions
     {
-        public WorkerOptions()
-        {
-            var serializerOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
-
-            Serializer = new JsonObjectSerializer(serializerOptions);
-        }
+        private ObjectSerializer? _serializer;
 
         /// <summary>
         /// The <see cref="ObjectSerializer"/> to use for all JSON serialization and deserialization. By default,
-        /// this is a <see cref="JsonObjectSerializer"/> with <see cref="JsonSerializerOptions.PropertyNameCaseInsensitive"/> set to true.        
+        /// this is a default <see cref="JsonObjectSerializer"/> with default <see cref="JsonSerializerOptions"/>.
         /// </summary>
-        public ObjectSerializer Serializer { get; set; }
+        public ObjectSerializer Serializer
+        {
+            get => _serializer ??= new JsonObjectSerializer();
+            set => _serializer = value;
+        }
     }
 }

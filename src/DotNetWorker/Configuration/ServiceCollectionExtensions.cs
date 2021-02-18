@@ -8,12 +8,14 @@ using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.FunctionRpc;
 
@@ -28,6 +30,12 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Channels
             services.RegisterOutputChannel();
+
+            // Internal logging            
+            services.AddLogging(logging =>
+            {
+                logging.Services.AddSingleton<ILoggerProvider, GrpcFunctionsHostLoggerProvider>();
+            });
 
             // Request handling
             services.AddSingleton<IFunctionsHostClient, DefaultFunctionsHostClient>();
@@ -73,7 +81,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IServiceCollection RegisterDefaultConverters(this IServiceCollection services)
         {
-            return services.AddSingleton<IConverter, OutputBindingConverter>()
+            return services.AddSingleton<IConverter, FunctionContextConverter>()
+                           .AddSingleton<IConverter, OutputBindingConverter>()
                            .AddSingleton<IConverter, TypeConverter>()
                            .AddSingleton<IConverter, JsonPocoConverter>();
         }

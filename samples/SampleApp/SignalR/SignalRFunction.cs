@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.SignalRService;
@@ -18,7 +18,7 @@ namespace SampleApp
             [SignalRConnectionInfoInput(HubName = "chat")] MyConnectionInfo connectionInfo,
             FunctionContext context)
         {
-            var logger = context.Logger;
+            var logger = context.GetLogger("SignalRFunction");
 
             logger.LogInformation(item);
             logger.LogInformation($"Connection URL = {connectionInfo.Url}");

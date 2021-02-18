@@ -15,7 +15,7 @@ namespace SampleApp
         public static void Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             FunctionContext context)
         {
-            var logger = context.Logger;
+            var logger = context.GetLogger("QueueFunction");
             logger.LogInformation($"Book name = {myQueueItem.Name}");
 
             // Queue Output

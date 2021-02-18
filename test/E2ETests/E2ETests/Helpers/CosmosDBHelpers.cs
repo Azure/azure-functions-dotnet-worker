@@ -10,15 +10,17 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     public static class CosmosDBHelpers
     {
-        private static DocumentClient _docDbClient;
-        private static Uri inputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName);
-        private static Uri outputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName);
-        private static Uri leasesCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.LeaseCollectionName);
+        private static readonly DocumentClient _docDbClient;
+        private static readonly Uri inputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName);
+        private static readonly Uri outputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName);
+        private static readonly Uri leasesCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.LeaseCollectionName);
 
         static CosmosDBHelpers()
         {
-            var builder = new System.Data.Common.DbConnectionStringBuilder();
-            builder.ConnectionString = Constants.CosmosDB.CosmosDBConnectionStringSetting;
+            var builder = new System.Data.Common.DbConnectionStringBuilder
+            {
+                ConnectionString = Constants.CosmosDB.CosmosDBConnectionStringSetting
+            };
             var serviceUri = new Uri(builder["AccountEndpoint"].ToString());
             _docDbClient = new DocumentClient(serviceUri, builder["AccountKey"].ToString());
         }

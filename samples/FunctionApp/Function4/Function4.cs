@@ -17,7 +17,8 @@ namespace FunctionApp
         [FunctionName("Function4")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
         {
-            var logger = executionContext.Logger;
+            var logger = executionContext.GetLogger("FunctionApp.Function4");
+
             logger.LogInformation("message logged");
             var response = new HttpResponseData(HttpStatusCode.OK);
             var headers = new Dictionary<string, string>();

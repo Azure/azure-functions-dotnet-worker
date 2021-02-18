@@ -14,17 +14,18 @@ namespace FunctionApp
     public class Function5
     {
         private readonly IHttpResponderService _responderService;
+        private readonly ILogger<Function5> _logger;
 
-        public Function5(IHttpResponderService responderService)
+        public Function5(IHttpResponderService responderService, ILogger<Function5> logger)
         {
             _responderService = responderService;
+            _logger = logger;
         }
 
         [FunctionName(nameof(Function5))]
-        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
+        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req)
         {
-            var logger = executionContext.Logger;
-            logger.LogInformation("message logged");
+            _logger.LogInformation("message logged");
 
             return _responderService.ProcessRequest(req);
         }

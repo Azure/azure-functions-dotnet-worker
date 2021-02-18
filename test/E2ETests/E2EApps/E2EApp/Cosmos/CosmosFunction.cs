@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             {
                 foreach (var doc in input)
                 {
-                    context.Logger.LogInformation($"id: {doc.Id}");
+                    context.GetLogger("Function.CosmosTrigger").LogInformation($"id: {doc.Id}");
                 }
 
                 context.OutputBindings["output"] = input.Select(p => new { id = p.Id });

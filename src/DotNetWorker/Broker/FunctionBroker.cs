@@ -13,7 +13,7 @@ using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.S
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class FunctionBroker : IFunctionBroker
+    internal partial class FunctionBroker : IFunctionBroker
     {
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
@@ -105,18 +105,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
-        }
-
-        private static class Log
-        {
-            private static readonly Action<ILogger, string, string, Exception?> _functionDefinitionCreated =
-                WorkerMessage.Define<string, string>(LogLevel.Trace, new EventId(1, nameof(FunctionDefinitionCreated)),
-                    "Function definition for '{functionName}' created with id '{functionid}'.");
-
-            public static void FunctionDefinitionCreated(ILogger<FunctionBroker> logger, FunctionDefinition functionDefinition)
-            {
-                _functionDefinitionCreated(logger, functionDefinition.Metadata.Name, functionDefinition.Metadata.FunctionId, null);
-            }
         }
     }
 }

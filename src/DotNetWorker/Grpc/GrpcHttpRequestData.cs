@@ -14,8 +14,8 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly RpcHttp _httpData;
         private Uri? _url;
-        private IEnumerable<ClaimsIdentity> _identities;
-        private HttpHeadersCollection _headers;
+        private IEnumerable<ClaimsIdentity>? _identities;
+        private HttpHeadersCollection? _headers;
 
         public GrpcHttpRequestData(RpcHttp httpData)
         {

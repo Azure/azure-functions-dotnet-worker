@@ -9,8 +9,8 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 {
     internal class FunctionInvocationScope : IReadOnlyList<KeyValuePair<string, object>>
     {
-        internal const string FunctionInvocationIdKey = "AzureFunctionInvocationId";
-        internal const string FunctionNameKey = "AzureFunctionName";
+        internal const string FunctionInvocationIdKey = "AzureFunctions_InvocationId";
+        internal const string FunctionNameKey = "AzureFunctions_FunctionName";
 
         private readonly string _invocationId;
         private readonly string _functionName;

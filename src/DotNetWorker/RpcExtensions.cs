@@ -187,7 +187,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             return new RpcException
             {
-                Message = $"{exception.GetType()}: {exception.Message}",
+                Message = exception.ToString(),
                 Source = exception.Source ?? string.Empty,
                 StackTrace = exception.StackTrace ?? string.Empty
             };

@@ -49,6 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
         public async Task SystemLog_WithException_AndScope()
         {
             var logger = _provider.CreateLogger("TestLogger");
+            Exception thrownException = null;
 
             using (logger.BeginScope(new FunctionInvocationScope("MyFunction", "MyInvocationId")))
             {
@@ -61,6 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
                     // The only way to log a system log.
                     var log = WorkerMessage.Define<string>(LogLevel.Trace, new EventId(1, "One"), "system log with {param}");
                     log(logger, "this", ex);
+                    thrownException = ex;
                 }
 
                 // make sure this is now user
@@ -84,7 +86,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
                     Assert.Equal("system log with this", p.RpcLog.Message);
                     Assert.Equal("One", p.RpcLog.EventId);
                     Assert.Equal("MyInvocationId", p.RpcLog.InvocationId);
-                    Assert.Equal("System.InvalidOperationException: boom", p.RpcLog.Exception.Message);
+                    Assert.Equal(thrownException.ToString(), p.RpcLog.Exception.Message);
                     Assert.Equal("Microsoft.Azure.Functions.Worker.Tests", p.RpcLog.Exception.Source);
                     Assert.Contains(nameof(SystemLog_WithException_AndScope), p.RpcLog.Exception.StackTrace);
                 },

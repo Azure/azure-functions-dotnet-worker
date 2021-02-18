@@ -7,9 +7,9 @@
             target = null;
 
             // Special handling for the context.
-            if (context.Parameter.Type == typeof(FunctionExecutionContext))
+            if (context.Parameter.Type == typeof(FunctionContext))
             {
-                target = context.ExecutionContext;
+                target = context.FunctionContext;
                 return true;
             }
 

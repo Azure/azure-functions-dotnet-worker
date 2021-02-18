@@ -6,7 +6,6 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Http;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp
@@ -17,7 +16,7 @@ namespace SampleApp
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext executionContext)
         {
-            var logger = executionContext.Logger;
+            var logger = executionContext.GetLogger("HttpFunction");
             logger.LogInformation("message logged");
             var response = new HttpResponseData(HttpStatusCode.OK);
             var headers = new Dictionary<string, string>();

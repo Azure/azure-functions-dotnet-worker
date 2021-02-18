@@ -13,7 +13,7 @@ namespace SampleApp
         [FunctionName("Warmup")]
         public static void Run([WarmupTrigger] object _, FunctionContext context)
         {
-            var logger = context.Logger;
+            var logger = context.GetLogger("Warmup");
 
             logger.LogInformation("Function App instance is now warm!");
         }

@@ -15,7 +15,7 @@ namespace SampleApp
         public static void Run([TimerTrigger("0 */5 * * * *")] MyInfo timerInfo,
             FunctionContext context)
         {
-            var logger = context.Logger;
+            var logger = context.GetLogger("TimerFunction");
             logger.LogInformation($"Function Ran. Next timer schedule = {timerInfo.ScheduleStatus.Next}");
         }
     }

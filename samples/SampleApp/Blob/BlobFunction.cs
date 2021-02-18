@@ -17,7 +17,7 @@ namespace SampleApp
             [BlobInput("test-samples-input/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob,
             FunctionContext context)
         {
-            var logger = context.Logger;
+            var logger = context.GetLogger("BlobFunction");
             logger.LogInformation($"Triggered Item = {myTriggerItem}");
             logger.LogInformation($"Input Item = {myBlob}");
 

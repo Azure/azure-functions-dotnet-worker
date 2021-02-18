@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Context;
-using Microsoft.Azure.Functions.Worker.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -32,11 +31,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the result of the invocation.
         /// </summary>
         public abstract object? InvocationResult { get; set; }
-
-        /// <summary>
-        /// GEts or sets an <see cref="InvocationLogger"/> scoped to the current invocation.
-        /// </summary>
-        public abstract InvocationLogger? Logger { get; set; }
 
         // TODO: Double-check previous projects for layout of FunctionInvocation, Bindings, 
         /// <summary>

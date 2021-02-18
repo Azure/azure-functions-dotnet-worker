@@ -8,12 +8,12 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public static class FunctionExecutionContextExtensions
     {
-        public static ILogger<T> GetLogger<T>(this FunctionExecutionContext context)
+        public static ILogger<T> GetLogger<T>(this FunctionContext context)
         {
             return context.InstanceServices.GetService<ILogger<T>>();
         }
 
-        public static ILogger GetLogger(this FunctionExecutionContext context, string categoryName)
+        public static ILogger GetLogger(this FunctionContext context, string categoryName)
         {
             return context.InstanceServices
                    .GetService<ILoggerFactory>()

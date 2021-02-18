@@ -6,7 +6,6 @@ using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Http;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp
@@ -14,18 +13,19 @@ namespace SampleApp
     public class DependencyInjectionFunction
     {
         private readonly IHttpResponderService _responderService;
+        private readonly ILogger<DependencyInjectionFunction> _logger;
 
-        public DependencyInjectionFunction(IHttpResponderService responderService)
+        public DependencyInjectionFunction(IHttpResponderService responderService, ILogger<DependencyInjectionFunction> logger)
         {
             _responderService = responderService;
+            _logger = logger;
         }
 
         [FunctionName(nameof(DependencyInjectionFunction))]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            FunctionContext executionContext)
+            FunctionContext context)
         {
-            var logger = executionContext.Logger;
-            logger.LogInformation("message logged");
+            _logger.LogInformation("message logged");
 
             return _responderService.ProcessRequest(req);
         }

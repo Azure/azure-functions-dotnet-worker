@@ -4,6 +4,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
+    <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>
+    <Description>This package provides development time support for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk</RootNamespace>
     <SignAssembly>true</SignAssembly>

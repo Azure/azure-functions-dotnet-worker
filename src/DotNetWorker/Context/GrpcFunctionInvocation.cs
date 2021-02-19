@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Context
             TraceParent = invocationRequest.TraceContext.TraceParent;
             TraceState = invocationRequest.TraceContext.TraceState;
 
-            ValueProvider = new GrpcValueProvider(invocationRequest.InputData);
+            ValueProvider = new GrpcValueProvider(invocationRequest.InputData, invocationRequest.TriggerMetadata);
         }
 
         public override IValueProvider ValueProvider { get; set; }

@@ -3,10 +3,9 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Azure.Functions.Worker.E2EApp.Cosmos;
+using System.Text.Json.Serialization;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp
@@ -36,6 +35,21 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
                 context.OutputBindings["output"] = input.Select(p => new { id = p.Id });
             }
+        }
+
+        public class MyDocument
+        {
+            [JsonPropertyName("id")]
+            public string Id { get; set; }
+
+            [JsonPropertyName("text")]
+            public string Text { get; set; }
+
+            [JsonPropertyName("number")]
+            public int Number { get; set; }
+
+            [JsonPropertyName("boolean")]
+            public bool Boolean { get; set; }
         }
     }
 }

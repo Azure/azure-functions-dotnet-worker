@@ -10,23 +10,44 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public static IConfiguration Configuration = TestUtility.GetTestConfiguration();
         public static string FunctionsHostUrl = Configuration["FunctionAppUrl"] ?? "http://localhost:7071";
 
+        public const string StorageEmulatorConnectionString = "UseDevelopmentStorage=true";
+        public static string StorageConnectionStringSetting = StorageEmulatorConnectionString;
+
         //Queue tests
         public static class Queue
         {
-            public static string StorageConnectionStringSetting = Configuration["AzureWebJobsStorage"];
-            public static string OutputBindingName = "test-output-node";
-            public static string InputBindingName = "test-input-node";
+            public const string OutputBindingName = "test-output-dotnet-isolated";
+            public const string InputBindingName = "test-input-dotnet-isolated";
+            public const string OutputBindingNamePOCO = "test-output-dotnet-isolated-poco";
+            public const string InputBindingNamePOCO = "test-input-dotnet-isolated-poco";
+            public const string InputBindingNameMetadata = "test-input-dotnet-isolated-metadata";
+            public const string OutputBindingNameMetadata = "test-output-dotnet-isolated-metadata";
+            public const string TestQueueMessage = "Hello, World";
+        }
+
+        //Blob tests
+        public static class Blob
+        {
+            public const string TriggerInputBindingContainer = "test-triggerinput-dotnet-isolated";
+            public const string InputBindingContainer = "test-input-dotnet-isolated";
+            public const string OutputBindingContainer = "test-output-dotnet-isolated";
+
+            public const string TriggerPocoContainer = "test-triggerinputpoco-dotnet-isolated";
+            public const string OutputPocoContainer = "test-outputpoco-dotnet-isolated";
+
+            public const string TriggerStringContainer = "test-triggerinputstring-dotnet-isolated";
+            public const string OutputStringContainer = "test-outputstring-dotnet-isolated";
         }
 
         // CosmosDB tests
         public static class CosmosDB
         {
-            public static string EmulatorConnectionString = "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
-            public static string CosmosDBConnectionStringSetting = Configuration["AzureWebJobsCosmosDBConnectionString"] ?? EmulatorConnectionString;
-            public static string DbName = "ItemDb";
-            public static string InputCollectionName = "ItemCollectionIn";
-            public static string OutputCollectionName = "ItemCollectionOut";
-            public static string LeaseCollectionName = "leases";
+            public const string EmulatorConnectionString = "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+            public const string CosmosDBConnectionStringSetting = EmulatorConnectionString;
+            public const string DbName = "ItemDb";
+            public const string InputCollectionName = "ItemCollectionIn";
+            public const string OutputCollectionName = "ItemCollectionOut";
+            public const string LeaseCollectionName = "leases";
         }
 
         // EventHubs

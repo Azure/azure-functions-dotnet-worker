@@ -65,9 +65,9 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         [Fact (Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/134")]
-        public async Task HttpTriggerBindingDataTests()
+        public Task HttpTriggerBindingDataTests()
         {
-
+            return Task.CompletedTask;
         }
     }
 }

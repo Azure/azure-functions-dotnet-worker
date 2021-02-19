@@ -28,6 +28,33 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return await GetResponseMessage(request);
         }
 
+        public static async Task<bool> InvokeHttpTrigger(string functionName, string queryString, HttpStatusCode expectedStatusCode, string expectedMessage, int expectedCode = 0)
+        {
+            string uri = $"{Constants.FunctionsHostUrl}/api/{functionName}{queryString}";
+            using (var request = new HttpRequestMessage(HttpMethod.Get, uri))
+            {
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
+                var response = await GetResponseMessage(request);
+
+                Console.WriteLine(
+                    $"InvokeHttpTrigger: {functionName}{queryString} : {response.StatusCode} : {response.ReasonPhrase}");
+                if (expectedStatusCode != response.StatusCode && expectedCode != (int)response.StatusCode)
+                {
+                    return false;
+                }
+
+                if (!string.IsNullOrEmpty(expectedMessage))
+                {
+                    string actualMessage = await response.Content.ReadAsStringAsync();
+                    Console.WriteLine(
+                        $"InvokeHttpTrigger: expectedMessage : {expectedMessage}, actualMessage : {actualMessage}");
+                    return actualMessage.Contains(expectedMessage);
+                }
+
+                return true;
+            }
+        }
+
         private static HttpRequestMessage GetTestRequest(string functionName, string queryString = "")
         {
             return new HttpRequestMessage

@@ -12,7 +12,7 @@ namespace SampleApp
 {
     public static class TableFunction
     {
-        [FunctionName("TableFunction")]
+        [Function("TableFunction")]
         [TableOutput("output", "outputQueue", Connection = "ServiceBusConnection")]
         public static void Run([QueueTrigger("table-items")] string input,
             [TableInput("MyTable", "MyPartition", "{queueTrigger}")] JObject tableItem,

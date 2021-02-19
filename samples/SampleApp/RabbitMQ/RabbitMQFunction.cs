@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class RabbitMQFunction
     {
-        [FunctionName("RabbitMQFunction")]
+        [Function("RabbitMQFunction")]
         [RabbitMQOutput("rabbitOutput", QueueName = "destinationQueue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")]
         public static void Run([RabbitMQTrigger("queue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")] string item,
             FunctionContext context)

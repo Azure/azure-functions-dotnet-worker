@@ -14,8 +14,7 @@ namespace FunctionApp
 {
     public static class Function4
     {
-
-        [FunctionName("Function4")]
+        [Function("Function4")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
         {
             var logger = executionContext.GetLogger("FunctionApp.Function4");

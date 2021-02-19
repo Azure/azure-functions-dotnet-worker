@@ -1,9 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -14,5 +15,7 @@ namespace Microsoft.Azure.Functions.Worker
         public abstract ImmutableArray<FunctionParameter> Parameters { get; set; }
 
         public abstract IFunctionInvoker Invoker { get; set; }
+
+        public abstract OutputBindingsInfo OutputBindingsInfo { get; set; }
     }
 }

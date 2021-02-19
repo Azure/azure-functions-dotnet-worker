@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class KafkaFunction
     {
-        [FunctionName("KafkaFunction")]
+        [Function("KafkaFunction")]
         [KafkaOutput("myOutput", "LocalBroker", "stringTopicTenPartitions")]
         public static void Run([KafkaTrigger("LocalBroker", "stringTopicTenPartitions",
             ConsumerGroup = "$Default", AuthenticationMode = BrokerAuthenticationMode.Plain)] string input,

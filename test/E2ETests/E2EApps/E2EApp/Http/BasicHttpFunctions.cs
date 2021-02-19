@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 ﻿using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -12,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
     public static class BasicHttpFunctions
     {
-        [FunctionName(nameof(HelloFromQuery))]
+        [Function(nameof(HelloFromQuery))]
         public static HttpResponseData HelloFromQuery(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)
@@ -33,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             }
         }
 
-        [FunctionName(nameof(HelloFromJsonBody))]
+        [Function(nameof(HelloFromJsonBody))]
         public static HttpResponseData HelloFromJsonBody(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)

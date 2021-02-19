@@ -10,16 +10,16 @@ namespace SampleApp
 {
     public static class QueueFunction
     {
-        [FunctionName("QueueFunction")]
-        [QueueOutput("output", "functionstesting2", Connection = "AzureWebJobsStorage")]
-        public static void Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
+        [Function("QueueFunction")]
+        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+        public static string Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             FunctionContext context)
         {
             var logger = context.GetLogger("QueueFunction");
             logger.LogInformation($"Book name = {myQueueItem.Name}");
 
             // Queue Output
-            context.OutputBindings["output"] = "queue message";
+            return "queue message";
         }
     }
 

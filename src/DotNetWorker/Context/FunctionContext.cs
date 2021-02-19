@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Context;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Encapsulates the in formation about a function execution.
+    /// Encapsulates the information about a function execution.
     /// </summary>
     public abstract class FunctionContext
     {

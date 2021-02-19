@@ -10,7 +10,7 @@ namespace SampleApp
 {
     public static class Warmup
     {
-        [FunctionName("Warmup")]
+        [Function("Warmup")]
         public static void Run([WarmupTrigger] object _, FunctionContext context)
         {
             var logger = context.GetLogger("Warmup");

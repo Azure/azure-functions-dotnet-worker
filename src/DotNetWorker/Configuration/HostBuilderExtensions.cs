@@ -1,8 +1,9 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -47,6 +48,8 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
             // We want to keep this internal for now.
             builder.UseConverterMiddleware();
 
+            builder.UseOutputBindingsMiddleware();
+
             builder.Services.AddSingleton<FunctionExecutionMiddleware>();
 
             builder.Use(next =>
@@ -71,6 +74,23 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
                 return context =>
                 {
                     var middleware = context.InstanceServices.GetRequiredService<ConverterMiddleware>();
+
+                    return middleware.Invoke(context, next);
+                };
+            });
+
+            return builder;
+        }
+
+        internal static IFunctionsWorkerApplicationBuilder UseOutputBindingsMiddleware(this IFunctionsWorkerApplicationBuilder builder)
+        {
+            builder.Services.AddSingleton<OutputBindingsMiddleware>();
+
+            builder.Use(next =>
+            {
+                return context =>
+                {
+                    var middleware = context.InstanceServices.GetRequiredService<OutputBindingsMiddleware>();
 
                     return middleware.Invoke(context, next);
                 };

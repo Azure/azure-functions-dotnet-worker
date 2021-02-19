@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class SignalRFunction
     {
-        [FunctionName("SignalRFunction")]
+        [Function("SignalRFunction")]
         [SignalROutput("output", HubName = "chat", ConnectionStringSetting = "SignalRConnectionString")]
         public static void Run([SignalRTrigger("SignalRTest", "messages", "SendMessage", parameterNames: new string[] { "message" },
             ConnectionStringSetting = "SignalRConnectionString")] string item,

@@ -23,7 +23,7 @@ namespace FunctionApp
             _logger = logger;
         }
 
-        [FunctionName(nameof(Function5))]
+        [Function(nameof(Function5))]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req)
         {
             _logger.LogInformation("message logged");

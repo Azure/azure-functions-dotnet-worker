@@ -10,9 +10,9 @@ namespace SampleApp
 {
     public static class BlobFunction
     {
-        [FunctionName("BlobFunction")]
-        [BlobOutput("output", "test-samples-output/{name}-output.txt", Connection = "AzureWebJobsStorage")]
-        public static void Run(
+        [Function("BlobFunction")]
+        [BlobOutput("test-samples-output/{name}-output.txt", Connection = "AzureWebJobsStorage")]
+        public static string Run(
             [BlobTrigger("test-samples-trigger/{name}", Connection = "AzureWebJobsStorage")] string myTriggerItem,
             [BlobInput("test-samples-input/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob,
             FunctionContext context)
@@ -22,7 +22,7 @@ namespace SampleApp
             logger.LogInformation($"Input Item = {myBlob}");
 
             // Blob Output
-            context.OutputBindings["output"] = "queue message";
+            return "queue message";
         }
     }
 }

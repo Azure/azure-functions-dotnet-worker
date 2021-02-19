@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class EventGridFunction
     {
-        [FunctionName("EventGridFunction")]
+        [Function("EventGridFunction")]
         [EventGridOutput("output", TopicEndpointUri = "MyEventGridTopicUriSetting", TopicKeySetting = "MyEventGridTopicKeySetting")]
         public static void Run([EventGridTrigger] MyEventType input, FunctionContext context)
         {

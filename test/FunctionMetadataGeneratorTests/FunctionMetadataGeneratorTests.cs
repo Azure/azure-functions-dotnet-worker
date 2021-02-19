@@ -14,6 +14,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Storage;
 using Microsoft.Azure.Functions.Worker.Extensions.Timer;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Sdk;
+using Mono.Cecil;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkTests
@@ -26,8 +27,9 @@ namespace Microsoft.Azure.Functions.SdkTests
         public void BasicHttpFunction()
         {
             var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttp));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var functions = generator.GenerateFunctionMetadata(module, typeDef);
             var extensions = generator.Extensions;
 
             AssertDictionary(extensions, new Dictionary<string, string>
@@ -68,8 +70,9 @@ namespace Microsoft.Azure.Functions.SdkTests
         public void StorageFunctions()
         {
             var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(Storage));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var functions = generator.GenerateFunctionMetadata(module, typeDef);
             var extensions = generator.Extensions;
 
             Assert.Equal(2, functions.Count());
@@ -102,7 +105,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
-                    { "name", "blobOutput" },
+                    { "Name", "$return" },
                     { "Type", "Blob" },
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
@@ -125,12 +128,11 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
-            // TODO: Callout - output binding will have different case for "name"
             void ValidateQueueOutput(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
-                    { "name", "queueOutput" },
+                    { "Name", "$return" },
                     { "Type", "Queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
@@ -142,8 +144,9 @@ namespace Microsoft.Azure.Functions.SdkTests
         public void TimerFunction()
         {
             var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(Timer));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var functions = generator.GenerateFunctionMetadata(module, typeDef);
             var extensions = generator.Extensions;
 
             ValidateFunction(functions.Single(), "TimerFunction", GetEntryPoint(nameof(Timer), nameof(Timer.RunTimer)),
@@ -162,6 +165,77 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "RunOnStartup", false }
                 });
             }
+        }
+
+        [Fact]
+        public void MultiOutput_OnReturnType()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_ReturnType));
+            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Single(functions);
+
+            var queueToBlob = functions.Single(p => p.Name == "QueueToBlobFunction");
+
+            ValidateFunction(queueToBlob, "QueueToBlobFunction", GetEntryPoint(nameof(MultiOutput_ReturnType), nameof(MultiOutput_ReturnType.QueueToBlob)),
+                b => ValidateQueueTrigger(b),
+                b => ValidateBlobOutput(b),
+                b => ValidateQueueOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4" }
+            });
+
+            void ValidateQueueTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "queuePayload" },
+                    { "Type", "QueueTrigger" },
+                    { "Direction", "In" },
+                    { "Connection", "MyConnection" },
+                    { "queueName", "queueName" }
+                });
+            }
+
+            void ValidateBlobOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobOutput" },
+                    { "Type", "Blob" },
+                    { "Direction", "Out" },
+                    { "blobPath", "container1/hello.txt" },
+                    { "Connection", "MyOtherConnection" }
+                });
+            }
+
+            void ValidateQueueOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "queueOutput" },
+                    { "Type", "Queue" },
+                    { "Direction", "Out" },
+                    { "queueName", "queue2" },
+                });
+            }
+        }
+
+        [Fact]
+        public void MultiOutput_OnMethod_Throws()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_Method));
+
+            var exception = Assert.Throws<Exception>(() => generator.GenerateFunctionMetadata(module, typeDef));
+
+            Assert.Contains($"Found multiple Output bindings on method", exception.Message);
         }
 
         private static string GetEntryPoint(string className, string methodName) => $"{typeof(FunctionMetadataGeneratorTests).FullName}+{className}.{methodName}";
@@ -200,7 +274,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         {
             public const string FunctionName = "BasicHttpFunction";
 
-            [FunctionName(FunctionName)]
+            [Function(FunctionName)]
             public Task<HttpResponseData> Http([HttpTrigger(AuthorizationLevel.Admin, "get", "Post", Route = "/api2")] HttpRequestData myReq)
             {
                 throw new NotImplementedException();
@@ -213,17 +287,17 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
             }
 
-            [FunctionName("QueueToBlobFunction")]
-            [BlobOutput("blobOutput", "container1/hello.txt", Connection = "MyOtherConnection")]
-            public void QueueToBlob(
+            [Function("QueueToBlobFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public string QueueToBlob(
                 [QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
             {
                 throw new NotImplementedException();
             }
 
-            [FunctionName("BlobToQueueFunction")]
-            [QueueOutput("queueOutput", "queue2")]
-            public void BlobToQueue(
+            [Function("BlobToQueueFunction")]
+            [QueueOutput("queue2")]
+            public object BlobToQueue(
                 [BlobTrigger("container2/%file%")] string blob)
 
             {
@@ -231,9 +305,40 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class MultiOutput_Method
+        {
+            [Function("QueueToBlobFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            [QueueOutput("queue2")]
+            public string QueueToBlob(
+                [QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class MultiOutput_ReturnType
+        {
+            [Function("QueueToBlobFunction")]
+            public MultiReturn QueueToBlob(
+                [QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class MultiReturn
+        {
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public string blobOutput { get; set; }
+
+            [QueueOutput("queue2")]
+            public string queueOutput { get; set; }
+        }
+
         private class Timer
         {
-            [FunctionName("TimerFunction")]
+            [Function("TimerFunction")]
             public Task RunTimer([TimerTrigger("0 0 0 * * *", RunOnStartup = false)] object timer)
             {
                 throw new NotImplementedException();

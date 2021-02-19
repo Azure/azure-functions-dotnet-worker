@@ -23,7 +23,7 @@ namespace SampleApp
             _logger = logger;
         }
 
-        [FunctionName(nameof(DependencyInjectionFunction))]
+        [Function(nameof(DependencyInjectionFunction))]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)
         {

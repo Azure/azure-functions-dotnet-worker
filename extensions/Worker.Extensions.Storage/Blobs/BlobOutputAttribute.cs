@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage
         /// <summary>Initializes a new instance of the <see cref="BlobOutputAttribute"/> class.</summary>
         /// <param name="name">The name of the property to which to bind</param>
         /// <param name="blobPath">The path of the blob to which to bind.</param>
-        public BlobOutputAttribute(string name, string blobPath) : base(name)
+        public BlobOutputAttribute(string blobPath)
         {
             _blobPath = blobPath;
         }

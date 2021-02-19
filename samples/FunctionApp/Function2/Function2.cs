@@ -9,7 +9,7 @@ namespace FunctionApp
 {
     public static class Function2
     {
-        [FunctionName("Function2")]
+        [Function("Function2")]
         public static Book Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)
         {

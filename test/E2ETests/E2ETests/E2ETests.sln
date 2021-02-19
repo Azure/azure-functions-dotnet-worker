@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http", ".
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.CosmosDB", "..\..\..\extensions\Worker.Extensions.CosmosDB\Worker.Extensions.CosmosDB.csproj", "{48D901E0-015C-4516-93A6-64A922ED78C8}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage", "..\..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj", "{34894B4F-B58C-49E8-84D7-D6AACA200B06}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -55,6 +57,10 @@ Global
 		{48D901E0-015C-4516-93A6-64A922ED78C8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{48D901E0-015C-4516-93A6-64A922ED78C8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{48D901E0-015C-4516-93A6-64A922ED78C8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{34894B4F-B58C-49E8-84D7-D6AACA200B06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{34894B4F-B58C-49E8-84D7-D6AACA200B06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{34894B4F-B58C-49E8-84D7-D6AACA200B06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{34894B4F-B58C-49E8-84D7-D6AACA200B06}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -64,6 +70,7 @@ Global
 		{BD751B7E-148B-4E37-83F8-95F87B146147} = {ACDC4021-5308-4F63-AC93-C4B368FEF400}
 		{D9B395CB-70CE-49B0-8E49-20022A06059D} = {ACDC4021-5308-4F63-AC93-C4B368FEF400}
 		{48D901E0-015C-4516-93A6-64A922ED78C8} = {ACDC4021-5308-4F63-AC93-C4B368FEF400}
+		{34894B4F-B58C-49E8-84D7-D6AACA200B06} = {ACDC4021-5308-4F63-AC93-C4B368FEF400}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {89DAAC07-473A-4DEC-957E-62A8D7F2494B}

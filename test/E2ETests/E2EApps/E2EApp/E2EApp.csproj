@@ -10,6 +10,7 @@
   </PropertyGroup>
   
   <ItemGroup>
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\Worker.Extensions.CosmosDB.csproj" />
@@ -25,8 +26,8 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
-
+  
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.0.0-preview5-test2" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.0.0-preview5-local202102181128" />
   </ItemGroup>
 </Project>

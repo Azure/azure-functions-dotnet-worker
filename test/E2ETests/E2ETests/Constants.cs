@@ -13,7 +13,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         //Queue tests
         public static class Queue
         {
-            public static string StorageConnectionStringSetting = Configuration["AzureWebJobsStorage"];
+            public const string EmulatorConnectionString = "UseDevelopmentStorage=true";
+            public static string StorageConnectionStringSetting = Configuration["AzureWebJobsStorage"] ?? EmulatorConnectionString;
             public static string OutputBindingName = "test-output-node";
             public static string InputBindingName = "test-input-node";
         }

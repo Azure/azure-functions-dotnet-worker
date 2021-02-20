@@ -23,7 +23,7 @@ Write-Host "Packing SDK to $localPack"
 Write-Host
 Write-Host "Updating SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"
-& "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-s" "$localPack" "--prerelease"
+& "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-s" $localPack "--prerelease"
 Write-Host
 Write-Host "Building $project"
 & "dotnet" "build" $project "-nologo"

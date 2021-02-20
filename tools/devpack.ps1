@@ -21,9 +21,16 @@ Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing SDK to $localPack"
 & "dotnet" "pack" "$rootPath\sdk\sdk\Sdk.csproj" "-o" "$localPack" "-nologo"
 Write-Host
-Write-Host "Updating SDK package reference in $project"
+Write-Host "Removing SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"
-& "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-s" $localPack "--prerelease"
+Write-Host
+Write-Host "Finding latest local SDK package in $localPack, if it exists"
+$package = Find-Package Microsoft.Azure.Functions.Worker.Sdk -Source $localPack
+$version = $package.Version
+Write-Host "Found $version"
+Write-Host
+Write-Host "Adding SDK package version $version to $project"
+& "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-v" $version "-s" $localPack
 Write-Host
 Write-Host "Building $project"
 & "dotnet" "build" $project "-nologo"

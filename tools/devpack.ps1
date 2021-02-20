@@ -24,7 +24,7 @@ Write-Host
 Write-Host "Removing SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"
 Write-Host
-Write-Host "Finding latest local SDK package in $localPack, if it exists"
+Write-Host "Finding latest local SDK package in $localPack"
 $package = Find-Package Microsoft.Azure.Functions.Worker.Sdk -Source $localPack
 $version = $package.Version
 Write-Host "Found $version"

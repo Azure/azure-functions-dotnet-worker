@@ -13,7 +13,6 @@ function IsStorageEmulatorRunning()
         {
             if ($line.Replace("IsRunning: ", "") -eq "True")
             {                
-                Write-Host "Storage emulator is already running."
                 return $true
             }
         }      
@@ -35,6 +34,7 @@ else
     $cosmosEmulatorRunning = $true
     Write-Host "CosmosDB emulator is already running."
 }
+
 Write-Host "------"
 Write-Host ""
 Write-Host "---Starting Storage emulator---"
@@ -44,6 +44,10 @@ if ($storageEmulatorRunning -eq $false)
 {
     Write-Host "Storage emulator is not running. Starting emulator."    
     Start-Process -FilePath $storageEmulatorExe -ArgumentList "start"
+}
+else
+{
+    Write-Host "Storage emulator is already running."
 }
 Write-Host "------"
 Write-Host 
@@ -61,28 +65,17 @@ if ($cosmosEmulatorRunning -eq $false)
     Write-Host
 }
 
-if ($cosmosEmulatorRunning -eq $false)
-{
-    Write-Host "---Waiting for CosmosDB emulator to be running---"
-    while ($cosmosStatus -ne "Running")
-    {
-        $cosmosStatus = Get-CosmosDbEmulatorStatus
-        Start-Sleep -Seconds 2
-    }
-    Write-Host "Cosmos status: $cosmosStatus"
-    Write-Host "------"
-    Write-Host 
-}
-
+$storageEmulatorRunning = IsStorageEmulatorRunning
 if ($storageEmulatorRunning -eq $false)
 {
     Write-Host "---Waiting for Storage emulator to be running---"
-    while (IsStorageEmulatorRunning -ne $true)
+    while ($storageEmulatorRunning -eq $false)
     {        
         Write-Host "Storage emulator not ready."
         Start-Sleep -Seconds 2
+        $storageEmulatorRunning = IsStorageEmulatorRunning
     }
-    Write-Host Write-Host "Storage emulator ready."
+    Write-Host "Storage emulator ready."
     Write-Host "------"
-    Write-Host     
+    Write-Host
 }

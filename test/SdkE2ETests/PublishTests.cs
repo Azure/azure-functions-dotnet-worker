@@ -30,14 +30,18 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, projectNameToTest);
 
             // Restore
+            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
             string dotnetArgs = $"restore {projectNameToTest}.csproj --source {TestUtility.LocalPackages}";
             int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
+            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
 
             // Publish
+            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
             dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir}";
             exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
+            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
 
             // Make sure files are in /.azurefunctions
             string azureFunctionsDir = Path.Combine(outputDir, ".azurefunctions");

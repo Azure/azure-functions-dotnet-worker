@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -36,35 +36,20 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         public static readonly string SamplesRoot = Path.Combine(PathToRepoRoot, "samples");
         public static readonly string LocalPackages = Path.Combine(PathToRepoRoot, "local");
         public static readonly string TestOutputDir = Path.Combine(Path.GetTempPath(), "FunctionsWorkerSdkE2ETests");
+        public static readonly string DevPackPath = Path.Combine(PathToRepoRoot, "tools", "devpack.ps1");
 
         public static readonly string NuGetPackageSource = LocalPackages;
 
         public static async Task<string> InitializeTestAsync(ITestOutputHelper testOutputHelper, string testName)
         {
-            // If there is already a local package, use it.
-            testOutputHelper.WriteLine($"Looking for local nuget packages in '{LocalPackages}':");
-            bool foundFiles = false;
-            if (Directory.Exists(LocalPackages))
-            {
-                foreach (var file in Directory.GetFiles(LocalPackages, $"{WorkerSdkPackageName}*.nupkg"))
-                {
-                    testOutputHelper.WriteLine($"  {Path.GetFileName(file)}");
-                    foundFiles = true;
-                }
-            }
+            testOutputHelper.WriteLine($"Running {DevPackPath}");
 
-            if (!foundFiles)
-            {
-                // Pack the Worker SDK into /local
-                await PackWorkerSdk(testOutputHelper);
-            }
-
-            // Update the sample app to use the latest package from /local
-            await UpdateNugetPackagesForApp(Path.Combine(SamplesRoot, "FunctionApp", "FunctionApp.csproj"), testOutputHelper);
+            int? exitCode = await new ProcessWrapper().RunProcess("powershell", DevPackPath, SrcRoot, testOutputHelper);
+            Assert.True(exitCode.HasValue && exitCode.Value == 0);
 
             // Build .NET Worker
             string dotnetArgs = $"build --configuration {Configuration}";
-            int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, Path.Combine(SrcRoot, "DotNetWorker"), testOutputHelper: testOutputHelper);
+            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, Path.Combine(SrcRoot, "DotNetWorker"), testOutputHelper: testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
 
             return InitializeOutputDir(testName);

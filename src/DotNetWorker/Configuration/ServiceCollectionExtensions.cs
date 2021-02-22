@@ -94,6 +94,8 @@ namespace Microsoft.Extensions.DependencyInjection
             return services.AddSingleton<IConverter, FunctionContextConverter>()
                            .AddSingleton<IConverter, OutputBindingConverter>()
                            .AddSingleton<IConverter, TypeConverter>()
+                           .AddSingleton<IConverter, MemoryConverter>()
+                           .AddSingleton<IConverter, StringToByteConverter>()
                            .AddSingleton<IConverter, JsonPocoConverter>();
         }
 

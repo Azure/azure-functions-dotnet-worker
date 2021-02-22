@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Text;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Options;
@@ -37,6 +39,20 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         {
             string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
             var context = new TestConverterContext("input", typeof(Book), source);
+
+            Assert.True(_jsonPocoConverter.TryConvert(context, out object bookObj));
+
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(bookObj);
+            Assert.Equal("a", book.Title);
+            Assert.Equal("b", book.Author);
+        }
+
+        [Fact]
+        public void ConvertMemory()
+        {
+            string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
+            var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
+            var context = new TestConverterContext("input", typeof(Book), sourceMemory);
 
             Assert.True(_jsonPocoConverter.TryConvert(context, out object bookObj));
 

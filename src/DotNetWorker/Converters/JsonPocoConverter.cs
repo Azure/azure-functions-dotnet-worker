@@ -28,18 +28,39 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             target = default;
 
-            if (context.Parameter.Type == typeof(string) ||
-                context.Source is not string sourceString ||
-                string.IsNullOrEmpty(sourceString))
+            if (context.Parameter.Type == typeof(string))
             {
                 return false;
             }
 
+            byte[]? bytes = null;
+
+            if (context.Source is string sourceString)
+            {
+                bytes = Encoding.UTF8.GetBytes(sourceString);
+            }
+            else if (context.Source is ReadOnlyMemory<byte> sourceMemory)
+            {
+                bytes = sourceMemory.ToArray();
+            }
+
+            if (bytes == null)
+            {
+                return false;
+            }
+
+            return TryDeserialize(bytes, context.Parameter.Type, out target);
+        }
+
+        private bool TryDeserialize(byte[] bytes, Type type, out object? target)
+        {
+            target = default;
+
             try
             {
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(sourceString)))
+                using (var stream = new MemoryStream(bytes))
                 {
-                    target = _serializer.Deserialize(stream, context.Parameter.Type, CancellationToken.None);
+                    target = _serializer.Deserialize(stream, type, CancellationToken.None);
                 }
 
                 return true;
@@ -48,6 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             {
                 return false;
             }
+
         }
     }
 }

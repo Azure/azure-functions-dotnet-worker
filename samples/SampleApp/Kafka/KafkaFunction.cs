@@ -12,8 +12,8 @@ namespace SampleApp
     public static class KafkaFunction
     {
         [Function("KafkaFunction")]
-        [KafkaOutput("myOutput", "LocalBroker", "stringTopicTenPartitions")]
-        public static void Run([KafkaTrigger("LocalBroker", "stringTopicTenPartitions",
+        [KafkaOutput("LocalBroker", "stringTopicTenPartitions")]
+        public static string Run([KafkaTrigger("LocalBroker", "stringTopicTenPartitions",
             ConsumerGroup = "$Default", AuthenticationMode = BrokerAuthenticationMode.Plain)] string input,
             FunctionContext context)
         {
@@ -22,7 +22,7 @@ namespace SampleApp
             logger.LogInformation(input);
 
             var message = $"Output message created at {DateTime.Now}";
-            context.OutputBindings["myOutput"] = message;
+            return message;
         }
     }
 }

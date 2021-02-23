@@ -13,8 +13,8 @@ namespace SampleApp
     public static class TableFunction
     {
         [Function("TableFunction")]
-        [TableOutput("output", "outputQueue", Connection = "ServiceBusConnection")]
-        public static void Run([QueueTrigger("table-items")] string input,
+        [TableOutput("outputQueue", Connection = "ServiceBusConnection")]
+        public static MyTableData Run([QueueTrigger("table-items")] string input,
             [TableInput("MyTable", "MyPartition", "{queueTrigger}")] JObject tableItem,
             FunctionContext context)
         {
@@ -23,7 +23,7 @@ namespace SampleApp
             logger.LogInformation(tableItem.ToString());
 
             var message = $"Output message created at {DateTime.Now}";
-            context.OutputBindings["output"] = new MyTableData()
+            return new MyTableData()
             {
                 PartitionKey = "queue",
                 RowKey = Guid.NewGuid().ToString(),

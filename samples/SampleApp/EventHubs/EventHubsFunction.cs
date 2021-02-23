@@ -12,8 +12,8 @@ namespace SampleApp
     public static class EventHubsFunction
     {
         [Function("EventHubsFunction")]
-        [EventHubOutput("myOutput", "dest", Connection = "EventHubConnectionAppSetting")]
-        public static void Run([EventHubTrigger("src", Connection = "EventHubConnectionAppSetting")] string input,
+        [EventHubOutput("dest", Connection = "EventHubConnectionAppSetting")]
+        public static string Run([EventHubTrigger("src", Connection = "EventHubConnectionAppSetting")] string input,
             FunctionContext context)
         {
             var logger = context.GetLogger("EventHubsFunction");
@@ -21,7 +21,7 @@ namespace SampleApp
             logger.LogInformation(input);
 
             var message = $"Output message created at {DateTime.Now}";
-            context.OutputBindings["myOutput"] = message;
+            return message;
         }
     }
 }

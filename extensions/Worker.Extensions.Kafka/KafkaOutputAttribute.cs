@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
@@ -10,10 +10,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Kafka
         /// <summary>
         /// Initialize a new instance of the <see cref="KafkaOutputAttribute"/>
         /// </summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
         /// <param name="brokerList">Broker list</param>
         /// <param name="topic">Topic name</param>
-        public KafkaOutputAttribute(string name, string brokerList, string topic) : base(name)
+        public KafkaOutputAttribute(string brokerList, string topic)
         {
             BrokerList = brokerList;
             Topic = topic;

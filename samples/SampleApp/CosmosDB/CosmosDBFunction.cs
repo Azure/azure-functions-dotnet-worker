@@ -13,8 +13,8 @@ namespace SampleApp
     public static class CosmosDBFunction
     {
         [Function("CosmosDBFunction")]
-        [CosmosDBOutput("output", "%CosmosDb%", "%CosmosCollOut%", ConnectionStringSetting = "CosmosConnection", CreateIfNotExists = true)]
-        public static void Run(
+        [CosmosDBOutput("%CosmosDb%", "%CosmosCollOut%", ConnectionStringSetting = "CosmosConnection", CreateIfNotExists = true)]
+        public static object Run(
             [CosmosDBTrigger("%CosmosDb%", "%CosmosCollIn%", ConnectionStringSetting = "CosmosConnection",
                 LeaseCollectionName = "leases", CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<MyDocument> input,
             FunctionContext context)
@@ -29,8 +29,10 @@ namespace SampleApp
                 }
 
                 // Cosmos Output
-                context.OutputBindings["output"] = input.Select(p => new { id = p.Id });
+                return input.Select(p => new { id = p.Id });
             }
+
+            return null;
         }
     }
 

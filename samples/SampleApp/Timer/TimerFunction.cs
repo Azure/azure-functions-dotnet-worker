@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class TimerFunction
     {
-        [FunctionName("TimerFunction")]
+        [Function("TimerFunction")]
         public static void Run([TimerTrigger("0 */5 * * * *")] MyInfo timerInfo,
             FunctionContext context)
         {

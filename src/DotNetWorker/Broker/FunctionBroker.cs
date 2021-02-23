@@ -70,19 +70,15 @@ namespace Microsoft.Azure.Functions.Worker
                     var parameterBindings = executionContext.OutputBindings;
                     var result = executionContext.InvocationResult;
 
-                    foreach (var paramBinding in parameterBindings)
+                    // TODO: ParameterBinding shouldn't happen here
+                    foreach (var binding in parameterBindings)
                     {
-                        // TODO: ParameterBinding shouldn't happen here
-
-                        foreach (var binding in executionContext.OutputBindings)
+                        var parameterBinding = new ParameterBinding
                         {
-                            var parameterBinding = new ParameterBinding
-                            {
-                                Name = binding.Key,
-                                Data = binding.Value.ToRpc(_workerOptions.Value.Serializer)
-                            };
-                            response.OutputData.Add(parameterBinding);
-                        }
+                            Name = binding.Key,
+                            Data = await binding.Value.ToRpcAsync(_workerOptions.Value.Serializer)
+                        };
+                        response.OutputData.Add(parameterBinding);
                     }
                     if (result != null)
                     {

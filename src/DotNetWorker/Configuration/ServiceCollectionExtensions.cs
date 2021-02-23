@@ -10,6 +10,7 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
@@ -62,6 +63,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Function Definition
             services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();
+
+            // Output Bindings
+            services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
 
             // gRpc
             services.AddSingleton<FunctionRpcClient>(p =>

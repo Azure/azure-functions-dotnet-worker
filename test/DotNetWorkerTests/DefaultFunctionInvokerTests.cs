@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Pipeline;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters);
+            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters, EmptyOutputBindingsInfo.Instance);
 
             return context;
         }

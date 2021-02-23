@@ -6,9 +6,9 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class FunctionNameAttribute : Attribute
+    public class FunctionAttribute : Attribute
     {
-        public FunctionNameAttribute(string name)
+        public FunctionAttribute(string name)
         {
             Name = name;
         }

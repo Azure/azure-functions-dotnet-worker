@@ -19,11 +19,6 @@
         ]
       },
       {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      },
-      {
         "name": "myBlob",
         "type": "Blob",
         "direction": "In",
@@ -31,11 +26,16 @@
         "connection": "AzureWebJobsStorage"
       },
       {
-        "name": "book",
+        "name": "Book",
         "type": "Queue",
         "direction": "Out",
         "queueName": "functionstesting2",
         "connection": "AzureWebJobsStorage"
+      },
+      {
+        "name": "HttpReponse",
+        "type": "http",
+        "direction": "Out"
       }
     ]
   },
@@ -84,16 +84,16 @@
         ]
       },
       {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      },
-      {
-        "name": "name",
+        "name": "Name",
         "type": "Queue",
         "direction": "Out",
         "queueName": "functionstesting2",
         "connection": "AzureWebJobsStorage"
+      },
+      {
+        "name": "HttpReponse",
+        "type": "http",
+        "direction": "Out"
       }
     ]
   },

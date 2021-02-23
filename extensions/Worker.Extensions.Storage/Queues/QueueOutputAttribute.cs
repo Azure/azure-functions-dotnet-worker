@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage
     {
         private readonly string _queueName;
 
-        public QueueOutputAttribute(string name, string queueName) : base(name)
+        public QueueOutputAttribute(string queueName)
         {
             _queueName = queueName;
         }

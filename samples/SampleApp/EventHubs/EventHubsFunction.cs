@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class EventHubsFunction
     {
-        [FunctionName("EventHubsFunction")]
+        [Function("EventHubsFunction")]
         [EventHubOutput("myOutput", "dest", Connection = "EventHubConnectionAppSetting")]
         public static void Run([EventHubTrigger("src", Connection = "EventHubConnectionAppSetting")] string input,
             FunctionContext context)

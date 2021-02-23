@@ -15,10 +15,8 @@ namespace FunctionApp
 {
     public static class Function1
     {
-
-        [FunctionName("Function1")]
-        [QueueOutput("book", "functionstesting2", Connection = "AzureWebJobsStorage")]
-        public static HttpResponseData Run(
+        [Function("Function1")]
+        public static MyOutputType Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionContext context)
         {
@@ -31,7 +29,19 @@ namespace FunctionApp
             response.Headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
             response.WriteString("Book Sent to Queue!");
 
-            return response;
+            return new MyOutputType()
+            {
+                Book = bookVal,
+                HttpReponse = response
+            };
+        }
+
+        public class MyOutputType
+        {
+            [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+            public Book Book { get; set; }
+
+            public HttpResponseData HttpReponse { get; set; }
         }
 
         public class Book
@@ -39,6 +49,5 @@ namespace FunctionApp
             public string name { get; set; }
             public string id { get; set; }
         }
-
     }
 }

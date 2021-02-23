@@ -14,7 +14,7 @@ namespace SampleApp
 {
     public static class HttpFunction
     {
-        [FunctionName("HttpFunction")]
+        [Function("HttpFunction")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext executionContext)
         {

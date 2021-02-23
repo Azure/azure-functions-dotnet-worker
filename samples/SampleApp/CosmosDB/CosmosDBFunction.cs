@@ -12,7 +12,7 @@ namespace SampleApp
 {
     public static class CosmosDBFunction
     {
-        [FunctionName("CosmosDBFunction")]
+        [Function("CosmosDBFunction")]
         [CosmosDBOutput("output", "%CosmosDb%", "%CosmosCollOut%", ConnectionStringSetting = "CosmosConnection", CreateIfNotExists = true)]
         public static void Run(
             [CosmosDBTrigger("%CosmosDb%", "%CosmosCollIn%", ConnectionStringSetting = "CosmosConnection",

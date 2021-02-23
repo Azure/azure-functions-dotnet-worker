@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
     internal class FunctionExecutionMiddleware
     {
-        IFunctionExecutor _functionExecutor;
+        private readonly IFunctionExecutor _functionExecutor;
 
         public FunctionExecutionMiddleware(IFunctionExecutor functionExecutor)
         {

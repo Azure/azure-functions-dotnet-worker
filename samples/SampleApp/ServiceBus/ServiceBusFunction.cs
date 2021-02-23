@@ -11,7 +11,7 @@ namespace SampleApp
 {
     public static class ServiceBusFunction
     {
-        [FunctionName("ServiceBusFunction")]
+        [Function("ServiceBusFunction")]
         [ServiceBusOutput("output", "outputQueue", Connection = "ServiceBusConnection")]
         public static void Run([ServiceBusTrigger("queue", Connection = "ServiceBusConnection")] string item,
             FunctionContext context)

@@ -15,7 +15,7 @@ namespace FunctionApp
         static async Task Main(string[] args)
         {
 // #if DEBUG
-//             Debugger.Launch();
+//          Debugger.Launch();
 // #endif
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(c =>

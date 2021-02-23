@@ -17,36 +17,36 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             _logger = logger;
         }
 
-        [FunctionName("BlobTriggerToBlobTest")]
-        [BlobOutput("outputBlob", "test-output-dotnet-isolated/{name}")]
-        public void BlobTriggerToBlobTest(
+        [Function("BlobTriggerToBlobTest")]
+        [BlobOutput("test-output-dotnet-isolated/{name}")]
+        public byte[] BlobTriggerToBlobTest(
             [BlobTrigger("test-triggerinput-dotnet-isolated/{name}")] byte[] triggerBlob, string name,
             [BlobInput("test-input-dotnet-isolated/{name}")] byte[] inputBlob,
             FunctionContext context)
         {
             _logger.LogInformation("Trigger:\n Name: " + name + "\n Size: " + triggerBlob.Length + " Bytes");
             _logger.LogInformation("Input:\n Name: " + name + "\n Size: " + inputBlob.Length + " Bytes");
-            context.OutputBindings["outputBlob"] = inputBlob;
+            return inputBlob;
         }
 
-        [FunctionName("BlobTriggerPOCOTest")]
-        [BlobOutput("outputBlob", "test-outputpoco-dotnet-isolated/{name}")]
-        public void BlobTriggerPocoTest(
+        [Function("BlobTriggerPOCOTest")]
+        [BlobOutput("test-outputpoco-dotnet-isolated/{name}")]
+        public TestBlobData BlobTriggerPocoTest(
             [BlobTrigger("test-triggerinputpoco-dotnet-isolated/{name}")] TestBlobData triggerBlob, string name,
             FunctionContext context)
         {
             _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + triggerBlob.BlobText);
-            context.OutputBindings["outputBlob"] = triggerBlob;
+            return triggerBlob;
         }
 
-        [FunctionName("BlobTriggerStringTest")]
-        [BlobOutput("outputBlob", "test-outputstring-dotnet-isolated/{name}")]
-        public void BlobTriggerStringTest(
+        [Function("BlobTriggerStringTest")]
+        [BlobOutput("test-outputstring-dotnet-isolated/{name}")]
+        public string BlobTriggerStringTest(
             [BlobTrigger("test-triggerinputstring-dotnet-isolated/{name}")] string triggerBlobText, string name,
             FunctionContext context)
         {
             _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + triggerBlobText);
-            context.OutputBindings["outputBlob"] = triggerBlobText;
+            return triggerBlobText;
         }
 
         public class TestBlobData

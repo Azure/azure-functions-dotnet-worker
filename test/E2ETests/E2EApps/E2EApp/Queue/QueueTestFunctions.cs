@@ -15,18 +15,18 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 {
     public class QueueTestFunctions
     {
-        [FunctionName("QueueTriggerAndOutput")]
-        [QueueOutput("output", "test-output-dotnet-isolated")]
-        public static void QueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated")] string message,
+        [Function("QueueTriggerAndOutput")]
+        [QueueOutput("test-output-dotnet-isolated")]
+        public string void QueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated")] string message,
             FunctionContext context)
         {
             var logger = context.GetLogger<QueueTestFunctions>();
             logger.LogInformation($"Message: {message}");
 
-            context.OutputBindings["output"] = message;
+            return message;
         }
 
-        [FunctionName("QueueOutputPocoList")]
+        [Function("QueueOutputPocoList")]
         [QueueOutput("output", "test-output-dotnet-isolated-poco")]
         public HttpResponseData QueueOutputPocoList(
             [HttpTrigger()] HttpRequestData request,
@@ -57,27 +57,35 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 
                 HttpResponseData response = request.CreateResponse(HttpStatusCode.OK);
                 response.WriteString(queueMessageId);
-                return response;
+
+                return new HttpAndQueue()
+                {
+                    MyHttpData = response,
+                    MyQueueOutput = outputItems
+                };
             }
             else
             {
-                return request.CreateResponse(HttpStatusCode.BadRequest);
+                return new HttpAndQueue()
+                {
+                    MyHttpData = request.CreateResponse(HttpStatusCode.BadRequest)
+                };
             }
         }
 
-        [FunctionName("QueueTriggerAndOutputPoco")]
-        [QueueOutput("output", "test-output-dotnet-isolated-poco")]
-        public void QueueTriggerAndOutputPoco(
+        [Function("QueueTriggerAndOutputPoco")]
+        [QueueOutput("test-output-dotnet-isolated-poco")]
+        public TestData QueueTriggerAndOutputPoco(
             [QueueTrigger("test-input-dotnet-isolated-poco")] TestData message,
             FunctionContext context)
         {
             context.GetLogger<QueueTestFunctions>().LogInformation(".NET Queue trigger POCO function processed a message: " + message.Id);
-            context.OutputBindings["output"] = message;
+            return message;
         }
 
-        [FunctionName("QueueTriggerMetadata")]
-        [QueueOutput("output", "test-output-dotnet-isolated-metadata")]
-        public void QueueTriggerMetadata(
+        [Function("QueueTriggerMetadata")]
+        [QueueOutput("test-output-dotnet-isolated-metadata")]
+        public TestData QueueTriggerMetadata(
             [QueueTrigger("test-input-dotnet-isolated-metadata")] string message, string id,
             FunctionContext context)
         {
@@ -87,13 +95,21 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             {
                 Id = id
             };
-            context.OutputBindings["output"] = testData;
+            return testData;
         }
 
         public class TestData
         {
             [JsonPropertyName("id")]
             public string Id { get; set; }
+        }
+
+        public class HttpAndQueue
+        {
+            public HttpResponseData MyHttpData { get; set; }
+
+            [QueueOutput("test-output-dotnet-isolated-poco")]
+            public List<TestData> MyQueueOutput { get; set; }
         }
     }
 }

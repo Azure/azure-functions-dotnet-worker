@@ -8,18 +8,18 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
     internal class DefaultFunctionContextFactory : IFunctionContextFactory
     {
-        private IServiceScopeFactory _serviceScopeFactory;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly IInvocationFeaturesFactory _invocationFeatures;
 
-        public DefaultFunctionContextFactory(IServiceScopeFactory serviceScopeFactory)
+        public DefaultFunctionContextFactory(IServiceScopeFactory serviceScopeFactory, IInvocationFeaturesFactory invocationFeaturesFactory)
         {
-            _serviceScopeFactory = serviceScopeFactory;
+            _serviceScopeFactory = serviceScopeFactory ?? throw new System.ArgumentNullException(nameof(serviceScopeFactory));
+            _invocationFeatures = invocationFeaturesFactory ?? throw new System.ArgumentNullException(nameof(invocationFeaturesFactory));
         }
 
         public FunctionContext Create(FunctionInvocation invocation, FunctionDefinition definition)
         {
-            var context = new DefaultFunctionContext(_serviceScopeFactory, invocation, definition);
-
-            return context;
+            return new DefaultFunctionContext(_serviceScopeFactory, invocation, definition, _invocationFeatures.Create());
         }
     }
 }

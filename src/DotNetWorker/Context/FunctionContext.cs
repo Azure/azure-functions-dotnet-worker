@@ -42,5 +42,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets a key/value collection that can be used to share data within the scope of this invocation.
         /// </summary>
         public abstract IDictionary<object, object> Items { get; set; }
+
+        /// <summary>
+        /// Gets a collection containing the features supported by this context.
+        /// </summary>
+        public abstract IInvocationFeatures Features { get; }
     }
 }

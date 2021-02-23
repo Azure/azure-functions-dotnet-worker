@@ -14,6 +14,7 @@ using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -55,6 +56,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Function Execution Contexts
             services.AddSingleton<IFunctionContextFactory, DefaultFunctionContextFactory>();
+
+            // Invocation Features
+            services.TryAddSingleton<IInvocationFeaturesFactory, DefaultInvocationFeaturesFactory>();
 
             // Function Definition
             services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();

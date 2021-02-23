@@ -12,8 +12,8 @@ namespace SampleApp
     public static class SignalRFunction
     {
         [Function("SignalRFunction")]
-        [SignalROutput("output", HubName = "chat", ConnectionStringSetting = "SignalRConnectionString")]
-        public static void Run([SignalRTrigger("SignalRTest", "messages", "SendMessage", parameterNames: new string[] { "message" },
+        [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnectionString")]
+        public static MyMessage Run([SignalRTrigger("SignalRTest", "messages", "SendMessage", parameterNames: new string[] { "message" },
             ConnectionStringSetting = "SignalRConnectionString")] string item,
             [SignalRConnectionInfoInput(HubName = "chat")] MyConnectionInfo connectionInfo,
             FunctionContext context)
@@ -24,7 +24,8 @@ namespace SampleApp
             logger.LogInformation($"Connection URL = {connectionInfo.Url}");
 
             var message = $"Output message created at {DateTime.Now}";
-            context.OutputBindings["output"] = new MyMessage()
+
+            return new MyMessage()
             {
                 Target = "newMessage",
                 Arguments = new[] { message }

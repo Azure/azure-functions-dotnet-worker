@@ -12,8 +12,8 @@ namespace SampleApp
     public static class ServiceBusFunction
     {
         [Function("ServiceBusFunction")]
-        [ServiceBusOutput("output", "outputQueue", Connection = "ServiceBusConnection")]
-        public static void Run([ServiceBusTrigger("queue", Connection = "ServiceBusConnection")] string item,
+        [ServiceBusOutput("outputQueue", Connection = "ServiceBusConnection")]
+        public static string Run([ServiceBusTrigger("queue", Connection = "ServiceBusConnection")] string item,
             FunctionContext context)
         {
             var logger = context.GetLogger("ServiceBusFunction");
@@ -21,7 +21,7 @@ namespace SampleApp
             logger.LogInformation(item);
 
             var message = $"Output message created at {DateTime.Now}";
-            context.OutputBindings["output"] = message;
+            return message;
         }
     }
 }

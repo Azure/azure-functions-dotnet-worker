@@ -19,17 +19,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
         }
 
         /// <summary>
-        /// Constructs a new instance.
-        /// </summary>
-        /// <param name="databaseName">The CosmosDB database name.</param>
-        /// <param name="collectionName">The CosmosDB collection name.</param>
-        public CosmosDBOutputAttribute(string name, string databaseName, string collectionName) : base(name)
-        {
-            DatabaseName = databaseName;
-            CollectionName = collectionName;
-        }
-
-        /// <summary>
         /// The name of the database to which the parameter applies.
         /// May include binding parameters.
         /// </summary>

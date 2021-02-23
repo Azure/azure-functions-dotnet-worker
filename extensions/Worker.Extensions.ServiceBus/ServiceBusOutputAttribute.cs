@@ -10,9 +10,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.ServiceBus
         /// <summary>
         /// Initializes a new instance of the <see cref="ServiceBusOutputAttribute"/> class.
         /// </summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
         /// <param name="queueOrTopicName">The name of the queue or topic to bind to.</param>
-        public ServiceBusOutputAttribute(string name, string queueOrTopicName) : base(name)
+        public ServiceBusOutputAttribute(string queueOrTopicName)
         {
             QueueOrTopicName = queueOrTopicName;
             EntityType = EntityType.Queue;
@@ -23,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.ServiceBus
         /// </summary>
         /// <param name="queueOrTopicName">The name of the queue or topic to bind to.</param>
         /// <param name="queueOrTopicName">The type of the entity to bind to.</param>
-        public ServiceBusOutputAttribute(string name, string queueOrTopicName, EntityType entityType) : base(name)
+        public ServiceBusOutputAttribute(string queueOrTopicName, EntityType entityType)
         {
             QueueOrTopicName = queueOrTopicName;
             EntityType = entityType;

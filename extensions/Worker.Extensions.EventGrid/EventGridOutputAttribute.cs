@@ -10,8 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid
         /// <summary>
         /// Initialize a new instance of the <see cref="EventGridOutputAttribute"/>
         /// </summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
-        public EventGridOutputAttribute(string name) : base(name)
+        public EventGridOutputAttribute()
         {
         }
 

@@ -26,8 +26,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var invocation = new Mock<FunctionInvocation>(MockBehavior.Strict).Object;
             var definition = new Mock<FunctionDefinition>(MockBehavior.Strict).Object;
+            var features = new Mock<IInvocationFeatures>(MockBehavior.Strict).Object;
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, invocation, definition);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, invocation, definition, features);
         }
 
         [Fact]

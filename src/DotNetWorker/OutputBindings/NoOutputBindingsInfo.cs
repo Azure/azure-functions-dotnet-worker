@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -17,9 +17,8 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
 
         public override IReadOnlyCollection<string> BindingNames => Array.Empty<string>();
 
-        public override bool BindDataToDictionary(IDictionary<string, object> dict, object? output)
+        public override void BindOutputInContext(FunctionContext context)
         {
-            return false;
         }
     }
 }

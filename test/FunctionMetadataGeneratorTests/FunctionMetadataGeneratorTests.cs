@@ -227,6 +227,103 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void MultiOutput_OnReturnType_WithHttp()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_ReturnType_Http));
+            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Single(functions);
+
+            var HttpAndQueue = functions.Single(p => p.Name == "HttpAndQueue");
+
+            ValidateFunction(HttpAndQueue, "HttpAndQueue", GetEntryPoint(nameof(MultiOutput_ReturnType_Http), nameof(MultiOutput_ReturnType_Http.HttpAndQueue)),
+                b => ValidateHttpTrigger(b),
+                b => ValidateQueueOutput(b),
+                b => ValidateHttpOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4" }
+            });
+
+            void ValidateHttpTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "req" },
+                    { "Type", "HttpTrigger" },
+                    { "Direction", "In" },
+                    { "methods", new[] { "get" } }
+                });
+            }
+
+            void ValidateHttpOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "httpResponseProp" },
+                    { "Type", "http" },
+                    { "Direction", "Out" }
+                });
+            }
+
+            void ValidateQueueOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "queueOutput" },
+                    { "Type", "Queue" },
+                    { "Direction", "Out" },
+                    { "queueName", "queue2" },
+                });
+            }
+        }
+
+        [Fact]
+        public void JustHttp_OnReturnTypeProperty()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(ReturnType_JustHttp));
+            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Single(functions);
+
+            var HttpAndQueue = functions.Single(p => p.Name == "JustHtt");
+
+            ValidateFunction(HttpAndQueue, "JustHtt", GetEntryPoint(nameof(ReturnType_JustHttp), nameof(ReturnType_JustHttp.Justhtt)),
+                b => ValidateHttpTrigger(b),
+                b => ValidateHttpOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>());
+
+            void ValidateHttpTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "req" },
+                    { "Type", "HttpTrigger" },
+                    { "Direction", "In" },
+                    { "methods", new[] { "get" } }
+                });
+            }
+
+            void ValidateHttpOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "httpResponseProp" },
+                    { "Type", "http" },
+                    { "Direction", "Out" }
+                });
+            }
+        }
+
+        [Fact]
         public void MultiOutput_OnMethod_Throws()
         {
             var generator = new FunctionMetadataGenerator();
@@ -327,6 +424,26 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class ReturnType_JustHttp
+        {
+            [Function("JustHtt")]
+            public JustHttp Justhtt(
+                [HttpTrigger("get")] string req)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class MultiOutput_ReturnType_Http
+        {
+            [Function("HttpAndQueue")]
+            public MultiReturn_Http HttpAndQueue(
+                [HttpTrigger("get")] string req)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class MultiReturn
         {
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
@@ -334,6 +451,19 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             [QueueOutput("queue2")]
             public string queueOutput { get; set; }
+        }
+
+        private class MultiReturn_Http
+        {
+            [QueueOutput("queue2")]
+            public string queueOutput { get; set; }
+
+            public HttpResponseData httpResponseProp { get; set; }
+        }
+
+        private class JustHttp
+        {
+            public HttpResponseData httpResponseProp { get; set; }
         }
 
         private class Timer

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
     {
         [Function("QueueTriggerAndOutput")]
         [QueueOutput("test-output-dotnet-isolated")]
-        public string void QueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated")] string message,
+        public string QueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated")] string message,
             FunctionContext context)
         {
             var logger = context.GetLogger<QueueTestFunctions>();
@@ -27,8 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
         }
 
         [Function("QueueOutputPocoList")]
-        [QueueOutput("output", "test-output-dotnet-isolated-poco")]
-        public HttpResponseData QueueOutputPocoList(
+        public HttpAndQueue QueueOutputPocoList(
             [HttpTrigger()] HttpRequestData request,
             FunctionContext context)
         {
@@ -52,8 +51,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 
                 outputItems.Add(testData1);
                 outputItems.Add(testData2);
-
-                context.OutputBindings["output"] = outputItems;
 
                 HttpResponseData response = request.CreateResponse(HttpStatusCode.OK);
                 response.WriteString(queueMessageId);

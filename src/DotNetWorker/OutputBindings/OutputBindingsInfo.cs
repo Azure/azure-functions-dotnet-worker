@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -20,11 +20,9 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
         public abstract IReadOnlyCollection<string> BindingNames { get; }
 
         /// <summary>
-        /// Binds <paramref name="data"/> from a function execution to <paramref name="dict"/>
+        /// Binds output from a function <paramref name="context"/> to its Output Bindings
         /// </summary>
-        /// <param name="dict">The dicitionary to bind the data to.</param>
-        /// <param name="data">The data to bind to the dictionary.</param>
-        /// <returns>boolean to indiciate if data was binded to dictionary</returns>
-        public abstract bool BindDataToDictionary(IDictionary<string, object> dict, object? data);
+        /// <param name="context">The Function context to bind the data to.</param>
+        public abstract void BindOutputInContext(FunctionContext context);
     }
 }

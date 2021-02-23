@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private const string OutputBindingType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";
         private const string FunctionNameType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.FunctionAttribute";
         private const string ExtensionsInformationType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute";
-        private const string HttpResponseType = "Microsoft.Azure.Functions.Worker.HttpResponseData";
+        private const string HttpResponseType = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
         private const string TaskGenericType = "System.Threading.Tasks.Task`1";
         private const string TaskType = "System.Threading.Tasks.Task";
         private const string ReturnBindingName = "$return";

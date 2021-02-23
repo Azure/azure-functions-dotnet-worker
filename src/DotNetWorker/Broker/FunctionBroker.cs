@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker
                             var parameterBinding = new ParameterBinding
                             {
                                 Name = binding.Key,
-                                Data = binding.Value.ToRpc(_workerOptions.Value.Serializer)
+                                Data = await binding.Value.ToRpcAsync(_workerOptions.Value.Serializer)
                             };
                             response.OutputData.Add(parameterBinding);
                         }

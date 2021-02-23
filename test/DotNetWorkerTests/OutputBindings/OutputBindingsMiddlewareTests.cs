@@ -1,13 +1,15 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Xunit;
 
@@ -20,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
         {
             FunctionContext context = GetContextWithOutputBindings(nameof(HttpAndStorage.MyQueueOutput), nameof(HttpAndStorage.MyBlobOutput),
                 nameof(HttpAndStorage.MyHttpResponseData));
-            var emptyHttp = new HttpResponseData(HttpStatusCode.OK);
+            var emptyHttp = new TestHttpResponseData(HttpStatusCode.OK);
 
             HttpAndStorage result = new HttpAndStorage()
             {
@@ -61,7 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             context.InvocationResult = result;
 
-            Assert.Equal(0, context.OutputBindings.Count);
+            Assert.Empty(context.OutputBindings);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
             object returnedVal = context.InvocationResult;
@@ -85,18 +87,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             context.InvocationResult = result;
 
-            Assert.Equal(0, context.OutputBindings.Count);
+            Assert.Empty(context.OutputBindings);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
             object returnedVal = context.InvocationResult;
 
-            Assert.Null(returnedVal);
-            Assert.Single(context.OutputBindings);
+            Assert.Equal(returnedVal, result);
+            Assert.Empty(context.OutputBindings);
 
-            AssertDictionary(context.OutputBindings, new Dictionary<string, object>()
-            {
-                { "$return", "MyStorageData" }
-            });
+            AssertDictionary(context.OutputBindings, new Dictionary<string, object>());
         }
 
         [Fact]
@@ -104,22 +103,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
         {
             // special binding to indicate the return value is set as an output binding
             FunctionContext context = GetContextWithOutputBindings("$return");
-            var emptyHttp = new HttpResponseData(HttpStatusCode.OK);
+            var emptyHttp = new TestHttpResponseData(HttpStatusCode.OK);
 
             context.InvocationResult = emptyHttp;
 
-            Assert.Equal(0, context.OutputBindings.Count);
+            Assert.Empty(context.OutputBindings);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
             object returnedVal = context.InvocationResult;
 
-            Assert.Null(returnedVal);
-            Assert.Equal(1, context.OutputBindings.Count);
+            Assert.Equal(returnedVal, emptyHttp);
+            Assert.Empty(context.OutputBindings);
 
-            AssertDictionary(context.OutputBindings, new Dictionary<string, object>()
-            {
-                { "$return", emptyHttp }
-            });
+            AssertDictionary(context.OutputBindings, new Dictionary<string, object>());
         }
 
         [Fact]
@@ -131,7 +127,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             context.InvocationResult = myData;
 
-            Assert.Equal(0, context.OutputBindings.Count);
+            Assert.Empty(context.OutputBindings);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
             object returnedVal = context.InvocationResult;
@@ -197,5 +193,18 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             public HttpResponseData MyHttpResponseData { get; set; }
         }
+    }
+
+    public class TestHttpResponseData : HttpResponseData
+    {
+        public TestHttpResponseData(HttpStatusCode status)
+        {
+            StatusCode = status;
+        }
+
+        public override HttpStatusCode StatusCode { get; set; }
+        public override HttpHeadersCollection Headers { get; set; }
+        public override Stream Body { get; set; }
+        public override HttpCookies Cookies { get; }
     }
 }

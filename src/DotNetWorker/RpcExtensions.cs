@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 typedData.Bytes = ByteString.CopyFrom(arr);
             }
-            if (value is HttpResponseData response)
+            else if (value is HttpResponseData response)
             {
                 return response.ToRpcHttpAsync(serializer).ContinueWith(t =>
                 {

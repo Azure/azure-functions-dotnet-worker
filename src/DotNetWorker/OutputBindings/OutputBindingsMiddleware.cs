@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -27,14 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
             {
                 OutputBindingsInfo outputBindingsInfo = context.FunctionDefinition.OutputBindingsInfo;
 
-                // This means that whatever invocation result was produced by the function was actually
-                // used to bind to output bindings. Because the data is binded, we don't need to set any
-                // invocation result here.
-                // TODO: This may need to be cleaned up.
-                if (outputBindingsInfo.BindDataToDictionary(context.OutputBindings, result))
-                {
-                    context.InvocationResult = null;
-                }
+                outputBindingsInfo.BindOutputInContext(context);
             }
         }
     }

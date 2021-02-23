@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq;
@@ -109,7 +111,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             });
 
             ValidateFunction(functions.Single(), ExternalType_Return.FunctionName, GetEntryPoint(nameof(ExternalType_Return), nameof(ExternalType_Return.Http)),
-                b => ValidateTrigger(b), 
+                b => ValidateTrigger(b),
                 b => ValidateQueueOutput(b));
 
             void ValidateTrigger(ExpandoObject b)
@@ -169,7 +171,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "QueueTrigger" },
                     { "Direction", "In" },
                     { "Connection", "MyConnection" },
-                    { "queueName", "queueName" }
+                    { "queueName", "queueName" },
+                    { "DataType", "String" }
                 });
             }
 
@@ -196,7 +199,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "blob" },
                     { "Type", "BlobTrigger" },
                     { "Direction", "In" },
-                    { "blobPath", "container2/%file%" }
+                    { "blobPath", "container2/%file%" },
+                    { "DataType", "String" }
                 });
             }
 
@@ -270,7 +274,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "QueueTrigger" },
                     { "Direction", "In" },
                     { "Connection", "MyConnection" },
-                    { "queueName", "queueName" }
+                    { "queueName", "queueName" },
+                    { "DataType", "String" }
                 });
             }
 
@@ -328,7 +333,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "req" },
                     { "Type", "HttpTrigger" },
                     { "Direction", "In" },
-                    { "methods", new[] { "get" } }
+                    { "methods", new[] { "get" } },
+                    { "DataType", "String" }
                 });
             }
 
@@ -380,7 +386,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "req" },
                     { "Type", "HttpTrigger" },
                     { "Direction", "In" },
-                    { "methods", new[] { "get" } }
+                    { "methods", new[] { "get" } },
+                    { "DataType", "String" }
                 });
             }
 
@@ -407,6 +414,75 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Contains($"Found multiple Output bindings on method", exception.Message);
         }
 
+        [Theory]
+        [InlineData("StringInputFunction", nameof(CardinalityMany.StringInputFunction), false, "String")]
+        [InlineData("StringArrayInputFunction", nameof(CardinalityMany.StringArrayInputFunction), true, "String")]
+        [InlineData("BinaryInputFunction", nameof(CardinalityMany.BinaryInputFunction), false, "Binary")]
+        [InlineData("BinaryArrayInputFunction", nameof(CardinalityMany.BinaryArrayInputFunction), true, "Binary")]
+        [InlineData("IntArrayInputFunction", nameof(CardinalityMany.IntArrayInputFunction), true, "")]
+        [InlineData("StringListInputFunction", nameof(CardinalityMany.StringListInputFunction), true, "String")]
+        [InlineData("BinaryListInputFunction", nameof(CardinalityMany.BinaryListInputFunction), true, "Binary")]
+        [InlineData("EnumerableNestedStringGenericClassInputFunction", nameof(CardinalityMany.EnumerableNestedStringGenericClassInputFunction), true, "String")]
+        [InlineData("EnumerableNestedStringGenericClass2InputFunction", nameof(CardinalityMany.EnumerableNestedStringGenericClass2InputFunction), true, "String")]
+        [InlineData("IntListInputFunction", nameof(CardinalityMany.IntListInputFunction), true, "")]
+        [InlineData("StringDoubleArrayInputFunction", nameof(CardinalityMany.StringDoubleArrayInputFunction), true, "")]
+        [InlineData("EnumerableClassInputFunction", nameof(CardinalityMany.EnumerableClassInputFunction), true, "")]
+        [InlineData("EnumerableStringClassInputFunction", nameof(CardinalityMany.EnumerableStringClassInputFunction), true, "String")]
+        [InlineData("EnumerableBinaryClassInputFunction", nameof(CardinalityMany.EnumerableBinaryClassInputFunction), true, "Binary")]
+        [InlineData("EnumerableGenericClassInputFunction", nameof(CardinalityMany.EnumerableGenericClassInputFunction), true, "")]
+        [InlineData("EnumerableNestedBinaryClassInputFunction", nameof(CardinalityMany.EnumerableNestedBinaryClassInputFunction), true, "Binary")]
+        [InlineData("EnumerableNestedStringClassInputFunction", nameof(CardinalityMany.EnumerableNestedStringClassInputFunction), true, "String")]
+        [InlineData("LookupInputFunction", nameof(CardinalityMany.LookupInputFunction), false, "")]
+        [InlineData("DictionaryInputFunction", nameof(CardinalityMany.DictionaryInputFunction), false, "")]
+        [InlineData("ConcurrentDictionaryInputFunction", nameof(CardinalityMany.ConcurrentDictionaryInputFunction), false, "")]
+        [InlineData("HashSetInputFunction", nameof(CardinalityMany.HashSetInputFunction), true, "String")]
+        [InlineData("EnumerableInputFunction", nameof(CardinalityMany.EnumerableInputFunction), true, "")]
+        [InlineData("EnumerableStringInputFunction", nameof(CardinalityMany.EnumerableStringInputFunction), true, "String")]
+        [InlineData("EnumerableBinaryInputFunction", nameof(CardinalityMany.EnumerableBinaryInputFunction), true, "Binary")]
+        [InlineData("EnumerableGenericInputFunction", nameof(CardinalityMany.EnumerableGenericInputFunction), true, "")]
+        [InlineData("EnumerablePocoInputFunction", nameof(CardinalityMany.EnumerablePocoInputFunction), true, "")]
+        [InlineData("ListPocoInputFunction", nameof(CardinalityMany.ListPocoInputFunction), true, "")]
+        public void CardinalityManyFunctions(string functionName, string entryPoint, bool cardinalityMany, string dataType)
+        {
+            var generator = new FunctionMetadataGenerator();
+            var typeDef = TestUtility.GetTypeDefinition(typeof(CardinalityMany));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            SdkFunctionMetadata metadata = functions.Where(a => string.Equals(a.Name, functionName, StringComparison.Ordinal)).Single();
+
+            ValidateFunction(metadata, functionName, GetEntryPoint(nameof(CardinalityMany), entryPoint),
+                b => ValidateTrigger(b, cardinalityMany));
+
+            AssertDictionary(extensions, new Dictionary<string, string>(){
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "4.2.0" }
+            });
+
+            void ValidateTrigger(ExpandoObject b, bool many)
+            {
+                var expected = new Dictionary<string, object>()
+                {
+                    { "Name", "input" },
+                    { "Type", "EventHubTrigger" },
+                    { "Direction", "In" },
+                    { "eventHubName", "test" },
+                    { "Connection", "EventHubConnectionAppSetting" }
+                };
+
+                if (many)
+                {
+                    expected.Add("Cardinality", "Many");
+                }
+
+                if (!string.IsNullOrEmpty(dataType))
+                {
+                    expected.Add("DataType", dataType);
+                }
+
+                AssertExpandoObject(b, expected);
+            }
+        }
+
         private static string GetEntryPoint(string className, string methodName) => $"{typeof(FunctionMetadataGeneratorTests).FullName}+{className}.{methodName}";
 
         private void ValidateFunction(SdkFunctionMetadata sdkFunctionMetadata, string name, string entryPoint, params Action<ExpandoObject>[] bindingValidations)
@@ -429,7 +505,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(dict, expected);
         }
 
-        private static void AssertDictionary<K,V>(IDictionary<K, V> dict, IDictionary<K, V> expected)
+        private static void AssertDictionary<K, V>(IDictionary<K, V> dict, IDictionary<K, V> expected)
         {
             Assert.Equal(expected.Count, dict.Count);
 
@@ -567,6 +643,271 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
                 throw new NotImplementedException();
             }
+        }
+
+        private class CardinalityMany
+        {
+            [Function("StringInputFunction")]
+            public static void StringInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("StringArrayInputFunction")]
+            public static void StringArrayInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string[] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BinaryInputFunction")]
+            public static void BinaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] byte[] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BinaryArrayInputFunction")]
+            public static void BinaryArrayInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] byte[][] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("IntArrayInputFunction")]
+            public static void IntArrayInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] int[] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("StringListInputFunction")]
+            public static void StringListInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] List<string> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("StringDoubleArrayInputFunction")]
+            public static void StringDoubleArrayInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string[][] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BinaryListInputFunction")]
+            public static void BinaryListInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] List<byte[]> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("IntListInputFunction")]
+            public static void IntListInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] int[] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableClassInputFunction")]
+            public static void EnumerableClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableTestClass input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableStringClassInputFunction")]
+            public static void EnumerableStringClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableStringTestClass input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableBinaryClassInputFunction")]
+            public static void EnumerableBinaryClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableBinaryTestClass input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableGenericClassInputFunction")]
+            public static void EnumerableGenericClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableGenericTestClass input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableNestedBinaryClassInputFunction")]
+            public static void EnumerableNestedBinaryClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableBinaryNestedTestClass input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableNestedStringClassInputFunction")]
+            public static void EnumerableNestedStringClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableStringNestedTestClass input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableNestedStringGenericClassInputFunction")]
+            public static void EnumerableNestedStringGenericClassInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableStringNestedGenericTestClass<string> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableNestedStringGenericClass2InputFunction")]
+            public static void EnumerableNestedStringGenericClass2InputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] EnumerableStringNestedGenericTestClass2<string, int> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("LookupInputFunction")]
+            public static void LookupInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] Lookup<string, int> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("DictionaryInputFunction")]
+            public static void DictionaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] Dictionary<string, string> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("ConcurrentDictionaryInputFunction")]
+            public static void ConcurrentDictionaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] ConcurrentDictionary<string, string> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("HashSetInputFunction")]
+            public static void HashSetInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] HashSet<string> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableInputFunction")]
+            public static void EnumerableInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] IEnumerable input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableStringInputFunction")]
+            public static void EnumerableStringInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] IEnumerable<string> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableBinaryInputFunction")]
+            public static void EnumerableBinaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] IEnumerable<byte[]> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerableGenericInputFunction")]
+            public static void EnumerableGenericInputFunction<T>([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] IEnumerable<T> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("EnumerablePocoInputFunction")]
+            public static void EnumerablePocoInputFunction<T>([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] IEnumerable<Poco> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("ListPocoInputFunction")]
+            public static void ListPocoInputFunction<T>([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] List<Poco> input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class EnumerableTestClass : IEnumerable
+        {
+            public IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class EnumerableStringTestClass : IEnumerable<string>
+        {
+            public IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator<string> IEnumerable<string>.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class EnumerableBinaryTestClass : IEnumerable<byte[]>
+        {
+            public IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator<byte[]> IEnumerable<byte[]>.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class EnumerableStringTestClass<T> : List<T>
+        {
+        }
+
+        private class EnumerableBinaryNestedTestClass : EnumerableBinaryTestClass
+        {
+        }
+
+        private class EnumerableStringNestedTestClass : EnumerableStringTestClass
+        {
+        }
+
+        private class EnumerableStringNestedGenericTestClass2<T, V> : EnumerableStringNestedGenericTestClass<T>
+        {
+        }
+
+        private class EnumerableStringNestedGenericTestClass<TK> : EnumerableStringTestClass<TK>
+        {
+        }
+
+        private class EnumerableGenericTestClass : IEnumerable<int>
+        {
+            public IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator<int> IEnumerable<int>.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class Poco
+        {
+            public string Foo;
+            public string Bar;
         }
     }
 }

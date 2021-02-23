@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
@@ -23,6 +24,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private const string VoidType = "System.Void";
         private const string ReturnBindingName = "$return";
         private const string HttpTriggerBindingType = "HttpTrigger";
+        private const string IEnumerableOfStringType = "System.Collections.Generic.IEnumerable`1<System.String>";
+        private const string IEnumerableOfBinaryType = "System.Collections.Generic.IEnumerable`1<System.Byte[]>";
+        private const string IEnumerableOfT = "System.Collections.Generic.IEnumerable`1<T>";
+        private const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
+        private const string GenericIEnumerableArgumentName = "T";
 
         private readonly IndentableLogger _logger;
 
@@ -324,7 +330,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (IsFunctionBindingType(parameterAttribute))
                     {
-                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.Name);
+                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.Name, parameter.ParameterType);
                         AddExtensionInfo(_extensions, parameterAttribute);
                     }
                 }
@@ -353,18 +359,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static void AddOutputBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, string? name = null)
         {
-            AddBindingMetadata(bindingMetadata, attribute, parameterName: name);
+            AddBindingMetadata(bindingMetadata, attribute, parameterName: name, parameterType: null);
         }
 
-        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, string? parameterName)
+        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, string? parameterName, TypeReference? parameterType)
         {
             string bindingType = GetBindingType(attribute);
 
-            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterName);
+            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterName, parameterType);
             bindingMetadata.Add(binding);
         }
 
-        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, string? parameterName)
+        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, string? parameterName, TypeReference? parameterType)
         {
             ExpandoObject binding = new ExpandoObject();
 
@@ -378,12 +384,203 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bindingDict["Type"] = bindingType;
             bindingDict["Direction"] = GetBindingDirection(attribute);
 
+            // Inspect parameter type
+            if (parameterType is not null)
+            {
+                // Is string parameter type
+                if (IsStringType(parameterType.FullName))
+                {
+                    bindingDict["DataType"] = "String";
+                }
+
+                // Is binary parameter type
+                if (IsBinaryType(parameterType.FullName))
+                {
+                    bindingDict["DataType"] = "Binary";
+                }
+
+                // Trigger logic
+                if (bindingType.EndsWith("Trigger", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Add "cardinality": "many" if we see an IEnumerable type or array type
+                    if (IsIterableCollection(parameterType, out DataType dataType))
+                    {
+                        bindingDict["Cardinality"] = "Many";
+                        if (dataType.Equals(DataType.String))
+                        {
+                            bindingDict["DataType"] = "String";
+                        }
+                        else if (dataType.Equals(DataType.Binary))
+                        {
+                            bindingDict["DataType"] = "Binary";
+                        }
+                    }
+                }
+            }
+
             foreach (var property in attribute.GetAllDefinedProperties())
             {
                 bindingDict.Add(property.Key, property.Value);
             }
 
             return binding;
+        }
+
+        private static bool IsIterableCollection(TypeReference type, out DataType dataType)
+        {
+            // Array and not byte array 
+            bool isArray = type.IsArray && !string.Equals(type.FullName, typeof(byte[]).FullName, StringComparison.Ordinal);
+            if (isArray)
+            {
+                TypeSpecification? typeSpecification = type as TypeSpecification;
+                if (typeSpecification is not null)
+                {
+                    dataType = GetDataTypeFromType(typeSpecification.ElementType.FullName);
+                    return true;
+                }
+            }
+
+            bool isMappingEnumerable = IsOrDerivedFrom(type, IEnumerableOfKeyValuePair)
+                || IsOrDerivedFrom(type, typeof(Lookup<,>).FullName)
+                || IsOrDerivedFrom(type, typeof(Dictionary<,>).FullName);
+            if (isMappingEnumerable)
+            {
+                dataType = DataType.Undefined;
+                return false;
+            }
+
+            // IEnumerable and not string or dictionary
+            bool isEnumerableOfT = IsOrDerivedFrom(type, IEnumerableOfT);
+            bool isEnumerableCollection =
+                !IsStringType(type.FullName)
+                && (IsOrDerivedFrom(type, typeof(IEnumerable).FullName)
+                    || IsOrDerivedFrom(type, typeof(IEnumerable<>).FullName)
+                    || isEnumerableOfT);
+            if (isEnumerableCollection)
+            {
+                dataType = DataType.Undefined;
+                if (IsOrDerivedFrom(type, IEnumerableOfStringType))
+                {
+                    dataType = DataType.String;
+                }
+                else if (IsOrDerivedFrom(type, IEnumerableOfBinaryType))
+                {
+                    dataType = DataType.Binary;
+                }
+                else if (isEnumerableOfT)
+                {
+                    // Find real type that "T" in IEnumerable<T> resolves to
+                    string typeName = ResolveIEnumerableOfTType(type, new Dictionary<string, string>()) ?? string.Empty;
+                    dataType = GetDataTypeFromType(typeName);
+                }
+                return true;
+            }
+
+            dataType = DataType.Undefined;
+            return false;
+        }
+
+        private static bool IsOrDerivedFrom(TypeReference type, string interfaceFullName)
+        {
+            bool isType = string.Equals(type.FullName, interfaceFullName, StringComparison.Ordinal);
+            TypeDefinition definition = type.Resolve();
+            return isType || IsDerivedFrom(definition, interfaceFullName);
+        }
+
+        private static bool IsDerivedFrom(TypeDefinition definition, string interfaceFullName)
+        {
+            var isType = string.Equals(definition.FullName, interfaceFullName, StringComparison.Ordinal);
+            return isType || HasInterface(definition, interfaceFullName) || IsSubclassOf(definition, interfaceFullName);
+        }
+
+        private static bool HasInterface(TypeDefinition definition, string interfaceFullName)
+        {
+            return definition.Interfaces.Any(i => string.Equals(i.InterfaceType.FullName, interfaceFullName, StringComparison.Ordinal))
+                || definition.NestedTypes.Any(t => IsDerivedFrom(t, interfaceFullName));
+        }
+
+        private static bool IsSubclassOf(TypeDefinition definition, string interfaceFullName)
+        {
+            if (definition.BaseType is null)
+            {
+                return false;
+            }
+
+            TypeDefinition baseType = definition.BaseType.Resolve();
+            return IsDerivedFrom(baseType, interfaceFullName);
+        }
+
+        private static string? ResolveIEnumerableOfTType(TypeReference type, Dictionary<string, string> foundMapping)
+        {
+            // Base case: 
+            // We are at IEnumerable<T> and want to return the most recent resolution of T
+            // (Most recent is relative to IEnumerable<T>)
+            if (string.Equals(type.FullName, IEnumerableOfT, StringComparison.Ordinal))
+            {
+                if (foundMapping.TryGetValue(GenericIEnumerableArgumentName, out string typeName))
+                {
+                    return typeName;
+                }
+                else
+                {
+                    return null;
+                }
+            }
+
+            TypeDefinition definition = type.Resolve();
+            if (definition.HasGenericParameters && type is GenericInstanceType genericType)
+            {
+                for (int i = 0; i < genericType.GenericArguments.Count(); i++)
+                {
+                    string name = genericType.GenericArguments.ElementAt(i).FullName;
+                    string resolvedName = definition.GenericParameters.ElementAt(i).FullName;
+
+                    if (foundMapping.TryGetValue(name, out string firstType))
+                    {
+                        foundMapping.Remove(name);
+                        foundMapping.Add(resolvedName, firstType);
+                    }
+                    else
+                    {
+                        foundMapping.Add(resolvedName, name);
+                    }
+                }
+
+            }
+
+            return definition.Interfaces
+                    .Select(i => ResolveIEnumerableOfTType(i.InterfaceType, foundMapping))
+                    .Where(name => name is not null)
+                    .FirstOrDefault()
+                ?? definition.NestedTypes
+                    .Select(t => ResolveIEnumerableOfTType(t, foundMapping))
+                    .Where(name => name is not null)
+                    .FirstOrDefault()
+                ?? ResolveIEnumerableOfTType(definition.BaseType, foundMapping);
+        }
+
+        private static DataType GetDataTypeFromType(string fullName)
+        {
+            if (IsStringType(fullName))
+            {
+                return DataType.String;
+            }
+            else if (IsBinaryType(fullName))
+            {
+                return DataType.Binary;
+            }
+
+            return DataType.Undefined;
+        }
+
+        private static bool IsStringType(string fullName)
+        {
+            return string.Equals(fullName, typeof(string).FullName, StringComparison.Ordinal);
+        }
+
+        private static bool IsBinaryType(string fullName)
+        {
+            return string.Equals(fullName, typeof(byte[]).FullName, StringComparison.Ordinal);
         }
 
         private static string GetBindingType(CustomAttribute attribute)

@@ -16,10 +16,11 @@ namespace Microsoft.Azure.Functions.Worker
         private IServiceProvider? _instanceServices;
 
         public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, FunctionInvocation invocation,
-            FunctionDefinition definition)
+            FunctionDefinition definition, IInvocationFeatures features)
         {
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Invocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
+            Features = features ?? throw new ArgumentNullException(nameof(features));
             FunctionDefinition = definition ?? throw new ArgumentNullException(nameof(definition));
             OutputBindings = new Dictionary<string, object>();
         }
@@ -33,6 +34,8 @@ namespace Microsoft.Azure.Functions.Worker
         public override IDictionary<string, object> OutputBindings { get; }
 
         public override IDictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
+
+        public override IInvocationFeatures Features { get; }
 
         public override IServiceProvider InstanceServices
         {

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -23,6 +24,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override FunctionInvocation Invocation { get; set; }
 
         public override IDictionary<string, object> OutputBindings { get; } = new Dictionary<string, object>();
+
+        public override IInvocationFeatures Features { get; }
 
         public void Dispose()
         {

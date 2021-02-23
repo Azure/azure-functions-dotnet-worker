@@ -9,14 +9,8 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {
-    public class MethodReturnOutputBindingsInfo : OutputBindingsInfo
+    internal class MethodReturnOutputBindingsInfo : OutputBindingsInfo
     {
-        private const string ReturnBindingName = "$return";
-
-        private readonly IReadOnlyCollection<string> _bindingNames = new List<string>() { ReturnBindingName };
-
-        public override IReadOnlyCollection<string> BindingNames => _bindingNames;
-
         public override void BindOutputInContext(FunctionContext context)
         {
             // For output bindings that are defined by method returns,

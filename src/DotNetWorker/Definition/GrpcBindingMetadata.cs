@@ -15,11 +15,11 @@ namespace Microsoft.Azure.Functions.Worker
         public GrpcBindingMetadata(BindingInfo bindingInfo)
         {
             Type = bindingInfo.Type;
-            Direction = bindingInfo.Direction == BindingInfo.Types.Direction.In ? Direction.In : Direction.Out;
+            Direction = bindingInfo.Direction == BindingInfo.Types.Direction.In ? BindingDirection.In : BindingDirection.Out;
         }
 
         public override string Type { get; set; }
 
-        public override Direction Direction { get; set; }
+        public override BindingDirection Direction { get; set; }
     }
 }

@@ -154,7 +154,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             {
                 testOutputBindings[bindingName] = new TestBindingMetadata()
                 {
-                    Direction = Direction.Out,
+                    Direction = BindingDirection.Out,
                     Type = $"SomeOutput{bindingName}"
                 };
             }
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             var defintion = new TestFunctionDefinition()
             {
                 Metadata = metadata,
-                OutputBindingsInfo = new DefaultOutputBindingsInfoFactory().Build(metadata)
+                OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata)
             };
             var context = new TestFunctionContext()
             {

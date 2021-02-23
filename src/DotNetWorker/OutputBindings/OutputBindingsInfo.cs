@@ -15,12 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
     public abstract class OutputBindingsInfo
     {
         /// <summary>
-        /// Gets the name of all the output bindings defined for a function
-        /// </summary>
-        public abstract IReadOnlyCollection<string> BindingNames { get; }
-
-        /// <summary>
-        /// Binds output from a function <paramref name="context"/> to its Output Bindings
+        /// Binds output from a function <paramref name="context"/> to the output bindings
         /// </summary>
         /// <param name="context">The Function context to bind the data to.</param>
         public abstract void BindOutputInContext(FunctionContext context);

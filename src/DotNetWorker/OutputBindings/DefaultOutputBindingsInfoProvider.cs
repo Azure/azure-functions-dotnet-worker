@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {
-    internal class DefaultOutputBindingsInfoFactory : IOutputBindingsInfoFactory
+    internal class DefaultOutputBindingsInfoProvider : IOutputBindingsInfoProvider
     {
-        public OutputBindingsInfo Build(FunctionMetadata metadata)
+        public OutputBindingsInfo GetBindingsInfo(FunctionMetadata metadata)
         {
             if (HasNoOutputBindings(metadata))
             {
-                return NoOutputBindingsInfo.Instance;
+                return EmptyOutputBindingsInfo.Instance;
             }
             else if (HasOnlyReturnBinding(metadata))
             {
@@ -36,8 +36,8 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
                 int bindingCount = metadata.OutputBindings.Count;
                 if (bindingCount > 1)
                 {
-                    throw new InvalidOperationException($"You can only have 1 output binding if using '$return' output binding. " +
-                        $"Instead found {bindingCount} total bindings.");
+                    throw new InvalidOperationException($"Only one output binding is supported when using a binding assigned to '$return'. " +
+                        $"Found a total of {bindingCount} bindings. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                 }
 
                 return true;

@@ -13,6 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         public override string Type { get; set; }
 
-        public override Direction Direction { get; set; }
+        public override BindingDirection Direction { get; set; }
     }
 }

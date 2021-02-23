@@ -19,13 +19,13 @@ namespace Microsoft.Azure.Functions.Worker
         private static readonly Regex _entryPointRegex = new Regex("^(?<typename>.*)\\.(?<methodname>\\S*)$");
         private readonly IFunctionInvokerFactory _functionInvokerFactory;
         private readonly IFunctionActivator _functionActivator;
-        private readonly IOutputBindingsInfoFactory _outputBindingsInfoFactory;
+        private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
 
-        public DefaultFunctionDefinitionFactory(IFunctionInvokerFactory functionInvokerFactory, IFunctionActivator functionActivator, IOutputBindingsInfoFactory outputBindingsInfoFactory)
+        public DefaultFunctionDefinitionFactory(IFunctionInvokerFactory functionInvokerFactory, IFunctionActivator functionActivator, IOutputBindingsInfoProvider outputBindingsInfoProvider)
         {
             _functionInvokerFactory = functionInvokerFactory ?? throw new ArgumentNullException(nameof(functionInvokerFactory));
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
-            _outputBindingsInfoFactory = outputBindingsInfoFactory ?? throw new ArgumentNullException(nameof(outputBindingsInfoFactory));
+            _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
         }
 
         public FunctionDefinition Create(FunctionLoadRequest request)
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker
                 .Where(p => p.Name != null)
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType));
 
-            OutputBindingsInfo outputBindings = _outputBindingsInfoFactory.Build(metadata);
+            OutputBindingsInfo outputBindings = _outputBindingsInfoProvider.GetBindingsInfo(metadata);
 
             return new DefaultFunctionDefinition(metadata, invoker, parameters, outputBindings);
         }

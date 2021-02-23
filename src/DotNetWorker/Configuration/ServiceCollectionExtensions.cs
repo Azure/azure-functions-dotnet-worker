@@ -61,7 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();
 
             // Output Bindings
-            services.AddSingleton<IOutputBindingsInfoFactory, DefaultOutputBindingsInfoFactory>();
+            services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
 
             // gRpc
             services.AddSingleton<FunctionRpcClient>(p =>

@@ -151,7 +151,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (CustomAttribute attribute in method.CustomAttributes)
             {
-                if (string.Equals(attribute.AttributeType.FullName, FunctionNameType))
+                if (string.Equals(attribute.AttributeType.FullName, FunctionNameType, StringComparison.Ordinal))
                 {
                     string functionName = attribute.ConstructorArguments.SingleOrDefault().Value.ToString();
 
@@ -214,7 +214,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             if (returnType is not null)
             {
-                if (string.Equals(returnType, HttpResponseType))
+                if (string.Equals(returnType, HttpResponseType, StringComparison.Ordinal))
                 {
                     AddHttpOutputBinding(bindingMetadata, ReturnBindingName);
                 }
@@ -234,13 +234,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (PropertyDefinition property in typeDefinition.Properties)
             {
-                if (string.Equals(property.PropertyType.FullName, HttpResponseType))
+                if (string.Equals(property.PropertyType.FullName, HttpResponseType, StringComparison.Ordinal))
                 {
                     if (foundHttpOutput)
                     {
-                        throw new InvalidOperationException($"Found multiple properties with type '{HttpResponseType}' " +
-                            $"inside type '{typeDefinition.FullName}' used for output binding." +
-                            $"You can only have one Http Output Binding type in your return data definition.");
+                        throw new InvalidOperationException($"Found multiple public properties with type '{HttpResponseType}' defined in output type '{typeDefinition.FullName}'. " +
+                            $"Only one HTTP response binding type is supported in your return type definition.");
                     }
 
                     foundHttpOutput = true;
@@ -248,11 +247,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     continue;
                 }
 
-                AddOutputBindingFromProperty(bindingMetadata, property);
+                AddOutputBindingFromProperty(bindingMetadata, property, typeDefinition.FullName);
             }
         }
 
-        private void AddOutputBindingFromProperty(IList<ExpandoObject> bindingMetadata, PropertyDefinition property)
+        private void AddOutputBindingFromProperty(IList<ExpandoObject> bindingMetadata, PropertyDefinition property, string typeName)
         {
             bool foundOutputAttribute = false;
 
@@ -262,8 +261,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (foundOutputAttribute)
                     {
-                        throw new InvalidOperationException($"Found multiple output attritbues on property '{property.Name}' inside the function return type." +
-                                    $"You can only have one Http Output Binding type in your return data definition.");
+                        throw new InvalidOperationException($"Found multiple output attributes on property '{property.Name}' defined in the function return type '{typeName}'. " +
+                            $"Only one output binding attribute is is supported on a property.");
                     }
 
                     foundOutputAttribute = true;
@@ -319,9 +318,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 return null;
             }
+
             if (typeReference.IsGenericInstance
                 && typeReference is GenericInstanceType genericType 
-                && string.Equals(typeReference.GetElementType().FullName, TaskGenericType))
+                && string.Equals(typeReference.GetElementType().FullName, TaskGenericType, StringComparison.Ordinal))
             {
                 // T from Task<T>
                 return genericType.GenericArguments[0].FullName;
@@ -433,7 +433,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             while (baseTypeRef != null)
             {
-                if (string.Equals(baseTypeRef.FullName, baseType))
+                if (string.Equals(baseTypeRef.FullName, baseType, StringComparison.Ordinal))
                 {
                     return true;
                 }

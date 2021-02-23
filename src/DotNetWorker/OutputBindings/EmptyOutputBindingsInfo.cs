@@ -9,13 +9,15 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {
-    public class NoOutputBindingsInfo : OutputBindingsInfo
+    internal class EmptyOutputBindingsInfo : OutputBindingsInfo
     {
-        private static readonly Lazy<NoOutputBindingsInfo> _instance = new(() => new NoOutputBindingsInfo());
+        private static readonly Lazy<EmptyOutputBindingsInfo> _instance = new(() => new EmptyOutputBindingsInfo());
 
-        public static NoOutputBindingsInfo Instance => _instance.Value;
+        public static EmptyOutputBindingsInfo Instance => _instance.Value;
 
-        public override IReadOnlyCollection<string> BindingNames => Array.Empty<string>();
+        private EmptyOutputBindingsInfo()
+        {
+        }
 
         public override void BindOutputInContext(FunctionContext context)
         {

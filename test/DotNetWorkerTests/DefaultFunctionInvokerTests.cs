@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters, NoOutputBindingsInfo.Instance);
+            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters, EmptyOutputBindingsInfo.Instance);
 
             return context;
         }

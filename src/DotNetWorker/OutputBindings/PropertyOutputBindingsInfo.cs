@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {
-    public class PropertyOutputBindingsInfo : OutputBindingsInfo
+    internal class PropertyOutputBindingsInfo : OutputBindingsInfo
     {
         private readonly IReadOnlyCollection<string> _propertyNames;
 
@@ -16,8 +16,6 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
         {
             _propertyNames = propertyNames ?? throw new ArgumentNullException(nameof(propertyNames));
         }
-
-        public override IReadOnlyCollection<string> BindingNames => _propertyNames;
 
         public override void BindOutputInContext(FunctionContext context)
         {

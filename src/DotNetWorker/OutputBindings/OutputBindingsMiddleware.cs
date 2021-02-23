@@ -25,9 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
 
             if (result != null)
             {
-                OutputBindingsInfo outputBindingsInfo = context.FunctionDefinition.OutputBindingsInfo;
-
-                outputBindingsInfo.BindOutputInContext(context);
+                context.FunctionDefinition.OutputBindingsInfo.BindOutputInContext(context);
             }
         }
     }

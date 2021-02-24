@@ -2,22 +2,53 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
+    /// <summary>
+    /// Represents a parameter defined by the target function.
+    /// </summary>
     public class FunctionParameter
     {
+        /// <summary>
+        /// Creates an instance of the <see cref="FunctionParameter"/> class.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
         public FunctionParameter(string name, Type type)
+            :this(name, type, ImmutableDictionary<string, object>.Empty)
         {
-            Name = name;
-            Type = type;
         }
 
+        /// <summary>
+        /// Creates an instance of the <see cref="FunctionParameter"/> class.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
+        public FunctionParameter(string name, Type type, IReadOnlyDictionary<string, object> properties)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            Properties = properties ?? throw new ArgumentNullException(nameof(properties));
+        }
+
+        /// <summary>
+        /// Gets the parameter name.
+        /// </summary>
         public string Name { get; }
 
+        /// <summary>
+        /// Gets the parameter <see cref="System.Type"/>.
+        /// </summary>
         public Type Type { get; }
 
-        // TODO: Pop out to Context (or Invocation)
-        public object? Value { get; set; }
+        /// <summary>
+        /// A dictionary holding properties of this parameter.
+        /// </summary>
+        public IReadOnlyDictionary<string, object> Properties { get;  }
     }
 }

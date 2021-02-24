@@ -7,6 +7,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Configuration;
+using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -60,6 +61,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Invocation Features
             services.TryAddSingleton<IInvocationFeaturesFactory, DefaultInvocationFeaturesFactory>();
+            services.AddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();
 
             // Function Definition
             services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();

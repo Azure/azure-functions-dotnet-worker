@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit.Sdk;
@@ -12,15 +13,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         public static string DefaultPropertyName = "input";
 
-        public static ConverterMiddleware GetDefaultConverterMiddleware(Action<WorkerOptions> configure = null)
+        public static DefaultModelBindingFeature GetDefaultBindingFeature(Action<WorkerOptions> configure = null)
         {
             return new ServiceCollection()
                 .Configure<WorkerOptions>(o => configure?.Invoke(o))
-                .AddSingleton<ConverterMiddleware>()
+                .AddSingleton<DefaultModelBindingFeature>()
                 .RegisterOutputChannel()
                 .RegisterDefaultConverters()
                 .BuildServiceProvider()
-                .GetService<ConverterMiddleware>();
+                .GetService<DefaultModelBindingFeature>();
         }
 
         public static T AssertIsTypeAndConvert<T>(object target)

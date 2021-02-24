@@ -1,12 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
+using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -18,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public DefaultFunctionInvokerTests()
         {
-            _executor = new DefaultFunctionExecutor();
+            _executor = new DefaultFunctionExecutor(NullLogger<DefaultFunctionExecutor>.Instance);
 
             var functionActivator = new DefaultFunctionActivator();
             var methodInvokerFactory = new DefaultMethodInvokerFactory();
@@ -75,6 +80,29 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public async Task InvokeAsync_FunctionWithInputBindingAndReturn()
+        {
+            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithInputBindingAndReturn));
+
+            var context = CreateContext(mi);
+
+            var converter = new List<IConverter>
+            {
+                new TypeConverter()
+            };
+
+            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(converter));
+            context.Invocation.ValueProvider = new TestValueProvider(new Dictionary<string, object>
+            {
+                {"bindingValue", "bindingValue" }
+            });
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Equal("bindingValue", context.InvocationResult);
+        }
+
+        [Fact]
         public async Task InvokeAsync_StaticFunctionWithReturn()
         {
             MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidReturn));
@@ -123,9 +151,40 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Null(context.InvocationResult);
         }
 
+        [Fact]
+        public async Task InvokeAsync_StaticFunctionWithInputBindingAndReturn()
+        {
+            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithInputBindingAndReturn));
+
+            var context = CreateContext(mi);
+
+            var converter = new List<IConverter>
+            {
+                new TypeConverter()
+            };
+
+            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(converter));
+            context.Invocation.ValueProvider = new TestValueProvider(new Dictionary<string, object>
+            {
+                {"bindingValue", "bindingValue" }
+            });
+
+            await _executor.ExecuteAsync(context);
+
+            Assert.Equal("bindingValue", context.InvocationResult);
+        }
+
         private FunctionContext CreateContext(MethodInfo mi)
         {
-            var context = new TestFunctionContext();
+            var context = new TestFunctionContext
+            {
+                Invocation = new TestFunctionInvocation
+                {
+                    FunctionId = "test",
+                    InvocationId = "1234"
+                }
+            };
+
             var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
@@ -155,6 +214,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 await Task.Delay(100);
                 return "done";
             }
+
+            public string FunctionWithInputBindingAndReturn(string bindingValue)
+            {
+                return bindingValue;
+            }
         }
 
         private static class StaticFunctions
@@ -177,6 +241,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 await Task.Delay(100);
                 return "done";
+            }
+
+            public static string StaticFunctionWithInputBindingAndReturn(string bindingValue)
+            {
+                return bindingValue;
             }
         }
     }

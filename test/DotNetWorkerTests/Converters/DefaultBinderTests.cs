@@ -4,20 +4,21 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 {
-    public class ConverterMiddlewareTests
+    public class DefaultBinderTests
     {
-        private ConverterMiddleware _paramConverterManager;
+        private DefaultModelBindingFeature _paramConverterManager;
 
-        public ConverterMiddlewareTests()
+        public DefaultBinderTests()
         {
             // Test overriding serialization settings.
             var serializer = new JsonObjectSerializer(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-            _paramConverterManager = TestUtility.GetDefaultConverterMiddleware(o => o.Serializer = serializer);
+            _paramConverterManager = TestUtility.GetDefaultBindingFeature(o => o.Serializer = serializer);
         }
 
         [Fact]

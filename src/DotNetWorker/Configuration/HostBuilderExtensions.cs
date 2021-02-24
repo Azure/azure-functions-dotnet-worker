@@ -45,9 +45,6 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
 
         public static IFunctionsWorkerApplicationBuilder UseFunctionExecutionMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
-            // We want to keep this internal for now.
-            builder.UseConverterMiddleware();
-
             builder.UseOutputBindingsMiddleware();
 
             builder.Services.AddSingleton<FunctionExecutionMiddleware>();
@@ -59,23 +56,6 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
                     var middleware = context.InstanceServices.GetRequiredService<FunctionExecutionMiddleware>();
 
                     return middleware.Invoke(context);
-                };
-            });
-
-            return builder;
-        }
-
-        internal static IFunctionsWorkerApplicationBuilder UseConverterMiddleware(this IFunctionsWorkerApplicationBuilder builder)
-        {
-            builder.Services.AddSingleton<ConverterMiddleware>();
-
-            builder.Use(next =>
-            {
-                return context =>
-                {
-                    var middleware = context.InstanceServices.GetRequiredService<ConverterMiddleware>();
-
-                    return middleware.Invoke(context, next);
                 };
             });
 

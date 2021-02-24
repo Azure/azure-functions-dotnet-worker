@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override IDictionary<string, object> OutputBindings { get; } = new Dictionary<string, object>();
 
-        public override IInvocationFeatures Features { get; }
+        public override IInvocationFeatures Features { get; } = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
 
         public void Dispose()
         {

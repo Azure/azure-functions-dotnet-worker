@@ -3,37 +3,51 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Pipeline;
+using System.Linq;
+using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Definition;
 
-namespace Microsoft.Azure.Functions.Worker.Converters
+namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
-    internal sealed class ConverterMiddleware
+    internal class DefaultModelBindingFeature : IModelBindingFeature
     {
         private readonly IEnumerable<IConverter> _converters;
+        private bool _inputBound;
+        private object?[]? _parameterValues;
 
-        public ConverterMiddleware(IEnumerable<IConverter> converters)
+        public DefaultModelBindingFeature(IEnumerable<IConverter> converters)
         {
             _converters = converters ?? throw new ArgumentNullException(nameof(converters));
         }
 
-        public Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
+        public object?[]? InputArguments => _parameterValues;
+
+        public object?[] BindFunctionInput(FunctionContext context)
         {
-            // TODO: The value needs to be moved to the context
-            // parameters values should be properly associated with the context
-            // and support disposal.
-            foreach (var param in context.FunctionDefinition.Parameters)
+            if (_inputBound)
             {
+                throw new InvalidOperationException("Duplicate binding call detected. " +
+                    $"Input parameters can only be bound to arguments once. Use the {nameof(InputArguments)} property to inspect values.");
+            }
+
+            _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
+            _inputBound = true;
+
+            for (int i = 0; i < _parameterValues.Length; i++)
+            {
+                FunctionParameter param = context.FunctionDefinition.Parameters[i];
+
                 object? source = context.Invocation.ValueProvider.GetValue(param.Name, context);
                 var converterContext = new DefaultConverterContext(param, source, context);
+
                 if (TryConvert(converterContext, out object? target))
                 {
-                    param.Value = target;
+                    _parameterValues[i] = target;
                     continue;
                 }
             }
 
-            return next(context);
+            return _parameterValues;
         }
 
         internal bool TryConvert(ConverterContext context, out object? target)

@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {

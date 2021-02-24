@@ -6,11 +6,11 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
+using Status = Microsoft.Azure.Functions.Worker.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.Worker
 {

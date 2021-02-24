@@ -3,7 +3,7 @@
 
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System;

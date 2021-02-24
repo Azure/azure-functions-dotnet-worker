@@ -6,10 +6,10 @@ using System.Collections.Generic;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 using Xunit;
-using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.RpcLog.Types;
+using static Microsoft.Azure.Functions.Worker.Grpc.Messages.RpcLog.Types;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
 {

@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;

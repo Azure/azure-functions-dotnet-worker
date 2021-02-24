@@ -3,7 +3,7 @@
 
 using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker.Logging;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Diagnostics

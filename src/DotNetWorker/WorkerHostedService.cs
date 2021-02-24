@@ -5,10 +5,10 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Grpc.Core;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.FunctionRpc;
+using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace Microsoft.Azure.Functions.Worker
 {

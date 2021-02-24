@@ -150,7 +150,7 @@ steps:
   condition: eq(variables.isExtensionsRelease, true)
   inputs:
     ConnectedServiceName: 'ESRP Service'
-    FolderPath: 'extensions\**\bin\Release'
+    FolderPath: 'extensions'
     Pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
     signConfigType: inlineSignParams
     inlineOperation: |

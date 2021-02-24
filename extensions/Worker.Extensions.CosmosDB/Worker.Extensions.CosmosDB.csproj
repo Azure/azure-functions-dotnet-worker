@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB</RootNamespace>
+    <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>3.0.9-preview1</Version>

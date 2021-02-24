@@ -4,8 +4,6 @@
 using System.Collections.Generic;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.Http;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 

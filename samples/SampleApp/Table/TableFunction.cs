@@ -3,8 +3,6 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.Storage;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 

@@ -4,8 +4,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp

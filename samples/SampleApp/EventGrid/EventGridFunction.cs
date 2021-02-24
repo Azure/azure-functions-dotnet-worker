@@ -3,8 +3,6 @@
 
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.EventGrid;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
+namespace Microsoft.Azure.Functions.Worker
 {
     [AttributeUsage(AttributeTargets.Method)]
     public class FunctionAttribute : Attribute

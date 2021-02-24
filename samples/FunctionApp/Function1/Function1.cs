@@ -2,13 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 
-using System.Collections.Generic;
 using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.Http;
-using Microsoft.Azure.Functions.Worker.Extensions.Storage;
 using Microsoft.Azure.Functions.Worker.Http;
 
 namespace FunctionApp

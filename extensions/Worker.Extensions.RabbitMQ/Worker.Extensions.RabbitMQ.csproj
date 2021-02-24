@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ</RootNamespace>
+    <Description>RabbitMQ extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>1.0.0-beta</Version>

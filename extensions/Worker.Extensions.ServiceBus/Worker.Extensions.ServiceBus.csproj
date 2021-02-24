@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.ServiceBus</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.ServiceBus</RootNamespace>
+    <Description>Azure Service Bus extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>4.2.1-preview1</Version>

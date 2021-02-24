@@ -2,8 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.Http;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;

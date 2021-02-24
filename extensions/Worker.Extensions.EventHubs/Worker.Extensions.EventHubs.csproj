@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.EventHubs</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.EventHubs</RootNamespace>
+    <Description>Azure Event Hubs extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>4.2.0-preview1</Version>

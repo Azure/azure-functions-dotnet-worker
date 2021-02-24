@@ -3,7 +3,7 @@
 
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
+namespace Microsoft.Azure.Functions.Worker
 {
     public sealed class CosmosDBInputAttribute : InputBindingAttribute
     {

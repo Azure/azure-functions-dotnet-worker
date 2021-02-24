@@ -12,8 +12,8 @@ namespace SampleApp
     public static class EventGridFunction
     {
         [Function("EventGridFunction")]
-        [EventGridOutput("output", TopicEndpointUri = "MyEventGridTopicUriSetting", TopicKeySetting = "MyEventGridTopicKeySetting")]
-        public static void Run([EventGridTrigger] MyEventType input, FunctionContext context)
+        [EventGridOutput(TopicEndpointUri = "MyEventGridTopicUriSetting", TopicKeySetting = "MyEventGridTopicKeySetting")]
+        public static MyEventType Run([EventGridTrigger] MyEventType input, FunctionContext context)
         {
             var logger = context.GetLogger("EventGridFunction");
 
@@ -29,7 +29,7 @@ namespace SampleApp
                 }
             };
 
-            context.OutputBindings["output"] = outputEvent;
+            return outputEvent;
         }
     }
 

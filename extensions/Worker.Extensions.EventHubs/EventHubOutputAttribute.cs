@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
@@ -10,9 +10,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventHubs
         /// <summary>
         /// Initialize a new instance of the <see cref="EventHubOutputAttribute"/>
         /// </summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
         /// <param name="eventHubName">Name of the event hub </param>
-        public EventHubOutputAttribute(string name, string eventHubName) : base(name)
+        public EventHubOutputAttribute(string eventHubName)
         {
             EventHubName = eventHubName;
         }

@@ -11,10 +11,10 @@ namespace SampleApp
     public static class BlobFunction
     {
         [Function("BlobFunction")]
-        [BlobOutput("test-samples-output/{name}-output.txt", Connection = "AzureWebJobsStorage")]
+        [BlobOutput("test-samples-output/{name}-output.txt")]
         public static string Run(
-            [BlobTrigger("test-samples-trigger/{name}", Connection = "AzureWebJobsStorage")] string myTriggerItem,
-            [BlobInput("test-samples-input/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob,
+            [BlobTrigger("test-samples-trigger/{name}")] string myTriggerItem,
+            [BlobInput("test-samples-input/sample1.txt")] string myBlob,
             FunctionContext context)
         {
             var logger = context.GetLogger("BlobFunction");

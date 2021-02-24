@@ -11,12 +11,5 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         public OutputBindingAttribute()
         {
         }
-
-        public OutputBindingAttribute(string name)
-        {
-            Name = name;
-        }
-
-        public string? Name { get; }
     }
 }

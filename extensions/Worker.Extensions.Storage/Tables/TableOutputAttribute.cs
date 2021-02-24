@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
@@ -12,29 +12,26 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage
         private readonly string? _rowKey;
 
         /// <summary>Initializes a new instance of the <see cref="TableOutputAttribute"/> class.</summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
         /// <param name="tableName">The name of the table to which to bind.</param>
-        public TableOutputAttribute(string name, string tableName) : base(name)
+        public TableOutputAttribute(string tableName)
         {
             _tableName = tableName;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TableOutputAttribute"/> class.</summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
         /// <param name="tableName">The name of the table containing the entity.</param>
         /// <param name="partitionKey">The partition key of the entity.</param>
-        public TableOutputAttribute(string name, string tableName, string partitionKey) : base(name)
+        public TableOutputAttribute(string tableName, string partitionKey)
         {
             _tableName = tableName;
             _partitionKey = partitionKey;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
-        /// <param name="name">The name of the output binding property to bind.</param>
         /// <param name="tableName">The name of the table containing the entity.</param>
         /// <param name="partitionKey">The partition key of the entity.</param>
         /// <param name="rowKey">The row key of the entity.</param>
-        public TableOutputAttribute(string name, string tableName, string partitionKey, string rowKey) : base(name)
+        public TableOutputAttribute(string tableName, string partitionKey, string rowKey)
         {
             _tableName = tableName;
             _partitionKey = partitionKey;

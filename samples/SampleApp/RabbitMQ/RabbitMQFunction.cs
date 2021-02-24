@@ -12,8 +12,8 @@ namespace SampleApp
     public static class RabbitMQFunction
     {
         [Function("RabbitMQFunction")]
-        [RabbitMQOutput("rabbitOutput", QueueName = "destinationQueue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")]
-        public static void Run([RabbitMQTrigger("queue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")] string item,
+        [RabbitMQOutput(QueueName = "destinationQueue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")]
+        public static string Run([RabbitMQTrigger("queue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")] string item,
             FunctionContext context)
         {
             var logger = context.GetLogger("RabbitMQFunction");
@@ -21,7 +21,7 @@ namespace SampleApp
             logger.LogInformation(item);
 
             var message = $"Output message created at {DateTime.Now}";
-            context.OutputBindings["rabbitOutput"] = message;
+            return message;
         }
     }
 }

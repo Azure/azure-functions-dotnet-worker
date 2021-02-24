@@ -100,7 +100,6 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection RegisterDefaultConverters(this IServiceCollection services)
         {
             return services.AddSingleton<IConverter, FunctionContextConverter>()
-                           .AddSingleton<IConverter, OutputBindingConverter>()
                            .AddSingleton<IConverter, TypeConverter>()
                            .AddSingleton<IConverter, MemoryConverter>()
                            .AddSingleton<IConverter, StringToByteConverter>()

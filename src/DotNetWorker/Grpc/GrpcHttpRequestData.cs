@@ -21,7 +21,8 @@ namespace Microsoft.Azure.Functions.Worker
         private Stream? _bodyStream;
         private bool _disposed;
 
-        public GrpcHttpRequestData(RpcHttp httpData)
+        public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
+            : base(functionContext)
         {
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
         }
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override HttpResponseData CreateResponse()
         {
-            return new GrpcHttpResponseData(System.Net.HttpStatusCode.OK);
+            return new GrpcHttpResponseData(FunctionContext, System.Net.HttpStatusCode.OK);
         }
 
         public ValueTask DisposeAsync()

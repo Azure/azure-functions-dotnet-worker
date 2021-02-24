@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             // and support disposal.
             foreach (var param in context.FunctionDefinition.Parameters)
             {
-                object? source = context.Invocation.ValueProvider.GetValue(param.Name);
+                object? source = context.Invocation.ValueProvider.GetValue(param.Name, context);
                 var converterContext = new DefaultConverterContext(param, source, context);
                 if (TryConvert(converterContext, out object? target))
                 {

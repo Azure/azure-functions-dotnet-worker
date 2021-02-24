@@ -12,6 +12,15 @@ namespace Microsoft.Azure.Functions.Worker.Http
     public abstract class HttpResponseData
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="HttpResponseData"/> class.
+        /// </summary>
+        /// <param name="functionContext">The <see cref="FunctionContext"/> for this response.</param>
+        public HttpResponseData(FunctionContext functionContext)
+        {
+            FunctionContext = functionContext ?? throw new System.ArgumentNullException(nameof(functionContext));
+        }
+
+        /// <summary>
         /// Gets or sets the status code for the response.
         /// </summary>
         public abstract HttpStatusCode StatusCode { get; set; }
@@ -30,6 +39,11 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// Gets an <see cref="HttpCookies"/> instance containing the request cookies.
         /// </summary>
         public abstract HttpCookies Cookies { get; }
+
+        /// <summary>
+        /// Gets the <see cref="FunctionContext"/> for this response.
+        /// </summary>
+        public FunctionContext FunctionContext { get; }
 
         /// <summary>
         /// Creates an HTTP response for the provided request.

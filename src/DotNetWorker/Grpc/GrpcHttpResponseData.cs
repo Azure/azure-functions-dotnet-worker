@@ -20,10 +20,11 @@ namespace Microsoft.Azure.Functions.Worker
         private HttpHeadersCollection _headers;
         private bool _rpcHttpConsumed;
 
-        public GrpcHttpResponseData(HttpStatusCode statusCode)
-            : this(statusCode, new MemoryStream()) { }
+        public GrpcHttpResponseData(FunctionContext functionContext, HttpStatusCode statusCode)
+            : this(functionContext, statusCode, new MemoryStream()) { }
 
-        public GrpcHttpResponseData(HttpStatusCode statusCode, Stream body)
+        public GrpcHttpResponseData(FunctionContext functionContext, HttpStatusCode statusCode, Stream body)
+            : base(functionContext)
         {
             _body = body ?? throw new ArgumentNullException(nameof(body));
             _headers = new HttpHeadersCollection();

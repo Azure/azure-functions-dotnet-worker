@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
         {
             FunctionContext context = GetContextWithOutputBindings(nameof(HttpAndStorage.MyQueueOutput), nameof(HttpAndStorage.MyBlobOutput),
                 nameof(HttpAndStorage.MyHttpResponseData));
-            var emptyHttp = new TestHttpResponseData(HttpStatusCode.OK);
+            var emptyHttp = new TestHttpResponseData(context, HttpStatusCode.OK);
 
             HttpAndStorage result = new HttpAndStorage()
             {
@@ -103,7 +103,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
         {
             // special binding to indicate the return value is set as an output binding
             FunctionContext context = GetContextWithOutputBindings("$return");
-            var emptyHttp = new TestHttpResponseData(HttpStatusCode.OK);
+            var emptyHttp = new TestHttpResponseData(context, HttpStatusCode.OK);
 
             context.InvocationResult = emptyHttp;
 
@@ -197,7 +197,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
     public class TestHttpResponseData : HttpResponseData
     {
-        public TestHttpResponseData(HttpStatusCode status)
+        public TestHttpResponseData(FunctionContext functionContext, HttpStatusCode status)
+            : base(functionContext)
         {
             StatusCode = status;
         }

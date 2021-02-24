@@ -6,6 +6,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Abstractions</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Abstractions</RootNamespace>
+    <Description>Abstractions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>

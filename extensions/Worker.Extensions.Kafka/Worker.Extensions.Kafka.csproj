@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Kafka</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Kafka</RootNamespace>
+    <Description>Kafka extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>3.2.1-preview1</Version>

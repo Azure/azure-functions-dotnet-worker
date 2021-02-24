@@ -3,7 +3,7 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.ServiceBus
+namespace Microsoft.Azure.Functions.Worker
 {
     public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute
     {

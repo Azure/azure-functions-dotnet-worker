@@ -3,7 +3,7 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.SignalRService
+namespace Microsoft.Azure.Functions.Worker
 {
     public sealed class SignalROutputAttribute : OutputBindingAttribute
     {

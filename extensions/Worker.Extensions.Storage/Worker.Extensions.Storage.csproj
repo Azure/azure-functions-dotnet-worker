@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Storage</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Storage</RootNamespace>
+    <Description>Azure Storage extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>4.0.4-preview1</Version>

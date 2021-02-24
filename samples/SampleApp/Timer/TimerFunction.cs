@@ -3,8 +3,6 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.Timer;
 using Microsoft.Extensions.Logging;
 
 namespace SampleApp

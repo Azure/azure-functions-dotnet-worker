@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Timer</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Timer</RootNamespace>
+    <Description>Timer extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>4.0.1-preview1</Version>

@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.EventGrid</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.EventGrid</RootNamespace>
+    <Description>Azure Event Grid extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>2.1.0-preview1</Version>

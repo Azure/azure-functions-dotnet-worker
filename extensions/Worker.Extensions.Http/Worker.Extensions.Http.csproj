@@ -5,6 +5,7 @@
     <LangVersion>preview</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http</RootNamespace>
+    <Description>Http extensions for .NET isolated functions</Description>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Version>3.0.12-preview1</Version>

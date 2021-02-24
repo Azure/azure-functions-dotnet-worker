@@ -8,7 +8,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -21,7 +21,8 @@ namespace Microsoft.Azure.Functions.Worker
         private Stream? _bodyStream;
         private bool _disposed;
 
-        public GrpcHttpRequestData(RpcHttp httpData)
+        public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
+            : base(functionContext)
         {
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
         }
@@ -93,7 +94,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override HttpResponseData CreateResponse()
         {
-            return new GrpcHttpResponseData(System.Net.HttpStatusCode.OK);
+            return new GrpcHttpResponseData(FunctionContext, System.Net.HttpStatusCode.OK);
         }
 
         public ValueTask DisposeAsync()

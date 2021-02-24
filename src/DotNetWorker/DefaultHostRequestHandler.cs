@@ -4,8 +4,8 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
-using Status = Microsoft.Azure.WebJobs.Script.Grpc.Messages.StatusResult.Types.Status;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Status = Microsoft.Azure.Functions.Worker.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.Worker
 {

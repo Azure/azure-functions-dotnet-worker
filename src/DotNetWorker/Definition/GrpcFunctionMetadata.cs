@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {

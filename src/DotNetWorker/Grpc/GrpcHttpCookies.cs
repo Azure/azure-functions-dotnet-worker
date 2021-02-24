@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using Google.Protobuf.Collections;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {

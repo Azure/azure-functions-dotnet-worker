@@ -2,13 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Security.Claims;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace Microsoft.Azure.WebJobs.Script.Grpc.Messages
+namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
-    public sealed partial class RpcHttpCookie : IHttpCookie
+    internal sealed partial class RpcHttpCookie : IHttpCookie
     {
         string IHttpCookie.Domain => Domain.Value;
 

@@ -12,14 +12,14 @@ using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static Microsoft.Azure.WebJobs.Script.Grpc.Messages.FunctionRpc;
+using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace Microsoft.Extensions.DependencyInjection
 {

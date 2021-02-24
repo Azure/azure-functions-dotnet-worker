@@ -3,7 +3,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {

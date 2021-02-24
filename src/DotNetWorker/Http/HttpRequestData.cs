@@ -14,6 +14,15 @@ namespace Microsoft.Azure.Functions.Worker.Http
     public abstract class HttpRequestData
     {
         /// <summary>
+        /// Initializes a new instance of the <see cref="HttpRequestData"/> class.
+        /// </summary>
+        /// <param name="functionContext">The <see cref="FunctionContext"/> for this request.</param>
+        public HttpRequestData(FunctionContext functionContext)
+        {
+            FunctionContext = functionContext ?? throw new ArgumentNullException(nameof(functionContext));
+        }
+
+        /// <summary>
         /// A <see cref="Stream"/> containing the HTTP body data.
         /// </summary>
         public abstract Stream Body { get; }
@@ -42,6 +51,11 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// Gets the HTTP method for this request.
         /// </summary>
         public abstract string Method { get; }
+
+        /// <summary>
+        /// Gets the <see cref="FunctionContext"/> for this request.
+        /// </summary>
+        public FunctionContext FunctionContext { get; }
 
         /// <summary>
         /// Creates a response for this request.

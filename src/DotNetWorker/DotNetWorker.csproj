@@ -27,4 +27,10 @@
   <ItemGroup>
      <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Update=".\protobuf\src\proto\FunctionRpc.proto" Access="Internal" />
+    <Protobuf Update=".\protobuf\src\proto\identity\ClaimsIdentityRpc.proto" Access="Internal" />
+    <Protobuf Update=".\protobuf\src\proto\shared\NullableTypes.proto" Access="Internal" />
+  </ItemGroup>
 </Project>

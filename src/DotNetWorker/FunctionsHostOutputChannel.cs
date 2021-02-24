@@ -3,7 +3,7 @@
 
 using System;
 using System.Threading.Channels;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {

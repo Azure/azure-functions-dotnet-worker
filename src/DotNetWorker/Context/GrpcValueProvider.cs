@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Google.Protobuf.Collections;
-using Microsoft.Azure.WebJobs.Script.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker.Context
 {
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Context
             _triggerMetadata = triggerMetadata.ToDictionary(kvp => kvp.Key, kvp => kvp.Value, StringComparer.OrdinalIgnoreCase);
         }
 
-        public object? GetValue(string name)
+        public object? GetValue(string name, FunctionContext functionContext)
         {
             TypedData? value;
 
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Context
             return value.DataCase switch
             {
                 TypedData.DataOneofCase.None => null,
-                TypedData.DataOneofCase.Http => new GrpcHttpRequestData(value.Http),
+                TypedData.DataOneofCase.Http => new GrpcHttpRequestData(value.Http, functionContext),
                 TypedData.DataOneofCase.String => value.String,
                 // This is guaranteed to be Json here -- we can use that.
                 TypedData.DataOneofCase.Json => value.Json,

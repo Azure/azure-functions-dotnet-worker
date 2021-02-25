@@ -1,11 +1,8 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -14,6 +11,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 {
     public class EnhanceExtensionsMetadata : Task
     {
+        private static JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true };
+
         [Required]
         public string? ExtensionsJsonPath { get; set; }
 
@@ -27,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
             var extensionsMetadata = JsonSerializer.Deserialize<ExtensionsMetadata>(json);
             ExtensionsMetadataEnhancer.AddHintPath(extensionsMetadata?.Extensions ?? Enumerable.Empty<ExtensionReference>());
 
-            string newJson = JsonSerializer.Serialize(extensionsMetadata);
+            string newJson = JsonSerializer.Serialize(extensionsMetadata, _serializerOptions);
             File.WriteAllText(OutputPath, newJson);
 
             File.Delete(ExtensionsJsonPath);

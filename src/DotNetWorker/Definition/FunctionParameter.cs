@@ -2,10 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -20,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         /// <param name="name">The parameter name.</param>
         /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
         public FunctionParameter(string name, Type type)
-            :this(name, type, ImmutableDictionary<string, object>.Empty)
+            : this(name, type, ImmutableDictionary<string, object>.Empty)
         {
         }
 
@@ -29,6 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
+        /// <param name="properties">The properties of the parameter.</param>
         public FunctionParameter(string name, Type type, IReadOnlyDictionary<string, object> properties)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
@@ -49,6 +48,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         /// <summary>
         /// A dictionary holding properties of this parameter.
         /// </summary>
-        public IReadOnlyDictionary<string, object> Properties { get;  }
+        public IReadOnlyDictionary<string, object> Properties { get; }
     }
 }

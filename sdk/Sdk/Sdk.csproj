@@ -24,39 +24,38 @@
       <Pack>true</Pack>
       <PackagePath>build</PackagePath>
     </None>
-  
+
     <None Include="worker.config.json">
       <Pack>true</Pack>
       <PackagePath>tools</PackagePath>
     </None>
 
-    <None Include="$(OutputPath)Microsoft.Azure.Functions.Worker.Sdk.dll">
-      <Pack>true</Pack>
-      <PackagePath>tools\netstandard2.0</PackagePath>
-    </None>
-    
-    <None Include="$(OutputPath)Mono.Cecil.dll">
-      <Pack>true</Pack>
-      <PackagePath>tools\netstandard2.0</PackagePath>
-    </None>    
-
-    <None Include="$(FunctionsGeneratorOutputPath)Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll">
-      <Pack>true</Pack>
-      <PackagePath>tools\netstandard2.0</PackagePath>
-    </None>    
-
   </ItemGroup>  
 
-  <ItemGroup>
+  <ItemGroup>    
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.8.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="System.Text.Json" Version="5.0.0" />
-  </ItemGroup>  
+    
+    <!-- Marks all packages as 'local only' so they don't end up in the nuspec. -->
+    <PackageReference Update="@(PackageReference)" PrivateAssets="All" />
+  </ItemGroup>
 
+  <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
+    <ItemGroup>
+      <_PackageFiles Include="$(FunctionsGeneratorOutputPath)\**\*.dll;$(OutputPath)*.dll">
+        <PackagePath>tools/netstandard2.0</PackagePath>
+        <BuildAction>None</BuildAction>
+        <Visible>false</Visible>
+      </_PackageFiles>
+    </ItemGroup>
+  </Target>
+  
   <ItemGroup>
     <ProjectReference Include="..\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj">
       <PrivateAssets>all</PrivateAssets>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    </ItemGroup>  
+  </ItemGroup>
 
 </Project>

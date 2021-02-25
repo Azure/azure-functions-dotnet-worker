@@ -2,6 +2,7 @@
   
   <PropertyGroup>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageIconUrl>https://aka.ms/azure-functions-package-icon</PackageIconUrl>
   </PropertyGroup>
 
   <ItemGroup>

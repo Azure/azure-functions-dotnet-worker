@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System.Net;
@@ -61,5 +61,22 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         {
             public string Name { get; set; }
         }
+
+        [Function(nameof(HelloUsingPoco))]
+        public static MyResponse HelloUsingPoco(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(HelloUsingPoco));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            return new MyResponse { Name = "Test" };
+        }
+
+        public class MyResponse
+        {
+            public string Name { get; set; }
+        }
+
     }
 }

@@ -20,7 +20,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private const string HttpResponseType = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
         private const string TaskGenericType = "System.Threading.Tasks.Task`1";
         private const string TaskType = "System.Threading.Tasks.Task";
+        private const string VoidType = "System.Void";
         private const string ReturnBindingName = "$return";
+        private const string HttpTriggerBindingType = "HttpTrigger";
 
         private readonly IndentableLogger _logger;
 
@@ -105,7 +107,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (TypeDefinition type in module.Types)
             {
-                var functionsResult = GenerateFunctionMetadata(module,  type).ToArray();
+                var functionsResult = GenerateFunctionMetadata(type).ToArray();
                 if (functionsResult.Any())
                 {
                     _logger.LogMessage($"Found {functionsResult.Length} functions in '{type.GetReflectionFullName()}'.");
@@ -117,24 +119,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return functions;
         }
 
-        internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(ModuleDefinition module, TypeDefinition type)
+        internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(TypeDefinition type)
         {
             var functions = new List<SdkFunctionMetadata>();
 
             foreach (MethodDefinition method in type.Methods)
             {
-                AddFunctionMetadataIfFunction(module, functions, method);
+                AddFunctionMetadataIfFunction(functions, method);
             }
 
             return functions;
         }
 
-        private void AddFunctionMetadataIfFunction(ModuleDefinition module, IList<SdkFunctionMetadata> functions, MethodDefinition method)
+        private void AddFunctionMetadataIfFunction(IList<SdkFunctionMetadata> functions, MethodDefinition method)
         {
             if (TryCreateFunctionMetadata(method, out SdkFunctionMetadata? metadata)
                 && metadata != null)
             {
-                var allBindings = CreateBindingMetadataAndAddExtensions(module, method);
+                var allBindings = CreateBindingMetadataAndAddExtensions(method);
 
                 foreach(var binding in allBindings)
                 {
@@ -190,47 +192,62 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return function;
         }
 
-        private IEnumerable<ExpandoObject> CreateBindingMetadataAndAddExtensions(ModuleDefinition module, MethodDefinition method)
+        private IEnumerable<ExpandoObject> CreateBindingMetadataAndAddExtensions(MethodDefinition method)
         {
             var bindingMetadata = new List<ExpandoObject>();
 
             AddInputTriggerBindingsAndExtensions(bindingMetadata, method);
-            AddOutputBindingsAndExtensions(module, bindingMetadata, method);
+            AddOutputBindingsAndExtensions(bindingMetadata, method);
 
             return bindingMetadata;
         }
 
-        private void AddOutputBindingsAndExtensions(ModuleDefinition module, IList<ExpandoObject> bindingMetadata, MethodDefinition method)
+        private void AddOutputBindingsAndExtensions(IList<ExpandoObject> bindingMetadata, MethodDefinition method)
         {
             if (!TryAddOutputBindingFromMethod(bindingMetadata, method))
             {
-                AddOutputBindingsFromReturnType(module, bindingMetadata, method);
+                AddOutputBindingsFromReturnType(bindingMetadata, method);
             }
         }
 
-        private void AddOutputBindingsFromReturnType(ModuleDefinition module, IList<ExpandoObject> bindingMetadata, MethodDefinition method)
+        private void AddOutputBindingsFromReturnType(IList<ExpandoObject> bindingMetadata, MethodDefinition method)
         {
-            string? returnType = GetTaskElementType(method.ReturnType);
+            TypeReference? returnType = GetTaskElementType(method.ReturnType);
 
-            if (returnType is not null)
+            if (returnType is not null && !string.Equals(returnType.FullName, VoidType, StringComparison.Ordinal))
             {
-                if (string.Equals(returnType, HttpResponseType, StringComparison.Ordinal))
+                if (string.Equals(returnType.FullName, HttpResponseType, StringComparison.Ordinal))
                 {
                     AddHttpOutputBinding(bindingMetadata, ReturnBindingName);
                 }
                 else
-                {
-                    TypeDefinition returnDefinition = module.GetType(returnType)
+                {                    
+                    TypeDefinition returnDefinition = returnType.Resolve()
                         ?? throw new InvalidOperationException($"Couldn't find the type definition {returnType}");
 
-                    AddOutputBindingsFromProperties(bindingMetadata, returnDefinition);
+                    bool hasOutputModel = TryAddOutputBindingsFromProperties(bindingMetadata, returnDefinition);
+
+                    // Special handling for HTTP results using POCOs/Types other 
+                    // than HttpResponseData. We should improve this to expand this 
+                    // support to other triggers without special handling
+                    if (!hasOutputModel && bindingMetadata.Any(d => IsHttpTrigger(d)))
+                    {
+                        AddHttpOutputBinding(bindingMetadata, ReturnBindingName);
+                    }
                 }
             }
         }
 
-        private void AddOutputBindingsFromProperties(IList<ExpandoObject> bindingMetadata, TypeDefinition typeDefinition)
+        private bool IsHttpTrigger(ExpandoObject bindingMetadata)
+        {
+            return bindingMetadata.Any(kvp => string.Equals(kvp.Key, "Type", StringComparison.Ordinal)
+                && string.Equals(kvp.Value?.ToString(), HttpTriggerBindingType, StringComparison.Ordinal));
+        }
+
+        private bool TryAddOutputBindingsFromProperties(IList<ExpandoObject> bindingMetadata, TypeDefinition typeDefinition)
         {
             bool foundHttpOutput = false;
+            int beforeCount = bindingMetadata.Count;
 
             foreach (PropertyDefinition property in typeDefinition.Properties)
             {
@@ -249,6 +266,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 AddOutputBindingFromProperty(bindingMetadata, property, typeDefinition.FullName);
             }
+
+            return bindingMetadata.Count > beforeCount;
         }
 
         private void AddOutputBindingFromProperty(IList<ExpandoObject> bindingMetadata, PropertyDefinition property, string typeName)
@@ -312,7 +331,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
         }
 
-        private static string? GetTaskElementType(TypeReference typeReference)
+        private static TypeReference? GetTaskElementType(TypeReference typeReference)
         {
             if (typeReference is null || typeReference.FullName == TaskType)
             {
@@ -324,11 +343,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 && string.Equals(typeReference.GetElementType().FullName, TaskGenericType, StringComparison.Ordinal))
             {
                 // T from Task<T>
-                return genericType.GenericArguments[0].FullName;
+                return genericType.GenericArguments[0];
             }
             else
             {
-                return typeReference.FullName;
+                return typeReference;
             }
         }
 

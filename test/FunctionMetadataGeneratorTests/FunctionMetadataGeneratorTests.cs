@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Sdk;
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttp));
-            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
             AssertDictionary(extensions, new Dictionary<string, string>
@@ -63,12 +64,87 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void BasicHttpFunctionWithNoResponse()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttpWithNoResponse));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+            });
+
+            ValidateFunction(functions.Single(), BasicHttpWithNoResponse.FunctionName, GetEntryPoint(nameof(BasicHttpWithNoResponse), nameof(BasicHttpWithNoResponse.Http)),
+                b => ValidateTrigger(b));
+
+            void ValidateTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "myReq" },
+                    { "Type", "HttpTrigger" },
+                    { "Direction", "In" },
+                    { "authLevel", "Admin" },
+                    { "methods", new[] { "get", "Post" } },
+                    { "Route", "/api2" }
+                });
+            }
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
+        [Fact]
+        public void BasicHttpFunctionWithExternalReturnType()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(ExternalType_Return));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+            });
+
+            ValidateFunction(functions.Single(), ExternalType_Return.FunctionName, GetEntryPoint(nameof(ExternalType_Return), nameof(ExternalType_Return.Http)),
+                b => ValidateTrigger(b), 
+                b => ValidateQueueOutput(b));
+
+            void ValidateTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "myReq" },
+                    { "Type", "HttpTrigger" },
+                    { "Direction", "In" },
+                    { "authLevel", "Admin" },
+                    { "methods", new[] { "get", "Post" } },
+                    { "Route", "/api2" }
+                });
+            }
+
+            void ValidateQueueOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "http" },
+                    { "Direction", "Out" }
+                });
+            }
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
+        [Fact]
         public void StorageFunctions()
         {
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(Storage));
-            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
             Assert.Equal(2, functions.Count());
@@ -142,7 +218,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(Timer));
-            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
             ValidateFunction(functions.Single(), "TimerFunction", GetEntryPoint(nameof(Timer), nameof(Timer.RunTimer)),
@@ -169,7 +245,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_ReturnType));
-            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
             Assert.Single(functions);
@@ -228,7 +304,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_ReturnType_Http));
-            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
             Assert.Single(functions);
@@ -284,7 +360,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(ReturnType_JustHttp));
-            var functions = generator.GenerateFunctionMetadata(module, typeDef);
+            var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
             Assert.Single(functions);
@@ -326,7 +402,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_Method));
 
-            var exception = Assert.Throws<Exception>(() => generator.GenerateFunctionMetadata(module, typeDef));
+            var exception = Assert.Throws<Exception>(() => generator.GenerateFunctionMetadata(typeDef));
 
             Assert.Contains($"Found multiple Output bindings on method", exception.Message);
         }
@@ -374,6 +450,17 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class BasicHttpWithNoResponse
+        {
+            public const string FunctionName = "BasicHttpWithNoResponse";
+
+            [Function(FunctionName)]
+            public void Http([HttpTrigger(AuthorizationLevel.Admin, "get", "Post", Route = "/api2")] HttpRequestData myReq)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class Storage
         {
             public void AnotherMethod()
@@ -393,6 +480,17 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobToQueue(
                 [BlobTrigger("container2/%file%")] string blob)
 
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ExternalType_Return
+        {
+            public const string FunctionName = "BasicHttpWithExternalTypeReturn";
+
+            [Function(FunctionName)]
+            public ExternalPoco Http([HttpTrigger(AuthorizationLevel.Admin, "get", "Post", Route = "/api2")] HttpRequestData myReq)
             {
                 throw new NotImplementedException();
             }

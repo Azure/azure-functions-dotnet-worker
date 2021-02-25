@@ -30,6 +30,7 @@
     <ProjectReference Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 
 </Project>

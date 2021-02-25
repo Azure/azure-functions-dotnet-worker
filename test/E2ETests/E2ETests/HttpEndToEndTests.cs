@@ -56,6 +56,16 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.Equal(expectedBody, responseBody);
         }
 
+        [Fact]
+        public async Task HttpTriggerTestsPocoResult()
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("HelloUsingPoco", string.Empty, HttpStatusCode.OK, "application/json");
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("{\r\n  \"Name\": \"Test\"\r\n}", responseBody);
+        }
+
         [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/133")]
         public async Task HttpTriggerWithCookieTests()
         {

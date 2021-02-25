@@ -2,15 +2,16 @@
   
   <Import Project=".\Icon.props" />
   <PropertyGroup>
-    
-    <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
-    <VersionPrefix>$(MajorMinorProductVersion).0</VersionPrefix>
+    <MajorProductVersion Condition="$(MajorProductVersion) == ''">1</MajorProductVersion>
+    <MinorProductVersion Condition="$(MinorProductVersion) == ''">0</MinorProductVersion>
+    <PatchProductVersion Condition="$(PatchProductVersion) == ''">0</PatchProductVersion>
+    <VersionPrefix>$(MajorProductVersion).$(MinorProductVersion).$(PatchProductVersion)</VersionPrefix>
     <VersionSuffix>preview5</VersionSuffix>
     <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>
     <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local$([System.DateTime]::Now.ToString(yyyyMMddHHmm))</BuildNumber>
     <Version Condition=" '$(BuildNumber)' != '' ">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
     <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
-    <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
+    <AssemblyVersion>$(MajorProductVersion).$(MinorProductVersion).$(PatchProductVersion).0</AssemblyVersion>
     <FileVersion>$(Version)</FileVersion>
     <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
     <InformationalVersion>$(Version) Commit hash: $(CommitHash)</InformationalVersion>
@@ -24,7 +25,6 @@
     <PackageProjectUrl>https://github.com/Azure/azure-functions-dotnet-worker</PackageProjectUrl>
     <Nullable>enable</Nullable>
     <DebugType>embedded</DebugType>
-
   </PropertyGroup>
 
 </Project>

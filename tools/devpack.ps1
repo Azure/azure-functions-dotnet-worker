@@ -16,6 +16,7 @@ if($E2E -eq $true)
 }
 
 $localPack = "$rootPath\local"
+& md -Force $localPack | Out-Null
 Write-Host
 Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing SDK to $localPack"

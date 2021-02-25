@@ -6,6 +6,9 @@ using Azure.Core.Serialization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// An options class for configuring the worker.
+    /// </summary>    
     public class WorkerOptions
     {
         private ObjectSerializer? _serializer;

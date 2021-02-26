@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    public partial class TestFunctionDefinition : FunctionDefinition
+    public class TestFunctionDefinition : FunctionDefinition
     {
         public TestFunctionDefinition(string functionId = null, IDictionary<string, BindingMetadata> outputBindings = null, IEnumerable<FunctionParameter> parameters = null, OutputBindingsInfo outputBindingsInfo = null)
         {

@@ -5,7 +5,7 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    internal class MethodInfoLocator : IMethodInfoLocator
+    internal class DefaultMethodInfoLocator : IMethodInfoLocator
     {
         private static readonly Regex _entryPointRegex = new Regex("^(?<typename>.*)\\.(?<methodname>\\S*)$");
 

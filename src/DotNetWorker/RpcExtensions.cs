@@ -2,12 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Azure.Core.Serialization;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Definition;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public static TypedData ToRpc(this object value, ObjectSerializer serializer)
         {
-             if (value == null)
+            if (value == null)
             {
                 return _emptyTypedData;
             }
@@ -219,7 +219,7 @@ namespace Microsoft.Azure.Functions.Worker
             return typedData;
         }
 
-        internal static FunctionMetadata ToFunctionMetadata(this FunctionLoadRequest loadRequest) => new GrpcFunctionMetadata(loadRequest);
+        internal static FunctionDefinition ToFunctionDefinition(this FunctionLoadRequest loadRequest) => new GrpcFunctionDefinition(loadRequest);
 
         internal static RpcException? ToRpcException(this Exception exception)
         {

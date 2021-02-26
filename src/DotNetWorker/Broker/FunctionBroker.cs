@@ -37,15 +37,14 @@ namespace Microsoft.Azure.Functions.Worker
         {
             FunctionDefinition functionDefinition = _functionDefinitionFactory.Create(functionLoadRequest);
 
-            if (functionDefinition.Metadata.FunctionId is null)
+            if (functionDefinition.Id is null)
             {
                 throw new InvalidOperationException("The function ID for the current load request is invalid");
             }
 
             Log.FunctionDefinitionCreated(_logger, functionDefinition);
-            _functionMap.TryAdd(functionDefinition.Metadata.FunctionId, functionDefinition);
+            _functionMap.TryAdd(functionDefinition.Id, functionDefinition);
         }
-
 
         public async Task<InvocationResponse> InvokeAsync(FunctionInvocation invocation)
         {
@@ -58,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker
             FunctionContext? executionContext = null;
             var functionDefinition = _functionMap[invocation.FunctionId];
 
-            var scope = new FunctionInvocationScope(functionDefinition.Metadata.Name, invocation.InvocationId);
+            var scope = new FunctionInvocationScope(functionDefinition.Name, invocation.InvocationId);
             using (_logger.BeginScope(scope))
             {
                 try

@@ -24,8 +24,17 @@ using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
+    /// <summary>
+    /// Azure Functions extensions for <see cref="IServiceCollection"/>.
+    /// </summary>
     public static class ServiceCollectionExtensions
     {
+        /// <summary>
+        /// Adds services for the Azure Functions worker.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
+        /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
+        /// <returns></returns>
         public static IFunctionsWorkerApplicationBuilder AddFunctionsWorker(this IServiceCollection services, Action<WorkerOptions>? configure = null)
         {
             if (services == null)

@@ -180,14 +180,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 }
             };
 
-            var metadata = new TestFunctionMetadata();
-
             // We're controlling the method via the IMethodInfoLocator, so the strings here don't matter.
             var parameters = _mockLocator.Object.GetMethod(string.Empty, string.Empty)
                 .GetParameters()
                 .Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, parameters, EmptyOutputBindingsInfo.Instance);
+            context.FunctionDefinition = new TestFunctionDefinition(parameters: parameters, outputBindingsInfo: EmptyOutputBindingsInfo.Instance);
 
             return context;
         }

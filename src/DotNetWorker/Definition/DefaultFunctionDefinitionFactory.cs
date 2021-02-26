@@ -29,26 +29,24 @@ namespace Microsoft.Azure.Functions.Worker
 
         public FunctionDefinition Create(FunctionLoadRequest request)
         {
-            FunctionMetadata metadata = request.ToFunctionMetadata();
+            FunctionDefinition definition = request.ToFunctionDefinition();
 
-            if (metadata.PathToAssembly == null)
+            if (definition.PathToAssembly == null)
             {
                 throw new InvalidOperationException("The path to the function assembly is null.");
             }
 
-            if (metadata.EntryPoint == null)
+            if (definition.EntryPoint == null)
             {
                 throw new InvalidOperationException("The entry point is null.");
             }
 
-            IEnumerable<FunctionParameter> parameters = _methodInfoLocator.GetMethod(metadata.PathToAssembly, metadata.EntryPoint)
+            IEnumerable<FunctionParameter> parameters = _methodInfoLocator.GetMethod(definition.PathToAssembly, definition.EntryPoint)
                 .GetParameters()
                 .Where(p => p.Name != null)
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType));
 
-            OutputBindingsInfo outputBindings = _outputBindingsInfoProvider.GetBindingsInfo(metadata);
-
-            var definition = new DefaultFunctionDefinition(metadata, parameters, outputBindings);
+            OutputBindingsInfo outputBindings = _outputBindingsInfoProvider.GetBindingsInfo(definition);
 
             return definition;
         }

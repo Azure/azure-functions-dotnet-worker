@@ -33,11 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var invocationRequest = new TestFunctionInvocation();
             invocationRequest.FunctionId = "123";
 
-            var functionDescriptor = new TestFunctionMetadata();
-            functionDescriptor.FunctionId = "123";
-
-            var definition = new TestFunctionDefinition(functionDescriptor);
-
+            var definition = new TestFunctionDefinition(functionId: "123");
 
             var context = new TestFunctionContext();
             _mockFunctionDefinitionFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(definition);

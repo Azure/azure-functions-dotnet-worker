@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -155,12 +154,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
                 };
             }
 
-            var metadata = new TestFunctionMetadata()
-            {
-                OutputBindings = testOutputBindings.ToImmutableDictionary()
-            };
+            var metadata = new TestFunctionDefinition(outputBindings: testOutputBindings);
 
-            var defintion = new TestFunctionDefinition(metadata: metadata, outputBindingsInfo: new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata));
+            var defintion = new TestFunctionDefinition(
+                outputBindingsInfo: new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata));
 
             var context = new TestFunctionContext()
             {

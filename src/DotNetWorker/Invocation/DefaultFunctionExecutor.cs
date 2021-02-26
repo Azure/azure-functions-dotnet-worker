@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         public async Task ExecuteAsync(FunctionContext context)
         {
             var invoker = _invokerCache.GetOrAdd(context.Invocation.FunctionId,
-                _ => _invokerFactory.Create(context.FunctionDefinition.Metadata));
+                _ => _invokerFactory.Create(context.FunctionDefinition));
 
             object? instance = invoker.CreateInstance(context.InstanceServices);
             var bindingFeature = context.Features.Get<IModelBindingFeature>();

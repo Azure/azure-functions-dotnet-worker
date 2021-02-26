@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             public static void FunctionDefinitionCreated(ILogger<FunctionBroker> logger, FunctionDefinition functionDefinition)
             {
-                _functionDefinitionCreated(logger, functionDefinition.Metadata.Name, functionDefinition.Metadata.FunctionId, null);
+                _functionDefinitionCreated(logger, functionDefinition.Name, functionDefinition.Id, null);
             }
         }
     }

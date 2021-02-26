@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             if (methodInfo == null)
             {
-                throw new InvalidOperationException($"Method '{methodName}' specified in {nameof(FunctionMetadata.EntryPoint)} was not found. This function cannot be created.");
+                throw new InvalidOperationException($"Method '{methodName}' specified in {nameof(FunctionDefinition.EntryPoint)} was not found. This function cannot be created.");
             }
 
             return methodInfo;

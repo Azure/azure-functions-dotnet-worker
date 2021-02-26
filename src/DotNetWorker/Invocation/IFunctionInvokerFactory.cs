@@ -5,6 +5,6 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal interface IFunctionInvokerFactory
     {
-        IFunctionInvoker Create(FunctionMetadata method);
+        IFunctionInvoker Create(FunctionDefinition definition);
     }
 }

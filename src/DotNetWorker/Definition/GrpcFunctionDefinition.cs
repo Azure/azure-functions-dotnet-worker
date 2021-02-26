@@ -7,17 +7,18 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
-    internal class GrpcFunctionMetadata : FunctionMetadata
+    internal class GrpcFunctionDefinition : FunctionDefinition
     {
-        public GrpcFunctionMetadata(FunctionLoadRequest loadRequest)
+        public GrpcFunctionDefinition(FunctionLoadRequest loadRequest)
         {
             EntryPoint = loadRequest.Metadata.EntryPoint;
             Name = loadRequest.Metadata.Name;
             PathToAssembly = Path.GetFullPath(loadRequest.Metadata.ScriptFile);
-            FunctionId = loadRequest.FunctionId;
+            Id = loadRequest.FunctionId;
 
             var grpcBindingsGroup = loadRequest.Metadata.Bindings.GroupBy(kv => kv.Value.Direction);
             var grpcInputBindings = grpcBindingsGroup.Where(kv => kv.Key == BindingInfo.Types.Direction.In).FirstOrDefault();
@@ -31,16 +32,20 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 ?? ImmutableDictionary<string, BindingMetadata>.Empty;
         }
 
-        public override string PathToAssembly { get; set; }
+        public override string PathToAssembly { get; }
 
-        public override string EntryPoint { get; set; }
+        public override string EntryPoint { get; }
 
-        public override string FunctionId { get; set; }
+        public override string Id { get; }
 
-        public override string Name { get; set; }
+        public override string Name { get; }
 
-        public override IImmutableDictionary<string, BindingMetadata> InputBindings { get; set; }
+        public override IImmutableDictionary<string, BindingMetadata> InputBindings { get; }
 
-        public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; set; }
+        public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
+
+        public override ImmutableArray<FunctionParameter> Parameters => throw new NotImplementedException();
+
+        public override OutputBindingsInfo OutputBindingsInfo => throw new NotImplementedException();
     }
 }

@@ -24,6 +24,9 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+- pwsh: ./tools/start-emulators.ps1 -NoWait
+  displayName: "Start emulators (-NoWait)"
+
 - task: UseDotNet@2
   displayName: 'Use .NET 5 sdk'
   inputs:

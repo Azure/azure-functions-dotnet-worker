@@ -1,3 +1,9 @@
+param(
+    [Parameter(Mandatory=$false)]
+    [Switch]
+    $NoWait
+)
+
 Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
 $storageEmulatorExe = "${Env:ProgramFiles(x86)}\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" 
 
@@ -52,6 +58,13 @@ else
 }
 Write-Host "------"
 Write-Host 
+
+if ($NoWait -eq $true)
+{
+    Write-Host "'NoWait' specified. Exiting."
+    Write-Host
+    exit 0
+}
 
 if ($startedCosmos -eq $true)
 {

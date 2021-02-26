@@ -4,28 +4,27 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.Loader;
-using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker.Definition;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     internal class DefaultFunctionDefinitionFactory : IFunctionDefinitionFactory
     {
-        private static readonly Regex _entryPointRegex = new Regex("^(?<typename>.*)\\.(?<methodname>\\S*)$");
         private readonly IFunctionInvokerFactory _functionInvokerFactory;
         private readonly IFunctionActivator _functionActivator;
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
+        private readonly IMethodInfoLocator _methodInfoLocator;
 
-        public DefaultFunctionDefinitionFactory(IFunctionInvokerFactory functionInvokerFactory, IFunctionActivator functionActivator, IOutputBindingsInfoProvider outputBindingsInfoProvider)
+        public DefaultFunctionDefinitionFactory(IFunctionInvokerFactory functionInvokerFactory, IFunctionActivator functionActivator,
+            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator)
         {
             _functionInvokerFactory = functionInvokerFactory ?? throw new ArgumentNullException(nameof(functionInvokerFactory));
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
+            _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
         }
 
         public FunctionDefinition Create(FunctionLoadRequest request)
@@ -42,35 +41,16 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("The entry point is null.");
             }
 
-            var entryPointMatch = _entryPointRegex.Match(metadata.EntryPoint);
-            if (!entryPointMatch.Success)
-            {
-                throw new InvalidOperationException("Invalid entry point configuration. The function entry point must be defined in the format <fulltypename>.<methodname>");
-            }
-
-            string typeName = entryPointMatch.Groups["typename"].Value;
-            string methodName = entryPointMatch.Groups["methodname"].Value;
-
-            Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(metadata.PathToAssembly);
-
-            Type? functionType = assembly.GetType(typeName);
-
-            MethodInfo? methodInfo = functionType?.GetMethod(methodName);
-
-            if (methodInfo == null)
-            {
-                throw new InvalidOperationException($"Method '{methodName}' specified in {nameof(FunctionMetadata.EntryPoint)} was not found. This function cannot be created.");
-            }
-
-            IFunctionInvoker invoker = _functionInvokerFactory.Create(methodInfo);
-
-            IEnumerable<FunctionParameter> parameters = methodInfo.GetParameters()
+            IEnumerable<FunctionParameter> parameters = _methodInfoLocator.GetMethod(metadata.PathToAssembly, metadata.EntryPoint)
+                .GetParameters()
                 .Where(p => p.Name != null)
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType));
 
             OutputBindingsInfo outputBindings = _outputBindingsInfoProvider.GetBindingsInfo(metadata);
 
-            return new DefaultFunctionDefinition(metadata, invoker, parameters, outputBindings);
+            var definition = new DefaultFunctionDefinition(metadata, parameters, outputBindings);
+
+            return definition;
         }
     }
 }

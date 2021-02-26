@@ -10,10 +10,10 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -51,6 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IFunctionBroker, FunctionBroker>();
 
             // Execution
+            services.AddSingleton<IMethodInfoLocator, DefaultMethodInfoLocator>();
             services.AddSingleton<IFunctionInvokerFactory, DefaultFunctionInvokerFactory>();
             services.AddSingleton<IMethodInvokerFactory, DefaultMethodInvokerFactory>();
             services.AddSingleton<IFunctionActivator, DefaultFunctionActivator>();

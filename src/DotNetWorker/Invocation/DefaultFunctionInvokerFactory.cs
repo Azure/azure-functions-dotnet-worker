@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -13,25 +13,24 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     {
         private readonly IMethodInvokerFactory _methodInvokerFactory;
         private readonly IFunctionActivator _functionActivator;
+        private readonly IMethodInfoLocator _methodLocator;
 
-        public DefaultFunctionInvokerFactory(IMethodInvokerFactory methodInvokerFactory, IFunctionActivator functionActivator)
+        public DefaultFunctionInvokerFactory(IMethodInvokerFactory methodInvokerFactory, IFunctionActivator functionActivator, IMethodInfoLocator methodLocator)
         {
             _methodInvokerFactory = methodInvokerFactory ?? throw new ArgumentNullException(nameof(methodInvokerFactory));
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+            _methodLocator = methodLocator ?? throw new ArgumentNullException(nameof(methodLocator));
         }
 
-        public IFunctionInvoker Create(MethodInfo method)
+        public IFunctionInvoker Create(FunctionMetadata metadata)
         {
-            if (method == null)
-            {
-                throw new ArgumentNullException(nameof(method));
-            }
+            var method = _methodLocator.GetMethod(metadata.PathToAssembly, metadata.EntryPoint);
 
             Type? reflectedType = method.ReflectedType;
 
             if (reflectedType == null)
             {
-                throw new InvalidOperationException("No reflected type was found.");
+                throw new InvalidOperationException($"No reflected type '{method.ReflectedType?.Name}' was found.");
             }
 
             MethodInfo genericMethodDefinition = typeof(DefaultFunctionInvokerFactory).GetMethod(nameof(DefaultFunctionInvokerFactory.CreateGeneric), BindingFlags.NonPublic | BindingFlags.Static)!;
@@ -42,7 +41,6 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             }
 
             MethodInfo genericMethod = genericMethodDefinition.MakeGenericMethod(reflectedType, returnType!);
-
 
             IFunctionActivator activator = _functionActivator;
             if (method.IsStatic)

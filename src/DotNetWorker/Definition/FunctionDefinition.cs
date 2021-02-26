@@ -3,19 +3,28 @@
 
 using System.Collections.Immutable;
 using Microsoft.Azure.Functions.Worker.Definition;
-using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// A representation of a function.
+    /// </summary>
     public abstract class FunctionDefinition
     {
-        public abstract FunctionMetadata Metadata { get; set; }
+        /// <summary>
+        /// Gets the metadata for the function.
+        /// </summary>
+        public abstract FunctionMetadata Metadata { get; }
 
-        public abstract ImmutableArray<FunctionParameter> Parameters { get; set; }
+        /// <summary>
+        /// Gets the parameters for the function.
+        /// </summary>
+        public abstract ImmutableArray<FunctionParameter> Parameters { get; }
 
-        public abstract IFunctionInvoker Invoker { get; set; }
-
-        public abstract OutputBindingsInfo OutputBindingsInfo { get; set; }
+        /// <summary>
+        /// Gets the output bindings for the function.
+        /// </summary>
+        public abstract OutputBindingsInfo OutputBindingsInfo { get; }
     }
 }

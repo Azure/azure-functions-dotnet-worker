@@ -1,14 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Xunit;
@@ -163,11 +159,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             {
                 OutputBindings = testOutputBindings.ToImmutableDictionary()
             };
-            var defintion = new TestFunctionDefinition()
-            {
-                Metadata = metadata,
-                OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata)
-            };
+
+            var defintion = new TestFunctionDefinition(metadata: metadata, outputBindingsInfo: new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata));
+
             var context = new TestFunctionContext()
             {
                 FunctionDefinition = defintion

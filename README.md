@@ -1,4 +1,4 @@
-# Azure Functions .NET Isolated support
+# Azure Functions .NET Isolated
 
 Welcome to a preview of .NET Isolated in Azure Functions. .NET Isolated provides .NET 5 support in Azure Functions. It runs in an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
 

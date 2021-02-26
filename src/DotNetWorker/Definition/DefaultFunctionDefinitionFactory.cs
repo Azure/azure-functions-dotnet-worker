@@ -8,9 +8,9 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker.Definition;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -70,7 +70,10 @@ namespace Microsoft.Azure.Functions.Worker
 
             OutputBindingsInfo outputBindings = _outputBindingsInfoProvider.GetBindingsInfo(metadata);
 
-            return new DefaultFunctionDefinition(metadata, invoker, parameters, outputBindings);
+            var definition = new DefaultFunctionDefinition(metadata, parameters, outputBindings);
+            definition.Items[DefaultFunctionDefinition.InvokerKey] = invoker;
+
+            return definition;
         }
     }
 }

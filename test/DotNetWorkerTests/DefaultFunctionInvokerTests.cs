@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Definition;
@@ -188,7 +187,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var metadata = new TestFunctionMetadata();
             var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, _functionInvokerFactory.Create(mi), parameters, EmptyOutputBindingsInfo.Instance);
+            context.FunctionDefinition = new DefaultFunctionDefinition(metadata, parameters, EmptyOutputBindingsInfo.Instance);
+            context.FunctionDefinition.Items[DefaultFunctionDefinition.InvokerKey] = _functionInvokerFactory.Create(mi);
 
             return context;
         }

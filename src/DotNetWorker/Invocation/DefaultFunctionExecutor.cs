@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
@@ -19,7 +20,12 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
         public async Task ExecuteAsync(FunctionContext context)
         {
-            var invoker = context.FunctionDefinition.Invoker;
+            if (!context.FunctionDefinition.Items.TryGetValue(DefaultFunctionDefinition.InvokerKey, out object? invokerObject) ||
+                invokerObject is not IFunctionInvoker invoker)
+            {
+                throw new InvalidOperationException("No function invoker found.");
+            }
+
             object? instance = invoker.CreateInstance(context.InstanceServices);
             var bindingFeature = context.Features.Get<IModelBindingFeature>();
 
@@ -33,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             {
                 inputArguments = bindingFeature.BindFunctionInput(context);
             }
-             
+
             object? result = await invoker.InvokeAsync(instance, inputArguments);
 
             context.InvocationResult = result;

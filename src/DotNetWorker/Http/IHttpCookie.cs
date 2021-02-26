@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
     /// </summary>
     public interface IHttpCookie
     {
-        string Domain { get; }
+        string? Domain { get; }
 
         DateTimeOffset? Expires { get; }
 

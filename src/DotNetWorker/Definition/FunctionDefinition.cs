@@ -1,21 +1,36 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Azure.Functions.Worker.Definition;
-using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// A representation of a function.
+    /// </summary>
     public abstract class FunctionDefinition
     {
-        public abstract FunctionMetadata Metadata { get; set; }
+        /// <summary>
+        /// Gets the metadata for the function.
+        /// </summary>
+        public abstract FunctionMetadata Metadata { get; }
 
-        public abstract ImmutableArray<FunctionParameter> Parameters { get; set; }
+        /// <summary>
+        /// Gets the parameters for the function.
+        /// </summary>
+        public abstract ImmutableArray<FunctionParameter> Parameters { get; }
 
-        public abstract IFunctionInvoker Invoker { get; set; }
+        /// <summary>
+        /// Gets the output bindings for the function.
+        /// </summary>
+        public abstract OutputBindingsInfo OutputBindingsInfo { get; }
 
-        public abstract OutputBindingsInfo OutputBindingsInfo { get; set; }
+        /// <summary>
+        /// Gets custom items for the function.
+        /// </summary>
+        public abstract IDictionary<string, object> Items { get; }
     }
 }

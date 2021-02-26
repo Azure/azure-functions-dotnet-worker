@@ -3,10 +3,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Extensions.Options;
+using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -20,10 +20,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IFunctionDefinitionFactory> _mockFunctionDefinitionFactory = new Mock<IFunctionDefinitionFactory>();
 
         public FunctionBrokerTests()
-        {            
+        {
             var options = new WorkerOptions();
             var wrapper = new OptionsWrapper<WorkerOptions>(options);
-            _functionBroker = new FunctionBroker(_mockFunctionExecutionDelegate.Object, _mockFunctionContextFactory.Object, 
+            _functionBroker = new FunctionBroker(_mockFunctionExecutionDelegate.Object, _mockFunctionContextFactory.Object,
                 _mockFunctionDefinitionFactory.Object, wrapper, NullLogger<FunctionBroker>.Instance);
         }
 
@@ -36,10 +36,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var functionDescriptor = new TestFunctionMetadata();
             functionDescriptor.FunctionId = "123";
 
-            var definition = new TestFunctionDefinition
-            {
-                Metadata = functionDescriptor
-            };
+            var definition = new TestFunctionDefinition(functionDescriptor);
+
 
             var context = new TestFunctionContext();
             _mockFunctionDefinitionFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(definition);

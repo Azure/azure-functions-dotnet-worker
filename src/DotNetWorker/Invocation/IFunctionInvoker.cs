@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    public interface IFunctionInvoker
+    internal interface IFunctionInvoker
     {
         object CreateInstance(IServiceProvider instanceServices);
 

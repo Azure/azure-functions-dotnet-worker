@@ -10,10 +10,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 {
     internal class DefaultFunctionDefinition : FunctionDefinition
     {
-        public const string InvokerKey = "AzureFunctions_Invoker";
-
-        private readonly Lazy<IDictionary<string, object>> _itemsLazy = new Lazy<IDictionary<string, object>>(() => new Dictionary<string, object>());
-
         public DefaultFunctionDefinition(FunctionMetadata metadata, IEnumerable<FunctionParameter> parameters, OutputBindingsInfo outputBindings)
         {
             Metadata = metadata;

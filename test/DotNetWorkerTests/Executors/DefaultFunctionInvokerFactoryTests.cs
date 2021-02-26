@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 // Copyright (c) .NET Foundation. All rights reserved.
@@ -6,7 +6,6 @@
 
 using System;
 using System.Reflection;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Moq;
 using Xunit;
@@ -15,35 +14,32 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class DefaultFunctionInvokerFactoryTests
     {
+        private readonly IMethodInvokerFactory _methodInvokerFactory;
+        private readonly DefaultFunctionActivator _activator;
+        private readonly DefaultFunctionInvokerFactory _invokerFactory;
 
-        [Fact]
-        public void Create_IfMethodIsNull_Throws()
+        private MethodInfo _functionMethod;
+
+        public DefaultFunctionInvokerFactoryTests()
         {
-            // Arrange
-            MethodInfo method = null;
-            IMethodInvokerFactory methodInvokerFactory = CreateMethodInvokerFactory();
-            IFunctionActivator activator = CreateDummyActivator();
+            Mock<IMethodInfoLocator> invokerMock = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
+            invokerMock
+                .Setup(p => p.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(() => _functionMethod);
 
-            IFunctionInvokerFactory _invokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, activator);
-
-            // Act & Assert
-            var ex = Assert.Throws<ArgumentNullException>(() => _invokerFactory.Create(method));
-            Assert.Equal("method", ex.ParamName);
-        }
+            _methodInvokerFactory = CreateMethodInvokerFactory();
+            _activator = new DefaultFunctionActivator();
+            _invokerFactory = new DefaultFunctionInvokerFactory(_methodInvokerFactory, _activator, invokerMock.Object);
+        }       
 
         [Fact]
         public void Create_ReturnsFunctionInvoker()
         {
             // Arrange
-            MethodInfo method = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
-
-            IMethodInvokerFactory methodInvokerFactory = CreateMethodInvokerFactory();
-            IFunctionActivator activator = CreateDummyActivator();
-
-            IFunctionInvokerFactory _invokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, activator);
+            _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(method);
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -53,15 +49,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_IfStatic_UsesNullInstanceFactory()
         {
             // Arrange
-            MethodInfo method = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
-
-            IMethodInvokerFactory methodInvokerFactory = CreateMethodInvokerFactory();
-            IFunctionActivator activator = new DefaultFunctionActivator();
-
-            IFunctionInvokerFactory _invokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, activator);
+            _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(method);
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -74,15 +65,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_IfInstance_UsesActivatorInstanceFactory()
         {
             // Arrange
-            MethodInfo method = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.InstanceReturnVoid));
-
-            IMethodInvokerFactory methodInvokerFactory = CreateMethodInvokerFactory();
-            IFunctionActivator activator = new DefaultFunctionActivator();
-
-            IFunctionInvokerFactory _invokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, activator);
+            _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.InstanceReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(method);
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -94,15 +80,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_IfInstanceAndMethodIsInherited_UsesReflectedType()
         {
             // Arrange
-            MethodInfo method = GetMethodInfo(typeof(Subclass), nameof(Subclass.InheritedReturnVoid));
-
-            IMethodInvokerFactory methodInvokerFactory = CreateMethodInvokerFactory();
-            IFunctionActivator activator = new DefaultFunctionActivator();
-
-            IFunctionInvokerFactory _invokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, activator);
+            _functionMethod = GetMethodInfo(typeof(Subclass), nameof(Subclass.InheritedReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(method);
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<Subclass, object>>(invoker);

@@ -22,7 +22,5 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override ImmutableArray<FunctionParameter> Parameters { get; }
 
         public override OutputBindingsInfo OutputBindingsInfo { get; }
-
-        public override IDictionary<string, object> Items { get; } = new Dictionary<string, object>();
     }
 }

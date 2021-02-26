@@ -26,7 +26,5 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         public override ImmutableArray<FunctionParameter> Parameters { get; }
 
         public override OutputBindingsInfo OutputBindingsInfo { get; }
-
-        public override IDictionary<string, object> Items => _itemsLazy.Value;
     }
 }

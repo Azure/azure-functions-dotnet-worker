@@ -11,6 +11,7 @@ using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Extensions.Logging.Abstractions;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -19,22 +20,28 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         private readonly DefaultFunctionExecutor _executor;
         private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
+        private readonly Mock<IMethodInfoLocator> _mockLocator = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
+
+        private MethodInfo _methodInfoToReturn;
 
         public DefaultFunctionInvokerTests()
         {
-            _executor = new DefaultFunctionExecutor(NullLogger<DefaultFunctionExecutor>.Instance);
+            _mockLocator
+                .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(() => _methodInfoToReturn);
 
             var functionActivator = new DefaultFunctionActivator();
             var methodInvokerFactory = new DefaultMethodInvokerFactory();
-            _functionInvokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, functionActivator);
+            _functionInvokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, functionActivator, _mockLocator.Object);
+
+            _executor = new DefaultFunctionExecutor(_functionInvokerFactory, NullLogger<DefaultFunctionExecutor>.Instance);
         }
 
         [Fact]
         public async Task InvokeAsync_FunctionWithReturn()
         {
-            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithVoidReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithVoidReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -44,9 +51,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_FunctionWithVoidReturn()
         {
-            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -56,10 +62,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_FunctionWithTaskReturn()
         {
-
-            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithTaskReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithTaskReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -69,9 +73,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_FunctionWithVoidTaskReturn()
         {
-            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithVoidTaskReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithVoidTaskReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -81,9 +84,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_FunctionWithInputBindingAndReturn()
         {
-            MethodInfo mi = typeof(Functions).GetMethod(nameof(Functions.FunctionWithInputBindingAndReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithInputBindingAndReturn));
+            var context = CreateContext();
 
             var converter = new List<IConverter>
             {
@@ -104,9 +106,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithReturn()
         {
-            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -116,9 +117,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithVoidReturn()
         {
-            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -128,10 +128,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithTaskReturn()
         {
-
-            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithTaskReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithTaskReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -141,9 +139,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithVoidTaskReturn()
         {
-            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidTaskReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithVoidTaskReturn));
+            var context = CreateContext();
 
             await _executor.ExecuteAsync(context);
 
@@ -153,9 +150,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithInputBindingAndReturn()
         {
-            MethodInfo mi = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithInputBindingAndReturn));
-
-            var context = CreateContext(mi);
+            _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithInputBindingAndReturn));
+            var context = CreateContext();
 
             var converter = new List<IConverter>
             {
@@ -173,7 +169,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal("bindingValue", context.InvocationResult);
         }
 
-        private FunctionContext CreateContext(MethodInfo mi)
+        private FunctionContext CreateContext()
         {
             var context = new TestFunctionContext
             {
@@ -185,10 +181,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
 
             var metadata = new TestFunctionMetadata();
-            var parameters = mi.GetParameters().Select(p => new FunctionParameter(p.Name, p.ParameterType));
+
+            // We're controlling the method via the IMethodInfoLocator, so the strings here don't matter.
+            var parameters = _mockLocator.Object.GetMethod(string.Empty, string.Empty)
+                .GetParameters()
+                .Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
             context.FunctionDefinition = new DefaultFunctionDefinition(metadata, parameters, EmptyOutputBindingsInfo.Instance);
-            context.FunctionDefinition.Items[DefaultFunctionDefinition.InvokerKey] = _functionInvokerFactory.Create(mi);
 
             return context;
         }

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -27,10 +26,5 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the output bindings for the function.
         /// </summary>
         public abstract OutputBindingsInfo OutputBindingsInfo { get; }
-
-        /// <summary>
-        /// Gets custom items for the function.
-        /// </summary>
-        public abstract IDictionary<string, object> Items { get; }
     }
 }

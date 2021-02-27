@@ -13,23 +13,18 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal class DefaultFunctionDefinitionFactory : IFunctionDefinitionFactory
     {
-        private readonly IFunctionInvokerFactory _functionInvokerFactory;
-        private readonly IFunctionActivator _functionActivator;
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
 
-        public DefaultFunctionDefinitionFactory(IFunctionInvokerFactory functionInvokerFactory, IFunctionActivator functionActivator,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator)
+        public DefaultFunctionDefinitionFactory(IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator)
         {
-            _functionInvokerFactory = functionInvokerFactory ?? throw new ArgumentNullException(nameof(functionInvokerFactory));
-            _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
         }
 
         public FunctionDefinition Create(FunctionLoadRequest request)
         {
-            FunctionDefinition definition = request.ToFunctionDefinition();
+            FunctionDefinition definition = request.ToFunctionDefinition(_methodInfoLocator, _outputBindingsInfoProvider);
 
             if (definition.PathToAssembly == null)
             {
@@ -41,12 +36,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("The entry point is null.");
             }
 
-            IEnumerable<FunctionParameter> parameters = _methodInfoLocator.GetMethod(definition.PathToAssembly, definition.EntryPoint)
-                .GetParameters()
-                .Where(p => p.Name != null)
-                .Select(p => new FunctionParameter(p.Name!, p.ParameterType));
 
-            OutputBindingsInfo outputBindings = _outputBindingsInfoProvider.GetBindingsInfo(definition);
 
             return definition;
         }

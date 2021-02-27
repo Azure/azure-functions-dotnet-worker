@@ -7,13 +7,14 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
     internal class GrpcFunctionDefinition : FunctionDefinition
     {
-        public GrpcFunctionDefinition(FunctionLoadRequest loadRequest)
+        public GrpcFunctionDefinition(FunctionLoadRequest loadRequest, IMethodInfoLocator methodInfoLocator, IOutputBindingsInfoProvider outputBindingsInfoProvider)
         {
             EntryPoint = loadRequest.Metadata.EntryPoint;
             Name = loadRequest.Metadata.Name;
@@ -30,6 +31,14 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             OutputBindings = grpcOutputBindings?.ToImmutableDictionary(kv => kv.Key, infoToMetadataLambda)
                 ?? ImmutableDictionary<string, BindingMetadata>.Empty;
+
+            Parameters = methodInfoLocator.GetMethod(PathToAssembly, EntryPoint)
+                .GetParameters()
+                .Where(p => p.Name != null)
+                .Select(p => new FunctionParameter(p.Name!, p.ParameterType))
+                .ToImmutableArray();
+
+            OutputBindingsInfo = outputBindingsInfoProvider.GetBindingsInfo(this);
         }
 
         public override string PathToAssembly { get; }
@@ -44,8 +53,8 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
-        public override ImmutableArray<FunctionParameter> Parameters => throw new NotImplementedException();
+        public override ImmutableArray<FunctionParameter> Parameters { get; }
 
-        public override OutputBindingsInfo OutputBindingsInfo => throw new NotImplementedException();
+        public override OutputBindingsInfo OutputBindingsInfo { get; }
     }
 }

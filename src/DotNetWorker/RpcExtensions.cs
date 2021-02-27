@@ -8,6 +8,8 @@ using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -219,7 +221,11 @@ namespace Microsoft.Azure.Functions.Worker
             return typedData;
         }
 
-        internal static FunctionDefinition ToFunctionDefinition(this FunctionLoadRequest loadRequest) => new GrpcFunctionDefinition(loadRequest);
+        internal static FunctionDefinition ToFunctionDefinition(this FunctionLoadRequest loadRequest,
+            IMethodInfoLocator methodInfoLocator, IOutputBindingsInfoProvider outputBindingsInfoProvider)
+        {
+            return new GrpcFunctionDefinition(loadRequest, methodInfoLocator, outputBindingsInfoProvider);
+        }
 
         internal static RpcException? ToRpcException(this Exception exception)
         {

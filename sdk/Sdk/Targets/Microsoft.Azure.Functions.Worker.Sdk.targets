@@ -43,7 +43,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <WriteLinesToFile
         File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionExe$', '$(TargetName).exe'))"
         Overwrite="true" />
   </Target>
 
@@ -175,7 +175,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <WriteLinesToFile
         File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionAssembly$', $(TargetFileName)))"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionExe$', '$(TargetName).exe'))"
         Overwrite="true" />
 
   </Target>

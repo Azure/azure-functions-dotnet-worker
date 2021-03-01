@@ -2,7 +2,7 @@
   "description": {
     "language": "dotnet-isolated",
     "extensions": [ ".dll" ],
-    "defaultExecutablePath": "dotnet",
-    "defaultWorkerPath": "$functionAssembly$"
+    "defaultExecutablePath": "$functionExe$",
+    "defaultWorkerPath": "$functionExe$"
   }
 }

@@ -22,9 +22,9 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             _methodLocator = methodLocator ?? throw new ArgumentNullException(nameof(methodLocator));
         }
 
-        public IFunctionInvoker Create(FunctionMetadata metadata)
+        public IFunctionInvoker Create(FunctionDefinition definition)
         {
-            var method = _methodLocator.GetMethod(metadata.PathToAssembly, metadata.EntryPoint);
+            var method = _methodLocator.GetMethod(definition.PathToAssembly, definition.EntryPoint);
 
             Type? reflectedType = method.ReflectedType;
 

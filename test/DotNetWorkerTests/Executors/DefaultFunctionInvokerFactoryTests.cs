@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _methodInvokerFactory = CreateMethodInvokerFactory();
             _activator = new DefaultFunctionActivator();
             _invokerFactory = new DefaultFunctionInvokerFactory(_methodInvokerFactory, _activator, invokerMock.Object);
-        }       
+        }
 
         [Fact]
         public void Create_ReturnsFunctionInvoker()
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.InstanceReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _functionMethod = GetMethodInfo(typeof(Subclass), nameof(Subclass.InheritedReturnVoid));
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionMetadata());
+            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<Subclass, object>>(invoker);

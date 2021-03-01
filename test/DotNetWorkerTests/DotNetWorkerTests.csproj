@@ -22,8 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 

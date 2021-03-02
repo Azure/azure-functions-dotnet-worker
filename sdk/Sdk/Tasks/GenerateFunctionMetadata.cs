@@ -22,13 +22,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         [Required]
         public ITaskItem[]? ReferencePaths { get; set; }
 
+        [Required]
+        public string? ExtensionsTargetFramework { get; set; }
+
         public override bool Execute()
         {
             var functionGenerator = new FunctionMetadataGenerator(MSBuildLogger);
             var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
 
             var extensions = functionGenerator.Extensions;
-            var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!);
+            var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, ExtensionsTargetFramework!);
 
             extensionsCsProjGenerator.Generate();
 

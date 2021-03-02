@@ -1,19 +1,14 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class ExtensionsMetadataEnhancer
     {
-        // TODO: confirm paths will work both in Windows and Linux Azure, when published from Windows or Linux
         private const string ExtensionsBinaryDirectoryPath = @"./.azurefunctions";
         private const string AssemblyNameFromQualifiedNameRegex = @"^.+,+\s(.+),\sVersion=.+$";
 

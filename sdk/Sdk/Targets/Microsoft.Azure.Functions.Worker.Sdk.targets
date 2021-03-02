@@ -52,7 +52,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- 
   Build the webjobs extensions in ".azurefunctions"
   -->
-
+  <!--
+  We need to copy all files from <build-out>/bin except for "runtimes" directory. The "runtimes" directory inside "bin" doesn't contain the binaries for all platforms.
+  This is due to a bug in Functions SDK. Until that is fixed, we need to copy "runtimes" directly from build output, instead of copying from the "bin".
+  -->
   <Target Name ="_WorkerExtensionsBuildCopy" AfterTargets="_WorkerExtensionsBuild">
     <ItemGroup>
       <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\buildout\bin\**\*.*"
@@ -197,6 +200,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- 
   Publish the webjobs extensions in ".azurefunctions"
+  -->
+  <!--
+  We need to copy all files from <build-out>/bin except for "runtimes" directory. The "runtimes" directory inside "bin" doesn't contain the binaries for all platforms.
+  This is due to a bug in Functions SDK. Until that is fixed, we need to copy "runtimes" directly from build output, instead of copying from the "bin".
   -->
   <Target Name ="_WorkerExtensionsPublishCopy" AfterTargets="_WorkerExtensionsPublish">
     <ItemGroup>

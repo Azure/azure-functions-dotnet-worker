@@ -18,11 +18,11 @@ While the full middleware registration set of APIs is not yet exposed, middlewar
 
 ## Samples
 
-The samples for .NET Isolated using various Azure Functions bindings are available under `samples/SampleApp`([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples/SampleApp))
+The samples for .NET Isolated using various Azure Functions bindings are available under `samples/SampleApp` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples/SampleApp)).
 
-## How to run the sample
+## Create and run .NET Isolated functions
 
-**Note: Templates and tooling support for .NET Isolated are on the way. In the meanwhile, please use our sample projects as a starting point.**
+**Note: VS and VS Code support is on the way. In the meanwhile, please use `azure-functions-core-tools` or the sample projects as a starting point.**
 
 ### Install .NET 5.0
 Download .NET 5.0 [from here](https://dotnet.microsoft.com/download/dotnet/5.0)
@@ -32,19 +32,22 @@ Please make sure you have Azure Functions Core Tools >= `3.0.3331`.
 
 To download, please check out our docs at [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools)
 
-### Obtain functions project locally
-Download or clone the `samples/SampleApp` repository, and setup the relevant functions with connection strings (similar to a .NET Core 3 function).
+### Create a .NET Isolated project
+In an empty directory, run `func init` and select `dotnet (Isolated Process)`.
+
+### Add a function
+Run `func new` and select any trigger (`HttpTrigger` is a good one to start). Fill in the function name.
 
 ### Run functions locally
 Run `func host start` in the sample app directory.
 
-**Note:** the entire project will not run initially as it requires several connection strings to the services. We suggest you only keep the functions you are trying, and remove others to start. Http functions do not require any setup.
+**Note:** If you selected a trigger different from `HttpTrigger`, you may need to setup local connection strings or emulator for the trigger service.
 
 ### Attaching the debugger
 
 #### Visual Studio
 
-To debug in Visual Studio, uncomment the `Debugger.Launch()` statements in *Program.cs*. The process will attempt to launch a debugger before continuing.
+To debug in Visual Studio, add a `Debugger.Launch()` statement in *Program.cs* ([similar to this](https://github.com/Azure/azure-functions-dotnet-worker/blob/ankitkumarr/core-tools/samples/SampleApp/Program.cs#L17-L19), but uncommented). The process will attempt to launch a debugger before continuing.
 
 **YOU CAN NOT DEBUG DIRECTLY USING "Start Debugging" IN VISUAL STUDIO DIRECTLY.** You need to use the command line as mentioned in the previous **Run the sample locally** part of this readme.
 
@@ -64,7 +67,7 @@ We're working with the Visual Studio team to provide an integrated debugging exp
 
 3. If necessary, use `az account set` to select the subscription you want to use.
   
-4. Create a resource group, Storage account, and Azure Functions app.
+4. Create a resource group, Storage account, and Azure Functions app. If you would like to use an existing Windows .NET Core 3 function app, please skip this step.
 
     ```bash
     az group create --name AzureFunctionsQuickstart-rg --location westeurope
@@ -72,9 +75,10 @@ We're working with the Visual Studio team to provide an integrated debugging exp
     az functionapp create --resource-group AzureFunctionsQuickstart-rg --consumption-plan-location westeurope --runtime dotnet --functions-version 3 --name <APP_NAME> --storage-account <STORAGE_NAME>
     ```
 
+
 ### Deploy the app
 
-1. Ensure you're in your functions project (`SampleApp`) folder.
+1. Ensure you're in your functions project folder.
 2. Deploy the app.
 
     ```bash

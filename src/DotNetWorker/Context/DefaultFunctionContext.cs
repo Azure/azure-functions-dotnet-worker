@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -25,9 +24,9 @@ namespace Microsoft.Azure.Functions.Worker
             OutputBindings = new Dictionary<string, object>();
         }
 
-        public override FunctionInvocation Invocation { get; set; }
+        public override FunctionInvocation Invocation { get; }
 
-        public override FunctionDefinition FunctionDefinition { get; set; }
+        public override FunctionDefinition FunctionDefinition { get; }
 
         public override object? InvocationResult { get; set; }
 

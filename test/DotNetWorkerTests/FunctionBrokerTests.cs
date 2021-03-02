@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -30,18 +29,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async void DiposeExecutionContextTestAsync()
         {
-            var invocationRequest = new TestFunctionInvocation();
-            invocationRequest.FunctionId = "123";
-
+            var invocation = new TestFunctionInvocation(functionId: "123");
             var definition = new TestFunctionDefinition(functionId: "123");
 
-            var context = new TestFunctionContext();
+            var context = new TestFunctionContext(definition, invocation);
             _mockFunctionDefinitionFactory.Setup(p => p.Create(It.IsAny<FunctionLoadRequest>())).Returns(definition);
             _mockFunctionContextFactory.Setup(p => p.Create(It.IsAny<FunctionInvocation>(), definition)).Returns(context);
             _mockFunctionExecutionDelegate.Setup(p => p(It.IsAny<FunctionContext>())).Returns(Task.CompletedTask);
 
             _functionBroker.AddFunction(It.IsAny<FunctionLoadRequest>());
-            var result = await _functionBroker.InvokeAsync(invocationRequest);
+            var result = await _functionBroker.InvokeAsync(invocation);
             Assert.Equal(StatusResult.Types.Status.Success, result.Result.Status);
             Assert.True(context.IsDisposed);
         }

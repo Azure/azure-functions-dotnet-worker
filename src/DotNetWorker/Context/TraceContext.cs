@@ -4,18 +4,18 @@
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Contains metadata about an Azure Functions binding.
+    /// The trace context for the current invocation.
     /// </summary>
-    public abstract class BindingMetadata
+    public abstract class TraceContext
     {
         /// <summary>
-        /// The type of the binding. For example, "httpTrigger".
+        /// Gets the identity of the incoming invocation in a tracing system.
         /// </summary>
-        public abstract string Type { get; }
+        public abstract string TraceParent { get; }
 
         /// <summary>
-        /// The binding direction.
+        /// Gets the state data.
         /// </summary>
-        public abstract BindingDirection Direction { get; }
+        public abstract string TraceState { get; }
     }
 }

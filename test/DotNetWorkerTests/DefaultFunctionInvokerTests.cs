@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Definition;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -171,23 +170,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         private FunctionContext CreateContext()
         {
-            var context = new TestFunctionContext
-            {
-                Invocation = new TestFunctionInvocation
-                {
-                    FunctionId = "test",
-                    InvocationId = "1234"
-                }
-            };
+            var invocation = new TestFunctionInvocation(id: "test", functionId: "test");
 
             // We're controlling the method via the IMethodInfoLocator, so the strings here don't matter.
             var parameters = _mockLocator.Object.GetMethod(string.Empty, string.Empty)
                 .GetParameters()
                 .Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            context.FunctionDefinition = new TestFunctionDefinition(parameters: parameters, outputBindingsInfo: EmptyOutputBindingsInfo.Instance);
+            var definition = new TestFunctionDefinition(parameters: parameters, outputBindingsInfo: EmptyOutputBindingsInfo.Instance);
 
-            return context;
+            return new TestFunctionContext(definition, invocation);
         }
 
         private class Functions

@@ -2,27 +2,31 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using Microsoft.Azure.Functions.Worker.Context;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class TestFunctionInvocation : FunctionInvocation
     {
-        public TestFunctionInvocation()
+        public TestFunctionInvocation(string id = null, string functionId = null)
         {
-            InvocationId = Guid.NewGuid().ToString();
-            FunctionId = Guid.NewGuid().ToString();
+            if (id is not null)
+            {
+                Id = id;
+            }
+
+            if (functionId is not null)
+            {
+                FunctionId = functionId;
+            }
         }
 
         public override IValueProvider ValueProvider { get; set; }
 
-        public override string InvocationId { get; set; }
+        public override string Id { get; } = Guid.NewGuid().ToString();
 
-        public override string FunctionId { get; set; }
+        public override string FunctionId { get; } = Guid.NewGuid().ToString();
 
-        public override string TraceParent { get; set; }
-
-        public override string TraceState { get; set; }
+        public override TraceContext TraceContext { get; } = new DefaultTraceContext(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
     }
 }

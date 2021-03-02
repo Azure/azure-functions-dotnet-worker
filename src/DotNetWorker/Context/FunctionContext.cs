@@ -13,9 +13,9 @@ namespace Microsoft.Azure.Functions.Worker
     public abstract class FunctionContext
     {
         /// <summary>
-        /// Gets or sets the <see cref="FunctionInvocation"/> instance containing information about the invocation.
+        /// Gets the <see cref="FunctionInvocation"/> instance containing information about the invocation.
         /// </summary>
-        public abstract FunctionInvocation Invocation { get; set; }
+        public abstract FunctionInvocation Invocation { get; }
 
         /// <summary>
         /// Gets or sets the <see cref="IServiceProvider"/> that provides access to this execution's services.
@@ -23,9 +23,9 @@ namespace Microsoft.Azure.Functions.Worker
         public abstract IServiceProvider InstanceServices { get; set; }
 
         /// <summary>
-        /// Gets or sets the <see cref="FunctionDefinition"/> that describes the function being executed.
+        /// Gets the <see cref="FunctionDefinition"/> that describes the function being executed.
         /// </summary>
-        public abstract FunctionDefinition FunctionDefinition { get; set; }
+        public abstract FunctionDefinition FunctionDefinition { get; }
 
         /// <summary>
         /// Gets or sets the result of the invocation.

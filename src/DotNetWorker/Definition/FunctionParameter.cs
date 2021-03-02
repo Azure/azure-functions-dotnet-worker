@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.Azure.Functions.Worker.Definition
+namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
     /// Represents a parameter defined by the target function.

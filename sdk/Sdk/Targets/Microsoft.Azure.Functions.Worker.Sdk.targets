@@ -40,7 +40,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <Copy 
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(TargetDir)\$(_FunctionsExtensionsDirectory)"
+      DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
       OverwriteReadOnlyFiles="true" />
 
     <WriteLinesToFile
@@ -61,7 +61,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </ItemGroup>
 
     <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\%(RecursiveDir)" />
-
     <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
   </Target>
 
@@ -186,7 +185,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     
     <Copy
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(PublishDir)\$(_FunctionsExtensionsDirectory)"
+      DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
       OverwriteReadOnlyFiles="true" />
 
     <WriteLinesToFile
@@ -199,11 +198,15 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- 
   Publish the webjobs extensions in ".azurefunctions"
   -->
-  <Target Name ="_WorkerExtensionsPublishCopy" AfterTargets="_WorkerExtensionsRestorePublish">
+  <Target Name ="_WorkerExtensionsPublishCopy" AfterTargets="_WorkerExtensionsPublish">
     <ItemGroup>
-      <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\publishout\bin\**\*.*" />
+      <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\publishout\bin\**\*.*"
+                         Exclude="$(ExtensionsCsProjFilePath)\publishout\bin\runtimes\**\*.*"/>
+      <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\publishout\runtimes\**\*.*" />
     </ItemGroup>
+
     <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\%(RecursiveDir)" />
+    <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
   </Target>
 
   <Target Name ="_WorkerExtensionsPublish" AfterTargets="_WorkerExtensionsRestorePublish">

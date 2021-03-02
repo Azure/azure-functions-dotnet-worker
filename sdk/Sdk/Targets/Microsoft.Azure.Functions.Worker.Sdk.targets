@@ -210,7 +210,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name ="_WorkerExtensionsPublish" AfterTargets="_WorkerExtensionsRestorePublish">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Publish" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
+    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
   </Target>
 
   <Target Name="_WorkerExtensionsRestorePublish" AfterTargets="_GenerateFunctionsAndCopyContentFiles">

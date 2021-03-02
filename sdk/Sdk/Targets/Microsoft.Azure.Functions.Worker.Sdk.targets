@@ -16,6 +16,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
     <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
     <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(MSBuildThisFileDirectory)..\tools\netstandard2.0\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
+    <_FunctionsExtensionTargetFramework Condition=" '$(_FunctionsExtensionTargetFramework)'==''">netcoreapp3.1</_FunctionsExtensionTargetFramework>
     <_FunctionsExtensionsDirectory>.azurefunctions</_FunctionsExtensionsDirectory>
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
   </PropertyGroup>
@@ -34,11 +35,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       AssemblyPath="$(TargetDir)$(AssemblyName).dll" 
       ReferencePaths="@(ReferencePath)"
       ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
+      ExtensionsTargetFramework="$(_FunctionsExtensionTargetFramework)"
       OutputPath="$(TargetDir)"/>
 
     <Copy 
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(TargetDir)\$(_FunctionsExtensionsDirectory)"
+      DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
       OverwriteReadOnlyFiles="true" />
 
     <WriteLinesToFile
@@ -50,8 +52,23 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- 
   Build the webjobs extensions in ".azurefunctions"
   -->
+  <!--
+  We need to copy all files from <build-out>/bin except for "runtimes" directory. The "runtimes" directory inside "bin" doesn't contain the binaries for all platforms.
+  This is due to a bug in Functions SDK. Until that is fixed, we need to copy "runtimes" directly from build output, instead of copying from the "bin".
+  -->
+  <Target Name ="_WorkerExtensionsBuildCopy" AfterTargets="_WorkerExtensionsBuild">
+    <ItemGroup>
+      <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\buildout\bin\**\*.*"
+                         Exclude="$(ExtensionsCsProjFilePath)\buildout\bin\runtimes\**\*.*" />
+      <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\buildout\runtimes\**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\%(RecursiveDir)" />
+    <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
+  </Target>
+
   <Target Name ="_WorkerExtensionsBuild" AfterTargets="_WorkerExtensionsRestore">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(TargetDir)\.azurefunctions;CopyLocalLockFileAssemblies=true"/>
+    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\buildout;CopyLocalLockFileAssemblies=true"/>
   </Target>
 
   <Target Name="_WorkerExtensionsRestore" AfterTargets="_FunctionsPostBuild">
@@ -65,7 +82,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
   
   <Target Name="_EnhanceFunctionsExtensionsMetadataPostBuild"
-          AfterTargets="_WorkerExtensionsBuild">
+          AfterTargets="_WorkerExtensionsBuildCopy">
 
     <EnhanceExtensionsMetadata
       ExtensionsJsonPath="$(TargetDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"
@@ -166,11 +183,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       AssemblyPath="$(PublishDir)\$(AssemblyName).dll"
       ReferencePaths="@(ReferencePath)"
       ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
+      ExtensionsTargetFramework="$(_FunctionsExtensionTargetFramework)"
       OutputPath="$(PublishDir)"/>
     
     <Copy
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(PublishDir)\$(_FunctionsExtensionsDirectory)"
+      DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
       OverwriteReadOnlyFiles="true" />
 
     <WriteLinesToFile
@@ -183,8 +201,23 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- 
   Publish the webjobs extensions in ".azurefunctions"
   -->
+  <!--
+  We need to copy all files from <build-out>/bin except for "runtimes" directory. The "runtimes" directory inside "bin" doesn't contain the binaries for all platforms.
+  This is due to a bug in Functions SDK. Until that is fixed, we need to copy "runtimes" directly from build output, instead of copying from the "bin".
+  -->
+  <Target Name ="_WorkerExtensionsPublishCopy" AfterTargets="_WorkerExtensionsPublish">
+    <ItemGroup>
+      <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\publishout\bin\**\*.*"
+                         Exclude="$(ExtensionsCsProjFilePath)\publishout\bin\runtimes\**\*.*"/>
+      <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\publishout\runtimes\**\*.*" />
+    </ItemGroup>
+
+    <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\%(RecursiveDir)" />
+    <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
+  </Target>
+
   <Target Name ="_WorkerExtensionsPublish" AfterTargets="_WorkerExtensionsRestorePublish">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(PublishDir)\.azurefunctions;CopyLocalLockFileAssemblies=true"/>
+    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
   </Target>
 
   <Target Name="_WorkerExtensionsRestorePublish" AfterTargets="_GenerateFunctionsAndCopyContentFiles">
@@ -195,7 +228,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   Add HintPath to references in "extensions.json"
   -->
   <Target Name="_EnhanceFunctionsExtensionsMetadataPostPublish"
-          AfterTargets="_WorkerExtensionsPublish">
+          AfterTargets="_WorkerExtensionsPublishCopy">
 
     <EnhanceExtensionsMetadata
       ExtensionsJsonPath="$(PublishDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"

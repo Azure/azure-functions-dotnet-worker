@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -14,11 +14,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
+        private readonly string _targetFramework;
 
-        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath)
+        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath, string targetFramework)
         {
             _extensions = extensions ?? throw new ArgumentNullException(nameof(extensions));
             _outputPath = outputPath ?? throw new ArgumentNullException(nameof(outputPath));
+            _targetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
         }
 
         public void Generate()
@@ -54,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>{_targetFramework}</TargetFramework>
         <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
@@ -66,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator"" Version=""1.2.0"" />
+        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
         {extensionReferences}
     </ItemGroup>
 </Project>

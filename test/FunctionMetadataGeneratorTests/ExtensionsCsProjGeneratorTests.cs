@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System.Collections.Generic;
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
-            var generator = new ExtensionsCsprojGenerator(extensions, "");
+            var generator = new ExtensionsCsprojGenerator(extensions, "", "netcoreapp3.1");
 
             string actualCsproj = generator.GetCsProjContent();
 
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             return @"
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
         <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Script.ExtensionsMetadataGenerator"" Version=""1.2.0"" />
+        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
 <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
 <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />

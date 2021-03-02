@@ -1,7 +1,10 @@
 {
   "profiles": {
     "FunctionApp": {
-      "commandName": "Project"
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_STARTUP_HOOKS": "Microsoft.Azure.Functions.Worker"
+      }
     }
   }
 }

@@ -12,6 +12,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     {
         object?[]? InputArguments { get; }
 
-        object?[] TryBindFunctionInput(FunctionContext context);
+        object?[] BindFunctionInput(FunctionContext context);
     }
 }

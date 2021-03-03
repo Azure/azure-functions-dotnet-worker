@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         public object?[]? InputArguments => _parameterValues;
 
-        public object?[] TryBindFunctionInput(FunctionContext context)
+        public object?[] BindFunctionInput(FunctionContext context)
         {
             if (_inputBound)
             {

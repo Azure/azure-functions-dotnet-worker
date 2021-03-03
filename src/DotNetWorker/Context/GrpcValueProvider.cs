@@ -55,6 +55,12 @@ namespace Microsoft.Azure.Functions.Worker.Context
                 // This is guaranteed to be Json here -- we can use that.
                 TypedData.DataOneofCase.Json => value.Json,
                 TypedData.DataOneofCase.Bytes => value.Bytes.Memory,
+                TypedData.DataOneofCase.CollectionBytes => value.CollectionBytes.Bytes.Select(element => {
+                    return element.Memory.ToArray();
+                }),
+                TypedData.DataOneofCase.CollectionString => value.CollectionString.String,
+                TypedData.DataOneofCase.CollectionDouble => value.CollectionDouble.Double,
+                TypedData.DataOneofCase.CollectionSint64 => value.CollectionSint64.Sint64,
                 _ => throw new NotSupportedException($"{value.DataCase} is not supported yet."),
             };
         }

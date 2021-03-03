@@ -30,6 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
             response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
+            response.Capabilities.Add("TypedDataCollection", bool.TrueString);
 
             response.WorkerVersion = typeof(DefaultHostRequestHandler).Assembly.GetName().Version?.ToString();
 

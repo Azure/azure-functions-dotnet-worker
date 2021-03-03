@@ -286,7 +286,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     foundOutputAttribute = true;
 
-                    AddOutputBindingMetadata(bindingMetadata, propertyAttribute, property.Name);
+                    AddOutputBindingMetadata(bindingMetadata, propertyAttribute, property.PropertyType, property.Name);
                     AddExtensionInfo(_extensions, propertyAttribute);
                 }
             }
@@ -306,7 +306,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             $"Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 
-                    AddOutputBindingMetadata(bindingMetadata, methodAttribute, ReturnBindingName);
+                    AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, ReturnBindingName);
                     AddExtensionInfo(_extensions, methodAttribute);
 
                     foundBinding = true;
@@ -324,7 +324,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (IsFunctionBindingType(parameterAttribute))
                     {
-                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.Name);
+                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
                         AddExtensionInfo(_extensions, parameterAttribute);
                     }
                 }
@@ -351,20 +351,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
         }
 
-        private static void AddOutputBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, string? name = null)
+        private static void AddOutputBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? name = null)
         {
-            AddBindingMetadata(bindingMetadata, attribute, parameterName: name);
+            AddBindingMetadata(bindingMetadata, attribute, parameterType, parameterName: name);
         }
 
-        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, string? parameterName)
+        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName)
         {
             string bindingType = GetBindingType(attribute);
 
-            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterName);
+            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName);
             bindingMetadata.Add(binding);
         }
 
-        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, string? parameterName)
+        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
         {
             ExpandoObject binding = new ExpandoObject();
 
@@ -377,6 +377,31 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             bindingDict["Type"] = bindingType;
             bindingDict["Direction"] = GetBindingDirection(attribute);
+
+            // Is string parameter type
+            if (IsStringType(parameterType.FullName))
+            {
+                bindingDict["DataType"] = "String";
+            }
+            // Is binary parameter type
+            else if (IsBinaryType(parameterType.FullName))
+            {
+                bindingDict["DataType"] = "Binary";
+            }
+            // Array means we set cardinality many
+            // Add "cardinality": "many" if we see an IEnumerable type or array type
+            if (IsIterableCollection(parameterType, out DataType dataType))
+            {
+                bindingDict["Cardinality"] = "Many";
+                if (dataType.Equals(DataType.String))
+                {
+                    bindingDict["DataType"] = "String";
+                }
+                else if (dataType.Equals(DataType.Binary))
+                {
+                    bindingDict["DataType"] = "Binary";
+                }
+            }
 
             foreach (var property in attribute.GetAllDefinedProperties())
             {
@@ -461,6 +486,56 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return false;
+        }
+
+        private static bool IsIterableCollection(TypeReference type, out DataType dataType)
+        {
+            // Array and not byte array 
+            bool isArray = type.IsArray && !string.Equals(type.FullName, typeof(byte[]).FullName, StringComparison.Ordinal);
+            if (isArray)
+            {
+                TypeSpecification? typeSpecification = type as TypeSpecification;
+                if (typeSpecification is not null)
+                {
+                    dataType = GetDataTypeFromType(typeSpecification.ElementType.FullName);
+                    return true;
+                }
+            }
+
+            dataType = DataType.Undefined;
+            return false;
+        }
+
+        private static DataType GetDataTypeFromType(string fullName)
+        {
+            if (IsStringType(fullName))
+            {
+                return DataType.String;
+            }
+            else if (IsBinaryType(fullName))
+            {
+                return DataType.Binary;
+            }
+
+            return DataType.Undefined;
+        }
+
+        private static bool IsStringType(string fullName)
+        {
+            return string.Equals(fullName, typeof(string).FullName, StringComparison.Ordinal);
+        }
+
+        private static bool IsBinaryType(string fullName)
+        {
+            return string.Equals(fullName, typeof(byte[]).FullName, StringComparison.Ordinal);
+        }
+
+        private enum DataType
+        {
+            Undefined,
+            Binary,
+            String,
+            Stream
         }
     }
 }

@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Pipeline;

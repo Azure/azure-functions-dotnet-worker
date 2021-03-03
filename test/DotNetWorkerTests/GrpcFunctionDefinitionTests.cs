@@ -11,38 +11,36 @@ using static Microsoft.Azure.Functions.Worker.Grpc.Messages.BindingInfo.Types;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    public class DefaultFunctionDefinitionFactoryTests
+    public class GrpcFunctionDefinitionTests
     {
         [Fact]
         public void Creates()
         {
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
-            var factory = new DefaultFunctionDefinitionFactory(bindingInfoProvider, new DefaultMethodInfoLocator());
+            var methodInfoLocator = new DefaultMethodInfoLocator();
 
             string fullPathToThisAssembly = GetType().Assembly.Location;
-            var request = new FunctionLoadRequest
+            var functionLoadRequest = new FunctionLoadRequest
             {
                 FunctionId = "abc",
                 Metadata = new RpcFunctionMetadata
                 {
-                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(DefaultFunctionDefinitionFactoryTests)}+{nameof(MyFunctionClass)}.{nameof(MyFunctionClass.Run)}",
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyFunctionClass)}.{nameof(MyFunctionClass.Run)}",
                     ScriptFile = Path.GetFileName(fullPathToThisAssembly),
                     Name = "myfunction"
                 }
             };
 
             // We base this on the request exclusively, not the binding attributes.
-            request.Metadata.Bindings.Add("req", new BindingInfo { Type = "HttpTrigger", Direction = Direction.In });
-            request.Metadata.Bindings.Add("$return", new BindingInfo { Type = "Http", Direction = Direction.Out });
+            functionLoadRequest.Metadata.Bindings.Add("req", new BindingInfo { Type = "HttpTrigger", Direction = Direction.In });
+            functionLoadRequest.Metadata.Bindings.Add("$return", new BindingInfo { Type = "Http", Direction = Direction.Out });
 
-            FunctionDefinition definition = factory.Create(request);
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
 
-            Assert.Equal(request.FunctionId, definition.Id);
-            Assert.Equal(request.Metadata.EntryPoint, definition.EntryPoint);
-            Assert.Equal(request.Metadata.Name, definition.Name);
+            Assert.Equal(functionLoadRequest.FunctionId, definition.Id);
+            Assert.Equal(functionLoadRequest.Metadata.EntryPoint, definition.EntryPoint);
+            Assert.Equal(functionLoadRequest.Metadata.Name, definition.Name);
             Assert.Equal(fullPathToThisAssembly, definition.PathToAssembly);
-
-            Assert.IsType<MethodReturnOutputBindingsInfo>(definition.OutputBindingsInfo);
 
             // Parameters
             Assert.Collection(definition.Parameters,

@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Functions.Worker.Context;
-
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
@@ -10,8 +8,6 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     public abstract class FunctionInvocation
     {
-        public abstract IValueProvider ValueProvider { get; set; }
-
         /// <summary>
         /// The invocation id.
         /// </summary>

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -26,9 +27,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var invocation = new Mock<FunctionInvocation>(MockBehavior.Strict).Object;
             var definition = new Mock<FunctionDefinition>(MockBehavior.Strict).Object;
-            var features = new Mock<IInvocationFeatures>(MockBehavior.Strict).Object;
+            var features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, invocation, definition, features);
+            features.Set<FunctionDefinition>(definition);
+            features.Set<FunctionInvocation>(invocation);
+
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, features);
         }
 
         [Fact]

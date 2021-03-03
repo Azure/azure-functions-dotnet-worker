@@ -13,60 +13,78 @@ using Status = Microsoft.Azure.Functions.Worker.Grpc.Messages.StatusResult.Types
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal partial class FunctionBroker : IFunctionBroker
+    internal partial class FunctionsApplication : IFunctionsApplication
     {
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
         private readonly IFunctionContextFactory _functionContextFactory;
-        private readonly IFunctionDefinitionFactory _functionDefinitionFactory;
-        private readonly ILogger<FunctionBroker> _logger;
+        private readonly ILogger<FunctionsApplication> _logger;
         private readonly IOptions<WorkerOptions> _workerOptions;
 
-        public FunctionBroker(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
-            IFunctionDefinitionFactory functionDefinitionFactory, IOptions<WorkerOptions> workerOptions, ILogger<FunctionBroker> logger)
+        public FunctionsApplication(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
+             IOptions<WorkerOptions> workerOptions, ILogger<FunctionsApplication> logger)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
-            _functionDefinitionFactory = functionDefinitionFactory ?? throw new ArgumentNullException(nameof(functionDefinitionFactory));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public void AddFunction(FunctionLoadRequest functionLoadRequest)
+        public FunctionContext CreateContext(IInvocationFeatures features)
         {
-            FunctionDefinition functionDefinition = _functionDefinitionFactory.Create(functionLoadRequest);
+            var invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The {nameof(FunctionInvocation)} feature is required.");
 
-            if (functionDefinition.Id is null)
+            var functionDefinition = _functionMap[invocation.FunctionId];
+            features.Set<FunctionDefinition>(functionDefinition);
+
+            return _functionContextFactory.Create(features);
+        }
+
+        public Task<WorkerInitResponse> InitializeWorkerAsync(WorkerInitRequest request)
+        {
+            var response = new WorkerInitResponse()
+            {
+                Result = new StatusResult { Status = Status.Success }
+            };
+
+            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
+            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
+            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
+            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
+
+            response.WorkerVersion = typeof(FunctionsApplication).Assembly.GetName().Version?.ToString();
+
+            return Task.FromResult(response);
+        }
+
+        public void LoadFunction(FunctionDefinition definition)
+        {
+            if (definition.Id is null)
             {
                 throw new InvalidOperationException("The function ID for the current load request is invalid");
             }
 
-            Log.FunctionDefinitionCreated(_logger, functionDefinition);
-            _functionMap.TryAdd(functionDefinition.Id, functionDefinition);
+            Log.FunctionDefinitionCreated(_logger, definition);
+            _functionMap.TryAdd(definition.Id, definition);
         }
 
-        public async Task<InvocationResponse> InvokeAsync(FunctionInvocation invocation)
+        public async Task<InvocationResponse> InvokeFunctionAsync(FunctionContext context)
         {
             // TODO: File InvocationResponse removal issue
-            InvocationResponse response = new InvocationResponse
+            InvocationResponse response = new InvocationResponse()
             {
-                InvocationId = invocation.Id
+                InvocationId = context.Invocation.Id
             };
 
-            FunctionContext? executionContext = null;
-            var functionDefinition = _functionMap[invocation.FunctionId];
-
-            var scope = new FunctionInvocationScope(functionDefinition.Name, invocation.Id);
+            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Invocation.Id);
             using (_logger.BeginScope(scope))
             {
                 try
                 {
-                    executionContext = _functionContextFactory.Create(invocation, functionDefinition);
+                    await _functionExecutionDelegate(context);
 
-                    await _functionExecutionDelegate(executionContext);
-
-                    var parameterBindings = executionContext.OutputBindings;
-                    var result = executionContext.InvocationResult;
+                    var parameterBindings = context.OutputBindings;
+                    var result = context.InvocationResult;
 
                     // TODO: ParameterBinding shouldn't happen here
                     foreach (var binding in parameterBindings)
@@ -97,11 +115,21 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 finally
                 {
-                    (executionContext as IDisposable)?.Dispose();
+                    (context as IDisposable)?.Dispose();
                 }
             }
 
             return response;
+        }
+
+        public Task<FunctionEnvironmentReloadResponse> ReloadEnvironmentAsync(FunctionEnvironmentReloadRequest request)
+        {
+            var response = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult { Status = Status.Success }
+            };
+
+            return Task.FromResult(response);
         }
     }
 }

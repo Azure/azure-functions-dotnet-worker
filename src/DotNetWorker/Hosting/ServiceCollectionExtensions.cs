@@ -55,9 +55,8 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // Request handling
-            services.AddSingleton<IFunctionsHostClient, DefaultFunctionsHostClient>();
-            services.AddSingleton<IHostRequestHandler, DefaultHostRequestHandler>();
-            services.AddSingleton<IFunctionBroker, FunctionBroker>();
+            services.AddSingleton<IWorker, GrpcWorker>();
+            services.AddSingleton<IFunctionsApplication, FunctionsApplication>();
 
             // Execution
             services.AddSingleton<IMethodInfoLocator, DefaultMethodInfoLocator>();
@@ -72,9 +71,6 @@ namespace Microsoft.Extensions.DependencyInjection
             // Invocation Features
             services.TryAddSingleton<IInvocationFeaturesFactory, DefaultInvocationFeaturesFactory>();
             services.AddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();
-
-            // Function Definition
-            services.AddSingleton<IFunctionDefinitionFactory, DefaultFunctionDefinitionFactory>();
 
             // Output Bindings
             services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();

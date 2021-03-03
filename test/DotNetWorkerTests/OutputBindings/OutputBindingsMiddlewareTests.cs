@@ -152,11 +152,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
                 testOutputBindings[bindingName] = new TestBindingMetadata($"SomeOutput{bindingName}", BindingDirection.Out);
             }
 
-            var metadata = new TestFunctionDefinition(outputBindings: testOutputBindings);
-
-            var definition = new TestFunctionDefinition(
-                outputBindingsInfo: new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata));
-
+            var definition = new TestFunctionDefinition(outputBindings: testOutputBindings);
             var context = new TestFunctionContext(definition, null);
 
             return context;

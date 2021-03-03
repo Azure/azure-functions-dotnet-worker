@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -17,16 +17,16 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly WorkerStartupOptions _options;
         private readonly FunctionRpcClient _rpcClient;
         private readonly FunctionsHostOutputChannel _outputChannel;
-        private readonly IFunctionsHostClient _client;
+        private readonly IWorker _worker;
 
         private Task? _writerTask;
         private Task? _readerTask;
 
-        public WorkerHostedService(FunctionRpcClient rpcClient, FunctionsHostOutputChannel outputChannel, IFunctionsHostClient client, IOptions<WorkerStartupOptions> options)
+        public WorkerHostedService(FunctionRpcClient rpcClient, FunctionsHostOutputChannel outputChannel, IWorker worker, IOptions<WorkerStartupOptions> options)
         {
             _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
             _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
-            _client = client ?? throw new ArgumentNullException(nameof(client));
+            _worker = worker ?? throw new ArgumentNullException(nameof(worker));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             while (await responseStream.MoveNext())
             {
-                await _client.ProcessRequestAsync(responseStream.Current);
+                await _worker.ProcessRequestAsync(responseStream.Current);
             }
         }
     }

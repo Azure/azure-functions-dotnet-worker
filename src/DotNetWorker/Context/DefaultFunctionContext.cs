@@ -14,14 +14,14 @@ namespace Microsoft.Azure.Functions.Worker
         private IServiceScope? _instanceServicesScope;
         private IServiceProvider? _instanceServices;
 
-        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, FunctionInvocation invocation,
-            FunctionDefinition definition, IInvocationFeatures features)
+        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features)
         {
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
-            Invocation = invocation ?? throw new ArgumentNullException(nameof(invocation));
             Features = features ?? throw new ArgumentNullException(nameof(features));
-            FunctionDefinition = definition ?? throw new ArgumentNullException(nameof(definition));
             OutputBindings = new Dictionary<string, object>();
+
+            Invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The {nameof(FunctionInvocation)} feature is required.");
+            FunctionDefinition = features.Get<FunctionDefinition>() ?? throw new InvalidOperationException($"The {nameof(FunctionDefinition)} feature is required.");
         }
 
         public override FunctionInvocation Invocation { get; }

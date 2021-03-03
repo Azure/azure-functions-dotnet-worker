@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using Microsoft.Azure.Functions.Worker.Definition;
-using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -16,11 +15,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the parameters for the function.
         /// </summary>
         public abstract ImmutableArray<FunctionParameter> Parameters { get; }
-
-        /// <summary>
-        /// Gets the output bindings for the function.
-        /// </summary>
-        public abstract OutputBindingsInfo OutputBindingsInfo { get; }
 
         /// <summary>
         /// Gets the path to the assembly that contains the function.

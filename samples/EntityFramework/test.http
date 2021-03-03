@@ -1,0 +1,22 @@
+### Create Blog
+POST http://localhost:7071/api/blog
+Content-Type: application/json
+
+{
+    "Url": "http://example.com"
+}
+
+### Create Post
+
+POST http://localhost:7071/api/blog/1/post
+Content-Type: application/json
+
+{
+    "Title": "Hello World",
+    "Content": "This is the content"
+}
+
+### Get Posts
+GET http://localhost:7071/api/posts
+
+

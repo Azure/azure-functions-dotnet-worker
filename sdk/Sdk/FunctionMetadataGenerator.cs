@@ -24,11 +24,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private const string VoidType = "System.Void";
         private const string ReturnBindingName = "$return";
         private const string HttpTriggerBindingType = "HttpTrigger";
+        private const string IEnumerableType = "System.Collections.IEnumerable";
+        private const string IEnumerableGenericType = "System.Collections.Generic.IEnumerable`1";
         private const string IEnumerableOfStringType = "System.Collections.Generic.IEnumerable`1<System.String>";
         private const string IEnumerableOfBinaryType = "System.Collections.Generic.IEnumerable`1<System.Byte[]>";
         private const string IEnumerableOfT = "System.Collections.Generic.IEnumerable`1<T>";
         private const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
         private const string GenericIEnumerableArgumentName = "T";
+        private const string StringType = "System.String";
+        private const string ByteArrayType = "System.Byte[]";
+        private const string LookupGenericType = "System.Linq.Lookup`2";
+        private const string DictionaryGenericType = "System.Collections.Generic.Dictionary`2";
 
         private readonly IndentableLogger _logger;
 
@@ -420,7 +426,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
             // Array and not byte array 
-            bool isArray = type.IsArray && !string.Equals(type.FullName, typeof(byte[]).FullName, StringComparison.Ordinal);
+            bool isArray = type.IsArray && !string.Equals(type.FullName, ByteArrayType, StringComparison.Ordinal);
             if (isArray)
             {
                 TypeSpecification? typeSpecification = type as TypeSpecification;
@@ -432,8 +438,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             bool isMappingEnumerable = IsOrDerivedFrom(type, IEnumerableOfKeyValuePair)
-                || IsOrDerivedFrom(type, typeof(Lookup<,>).FullName)
-                || IsOrDerivedFrom(type, typeof(Dictionary<,>).FullName);
+                || IsOrDerivedFrom(type, LookupGenericType)
+                || IsOrDerivedFrom(type, DictionaryGenericType);
             if (isMappingEnumerable)
             {
                 dataType = DataType.Undefined;
@@ -444,8 +450,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bool isEnumerableOfT = IsOrDerivedFrom(type, IEnumerableOfT);
             bool isEnumerableCollection =
                 !IsStringType(type.FullName)
-                && (IsOrDerivedFrom(type, typeof(IEnumerable).FullName)
-                    || IsOrDerivedFrom(type, typeof(IEnumerable<>).FullName)
+                && (IsOrDerivedFrom(type, IEnumerableType)
+                    || IsOrDerivedFrom(type, IEnumerableGenericType)
                     || isEnumerableOfT);
             if (isEnumerableCollection)
             {
@@ -566,12 +572,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool IsStringType(string fullName)
         {
-            return string.Equals(fullName, typeof(string).FullName, StringComparison.Ordinal);
+            return string.Equals(fullName, StringType, StringComparison.Ordinal);
         }
 
         private static bool IsBinaryType(string fullName)
         {
-            return string.Equals(fullName, typeof(byte[]).FullName, StringComparison.Ordinal);
+            return string.Equals(fullName, ByteArrayType, StringComparison.Ordinal);
         }
 
         private static string GetBindingType(CustomAttribute attribute)

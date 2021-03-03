@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
         public GrpcHostLoggerTests()
         {
             _channel = Channel.CreateUnbounded<StreamingMessage>();
-            var outputChannel = new FunctionsHostOutputChannel(_channel);
+            var outputChannel = new GrpcHostChannel(_channel);
             _provider = new GrpcFunctionsHostLoggerProvider(outputChannel);
             _provider.SetScopeProvider(new LoggerExternalScopeProvider());
         }

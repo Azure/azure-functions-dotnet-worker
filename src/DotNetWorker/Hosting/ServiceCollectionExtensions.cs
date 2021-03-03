@@ -114,7 +114,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
         internal static IServiceCollection RegisterOutputChannel(this IServiceCollection services)
         {
-            return services.AddSingleton<FunctionsHostOutputChannel>(s =>
+            return services.AddSingleton<GrpcHostChannel>(s =>
             {
                 UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
                 {
@@ -123,7 +123,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     AllowSynchronousContinuations = true
                 };
 
-                return new FunctionsHostOutputChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>(outputOptions));
+                return new GrpcHostChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>(outputOptions));
             });
         }
     }

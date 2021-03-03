@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Context.Features;
@@ -29,11 +30,13 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
+        private readonly IOptions<WorkerOptions> _workerOptions;
+
         private Task? _writerTask;
         private Task? _readerTask;
 
-        public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, FunctionsHostOutputChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, IOptions<GrpcWorkerStartupOptions> startupOptions)
+        public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
+            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions)
         {
             if (outputChannel == null)
             {
@@ -49,6 +52,7 @@ namespace Microsoft.Azure.Functions.Worker
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
         }
 
         public Task StartAsync(CancellationToken token)
@@ -111,7 +115,6 @@ namespace Microsoft.Azure.Functions.Worker
                 MsgType.WorkerInitRequest => WorkerInitRequestHandlerAsync(request),
                 MsgType.FunctionLoadRequest => FunctionLoadRequestHandlerAsync(request),
                 MsgType.InvocationRequest => InvocationRequestHandlerAsync(request),
-                MsgType.FunctionEnvironmentReloadRequest => FunctionEnvironmentReloadRequestHandlerAsync(request),
                 // TODO: Trace that we missed this MsgType
                 _ => Task.CompletedTask,
             };
@@ -128,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request.InvocationRequest, _outputBindingsInfoProvider));
 
-            InvocationResponse response = await _application.InvokeFunctionAsync(context);
+            InvocationResponse response = await InvokeAsync(_application, _workerOptions.Value.Serializer, context);
 
             StreamingMessage responseMessage = new StreamingMessage
             {
@@ -139,9 +142,60 @@ namespace Microsoft.Azure.Functions.Worker
             await _outputWriter.WriteAsync(responseMessage);
         }
 
+        internal static async Task<InvocationResponse> InvokeAsync(IFunctionsApplication application, ObjectSerializer serializer, FunctionContext context)
+        {
+            var response = new InvocationResponse();
+
+            try
+            {
+                await application.InvokeFunctionAsync(context);
+
+                var parameterBindings = context.OutputBindings;
+                var result = context.InvocationResult;
+
+                foreach (var binding in parameterBindings)
+                {
+                    var parameterBinding = new ParameterBinding
+                    {
+                        Name = binding.Key,
+                        Data = await binding.Value.ToRpcAsync(serializer)
+                    };
+
+                    response.OutputData.Add(parameterBinding);
+                }
+                if (result != null)
+                {
+                    TypedData? returnVal = await result.ToRpcAsync(serializer);
+
+                    response.ReturnValue = returnVal;
+                }
+
+                response.Result = new StatusResult { Status = StatusResult.Types.Status.Success };
+            }
+            catch (Exception ex)
+            {
+                response.Result = new StatusResult
+                {
+                    Exception = ex.ToRpcException(),
+                    Status = StatusResult.Types.Status.Failure
+                };
+            }
+            finally
+            {
+                (context as IDisposable)?.Dispose();
+            }
+
+            return response;
+        }
+
         internal async Task WorkerInitRequestHandlerAsync(StreamingMessage request)
         {
-            WorkerInitResponse response = await _application.InitializeWorkerAsync(request.WorkerInitRequest);
+            await _application.InitializeAsync();
+
+            var response = new WorkerInitResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+            };
 
             StreamingMessage responseMessage = new StreamingMessage
             {
@@ -172,19 +226,6 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 RequestId = request.RequestId,
                 FunctionLoadResponse = response
-            };
-
-            await _outputWriter.WriteAsync(responseMessage);
-        }
-
-        internal async Task FunctionEnvironmentReloadRequestHandlerAsync(StreamingMessage request)
-        {
-            FunctionEnvironmentReloadResponse response = await _application.ReloadEnvironmentAsync(request.FunctionEnvironmentReloadRequest);
-
-            StreamingMessage responseMessage = new StreamingMessage
-            {
-                RequestId = request.RequestId,
-                FunctionEnvironmentReloadResponse = response
             };
 
             await _outputWriter.WriteAsync(responseMessage);

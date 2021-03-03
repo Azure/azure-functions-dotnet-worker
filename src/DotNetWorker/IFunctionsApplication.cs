@@ -2,19 +2,16 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     internal interface IFunctionsApplication
     {
-        Task<WorkerInitResponse> InitializeWorkerAsync(WorkerInitRequest request);
+        Task<InitializationResponse> InitializeAsync();
 
         void LoadFunction(FunctionDefinition definition);
 
-        Task<InvocationResponse> InvokeFunctionAsync(FunctionContext context);
-
-        Task<FunctionEnvironmentReloadResponse> ReloadEnvironmentAsync(FunctionEnvironmentReloadRequest request);
+        Task InvokeFunctionAsync(FunctionContext context);
 
         FunctionContext CreateContext(IInvocationFeatures features);
     }

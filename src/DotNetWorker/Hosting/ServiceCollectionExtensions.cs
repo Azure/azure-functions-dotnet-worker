@@ -55,7 +55,6 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // Request handling
-            services.AddSingleton<IWorker, GrpcWorker>();
             services.AddSingleton<IFunctionsApplication, FunctionsApplication>();
 
             // Execution
@@ -76,10 +75,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
 
             // gRpc
+            services.AddSingleton<IWorker, GrpcWorker>();
             services.AddSingleton<FunctionRpcClient>(p =>
             {
-                IOptions<WorkerStartupOptions> argumentsOptions = p.GetService<IOptions<WorkerStartupOptions>>();
-                WorkerStartupOptions arguments = argumentsOptions.Value;
+                IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>();
+                GrpcWorkerStartupOptions arguments = argumentsOptions.Value;
 
                 GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{arguments.Host}:{arguments.Port}", new GrpcChannelOptions()
                 {
@@ -89,9 +89,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return new FunctionRpcClient(grpcChannel);
             });
             services.AddSingleton<IHostedService, WorkerHostedService>();
-
-            // Options
-            services.AddOptions<WorkerStartupOptions>()
+            services.AddOptions<GrpcWorkerStartupOptions>()
                 .Configure<IConfiguration>((arguments, config) =>
                 {
                     config.Bind(arguments);

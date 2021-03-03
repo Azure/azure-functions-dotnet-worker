@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             public static void FunctionBindingFeatureUnavailable(ILogger<DefaultFunctionExecutor> logger, FunctionContext context)
             {
-                _functionBindingFeatureUnavailable(logger, context.Invocation.InvocationId, context.Invocation.FunctionId, null);
+                _functionBindingFeatureUnavailable(logger, context.Invocation.Id, context.Invocation.FunctionId, null);
             }
         }
     }

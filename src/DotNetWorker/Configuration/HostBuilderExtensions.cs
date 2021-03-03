@@ -2,13 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Azure.Functions.Worker.Configuration
+namespace Microsoft.Extensions.Hosting
 {
     public static class HostBuilderExtensions
     {

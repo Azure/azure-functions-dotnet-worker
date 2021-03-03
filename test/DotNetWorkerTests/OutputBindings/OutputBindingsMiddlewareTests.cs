@@ -149,22 +149,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             foreach (string bindingName in outputBindings)
             {
-                testOutputBindings[bindingName] = new TestBindingMetadata()
-                {
-                    Direction = BindingDirection.Out,
-                    Type = $"SomeOutput{bindingName}"
-                };
+                testOutputBindings[bindingName] = new TestBindingMetadata($"SomeOutput{bindingName}", BindingDirection.Out);
             }
 
             var metadata = new TestFunctionDefinition(outputBindings: testOutputBindings);
 
-            var defintion = new TestFunctionDefinition(
+            var definition = new TestFunctionDefinition(
                 outputBindingsInfo: new DefaultOutputBindingsInfoProvider().GetBindingsInfo(metadata));
 
-            var context = new TestFunctionContext()
-            {
-                FunctionDefinition = defintion
-            };
+            var context = new TestFunctionContext(definition, null);
 
             return context;
         }
@@ -217,11 +210,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
         public override Stream Body { get; }
 
-        public override HttpHeadersCollection Headers { get;  }
+        public override HttpHeadersCollection Headers { get; }
 
-        public override IReadOnlyCollection<IHttpCookie> Cookies { get;  }
+        public override IReadOnlyCollection<IHttpCookie> Cookies { get; }
 
-        public override Uri Url {get;}
+        public override Uri Url { get; }
 
         public override IEnumerable<ClaimsIdentity> Identities { get; }
 

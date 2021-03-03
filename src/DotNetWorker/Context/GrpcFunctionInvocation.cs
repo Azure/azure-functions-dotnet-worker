@@ -7,24 +7,21 @@ namespace Microsoft.Azure.Functions.Worker.Context
 {
     internal class GrpcFunctionInvocation : FunctionInvocation
     {
+        private InvocationRequest _invocationRequest;
+
         public GrpcFunctionInvocation(InvocationRequest invocationRequest)
         {
-            InvocationId = invocationRequest.InvocationId;
-            FunctionId = invocationRequest.FunctionId;
-            TraceParent = invocationRequest.TraceContext.TraceParent;
-            TraceState = invocationRequest.TraceContext.TraceState;
-
+            _invocationRequest = invocationRequest;
+            TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, _invocationRequest.TraceContext.TraceState);
             ValueProvider = new GrpcValueProvider(invocationRequest.InputData, invocationRequest.TriggerMetadata);
         }
 
         public override IValueProvider ValueProvider { get; set; }
 
-        public override string InvocationId { get; set; }
+        public override string Id => _invocationRequest.InvocationId;
 
-        public override string FunctionId { get; set; }
+        public override string FunctionId => _invocationRequest.FunctionId;
 
-        public override string TraceParent { get; set; }
-
-        public override string TraceState { get; set; }
+        public override TraceContext TraceContext { get; }
     }
 }

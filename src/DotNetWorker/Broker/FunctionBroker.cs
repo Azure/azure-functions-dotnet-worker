@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -51,13 +50,13 @@ namespace Microsoft.Azure.Functions.Worker
             // TODO: File InvocationResponse removal issue
             InvocationResponse response = new InvocationResponse
             {
-                InvocationId = invocation.InvocationId
+                InvocationId = invocation.Id
             };
 
             FunctionContext? executionContext = null;
             var functionDefinition = _functionMap[invocation.FunctionId];
 
-            var scope = new FunctionInvocationScope(functionDefinition.Name, invocation.InvocationId);
+            var scope = new FunctionInvocationScope(functionDefinition.Name, invocation.Id);
             using (_logger.BeginScope(scope))
             {
                 try

@@ -6,7 +6,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -52,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Null(context.InvocationResult);
+            Assert.Null(context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -63,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("done", context.InvocationResult);
+            Assert.Equal("done", context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -74,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("done", context.InvocationResult);
+            Assert.Equal("done", context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -85,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Null(context.InvocationResult);
+            Assert.Null(context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -105,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("inputValue", context.InvocationResult);
+            Assert.Equal("inputValue", context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -116,7 +115,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Null(context.InvocationResult);
+            Assert.Null(context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -127,7 +126,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("done", context.InvocationResult);
+            Assert.Equal("done", context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -138,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("done", context.InvocationResult);
+            Assert.Equal("done", context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -149,7 +148,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Null(context.InvocationResult);
+            Assert.Null(context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -170,20 +169,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("triggerValue", context.InvocationResult);
+            Assert.Equal("triggerValue", context.GetBindings().InvocationResult);
         }
 
         private FunctionContext CreateContext(FunctionDefinition definition = null, FunctionInvocation invocation = null)
         {
             invocation = invocation ?? new TestFunctionInvocation(id: "1234", functionId: "test");
+
             // We're controlling the method via the IMethodInfoLocator, so the strings here don't matter.
             var parameters = _mockLocator.Object.GetMethod(string.Empty, string.Empty)
                 .GetParameters()
                 .Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
             definition = definition ?? new TestFunctionDefinition(parameters: parameters);
-
-            var context = new TestFunctionContext(functionDefinition: definition, invocation: invocation);
 
             return new TestFunctionContext(definition, invocation);
         }

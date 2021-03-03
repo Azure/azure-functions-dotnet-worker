@@ -115,7 +115,6 @@ namespace Microsoft.Azure.Functions.Worker
                 MsgType.WorkerInitRequest => WorkerInitRequestHandlerAsync(request),
                 MsgType.FunctionLoadRequest => FunctionLoadRequestHandlerAsync(request),
                 MsgType.InvocationRequest => InvocationRequestHandlerAsync(request),
-                MsgType.FunctionEnvironmentReloadRequest => FunctionEnvironmentReloadRequestHandlerAsync(request),
                 // TODO: Trace that we missed this MsgType
                 _ => Task.CompletedTask,
             };
@@ -154,22 +153,26 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 await application.InvokeFunctionAsync(context);
 
-                var parameterBindings = context.OutputBindings;
-                var result = context.InvocationResult;
+                var functionBindings = context.GetBindings();
 
-                foreach (var binding in parameterBindings)
+                foreach (var binding in functionBindings.OutputBindingData)
                 {
                     var parameterBinding = new ParameterBinding
                     {
-                        Name = binding.Key,
-                        Data = await binding.Value.ToRpcAsync(serializer)
+                        Name = binding.Key
                     };
+
+                    if (binding.Value is not null)
+                    {
+                        parameterBinding.Data = await binding.Value.ToRpcAsync(serializer);
+                    }
 
                     response.OutputData.Add(parameterBinding);
                 }
-                if (result != null)
+
+                if (functionBindings.InvocationResult != null)
                 {
-                    TypedData? returnVal = await result.ToRpcAsync(serializer);
+                    TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(serializer);
 
                     response.ReturnValue = returnVal;
                 }

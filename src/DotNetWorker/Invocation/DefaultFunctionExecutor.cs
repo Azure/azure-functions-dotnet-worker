@@ -28,22 +28,20 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
                 _ => _invokerFactory.Create(context.FunctionDefinition));
 
             object? instance = invoker.CreateInstance(context.InstanceServices);
-            var bindingFeature = context.Features.Get<IModelBindingFeature>();
+            var modelBindingFeature = context.Features.Get<IModelBindingFeature>();
 
             object?[] inputArguments;
-            if (bindingFeature is null)
+            if (modelBindingFeature is null)
             {
-                Log.FunctionBindingFeatureUnavailable(_logger, context);
+                Log.ModelBindingFeatureUnavailable(_logger, context);
                 inputArguments = new object?[context.FunctionDefinition.Parameters.Length];
             }
             else
             {
-                inputArguments = bindingFeature.BindFunctionInput(context);
+                inputArguments = modelBindingFeature.BindFunctionInput(context);
             }
 
-            object? result = await invoker.InvokeAsync(instance, inputArguments);
-
-            context.InvocationResult = result;
+            context.GetBindings().InvocationResult = await invoker.InvokeAsync(instance, inputArguments);
         }
     }
 }

@@ -11,13 +11,13 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     {
         private static class Log
         {
-            private static readonly Action<ILogger, string, string, Exception?> _functionBindingFeatureUnavailable =
-                WorkerMessage.Define<string, string>(LogLevel.Warning, new EventId(2, nameof(FunctionBindingFeatureUnavailable)),
+            private static readonly Action<ILogger, string, string, Exception?> _modelBindingFeatureUnavailable =
+                WorkerMessage.Define<string, string>(LogLevel.Warning, new EventId(2, nameof(ModelBindingFeatureUnavailable)),
                     "The feature " + nameof(IModelBindingFeature) + " was not available for invocation '{invocationId}' of function '{functionName}'. Unable to process input bindings.");
 
-            public static void FunctionBindingFeatureUnavailable(ILogger<DefaultFunctionExecutor> logger, FunctionContext context)
+            public static void ModelBindingFeatureUnavailable(ILogger<DefaultFunctionExecutor> logger, FunctionContext context)
             {
-                _functionBindingFeatureUnavailable(logger, context.Invocation.Id, context.Invocation.FunctionId, null);
+                _modelBindingFeatureUnavailable(logger, context.Invocation.Id, context.Invocation.FunctionId, null);
             }
         }
     }

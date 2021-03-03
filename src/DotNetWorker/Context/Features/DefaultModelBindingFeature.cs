@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Definition;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
@@ -36,17 +35,13 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
-                var functionBindings = context.Features.Get<IFunctionBindingsFeature>();
-
+                var functionBindings = context.GetBindings();
                 object? source = null;
 
                 // Check InputData first, then TriggerMetadata
-                if (functionBindings is not null)
+                if (!functionBindings.InputData.TryGetValue(param.Name, out source))
                 {
-                    if (!functionBindings.InputData.TryGetValue(param.Name, out source))
-                    {
-                        functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
-                    }
+                    functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }
 
                 var converterContext = new DefaultConverterContext(param, source, context);

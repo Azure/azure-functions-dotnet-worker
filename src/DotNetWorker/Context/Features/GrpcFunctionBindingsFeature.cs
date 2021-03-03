@@ -16,6 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         private IReadOnlyDictionary<string, object?>? _triggerMetadata;
         private IReadOnlyDictionary<string, object?>? _inputData;
+        private IDictionary<string, object?>? _outputData;
         private OutputBindingsInfo? _outputBindings;
 
         public GrpcFunctionBindingsFeature(FunctionContext context, InvocationRequest invocationRequest, IOutputBindingsInfoProvider outputBindingsInfoProvider)
@@ -51,7 +52,20 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
         }
 
-        public OutputBindingsInfo OutputBindings
+        public IDictionary<string, object?> OutputBindingData
+        {
+            get
+            {
+                if (_outputData is null)
+                {
+                    _outputData = new Dictionary<string, object?>();
+                }
+
+                return _outputData;
+            }
+        }
+
+        public OutputBindingsInfo OutputBindingsInfo
         {
             get
             {
@@ -63,6 +77,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 return _outputBindings;
             }
         }
+
+        public object? InvocationResult { get; set; }
+
 
         public void SetOutputBinding(string name, object value)
         {

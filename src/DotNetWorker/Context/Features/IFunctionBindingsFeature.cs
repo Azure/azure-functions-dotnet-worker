@@ -12,6 +12,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         public IReadOnlyDictionary<string, object?> InputData { get; }
 
-        public OutputBindingsInfo OutputBindings { get; }
+        public IDictionary<string, object?> OutputBindingData { get; }
+
+        public OutputBindingsInfo OutputBindingsInfo { get; }
+
+        public object? InvocationResult { get; set; }
     }
 }

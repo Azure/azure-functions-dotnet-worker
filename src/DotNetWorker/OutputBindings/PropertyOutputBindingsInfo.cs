@@ -1,10 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {
@@ -19,20 +18,21 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
 
         public override void BindOutputInContext(FunctionContext context)
         {
-            object? result = context.InvocationResult;
+            var functionBindings = context.GetBindings();
+            object? result = functionBindings.InvocationResult;
 
             if (result is not null)
             {
-                AddResultToOutputBindings(context.OutputBindings, result);
+                AddResultToOutputBindings(functionBindings.OutputBindingData, result);
 
                 // Because this context had property output bindings,
                 // any invocation result was tranformed to output bindings, so the invocation result
                 // would now be null.
-                context.InvocationResult = null;
+                functionBindings.InvocationResult = null;
             }
         }
 
-        private void AddResultToOutputBindings(IDictionary<string, object> outputBindings, object result)
+        private void AddResultToOutputBindings(IDictionary<string, object?> outputBindings, object result)
         {
             Type resultType = result.GetType();
 

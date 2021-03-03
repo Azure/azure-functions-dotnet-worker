@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             Features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature
             {
-                OutputBindings = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
+                OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
             });
         }
 
@@ -34,13 +34,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override FunctionDefinition FunctionDefinition { get; }
 
-        public override object InvocationResult { get; set; }
-
         public override IDictionary<object, object> Items { get; set; }
 
         public override FunctionInvocation Invocation { get; }
-
-        public override IDictionary<string, object> OutputBindings { get; } = new Dictionary<string, object>();
 
         public override IInvocationFeatures Features { get; } = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
 

@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Task StopAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
@@ -144,7 +144,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static async Task<InvocationResponse> InvokeAsync(IFunctionsApplication application, ObjectSerializer serializer, FunctionContext context)
         {
-            var response = new InvocationResponse();
+            InvocationResponse response = new InvocationResponse()
+            {
+                InvocationId = context.Invocation.Id
+            };
 
             try
             {
@@ -190,12 +193,18 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal async Task WorkerInitRequestHandlerAsync(StreamingMessage request)
         {
-            await _application.InitializeAsync();
+            InitializationResponse initResponse = await _application.InitializeAsync();
 
             var response = new WorkerInitResponse
             {
-                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success },
+                WorkerVersion = initResponse.WorkerVersion
             };
+
+            foreach (var capability in initResponse.Capabilities)
+            {
+                response.Capabilities.Add(capability.Key, capability.Value);
+            }
 
             StreamingMessage responseMessage = new StreamingMessage
             {

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Azure.WebJobs.Script.Description;
@@ -20,7 +21,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
     {
         private const string WorkerConfigFile = "worker.config.json";
         private const string ExePathPropertyName = "defaultExecutablePath";
-        private const string ExeSelfContainedReserved = "{WorkerRoot}";
+        private const string WorkerRootToken = "{WorkerRoot}";
 
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
         private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "defaultExecutablePath");
@@ -29,8 +30,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         {
             string appRootPath = context.ApplicationRootPath;
 
-            // We need to adjust the path to the worker exe based on the root, if running a self contained build.
-            string exePath = GetUpdatedExeIfSelfContained(appRootPath);
+            // We need to adjust the path to the worker exe based on the root, if WorkerRootToken is found.
+            string exePath = GetUpdatedExeIfWorkerRootToken(appRootPath);
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
@@ -52,14 +53,19 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             // This will not be called.
         }
 
-        internal static string GetUpdatedExeIfSelfContained(string appRootPath)
+        internal static string GetUpdatedExeIfWorkerRootToken(string appRootPath)
         {
             string fullPathToWorkerConfig = Path.Combine(appRootPath, WorkerConfigFile);
             string? exeValue = GetExeValueFromWorkerConfig(fullPathToWorkerConfig);
 
-            if (HasSelfContainedIdentifier(exeValue))
+            if (HasWorkerRootToken(exeValue))
             {
                 exeValue = AddWorkerRootPath(exeValue, appRootPath);
+
+                if (!File.Exists(exeValue))
+                {
+                    throw new FileNotFoundException($"The file '{exeValue}' was not found.");
+                }
             }
 
             return exeValue;
@@ -93,14 +99,14 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             return exePathString;
         }
 
-        private static bool HasSelfContainedIdentifier(string exe)
+        private static bool HasWorkerRootToken(string exe)
         {
-            return exe.Contains(ExeSelfContainedReserved);
+            return exe.Contains(WorkerRootToken);
         }
 
         private static string AddWorkerRootPath(string exe, string appRootPath)
         {
-            string execName = exe.Replace(ExeSelfContainedReserved, string.Empty);
+            string execName = exe.Replace(WorkerRootToken, string.Empty);
 
             if (string.IsNullOrEmpty(execName))
             {
@@ -108,6 +114,11 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             }
 
             string execPath = Path.Combine(appRootPath, execName);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !execPath.EndsWith(".exe"))
+            {
+                execPath += ".exe";
+            }
+
             return execPath;
         }
     }

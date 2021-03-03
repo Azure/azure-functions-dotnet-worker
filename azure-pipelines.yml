@@ -27,13 +27,6 @@ steps:
 - pwsh: ./tools/start-emulators.ps1 -NoWait
   displayName: "Start emulators (-NoWait)"
 
-- task: UseDotNet@2
-  displayName: 'Use .NET 5 sdk'
-  inputs:
-    packageType: sdk
-    version: 5.0.100
-    performMultiLevelLookup: true
-    
 - task: DotNetCoreCLI@2
   displayName: 'Build projects'
   inputs:

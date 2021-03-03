@@ -2,13 +2,15 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
@@ -17,6 +19,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class DefaultFunctionInvokerTests
     {
+        private IFunctionBindingsFeature _functionBindings = new TestFunctionBindingsFeature
+        {
+            InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "inputKey", "inputValue" } }),
+            TriggerMetadata = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "triggerKey", "triggerValue" } })
+        };
+
         private readonly DefaultFunctionExecutor _executor;
         private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
         private readonly Mock<IMethodInfoLocator> _mockLocator = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
@@ -84,7 +92,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_FunctionWithInputBindingAndReturn()
         {
             _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithInputBindingAndReturn));
-            var context = CreateContext();
+
+            var context = CreateContext(invocation: new TestFunctionInvocation());
 
             var converter = new List<IConverter>
             {
@@ -92,14 +101,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
 
             context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(converter));
-            context.Invocation.ValueProvider = new TestValueProvider(new Dictionary<string, object>
-            {
-                {"bindingValue", "bindingValue" }
-            });
+            context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("bindingValue", context.InvocationResult);
+            Assert.Equal("inputValue", context.InvocationResult);
         }
 
         [Fact]
@@ -150,7 +156,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_StaticFunctionWithInputBindingAndReturn()
         {
             _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithInputBindingAndReturn));
-            var context = CreateContext();
+
+            var context = CreateContext(invocation: new TestFunctionInvocation());
+
+            context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
 
             var converter = new List<IConverter>
             {
@@ -158,26 +167,23 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
 
             context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(converter));
-            context.Invocation.ValueProvider = new TestValueProvider(new Dictionary<string, object>
-            {
-                {"bindingValue", "bindingValue" }
-            });
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("bindingValue", context.InvocationResult);
+            Assert.Equal("triggerValue", context.InvocationResult);
         }
 
-        private FunctionContext CreateContext()
+        private FunctionContext CreateContext(FunctionDefinition definition = null, FunctionInvocation invocation = null)
         {
-            var invocation = new TestFunctionInvocation(id: "test", functionId: "test");
-
+            invocation = invocation ?? new TestFunctionInvocation(id: "1234", functionId: "test");
             // We're controlling the method via the IMethodInfoLocator, so the strings here don't matter.
             var parameters = _mockLocator.Object.GetMethod(string.Empty, string.Empty)
                 .GetParameters()
                 .Select(p => new FunctionParameter(p.Name, p.ParameterType));
 
-            var definition = new TestFunctionDefinition(parameters: parameters, outputBindingsInfo: EmptyOutputBindingsInfo.Instance);
+            definition = definition ?? new TestFunctionDefinition(parameters: parameters);
+
+            var context = new TestFunctionContext(functionDefinition: definition, invocation: invocation);
 
             return new TestFunctionContext(definition, invocation);
         }
@@ -204,9 +210,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 return "done";
             }
 
-            public string FunctionWithInputBindingAndReturn(string bindingValue)
+            public string FunctionWithInputBindingAndReturn(string inputKey)
             {
-                return bindingValue;
+                return inputKey;
             }
         }
 
@@ -232,9 +238,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 return "done";
             }
 
-            public static string StaticFunctionWithInputBindingAndReturn(string bindingValue)
+            public static string StaticFunctionWithInputBindingAndReturn(string triggerKey)
             {
-                return bindingValue;
+                return triggerKey;
             }
         }
     }

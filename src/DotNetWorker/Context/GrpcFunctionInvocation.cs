@@ -13,10 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Context
         {
             _invocationRequest = invocationRequest;
             TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, _invocationRequest.TraceContext.TraceState);
-            ValueProvider = new GrpcValueProvider(invocationRequest.InputData, invocationRequest.TriggerMetadata);
         }
-
-        public override IValueProvider ValueProvider { get; set; }
 
         public override string Id => _invocationRequest.InvocationId;
 

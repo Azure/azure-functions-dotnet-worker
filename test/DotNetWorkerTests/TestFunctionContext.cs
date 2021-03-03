@@ -4,6 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Tests.Features;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -18,6 +21,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             FunctionDefinition = functionDefinition;
             Invocation = invocation;
+
+            Features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature
+            {
+                OutputBindings = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
+            });
         }
 
         public bool IsDisposed { get; private set; }

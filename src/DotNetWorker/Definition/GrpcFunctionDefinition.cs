@@ -8,13 +8,12 @@ using System.IO;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
     internal class GrpcFunctionDefinition : FunctionDefinition
     {
-        public GrpcFunctionDefinition(FunctionLoadRequest loadRequest, IMethodInfoLocator methodInfoLocator, IOutputBindingsInfoProvider outputBindingsInfoProvider)
+        public GrpcFunctionDefinition(FunctionLoadRequest loadRequest, IMethodInfoLocator methodInfoLocator)
         {
             EntryPoint = loadRequest.Metadata.EntryPoint;
             Name = loadRequest.Metadata.Name;
@@ -37,8 +36,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 .Where(p => p.Name != null)
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType))
                 .ToImmutableArray();
-
-            OutputBindingsInfo = outputBindingsInfoProvider.GetBindingsInfo(this);
         }
 
         public override string PathToAssembly { get; }
@@ -54,7 +51,5 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
-
-        public override OutputBindingsInfo OutputBindingsInfo { get; }
     }
 }

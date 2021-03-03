@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Definition;
 
@@ -37,7 +36,19 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
-                object? source = context.Invocation.ValueProvider.GetValue(param.Name, context);
+                var functionBindings = context.Features.Get<IFunctionBindingsFeature>();
+
+                object? source = null;
+
+                // Check InputData first, then TriggerMetadata
+                if (functionBindings is not null)
+                {
+                    if (!functionBindings.InputData.TryGetValue(param.Name, out source))
+                    {
+                        functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
+                    }
+                }
+
                 var converterContext = new DefaultConverterContext(param, source, context);
 
                 if (TryConvert(converterContext, out object? target))

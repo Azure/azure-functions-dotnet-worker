@@ -21,8 +21,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }
         }
 
-        public override IValueProvider ValueProvider { get; set; }
-
         public override string Id { get; } = Guid.NewGuid().ToString();
 
         public override string FunctionId { get; } = Guid.NewGuid().ToString();

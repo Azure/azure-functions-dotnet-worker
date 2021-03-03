@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal partial class FunctionBroker
+    internal partial class FunctionsApplication
     {
         private static class Log
         {
@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
                 WorkerMessage.Define<string, string>(LogLevel.Trace, new EventId(1, nameof(FunctionDefinitionCreated)),
                     "Function definition for '{functionName}' created with id '{functionid}'.");
 
-            public static void FunctionDefinitionCreated(ILogger<FunctionBroker> logger, FunctionDefinition functionDefinition)
+            public static void FunctionDefinitionCreated(ILogger<FunctionsApplication> logger, FunctionDefinition functionDefinition)
             {
                 _functionDefinitionCreated(logger, functionDefinition.Name, functionDefinition.Id, null);
             }

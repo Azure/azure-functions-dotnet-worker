@@ -89,6 +89,7 @@
         "name": "Name",
         "type": "Queue",
         "direction": "Out",
+        "dataType":  "String",
         "queueName": "functionstesting2",
         "connection": "AzureWebJobsStorage"
       },

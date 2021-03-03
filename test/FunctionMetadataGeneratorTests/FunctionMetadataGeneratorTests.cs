@@ -287,7 +287,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "Blob" },
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" }
+                    { "Connection", "MyOtherConnection" },
+                    { "DataType", "String" }
                 });
             }
 
@@ -299,6 +300,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "Queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
+                    { "DataType", "String" }
                 });
             }
         }
@@ -356,6 +358,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "Queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
+                    { "DataType", "String" }
                 });
             }
         }

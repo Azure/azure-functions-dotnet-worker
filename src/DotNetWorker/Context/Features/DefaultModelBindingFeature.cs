@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         public object?[]? InputArguments => _parameterValues;
 
-        public object?[] BindFunctionInput(FunctionContext context)
+        public object?[] TryBindFunctionInput(FunctionContext context)
         {
             if (_inputBound)
             {
@@ -48,7 +48,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 if (TryConvert(converterContext, out object? target))
                 {
                     _parameterValues[i] = target;
-                    continue;
+                }
+                else if (source is not null)
+                {
+                    throw new InvalidCastException($"Cannot convert input parameter '{param.Name}' for Function '{context.FunctionDefinition.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'.");
                 }
             }
 

@@ -18,8 +18,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 {
     internal class Startup : IWebJobsStartup2, IWebJobsConfigurationStartup
     {
-        private const string _workerConfigFile = "worker.config.json";
-        private const string _exePathPropertyName = "defaultExecutablePath";
+        private const string WorkerConfigFile = "worker.config.json";
+        private const string ExePathPropertyName = "defaultExecutablePath";
+        private const string ExeSelfContainedReserved = "{WorkerRoot}";
+
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
         private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "defaultExecutablePath");
 
@@ -27,8 +29,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         {
             string appRootPath = context.ApplicationRootPath;
 
-            // We need to adjust the path to the worker exe based on the root.
-            string exePath = GetPathToExe(appRootPath);
+            // We need to adjust the path to the worker exe based on the root, if running a self contained build.
+            string exePath = GetUpdatedExeIfSelfContained(appRootPath);
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
@@ -50,42 +52,63 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             // This will not be called.
         }
 
-        internal static string GetPathToExe(string appRootPath)
+        internal static string GetUpdatedExeIfSelfContained(string appRootPath)
         {
-            string fullPathToWorkerConfig = Path.Combine(appRootPath, _workerConfigFile);
+            string fullPathToWorkerConfig = Path.Combine(appRootPath, WorkerConfigFile);
+            string? exeValue = GetExeValueFromWorkerConfig(fullPathToWorkerConfig);
 
-            if (!File.Exists(fullPathToWorkerConfig))
+            if (HasSelfContainedIdentifier(exeValue))
             {
-                throw new FileNotFoundException($"The file '{fullPathToWorkerConfig}' was not found.");
+                exeValue = AddWorkerRootPath(exeValue, appRootPath);
+            }
+
+            return exeValue;
+        }
+
+        private static string GetExeValueFromWorkerConfig(string workerConfigPath)
+        {
+            if (!File.Exists(workerConfigPath))
+            {
+                throw new FileNotFoundException($"The file '{workerConfigPath}' was not found.");
             }
 
             string? exePathString;
-
-            using (var fs = File.OpenText(fullPathToWorkerConfig))
+            using (var fs = File.OpenText(workerConfigPath))
+            using (var js = new JsonTextReader(fs))
             {
-                using (var js = new JsonTextReader(fs))
+                JObject workerDescription = (JObject)JToken.ReadFrom(js)["description"];
+                if (!workerDescription.TryGetValue(ExePathPropertyName, out JToken exePathToken))
                 {
-                    JObject workerDescription = (JObject)JToken.ReadFrom(js)["description"];
-                    if (!workerDescription.TryGetValue(_exePathPropertyName, out JToken exePathToken))
-                    {
-                        throw new InvalidOperationException($"The property '{_exePathPropertyName}' is required in '{fullPathToWorkerConfig}'.");
-                    }
-
-                    exePathString = Path.Combine(appRootPath, exePathToken.ToString());
+                    throw new InvalidOperationException($"The property '{ExePathPropertyName}' is required in '{workerConfigPath}'.");
                 }
+
+                exePathString = exePathToken.ToString();
             }
 
             if (string.IsNullOrEmpty(exePathString))
             {
-                throw new InvalidOperationException($"The property '{_exePathPropertyName}' in '{fullPathToWorkerConfig}' cannot be null or empty.");
-            }
-
-            if (!File.Exists(exePathString))
-            {
-                throw new FileNotFoundException($"The file '{exePathString}' was not found.");
+                throw new InvalidOperationException($"The property '{ExePathPropertyName}' in '{workerConfigPath}' cannot be null or empty.");
             }
 
             return exePathString;
+        }
+
+        private static bool HasSelfContainedIdentifier(string exe)
+        {
+            return exe.Contains(ExeSelfContainedReserved);
+        }
+
+        private static string AddWorkerRootPath(string exe, string appRootPath)
+        {
+            string execName = exe.Replace(ExeSelfContainedReserved, string.Empty);
+
+            if (string.IsNullOrEmpty(execName))
+            {
+                throw new InvalidOperationException($"The property '{ExePathPropertyName}' in '{WorkerConfigFile}' does not contain the executable file name.");
+            }
+
+            string execPath = Path.Combine(appRootPath, execName);
+            return execPath;
         }
     }
 }

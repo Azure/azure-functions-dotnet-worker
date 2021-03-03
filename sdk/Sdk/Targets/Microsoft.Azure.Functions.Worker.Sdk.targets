@@ -44,9 +44,25 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OverwriteReadOnlyFiles="true" />
 
     <WriteLinesToFile
+        Condition="$(SelfContained)"
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                  .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
+                                  .Replace('$functionWorker$', '$(TargetName)'))"
+        Overwrite="true" />
+
+    <WriteLinesToFile
+        Condition="!$(SelfContained)"
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                  .Replace('$functionExe$', 'dotnet')
+                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
+        Overwrite="true" />
+
+    <!--<WriteLinesToFile
         File="$(OutputFile)"
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionExe$', '$(TargetName).exe'))"
-        Overwrite="true" />
+        Overwrite="true" />-->
   </Target>
 
   <!-- 
@@ -192,9 +208,25 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OverwriteReadOnlyFiles="true" />
 
     <WriteLinesToFile
+        Condition="$(SelfContained)"
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                  .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
+                                  .Replace('$functionWorker$', '$(TargetName)'))"
+        Overwrite="true" />
+
+    <WriteLinesToFile
+        Condition="!$(SelfContained)"
+        File="$(OutputFile)"
+        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                  .Replace('$functionExe$', 'dotnet')
+                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
+        Overwrite="true" />
+
+    <!--<WriteLinesToFile
         File="$(OutputFile)"
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionExe$', '$(TargetName).exe'))"
-        Overwrite="true" />
+        Overwrite="true" />-->
 
   </Target>
 

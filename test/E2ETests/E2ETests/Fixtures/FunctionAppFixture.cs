@@ -3,7 +3,9 @@
 
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
+using System.Net.Http;
+using System.Runtime.InteropServices;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.E2ETests.Helpers;
 using Microsoft.Extensions.Logging;
@@ -17,6 +19,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         private readonly ILogger _logger;
         private bool _disposed;
         private Process _funcProcess;
+
+        private JobObjectRegistry _jobObjectRegistry;
 
         public FunctionAppFixture(IMessageSink messageSink)
         {
@@ -44,13 +48,52 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 string fileName = _funcProcess.StartInfo.FileName;
                 _logger.LogInformation($"  File name:   '${fileName}' Exists: '{File.Exists(fileName)}'");
 
-                await CosmosDBHelpers.CreateDocumentCollections();
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+                {
+                    // Currently only HTTP is supported in Linux CI.
+                    _funcProcess.StartInfo.ArgumentList.Add("--functions");
+                    _funcProcess.StartInfo.ArgumentList.Add("HelloFromQuery");
+                    _funcProcess.StartInfo.ArgumentList.Add("HelloFromJsonBody");
+                    _funcProcess.StartInfo.ArgumentList.Add("HelloUsingPoco");
+                    _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
+                }
+
+                await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);
 
                 FixtureHelpers.StartProcessWithLogging(_funcProcess, _logger);
 
-                await TestUtility.RetryAsync(() =>
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
                 {
-                    return Task.FromResult(TestLogs.CoreToolsLogs.Any(p => p.Contains("Host lock lease acquired by instance ID")));
+                    // ensure child processes are cleaned up
+                    _jobObjectRegistry = new JobObjectRegistry();
+                    _jobObjectRegistry.Register(_funcProcess);
+                }
+
+                var httpClient = new HttpClient();
+                _logger.LogInformation("Waiting for host to be running...");
+                await TestUtility.RetryAsync(async () =>
+                {
+                    try
+                    {
+                        var response = await httpClient.GetAsync($"{Constants.FunctionsHostUrl}/admin/host/status");
+                        var content = await response.Content.ReadAsStringAsync();
+                        var doc = JsonDocument.Parse(content);
+                        if (doc.RootElement.TryGetProperty("state", out JsonElement value) &&
+                            value.GetString() == "Running")
+                        {
+                            _logger.LogInformation($"  Current state: Running");
+                            return true;
+                        }
+
+                        _logger.LogInformation($"  Current state: {value}");
+                        return false;
+                    }
+                    catch
+                    {
+                        // Can get exceptions before host is running.
+                        _logger.LogInformation($"  Current state: process starting");
+                        return false;
+                    }
                 });
             }
         }
@@ -66,10 +109,19 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
                 if (_funcProcess != null)
                 {
-                    _logger.LogInformation($"Shutting down functions host for {Constants.FunctionAppCollectionName}");
-                    _funcProcess.Kill();
-                    _funcProcess.Dispose();
+                    try
+                    {
+                        _logger.LogInformation($"Shutting down functions host for {Constants.FunctionAppCollectionName}");
+                        _funcProcess.Kill();
+                        _funcProcess.Dispose();
+                    }
+                    catch
+                    {
+                        // process may not have started
+                    }
                 }
+
+                _jobObjectRegistry?.Dispose();
             }
 
             _disposed = true;

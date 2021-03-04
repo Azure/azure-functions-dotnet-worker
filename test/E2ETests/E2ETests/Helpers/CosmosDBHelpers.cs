@@ -2,9 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
@@ -78,22 +80,50 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
         }
 
-        // keep
-        public async static Task CreateDocumentCollections()
+        private async static Task<bool> CanConnectAsync(ILogger logger)
         {
+            try
+            {
+                await new HttpClient().GetAsync(_docDbClient.ServiceEndpoint);
+            }
+            catch
+            {
+                // typically "the target machine actively refused it" if the emulator isn't running.
+                logger.LogError($"Could not connect to CosmosDB endpoint: '{_docDbClient.ServiceEndpoint}'. Are you using the emulator?");
+                return false;
+            }
+
+            return true;
+        }
+
+
+        // keep
+        public async static Task<bool> TryCreateDocumentCollectionsAsync(ILogger logger)
+        {
+            if (!await CanConnectAsync(logger))
+            {
+                // This can hang if the service is unavailable. Just return and let tests fail.
+                // The Cosmos tests may be filtered out anyway without an emulator running.
+                return false;
+            }
+
             Database db = await _docDbClient.CreateDatabaseIfNotExistsAsync(new Database { Id = Constants.CosmosDB.DbName });
             Uri dbUri = UriFactory.CreateDatabaseUri(db.Id);
 
-            await CreateCollection(dbUri, Constants.CosmosDB.InputCollectionName);
-            await CreateCollection(dbUri, Constants.CosmosDB.OutputCollectionName);
-            await CreateCollection(dbUri, Constants.CosmosDB.LeaseCollectionName);
+            await Task.WhenAll(
+                CreateCollection(dbUri, Constants.CosmosDB.InputCollectionName),
+                CreateCollection(dbUri, Constants.CosmosDB.OutputCollectionName),
+                CreateCollection(dbUri, Constants.CosmosDB.LeaseCollectionName));
+
+            return true;
         }
 
         public async static Task DeleteDocumentCollections()
         {
-            await DeleteCollection(inputCollectionsUri);
-            await DeleteCollection(outputCollectionsUri);
-            await DeleteCollection(leasesCollectionsUri);
+            await Task.WhenAll(
+                DeleteCollection(inputCollectionsUri),
+                DeleteCollection(outputCollectionsUri),
+                DeleteCollection(leasesCollectionsUri));
         }
 
         private async static Task DeleteCollection(Uri collectionUri)

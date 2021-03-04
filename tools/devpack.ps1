@@ -8,21 +8,32 @@
 # Specify --E2E to instead target the E2E test app.
 
 $rootPath = Split-Path -Parent $PSScriptRoot
-$project = "$rootPath\samples\FunctionApp\FunctionApp.csproj"
+$project = "$rootPath/samples/FunctionApp/FunctionApp.csproj"
+$sdkProject = "$rootPath/sdk/Sdk/Sdk.csproj"
+$analyzerProject= "$rootPath/sdk/Sdk.Analyzers/Sdk.Analyzers.csproj"
 
 if($E2E -eq $true)
 {
-    $project = "$rootPath\test\E2ETests\E2EApps\E2EApp\E2EApp.csproj"
+    $project = "$rootPath/test/E2ETests/E2EApps/E2EApp/E2EApp.csproj"
 }
 
-$localPack = "$rootPath\local"
-& md -Force $localPack | Out-Null
+if (!(Test-Path $sdkProject))
+{
+  Get-ChildItem $rootPath
+  Get-ChildItem $rootPath/sdk/Sdk
+}
+
+$localPack = "$rootPath/local"
+if (!(Test-Path $localPack))
+{
+  New-Item -Path $localPack -ItemType directory | Out-Null
+}
 Write-Host
 Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing SDK to $localPack"
-& "dotnet" "pack" "$rootPath\sdk\sdk\Sdk.csproj" "-o" "$localPack" "-nologo"
+& "dotnet" "pack" $sdkProject "-o" "$localPack" "-nologo"
 Write-Host "Packing Analyzers to $localPack"
-& "dotnet" "pack" "$rootPath\sdk\Sdk.Analyzers\Sdk.Analyzers.csproj" "-o" "$localPack" "-nologo"
+& "dotnet" "pack" $analyzerProject "-o" "$localPack" "-nologo"
 Write-Host
 Write-Host "Removing SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"

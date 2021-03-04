@@ -51,12 +51,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputArrayBindingName, expectedQueueMessage);
 
             //Verify
-            string queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            string queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
             string[] splitMessage1 = queueMessage1.Split("|");
             Assert.Equal(expectedQueueMessage, splitMessage1[0]);
             Assert.True(string.Equals("1", splitMessage1[1]) || string.Equals("2", splitMessage1[1]));
 
-            string queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            string queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
             string[] splitMessage2 = queueMessage2.Split("|");
             Assert.Equal(expectedQueueMessage, splitMessage2[0]);
             Assert.True(string.Equals("1", splitMessage2[1]) || string.Equals("2", splitMessage2[1]));

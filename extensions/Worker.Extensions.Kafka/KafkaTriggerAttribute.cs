@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public sealed class KafkaTriggerAttribute : TriggerBindingAttribute
+    public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, IBatchedInput
     {
         public KafkaTriggerAttribute(string brokerList, string topic)
         {
@@ -95,5 +95,9 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         public string? SslKeyPassword { get; set; }
 
+        /// <summary>
+        /// Configures trigger to process events in batches or one at a time. Default value is "false".
+        /// </summary>
+        public bool IsBatched { get; set; }
     }
 }

@@ -5,7 +5,7 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute
+    public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute, IBatchedInput
     {
         private readonly string? _queueName;
         private readonly string? _topicName;
@@ -67,5 +67,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets a value indicating whether the sessions are enabled.
         /// </summary>
         public bool IsSessionsEnabled { get; set; }
+
+        /// <summary>
+        /// Configures trigger to process events in batches or one at a time. Default value is "false".
+        /// </summary>
+        public bool IsBatched { get; set; }
     }
 }

@@ -4,12 +4,8 @@
 ﻿using System;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
-{
-    [AttributeUsage(AttributeTargets.Parameter)]
-    public abstract class InputBindingAttribute : BindingAttribute
+{   public interface IBatchedInput
     {
-        public InputBindingAttribute()
-        {
-        }
+        public bool IsBatched { get; set; }
     }
 }

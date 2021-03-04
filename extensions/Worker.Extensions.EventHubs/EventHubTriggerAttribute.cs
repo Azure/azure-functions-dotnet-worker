@@ -5,15 +5,16 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public sealed class EventHubTriggerAttribute : TriggerBindingAttribute
+    public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, IBatchedInput
     {
         /// <summary>
         /// Create an instance of this attribute.
         /// </summary>
         /// <param name="eventHubName">Event hub to listen on for messages. </param>
-        public EventHubTriggerAttribute(string eventHubName)
+        public EventHubTriggerAttribute(string eventHubName, bool isBatched = true)
         {
             EventHubName = eventHubName;
+            IsBatched = isBatched;
         }
 
         /// <summary>
@@ -30,5 +31,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the optional app setting name that contains the Event Hub connection string. If missing, tries to use a registered event hub receiver.
         /// </summary>
         public string? Connection { get; set; }
+
+        /// <summary>
+        /// Configures trigger to process events in batches or one at a time. Default value is "true".
+        /// </summary>
+        public bool IsBatched { get; set; }
     }
 }

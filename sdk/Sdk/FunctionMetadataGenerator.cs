@@ -401,23 +401,44 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 bindingDict["DataType"] = "Binary";
             }
 
-            // Add "cardinality": "many" if we see an IEnumerable type or array type
-            if (IsIterableCollection(parameterType, out DataType dataType))
-            {
-                bindingDict["Cardinality"] = "Many";
-                if (dataType.Equals(DataType.String))
-                {
-                    bindingDict["DataType"] = "String";
-                }
-                else if (dataType.Equals(DataType.Binary))
-                {
-                    bindingDict["DataType"] = "Binary";
-                }
-            }
-
             foreach (var property in attribute.GetAllDefinedProperties())
             {
                 bindingDict.Add(property.Key, property.Value);
+            }
+
+            // TODO: do not rely on property alone
+            if (bindingDict["isBatched"] is not null
+                && bindingDict["isBatched"] is bool isBatchedValue)
+            {
+                // Batching set to true
+                if (isBatchedValue)
+                {
+                    bindingDict["Cardinality"] = "Many";
+                    // Throw if parameter type is not IEnumerable
+                    if (IsIterableCollection(parameterType, out DataType dataType))
+                    {
+                        if (dataType.Equals(DataType.String))
+                        {
+                            bindingDict["DataType"] = "String";
+                        }
+                        else if (dataType.Equals(DataType.Binary))
+                        {
+                            bindingDict["DataType"] = "Binary";
+                        }
+                    }
+                    else
+                    {
+                        throw new Exception("Function is configured to process events in batches but parameter type is not iterable. " +
+                            $"Change parameter { parameterName ?? "type" } to be an IEnumerable type or set 'IsBatched' to false on your {attribute.AttributeType.Name.Replace("Attribute", "")} attribute.");
+                    }
+                }
+                // Batching set to false
+                else
+                {
+                    bindingDict["Cardinality"] = "One";
+                }
+
+                bindingDict.Remove("isBatched");
             }
 
             return binding;

@@ -486,6 +486,50 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        [Fact]
+        public void CardinalityManyAttribute()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var typeDef = TestUtility.GetTypeDefinition(typeof(TestingClass));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            SdkFunctionMetadata metadata = functions.Where(a => string.Equals(a.Name, "EventHubTrigger", StringComparison.Ordinal)).Single();
+
+            ValidateFunction(metadata, "EventHubTrigger", GetEntryPoint(nameof(TestingClass), nameof(TestingClass.EventHubTrigger)),
+                b => ValidateTrigger(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>(){
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "4.2.0" }
+            });
+
+            void ValidateTrigger(ExpandoObject b)
+            {
+                var expected = new Dictionary<string, object>()
+                {
+                    { "Name", "input" },
+                    { "Type", "EventHubTrigger" },
+                    { "Direction", "In" },
+                    { "eventHubName", "test" },
+                    { "Connection", "EventHubConnectionAppSetting" },
+                    { "Cardinality", "Many" },
+                    { "DataType", "String" },
+                };
+
+                AssertExpandoObject(b, expected);
+            }
+        }
+
+        private class TestingClass
+        {
+            [Function("EventHubTrigger")]
+            public static void EventHubTrigger([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string[] input,
+                FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private static string GetEntryPoint(string className, string methodName) => $"{typeof(FunctionMetadataGeneratorTests).FullName}+{className}.{methodName}";
 
         private void ValidateFunction(SdkFunctionMetadata sdkFunctionMetadata, string name, string entryPoint, params Action<ExpandoObject>[] bindingValidations)

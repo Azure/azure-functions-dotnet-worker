@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Dynamic;
@@ -406,12 +405,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 bindingDict.Add(property.Key, property.Value);
             }
 
+            // Determine if we should set the "Cardinality" property based on
+            // the presence of "isBatched." This is a property that is from the IBatchedInput
+            // interface. 
+            // Conversion rule
+            //     "isBatched": true => "Cardinality": "Many"
+            //     "isBatched": false => "Cardinality": "One"
             // TODO: do not rely on property alone
             if (bindingDict["isBatched"] is not null
-                && bindingDict["isBatched"] is bool isBatchedValue)
+                && bindingDict["isBatched"] is bool isBatched)
             {
                 // Batching set to true
-                if (isBatchedValue)
+                if (isBatched)
                 {
                     bindingDict["Cardinality"] = "Many";
                     // Throw if parameter type is not IEnumerable

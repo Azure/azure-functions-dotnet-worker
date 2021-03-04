@@ -41,10 +41,6 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 typedData.String = str;
             }
-            else if (value.GetType().IsArray)
-            {
-                typedData = ToRpcCollection(value, serializer);
-            }
             else
             {
                 typedData = value.ToRpcDefault(serializer);
@@ -70,10 +66,6 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 typedData.String = str;
             }
-            else if (value.GetType().IsArray)
-            {
-                typedData = ToRpcCollection(value, serializer);
-            }
             else
             {
                 typedData = value.ToRpcDefault(serializer);
@@ -93,33 +85,6 @@ namespace Microsoft.Azure.Functions.Worker
             catch
             {
                 typedData.String = value.ToString();
-            }
-
-            return typedData;
-        }
-
-        public static TypedData ToRpcCollection(this object value, ObjectSerializer serializer)
-        {
-            TypedData typedData;
-            if (value is byte[][] arrBytes)
-            {
-                typedData = arrBytes.ToRpcByteArray();
-            }
-            else if (value is string[] arrStr)
-            {
-                typedData = arrStr.ToRpcStringArray();
-            }
-            else if (value is double[] arrDouble)
-            {
-                typedData = arrDouble.ToRpcDoubleArray();
-            }
-            else if (value is long[] arrLong)
-            {
-                typedData = arrLong.ToRpcLongArray();
-            }
-            else
-            {
-                typedData = value.ToRpcDefault(serializer);
             }
 
             return typedData;

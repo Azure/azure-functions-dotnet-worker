@@ -24,6 +24,34 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             return message;
         }
 
+        [Function("QueueTriggerAndOutput")]
+        [QueueOutput("test-output-array-dotnet-isolated")]
+        public string[] QueueTriggerAndArrayOutput([QueueTrigger("test-input-array-dotnet-isolated")] string message,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger<QueueTestFunctions>();
+            logger.LogInformation($"Message: {message}");
+
+            return new string[] {
+                message + "-1",
+                message + "-2"
+            };
+        }
+
+        [Function("QueueTriggerAndOutput")]
+        [QueueOutput("test-output-list-dotnet-isolated")]
+        public List<string> QueueTriggerAndListOutput([QueueTrigger("test-input-list-dotnet-isolated")] string message,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger<QueueTestFunctions>();
+            logger.LogInformation($"Message: {message}");
+
+            return new List<string>() {
+                message + "-1",
+                message + "-2"
+            };
+        }
+
         [Function("QueueOutputPocoList")]
         public HttpAndQueue QueueOutputPocoList(
             [HttpTrigger()] HttpRequestData request,

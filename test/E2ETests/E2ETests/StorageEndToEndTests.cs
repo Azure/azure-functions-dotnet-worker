@@ -39,6 +39,44 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         [Fact]
+        public async Task QueueTriggerAndArrayOutput_Succeeds()
+        {
+            string expectedQueueMessage = Guid.NewGuid().ToString();
+            //Clear queue
+            await StorageHelpers.ClearQueue(Constants.Queue.InputArrayBindingName);
+            await StorageHelpers.ClearQueue(Constants.Queue.OutputArrayBindingName);
+
+            //Set up and trigger            
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputArrayBindingName);
+            await StorageHelpers.InsertIntoQueue(Constants.Queue.InputArrayBindingName, expectedQueueMessage);
+
+            //Verify
+            var queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
+            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage1) || string.Equals(expectedQueueMessage + "-2", queueMessage1));
+            var queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
+            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage2) || string.Equals(expectedQueueMessage + "-2", queueMessage2));
+        }
+
+        [Fact]
+        public async Task QueueTriggerAndListOutput_Succeeds()
+        {
+            string expectedQueueMessage = Guid.NewGuid().ToString();
+            //Clear queue
+            await StorageHelpers.ClearQueue(Constants.Queue.InputListBindingName);
+            await StorageHelpers.ClearQueue(Constants.Queue.OutputListBindingName);
+
+            //Set up and trigger            
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputListBindingName);
+            await StorageHelpers.InsertIntoQueue(Constants.Queue.InputListBindingName, expectedQueueMessage);
+
+            //Verify
+            var queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage1) || string.Equals(expectedQueueMessage + "-2", queueMessage1));
+            var queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage2) || string.Equals(expectedQueueMessage + "-2", queueMessage2));
+        }
+
+        [Fact]
         public async Task QueueTrigger_BindToTriggerMetadata_Succeeds()
         {
             string inputQueueMessage = Guid.NewGuid().ToString();

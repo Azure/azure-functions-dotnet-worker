@@ -17,12 +17,6 @@ if($E2E -eq $true)
     $project = "$rootPath/test/E2ETests/E2EApps/E2EApp/E2EApp.csproj"
 }
 
-if (!(Test-Path $sdkProject))
-{
-  Get-ChildItem $rootPath
-  Get-ChildItem $rootPath/sdk/Sdk
-}
-
 $localPack = "$rootPath/local"
 if (!(Test-Path $localPack))
 {

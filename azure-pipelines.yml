@@ -6,230 +6,251 @@ pr:
 - main
 - release/*
 
-pool:
-  vmImage: 'windows-latest'
+jobs:
+- job: "Build_And_Test_Windows"
+  pool:
+    vmImage: 'windows-latest'
 
-variables:
-  ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
-    buildNumberTemp: $(Build.BuildNumber)
-  ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
-    isReleaseBuildTemp: true
-  ${{ if contains(variables['Build.SourceBranch'], '/release/extensions' ) }}:
-    isExtensionsReleaseTemp: true
-  buildNumber: $[variables.buildNumberTemp]
-  isReleaseBuild: $[variables.isReleaseBuildTemp]
-  isExtensionsRelease: $[variables.isExtensionsReleaseTemp]
-  solution: '**/*.sln'
-  buildPlatform: 'Any CPU'
-  buildConfiguration: 'Release'
+  variables:
+    ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
+      buildNumberTemp: $(Build.BuildNumber)
+    ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
+      isReleaseBuildTemp: true
+    ${{ if contains(variables['Build.SourceBranch'], '/release/extensions' ) }}:
+      isExtensionsReleaseTemp: true
+    buildNumber: $[variables.buildNumberTemp]
+    isReleaseBuild: $[variables.isReleaseBuildTemp]
+    isExtensionsRelease: $[variables.isExtensionsReleaseTemp]
+    solution: '**/*.sln'
+    buildPlatform: 'Any CPU'
+    buildConfiguration: 'Release'
 
-steps:
-- pwsh: ./tools/start-emulators.ps1 -NoWait
-  displayName: "Start emulators (-NoWait)"
+  steps:
+  - pwsh: ./tools/start-emulators.ps1 -NoWait
+    displayName: "Start emulators (-NoWait)"
 
-- task: DotNetCoreCLI@2
-  displayName: 'Build projects'
-  inputs:
-    command: 'build'
-    arguments: '-c Release'
-    projects: '**/*.csproj'
+  - task: DotNetCoreCLI@2
+    displayName: 'Build projects'
+    inputs:
+      command: 'build'
+      arguments: '-c Release'
+      projects: '**/*.csproj'
 
-- pwsh: ./setup-e2e-tests.ps1
-  displayName: "Setup E2E tests"
-  env:
-    CORE_TOOLS_URL: $(CORE_TOOLS_URL)
+  - pwsh: ./setup-e2e-tests.ps1
+    displayName: "Setup E2E tests"
+    env:
+      CORE_TOOLS_URL: $(CORE_TOOLS_URL)  
 
-- task: DotNetCoreCLI@2
-  displayName: 'Run tests'
-  inputs:
-    command: 'test'
-    projects: 'test/**/*Tests.csproj'
+  - task: DotNetCoreCLI@2
+    displayName: 'Run tests'
+    inputs:
+      command: 'test'
+      arguments: '--no-build -c Release'
+      projects: |
+        test/**/*Tests.csproj
 
-- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-  displayName: 'Sdk: ESRP CodeSigning - Authenticode'
-  condition: eq(variables.isReleaseBuild, true)
-  inputs:
-    ConnectedServiceName: 'ESRP Service'
-    FolderPath: 'sdk\sdk\bin\Release'
-    Pattern: Microsoft.Azure.Functions.Worker.Sdk.dll
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolSign",
-          "Parameters": {
-            "OpusName": "Microsoft",
-            "OpusInfo": "http://www.microsoft.com",
-            "FileDigest": "/fd \"SHA256\"",
-            "PageHash": "/NPH",
-            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-          },
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        },
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolVerify",
-          "Parameters": {},
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        }
-      ]
-
-- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-  displayName: 'MetadataLoader: ESRP CodeSigning - Authenticode'
-  condition: eq(variables.isReleaseBuild, true)
-  inputs:
-    ConnectedServiceName: 'ESRP Service'
-    FolderPath: 'sdk\FunctionMetadataLoaderExtension\bin\Release'
-    Pattern: Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolSign",
-          "Parameters": {
-            "OpusName": "Microsoft",
-            "OpusInfo": "http://www.microsoft.com",
-            "FileDigest": "/fd \"SHA256\"",
-            "PageHash": "/NPH",
-            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-          },
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        },
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolVerify",
-          "Parameters": {},
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        }
-      ]
-
-- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-  displayName: 'DotnetWorker: ESRP CodeSigning - Authenticode'
-  condition: eq(variables.isReleaseBuild, true)
-  inputs:
-    ConnectedServiceName: 'ESRP Service'
-    FolderPath: 'src\DotNetWorker\bin\Release'
-    Pattern: Microsoft.Azure.Functions.Worker*.dll
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolSign",
-          "Parameters": {
-            "OpusName": "Microsoft",
-            "OpusInfo": "http://www.microsoft.com",
-            "FileDigest": "/fd \"SHA256\"",
-            "PageHash": "/NPH",
-            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-          },
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        },
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolVerify",
-          "Parameters": {},
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        }
-      ]
-
-- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-  displayName: 'Extensions: ESRP CodeSigning - Authenticode'
-  condition: eq(variables.isExtensionsRelease, true)
-  inputs:
-    ConnectedServiceName: 'ESRP Service'
-    FolderPath: 'extensions'
-    Pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolSign",
-          "Parameters": {
-            "OpusName": "Microsoft",
-            "OpusInfo": "http://www.microsoft.com",
-            "FileDigest": "/fd \"SHA256\"",
-            "PageHash": "/NPH",
-            "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-          },
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        },
-        {
-          "KeyCode": "CP-230012",
-          "OperationCode": "SigntoolVerify",
-          "Parameters": {},
-          "ToolName": "sign",
-          "ToolVersion": "1.0"
-        }
-      ]
-
-- task: DeleteFiles@1
-  displayName: 'Delete CodeSignSummary files'
-  condition: eq(variables.isReleaseBuild, true)
-  inputs:
-    contents: '**\CodeSignSummary-*.md'
-
-- task: DotNetCoreCLI@2
-  displayName: 'Build packages'
-  inputs:
-    command: 'custom'
-    custom: 'pack'
-    arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
-    projects: |
-      **\DotNetWorker.csproj
-      **\Sdk.csproj
-
-- task: DotNetCoreCLI@2
-  displayName: 'Build Extension packages'
-  condition: eq(variables.isExtensionsRelease, true)
-  inputs:
-    command: 'custom'
-    custom: 'pack'
-    arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
-    projects: |
-      **\Worker.Extensions.*.csproj
-
-- task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-  displayName: 'ESRP CodeSigning: Nupkg'
-  condition: eq(variables.isReleaseBuild, true)
-  inputs:
-    ConnectedServiceName: 'ESRP Service'
-    FolderPath: 'packages'
-    Pattern: 'Microsoft.Azure.Functions.Worker*.nupkg'
-    signConfigType: inlineSignParams
-    inlineOperation: |
-      [
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Sdk: ESRP CodeSigning - Authenticode'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'sdk\sdk\bin\Release'
+      Pattern: Microsoft.Azure.Functions.Worker.Sdk.dll
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
           {
-            "KeyCode": "CP-401405",
-            "OperationCode": "NuGetSign",
-            "Parameters": {},
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
             "ToolName": "sign",
             "ToolVersion": "1.0"
           },
           {
-            "KeyCode": "CP-401405",
-            "OperationCode": "NuGetVerify",
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolVerify",
             "Parameters": {},
             "ToolName": "sign",
             "ToolVersion": "1.0"
           }
-      ]
+        ]
 
-- task: DeleteFiles@1
-  displayName: 'Delete CodeSignSummary files'
-  condition: eq(variables.isReleaseBuild, true)
-  inputs:
-    contents: '**\CodeSignSummary-*.md'
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'MetadataLoader: ESRP CodeSigning - Authenticode'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'sdk\FunctionMetadataLoaderExtension\bin\Release'
+      Pattern: Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
 
-- publish: $(System.DefaultWorkingDirectory)/packages
-  artifact: drop
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'DotnetWorker: ESRP CodeSigning - Authenticode'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'src\DotNetWorker\bin\Release'
+      Pattern: Microsoft.Azure.Functions.Worker*.dll
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
+
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Extensions: ESRP CodeSigning - Authenticode'
+    condition: eq(variables.isExtensionsRelease, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'extensions'
+      Pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
+
+  - task: DeleteFiles@1
+    displayName: 'Delete CodeSignSummary files'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      contents: '**\CodeSignSummary-*.md'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build packages'
+    inputs:
+      command: 'custom'
+      custom: 'pack'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
+      projects: |
+        **\DotNetWorker.csproj
+        **\Sdk.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build Extension packages'
+    condition: eq(variables.isExtensionsRelease, true)
+    inputs:
+      command: 'custom'
+      custom: 'pack'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
+      projects: |
+        **\Worker.Extensions.*.csproj
+
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'ESRP CodeSigning: Nupkg'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'packages'
+      Pattern: 'Microsoft.Azure.Functions.Worker*.nupkg'
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+            {
+              "KeyCode": "CP-401405",
+              "OperationCode": "NuGetSign",
+              "Parameters": {},
+              "ToolName": "sign",
+              "ToolVersion": "1.0"
+            },
+            {
+              "KeyCode": "CP-401405",
+              "OperationCode": "NuGetVerify",
+              "Parameters": {},
+              "ToolName": "sign",
+              "ToolVersion": "1.0"
+            }
+        ]
+
+  - task: DeleteFiles@1
+    displayName: 'Delete CodeSignSummary files'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      contents: '**\CodeSignSummary-*.md'
+
+  - publish: $(System.DefaultWorkingDirectory)/packages
+    artifact: drop
+
+- job: "E2ETests_Ubuntu"  
+  pool:
+    vmImage: 'ubuntu-latest'
+    
+  steps:
+    - pwsh: ./setup-e2e-tests.ps1 -SkipEmulators
+      displayName: "Setup E2E tests"
+      env:
+        CORE_TOOLS_URL: $(CORE_TOOLS_URL)
+    
+    - task: DotNetCoreCLI@2
+      displayName: 'Run E2E tests'
+      inputs:
+        command: 'test'
+        arguments: '--filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
+        projects: 'test/**/E2ETests.csproj'

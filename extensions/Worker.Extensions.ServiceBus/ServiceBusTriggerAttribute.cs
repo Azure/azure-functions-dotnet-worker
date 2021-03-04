@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker
         public bool IsSessionsEnabled { get; set; }
 
         /// <summary>
-        /// Gets or sets the configuration to enable batch processing of events. Default value is "true".
+        /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
         /// </summary>
         public bool IsBatched { get; set; }
     }

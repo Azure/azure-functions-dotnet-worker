@@ -48,7 +48,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         File="$(OutputFile)"
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName)'))"
+                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
         Overwrite="true" />
 
     <WriteLinesToFile
@@ -59,10 +59,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
                                   .Replace('$functionWorker$', '$(TargetName).dll'))"
         Overwrite="true" />
 
-    <!--<WriteLinesToFile
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionExe$', '$(TargetName).exe'))"
-        Overwrite="true" />-->
   </Target>
 
   <!-- 
@@ -212,7 +208,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         File="$(OutputFile)"
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName)'))"
+                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
         Overwrite="true" />
 
     <WriteLinesToFile
@@ -222,11 +218,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
                                   .Replace('$functionExe$', 'dotnet')
                                   .Replace('$functionWorker$', '$(TargetName).dll'))"
         Overwrite="true" />
-
-    <!--<WriteLinesToFile
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile)).Replace('$functionExe$', '$(TargetName).exe'))"
-        Overwrite="true" />-->
 
   </Target>
 

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             return message;
         }
 
-        [Function("QueueTriggerAndOutput")]
+        [Function("QueueTriggerAndArrayOutput")]
         [QueueOutput("test-output-array-dotnet-isolated")]
         public string[] QueueTriggerAndArrayOutput([QueueTrigger("test-input-array-dotnet-isolated")] string message,
             FunctionContext context)
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             };
         }
 
-        [Function("QueueTriggerAndOutput")]
+        [Function("QueueTriggerAndListOutput")]
         [QueueOutput("test-output-list-dotnet-isolated")]
         public List<string> QueueTriggerAndListOutput([QueueTrigger("test-input-list-dotnet-isolated")] string message,
             FunctionContext context)

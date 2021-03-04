@@ -55,6 +55,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage1) || string.Equals(expectedQueueMessage + "-2", queueMessage1));
             var queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
             Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage2) || string.Equals(expectedQueueMessage + "-2", queueMessage2));
+            Assert.NotEqual(queueMessage1, queueMessage2);
         }
 
         [Fact]
@@ -74,6 +75,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage1) || string.Equals(expectedQueueMessage + "-2", queueMessage1));
             var queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
             Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage2) || string.Equals(expectedQueueMessage + "-2", queueMessage2));
+            Assert.NotEqual(queueMessage1, queueMessage2);
         }
 
         [Fact]

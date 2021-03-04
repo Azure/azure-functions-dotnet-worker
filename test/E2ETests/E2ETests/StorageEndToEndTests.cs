@@ -51,10 +51,16 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputArrayBindingName, expectedQueueMessage);
 
             //Verify
-            var queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
-            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage1) || string.Equals(expectedQueueMessage + "-2", queueMessage1));
-            var queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
-            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage2) || string.Equals(expectedQueueMessage + "-2", queueMessage2));
+            string queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            string[] splitMessage1 = queueMessage1.Split("|");
+            Assert.Equal(expectedQueueMessage, splitMessage1[0]);
+            Assert.True(string.Equals("1", splitMessage1[1]) || string.Equals("2", splitMessage1[1]));
+
+            string queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            string[] splitMessage2 = queueMessage2.Split("|");
+            Assert.Equal(expectedQueueMessage, splitMessage2[0]);
+            Assert.True(string.Equals("1", splitMessage2[1]) || string.Equals("2", splitMessage2[1]));
+
             Assert.NotEqual(queueMessage1, queueMessage2);
         }
 
@@ -71,10 +77,16 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputListBindingName, expectedQueueMessage);
 
             //Verify
-            var queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
-            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage1) || string.Equals(expectedQueueMessage + "-2", queueMessage1));
-            var queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
-            Assert.True(string.Equals(expectedQueueMessage + "-1", queueMessage2) || string.Equals(expectedQueueMessage + "-2", queueMessage2));
+            string queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            string[] splitMessage1 = queueMessage1.Split("|");
+            Assert.Equal(expectedQueueMessage, splitMessage1[0]);
+            Assert.True(string.Equals("1", splitMessage1[1]) || string.Equals("2", splitMessage1[1]));
+
+            string queueMessage2 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
+            string[] splitMessage2 = queueMessage2.Split("|");
+            Assert.Equal(expectedQueueMessage, splitMessage2[0]);
+            Assert.True(string.Equals("1", splitMessage2[1]) || string.Equals("2", splitMessage2[1]));
+
             Assert.NotEqual(queueMessage1, queueMessage2);
         }
 

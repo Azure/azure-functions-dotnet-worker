@@ -33,8 +33,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             logger.LogInformation($"Message: {message}");
 
             return new string[] {
-                message + "-1",
-                message + "-2"
+                message + "|1",
+                message + "|2"
             };
         }
 
@@ -47,8 +47,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             logger.LogInformation($"Message: {message}");
 
             return new List<string>() {
-                message + "-1",
-                message + "-2"
+                message + "|1",
+                message + "|2"
             };
         }
 

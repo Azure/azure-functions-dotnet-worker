@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             public const string InputArrayBindingName = "test-input-array-dotnet-isolated";
             public const string OutputArrayBindingName = "test-output-array-dotnet-isolated";
             public const string InputListBindingName = "test-input-list-dotnet-isolated";
-            public const string OutputListBindingName = "test-input-list-dotnet-isolated";
+            public const string OutputListBindingName = "test-output-list-dotnet-isolated";
             public const string OutputBindingNamePOCO = "test-output-dotnet-isolated-poco";
             public const string InputBindingNamePOCO = "test-input-dotnet-isolated-poco";
             public const string InputBindingNameMetadata = "test-input-dotnet-isolated-metadata";

@@ -41,10 +41,6 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 typedData.String = str;
             }
-            else if (value.GetType().IsArray)
-            {
-                typedData = ToRpcCollection(value, serializer);
-            }
             else
             {
                 typedData = value.ToRpcDefault(serializer);
@@ -70,10 +66,6 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 typedData.String = str;
             }
-            else if (value.GetType().IsArray)
-            {
-                typedData = ToRpcCollection(value, serializer);
-            }
             else
             {
                 typedData = value.ToRpcDefault(serializer);
@@ -93,33 +85,6 @@ namespace Microsoft.Azure.Functions.Worker
             catch
             {
                 typedData.String = value.ToString();
-            }
-
-            return typedData;
-        }
-
-        public static TypedData ToRpcCollection(this object value, ObjectSerializer serializer)
-        {
-            TypedData typedData;
-            if (value is byte[][] arrBytes)
-            {
-                typedData = arrBytes.ToRpcByteArray();
-            }
-            else if (value is string[] arrStr)
-            {
-                typedData = arrStr.ToRpcStringArray();
-            }
-            else if (value is double[] arrDouble)
-            {
-                typedData = arrDouble.ToRpcDoubleArray();
-            }
-            else if (value is long[] arrLong)
-            {
-                typedData = arrLong.ToRpcLongArray();
-            }
-            else
-            {
-                typedData = value.ToRpcDefault(serializer);
             }
 
             return typedData;
@@ -160,64 +125,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return Task.FromResult(http);
-        }
-
-        internal static TypedData ToRpcByteArray(this byte[][] arrBytes)
-        {
-            TypedData typedData = new TypedData();
-            CollectionBytes collectionBytes = new CollectionBytes();
-            foreach (byte[] element in arrBytes)
-            {
-                if (element != null)
-                {
-                    collectionBytes.Bytes.Add(ByteString.CopyFrom(element));
-                }
-            }
-            typedData.CollectionBytes = collectionBytes;
-
-            return typedData;
-        }
-
-        internal static TypedData ToRpcStringArray(this string[] arrString)
-        {
-            TypedData typedData = new TypedData();
-            CollectionString collectionString = new CollectionString();
-            foreach (string element in arrString)
-            {
-                if (!string.IsNullOrEmpty(element))
-                {
-                    collectionString.String.Add(element);
-                }
-            }
-            typedData.CollectionString = collectionString;
-
-            return typedData;
-        }
-
-        internal static TypedData ToRpcDoubleArray(this double[] arrDouble)
-        {
-            TypedData typedData = new TypedData();
-            CollectionDouble collectionDouble = new CollectionDouble();
-            foreach (double element in arrDouble)
-            {
-                collectionDouble.Double.Add(element);
-            }
-            typedData.CollectionDouble = collectionDouble;
-
-            return typedData;
-        }
-
-        internal static TypedData ToRpcLongArray(this long[] arrLong)
-        {
-            TypedData typedData = new TypedData();
-            CollectionSInt64 collectionLong = new CollectionSInt64();
-            foreach (long element in arrLong)
-            {
-                collectionLong.Sint64.Add(element);
-            }
-            typedData.CollectionSint64 = collectionLong;
-
-            return typedData;
         }
 
         internal static FunctionDefinition ToFunctionDefinition(this FunctionLoadRequest loadRequest, IMethodInfoLocator methodInfoLocator)

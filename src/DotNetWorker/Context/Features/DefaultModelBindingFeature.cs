@@ -35,11 +35,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
-                var functionBindings = context.GetBindings();
-                object? source = null;
+                IFunctionBindingsFeature functionBindings = context.GetBindings();
 
                 // Check InputData first, then TriggerMetadata
-                if (!functionBindings.InputData.TryGetValue(param.Name, out source))
+                if (!functionBindings.InputData.TryGetValue(param.Name, out object? source))
                 {
                     functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }

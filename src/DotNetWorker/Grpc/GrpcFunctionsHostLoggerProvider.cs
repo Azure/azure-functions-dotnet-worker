@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private IExternalScopeProvider? _scopeProvider;
 
-        public GrpcFunctionsHostLoggerProvider(FunctionsHostOutputChannel outputChannel)
+        public GrpcFunctionsHostLoggerProvider(GrpcHostChannel outputChannel)
         {
             _channelWriter = outputChannel.Channel.Writer;
         }

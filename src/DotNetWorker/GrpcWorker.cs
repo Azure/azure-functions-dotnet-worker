@@ -5,6 +5,7 @@ using System;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context;
 using Microsoft.Azure.Functions.Worker.Context.Features;
@@ -29,11 +30,13 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
+        private readonly IOptions<WorkerOptions> _workerOptions;
+
         private Task? _writerTask;
         private Task? _readerTask;
 
-        public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, FunctionsHostOutputChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, IOptions<GrpcWorkerStartupOptions> startupOptions)
+        public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
+            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions)
         {
             if (outputChannel == null)
             {
@@ -49,6 +52,7 @@ namespace Microsoft.Azure.Functions.Worker
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
         }
 
         public Task StartAsync(CancellationToken token)
@@ -63,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Task StopAsync(CancellationToken token)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
         public async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
@@ -128,7 +132,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request.InvocationRequest, _outputBindingsInfoProvider));
 
-            InvocationResponse response = await _application.InvokeFunctionAsync(context);
+            InvocationResponse response = await InvokeAsync(_application, _workerOptions.Value.Serializer, context);
 
             StreamingMessage responseMessage = new StreamingMessage
             {
@@ -139,9 +143,67 @@ namespace Microsoft.Azure.Functions.Worker
             await _outputWriter.WriteAsync(responseMessage);
         }
 
+        internal static async Task<InvocationResponse> InvokeAsync(IFunctionsApplication application, ObjectSerializer serializer, FunctionContext context)
+        {
+            InvocationResponse response = new InvocationResponse()
+            {
+                InvocationId = context.Invocation.Id
+            };
+
+            try
+            {
+                await application.InvokeFunctionAsync(context);
+
+                var parameterBindings = context.OutputBindings;
+                var result = context.InvocationResult;
+
+                foreach (var binding in parameterBindings)
+                {
+                    var parameterBinding = new ParameterBinding
+                    {
+                        Name = binding.Key,
+                        Data = await binding.Value.ToRpcAsync(serializer)
+                    };
+
+                    response.OutputData.Add(parameterBinding);
+                }
+                if (result != null)
+                {
+                    TypedData? returnVal = await result.ToRpcAsync(serializer);
+
+                    response.ReturnValue = returnVal;
+                }
+
+                response.Result = new StatusResult { Status = StatusResult.Types.Status.Success };
+            }
+            catch (Exception ex)
+            {
+                response.Result = new StatusResult
+                {
+                    Exception = ex.ToRpcException(),
+                    Status = StatusResult.Types.Status.Failure
+                };
+            }
+            finally
+            {
+                (context as IDisposable)?.Dispose();
+            }
+
+            return response;
+        }
+
         internal async Task WorkerInitRequestHandlerAsync(StreamingMessage request)
         {
-            WorkerInitResponse response = await _application.InitializeWorkerAsync(request.WorkerInitRequest);
+            var response = new WorkerInitResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success },
+                WorkerVersion = typeof(IWorker).Assembly.GetName().Version?.ToString()
+            };
+
+            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
+            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
+            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
+            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
 
             StreamingMessage responseMessage = new StreamingMessage
             {
@@ -179,7 +241,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal async Task FunctionEnvironmentReloadRequestHandlerAsync(StreamingMessage request)
         {
-            FunctionEnvironmentReloadResponse response = await _application.ReloadEnvironmentAsync(request.FunctionEnvironmentReloadRequest);
+            var response = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+            };
 
             StreamingMessage responseMessage = new StreamingMessage
             {

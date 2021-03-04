@@ -5,11 +5,9 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Status = Microsoft.Azure.Functions.Worker.Grpc.Messages.StatusResult.Types.Status;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -40,23 +38,6 @@ namespace Microsoft.Azure.Functions.Worker
             return _functionContextFactory.Create(features);
         }
 
-        public Task<WorkerInitResponse> InitializeWorkerAsync(WorkerInitRequest request)
-        {
-            var response = new WorkerInitResponse()
-            {
-                Result = new StatusResult { Status = Status.Success }
-            };
-
-            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
-            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
-            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
-            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
-
-            response.WorkerVersion = typeof(FunctionsApplication).Assembly.GetName().Version?.ToString();
-
-            return Task.FromResult(response);
-        }
-
         public void LoadFunction(FunctionDefinition definition)
         {
             if (definition.Id is null)
@@ -68,68 +49,14 @@ namespace Microsoft.Azure.Functions.Worker
             _functionMap.TryAdd(definition.Id, definition);
         }
 
-        public async Task<InvocationResponse> InvokeFunctionAsync(FunctionContext context)
+        public Task InvokeFunctionAsync(FunctionContext context)
         {
-            // TODO: File InvocationResponse removal issue
-            InvocationResponse response = new InvocationResponse()
-            {
-                InvocationId = context.Invocation.Id
-            };
-
             var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Invocation.Id);
             using (_logger.BeginScope(scope))
             {
-                try
-                {
-                    await _functionExecutionDelegate(context);
 
-                    var parameterBindings = context.OutputBindings;
-                    var result = context.InvocationResult;
-
-                    // TODO: ParameterBinding shouldn't happen here
-                    foreach (var binding in parameterBindings)
-                    {
-                        var parameterBinding = new ParameterBinding
-                        {
-                            Name = binding.Key,
-                            Data = await binding.Value.ToRpcAsync(_workerOptions.Value.Serializer)
-                        };
-                        response.OutputData.Add(parameterBinding);
-                    }
-                    if (result != null)
-                    {
-                        TypedData? returnVal = await result.ToRpcAsync(_workerOptions.Value.Serializer);
-
-                        response.ReturnValue = returnVal;
-                    }
-
-                    response.Result = new StatusResult { Status = Status.Success };
-                }
-                catch (Exception ex)
-                {
-                    response.Result = new StatusResult
-                    {
-                        Exception = ex.ToRpcException(),
-                        Status = Status.Failure
-                    };
-                }
-                finally
-                {
-                    (context as IDisposable)?.Dispose();
-                }
+                return _functionExecutionDelegate(context);
             }
-
-            return response;
-        }
-
-        public Task<FunctionEnvironmentReloadResponse> ReloadEnvironmentAsync(FunctionEnvironmentReloadRequest request)
-        {
-            var response = new FunctionEnvironmentReloadResponse
-            {
-                Result = new StatusResult { Status = Status.Success }
-            };
-
-            return Task.FromResult(response);
         }
     }
 }

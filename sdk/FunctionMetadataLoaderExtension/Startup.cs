@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader;
 using Microsoft.Azure.WebJobs.Hosting;
 using Microsoft.Azure.WebJobs.Script.Description;
@@ -18,22 +19,25 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 {
     internal class Startup : IWebJobsStartup2, IWebJobsConfigurationStartup
     {
-        private const string _workerConfigFile = "worker.config.json";
-        private const string _exePathPropertyName = "defaultExecutablePath";
+        private const string WorkerConfigFile = "worker.config.json";
+        private const string ExePathPropertyName = "defaultExecutablePath";
+        private const string WorkerPathPropertyName = "defaultWorkerPath";
+        private const string WorkerRootToken = "{WorkerRoot}";
+
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
-        private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "defaultExecutablePath");
+        private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", ExePathPropertyName);
 
         public void Configure(WebJobsBuilderContext context, IWebJobsConfigurationBuilder builder)
         {
             string appRootPath = context.ApplicationRootPath;
 
-            // We need to adjust the path to the worker exe based on the root.
-            string exePath = GetPathToExe(appRootPath);
+            // We need to adjust the path to the worker exe based on the root, if WorkerRootToken is found.
+            WorkerConfigDescription newWorkerDescription = GetUpdatedWorkerDescription(appRootPath);
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
                 { _dotnetIsolatedWorkerConfigPath, appRootPath },
-                { _dotnetIsolatedWorkerExePath, exePath }
+                { _dotnetIsolatedWorkerExePath, newWorkerDescription.DefaultExecutablePath! }
             });
         }
 
@@ -50,42 +54,99 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             // This will not be called.
         }
 
-        internal static string GetPathToExe(string appRootPath)
+        private static WorkerConfigDescription GetUpdatedWorkerDescription(string appRootPath)
         {
-            string fullPathToWorkerConfig = Path.Combine(appRootPath, _workerConfigFile);
+            string fullPathToWorkerConfig = Path.Combine(appRootPath, WorkerConfigFile);
+            WorkerConfigDescription workerDescription = GetWorkerConfigDescription(fullPathToWorkerConfig);
 
-            if (!File.Exists(fullPathToWorkerConfig))
+            if (string.IsNullOrEmpty(workerDescription.DefaultExecutablePath))
             {
-                throw new FileNotFoundException($"The file '{fullPathToWorkerConfig}' was not found.");
+                throw new InvalidOperationException($"The property '{ExePathPropertyName}' is required in '{fullPathToWorkerConfig}'.");
             }
 
-            string? exePathString;
+            UpdateExecutablePath(workerDescription, appRootPath);
 
-            using (var fs = File.OpenText(fullPathToWorkerConfig))
+            return workerDescription;
+        }
+
+        private static void UpdateExecutablePath(WorkerConfigDescription workerDescription, string appRootPath)
+        {
+            string exePath = workerDescription.DefaultExecutablePath!;
+
+            // Translate '{WorkerRoot}myExe' to '<app-path>\myExe.exe' for Windows, and '<app-path>/myExe' for Unix.
+            if (HasWorkerRootToken(exePath))
             {
-                using (var js = new JsonTextReader(fs))
-                {
-                    JObject workerDescription = (JObject)JToken.ReadFrom(js)["description"];
-                    if (!workerDescription.TryGetValue(_exePathPropertyName, out JToken exePathToken))
-                    {
-                        throw new InvalidOperationException($"The property '{_exePathPropertyName}' is required in '{fullPathToWorkerConfig}'.");
-                    }
+                exePath = AddWorkerRootPath(exePath, appRootPath);
 
-                    exePathString = Path.Combine(appRootPath, exePathToken.ToString());
+                if (!File.Exists(exePath))
+                {
+                    throw new FileNotFoundException($"The file '{exePath}' was not found.");
                 }
             }
 
-            if (string.IsNullOrEmpty(exePathString))
+            workerDescription.DefaultExecutablePath = exePath;
+        }
+
+        private static WorkerConfigDescription GetWorkerConfigDescription(string workerConfigPath)
+        {
+            if (!File.Exists(workerConfigPath))
             {
-                throw new InvalidOperationException($"The property '{_exePathPropertyName}' in '{fullPathToWorkerConfig}' cannot be null or empty.");
+                throw new FileNotFoundException($"The file '{workerConfigPath}' was not found.");
             }
 
-            if (!File.Exists(exePathString))
+            WorkerConfigDescription workerDescription;
+
+            using (var fs = File.OpenText(workerConfigPath))
+            using (var js = new JsonTextReader(fs))
             {
-                throw new FileNotFoundException($"The file '{exePathString}' was not found.");
+                JObject workerDescriptionJObject = (JObject)JToken.ReadFrom(js)["description"];
+                workerDescription = workerDescriptionJObject.ToObject<WorkerConfigDescription>();
+
+                if (workerDescription is null)
+                {
+                    throw new InvalidOperationException($"The property 'description' is required in '{workerConfigPath}'.");
+                }
             }
 
-            return exePathString;
+            return workerDescription;
+        }
+
+        private static bool HasWorkerRootToken(string exe)
+        {
+            return exe.Contains(WorkerRootToken);
+        }
+
+        private static string AddWorkerRootPath(string exe, string appRootPath)
+        {
+            string execName = exe.Replace(WorkerRootToken, string.Empty);
+
+            if (string.IsNullOrEmpty(execName))
+            {
+                throw new InvalidOperationException($"The property '{ExePathPropertyName}' in '{WorkerConfigFile}' does not contain the executable file name.");
+            }
+
+            string execPath = Path.Combine(appRootPath, execName);
+
+            return AddExeExtensionIfWindows(execPath);
+        }
+
+        private static string AddExeExtensionIfWindows(string file)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && !file.EndsWith(".exe"))
+            {
+                file += ".exe";
+            }
+
+            return file;
+        }
+
+        private class WorkerConfigDescription
+        {
+            [JsonProperty(ExePathPropertyName)]
+            public string? DefaultExecutablePath { get; set; }
+
+            [JsonProperty(WorkerPathPropertyName)]
+            public string? DefaultWorkerPath { get; set; }
         }
     }
 }

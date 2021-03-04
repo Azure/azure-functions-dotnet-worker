@@ -129,18 +129,24 @@ namespace Microsoft.Azure.Functions.Worker
             invocationFeatures.Set<FunctionInvocation>(invocation);
 
             FunctionContext context = _application.CreateContext(invocationFeatures);
-
-            invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request.InvocationRequest, _outputBindingsInfoProvider));
-
-            InvocationResponse response = await InvokeAsync(_application, _workerOptions.Value.Serializer, context);
-
-            StreamingMessage responseMessage = new StreamingMessage
+            try
             {
-                RequestId = request.RequestId,
-                InvocationResponse = response
-            };
+                context.Features.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request.InvocationRequest, _outputBindingsInfoProvider));
 
-            await _outputWriter.WriteAsync(responseMessage);
+                InvocationResponse response = await InvokeAsync(_application, _workerOptions.Value.Serializer, context);
+
+                StreamingMessage responseMessage = new StreamingMessage
+                {
+                    RequestId = request.RequestId,
+                    InvocationResponse = response
+                };
+
+                await _outputWriter.WriteAsync(responseMessage);
+            }
+            finally
+            {
+                (context as IDisposable)?.Dispose();
+            }
         }
 
         internal static async Task<InvocationResponse> InvokeAsync(IFunctionsApplication application, ObjectSerializer serializer, FunctionContext context)
@@ -183,10 +189,6 @@ namespace Microsoft.Azure.Functions.Worker
                     Exception = ex.ToRpcException(),
                     Status = StatusResult.Types.Status.Failure
                 };
-            }
-            finally
-            {
-                (context as IDisposable)?.Dispose();
             }
 
             return response;

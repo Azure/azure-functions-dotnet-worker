@@ -21,6 +21,8 @@ Write-Host
 Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing SDK to $localPack"
 & "dotnet" "pack" "$rootPath\sdk\sdk\Sdk.csproj" "-o" "$localPack" "-nologo"
+Write-Host "Packing Analyzers to $localPack"
+& "dotnet" "pack" "$rootPath\sdk\Sdk.Analyzers\Sdk.Analyzers.csproj" "-o" "$localPack" "-nologo"
 Write-Host
 Write-Host "Removing SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"

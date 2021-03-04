@@ -327,7 +327,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static TypeReference? GetTaskElementType(TypeReference typeReference)
         {
-            if (typeReference is null || typeReference.FullName == Constants.TaskType)
+            if (typeReference is null || string.Equals(typeReference.FullName, Constants.TaskType, StringComparison.Ordinal))
             {
                 return null;
             }
@@ -418,7 +418,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     else
                     {
                         throw new FunctionsMetadataGenerationException("Function is configured to process events in batches but parameter type is not iterable. " +
-                            $"Change parameter { "'" + parameterName + "'" ?? "type" } to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
+                            $"Change parameter named '{ parameterName }' to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
                     }
                 }
                 // Batching set to false

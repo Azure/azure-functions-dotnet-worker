@@ -32,3 +32,4 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string HttpTriggerBindingType = "HttpTrigger";
         internal const string IsBatchedKey = "isbatched";
     }
+}

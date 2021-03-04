@@ -11,6 +11,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
         public IReadOnlyDictionary<string, object> InputData { get; init; } = new ReadOnlyDictionary<string, object>(new Dictionary<string, object>());
 
-        public OutputBindingsInfo OutputBindings { get; init; } = EmptyOutputBindingsInfo.Instance;
+        public IDictionary<string, object> OutputBindingData { get; } = new Dictionary<string, object>();
+
+        public OutputBindingsInfo OutputBindingsInfo { get; init; } = EmptyOutputBindingsInfo.Instance;
+
+        public object InvocationResult { get; set; }
     }
 }

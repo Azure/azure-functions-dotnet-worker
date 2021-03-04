@@ -18,7 +18,6 @@ namespace Microsoft.Azure.Functions.Worker
         {
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Features = features ?? throw new ArgumentNullException(nameof(features));
-            OutputBindings = new Dictionary<string, object>();
 
             Invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The {nameof(FunctionInvocation)} feature is required.");
             FunctionDefinition = features.Get<FunctionDefinition>() ?? throw new InvalidOperationException($"The {nameof(FunctionDefinition)} feature is required.");
@@ -27,10 +26,6 @@ namespace Microsoft.Azure.Functions.Worker
         public override FunctionInvocation Invocation { get; }
 
         public override FunctionDefinition FunctionDefinition { get; }
-
-        public override object? InvocationResult { get; set; }
-
-        public override IDictionary<string, object> OutputBindings { get; }
 
         public override IDictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
 

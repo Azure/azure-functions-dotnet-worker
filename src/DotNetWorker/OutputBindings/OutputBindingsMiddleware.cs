@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
@@ -18,12 +17,12 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
 
         internal static void AddOutputBindings(FunctionContext context)
         {
-            object? result = context.InvocationResult;
+            var functionBindings = context.GetBindings();
+            object? result = functionBindings.InvocationResult;
 
             if (result != null)
             {
-                var functionBindings = context.Features.Get<IFunctionBindingsFeature>();
-                functionBindings?.OutputBindings.BindOutputInContext(context);
+                functionBindings.OutputBindingsInfo.BindOutputInContext(context);
             }
         }
     }

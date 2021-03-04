@@ -29,17 +29,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
                 MyHttpResponseData = emptyHttp
             };
 
-            context.InvocationResult = result;
+            context.GetBindings().InvocationResult = result;
 
-            Assert.Equal(0, context.OutputBindings.Count);
+            Assert.Equal(0, context.GetBindings().OutputBindingData.Count);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
-            object returnedVal = context.InvocationResult;
+            object returnedVal = context.GetBindings().InvocationResult;
 
             Assert.Null(returnedVal);
-            Assert.Equal(3, context.OutputBindings.Count);
+            Assert.Equal(3, context.GetBindings().OutputBindingData.Count);
 
-            AssertDictionary(context.OutputBindings, new Dictionary<string, object>()
+            AssertDictionary(context.GetBindings().OutputBindingData, new Dictionary<string, object>()
             {
                 { "MyQueueOutput", "queueStuff" },
                 { "MyBlobOutput", "blobStuff" },
@@ -58,17 +58,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
                 MyBlobOutput = "blobStuff"
             };
 
-            context.InvocationResult = result;
+            context.GetBindings().InvocationResult = result;
 
-            Assert.Empty(context.OutputBindings);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
-            object returnedVal = context.InvocationResult;
+            object returnedVal = context.GetBindings().InvocationResult;
 
             Assert.Null(returnedVal);
-            Assert.Equal(2, context.OutputBindings.Count);
+            Assert.Equal(2, context.GetBindings().OutputBindingData.Count);
 
-            AssertDictionary(context.OutputBindings, new Dictionary<string, object>()
+            AssertDictionary(context.GetBindings().OutputBindingData, new Dictionary<string, object>()
             {
                 { "MyQueueOutput", "queueStuff" },
                 { "MyBlobOutput", "blobStuff" }
@@ -82,17 +82,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             FunctionContext context = GetContextWithOutputBindings("$return");
             string result = "MyStorageData";
 
-            context.InvocationResult = result;
+            context.GetBindings().InvocationResult = result;
 
-            Assert.Empty(context.OutputBindings);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
-            object returnedVal = context.InvocationResult;
+            object returnedVal = context.GetBindings().InvocationResult;
 
             Assert.Equal(returnedVal, result);
-            Assert.Empty(context.OutputBindings);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
-            AssertDictionary(context.OutputBindings, new Dictionary<string, object>());
+            AssertDictionary(context.GetBindings().OutputBindingData, new Dictionary<string, object>());
         }
 
         [Fact]
@@ -102,17 +102,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             FunctionContext context = GetContextWithOutputBindings("$return");
             var emptyHttp = new TestHttpResponseData(context, HttpStatusCode.OK);
 
-            context.InvocationResult = emptyHttp;
+            context.GetBindings().InvocationResult = emptyHttp;
 
-            Assert.Empty(context.OutputBindings);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
-            object returnedVal = context.InvocationResult;
+            object returnedVal = context.GetBindings().InvocationResult;
 
             Assert.Equal(returnedVal, emptyHttp);
-            Assert.Empty(context.OutputBindings);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
-            AssertDictionary(context.OutputBindings, new Dictionary<string, object>());
+            AssertDictionary(context.GetBindings().OutputBindingData, new Dictionary<string, object>());
         }
 
         [Fact]
@@ -122,15 +122,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             FunctionContext context = GetContextWithOutputBindings();
             string myData = "abc";
 
-            context.InvocationResult = myData;
+            context.GetBindings().InvocationResult = myData;
 
-            Assert.Empty(context.OutputBindings);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
-            object returnedVal = context.InvocationResult;
+            object returnedVal = context.GetBindings().InvocationResult;
 
             Assert.Equal("abc", returnedVal);
-            Assert.Equal(0, context.OutputBindings.Count);
+            Assert.Equal(0, context.GetBindings().OutputBindingData.Count);
         }
 
         private static void AssertDictionary<K, V>(IDictionary<K, V> dict, IDictionary<K, V> expected)

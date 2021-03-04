@@ -7,6 +7,6 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal interface IFunctionActivator
     {
-        T CreateInstance<T>(IServiceProvider services);
+        T? CreateInstance<T>(IServiceProvider services);
     }
 }

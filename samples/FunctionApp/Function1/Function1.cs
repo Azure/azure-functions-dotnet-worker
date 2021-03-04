@@ -17,10 +17,9 @@ namespace FunctionApp
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionContext context)
         {
             var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
-            context.OutputBindings["book"] = bookVal;
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            
+
             response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             response.Headers.Add("Content", "Content - Type: text / html; charset = utf - 8");
             response.WriteString("Book Sent to Queue!");

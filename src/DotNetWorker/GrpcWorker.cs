@@ -115,6 +115,7 @@ namespace Microsoft.Azure.Functions.Worker
                 MsgType.WorkerInitRequest => WorkerInitRequestHandlerAsync(request),
                 MsgType.FunctionLoadRequest => FunctionLoadRequestHandlerAsync(request),
                 MsgType.InvocationRequest => InvocationRequestHandlerAsync(request),
+                MsgType.FunctionEnvironmentReloadRequest => FunctionEnvironmentReloadRequestHandlerAsync(request),
                 // TODO: Trace that we missed this MsgType
                 _ => Task.CompletedTask,
             };
@@ -193,18 +194,16 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal async Task WorkerInitRequestHandlerAsync(StreamingMessage request)
         {
-            InitializationResponse initResponse = await _application.InitializeAsync();
-
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
-                WorkerVersion = initResponse.WorkerVersion
+                WorkerVersion = typeof(IWorker).Assembly.GetName().Version?.ToString()
             };
 
-            foreach (var capability in initResponse.Capabilities)
-            {
-                response.Capabilities.Add(capability.Key, capability.Value);
-            }
+            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
+            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
+            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
+            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
 
             StreamingMessage responseMessage = new StreamingMessage
             {
@@ -235,6 +234,22 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 RequestId = request.RequestId,
                 FunctionLoadResponse = response
+            };
+
+            await _outputWriter.WriteAsync(responseMessage);
+        }
+
+        internal async Task FunctionEnvironmentReloadRequestHandlerAsync(StreamingMessage request)
+        {
+            var response = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+            };
+
+            StreamingMessage responseMessage = new StreamingMessage
+            {
+                RequestId = request.RequestId,
+                FunctionEnvironmentReloadResponse = response
             };
 
             await _outputWriter.WriteAsync(responseMessage);

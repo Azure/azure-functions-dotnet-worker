@@ -7,8 +7,6 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal interface IFunctionsApplication
     {
-        Task<InitializationResponse> InitializeAsync();
-
         void LoadFunction(FunctionDefinition definition);
 
         Task InvokeFunctionAsync(FunctionContext context);

@@ -38,21 +38,6 @@ namespace Microsoft.Azure.Functions.Worker
             return _functionContextFactory.Create(features);
         }
 
-        public Task<InitializationResponse> InitializeAsync()
-        {
-            var response = new InitializationResponse
-            {
-                WorkerVersion = typeof(FunctionsApplication).Assembly.GetName().Version?.ToString()
-            };
-
-            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
-            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
-            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
-            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
-
-            return Task.FromResult(response);
-        }
-
         public void LoadFunction(FunctionDefinition definition)
         {
             if (definition.Id is null)

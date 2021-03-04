@@ -4,7 +4,8 @@
 ﻿using System;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
-{   public interface IBatchedInput
+{
+    public interface IBatchedInput
     {
         public bool IsBatched { get; set; }
     }

@@ -395,7 +395,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             //     "isbatched": true => "Cardinality": "Many"
             //     "isbatched": false => "Cardinality": "One"
             // TODO: do not rely on property alone
-            
             if (bindingDict.TryGetValue(Constants.IsBatchedKey, out object isBatchedValue)
                 && isBatchedValue is bool isBatched)
             {

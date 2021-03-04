@@ -14,16 +14,40 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public static IDictionary<string, object> GetAllDefinedProperties(this CustomAttribute attribute)
         {
             var properties = new Dictionary<string, object>();
-
             // To avoid needing to instantiate any types, assume that the constructor
             // argument names are equal to property names.
+            LoadDefaultProperties(properties, attribute);
             LoadConstructorArguments(properties, attribute);
             LoadDefinedProperties(properties, attribute);
 
             return properties;
         }
 
-        private static void LoadConstructorArguments(IDictionary<string, object> properties, CustomAttribute attribute)
+        private static IEnumerable<(string, CustomAttributeArgument?)> GetDefaultValues(this CustomAttribute attribute)
+        {
+            return attribute.AttributeType.Resolve().Properties
+                .Select(p => (p.Name, p.CustomAttributes
+                    .Where(attribute => string.Equals(attribute.AttributeType.FullName, Constants.DefaultValueAttributeType, StringComparison.Ordinal))
+                    .SingleOrDefault()
+                    ?.ConstructorArguments.SingleOrDefault()))
+                .Where(t => t.Item2 is not null);
+        }
+
+        private static void LoadDefaultProperties(IDictionary<string, object> properties, CustomAttribute attribute)
+        {
+            var propertyDefaults = attribute.GetDefaultValues();
+
+            for (int i = 0; i < propertyDefaults.Count(); i++)
+            {
+                var propertyDefault = propertyDefaults.ElementAt(i);
+                if (propertyDefault.Item2 is not null)
+                {
+                    properties[propertyDefault.Item1] = propertyDefault.Item2.Value.Value;
+                }
+            }
+        }
+
+            private static void LoadConstructorArguments(IDictionary<string, object> properties, CustomAttribute attribute)
         {
             var constructorParams = attribute.Constructor.Resolve().Parameters;
             for (int i = 0; i < attribute.ConstructorArguments.Count; i++)

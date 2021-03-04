@@ -11,10 +11,9 @@ namespace Microsoft.Azure.Functions.Worker
         /// Create an instance of this attribute.
         /// </summary>
         /// <param name="eventHubName">Event hub to listen on for messages. </param>
-        public EventHubTriggerAttribute(string eventHubName, bool IsBatched = true)
+        public EventHubTriggerAttribute(string eventHubName)
         {
             EventHubName = eventHubName;
-            this.IsBatched = IsBatched;
         }
 
         /// <summary>
@@ -35,6 +34,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "true".
         /// </summary>
+        [DefaultValue(true)]
         public bool IsBatched { get; set; }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
@@ -13,9 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         ///    true => "Many"
         ///    false => "One"
         ///    
-        /// To default to a particular true or false, the constructor of the attribute that inherits
-        /// from this must include 'bool isBatched = [true / false]' as an optional parameters
-        /// on the constructor
+        /// To default to a particular true or false, add the "DefaultValue" attribute to the method.
         /// </summary>
         public bool IsBatched { get; set; }
     }

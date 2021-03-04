@@ -34,6 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private const string ByteArrayType = "System.Byte[]";
         private const string LookupGenericType = "System.Linq.Lookup`2";
         private const string DictionaryGenericType = "System.Collections.Generic.Dictionary`2";
+        private const string IsBatchedKey = "isbatched";
 
         private readonly IndentableLogger _logger;
 
@@ -100,6 +101,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         catch (BadImageFormatException)
                         {
                             _logger.LogMessage($"Skipping file '{Path.GetFileName(path)}' because of a {nameof(BadImageFormatException)}.");
+                        }
+                        catch (FunctionsMetadataGenerationException ex)
+                        {
+                            _logger.LogError($"Failed to generate function metadata from {Path.GetFileName(path)}.");
+                            throw ex;
                         }
                         catch (Exception ex)
                         {
@@ -234,7 +240,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 else
                 {                    
                     TypeDefinition returnDefinition = returnType.Resolve()
-                        ?? throw new InvalidOperationException($"Couldn't find the type definition {returnType}");
+                        ?? throw new FunctionsMetadataGenerationException($"Couldn't find the type definition {returnType}");
 
                     bool hasOutputModel = TryAddOutputBindingsFromProperties(bindingMetadata, returnDefinition);
 
@@ -266,7 +272,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (foundHttpOutput)
                     {
-                        throw new InvalidOperationException($"Found multiple public properties with type '{HttpResponseType}' defined in output type '{typeDefinition.FullName}'. " +
+                        throw new FunctionsMetadataGenerationException($"Found multiple public properties with type '{HttpResponseType}' defined in output type '{typeDefinition.FullName}'. " +
                             $"Only one HTTP response binding type is supported in your return type definition.");
                     }
 
@@ -291,7 +297,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (foundOutputAttribute)
                     {
-                        throw new InvalidOperationException($"Found multiple output attributes on property '{property.Name}' defined in the function return type '{typeName}'. " +
+                        throw new FunctionsMetadataGenerationException($"Found multiple output attributes on property '{property.Name}' defined in the function return type '{typeName}'. " +
                             $"Only one output binding attribute is is supported on a property.");
                     }
 
@@ -313,7 +319,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (foundBinding)
                     {
-                        throw new Exception($"Found multiple Output bindings on method '{method.FullName}'. " +
+                        throw new FunctionsMetadataGenerationException($"Found multiple Output bindings on method '{method.FullName}'. " +
                             $"Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 
@@ -409,11 +415,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // the presence of "isBatched." This is a property that is from the IBatchedInput
             // interface. 
             // Conversion rule
-            //     "isBatched": true => "Cardinality": "Many"
-            //     "isBatched": false => "Cardinality": "One"
+            //     "isbatched": true => "Cardinality": "Many"
+            //     "isbatched": false => "Cardinality": "One"
             // TODO: do not rely on property alone
-            if (bindingDict["isBatched"] is not null
-                && bindingDict["isBatched"] is bool isBatched)
+            
+            if (bindingDict.TryGetValue(IsBatchedKey, out object isBatchedValue)
+                && isBatchedValue is bool isBatched)
             {
                 // Batching set to true
                 if (isBatched)
@@ -433,8 +440,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     }
                     else
                     {
-                        throw new Exception("Function is configured to process events in batches but parameter type is not iterable. " +
-                            $"Change parameter { parameterName ?? "type" } to be an IEnumerable type or set 'IsBatched' to false on your {attribute.AttributeType.Name.Replace("Attribute", "")} attribute.");
+                        throw new FunctionsMetadataGenerationException("Function is configured to process events in batches but parameter type is not iterable. " +
+                            $"Change parameter { "'" + parameterName + "'" ?? "type" } to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
                     }
                 }
                 // Batching set to false
@@ -443,7 +450,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     bindingDict["Cardinality"] = "One";
                 }
 
-                bindingDict.Remove("isBatched");
+                bindingDict.Remove(IsBatchedKey);
             }
 
             return binding;

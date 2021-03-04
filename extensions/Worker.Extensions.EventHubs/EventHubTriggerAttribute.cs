@@ -11,10 +11,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Create an instance of this attribute.
         /// </summary>
         /// <param name="eventHubName">Event hub to listen on for messages. </param>
-        public EventHubTriggerAttribute(string eventHubName, bool isBatched = true)
+        public EventHubTriggerAttribute(string eventHubName, bool IsBatched = true)
         {
             EventHubName = eventHubName;
-            IsBatched = isBatched;
+            this.IsBatched = IsBatched;
         }
 
         /// <summary>

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
     {
         [Function(nameof(EventHubsObjectFunction))]
         [EventHubOutput("test-eventhub-output-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
-        public static TestData EventHubsObjectFunction([EventHubTrigger("test-eventhub-input-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting")] TestData input,
+        public static TestData EventHubsObjectFunction([EventHubTrigger("test-eventhub-input-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting", IsBatched = false)] TestData input,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(EventHubsObjectFunction));
@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
         [Function(nameof(EventHubsVerifyOutputObject))]
         [QueueOutput("test-eventhub-output-object-dotnet-isolated")]
-        public static TestData EventHubsVerifyOutputObject([EventHubTrigger("test-eventhub-output-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting")] TestData input,
+        public static TestData EventHubsVerifyOutputObject([EventHubTrigger("test-eventhub-output-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting", IsBatched = false)] TestData input,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(EventHubsVerifyOutputObject));

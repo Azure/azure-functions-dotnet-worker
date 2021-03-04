@@ -468,13 +468,17 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "input" },
                     { "Type", "EventHubTrigger" },
                     { "Direction", "In" },
-                    { "eventHubName", "test" },
-                    { "Connection", "EventHubConnectionAppSetting" }
+                    { "eventhubname", "test" },
+                    { "connection", "EventHubConnectionAppSetting" }
                 };
 
                 if (many)
                 {
                     expected.Add("Cardinality", "Many");
+                }
+                else
+                {
+                    expected.Add("Cardinality", "One");
                 }
 
                 if (!string.IsNullOrEmpty(dataType))
@@ -487,43 +491,19 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void CardinalityManyAttribute()
-        {
+        public void CardinalityMany_WithNotIterableTypeThrows()
+        { 
             var generator = new FunctionMetadataGenerator();
-            var typeDef = TestUtility.GetTypeDefinition(typeof(TestingClass));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
-            var extensions = generator.Extensions;
+            var typeDef = TestUtility.GetTypeDefinition(typeof(EventHubNotBatched));
 
-            SdkFunctionMetadata metadata = functions.Where(a => string.Equals(a.Name, "EventHubTrigger", StringComparison.Ordinal)).Single();
-
-            ValidateFunction(metadata, "EventHubTrigger", GetEntryPoint(nameof(TestingClass), nameof(TestingClass.EventHubTrigger)),
-                b => ValidateTrigger(b));
-
-            AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "4.2.0" }
-            });
-
-            void ValidateTrigger(ExpandoObject b)
-            {
-                var expected = new Dictionary<string, object>()
-                {
-                    { "Name", "input" },
-                    { "Type", "EventHubTrigger" },
-                    { "Direction", "In" },
-                    { "eventHubName", "test" },
-                    { "Connection", "EventHubConnectionAppSetting" },
-                    { "Cardinality", "Many" },
-                    { "DataType", "String" },
-                };
-
-                AssertExpandoObject(b, expected);
-            }
+            var exception = Assert.Throws<FunctionsMetadataGenerationException>(() => generator.GenerateFunctionMetadata(typeDef));
+            Assert.Contains("Function is configured to process events in batches but parameter type is not iterable", exception.Message);
         }
 
-        private class TestingClass
+        private class EventHubNotBatched
         {
             [Function("EventHubTrigger")]
-            public static void EventHubTrigger([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string[] input,
+            public static void EventHubTrigger([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string input,
                 FunctionContext context)
             {
                 throw new NotImplementedException();
@@ -695,7 +675,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         private class CardinalityMany
         {
             [Function("StringInputFunction")]
-            public static void StringInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] string input,
+            public static void StringInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting", IsBatched = false)] string input,
                 FunctionContext context)
             {
                 throw new NotImplementedException();
@@ -709,7 +689,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
 
             [Function("BinaryInputFunction")]
-            public static void BinaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] byte[] input,
+            public static void BinaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting", IsBatched = false)] byte[] input,
                 FunctionContext context)
             {
                 throw new NotImplementedException();
@@ -814,21 +794,21 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
 
             [Function("LookupInputFunction")]
-            public static void LookupInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] Lookup<string, int> input,
+            public static void LookupInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting", IsBatched = false)] Lookup<string, int> input,
                 FunctionContext context)
             {
                 throw new NotImplementedException();
             }
 
             [Function("DictionaryInputFunction")]
-            public static void DictionaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] Dictionary<string, string> input,
+            public static void DictionaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting", IsBatched = false)] Dictionary<string, string> input,
                 FunctionContext context)
             {
                 throw new NotImplementedException();
             }
 
             [Function("ConcurrentDictionaryInputFunction")]
-            public static void ConcurrentDictionaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] ConcurrentDictionary<string, string> input,
+            public static void ConcurrentDictionaryInputFunction([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting", IsBatched = false)] ConcurrentDictionary<string, string> input,
                 FunctionContext context)
             {
                 throw new NotImplementedException();

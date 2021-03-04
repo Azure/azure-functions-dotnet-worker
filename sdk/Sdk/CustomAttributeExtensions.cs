@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 var propertyDefault = propertyDefaults.ElementAt(i);
                 if (propertyDefault.Item2 is not null)
                 {
-                    properties[propertyDefault.Item1] = propertyDefault.Item2.Value.Value;
+                    properties[propertyDefault.Item1.ToLower()] = propertyDefault.Item2.Value.Value;
                 }
             }
         }

@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker
         public string? Connection { get; set; }
 
         /// <summary>
-        /// Configures trigger to process events in batches or one at a time. Default value is "true".
+        /// Gets or sets the configuration to enable batch processing of events. Default value is "true".
         /// </summary>
         public bool IsBatched { get; set; }
     }

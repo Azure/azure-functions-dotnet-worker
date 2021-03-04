@@ -13,29 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class FunctionMetadataGenerator
     {
-        private const string BindingType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingAttribute";
-        private const string OutputBindingType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";
-        private const string FunctionNameType = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
-        private const string ExtensionsInformationType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute";
-        private const string HttpResponseType = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
-        private const string TaskGenericType = "System.Threading.Tasks.Task`1";
-        private const string TaskType = "System.Threading.Tasks.Task";
-        private const string VoidType = "System.Void";
-        private const string ReturnBindingName = "$return";
-        private const string HttpTriggerBindingType = "HttpTrigger";
-        private const string IEnumerableType = "System.Collections.IEnumerable";
-        private const string IEnumerableGenericType = "System.Collections.Generic.IEnumerable`1";
-        private const string IEnumerableOfStringType = "System.Collections.Generic.IEnumerable`1<System.String>";
-        private const string IEnumerableOfBinaryType = "System.Collections.Generic.IEnumerable`1<System.Byte[]>";
-        private const string IEnumerableOfT = "System.Collections.Generic.IEnumerable`1<T>";
-        private const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
-        private const string GenericIEnumerableArgumentName = "T";
-        private const string StringType = "System.String";
-        private const string ByteArrayType = "System.Byte[]";
-        private const string LookupGenericType = "System.Linq.Lookup`2";
-        private const string DictionaryGenericType = "System.Collections.Generic.Dictionary`2";
-        private const string IsBatchedKey = "isbatched";
-
         private readonly IndentableLogger _logger;
 
         // TODO: Verify that we don't need to allow
@@ -170,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (CustomAttribute attribute in method.CustomAttributes)
             {
-                if (string.Equals(attribute.AttributeType.FullName, FunctionNameType, StringComparison.Ordinal))
+                if (string.Equals(attribute.AttributeType.FullName, Constants.FunctionNameType, StringComparison.Ordinal))
                 {
                     string functionName = attribute.ConstructorArguments.SingleOrDefault().Value.ToString();
 
@@ -231,11 +208,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             TypeReference? returnType = GetTaskElementType(method.ReturnType);
 
-            if (returnType is not null && !string.Equals(returnType.FullName, VoidType, StringComparison.Ordinal))
+            if (returnType is not null && !string.Equals(returnType.FullName, Constants.VoidType, StringComparison.Ordinal))
             {
-                if (string.Equals(returnType.FullName, HttpResponseType, StringComparison.Ordinal))
+                if (string.Equals(returnType.FullName, Constants.HttpResponseType, StringComparison.Ordinal))
                 {
-                    AddHttpOutputBinding(bindingMetadata, ReturnBindingName);
+                    AddHttpOutputBinding(bindingMetadata, Constants.ReturnBindingName);
                 }
                 else
                 {                    
@@ -249,7 +226,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     // support to other triggers without special handling
                     if (!hasOutputModel && bindingMetadata.Any(d => IsHttpTrigger(d)))
                     {
-                        AddHttpOutputBinding(bindingMetadata, ReturnBindingName);
+                        AddHttpOutputBinding(bindingMetadata, Constants.ReturnBindingName);
                     }
                 }
             }
@@ -258,7 +235,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private bool IsHttpTrigger(ExpandoObject bindingMetadata)
         {
             return bindingMetadata.Any(kvp => string.Equals(kvp.Key, "Type", StringComparison.Ordinal)
-                && string.Equals(kvp.Value?.ToString(), HttpTriggerBindingType, StringComparison.Ordinal));
+                && string.Equals(kvp.Value?.ToString(), Constants.HttpTriggerBindingType, StringComparison.Ordinal));
         }
 
         private bool TryAddOutputBindingsFromProperties(IList<ExpandoObject> bindingMetadata, TypeDefinition typeDefinition)
@@ -268,11 +245,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (PropertyDefinition property in typeDefinition.Properties)
             {
-                if (string.Equals(property.PropertyType.FullName, HttpResponseType, StringComparison.Ordinal))
+                if (string.Equals(property.PropertyType.FullName, Constants.HttpResponseType, StringComparison.Ordinal))
                 {
                     if (foundHttpOutput)
                     {
-                        throw new FunctionsMetadataGenerationException($"Found multiple public properties with type '{HttpResponseType}' defined in output type '{typeDefinition.FullName}'. " +
+                        throw new FunctionsMetadataGenerationException($"Found multiple public properties with type '{Constants.HttpResponseType}' defined in output type '{typeDefinition.FullName}'. " +
                             $"Only one HTTP response binding type is supported in your return type definition.");
                     }
 
@@ -323,7 +300,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             $"Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 
-                    AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, ReturnBindingName);
+                    AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, Constants.ReturnBindingName);
                     AddExtensionInfo(_extensions, methodAttribute);
 
                     foundBinding = true;
@@ -350,14 +327,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static TypeReference? GetTaskElementType(TypeReference typeReference)
         {
-            if (typeReference is null || typeReference.FullName == TaskType)
+            if (typeReference is null || typeReference.FullName == Constants.TaskType)
             {
                 return null;
             }
 
             if (typeReference.IsGenericInstance
                 && typeReference is GenericInstanceType genericType 
-                && string.Equals(typeReference.GetElementType().FullName, TaskGenericType, StringComparison.Ordinal))
+                && string.Equals(typeReference.GetElementType().FullName, Constants.TaskGenericType, StringComparison.Ordinal))
             {
                 // T from Task<T>
                 return genericType.GenericArguments[0];
@@ -419,7 +396,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             //     "isbatched": false => "Cardinality": "One"
             // TODO: do not rely on property alone
             
-            if (bindingDict.TryGetValue(IsBatchedKey, out object isBatchedValue)
+            if (bindingDict.TryGetValue(Constants.IsBatchedKey, out object isBatchedValue)
                 && isBatchedValue is bool isBatched)
             {
                 // Batching set to true
@@ -450,7 +427,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     bindingDict["Cardinality"] = "One";
                 }
 
-                bindingDict.Remove(IsBatchedKey);
+                bindingDict.Remove(Constants.IsBatchedKey);
             }
 
             return binding;
@@ -459,7 +436,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
             // Array and not byte array 
-            bool isArray = type.IsArray && !string.Equals(type.FullName, ByteArrayType, StringComparison.Ordinal);
+            bool isArray = type.IsArray && !string.Equals(type.FullName, Constants.ByteArrayType, StringComparison.Ordinal);
             if (isArray)
             {
                 TypeSpecification? typeSpecification = type as TypeSpecification;
@@ -470,9 +447,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
-            bool isMappingEnumerable = IsOrDerivedFrom(type, IEnumerableOfKeyValuePair)
-                || IsOrDerivedFrom(type, LookupGenericType)
-                || IsOrDerivedFrom(type, DictionaryGenericType);
+            bool isMappingEnumerable = IsOrDerivedFrom(type, Constants.IEnumerableOfKeyValuePair)
+                || IsOrDerivedFrom(type, Constants.LookupGenericType)
+                || IsOrDerivedFrom(type, Constants.DictionaryGenericType);
             if (isMappingEnumerable)
             {
                 dataType = DataType.Undefined;
@@ -480,20 +457,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             // IEnumerable and not string or dictionary
-            bool isEnumerableOfT = IsOrDerivedFrom(type, IEnumerableOfT);
+            bool isEnumerableOfT = IsOrDerivedFrom(type, Constants.IEnumerableOfT);
             bool isEnumerableCollection =
                 !IsStringType(type.FullName)
-                && (IsOrDerivedFrom(type, IEnumerableType)
-                    || IsOrDerivedFrom(type, IEnumerableGenericType)
+                && (IsOrDerivedFrom(type, Constants.IEnumerableType)
+                    || IsOrDerivedFrom(type, Constants.IEnumerableGenericType)
                     || isEnumerableOfT);
             if (isEnumerableCollection)
             {
                 dataType = DataType.Undefined;
-                if (IsOrDerivedFrom(type, IEnumerableOfStringType))
+                if (IsOrDerivedFrom(type, Constants.IEnumerableOfStringType))
                 {
                     dataType = DataType.String;
                 }
-                else if (IsOrDerivedFrom(type, IEnumerableOfBinaryType))
+                else if (IsOrDerivedFrom(type, Constants.IEnumerableOfBinaryType))
                 {
                     dataType = DataType.Binary;
                 }
@@ -545,9 +522,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // Base case: 
             // We are at IEnumerable<T> and want to return the most recent resolution of T
             // (Most recent is relative to IEnumerable<T>)
-            if (string.Equals(type.FullName, IEnumerableOfT, StringComparison.Ordinal))
+            if (string.Equals(type.FullName, Constants.IEnumerableOfT, StringComparison.Ordinal))
             {
-                if (foundMapping.TryGetValue(GenericIEnumerableArgumentName, out string typeName))
+                if (foundMapping.TryGetValue(Constants.GenericIEnumerableArgumentName, out string typeName))
                 {
                     return typeName;
                 }
@@ -605,12 +582,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool IsStringType(string fullName)
         {
-            return string.Equals(fullName, StringType, StringComparison.Ordinal);
+            return string.Equals(fullName, Constants.StringType, StringComparison.Ordinal);
         }
 
         private static bool IsBinaryType(string fullName)
         {
-            return string.Equals(fullName, ByteArrayType, StringComparison.Ordinal);
+            return string.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal);
         }
 
         private static string GetBindingType(CustomAttribute attribute)
@@ -640,7 +617,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (var assemblyAttribute in extensionAssemblyDefintion.CustomAttributes)
             {
-                if (string.Equals(assemblyAttribute.AttributeType.FullName, ExtensionsInformationType, StringComparison.Ordinal))
+                if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
                 {
                     string extensionName = assemblyAttribute.ConstructorArguments[0].Value.ToString();
                     string extensionVersion = assemblyAttribute.ConstructorArguments[1].Value.ToString();
@@ -665,12 +642,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool IsOutputBindingType(CustomAttribute attribute)
         {
-            return TryGetBaseAttributeType(attribute, OutputBindingType, out _);
+            return TryGetBaseAttributeType(attribute, Constants.OutputBindingType, out _);
         }
 
         private static bool IsFunctionBindingType(CustomAttribute attribute)
         {
-            return TryGetBaseAttributeType(attribute, BindingType, out _);
+            return TryGetBaseAttributeType(attribute, Constants.BindingType, out _);
         }
 
         private static bool TryGetBaseAttributeType(CustomAttribute attribute, string baseType, out TypeReference? baseTypeRef)

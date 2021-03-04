@@ -18,6 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         public bool TryConvert(ConverterContext context, out object? target)
         {
             EnumerableTargetType? targetType = null;
+            target = null;
             // Array
             if (context.Parameter.Type.IsArray)
             {
@@ -38,49 +39,40 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             // Only apply if user is requesting an array, list, or hashset
             if (targetType is not null)
-            {
+            {           
                 // Valid options from FunctionRpc.proto are string, byte, double and long collection
-                if (context.Source is IEnumerable<string> enumerableString)
+                target = context.Source switch
                 {
-                    target = GetTarget(enumerableString, targetType);
-                    return true;
-                }
-                else if (context.Source is IEnumerable<byte[]> enumerableBytes)
-                {
-                    target = GetTarget(enumerableBytes, targetType);
-                    return true;
-                }
-                else if (context.Source is IEnumerable<double> enumerableDouble)
-                {
-                    target = GetTarget(enumerableDouble, targetType);
-                    return true;
-                }
-                else if (context.Source is IEnumerable<long> enumerableLong)
-                {
-                    target = GetTarget(enumerableLong, targetType);
-                    return true;
-                }
+                    IEnumerable<string> source => GetTarget(source, targetType),
+                    IEnumerable<byte[]> source => GetTarget(source, targetType),
+                    IEnumerable<double> source => GetTarget(source, targetType),
+                    IEnumerable<long> source => GetTarget(source, targetType),
+                    _ => null
+                };
             }
 
-            target = default;
-            return false;
+            if (target is null)
+            {
+                target = default;
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
 
         // Dictionary and Lookup not handled because we don't know 
         // what they keySelector and elementSelector should be.
         private static object? GetTarget<T>(IEnumerable<T> source, EnumerableTargetType? targetType)
         {
-            switch (targetType)
+            return targetType switch
             {
-                case EnumerableTargetType.Array:
-                    return source.ToArray();
-                case EnumerableTargetType.HashSet:
-                    return source.ToHashSet();
-                case EnumerableTargetType.List:
-                    return source.ToList();
-                default:
-                    return null;
-            }
+                EnumerableTargetType.Array => source.ToArray(),
+                EnumerableTargetType.HashSet => source.ToHashSet(),
+                EnumerableTargetType.List => source.ToList(),
+                _ => null,
+            };
         }
 
         private enum EnumerableTargetType

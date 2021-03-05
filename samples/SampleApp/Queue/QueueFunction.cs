@@ -8,10 +8,13 @@ namespace SampleApp
 {
     public static class QueueFunction
     {
+        //<docsnippet_queue_output_binding>
+        //<docsnippet_queue_trigger>
         [Function("QueueFunction")]
         [QueueOutput("functionstesting2")]
         public static string Run([QueueTrigger("functionstesting2")] Book myQueueItem,
             FunctionContext context)
+        //</docsnippet_queue_trigger>
         {
             var logger = context.GetLogger("QueueFunction");
             logger.LogInformation($"Book name = {myQueueItem.Name}");
@@ -19,6 +22,7 @@ namespace SampleApp
             // Queue Output
             return "queue message";
         }
+        //</docsnippet_queue_output_binding>
     }
 
     public class Book

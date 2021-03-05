@@ -5,8 +5,10 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute, IBatchedInput
+    public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
+        private bool _isBatched = false;
+
         private readonly string? _queueName;
         private readonly string? _topicName;
         private readonly string? _subscriptionName;
@@ -71,6 +73,36 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
         /// </summary>
-        public bool IsBatched { get; set; }
+        public bool IsBatched
+        {
+            get => _isBatched;
+            set => _isBatched = value;
+        }
+
+        Cardinality ISupportCardinality.Cardinality
+        {
+            get
+            {
+                if (_isBatched)
+                {
+                    return Cardinality.Many;
+                }
+                else
+                {
+                    return Cardinality.One;
+                }
+            }
+            set
+            {
+                if (value.Equals(Cardinality.Many))
+                {
+                    _isBatched = true;
+                }
+                else
+                {
+                    _isBatched = false;
+                }
+            }
+        }
     }
 }

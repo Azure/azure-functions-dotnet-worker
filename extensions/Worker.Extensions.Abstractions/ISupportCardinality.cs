@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
-    public interface IBatchedInput
+    public interface ISupportCardinality
     {
         /// <summary>
         /// Configures trigger to process events in batches or one at a time.
@@ -16,6 +16,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         ///    
         /// To default to a particular true or false, add the "DefaultValue" attribute to the method.
         /// </summary>
-        public bool IsBatched { get; set; }
+        public Cardinality Cardinality { get; set; }
+    }
+
+    public enum Cardinality
+    {
+        Many,
+        One
     }
 }

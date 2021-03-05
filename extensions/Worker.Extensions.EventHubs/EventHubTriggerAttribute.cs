@@ -5,8 +5,10 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, IBatchedInput
+    public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
+        private bool _isBatched = true;
+
         /// <summary>
         /// Create an instance of this attribute.
         /// </summary>
@@ -35,6 +37,36 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the configuration to enable batch processing of events. Default value is "true".
         /// </summary>
         [DefaultValue(true)]
-        public bool IsBatched { get; set; }
+        public bool IsBatched
+        {
+            get => _isBatched;
+            set => _isBatched = value;
+        }
+
+        Cardinality ISupportCardinality.Cardinality
+        {
+            get
+            {
+                if (_isBatched)
+                {
+                    return Cardinality.Many;
+                }
+                else
+                {
+                    return Cardinality.One;
+                }
+            }
+            set
+            {
+                if (value.Equals(Cardinality.Many))
+                {
+                    _isBatched = true;
+                }
+                else
+                {
+                    _isBatched = false;
+                }
+            }
+        }
     }
 }

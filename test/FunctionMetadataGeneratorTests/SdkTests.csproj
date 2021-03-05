@@ -28,6 +28,7 @@
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\Worker.Extensions.Timer.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />

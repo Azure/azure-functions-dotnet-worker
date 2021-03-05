@@ -8,8 +8,10 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public sealed class KafkaTriggerAttribute : TriggerBindingAttribute
+    public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
+        private bool _isBatched = false;
+
         public KafkaTriggerAttribute(string brokerList, string topic)
         {
             BrokerList = brokerList;
@@ -95,5 +97,39 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         public string? SslKeyPassword { get; set; }
 
+        /// <summary>
+        /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
+        /// </summary>
+        public bool IsBatched
+        {
+            get => _isBatched;
+            set => _isBatched = value;
+        }
+
+        Cardinality ISupportCardinality.Cardinality
+        {
+            get
+            {
+                if (_isBatched)
+                {
+                    return Cardinality.Many;
+                }
+                else
+                {
+                    return Cardinality.One;
+                }
+            }
+            set
+            {
+                if (value.Equals(Cardinality.Many))
+                {
+                    _isBatched = true;
+                }
+                else
+                {
+                    _isBatched = false;
+                }
+            }
+        }
     }
 }

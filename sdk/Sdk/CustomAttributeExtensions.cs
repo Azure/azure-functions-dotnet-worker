@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -14,16 +14,39 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public static IDictionary<string, object> GetAllDefinedProperties(this CustomAttribute attribute)
         {
             var properties = new Dictionary<string, object>();
-
             // To avoid needing to instantiate any types, assume that the constructor
             // argument names are equal to property names.
+            LoadDefaultProperties(properties, attribute);
             LoadConstructorArguments(properties, attribute);
             LoadDefinedProperties(properties, attribute);
 
             return properties;
         }
 
-        private static void LoadConstructorArguments(IDictionary<string, object> properties, CustomAttribute attribute)
+        private static IEnumerable<(string, CustomAttributeArgument?)> GetDefaultValues(this CustomAttribute attribute)
+        {
+            return attribute.AttributeType.Resolve().Properties
+                .Select(p => (p.Name, p.CustomAttributes
+                    .Where(attribute => string.Equals(attribute.AttributeType.FullName, Constants.DefaultValueAttributeType, StringComparison.Ordinal))
+                    .SingleOrDefault()
+                    ?.ConstructorArguments.SingleOrDefault()))
+                .Where(t => t.Item2 is not null);
+        }
+
+        private static void LoadDefaultProperties(IDictionary<string, object> properties, CustomAttribute attribute)
+        {
+            var propertyDefaults = attribute.GetDefaultValues();
+
+            foreach (var propertyDefault in propertyDefaults)
+            {
+                if (propertyDefault.Item2 is not null)
+                {
+                    properties[propertyDefault.Item1] = propertyDefault.Item2.Value.Value;
+                }
+            }
+        }
+
+            private static void LoadConstructorArguments(IDictionary<string, object> properties, CustomAttribute attribute)
         {
             var constructorParams = attribute.Constructor.Resolve().Parameters;
             for (int i = 0; i < attribute.ConstructorArguments.Count; i++)
@@ -34,13 +57,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 string? paramName = param?.Name;
                 object? paramValue = arg.Value;
 
-                if (paramName == null || paramValue == null)
+                if (paramName is null || paramValue is null)
                 {
                     continue;
                 }
 
-                paramValue = GetEnrichedValue(param!.ParameterType, paramValue);
-
+                paramValue = GetEnrichedValue(param!.ParameterType, paramValue);             
                 properties[paramName] = paramValue!;
             }
         }
@@ -50,15 +72,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             foreach (CustomAttributeNamedArgument property in attribute.Properties)
             {
                 object? propVal = property.Argument.Value;
+                string? propName = property.Name;
 
-                if (propVal == null)
+                if (propVal is null || propName is null)
                 {
                     continue;
                 }
 
                 propVal = GetEnrichedValue(property.Argument.Type, propVal);
 
-                properties[property.Name] = propVal!;
+                properties[propName] = propVal!;
             }
         }
 

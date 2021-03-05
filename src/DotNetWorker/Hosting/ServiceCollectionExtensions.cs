@@ -109,7 +109,8 @@ namespace Microsoft.Extensions.DependencyInjection
                            .AddSingleton<IConverter, TypeConverter>()
                            .AddSingleton<IConverter, MemoryConverter>()
                            .AddSingleton<IConverter, StringToByteConverter>()
-                           .AddSingleton<IConverter, JsonPocoConverter>();
+                           .AddSingleton<IConverter, JsonPocoConverter>()
+                           .AddSingleton<IConverter, ArrayConverter>();
         }
 
         internal static IServiceCollection RegisterOutputChannel(this IServiceCollection services)

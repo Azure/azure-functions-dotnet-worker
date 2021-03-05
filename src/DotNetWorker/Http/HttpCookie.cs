@@ -22,48 +22,52 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Specifies allowed hosts to receive the cookie.
+        /// Gets or sets the allowed hosts to receive the cookie.
         /// </summary>
         public string? Domain { get; set; }
 
         /// <summary>
-        /// Sets the cookie to expire at a specific date instead of when the client closes.
+        /// Gets or sets experation date of the cookie. An experation date sets the 
+        /// cookie to expire at a specific date instead of when the client closes.
         /// NOTE: It is generally recommended that you use MaxAge over Expires.
         /// </summary>
         public DateTimeOffset? Expires { get; set; }
 
         /// <summary>
-        /// Sets the cookie to be inaccessible to JavaScript's Document.cookie API.
+        /// Gets or sets the HttpOnly attributes on the cookie. A value of true will make
+        /// the cookie inaccessible to JavaScript's Document.cookie API.
         /// </summary>
         public bool? HttpOnly { get; set; }
 
         /// <summary>
-        /// Number of seconds until the cookie expires. A zero or negative number will expire the cookie immediately.
+        /// Gets or sets the number of seconds until the cookie expires. A zero or negative
+        /// number will expire the cookie immediately.
         /// </summary>
         public double? MaxAge { get; set; }
 
         /// <summary>
-        /// Cookie name.
+        /// Gets or sets the cookie name.
         /// </summary>
         public string Name { get; set; }
 
         /// <summary>
-        /// Specifies URL path that must exist in the requested URL.
+        /// Gets or sets the URL path that must exist in the requested URL.
         /// </summary>
         public string? Path { get; set; }
 
         /// <summary>
-        /// Options to restrict the cookie to not be sent with cross-site requests.
+        /// Gets or sets an option to restrict the cookie to not be sent with cross-site requests.
         /// </summary>
         public SameSite SameSite { get; set; }
 
         /// <summary>
-        /// Sets the cookie to only be sent with an encrypted request.
+        /// Gets or sets the Secure attribute on the cookie. A value of true will ensure that the cookie
+        /// is only sent with encrypted requests over HTTPS.
         /// </summary>
         public bool? Secure { get; set; }
 
         /// <summary>
-        /// Cookie value.
+        /// Gets or sets the cookie value.
         /// </summary>
         public string Value { get; set; }
     }

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Worker.Annotations
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class DefaultValueAttribute : Attribute

@@ -17,7 +17,7 @@ namespace FunctionApp
 // #if DEBUG
 //          Debugger.Launch();
 // #endif
-            //<startup>
+            //<docsnippet_startup>
             var host = new HostBuilder()
                 .ConfigureAppConfiguration(c =>
                 {
@@ -32,11 +32,11 @@ namespace FunctionApp
                     s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
                 })
                 .Build();
-            //</startup>
+            //</docsnippet_startup>
 
-            //<host_start>
+            //<docsnippet_host_run>
             await host.RunAsync();
-            //</host_start>
+            //</docsnippet_host_run>
         }
     }
 }

@@ -1,0 +1,10 @@
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <VersionSuffix Condition="$(VersionSuffix) == ''">preview1</VersionSuffix>
+  </PropertyGroup>
+
+  <Import Project=".\Common.props" />
+
+</Project>

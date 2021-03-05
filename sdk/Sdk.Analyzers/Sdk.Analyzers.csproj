@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\build\Common.props" />
+
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <LangVersion>preview</LangVersion>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -10,12 +9,13 @@
     <Description>This package provides development time code analysis for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Analyzers</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Analyzers</RootNamespace>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Nullable>disable</Nullable>
     <PackageTags>Azure Functions Worker, analyzers</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
   </PropertyGroup>
+
+  <Import Project="..\..\build\Common.props" />
+
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
       <PrivateAssets>all</PrivateAssets>

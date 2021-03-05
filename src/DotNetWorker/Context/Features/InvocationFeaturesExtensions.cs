@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets a feature of type <typeparamref name="T"/> from the <see cref="IInvocationFeatures"/>.
         /// </summary>
         /// <typeparam name="T">The type of the feature to get.</typeparam>
-        /// <param name="features"><The <see cref="IInvocationFeatures"/>./param>
+        /// <param name="features">The <see cref="IInvocationFeatures"/>.</param>
         /// <returns>A feature object of type <typeparamref name="T"/>.</returns>
         /// <exception cref="InvalidOperationException">There is no feature of type <typeparamref name="T"/>.</exception>
         public static T GetRequired<T>(this IInvocationFeatures features)
@@ -33,8 +33,8 @@ namespace Microsoft.Azure.Functions.Worker
         /// Tries to get a feature of type <typeparamref name="T"/> from the <see cref="IInvocationFeatures"/>.
         /// </summary>
         /// <typeparam name="T">The type of the feature to get.</typeparam>
-        /// <param name="features"><The <see cref="IInvocationFeatures"/>./param>
-        /// <paramref name="feature">The feature, if found. Otherwise, null.</paramref>
+        /// <param name="features">The <see cref="IInvocationFeatures"/>.</param>
+        /// <param name="feature">The feature, if found. Otherwise, null.</param>
         /// <returns>True if the feature was found. Otherwise, false.</returns>        
         public static bool TryGet<T>(this IInvocationFeatures features, out T? feature)
         {

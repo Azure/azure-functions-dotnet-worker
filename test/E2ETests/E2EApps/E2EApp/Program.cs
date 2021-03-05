@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApps.CosmosApp
                 })
                 .ConfigureFunctionsWorker((c, b) =>
                 {
-                    b.UseFunctionExecutionMiddleware();
+                    b.UseDefaultWorkerMiddleware();
                 })
                 .Build();
 

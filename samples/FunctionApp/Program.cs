@@ -28,7 +28,7 @@ namespace FunctionApp
                 //<docsnippet_middleware>
                 .ConfigureFunctionsWorker((c, b) =>
                 {
-                    b.UseFunctionExecutionMiddleware();
+                    b.UseDefaultWorkerMiddleware();
                 })
                 //</docsnippet_middleware>
                 //<docsnippet_dependency_injection>

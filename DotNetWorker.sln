@@ -18,8 +18,10 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{1B6B4B62-686E-44B4-9CEC-710DA34BC09E}"
 	ProjectSection(SolutionItems) = preProject
 		build\Common.props = build\Common.props
+		build\Extensions.props = build\Extensions.props
 		build\icon.png = build\icon.png
 		build\Icon.props = build\Icon.props
+		build\PackageInfo.props = build\PackageInfo.props
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk", "sdk\Sdk\Sdk.csproj", "{E28BAAEF-4E70-4CAB-8475-759ECBAF1AF5}"
@@ -67,7 +69,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "samples\Sample
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers", "sdk\Sdk.Analyzers\Sdk.Analyzers.csproj", "{055D602D-D2B3-416B-AC59-1972D832032A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdk.Analyzers.Tests", "test\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests.csproj", "{A75EA1E1-2801-460C-87C0-DE6A82D30851}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers.Tests", "test\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests.csproj", "{A75EA1E1-2801-460C-87C0-DE6A82D30851}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

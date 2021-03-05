@@ -3,7 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Definition;
+using Microsoft.Azure.Functions.Worker.Diagnostics.Exceptions;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
@@ -31,6 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             _inputBound = true;
 
+            List<string>? errors = null;
             for (int i = 0; i < _parameterValues.Length; i++)
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
@@ -48,8 +52,23 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 if (TryConvert(converterContext, out object? target))
                 {
                     _parameterValues[i] = target;
-                    continue;
                 }
+                else if (source is not null)
+                {
+                    // Don't initialize this list unless we have to
+                    if (errors is null)
+                    {
+                        errors = new List<string>();
+                    }
+
+                    errors.Add($"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'.");
+                }
+            }
+            
+            // found errors
+            if (errors is not null)
+            {
+                throw new FunctionInputConverterException($"Error converting {errors.Count} input parameters for Function '{context.FunctionDefinition.Name}': {string.Join(" ", errors)}");
             }
 
             return _parameterValues;

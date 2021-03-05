@@ -12,7 +12,7 @@
     - Service Bus (set `IsBatched = true` in trigger attribute)
     - Kafka (set `IsBatched = true` in trigger attribute)
   - To read batched event data in function code:
-    - Use array (`[]`), `IList`, `ICollection`, or `IEnumerable` if event data resolves to a primitive type (`string`, `int`, `byte[]`, `long`, `double`).
-      - `byte[]` can also be read as an `ReadOnlyMemory<byte>`. This is the more performant option, especially for large payloads.
-    - Use a class that implements `IEnumerable` or `IEnumerable<T>` for POCO event data (example: `List<MyData>`).
+    - Use array (`[]`), `IList`, `ICollection`, or `IEnumerable` if event data is `string`, `byte[]`, or `ReadOnlyMemory<byte>`.
+      - Note: `ReadOnlyMemory<byte>` is the more performant option to read binary data, especially for large payloads.
+    - Use a class that implements `IEnumerable` or `IEnumerable<T>` for serializable event data (example: `List<MyData>`).
 - Fail function execution if the requested parameter cannot be converted to the specified type (#216)

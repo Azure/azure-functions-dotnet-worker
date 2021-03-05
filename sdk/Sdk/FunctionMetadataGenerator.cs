@@ -510,8 +510,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool HasInterface(TypeDefinition definition, string interfaceFullName)
         {
-            return definition.Interfaces.Any(i => string.Equals(i.InterfaceType.FullName, interfaceFullName, StringComparison.Ordinal))
-                || definition.NestedTypes.Any(t => IsDerivedFrom(t, interfaceFullName));
+            return definition.Interfaces.Any(i => string.Equals(i.InterfaceType.FullName, interfaceFullName, StringComparison.Ordinal));
         }
 
         private static bool IsSubclassOf(TypeDefinition definition, string interfaceFullName)
@@ -565,10 +564,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             return definition.Interfaces
                     .Select(i => ResolveIEnumerableOfTType(i.InterfaceType, foundMapping))
-                    .Where(name => name is not null)
-                    .FirstOrDefault()
-                ?? definition.NestedTypes
-                    .Select(t => ResolveIEnumerableOfTType(t, foundMapping))
                     .Where(name => name is not null)
                     .FirstOrDefault()
                 ?? ResolveIEnumerableOfTType(definition.BaseType, foundMapping);

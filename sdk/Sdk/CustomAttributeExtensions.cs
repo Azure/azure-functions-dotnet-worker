@@ -37,9 +37,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var propertyDefaults = attribute.GetDefaultValues();
 
-            for (int i = 0; i < propertyDefaults.Count(); i++)
+            foreach (var propertyDefault in propertyDefaults)
             {
-                var propertyDefault = propertyDefaults.ElementAt(i);
                 if (propertyDefault.Item2 is not null)
                 {
                     properties[propertyDefault.Item1] = propertyDefault.Item2.Value.Value;

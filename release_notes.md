@@ -6,3 +6,13 @@
   - Updates to HttpResponseData
     - API updates
     - Support for response Cookies
+- Add support for batched trigger events (#205)
+  - The following services allow trigger events to be batched:
+    - Event Hubs (batched by default)
+    - Service Bus (set `IsBatched = true` in trigger attribute)
+    - Kafka (set `IsBatched = true` in trigger attribute)
+  - To read batched event data in function code:
+    - Use array (`[]`), `IList`, `ICollection`, or `IEnumerable` if event data resolves to a primitive type (`string`, `int`, `byte[]`, `long`, `double`).
+      - `byte[]` can also be read as an `ReadOnlyMemory<byte>`. This is the more performant option, especially for large payloads.
+    - Use a class that implements `IEnumerable` or `IEnumerable<T>` for POCO event data (example: `List<MyData>`).
+- Fail function execution if the requested parameter cannot be converted to the specified type (#216)

@@ -3,7 +3,7 @@
 
 using System;
 
-namespace Microsoft.Azure.Functions.Worker.Annotations
+namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
     [AttributeUsage(AttributeTargets.Property)]
     public class DefaultValueAttribute : Attribute

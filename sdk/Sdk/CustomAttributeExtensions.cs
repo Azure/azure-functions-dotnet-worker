@@ -62,8 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     continue;
                 }
 
-                paramValue = GetEnrichedValue(param!.ParameterType, paramValue);
-                
+                paramValue = GetEnrichedValue(param!.ParameterType, paramValue);             
                 properties[paramName] = paramValue!;
             }
         }

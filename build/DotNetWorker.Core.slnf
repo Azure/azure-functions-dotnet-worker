@@ -1,0 +1,10 @@
+{
+  "solution": {
+    "path": "..\\DotNetWorker.sln",
+    "projects": [
+      "sdk\\Sdk.Analyzers\\Sdk.Analyzers.csproj",
+      "sdk\\Sdk\\Sdk.csproj",
+      "src\\DotNetWorker\\DotNetWorker.csproj"
+    ]
+  }
+}

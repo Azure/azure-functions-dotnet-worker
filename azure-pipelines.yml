@@ -34,7 +34,7 @@ jobs:
     inputs:
       command: 'build'
       arguments: '-c Release'
-      projects: '**/*.csproj'
+      projects: 'DotNetWorker.sln'
 
   - pwsh: ./setup-e2e-tests.ps1
     displayName: "Setup E2E tests"
@@ -190,8 +190,7 @@ jobs:
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
       projects: |
-        **\DotNetWorker.csproj
-        **\Sdk.csproj
+        **\DotNetWorker.Core.slnf
 
   - task: DotNetCoreCLI@2
     displayName: 'Build Extension packages'

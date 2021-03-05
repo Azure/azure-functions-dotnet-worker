@@ -13,6 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         // Convert IEnumerable to array
         public bool TryConvert(ConverterContext context, out object? target)
         {
+            target = null;
             // Ensure requested type is an array
             if (context.Parameter.Type.IsArray)
             {
@@ -20,13 +21,12 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 if (elementType is not null)
                 {
                     // Ensure that we can assign from source to parameter type
-                    if (elementType.IsAssignableFrom(typeof(string))
-                        || elementType.IsAssignableFrom(typeof(byte[]))
-                        || elementType.IsAssignableFrom(typeof(ReadOnlyMemory<byte>))
-                        || elementType.IsAssignableFrom(typeof(long))
-                        || elementType.IsAssignableFrom(typeof(double)))
+                    if (elementType.Equals(typeof(string))
+                        || elementType.Equals(typeof(byte[]))
+                        || elementType.Equals(typeof(ReadOnlyMemory<byte>))
+                        || elementType.Equals(typeof(long))
+                        || elementType.Equals(typeof(double)))
                     {
-                        target = null;
                         target = context.Source switch
                         {
                             IEnumerable<string> source => source.ToArray(),
@@ -35,17 +35,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                             IEnumerable<long> source => source.ToArray(),
                             _ => null
                         };
-
-                        if (target is not null)
-                        {
-                            return true;
-                        }
                     }
                 }
             }
 
-            target = default;
-            return false;
+            return target is not null;
         }
 
         private static object? GetBinaryData(IEnumerable<ReadOnlyMemory<byte>> source, Type targetType)

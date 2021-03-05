@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         private static readonly RepeatedField<long> _sourceLongEnumerable = new RepeatedField<long>() { 2000 };
 
         [Fact]
-        public void ConvertCollectionBytesToByteDoubleArray()
+        public void ConvertCollectionBytesToJaggedByteArray()
         {
             var context = new TestConverterContext("output", typeof(byte[][]), _sourceMemoryEnumerable);
             Assert.True(_converter.TryConvert(context, out object target));

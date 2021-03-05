@@ -28,6 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string TaskGenericType = "System.Threading.Tasks.Task`1";
         internal const string TaskType = "System.Threading.Tasks.Task";
         internal const string VoidType = "System.Void";
+        internal const string ReadOnlyMemoryOfBytes = "System.ReadOnlyMemory`1<System.Byte>";
 
         internal const string ReturnBindingName = "$return";
         internal const string HttpTriggerBindingType = "HttpTrigger";

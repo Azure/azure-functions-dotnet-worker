@@ -389,12 +389,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             // Determine if we should set the "Cardinality" property based on
-            // the presence of "isBatched." This is a property that is from the IBatchedInput
-            // interface. 
+            // the presence of "isBatched." This is a property that is from the
+            // attributes that implement the ISupportCardinality interface.
+            //
+            // Note that we are directly looking for "IsBatched" today while we 
+            // are not actually instantiating the Attribute type and instead relying
+            // on type inspection via Mono.Cecil.
+            // TODO: Do not hard-code "isBatched" as the property to set cardinality.
+            // We should rely on the interface
+            // 
             // Conversion rule
             //     "isbatched": true => "Cardinality": "Many"
             //     "isbatched": false => "Cardinality": "One"
-            // TODO: do not rely on property alone
             if (bindingDict.TryGetValue(Constants.IsBatchedKey, out object isBatchedValue)
                 && isBatchedValue is bool isBatched)
             {
@@ -402,7 +408,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 if (isBatched)
                 {
                     bindingDict["Cardinality"] = "Many";
-                    // Throw if parameter type is not IEnumerable
+                    // Throw if parameter type is *definitely* not a collection type.
+                    // Note that this logic doesn't dictate what we can/can't do, and
+                    // we can be more restrictive in the future because today some 
+                    // scenarios result in runtime failures.
                     if (IsIterableCollection(parameterType, out DataType dataType))
                     {
                         if (dataType.Equals(DataType.String))
@@ -586,7 +595,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool IsBinaryType(string fullName)
         {
-            return string.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal);
+            return string.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal)
+                || string.Equals(fullName, Constants.ReadOnlyMemoryOfBytes, StringComparison.Ordinal);
         }
 
         private static string GetBindingType(CustomAttribute attribute)

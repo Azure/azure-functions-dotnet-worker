@@ -117,7 +117,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 TypedData.DataOneofCase.Json => typedData.Json,
                 TypedData.DataOneofCase.Bytes => typedData.Bytes.Memory,
                 TypedData.DataOneofCase.CollectionBytes => typedData.CollectionBytes.Bytes.Select(element => {
-                    return element.Memory.ToArray();
+                    return element.Memory;
                 }),
                 TypedData.DataOneofCase.CollectionString => typedData.CollectionString.String,
                 TypedData.DataOneofCase.CollectionDouble => typedData.CollectionDouble.Double,

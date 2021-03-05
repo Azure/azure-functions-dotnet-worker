@@ -7,6 +7,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
+        // Batch by default
         private bool _isBatched = true;
 
         /// <summary>

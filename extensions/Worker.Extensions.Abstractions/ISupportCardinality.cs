@@ -9,12 +9,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
     public interface ISupportCardinality
     {
         /// <summary>
-        /// Configures trigger to process events in batches or one at a time.
-        /// This translates to values for the "cardinality" property in WebJobs terms.
-        ///    true => "Many"
-        ///    false => "One"
-        ///    
-        /// To default to a particular true or false, add the "DefaultValue" attribute to the method.
+        /// Configures the "cardinality" property
+        /// This property indicates that the requested type is an array. Note that for 
+        /// inputs and outputs, the effect of cardinality may be different (ex: electing to
+        /// receive a collection of events vs. indicating that my return type will be
+        /// a collection).
         /// </summary>
         public Cardinality Cardinality { get; set; }
     }

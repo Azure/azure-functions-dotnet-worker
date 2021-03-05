@@ -10,12 +10,15 @@ namespace SampleApp
 {
     public static class HttpFunction
     {
+        //<docsnippet_http_trigger>
         [Function("HttpFunction")]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext executionContext)
         {
+            //<docsnippet_logging>
             var logger = executionContext.GetLogger("HttpFunction");
             logger.LogInformation("message logged");
+            //</docsnippet_logging>
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
@@ -25,5 +28,6 @@ namespace SampleApp
 
             return response;
         }
+        //</docsnippet_http_trigger>
     }
 }

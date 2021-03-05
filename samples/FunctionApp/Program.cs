@@ -17,22 +17,32 @@ namespace FunctionApp
 // #if DEBUG
 //          Debugger.Launch();
 // #endif
+            //<docsnippet_startup>
             var host = new HostBuilder()
+                //<docsnippet_configure_app>
                 .ConfigureAppConfiguration(c =>
                 {
                     c.AddCommandLine(args);
                 })
+                //</docsnippet_configure_app>
+                //<docsnippet_middleware>
                 .ConfigureFunctionsWorker((c, b) =>
                 {
                     b.UseFunctionExecutionMiddleware();
                 })
+                //</docsnippet_middleware>
+                //<docsnippet_dependency_injection>
                 .ConfigureServices(s =>
                 {
                     s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
                 })
+                //</docsnippet_dependency_injection>
                 .Build();
+            //</docsnippet_startup>
 
+            //<docsnippet_host_run>
             await host.RunAsync();
+            //</docsnippet_host_run>
         }
     }
 }

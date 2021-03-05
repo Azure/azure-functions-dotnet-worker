@@ -2,10 +2,7 @@
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->
-- Enhancements to HTTP model (BREAKING) (#150)
-  - Updates to HttpResponseData
-    - API updates
-    - Support for response Cookies
+- API to enable simple registration of middleware
 - Add support for batched trigger events (#205)
   - The following services allow trigger events to be batched:
     - Event Hubs (batched by default)

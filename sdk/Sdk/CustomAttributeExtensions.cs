@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 var propertyDefault = propertyDefaults.ElementAt(i);
                 if (propertyDefault.Item2 is not null)
                 {
-                    properties[propertyDefault.Item1.ToLower()] = propertyDefault.Item2.Value.Value;
+                    properties[propertyDefault.Item1] = propertyDefault.Item2.Value.Value;
                 }
             }
         }
@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 paramValue = GetEnrichedValue(param!.ParameterType, paramValue);
                 
-                properties[paramName.ToLower()] = paramValue!;
+                properties[paramName] = paramValue!;
             }
         }
 
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 propVal = GetEnrichedValue(property.Argument.Type, propVal);
 
-                properties[propName.ToLower()] = propVal!;
+                properties[propName] = propVal!;
             }
         }
 

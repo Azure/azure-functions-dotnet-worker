@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
             else
             {
-                return source.Select(i => i.ToArray());
+                return source.Select(i => i.ToArray()).ToArray();
             }
         }
     }

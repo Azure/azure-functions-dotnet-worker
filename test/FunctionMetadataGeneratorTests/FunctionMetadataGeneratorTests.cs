@@ -412,7 +412,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_Method));
 
-            var exception = Assert.Throws<Exception>(() => generator.GenerateFunctionMetadata(typeDef));
+            var exception = Assert.Throws<FunctionsMetadataGenerationException>(() => generator.GenerateFunctionMetadata(typeDef));
 
             Assert.Contains($"Found multiple Output bindings on method", exception.Message);
         }
@@ -468,8 +468,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "input" },
                     { "Type", "EventHubTrigger" },
                     { "Direction", "In" },
-                    { "eventhubname", "test" },
-                    { "connection", "EventHubConnectionAppSetting" }
+                    { "eventHubName", "test" },
+                    { "Connection", "EventHubConnectionAppSetting" }
                 };
 
                 if (many)

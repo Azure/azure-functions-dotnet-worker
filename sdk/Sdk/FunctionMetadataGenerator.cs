@@ -389,18 +389,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             // Determine if we should set the "Cardinality" property based on
-            // the presence of "isBatched." This is a property that is from the
+            // the presence of "IsBatched." This is a property that is from the
             // attributes that implement the ISupportCardinality interface.
             //
             // Note that we are directly looking for "IsBatched" today while we 
             // are not actually instantiating the Attribute type and instead relying
             // on type inspection via Mono.Cecil.
-            // TODO: Do not hard-code "isBatched" as the property to set cardinality.
+            // TODO: Do not hard-code "IsBatched" as the property to set cardinality.
             // We should rely on the interface
             // 
             // Conversion rule
-            //     "isbatched": true => "Cardinality": "Many"
-            //     "isbatched": false => "Cardinality": "One"
+            //     "IsBatched": true => "Cardinality": "Many"
+            //     "IsBatched": false => "Cardinality": "One"
             if (bindingDict.TryGetValue(Constants.IsBatchedKey, out object isBatchedValue)
                 && isBatchedValue is bool isBatched)
             {

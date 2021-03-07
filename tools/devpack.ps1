@@ -65,5 +65,5 @@ Write-Host "Adding SDK package version $version to $project"
 & "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-v" $version "-s" $localPack "-n"
 Write-Host
 Write-Host "Building $project"
-& "dotnet" "build" $project "-nologo" "-p:TestBuild=true" "--source" $localPack "--source" "https://api.nuget.org/v3/index.json"
+& "dotnet" "build" $project "-nologo" "-p:TestBuild=true" "--source" "$localPack" "--source" "https://api.nuget.org/v3/index.json"
 Write-Host "------"

@@ -259,4 +259,4 @@ jobs:
       inputs:
         command: 'test'
         arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
-        projects: 'test/**/E2ETests.slnf'
+        projects: 'test/**/*Tests.csproj'

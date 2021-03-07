@@ -65,7 +65,7 @@ Write-Host "Adding SDK package version $version to $project"
 & "dotnet" "add" $project "package" "Microsoft.Azure.Functions.Worker.Sdk" "-v" $version "-s" $localPack "-n"
 Write-Host
 $configFile = Split-Path "$project"
-$configFile += "/nuget.config"
+$configFile += "/NuGet.Config"
 Write-Host "Config file name" $configFile
 & "dotnet" "nuget" "add" "source" $localPack "--name" "local" "--configfile" "$configFile"
 Write-Host "Building $project"

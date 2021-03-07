@@ -258,5 +258,5 @@ jobs:
       displayName: 'Run E2E tests'
       inputs:
         command: 'test'
-        arguments: '--filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
+        arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
         projects: 'test/**/E2ETests.slnf'

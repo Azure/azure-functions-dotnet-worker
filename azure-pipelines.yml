@@ -242,6 +242,13 @@ jobs:
     vmImage: 'ubuntu-latest'
     
   steps:
+    - task: DotNetCoreCLI@2
+      displayName: 'Build projects'
+      inputs:
+        command: 'build'
+        arguments: '-c Release'
+        projects: 'DotNetWorker.sln'
+
     - pwsh: ./setup-e2e-tests.ps1 -SkipEmulators
       displayName: "Setup E2E tests"
       env:
@@ -252,4 +259,4 @@ jobs:
       inputs:
         command: 'test'
         arguments: '--filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
-        projects: 'test/**/E2ETests.csproj'
+        projects: 'test/**/E2ETests.slnf'

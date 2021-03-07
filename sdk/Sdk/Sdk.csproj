@@ -9,8 +9,8 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk</RootNamespace>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <FunctionsExecutionModel>isolated</FunctionsExecutionModel>
     <FunctionsGeneratorOutputPath>..\FunctionMetadataLoaderExtension\bin\$(Configuration)\netstandard2.0\</FunctionsGeneratorOutputPath>
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

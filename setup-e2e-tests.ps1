@@ -92,7 +92,7 @@ if (Test-Path $output)
   Remove-Item $output
 }
 
-.\tools\devpack.ps1 -E2E
+.\tools\devpack.ps1 -E2E -AdditionalPackArgs @("-c","Release") -SkipBuildOnPack
 
 if (!$SkipEmulators)
 {

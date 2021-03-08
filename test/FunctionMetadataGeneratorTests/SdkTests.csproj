@@ -6,6 +6,8 @@
     <RootNamespace>Microsoft.Azure.Functions.SdkTests</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+    <!--Investigate script abstractions codeanalysis dependencies and remove this-->
+    <NoWarn>$(NoWarn);NU1608;NU1701</NoWarn>
   </PropertyGroup>
   
   <ItemGroup>

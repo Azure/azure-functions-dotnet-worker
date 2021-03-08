@@ -27,7 +27,7 @@ namespace Microsoft.Extensions.Hosting
         /// </list>
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The configured <see cref="IFunctionsWorkerApplicationBuilder"/>.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseDefaultWorkerMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             return builder.UseOutputBindingsMiddleware()
@@ -38,7 +38,7 @@ namespace Microsoft.Extensions.Hosting
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the default <see cref="FunctionExecutionMiddleware"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The configured <see cref="IFunctionsWorkerApplicationBuilder"/>.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseFunctionExecutionMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             builder.Services.AddSingleton<FunctionExecutionMiddleware>();
@@ -60,7 +60,7 @@ namespace Microsoft.Extensions.Hosting
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the default <see cref="OutputBindingsMiddleware"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The configured <see cref="IFunctionsWorkerApplicationBuilder"/>.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseOutputBindingsMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             builder.Services.AddSingleton<OutputBindingsMiddleware>();
@@ -82,7 +82,7 @@ namespace Microsoft.Extensions.Hosting
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use provided middleware type.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The configured <see cref="IFunctionsWorkerApplicationBuilder"/>.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseMiddleware<T>(this IFunctionsWorkerApplicationBuilder builder)
             where T : class, IFunctionsWorkerMiddleware
         {

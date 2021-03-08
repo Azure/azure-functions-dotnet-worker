@@ -24,7 +24,18 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         public async Task Publish()
         {
             string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish));
+            await RunPublishTest(outputDir);
+        }
 
+        [Fact]
+        public async Task Publish_Rid()
+        {
+            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish_Rid));
+            await RunPublishTest(outputDir, "-r win-x86");
+        }
+
+        private async Task RunPublishTest(string outputDir, string additionalParams = null)
+        {
             // Name of the csproj
             string projectNameToTest = "FunctionApp";
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, projectNameToTest);
@@ -38,7 +49,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Publish
             _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
-            dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir}";
+            dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
             exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");

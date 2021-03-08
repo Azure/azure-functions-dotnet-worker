@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 
@@ -43,6 +43,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
 <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />

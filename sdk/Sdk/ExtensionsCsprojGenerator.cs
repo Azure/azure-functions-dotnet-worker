@@ -65,8 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         <Version>$(MajorMinorProductVersion).0</Version>
         <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <NoWarn>$(NoWarn);NU1605</NoWarn>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>        
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />

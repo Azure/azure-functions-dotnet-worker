@@ -21,22 +21,21 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         }
 
         [Fact]
-        public Task Publish()
-        {
-            return RunPublishTest();
-        }
-
-
-        [Fact]
-        public Task Publish_Rid()
-        {
-            return RunPublishTest("-r win-x86");
-        }
-
-        private async Task RunPublishTest(string additionalParams = null)
+        public async Task Publish()
         {
             string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish));
+            await RunPublishTest(outputDir);
+        }
 
+        [Fact]
+        public async Task Publish_Rid()
+        {
+            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish_Rid));
+            await RunPublishTest(outputDir, "-r win-x86");
+        }
+
+        private async Task RunPublishTest(string outputDir, string additionalParams = null)
+        {
             // Name of the csproj
             string projectNameToTest = "FunctionApp";
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, projectNameToTest);
@@ -88,8 +87,6 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             // Verify functions.metadata
             TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "functions.metadata");
         }
-
-
 
         private class Extension
         {

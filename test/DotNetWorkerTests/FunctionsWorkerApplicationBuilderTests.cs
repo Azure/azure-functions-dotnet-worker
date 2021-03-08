@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             bool configureBuilderCalled = false;
             bool configureWorkerOptionsCalled = false;
             IServiceProvider services = new HostBuilder()
-                .ConfigureFunctionsWorker(b => configureBuilderCalled = true, w => configureWorkerOptionsCalled = true)
+                .ConfigureFunctionsWorkerDefaults(b => configureBuilderCalled = true, w => configureWorkerOptionsCalled = true)
                 .Build()
                 .Services;
 

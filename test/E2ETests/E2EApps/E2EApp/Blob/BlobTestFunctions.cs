@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             _logger = logger;
         }
 
-        [Function("BlobTriggerToBlobTest")]
+        [Function(nameof(BlobTriggerToBlobTest))]
         [BlobOutput("test-output-dotnet-isolated/{name}")]
         public byte[] BlobTriggerToBlobTest(
             [BlobTrigger("test-triggerinput-dotnet-isolated/{name}")] byte[] triggerBlob, string name,
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return inputBlob;
         }
 
-        [Function("BlobTriggerPOCOTest")]
+        [Function(nameof(BlobTriggerPocoTest))]
         [BlobOutput("test-outputpoco-dotnet-isolated/{name}")]
         public TestBlobData BlobTriggerPocoTest(
             [BlobTrigger("test-triggerinputpoco-dotnet-isolated/{name}")] TestBlobData triggerBlob, string name,
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return triggerBlob;
         }
 
-        [Function("BlobTriggerStringTest")]
+        [Function(nameof(BlobTriggerStringTest))]
         [BlobOutput("test-outputstring-dotnet-isolated/{name}")]
         public string BlobTriggerStringTest(
             [BlobTrigger("test-triggerinputstring-dotnet-isolated/{name}")] string triggerBlobText, string name,

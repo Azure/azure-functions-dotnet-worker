@@ -91,6 +91,30 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         [Fact]
+        public async Task QueueTriggerAndBindingDataOutput_Succeeds()
+        {
+            string expectedQueueMessage = Guid.NewGuid().ToString();
+            //Clear queue
+            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingDataName);
+            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingDataName);
+
+            //Set up and trigger            
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingDataName);
+            await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingDataName, expectedQueueMessage);
+
+            //Verify
+            string resultMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingDataName);
+            IDictionary<string, string> splitMessage = resultMessage.Split(",").ToDictionary(s => s.Split('=')[0], s => s.Split('=')[1]);
+
+            Assert.Contains("QueueTrigger", splitMessage);
+            Assert.Contains("DequeueCount", splitMessage);
+            Assert.Contains("Id", splitMessage);
+            Assert.Contains("InsertionTime", splitMessage);
+            Assert.Contains("NextVisibleTime", splitMessage);
+            Assert.Contains("PopReceipt", splitMessage);
+        }
+
+        [Fact]
         public async Task QueueTrigger_BindToTriggerMetadata_Succeeds()
         {
             string inputQueueMessage = Guid.NewGuid().ToString();

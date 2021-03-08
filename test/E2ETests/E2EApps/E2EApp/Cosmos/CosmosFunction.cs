@@ -10,13 +10,13 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
     public static class CosmosFunction
     {
-        [Function("CosmosTrigger")]
+        [Function(nameof(CosmosTrigger))]
         [CosmosDBOutput(
             databaseName: "%CosmosDb%",
             collectionName: "%CosmosCollOut%",
             ConnectionStringSetting = "CosmosConnection",
             CreateIfNotExists = true)]
-        public static object Run([CosmosDBTrigger(
+        public static object CosmosTrigger([CosmosDBTrigger(
             databaseName: "%CosmosDb%",
             collectionName: "%CosmosCollIn%",
             ConnectionStringSetting = "CosmosConnection",

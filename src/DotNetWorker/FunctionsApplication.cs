@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Task InvokeFunctionAsync(FunctionContext context)
         {
-            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Invocation.Id);
+            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Id);
             using (_logger.BeginScope(scope))
             {
 

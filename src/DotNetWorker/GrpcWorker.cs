@@ -147,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             InvocationResponse response = new InvocationResponse()
             {
-                InvocationId = context.Invocation.Id
+                InvocationId = context.Id
             };
 
             try

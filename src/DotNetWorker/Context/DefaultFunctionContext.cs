@@ -10,20 +10,25 @@ namespace Microsoft.Azure.Functions.Worker
     internal class DefaultFunctionContext : FunctionContext, IDisposable
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
+        private readonly FunctionInvocation _invocation;
 
         private IServiceScope? _instanceServicesScope;
         private IServiceProvider? _instanceServices;
+        private BindingContext? _bindingContext;
 
         public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features)
         {
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Features = features ?? throw new ArgumentNullException(nameof(features));
 
-            Invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The {nameof(FunctionInvocation)} feature is required.");
-            FunctionDefinition = features.Get<FunctionDefinition>() ?? throw new InvalidOperationException($"The {nameof(FunctionDefinition)} feature is required.");
+            _invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The '{nameof(FunctionInvocation)}' feature is required.");
+            FunctionDefinition = features.Get<FunctionDefinition>() ?? throw new InvalidOperationException($"The {nameof(Worker.FunctionDefinition)} feature is required.");
         }
 
-        public override FunctionInvocation Invocation { get; }
+
+        public override string Id => _invocation.Id;
+
+        public override string FunctionId => _invocation.FunctionId;
 
         public override FunctionDefinition FunctionDefinition { get; }
 
@@ -46,6 +51,10 @@ namespace Microsoft.Azure.Functions.Worker
 
             set => _instanceServices = value;
         }
+
+        public override TraceContext TraceContext => _invocation.TraceContext;
+
+        public override BindingContext BindingContext => _bindingContext ??= new DefaultBindingContext(this);
 
         public virtual void Dispose()
         {

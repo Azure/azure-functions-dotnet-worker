@@ -12,9 +12,26 @@ namespace Microsoft.Azure.Functions.Worker
     public abstract class FunctionContext
     {
         /// <summary>
-        /// Gets the <see cref="FunctionInvocation"/> instance containing information about the invocation.
+        /// Gets the invocation ID.
+        /// This identifier is unique to an invocation.
         /// </summary>
-        public abstract FunctionInvocation Invocation { get; }
+        public abstract string Id { get; }
+
+        /// <summary>
+        /// Gets the function ID, typically assigned by the host.
+        /// This identifier is unique to a function and stable across invocations.
+        /// </summary>
+        public abstract string FunctionId { get; }
+
+        /// <summary>
+        /// Gets the distributed tracing context.
+        /// </summary>
+        public abstract TraceContext TraceContext { get; }
+
+        /// <summary>
+        /// Gets the binding context for the current function invocation.
+        /// </summary>
+        public abstract BindingContext BindingContext { get; }
 
         /// <summary>
         /// Gets or sets the <see cref="IServiceProvider"/> that provides access to this execution's services.

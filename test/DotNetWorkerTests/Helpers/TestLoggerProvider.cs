@@ -13,16 +13,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class TestLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
         private IExternalScopeProvider _scopeProvider;
-        private Lazy<ILoggerFactory> _lazyFactory;
+        private static Lazy<ILoggerFactory> _lazyFactory;
 
-        public TestLoggerProvider()
+        static TestLoggerProvider()
         {
             _lazyFactory = new Lazy<ILoggerFactory>(() =>
             {
                 return new ServiceCollection()
                             .AddLogging(b =>
                             {
-                                b.AddProvider(this);
+                                b.AddProvider(new TestLoggerProvider());
                             })
                             .BuildServiceProvider()
                             .GetService<ILoggerFactory>();
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         private ConcurrentDictionary<string, TestLogger> LoggerCache { get; } = new ConcurrentDictionary<string, TestLogger>();
 
-        public ILoggerFactory Factory => _lazyFactory.Value;
+        public static ILoggerFactory Factory => _lazyFactory.Value;
 
         public IEnumerable<TestLogger> CreatedLoggers => LoggerCache.Values;
 

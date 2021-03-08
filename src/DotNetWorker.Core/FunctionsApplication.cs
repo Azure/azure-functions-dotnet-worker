@@ -16,16 +16,18 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
         private readonly IFunctionContextFactory _functionContextFactory;
-        private readonly ILogger<FunctionsApplication> _logger;
         private readonly IOptions<WorkerOptions> _workerOptions;
+        private readonly ILogger<FunctionsApplication> _logger;
+        private readonly IWorkerDiagnostics _diagnostics;
 
         public FunctionsApplication(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
-             IOptions<WorkerOptions> workerOptions, ILogger<FunctionsApplication> logger)
+             IOptions<WorkerOptions> workerOptions, ILogger<FunctionsApplication> logger, IWorkerDiagnostics diagnostics)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
         public FunctionContext CreateContext(IInvocationFeatures features)
@@ -50,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException($"Unable to load Function '{definition.Name}'. A function with the id '{definition.Id}' name already exists.");
             }
 
-            Log.FunctionDefinitionCreated(_logger, definition);
+            _diagnostics.OnFunctionLoaded(definition);
         }
 
         public Task InvokeFunctionAsync(FunctionContext context)

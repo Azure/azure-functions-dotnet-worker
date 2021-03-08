@@ -3,8 +3,8 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker.Context.Features;
-using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit.Sdk;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -33,6 +33,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }
 
             return converted;
+        }
+
+        public static IOptions<TOptions> WrapOptions<TOptions>(TOptions options = null) where TOptions : class, new()
+        {
+            options ??= new TOptions();
+            return new OptionsWrapper<TOptions>(options);
         }
     }
 }

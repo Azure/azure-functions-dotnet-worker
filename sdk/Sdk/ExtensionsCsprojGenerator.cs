@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         <Version>$(MajorMinorProductVersion).0</Version>
         <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>        
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />

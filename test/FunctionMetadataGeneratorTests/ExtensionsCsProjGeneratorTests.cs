@@ -40,10 +40,10 @@ namespace Microsoft.Azure.Functions.SdkTests
         <Version>$(MajorMinorProductVersion).0</Version>
         <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <NoWarn>$(NoWarn);NU1605</NoWarn>
+        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>        
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
 <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />

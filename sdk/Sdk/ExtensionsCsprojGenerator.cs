@@ -68,6 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>        
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
         {extensionReferences}
     </ItemGroup>

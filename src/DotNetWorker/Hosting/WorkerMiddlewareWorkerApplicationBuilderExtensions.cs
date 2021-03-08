@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Reflection;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
@@ -41,6 +42,11 @@ namespace Microsoft.Extensions.Hosting
         /// <returns>The configured <see cref="IFunctionsWorkerApplicationBuilder"/>.</returns>
         public static IFunctionsWorkerApplicationBuilder UseFunctionExecutionMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
+            if (builder.Services.Any(d => d.ServiceType == typeof(FunctionExecutionMiddleware)))
+            {
+                return builder;
+            }
+
             builder.Services.AddSingleton<FunctionExecutionMiddleware>();
 
             builder.Use(next =>
@@ -63,6 +69,11 @@ namespace Microsoft.Extensions.Hosting
         /// <returns>The configured <see cref="IFunctionsWorkerApplicationBuilder"/>.</returns>
         public static IFunctionsWorkerApplicationBuilder UseOutputBindingsMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
+            if (builder.Services.Any(d => d.ServiceType == typeof(OutputBindingsMiddleware)))
+            {
+                return builder;
+            }
+
             builder.Services.AddSingleton<OutputBindingsMiddleware>();
 
             builder.Use(next =>

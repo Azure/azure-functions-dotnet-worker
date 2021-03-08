@@ -26,10 +26,7 @@ namespace FunctionApp
                 })
                 //</docsnippet_configure_app>
                 //<docsnippet_middleware>
-                .ConfigureFunctionsWorker((c, b) =>
-                {
-                    b.UseDefaultWorkerMiddleware();
-                })
+                .ConfigureFunctionsWorkerDefaults()
                 //</docsnippet_middleware>
                 //<docsnippet_dependency_injection>
                 .ConfigureServices(s =>

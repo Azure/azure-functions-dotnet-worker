@@ -21,7 +21,19 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         }
 
         [Fact]
-        public async Task Publish()
+        public Task Publish()
+        {
+            return RunPublishTest();
+        }
+
+
+        [Fact]
+        public Task Publish_Rid()
+        {
+            return RunPublishTest("-r win-x86");
+        }
+
+        private async Task RunPublishTest(string additionalParams = null)
         {
             string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish));
 
@@ -38,7 +50,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Publish
             _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
-            dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir}";
+            dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
             exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -76,6 +88,8 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             // Verify functions.metadata
             TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "functions.metadata");
         }
+
+
 
         private class Extension
         {

@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 
@@ -41,6 +41,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
         <FileVersion>$(Version)</FileVersion>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <NoWarn>$(NoWarn);NU1605</NoWarn>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />

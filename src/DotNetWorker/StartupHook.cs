@@ -22,7 +22,14 @@ internal class StartupHook
         const int SleepTime = 500;
         const int MaxWaitCycles = (60 * 1000) / SleepTime;
 
-        Console.WriteLine("Azure Functions .NET Worker initialized in debug mode. Waiting for debugger to attach...");
+        Console.WriteLine($"Azure Functions .NET Worker (PID: { Environment.ProcessId }) initialized in debug mode. Waiting for debugger to attach...");
+
+        string? jsonOutputEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_JSON_OUTPUT");
+
+        if (jsonOutputEnabled is not null && string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"{{ \"workerProcessId\" : { Environment.ProcessId } }}");
+        }
 
         static bool WaitOnDebugger(int cycle)
         {

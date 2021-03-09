@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "..\\DotNetWorker.sln",
+    "projects": [
+      "extensions\\Worker.Extensions.Abstractions\\Worker.Extensions.Abstractions.csproj",
+      "extensions\\Worker.Extensions.Timer\\Worker.Extensions.Timer.csproj"
+    ]
+  }
+}

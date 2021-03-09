@@ -7,7 +7,10 @@
     $SkipBuildOnPack,
     [Parameter(Mandatory=$false)]
     [string[]]
-    $AdditionalPackArgs = @()
+    $AdditionalPackArgs = @(),
+    [Parameter(Mandatory=$false)]
+    [Switch]
+    $IncludeExtensions
 )
 
 # Packs the SDK locally, and (by default) updates the Sample to use this package, then builds.
@@ -17,6 +20,7 @@ $buildNumber = "local" + [System.DateTime]::Now.ToString("yyyyMMddHHmm")
 
 Write-Host
 Write-Host "Building packages with BuildNumber $buildNumber"
+Write-Host "Include extensions: $IncludeExtensions"
 
 $rootPath = Split-Path -Parent $PSScriptRoot
 $project = "$rootPath/samples/FunctionApp/FunctionApp.csproj"
@@ -74,6 +78,16 @@ $configFile += "/NuGet.Config"
 Write-Host "Config file name" $configFile
 & "dotnet" "nuget" "add" "source" $localPack "--name" "local" "--configfile" "$configFile"
 Write-Host "Building $project"
+
+if ($IncludeExtensions)
+{
+  Write-Host
+  Write-Host "---Packing Extensions projects---"
+  $extensionsSolution = "$rootpath/build/Extensions.slnf"
+  Write-Host "Packing Extensions projects to $localPack"
+  & "dotnet" "pack" $extensionsSolution "-o" "$localPack" "-nologo" "-p:BuildNumber=$buildNumber" $AdditionalPackArgs
+  Write-Host
+}
 
 & "dotnet" "build" $project "-nologo" "-p:TestBuild=true"
 Write-Host "------"

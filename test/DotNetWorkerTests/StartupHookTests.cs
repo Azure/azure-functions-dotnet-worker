@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal("StartupHook", hookType.FullName);
             Assert.Null(hookType.Namespace);
             Assert.False(hookType.IsVisible);
-            Assert.Equal("Microsoft.Azure.Functions.Worker", hookType.Assembly.GetName().Name);
+            Assert.Equal("Microsoft.Azure.Functions.Worker.Core", hookType.Assembly.GetName().Name);
             Assert.NotNull(initializeMethod);
             Assert.Empty(initializeMethod.GetParameters());
             Assert.Equal(typeof(void), initializeMethod.ReturnType);

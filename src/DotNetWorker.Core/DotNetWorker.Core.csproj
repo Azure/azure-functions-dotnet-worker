@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>net5.0</TargetFramework>
+    <PackageId>Microsoft.Azure.Functions.Worker.Core</PackageId>
+    <Description>This library provides the core functionality to build an Azure Functions .NET Worker, adding support for the isolated, out-of-process execution model.</Description>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\Common.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.9.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.5" />
+  </ItemGroup>
+</Project>

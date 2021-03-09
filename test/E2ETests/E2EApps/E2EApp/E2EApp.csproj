@@ -11,11 +11,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
-    <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\Worker.Extensions.CosmosDB.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

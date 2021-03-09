@@ -2,6 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+<<<<<<< HEAD
+=======
+using System.Text.Json;
+using System.Threading.Channels;
+using Azure.Core.Serialization;
+>>>>>>> Ignore casing on property names by default
 using Microsoft.Azure.Functions.Worker;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -14,6 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <summary>
         /// Adds the core set of services for the Azure Functions worker.
         /// This call also adds the default set of binding converters and gRPC support.
+        /// This call also adds a default ObjectSerializer that treats property names as case insensitive.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/>.</param>
         /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
@@ -27,6 +34,18 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Converters
             services.RegisterDefaultConverters();
+
+            // Default Json serialization should ignore casing on property names
+            services.PostConfigure<WorkerOptions>(options =>
+            {
+                if (options.Serializer is null)
+                {
+                    options.Serializer = new JsonObjectSerializer(new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true
+                    });
+                }
+            });
 
             // Core services registration
             var builder = services.AddFunctionsWorkerCore(configure);

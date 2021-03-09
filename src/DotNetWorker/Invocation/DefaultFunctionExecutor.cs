@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
         public async Task ExecuteAsync(FunctionContext context)
         {
-            var invoker = _invokerCache.GetOrAdd(context.Invocation.FunctionId,
+            var invoker = _invokerCache.GetOrAdd(context.FunctionId,
                 _ => _invokerFactory.Create(context.FunctionDefinition));
 
             object? instance = invoker.CreateInstance(context.InstanceServices);

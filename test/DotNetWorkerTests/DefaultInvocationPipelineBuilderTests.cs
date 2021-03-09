@@ -1,14 +1,11 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Extensions.DependencyInjection;
-using Moq;
-using System;
+
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Pipeline;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests

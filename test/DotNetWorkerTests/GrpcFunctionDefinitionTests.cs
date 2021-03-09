@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Rpc;
 using Xunit;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.BindingInfo.Types;
 

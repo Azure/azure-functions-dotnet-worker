@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             // found errors
             if (errors is not null)
             {
-                throw new FunctionInputConverterException($"Error converting {errors.Count} input parameters for Function '{context.FunctionDefinition.Name}': {string.Join(" ", errors)}");
+                throw new FunctionInputConverterException($"Error converting {errors.Count} input parameters for Function '{context.FunctionDefinition.Name}': {string.Join(Environment.NewLine, errors)}");
             }
 
             return _parameterValues;

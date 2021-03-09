@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -68,6 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
     <ItemGroup>
+        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
         {extensionReferences}
     </ItemGroup>

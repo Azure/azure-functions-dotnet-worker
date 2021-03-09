@@ -10,12 +10,12 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Worker.Rpc
 {
     internal static class RpcExtensions
     {
-        private static TypedData _emptyTypedData = new();
-        private static Task<TypedData> _emptyTypedDataResult = Task.FromResult(_emptyTypedData);
+        private static readonly TypedData _emptyTypedData = new();
+        private static readonly Task<TypedData> _emptyTypedDataResult = Task.FromResult(_emptyTypedData);
 
         public static Task<TypedData> ToRpcAsync(this object value, ObjectSerializer serializer)
         {

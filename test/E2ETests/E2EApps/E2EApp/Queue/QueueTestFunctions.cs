@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.WebUtilities;
@@ -13,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 {
     public class QueueTestFunctions
     {
-        [Function("QueueTriggerAndOutput")]
+        [Function(nameof(QueueTriggerAndOutput))]
         [QueueOutput("test-output-dotnet-isolated")]
         public string QueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated")] string message,
             FunctionContext context)
@@ -24,7 +25,21 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             return message;
         }
 
-        [Function("QueueTriggerAndArrayOutput")]
+
+        [Function(nameof(QueueTriggerAndBindingDataOutput))]
+        [QueueOutput("test-output-binding-data-dotnet-isolated")]
+        public string QueueTriggerAndBindingDataOutput([QueueTrigger("test-input-binding-data-dotnet-isolated")] string message,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger<QueueTestFunctions>();
+            logger.LogInformation($"Message: {message}");
+
+            var values = context.BindingContext.BindingData.Select(kvp => $"{kvp.Key}={kvp.Value}");
+
+            return string.Join(",", values);
+        }
+
+        [Function(nameof(QueueTriggerAndArrayOutput))]
         [QueueOutput("test-output-array-dotnet-isolated")]
         public string[] QueueTriggerAndArrayOutput([QueueTrigger("test-input-array-dotnet-isolated")] string message,
             FunctionContext context)
@@ -38,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             };
         }
 
-        [Function("QueueTriggerAndListOutput")]
+        [Function(nameof(QueueTriggerAndListOutput))]
         [QueueOutput("test-output-list-dotnet-isolated")]
         public List<string> QueueTriggerAndListOutput([QueueTrigger("test-input-list-dotnet-isolated")] string message,
             FunctionContext context)
@@ -52,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             };
         }
 
-        [Function("QueueOutputPocoList")]
+        [Function(nameof(QueueOutputPocoList))]
         public HttpAndQueue QueueOutputPocoList(
             [HttpTrigger()] HttpRequestData request,
             FunctionContext context)
@@ -96,7 +111,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             }
         }
 
-        [Function("QueueTriggerAndOutputPoco")]
+        [Function(nameof(QueueTriggerAndOutputPoco))]
         [QueueOutput("test-output-dotnet-isolated-poco")]
         public TestData QueueTriggerAndOutputPoco(
             [QueueTrigger("test-input-dotnet-isolated-poco")] TestData message,
@@ -106,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             return message;
         }
 
-        [Function("QueueTriggerMetadata")]
+        [Function(nameof(QueueTriggerMetadata))]
         [QueueOutput("test-output-dotnet-isolated-metadata")]
         public TestData QueueTriggerMetadata(
             [QueueTrigger("test-input-dotnet-isolated-metadata")] string message, string id,

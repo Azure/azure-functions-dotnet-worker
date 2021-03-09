@@ -12,6 +12,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 {
     internal class TestFunctionContext : FunctionContext, IDisposable
     {
+        private readonly FunctionInvocation _invocation;
+     
         public TestFunctionContext()
             : this(new TestFunctionDefinition(), new TestFunctionInvocation())
         {
@@ -20,12 +22,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation)
         {
             FunctionDefinition = functionDefinition;
-            Invocation = invocation;
+            _invocation = invocation;
 
             Features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature
             {
                 OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
             });
+
+            BindingContext = new DefaultBindingContext(this);
         }
 
         public bool IsDisposed { get; private set; }
@@ -36,9 +40,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override IDictionary<object, object> Items { get; set; }
 
-        public override FunctionInvocation Invocation { get; }
-
         public override IInvocationFeatures Features { get; } = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+
+        public override string Id => _invocation.Id;
+
+        public override string FunctionId => _invocation.FunctionId;
+
+        public override TraceContext TraceContext => _invocation.TraceContext;
+
+        public override BindingContext BindingContext { get; }
 
         public void Dispose()
         {

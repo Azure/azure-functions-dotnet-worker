@@ -45,16 +45,19 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("The function ID for the current load request is invalid");
             }
 
+            if (!_functionMap.TryAdd(definition.Id, definition))
+            {
+                throw new InvalidOperationException($"Unable to load Function '{definition.Name}'. A function with the id '{definition.Id}' name already exists.");
+            }
+
             Log.FunctionDefinitionCreated(_logger, definition);
-            _functionMap.TryAdd(definition.Id, definition);
         }
 
         public Task InvokeFunctionAsync(FunctionContext context)
         {
-            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Invocation.Id);
+            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Id);
             using (_logger.BeginScope(scope))
             {
-
                 return _functionExecutionDelegate(context);
             }
         }

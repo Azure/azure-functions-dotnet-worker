@@ -3,24 +3,15 @@
 
 using System;
 using System.Threading.Channels;
-using Grpc.Core;
-using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Diagnostics;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -30,29 +21,17 @@ namespace Microsoft.Extensions.DependencyInjection
     public static class ServiceCollectionExtensions
     {
         /// <summary>
-        /// Adds services for the Azure Functions worker.
+        /// Adds the core set of services for the Azure Functions worker.
         /// </summary>
         /// <param name="services">The <see cref="IServiceCollection"/>.</param>
         /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
-        /// <returns></returns>
-        public static IFunctionsWorkerApplicationBuilder AddFunctionsWorker(this IServiceCollection services, Action<WorkerOptions>? configure = null)
+        /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerCore(this IServiceCollection services, Action<WorkerOptions>? configure = null)
         {
-            if (services == null)
+            if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
             }
-
-            // Converters
-            services.RegisterDefaultConverters();
-
-            // Channels
-            services.RegisterOutputChannel();
-
-            // Internal logging            
-            services.AddLogging(logging =>
-            {
-                logging.Services.AddSingleton<ILoggerProvider, GrpcFunctionsHostLoggerProvider>();
-            });
 
             // Request handling
             services.AddSingleton<IFunctionsApplication, FunctionsApplication>();
@@ -74,33 +53,41 @@ namespace Microsoft.Extensions.DependencyInjection
             // Output Bindings
             services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
 
-            // gRpc
-            services.AddSingleton<IWorker, GrpcWorker>();
-            services.AddSingleton<FunctionRpcClient>(p =>
-            {
-                IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>();
-                GrpcWorkerStartupOptions arguments = argumentsOptions.Value;
-
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{arguments.Host}:{arguments.Port}", new GrpcChannelOptions()
-                {
-                    Credentials = ChannelCredentials.Insecure
-                });
-
-                return new FunctionRpcClient(grpcChannel);
-            });
+            // Worker initialization service
             services.AddSingleton<IHostedService, WorkerHostedService>();
-            services.AddOptions<GrpcWorkerStartupOptions>()
-                .Configure<IConfiguration>((arguments, config) =>
-                {
-                    config.Bind(arguments);
-                });
 
             if (configure != null)
             {
                 services.Configure(configure);
             }
 
-            return new FunctionsWorkerApplicationBuilder(services);
+            return new FunctionsWorkerApplicationBuilder(services); ;
+        }
+
+        /// <summary>
+        /// Adds the core set of services for the Azure Functions worker.
+        /// This call also adds the default set of binding converters and gRPC support.
+        /// </summary>
+        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
+        /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
+        /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerDefaults(this IServiceCollection services, Action<WorkerOptions>? configure = null)
+        {
+            if (services == null)
+            {
+                throw new ArgumentNullException(nameof(services));
+            }
+
+            // Converters
+            services.RegisterDefaultConverters();
+
+            // Core services registration
+            var builder = services.AddFunctionsWorkerCore(configure);
+
+            // gRPC support
+            services.AddGrpc();
+
+            return builder;
         }
 
         internal static IServiceCollection RegisterDefaultConverters(this IServiceCollection services)
@@ -111,21 +98,6 @@ namespace Microsoft.Extensions.DependencyInjection
                            .AddSingleton<IConverter, StringToByteConverter>()
                            .AddSingleton<IConverter, JsonPocoConverter>()
                            .AddSingleton<IConverter, ArrayConverter>();
-        }
-
-        internal static IServiceCollection RegisterOutputChannel(this IServiceCollection services)
-        {
-            return services.AddSingleton<GrpcHostChannel>(s =>
-            {
-                UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
-                {
-                    SingleWriter = false,
-                    SingleReader = true,
-                    AllowSynchronousContinuations = true
-                };
-
-                return new GrpcHostChannel(System.Threading.Channels.Channel.CreateUnbounded<StreamingMessage>(outputOptions));
-            });
         }
     }
 }

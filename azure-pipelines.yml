@@ -34,7 +34,7 @@ jobs:
     inputs:
       command: 'build'
       arguments: '-c Release'
-      projects: '**/*.csproj'
+      projects: 'DotNetWorker.sln'
 
   - pwsh: ./setup-e2e-tests.ps1
     displayName: "Setup E2E tests"
@@ -190,8 +190,7 @@ jobs:
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
       projects: |
-        **\DotNetWorker.csproj
-        **\Sdk.csproj
+        **\DotNetWorker.Core.slnf
 
   - task: DotNetCoreCLI@2
     displayName: 'Build Extension packages'
@@ -243,6 +242,13 @@ jobs:
     vmImage: 'ubuntu-latest'
     
   steps:
+    - task: DotNetCoreCLI@2
+      displayName: 'Build projects'
+      inputs:
+        command: 'build'
+        arguments: '-c Release'
+        projects: 'DotNetWorker.sln'
+
     - pwsh: ./setup-e2e-tests.ps1 -SkipEmulators
       displayName: "Setup E2E tests"
       env:
@@ -252,5 +258,5 @@ jobs:
       displayName: 'Run E2E tests'
       inputs:
         command: 'test'
-        arguments: '--filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
-        projects: 'test/**/E2ETests.csproj'
+        arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
+        projects: 'test/**/*Tests.csproj'

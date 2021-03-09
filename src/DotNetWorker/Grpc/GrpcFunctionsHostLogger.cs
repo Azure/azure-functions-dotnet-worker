@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Logging;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.RpcLog.Types;
 

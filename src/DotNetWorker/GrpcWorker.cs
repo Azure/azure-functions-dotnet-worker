@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
@@ -108,49 +109,63 @@ namespace Microsoft.Azure.Functions.Worker
             return Task.CompletedTask;
         }
 
-        private Task ProcessRequestCoreAsync(StreamingMessage request)
+        private async Task ProcessRequestCoreAsync(StreamingMessage request)
         {
-            return request.ContentCase switch
-            {
-                MsgType.WorkerInitRequest => WorkerInitRequestHandlerAsync(request),
-                MsgType.FunctionLoadRequest => FunctionLoadRequestHandlerAsync(request),
-                MsgType.InvocationRequest => InvocationRequestHandlerAsync(request),
-                // TODO: Trace that we missed this MsgType
-                _ => Task.CompletedTask,
-            };
-        }
-
-        internal async Task InvocationRequestHandlerAsync(StreamingMessage request)
-        {
-            var invocation = new GrpcFunctionInvocation(request.InvocationRequest);
-
-            IInvocationFeatures invocationFeatures = _invocationFeaturesFactory.Create();
-            invocationFeatures.Set<FunctionInvocation>(invocation);
-
-            FunctionContext context = _application.CreateContext(invocationFeatures);
-
-            invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request.InvocationRequest, _outputBindingsInfoProvider));
-
-            InvocationResponse response = await InvokeAsync(_application, _workerOptions.Value.Serializer, context);
-
             StreamingMessage responseMessage = new StreamingMessage
             {
-                RequestId = request.RequestId,
-                InvocationResponse = response
+                RequestId = request.RequestId
             };
+
+            if (request.ContentCase == MsgType.InvocationRequest)
+            {
+                responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
+                    _invocationFeaturesFactory, _workerOptions.Value.Serializer, _outputBindingsInfoProvider);
+            }
+            else if (request.ContentCase == MsgType.WorkerInitRequest)
+            {
+                responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
+            }
+            else if (request.ContentCase == MsgType.FunctionLoadRequest)
+            {
+                responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
+            }
+            else if (request.ContentCase == MsgType.FunctionEnvironmentReloadRequest)
+            {
+                // No-op for now, but return a response.
+                responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
+                {
+                    Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                };
+            }
+            else
+            {
+                // TODO: Trace failure here.
+                return;
+            }
 
             await _outputWriter.WriteAsync(responseMessage);
         }
 
-        internal static async Task<InvocationResponse> InvokeAsync(IFunctionsApplication application, ObjectSerializer serializer, FunctionContext context)
+        internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, IFunctionsApplication application,
+            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer, IOutputBindingsInfoProvider outputBindingsInfoProvider)
         {
-            InvocationResponse response = new InvocationResponse()
+            FunctionContext? context = null;
+            FunctionInvocation? invocation = null;
+            InvocationResponse response = new()
             {
-                InvocationId = context.Invocation.Id
+                InvocationId = request.InvocationId
             };
 
             try
             {
+                invocation = new GrpcFunctionInvocation(request);
+
+                IInvocationFeatures invocationFeatures = invocationFeaturesFactory.Create();
+                invocationFeatures.Set<FunctionInvocation>(invocation);
+
+                context = application.CreateContext(invocationFeatures);
+                invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, outputBindingsInfoProvider));
+
                 await application.InvokeFunctionAsync(context);
 
                 var functionBindings = context.GetBindings();
@@ -177,7 +192,10 @@ namespace Microsoft.Azure.Functions.Worker
                     response.ReturnValue = returnVal;
                 }
 
-                response.Result = new StatusResult { Status = StatusResult.Types.Status.Success };
+                response.Result = new StatusResult
+                {
+                    Status = StatusResult.Types.Status.Success
+                };
             }
             catch (Exception ex)
             {
@@ -195,7 +213,7 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal async Task WorkerInitRequestHandlerAsync(StreamingMessage request)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)
         {
             var response = new WorkerInitResponse
             {
@@ -209,54 +227,38 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
 
-            StreamingMessage responseMessage = new StreamingMessage
-            {
-                RequestId = request.RequestId,
-                WorkerInitResponse = response
-            };
-
-            await _outputWriter.WriteAsync(responseMessage);
+            return response;
         }
 
-        internal async Task FunctionLoadRequestHandlerAsync(StreamingMessage request)
+        internal static FunctionLoadResponse FunctionLoadRequestHandler(FunctionLoadRequest request, IFunctionsApplication application, IMethodInfoLocator methodInfoLocator)
         {
-            FunctionLoadRequest loadRequest = request.FunctionLoadRequest;
-
-            if (!loadRequest.Metadata.IsProxy)
-            {
-                FunctionDefinition definition = loadRequest.ToFunctionDefinition(_methodInfoLocator);
-                _application.LoadFunction(definition);
-            }
-
             var response = new FunctionLoadResponse
             {
-                FunctionId = loadRequest.FunctionId,
-                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                FunctionId = request.FunctionId,
             };
 
-            var responseMessage = new StreamingMessage
+            if (!request.Metadata.IsProxy)
             {
-                RequestId = request.RequestId,
-                FunctionLoadResponse = response
-            };
+                try
+                {
+                    FunctionDefinition definition = request.ToFunctionDefinition(methodInfoLocator);
+                    application.LoadFunction(definition);
+                    response.Result = new StatusResult
+                    {
+                        Status = StatusResult.Types.Status.Success
+                    };
+                }
+                catch (Exception ex)
+                {
+                    response.Result = new StatusResult
+                    {
+                        Status = StatusResult.Types.Status.Failure,
+                        Exception = ex.ToRpcException()
+                    };
+                }
+            }
 
-            await _outputWriter.WriteAsync(responseMessage);
-        }
-
-        internal async Task FunctionEnvironmentReloadRequestHandlerAsync(StreamingMessage request)
-        {
-            var response = new FunctionEnvironmentReloadResponse
-            {
-                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-            };
-
-            StreamingMessage responseMessage = new StreamingMessage
-            {
-                RequestId = request.RequestId,
-                FunctionEnvironmentReloadResponse = response
-            };
-
-            await _outputWriter.WriteAsync(responseMessage);
+            return response;
         }
     }
 }

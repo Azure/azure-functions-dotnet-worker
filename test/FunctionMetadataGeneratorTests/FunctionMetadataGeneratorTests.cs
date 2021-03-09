@@ -933,8 +933,6 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         private class Poco
         {
-            public string Foo;
-            public string Bar;
         }
     }
 }

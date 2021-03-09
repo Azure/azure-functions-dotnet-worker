@@ -1,0 +1,16 @@
+{
+  "solution": {
+    "path": "..\\..\\DotNetWorker.sln",
+    "projects": [
+      "extensions\\Worker.Extensions.Abstractions\\Worker.Extensions.Abstractions.csproj",
+      "extensions\\Worker.Extensions.CosmosDB\\Worker.Extensions.CosmosDB.csproj",
+      "extensions\\Worker.Extensions.EventHubs\\Worker.Extensions.EventHubs.csproj",
+      "extensions\\Worker.Extensions.Http\\Worker.Extensions.Http.csproj",
+      "extensions\\Worker.Extensions.Storage\\Worker.Extensions.Storage.csproj",
+      "src\\DotNetWorker\\DotNetWorker.csproj",
+      "test\\E2ETests\\E2EApps\\E2EApp\\E2EApp.csproj",
+      "test\\E2ETests\\E2ETests\\E2ETests.csproj",
+      "test\\TestUtility\\TestUtility.csproj"
+    ]
+  }
+}

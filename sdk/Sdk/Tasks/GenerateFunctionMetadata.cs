@@ -8,7 +8,12 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
+#if NET46
+    [LoadInSeparateAppDomain]
+    public class GenerateFunctionMetadata : AppDomainIsolatedTask
+#else
     public class GenerateFunctionMetadata : Task
+#endif
     {
         [Required]
         public string? AssemblyPath { get; set; }

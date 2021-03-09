@@ -2,7 +2,7 @@
   
   <PropertyGroup>
     <PatchProductVersion>1</PatchProductVersion>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>
     <Description>This package provides development time support for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk</AssemblyName>
@@ -39,7 +39,17 @@
 
   <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
     <ItemGroup>
-      <_PackageFiles Include="$(FunctionsGeneratorOutputPath)\**\*.dll;$(OutputPath)*.dll">
+      <_PackageFiles Include="$(FunctionsGeneratorOutputPath)\*.dll">
+        <PackagePath>tools/netstandard2.0</PackagePath>
+        <BuildAction>None</BuildAction>
+        <Visible>false</Visible>
+      </_PackageFiles>
+      <_PackageFiles Include="$(OutputPath)\net472\*.dll">
+        <PackagePath>tools/net472</PackagePath>
+        <BuildAction>None</BuildAction>
+        <Visible>false</Visible>
+      </_PackageFiles>
+      <_PackageFiles Include="$(OutputPath)\netstandard2.0\*.dll">
         <PackagePath>tools/netstandard2.0</PackagePath>
         <BuildAction>None</BuildAction>
         <Visible>false</Visible>

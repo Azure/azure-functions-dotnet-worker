@@ -9,7 +9,12 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 {
+#if NET46
+    [LoadInSeparateAppDomain]
+    public class EnhanceExtensionsMetadata : AppDomainIsolatedTask
+#else
     public class EnhanceExtensionsMetadata : Task
+#endif
     {
         private static JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true };
 

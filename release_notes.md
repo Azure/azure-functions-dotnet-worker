@@ -13,3 +13,5 @@
       - Note: `ReadOnlyMemory<byte>` is the more performant option to read binary data, especially for large payloads.
     - Use a class that implements `IEnumerable` or `IEnumerable<T>` for serializable event data (example: `List<MyData>`).
 - Fail function execution if the requested parameter cannot be converted to the specified type (#216)
+- Fix issue with referencing extensions that have native dependencies:
+  - To address this, a default dependency on .NET Core 3.1 SDK was added. Note: This dependency can be overridden by setting a build property `<_FunctionsExtensionTargetFramework>netstandard2.0<_FunctionsExtensionTargetFramework/>` if only using bindings without native dependencies.

@@ -13,6 +13,11 @@
 # Packs the SDK locally, and (by default) updates the Sample to use this package, then builds.
 # Specify --E2E to instead target the E2E test app.
 
+$buildNumber = "local" + [System.DateTime]::Now.ToString("yyyyMMddHHmm")
+
+Write-Host
+Write-Host "Building packages with BuildNumber $buildNumber"
+
 $rootPath = Split-Path -Parent $PSScriptRoot
 $project = "$rootPath/samples/FunctionApp/FunctionApp.csproj"
 $sdkProject = "$rootPath/build/DotNetWorker.Core.slnf"
@@ -35,7 +40,7 @@ if (!(Test-Path $localPack))
 Write-Host
 Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing Core .NET Worker projects to $localPack"
-& "dotnet" "pack" $sdkProject "-o" "$localPack" "-nologo" $AdditionalPackArgs
+& "dotnet" "pack" $sdkProject "-o" "$localPack" "-nologo" "-p:BuildNumber=$buildNumber" $AdditionalPackArgs
 Write-Host
 
 Write-Host "Removing SDK package reference in $project"

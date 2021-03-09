@@ -40,17 +40,24 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         public static readonly string NuGetPackageSource = LocalPackages;
 
+        private static bool _isInitialized = false;
+
         public static async Task<string> InitializeTestAsync(ITestOutputHelper testOutputHelper, string testName)
         {
-            testOutputHelper.WriteLine($"Running {DevPackPath}");
+            if (!_isInitialized)
+            {
+                testOutputHelper.WriteLine($"Running {DevPackPath}");
 
-            int? exitCode = await new ProcessWrapper().RunProcess("powershell", DevPackPath, SrcRoot, testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
+                int? exitCode = await new ProcessWrapper().RunProcess("powershell", DevPackPath, SrcRoot, testOutputHelper);
+                Assert.True(exitCode.HasValue && exitCode.Value == 0);
 
-            // Build .NET Worker
-            string dotnetArgs = $"build --configuration {Configuration}";
-            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, Path.Combine(SrcRoot, "DotNetWorker"), testOutputHelper: testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
+                // Build .NET Worker
+                string dotnetArgs = $"build --configuration {Configuration}";
+                exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, Path.Combine(SrcRoot, "DotNetWorker"), testOutputHelper: testOutputHelper);
+                Assert.True(exitCode.HasValue && exitCode.Value == 0);
+
+                _isInitialized = true;
+            }
 
             return InitializeOutputDir(testName);
         }

@@ -17,9 +17,9 @@ namespace Microsoft.Extensions.Hosting
         /// blocks the calling thread until the host shuts down.
         /// </summary>
         /// <param name="configureServices">An optional delegate to configure host services.</param>
-        public static void CreateDefaultAndRun(Action<IServiceCollection>? configureServices = null)
+        public static void RunDefault(Action<IServiceCollection>? configureServices = null)
         {
-            CreateDefaultAndRunAsync(configureServices).GetAwaiter().GetResult();
+            RunDefaultAsync(configureServices).GetAwaiter().GetResult();
         }
 
         /// <summary>
@@ -28,7 +28,7 @@ namespace Microsoft.Extensions.Hosting
         /// </summary>
         /// <param name="configureService">An option delegate to configure host services.</param>
         /// <returns>A <see cref="Task"/> that will complete when the host shuts down.</returns>
-        public async static Task CreateDefaultAndRunAsync(Action<IServiceCollection>? configureService = null)
+        public async static Task RunDefaultAsync(Action<IServiceCollection>? configureService = null)
         {
            var builder = Host.CreateDefaultBuilder()
                 .ConfigureFunctionsWorkerDefaults();

@@ -6,9 +6,9 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Microsoft.Azure.Functions.Worker.Sdk
+namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 {
-#if NET46
+#if NET472
     [LoadInSeparateAppDomain]
     public class GenerateFunctionMetadata : AppDomainIsolatedTask
 #else

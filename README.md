@@ -86,7 +86,7 @@ We're working with the Visual Studio team to provide an integrated debugging exp
     ```
 ## Known issues
 
-* Deployment to Azure is currently limited to Windows plans. Note that some optimizations are not in place in the consumption plan and you may experience longer cold starts.
+* Optimizations are not all in place in the consumption plan and you may experience longer cold starts.
 
 ## Feedback
 

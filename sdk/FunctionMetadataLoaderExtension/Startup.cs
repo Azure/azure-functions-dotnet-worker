@@ -42,6 +42,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             Environment.SetEnvironmentVariable("DOTNET_NOLOGO", "true");
             Environment.SetEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "true");
+            Environment.SetEnvironmentVariable("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "true");
         }
 
         public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)

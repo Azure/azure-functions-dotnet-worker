@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 namespace Microsoft.Azure.Functions.Worker.Grpc
 {
 
-    internal partial class GrpcWorkerDiagnostics : IWorkerDiagnostics
+    internal class GrpcWorkerDiagnostics : IWorkerDiagnostics
     {
         private ChannelWriter<StreamingMessage> _outputChannel;
 

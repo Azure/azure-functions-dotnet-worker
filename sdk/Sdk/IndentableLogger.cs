@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -9,10 +9,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     internal class IndentableLogger
     {
         private const int SpacesPerIndent = 2;
-        private readonly Action<TraceLevel, string> _log;
+        private readonly Action<TraceLevel, string, string> _log;
         private int _indent = 0;
 
-        public IndentableLogger(Action<TraceLevel, string> log)
+        public IndentableLogger(Action<TraceLevel, string, string> log)
         {
             _log = log ?? throw new ArgumentNullException(nameof(log));
         }
@@ -37,17 +37,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         public void LogMessage(string message)
         {
-            _log(TraceLevel.Info, Indent(message));
+            _log(TraceLevel.Info, Indent(message), string.Empty);
         }
 
-        public void LogError(string message)
+        public void LogError(string message, string? filePath = null)
         {
-            _log(TraceLevel.Error, Indent(message));
+            _log(TraceLevel.Error, Indent(message), filePath ?? string.Empty);
         }
 
         public void LogWarning(string message)
         {
-            _log(TraceLevel.Warning, Indent(message));
+            _log(TraceLevel.Warning, Indent(message), string.Empty);
         }
 
         private string Indent(string message)

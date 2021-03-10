@@ -3,7 +3,6 @@
 
 using System;
 using System.Text.Json;
-using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
 
 namespace Microsoft.Extensions.DependencyInjection

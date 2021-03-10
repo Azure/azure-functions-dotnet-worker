@@ -20,6 +20,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             {
                 throw new ArgumentNullException(nameof(options));
             }
+            if (options.Value.Serializer == null)
+            {
+                throw new InvalidOperationException(nameof(options.Value.Serializer));
+            }
 
             _serializer = options.Value.Serializer;
         }

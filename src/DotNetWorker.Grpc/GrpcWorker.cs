@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
-        private readonly IOptions<WorkerOptions> _workerOptions;
+        private readonly ObjectSerializer _serializer;
 
         private Task? _writerTask;
         private Task? _readerTask;
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
-            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
+            _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
         }
 
         public Task StartAsync(CancellationToken token)
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.Worker
             if (request.ContentCase == MsgType.InvocationRequest)
             {
                 responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
-                    _invocationFeaturesFactory, _workerOptions.Value.Serializer, _outputBindingsInfoProvider);
+                    _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider);
             }
             else if (request.ContentCase == MsgType.WorkerInitRequest)
             {

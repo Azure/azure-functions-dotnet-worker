@@ -112,14 +112,8 @@ namespace Microsoft.Extensions.Hosting
             builder
                 .ConfigureAppConfiguration(configBuilder =>
                 {
-                    // If it does not begin with a key prefix of '--', wrap the first argument
-                    // in quotes so that nothing else is interpreted as a key prefix.
                     var cmdLine = Environment.GetCommandLineArgs();
-                    if (cmdLine.Length > 0 && !cmdLine[0].StartsWith("--"))
-                    {
-                        cmdLine[0] = $"\"{cmdLine[0]}\"";
-                    }
-                    configBuilder.AddCommandLine(cmdLine);
+                    RegisterCommandLine(configBuilder, cmdLine);
                 })
                 .ConfigureServices((context, services) =>
                 {
@@ -133,6 +127,17 @@ namespace Microsoft.Extensions.Hosting
                 });
 
             return builder;
+        }
+
+        internal static void RegisterCommandLine(IConfigurationBuilder builder, string[] cmdLine)
+        {
+            if (cmdLine.Length > 0 &&
+                !cmdLine[0].StartsWith("--"))
+            {
+                cmdLine[0] = $"\"{cmdLine[0]}\"";
+            }
+
+            builder.AddCommandLine(cmdLine);
         }
     }
 }

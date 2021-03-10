@@ -4,6 +4,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -11,15 +12,19 @@ namespace Microsoft.Azure.Functions.Worker
     internal class WorkerHostedService : IHostedService
     {
         private readonly IWorker _worker;
+        private readonly IWorkerDiagnostics _diagnostics;
 
-        public WorkerHostedService(IWorker worker)
+        public WorkerHostedService(IWorker worker, IWorkerDiagnostics diagnostics)
         {
             _worker = worker ?? throw new ArgumentNullException(nameof(worker));
+            _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        public Task StartAsync(CancellationToken cancellationToken)
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            return _worker.StartAsync(cancellationToken);
+            await _worker.StartAsync(cancellationToken);
+
+            _diagnostics.OnApplicationCreated(WorkerInformation.Instance);
         }
 
         public Task StopAsync(CancellationToken cancellationToken)

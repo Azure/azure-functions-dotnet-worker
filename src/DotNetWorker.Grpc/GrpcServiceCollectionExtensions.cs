@@ -7,6 +7,7 @@ using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -42,6 +43,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddLogging(logging =>
             {
                 logging.Services.AddSingleton<ILoggerProvider, GrpcFunctionsHostLoggerProvider>();
+                logging.Services.AddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
             });
 
             // gRPC Core services

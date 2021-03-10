@@ -218,7 +218,7 @@ namespace Microsoft.Azure.Functions.Worker
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
-                WorkerVersion = typeof(IWorker).Assembly.GetName().Version?.ToString()
+                WorkerVersion = WorkerInformation.Instance.WorkerVersion
             };
 
             response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);

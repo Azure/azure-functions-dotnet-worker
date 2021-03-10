@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
 
-        public override string Id => _invocation.Id;
+        public override string InvocationId => _invocation.Id;
 
         public override string FunctionId => _invocation.FunctionId;
 

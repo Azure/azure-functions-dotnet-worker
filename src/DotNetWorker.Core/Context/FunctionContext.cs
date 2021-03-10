@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the invocation ID.
         /// This identifier is unique to an invocation.
         /// </summary>
-        public abstract string Id { get; }
+        public abstract string InvocationId { get; }
 
         /// <summary>
         /// Gets the function ID, typically assigned by the host.
@@ -30,6 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Gets the binding context for the current function invocation.
+        /// This context is used to retrieve binding data.
         /// </summary>
         public abstract BindingContext BindingContext { get; }
 

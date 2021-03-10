@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Middleware;
 
 namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {

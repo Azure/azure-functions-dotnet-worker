@@ -5,6 +5,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -57,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Task InvokeFunctionAsync(FunctionContext context)
         {
-            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.Id);
+            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);
             using (_logger.BeginScope(scope))
             {
                 return _functionExecutionDelegate(context);

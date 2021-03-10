@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Channels;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -47,7 +48,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IWorker, GrpcWorker>();
             services.AddSingleton<FunctionRpcClient>(p =>
             {
-                IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>();
+                IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>()
+                    ?? throw new InvalidOperationException("gRPC Serivces are not correctly registered.");
+
                 GrpcWorkerStartupOptions arguments = argumentsOptions.Value;
 
                 GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{arguments.Host}:{arguments.Port}", new GrpcChannelOptions()

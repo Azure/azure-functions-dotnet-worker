@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>The <see cref="ILogger{T}"/>.</returns>
         public static ILogger<T> GetLogger<T>(this FunctionContext context)
         {
-            return context.InstanceServices.GetService<ILogger<T>>();
+            return context.InstanceServices.GetService<ILogger<T>>()!;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
         public static ILogger GetLogger(this FunctionContext context, string categoryName)
         {
             return context.InstanceServices
-                   .GetService<ILoggerFactory>()
+                   .GetService<ILoggerFactory>()!
                    .CreateLogger(categoryName);
         }
     }

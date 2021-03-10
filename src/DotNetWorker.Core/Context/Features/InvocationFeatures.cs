@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }
 
-            return (T)feature;
+            return feature is null ? default : (T)feature;
         }
 
         public IEnumerator<KeyValuePair<Type, object>> GetEnumerator()

@@ -120,14 +120,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var services = new ServiceCollection();
             services.AddOptions();
+            services.AddFunctionsWorkerCore();
 
-            if (serializer != null)
+            services.Configure<WorkerOptions>(c =>
             {
-                services.Configure<WorkerOptions>(c =>
-                {
-                    c.Serializer = serializer;
-                });
-            }
+                c.Serializer = serializer;
+            });
 
             context.InstanceServices = services.BuildServiceProvider();
 

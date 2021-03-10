@@ -57,6 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var services = new ServiceCollection();
             services.AddOptions();
+            services.AddFunctionsWorkerDefaults();
 
             if (serializer != null)
             {

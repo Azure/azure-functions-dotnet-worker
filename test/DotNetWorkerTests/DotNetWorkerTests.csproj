@@ -27,4 +27,8 @@
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Configuration\" />
+  </ItemGroup>
+
 </Project>

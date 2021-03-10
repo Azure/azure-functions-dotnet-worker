@@ -11,6 +11,10 @@ namespace SampleApp
         {
             var host = new HostBuilder()
                 .ConfigureFunctionsWorkerDefaults()
+                .ConfigureServices(s =>
+                {
+                    s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
+                })
                 .Build();
 
             host.Run();

@@ -6,7 +6,7 @@
     <MinorProductVersion Condition="$(MinorProductVersion) == ''">0</MinorProductVersion>
     <PatchProductVersion Condition="$(PatchProductVersion) == ''">0</PatchProductVersion>
     <VersionPrefix Condition="$(VersionPrefix) == ''">$(MajorProductVersion).$(MinorProductVersion).$(PatchProductVersion)</VersionPrefix>
-    <VersionSuffix Condition="$(VersionSuffix) == ''">preview5</VersionSuffix>
+    <VersionSuffix Condition="$(VersionSuffix) == ''"></VersionSuffix>
     <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>
     <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local</BuildNumber>
     <Version Condition=" '$(BuildNumber)' != '' And $(Version) == ''">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>

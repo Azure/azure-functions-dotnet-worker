@@ -1,10 +1,8 @@
 # Azure Functions .NET Isolated
 
-Welcome to a preview of .NET Isolated in Azure Functions. .NET Isolated provides .NET 5 support in Azure Functions. It runs in an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
+Welcome to .NET Isolated in Azure Functions. .NET Isolated provides .NET 5 support in Azure Functions. It runs in an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
 
 A .NET Isolated function app works differently than a .NET Core 3.1 function app. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](FunctionApp/Program.cs) that starts the worker.
-
-As this is a preview, there may be some breaking changes to be expected.
 
 ## Binding Model
 
@@ -14,15 +12,13 @@ As this is a preview, there may be some breaking changes to be expected.
 
 The Azure Functions .NET Isolated supports middleware registration, following a model similar to what exists in ASP.NET and giving you the ability to inject logic into the invocation pipeline, pre and post function executions.
 
-While the full middleware registration set of APIs is not yet exposed, middleware registration is supported and we've added an [example](https://github.com/Azure/azure-functions-dotnet-worker-preview/tree/main/FunctionApp/Middleware) to the sample application under the `Middleware` folder.
-
 ## Samples
 
 The samples for .NET Isolated using various Azure Functions bindings are available under `samples/SampleApp` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples/SampleApp)).
 
 ## Create and run .NET Isolated functions
 
-**Note: VS and VS Code support is on the way. In the meanwhile, please use `azure-functions-core-tools` or the sample projects as a starting point.**
+**Note: Visual Studio and Visual Studio Code support is on the way. In the meantime, please use `azure-functions-core-tools` or the sample projects as a starting point.**
 
 ### Install .NET 5.0
 Download .NET 5.0 [from here](https://dotnet.microsoft.com/download/dotnet/5.0)
@@ -47,7 +43,26 @@ Run `func host start` in the sample app directory.
 
 #### Visual Studio
 
-To debug in Visual Studio, add a `Debugger.Launch()` statement in *Program.cs* ([similar to this](https://github.com/Azure/azure-functions-dotnet-worker/blob/ankitkumarr/core-tools/samples/SampleApp/Program.cs#L17-L19), but uncommented). The process will attempt to launch a debugger before continuing.
+>_Release candidate instructions. Requires RC packages_
+
+> NOTE: To debug your Worker, you must be using the Azure Functions Core Tools version 3.0.3381 or higher
+
+In your worker directory (or your worker's build output directory), run:
+```
+func host start --dotnet-isolated-debug
+```
+
+Core Tools will run targeting your worker and the process will stop with the following message:
+
+```
+Azure Functions .NET Worker (PID: <process id>) initialized in debug mode. Waiting for debugger to attach...
+```
+
+Where `<process id>` is the ID for your worker process. 
+
+At this point, your worker process wil be paused, waiting for the debugger to be attached. You can now use Visual Studio to manually attach to the process (to learn more, see [how to attach to a running process](https://docs.microsoft.com/en-us/visualstudio/debugger/attach-to-running-processes-with-the-visual-studio-debugger?view=vs-2019#BKMK_Attach_to_a_running_process))
+
+Once the debugger is attached, the process execution will resume and you will be able to debug.
 
 **YOU CAN NOT DEBUG DIRECTLY USING "Start Debugging" IN VISUAL STUDIO DIRECTLY.** You need to use the command line as mentioned in the previous **Run the sample locally** part of this readme.
 

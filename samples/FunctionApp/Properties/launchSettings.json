@@ -3,7 +3,7 @@
     "FunctionApp": {
       "commandName": "Project",
       "environmentVariables": {
-        "DOTNET_STARTUP_HOOKS": "Microsoft.Azure.Functions.Worker"
+        "DOTNET_STARTUP_HOOKS": "Microsoft.Azure.Functions.Worker.Core"
       }
     }
   }

@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.RegisterDefaultConverters();
 
             // Default Json serialization should ignore casing on property names
-            services.PostConfigure<JsonSerializerOptions>(options =>
+            services.Configure<JsonSerializerOptions>(options =>
             {
                 options.PropertyNameCaseInsensitive = true;
             });

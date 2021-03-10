@@ -2,7 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Channels;
+using System.Text.Json;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
@@ -12,6 +13,7 @@ using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -55,6 +57,16 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Worker initialization service
             services.AddSingleton<IHostedService, WorkerHostedService>();
+
+            // Default serializer settings
+            services.AddOptions<WorkerOptions>()
+                .PostConfigure<IOptions<JsonSerializerOptions>>((workerOptions, serializerOptions) =>
+                {
+                    if (workerOptions.Serializer is null)
+                    {
+                        workerOptions.Serializer = new JsonObjectSerializer(serializerOptions.Value);
+                    }
+                });
 
             if (configure != null)
             {

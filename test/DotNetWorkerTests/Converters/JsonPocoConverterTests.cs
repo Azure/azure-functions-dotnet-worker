@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Options;
@@ -19,6 +20,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         public JsonPocoConverterTests()
         {
             var options = new WorkerOptions();
+            options.Serializer = new JsonObjectSerializer(new JsonSerializerOptions()
+            {
+                PropertyNameCaseInsensitive = true
+            });
             var wrapper = new OptionsWrapper<WorkerOptions>(options);
             _jsonPocoConverter = new JsonPocoConverter(wrapper);
         }

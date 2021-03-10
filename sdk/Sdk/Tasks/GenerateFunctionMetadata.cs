@@ -6,9 +6,14 @@ using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
-namespace Microsoft.Azure.Functions.Worker.Sdk
+namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 {
+#if NET472
+    [LoadInSeparateAppDomain]
+    public class GenerateFunctionMetadata : AppDomainIsolatedTask
+#else
     public class GenerateFunctionMetadata : Task
+#endif
     {
         [Required]
         public string? AssemblyPath { get; set; }

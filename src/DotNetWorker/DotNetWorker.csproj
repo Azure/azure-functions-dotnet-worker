@@ -13,25 +13,13 @@
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.9.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.13.0" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.33.1" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.33.1" />
-    <PackageReference Include="Grpc.Tools" Version="2.33.1">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="3.1.5" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="3.1.5" />
+    <PackageReference Include="Azure.Core" Version="1.10.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-     <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Protobuf Update=".\protobuf\src\proto\FunctionRpc.proto" Access="Internal" />
-    <Protobuf Update=".\protobuf\src\proto\identity\ClaimsIdentityRpc.proto" Access="Internal" />
-    <Protobuf Update=".\protobuf\src\proto\shared\NullableTypes.proto" Access="Internal" />
+    <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+    <ProjectReference Include="..\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
   </ItemGroup>
 </Project>

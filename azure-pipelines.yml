@@ -82,6 +82,38 @@ jobs:
         ]
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'Sdk: ESRP CodeSigning - Authenticode'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'sdk\Sdk.Analyzers\bin\Release'
+      Pattern: Microsoft.Azure.Functions.Worker.Sdk.Analyzers.dll
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
+
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'MetadataLoader: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -118,7 +150,7 @@ jobs:
     condition: eq(variables.isReleaseBuild, true)
     inputs:
       ConnectedServiceName: 'ESRP Service'
-      FolderPath: 'src\DotNetWorker\bin\Release'
+      FolderPath: 'src'
       Pattern: Microsoft.Azure.Functions.Worker*.dll
       signConfigType: inlineSignParams
       inlineOperation: |

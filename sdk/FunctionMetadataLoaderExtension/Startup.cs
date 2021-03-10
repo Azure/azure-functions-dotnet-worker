@@ -39,6 +39,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
                 { _dotnetIsolatedWorkerConfigPath, appRootPath },
                 { _dotnetIsolatedWorkerExePath, newWorkerDescription.DefaultExecutablePath! }
             });
+
+            Environment.SetEnvironmentVariable("DOTNET_NOLOGO", "true");
+            Environment.SetEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "true");
+            Environment.SetEnvironmentVariable("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "true");
         }
 
         public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)

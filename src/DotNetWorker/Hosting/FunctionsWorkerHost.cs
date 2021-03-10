@@ -4,11 +4,12 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Extensions.Hosting
+namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Hosing helpers to work with Azure Functions Workers
+    /// Hosting helpers to work with Azure Functions Workers
     /// </summary>
     public static class FunctionsWorkerHost
     {
@@ -30,14 +31,14 @@ namespace Microsoft.Extensions.Hosting
         /// <returns>A <see cref="Task"/> that will complete when the host shuts down.</returns>
         public async static Task RunDefaultAsync(Action<IServiceCollection>? configureService = null)
         {
-           var builder = Host.CreateDefaultBuilder()
-                .ConfigureFunctionsWorkerDefaults();
+            var builder = Host.CreateDefaultBuilder()
+                 .ConfigureFunctionsWorkerDefaults();
 
             if (configureService is not null)
             {
                 builder.ConfigureServices(configureService);
             }
-            
+
             await builder.Build().RunAsync();
         }
     }

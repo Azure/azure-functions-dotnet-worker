@@ -7,7 +7,7 @@
 
     <!--Version information-->
     <MajorProductVersion>1</MajorProductVersion>
-    <VersionSuffix>beta</VersionSuffix>
+    <VersionSuffix>-beta</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Extensions.props" />

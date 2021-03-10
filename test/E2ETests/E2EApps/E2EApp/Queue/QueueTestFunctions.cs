@@ -138,7 +138,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 
         public class TestData
         {
-            [JsonPropertyName("id")]
             public string Id { get; set; }
         }
 

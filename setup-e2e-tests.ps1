@@ -45,7 +45,7 @@ else
     $coreToolsURL = $env:CORE_TOOLS_URL
     if (!$coreToolsURL)
     {        
-        $coreToolsURL = "https://functionsclibuilds.blob.core.windows.net/builds/3/latest/Azure.Functions.Cli.win-x86.zip"
+        $coreToolsURL = "https://functionsclibuilds.blob.core.windows.net/builds/3/latest/Azure.Functions.Cli.min.win-x86.zip"
         Write-Host "Using default url for Core Tools Windows: $coreToolsURL"
         Invoke-RestMethod -Uri 'https://functionsclibuilds.blob.core.windows.net/builds/3/latest/version.txt' -OutFile version.txt
     }

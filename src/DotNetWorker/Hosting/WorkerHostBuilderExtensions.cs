@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.Hosting
@@ -108,16 +109,28 @@ namespace Microsoft.Extensions.Hosting
         /// <returns>The <see cref="IHostBuilder"/>.</returns>
         public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
         {
-            builder.ConfigureServices((context, services) =>
-            {
-                IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults(configureOptions);
+            builder
+                .ConfigureAppConfiguration(configBuilder =>
+                {
+                    // If it does not begin with a key prefix of '--', wrap the first argument
+                    // in quotes so that nothing else is interpreted as a key prefix.
+                    var cmdLine = Environment.GetCommandLineArgs();
+                    if (cmdLine.Length > 0 && !cmdLine[0].StartsWith("--"))
+                    {
+                        cmdLine[0] = $"\"{cmdLine[0]}\"";
+                    }
+                    configBuilder.AddCommandLine(cmdLine);
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults(configureOptions);
 
-                // Call the provided configuration prior to adding default middleware
-                configure(context, appBuilder);
+                    // Call the provided configuration prior to adding default middleware
+                    configure(context, appBuilder);
 
-                // Add default middleware
-                appBuilder.UseDefaultWorkerMiddleware();
-            });
+                    // Add default middleware
+                    appBuilder.UseDefaultWorkerMiddleware();
+                });
 
             return builder;
         }

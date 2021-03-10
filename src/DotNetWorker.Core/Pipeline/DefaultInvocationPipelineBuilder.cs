@@ -4,15 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Middleware;
 
 namespace Microsoft.Azure.Functions.Worker.Pipeline
 {
     internal class DefaultInvocationPipelineBuilder<Context> : IInvocationPipelineBuilder<Context>
     {
-        private readonly IList<Func<FunctionExecutionDelegate, FunctionExecutionDelegate>> _middlewareCollection = 
+        private readonly IList<Func<FunctionExecutionDelegate, FunctionExecutionDelegate>> _middlewareCollection =
             new List<Func<FunctionExecutionDelegate, FunctionExecutionDelegate>>();
 
         public IInvocationPipelineBuilder<Context> Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)

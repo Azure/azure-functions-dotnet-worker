@@ -6,7 +6,7 @@ using System.Collections.Generic;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Exposes binding infomation for a given funcion context.
+    /// Exposes binding infomation for a given function context.
     /// </summary>
     public abstract class BindingContext
     {

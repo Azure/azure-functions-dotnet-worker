@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Reflection;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -14,7 +13,7 @@ namespace Microsoft.Extensions.Hosting
     /// <summary>
     /// Provides extension methods to work with Worker Middleware against a <see cref="IHostBuilder"/>.
     /// </summary>
-    public static class WorkerMiddlewareWorkerApplicationBuilderExtensions
+    public static class MiddlewareWorkerApplicationBuilderExtensions
     {
         /// <summary>
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the default set of middleware used by the worker, in the following order:

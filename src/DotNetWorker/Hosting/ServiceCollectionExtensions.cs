@@ -2,12 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-<<<<<<< HEAD
-=======
 using System.Text.Json;
-using System.Threading.Channels;
 using Azure.Core.Serialization;
->>>>>>> Ignore casing on property names by default
 using Microsoft.Azure.Functions.Worker;
 
 namespace Microsoft.Extensions.DependencyInjection

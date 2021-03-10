@@ -6,11 +6,12 @@
     <MinorProductVersion Condition="$(MinorProductVersion) == ''">0</MinorProductVersion>
     <PatchProductVersion Condition="$(PatchProductVersion) == ''">0</PatchProductVersion>
     <VersionPrefix Condition="$(VersionPrefix) == ''">$(MajorProductVersion).$(MinorProductVersion).$(PatchProductVersion)</VersionPrefix>
+    <!--If a preview release, this should have the label with the separator (e.g.: -preview1)-->
     <VersionSuffix Condition="$(VersionSuffix) == ''"></VersionSuffix>
     <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>
     <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local</BuildNumber>
-    <Version Condition=" '$(BuildNumber)' != '' And $(Version) == ''">$(VersionPrefix)-$(VersionSuffix)-$(BuildNumber)</Version>
-    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)-$(VersionSuffix)</Version>
+    <Version Condition=" '$(BuildNumber)' != '' And $(Version) == ''">$(VersionPrefix)$(VersionSuffix)-$(BuildNumber)</Version>
+    <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)$(VersionSuffix)</Version>
     <AssemblyVersion Condition="$(AssemblyVersion) == ''">$(VersionPrefix).0</AssemblyVersion>
     <FileVersion  Condition="$(FileVersion) == ''">$(AssemblyVersion)</FileVersion>
     <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>

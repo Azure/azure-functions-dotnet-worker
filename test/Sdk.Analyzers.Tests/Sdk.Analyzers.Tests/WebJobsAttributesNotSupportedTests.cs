@@ -29,10 +29,11 @@ namespace FunctionApp
     }
 }";
             var test = new AnalizerTest();
+            // TODO: This needs to pull from a local source
             test.ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
                 new PackageIdentity("Microsoft.Azure.WebJobs.Extensions", "4.0.1"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.0.0-preview5"),
-                new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.0.0-preview5"),
+                new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.0.1-preview5"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.0.0-preview5"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.12-preview1")));
 

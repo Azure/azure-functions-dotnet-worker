@@ -30,7 +30,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.0.0-preview5" />
+    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.0.1-preview5" />
   </ItemGroup>
 </Project>

@@ -1,7 +1,9 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
@@ -9,7 +11,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace Hollan.Function
+namespace Function
 {
     public class HttpTrigger
     {
@@ -29,7 +31,7 @@ namespace Hollan.Function
 
            var postsArray = _context.Posts.OrderBy(p => p.Title).ToArray();
            var response = req.CreateResponse(HttpStatusCode.OK);
-           response.WriteString(JsonConvert.SerializeObject(postsArray));
+           response.WriteAsJsonAsync()
            return response;
         }
 

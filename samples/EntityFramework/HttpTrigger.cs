@@ -22,16 +22,16 @@ namespace Function
         }
 
         [Function("GetPosts")]
-        public HttpResponseData GetPosts(
+        public async Task<HttpResponseData> GetPosts(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "posts")] HttpRequestData req,
             FunctionContext context)
         {
            var logger = context.GetLogger("GetPosts");
-           logger.LogInformation("C# HTTP GET/posts trigger function processed a request.");
+           logger.LogInformation("Get Posts HTTP trigger function processed a request.");
 
            var postsArray = _context.Posts.OrderBy(p => p.Title).ToArray();
            var response = req.CreateResponse(HttpStatusCode.OK);
-           response.WriteAsJsonAsync()
+           await response.WriteAsJsonAsync(postsArray);
            return response;
         }
 
@@ -41,16 +41,15 @@ namespace Function
             FunctionContext context)
         {
             var logger = context.GetLogger("CreateBlog");
-            logger.LogInformation("C# HTTP POST/blog trigger function processed a request.");
+            logger.LogInformation("Create Blog HTTP trigger function processed a request.");
 
-            var blog = JsonConvert.DeserializeObject<Blog>(await new StreamReader(req.Body).ReadToEndAsync());
-            logger.LogInformation(JsonConvert.SerializeObject(blog));
+            var blog = await req.ReadFromJsonAsync<Blog>();
 
             var entity = await _context.Blogs.AddAsync(blog, CancellationToken.None);
             await _context.SaveChangesAsync(CancellationToken.None);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            response.WriteString(JsonConvert.SerializeObject(entity.Entity));
+            await response.WriteAsJsonAsync(entity.Entity);
             return response;
         }
 
@@ -61,16 +60,16 @@ namespace Function
             FunctionContext context)
         {
             var logger = context.GetLogger("CreatePost");
-            logger.LogInformation("C# HTTP POST/blog trigger function processed a request.");
+            logger.LogInformation("Create Post HTTP trigger function processed a request.");
                
-            var post = JsonConvert.DeserializeObject<Post>(await new StreamReader(req.Body).ReadToEndAsync());
+            var post = await req.ReadFromJsonAsync<Post>();
             post.BlogId = id;
             
             var entity = await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync(CancellationToken.None);
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            response.WriteString(JsonConvert.SerializeObject(entity.Entity));
+            await response.WriteAsJsonAsync(entity.Entity);
             return response;
         }
     }

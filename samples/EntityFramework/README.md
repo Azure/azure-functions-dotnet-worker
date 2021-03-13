@@ -13,5 +13,5 @@
 1. Update the database
   `dotnet ef database update`
 1. Run the function project with `func start`
-1. Call the different operations in the `./test.http` file (I use RESTClient for VS Code)
+1. Call the different operations in the `./test.http` file (file format is for RESTClient in VS Code)
 

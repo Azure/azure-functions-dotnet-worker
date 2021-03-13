@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Diagnostics;
 
 namespace Function
 {
@@ -21,14 +20,7 @@ namespace Function
 //             Debugger.Launch();
 // #endif
             var host = new HostBuilder()
-                .ConfigureAppConfiguration(c =>
-                {
-                    c.AddCommandLine(args);
-                })
-                .ConfigureFunctionsWorker((c, b) =>
-                {
-                    b.UseFunctionExecutionMiddleware();
-                })
+                .ConfigureFunctionsWorkerDefaults()
                 .ConfigureServices(s => {
                     s.AddDbContext<BloggingContext>(
                         options => options.UseSqlServer(sqlConnectionString)

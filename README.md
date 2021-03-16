@@ -24,7 +24,7 @@ The samples for .NET Isolated using various Azure Functions bindings are availab
 Download .NET 5.0 [from here](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ### Install the Azure Functions Core Tools
-Please make sure you have Azure Functions Core Tools >= `3.0.3331`.
+Please make sure you have Azure Functions Core Tools >= `3.0.3388`.
 
 To download, please check out our docs at [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools)
 

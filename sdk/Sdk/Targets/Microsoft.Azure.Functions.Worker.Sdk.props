@@ -17,4 +17,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_IsFunctionsSdkBuild>true</_IsFunctionsSdkBuild>
   </PropertyGroup>
 
+  <!--Enable Azure Functions project capability to enable tools-->
+  <ItemGroup>
+        <ProjectCapability Include="AzureFunctions"/>
+  </ItemGroup>
 </Project>

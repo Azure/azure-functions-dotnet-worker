@@ -22,12 +22,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private readonly IDictionary<string, string> _extensions;
 
         public FunctionMetadataGenerator()
-            : this((l, m) => { })
+            : this((l, m, p) => { })
         {
             _extensions = new Dictionary<string, string>();
         }
 
-        public FunctionMetadataGenerator(Action<TraceLevel, string> log)
+        public FunctionMetadataGenerator(Action<TraceLevel, string, string> log)
         {
             _logger = new IndentableLogger(log);
             _extensions = new Dictionary<string, string>();
@@ -81,12 +81,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         }
                         catch (FunctionsMetadataGenerationException ex)
                         {
-                            _logger.LogError($"Failed to generate function metadata from {Path.GetFileName(path)}.");
+                            _logger.LogError($"Failed to generate function metadata from {Path.GetFileName(path)}: {ex.Message}", path);
                             throw ex;
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning($"Could not evaluate '{Path.GetFileName(path)}' for functions metadata. Exception message: {ex.ToString()}");
+                            _logger.LogWarning($"Could not evaluate '{Path.GetFileName(path)}' for functions metadata. Exception message: {ex}");
                         }
                     }
                 }
@@ -130,14 +130,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             if (TryCreateFunctionMetadata(method, out SdkFunctionMetadata? metadata)
                 && metadata != null)
             {
-                var allBindings = CreateBindingMetadataAndAddExtensions(method);
-
-                foreach(var binding in allBindings)
+                try
                 {
-                    metadata.Bindings.Add(binding);
-                }
 
-                functions.Add(metadata);
+                    var allBindings = CreateBindingMetadataAndAddExtensions(method);
+
+
+                    foreach (var binding in allBindings)
+                    {
+                        metadata.Bindings.Add(binding);
+                    }
+
+                    functions.Add(metadata);
+                }
+                catch (FunctionsMetadataGenerationException ex)
+                {
+                    throw new FunctionsMetadataGenerationException($"Failed to generate medata for function '{metadata.Name}' (method '{method.FullName}'): {ex.Message}");
+                }
             }
         }
 
@@ -217,7 +226,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 else
                 {                    
                     TypeDefinition returnDefinition = returnType.Resolve()
-                        ?? throw new FunctionsMetadataGenerationException($"Couldn't find the type definition {returnType}");
+                        ?? throw new FunctionsMetadataGenerationException($"Couldn't find the type definition '{returnType}' for method '{method.FullName}'");
 
                     bool hasOutputModel = TryAddOutputBindingsFromProperties(bindingMetadata, returnDefinition);
 

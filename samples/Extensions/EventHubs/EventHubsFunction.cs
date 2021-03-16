@@ -11,12 +11,12 @@ namespace SampleApp
     {
         [Function("EventHubsFunction")]
         [EventHubOutput("dest", Connection = "EventHubConnectionAppSetting")]
-        public static string Run([EventHubTrigger("src", Connection = "EventHubConnectionAppSetting")] string input,
+        public static string Run([EventHubTrigger("src", Connection = "EventHubConnectionAppSetting")] string[] input,
             FunctionContext context)
         {
             var logger = context.GetLogger("EventHubsFunction");
 
-            logger.LogInformation(input);
+            logger.LogInformation($"First Event Hubs triggered message: {input[0]}");
 
             var message = $"Output message created at {DateTime.Now}";
             return message;

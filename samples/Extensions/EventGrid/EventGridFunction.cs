@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -39,7 +40,9 @@ namespace SampleApp
 
         public string Subject { get; set; }
 
-        public int EventType { get; set; }
+        public string EventType { get; set; }
+
+        public DateTime EventTime { get; set; }
 
         public IDictionary<string, object> Data { get; set; }
     }

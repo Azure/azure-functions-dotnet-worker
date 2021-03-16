@@ -32,25 +32,34 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 
         public override bool Execute()
         {
-            var functionGenerator = new FunctionMetadataGenerator(MSBuildLogger);
-            var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
+            try
+            {
+                var functionGenerator = new FunctionMetadataGenerator(MSBuildLogger);
 
-            var extensions = functionGenerator.Extensions;
-            var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, ExtensionsTargetFramework!);
+                var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
 
-            extensionsCsProjGenerator.Generate();
+                var extensions = functionGenerator.Extensions;
+                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, ExtensionsTargetFramework!);
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
+                extensionsCsProjGenerator.Generate();
+
+                FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
+            }
+            catch (FunctionsMetadataGenerationException)
+            {
+                Log.LogError($"Unable to build Azure Functios metadata for {AssemblyPath}");
+                return false;
+            }
 
             return true;
         }
 
-        private void MSBuildLogger(TraceLevel level, string message)
+        private void MSBuildLogger(TraceLevel level, string message, string path)
         {
             switch (level)
             {
                 case TraceLevel.Error:
-                    Log.LogError(message);
+                    Log.LogError(null, null, null, file: path, 0, 0, 0, 0, message: message);
                     break;
                 case TraceLevel.Info:
                     Log.LogMessage(message);

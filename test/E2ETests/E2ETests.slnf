@@ -7,6 +7,7 @@
       "extensions\\Worker.Extensions.EventHubs\\Worker.Extensions.EventHubs.csproj",
       "extensions\\Worker.Extensions.Http\\Worker.Extensions.Http.csproj",
       "extensions\\Worker.Extensions.Storage\\Worker.Extensions.Storage.csproj",
+      "extensions\\Worker.Extensions.Timer\\Worker.Extensions.Timer.csproj",
       "src\\DotNetWorker.Core\\DotNetWorker.Core.csproj",
       "src\\DotNetWorker.Grpc\\DotNetWorker.Grpc.csproj",
       "src\\DotNetWorker\\DotNetWorker.csproj",

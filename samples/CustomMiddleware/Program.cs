@@ -10,6 +10,7 @@ namespace CustomMiddleware
     {
         public static void Main()
         {
+            //<docsnippet_middleware_register>
             var host = new HostBuilder()
                 .ConfigureFunctionsWorkerDefaults(workerApplication =>
                 {
@@ -17,6 +18,7 @@ namespace CustomMiddleware
                     workerApplication.UseMiddleware<MyCustomMiddleware>();
                 })
                 .Build();
+            //</docsnippet_middleware_register>
 
             host.Run();
         }

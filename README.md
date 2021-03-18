@@ -1,6 +1,14 @@
-# Azure Functions .NET Isolated
+![Azure Functions Logo](https://raw.githubusercontent.com/Azure/azure-functions-cli/master/src/Azure.Functions.Cli/npm/assets/azure-functions-logo-color-raster.png)
 
-Welcome to .NET Isolated in Azure Functions. .NET Isolated provides .NET 5 support in Azure Functions. It runs in an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
+|Branch|Status|
+|---|---|
+|main|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/Azure.azure-functions-dotnet-worker?branchName=main)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=main)|
+|release/1.x|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/Azure.azure-functions-dotnet-worker?branchName=release%2F1.x)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=release%2F1.x)|
+
+
+# Azure Functions .NET Worker
+
+Welcome to the Azure Functions .NET Worker Repository. The .NET Worker provides .NET 5 support in Azure Functions, introducing an **Isolated Model**, running as an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
 
 A .NET Isolated function app works differently than a .NET Core 3.1 function app. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](FunctionApp/Program.cs) that starts the worker.
 
@@ -14,7 +22,7 @@ The Azure Functions .NET Isolated supports middleware registration, following a 
 
 ## Samples
 
-The samples for .NET Isolated using various Azure Functions bindings are available under `samples/SampleApp` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples/SampleApp)).
+You can find samples on how to use different features of the .NET Worker under `samples` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples)).
 
 ## Create and run .NET Isolated functions
 
@@ -64,7 +72,7 @@ At this point, your worker process wil be paused, waiting for the debugger to be
 
 Once the debugger is attached, the process execution will resume and you will be able to debug.
 
-**YOU CAN NOT DEBUG DIRECTLY USING "Start Debugging" IN VISUAL STUDIO DIRECTLY.** You need to use the command line as mentioned in the previous **Run the sample locally** part of this readme.
+**YOU CANNOT DEBUG USING "Start Debugging" IN VISUAL STUDIO DIRECTLY.** You need to use the command line as mentioned in the [Run functions locally](#run-functions-locally) part of this readme.
 
 We're working with the Visual Studio team to provide an integrated debugging experience.
 

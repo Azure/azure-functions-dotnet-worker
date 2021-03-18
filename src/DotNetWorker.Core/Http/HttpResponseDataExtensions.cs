@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// </summary>
         /// <param name="response">The response to write the string to.</param>
         /// <param name="value">The string content to write to the request body.</param>
-        /// <param name="encoding">The encoding to use when writing the string.</param>
+        /// <param name="encoding">The encoding to use when writing the string. Defaults to UTF-8</param>
         public static void WriteString(this HttpResponseData response, string value, Encoding? encoding = null)
         {
             if (response is null)
@@ -170,6 +170,27 @@ namespace Microsoft.Azure.Functions.Worker.Http
             }
 
             response.Body.Write(value, 0, value.Length);
+        }
+
+        /// <summary>
+        /// Writes the provided bytes to the response body.
+        /// </summary>
+        /// <param name="response">The response to write the string to.</param>
+        /// <param name="value">The byte content to write to the request body.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public static Task WriteBytesAsync(this HttpResponseData response, byte[] value)
+        {
+            if (response is null)
+            {
+                throw new ArgumentNullException(nameof(response));
+            }
+
+            if (value is null)
+            {
+                throw new ArgumentNullException(nameof(value));
+            }
+
+            return response.Body.WriteAsync(value, 0, value.Length);
         }
     }
 }

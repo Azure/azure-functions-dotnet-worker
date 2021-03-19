@@ -28,7 +28,7 @@ internal class StartupHook
 
         if (jsonOutputEnabled is not null && string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"{{ \"workerProcessId\" : { Environment.ProcessId } }}");
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { Environment.ProcessId } }}");
         }
 
         static bool WaitOnDebugger(int cycle)

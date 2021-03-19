@@ -13,6 +13,7 @@ namespace SampleApp
     /// By default, a property of type <see cref="HttpResponseData"/> in the return type of the function
     /// is treated as an Http output binding. This property can be used to provide a response to the Http trigger.
     /// </summary>
+    //<docsnippet_multiple_outputs>
     public static class MultiOutput
     {
         [Function("MultiOutput")]
@@ -39,4 +40,5 @@ namespace SampleApp
 
         public HttpResponseData HttpReponse { get; set; }
     }
+    //</docsnippet_multiple_outputs>
 }

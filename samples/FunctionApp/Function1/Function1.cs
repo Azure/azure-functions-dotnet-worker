@@ -11,7 +11,6 @@ namespace FunctionApp
 {
     public static class Function1
     {
-        //<docsnippet_multiple_outputs>
         [Function("Function1")]
         public static MyOutputType Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
@@ -39,7 +38,6 @@ namespace FunctionApp
 
             public HttpResponseData HttpReponse { get; set; }
         }
-        //</docsnippet_multiple_outputs>
 
         public class Book
         {

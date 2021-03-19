@@ -30,8 +30,7 @@ namespace FunctionApp
                 Book = bookVal,
                 HttpReponse = response
             };
-        }
-        //</docsnippet_multiple_outputs>
+        }        
 
         public class MyOutputType
         {
@@ -40,6 +39,7 @@ namespace FunctionApp
 
             public HttpResponseData HttpReponse { get; set; }
         }
+        //</docsnippet_multiple_outputs>
 
         public class Book
         {

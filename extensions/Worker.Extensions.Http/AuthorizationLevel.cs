@@ -3,6 +3,9 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Defines the required authorization level for an HTTP function.
+    /// </summary>
     public enum AuthorizationLevel
     {
         /// <summary>

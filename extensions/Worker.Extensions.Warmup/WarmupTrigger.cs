@@ -5,6 +5,10 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Attribute used to mark a function that should be invoked during the warmup 
+    /// stage of the Function App.
+    /// </summary>
     public sealed class WarmupTrigger : TriggerBindingAttribute
     {
     }

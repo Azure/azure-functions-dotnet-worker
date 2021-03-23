@@ -4,7 +4,10 @@
 using System.Collections.Generic;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Xunit;
+using System.Linq;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -31,6 +34,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var config = configBuilder.Build();
             Assert.Equal("127.0.0.1", config["host"]);
+        }
+
+        [Fact]
+        public void EnvironmentVariablesAreRegistered()
+        {
+            var host = new HostBuilder()
+                .ConfigureFunctionsWorkerDefaults()
+                .Build();
+
+            bool environmentVariablesProviderRegistered = ((ConfigurationRoot)host.Services.GetService<IConfiguration>())
+                .Providers.Any(p => p is EnvironmentVariablesConfigurationProvider);
+
+            Assert.True(environmentVariablesProviderRegistered, "Environment variables provider not registered.");
         }
     }
 }

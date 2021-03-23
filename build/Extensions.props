@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <VersionSuffix Condition="$(VersionSuffix) == ''"></VersionSuffix>
+    <GenerateDocumentationFile Condition="$(GenerateDocumentationFile) == ''">true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <Import Project=".\Common.props" />

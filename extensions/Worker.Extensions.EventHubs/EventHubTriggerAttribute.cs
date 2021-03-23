@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Attribute used to mark a function that should be triggered by Event Hubs messages.
+    /// </summary>
     public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         // Batch by default

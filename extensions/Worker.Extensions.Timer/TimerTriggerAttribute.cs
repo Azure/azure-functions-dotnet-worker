@@ -6,6 +6,10 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Attribute used to mark a function that should be invoked periodically based on
+    /// a timer schedule.
+    /// </summary>
     public sealed class TimerTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>

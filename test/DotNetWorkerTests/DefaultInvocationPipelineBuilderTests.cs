@@ -4,7 +4,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Configuration;
+using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit;
 
@@ -83,6 +87,42 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             pipeline(context);
 
             Assert.Equal(new[] { "Middleware1", "Middleware2" }, context.Items.Keys);
+        }
+
+        [Fact]
+        public void InlineMiddleware_RunsInExpectedOrder()
+        {
+            var services = new ServiceCollection();
+            IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services);
+
+            builder.Use(next => context =>
+            {
+                context.Items.Add("Middleware1", null);
+                return next(context);
+            });
+
+            builder.UseMiddleware((context, next) =>
+            {
+                context.Items.Add("Middleware2", null);
+                return next();
+            });
+
+            builder.Use(next => context =>
+            {
+                context.Items.Add("Middleware3", null);
+                return next(context);
+            });
+
+            FunctionExecutionDelegate app = builder.Services
+                .BuildServiceProvider()
+                .GetService<FunctionExecutionDelegate>();
+
+            var context = _mockContext.Object;
+            context.Items = new Dictionary<object, object>();
+
+            app(context);
+
+            Assert.Equal(new[] { "Middleware1", "Middleware2", "Middleware3" }, context.Items.Keys);
         }
 
     }

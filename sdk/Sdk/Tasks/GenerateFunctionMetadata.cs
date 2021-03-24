@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
             }
             catch (FunctionsMetadataGenerationException)
             {
-                Log.LogError($"Unable to build Azure Functios metadata for {AssemblyPath}");
+                Log.LogError($"Unable to build Azure Functions metadata for {AssemblyPath}");
                 return false;
             }
 

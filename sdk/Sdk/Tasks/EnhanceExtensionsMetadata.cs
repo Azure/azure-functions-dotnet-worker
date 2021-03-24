@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
     public class EnhanceExtensionsMetadata : Task
 #endif
     {
-        private static JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true };
+        private static readonly JsonSerializerOptions _serializerOptions = new JsonSerializerOptions { WriteIndented = true };
 
         [Required]
         public string? ExtensionsJsonPath { get; set; }

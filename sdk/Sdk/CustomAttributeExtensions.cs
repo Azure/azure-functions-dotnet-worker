@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -27,8 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             return attribute.AttributeType.Resolve().Properties
                 .Select(p => (p.Name, p.CustomAttributes
-                    .Where(attribute => string.Equals(attribute.AttributeType.FullName, Constants.DefaultValueAttributeType, StringComparison.Ordinal))
-                    .SingleOrDefault()
+                    .SingleOrDefault(attr => string.Equals(attr.AttributeType.FullName, Constants.DefaultValueAttributeType, StringComparison.Ordinal))
                     ?.ConstructorArguments.SingleOrDefault()))
                 .Where(t => t.Item2 is not null);
         }

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             Guard.AgainstNull(nameof(options.Value.Serializer), options.Value.Serializer);
             
-            _serializer = options.Value.Serializer;
+            _serializer = options.Value.Serializer!;
         }
 
         public bool TryConvert(ConverterContext context, out object? target)

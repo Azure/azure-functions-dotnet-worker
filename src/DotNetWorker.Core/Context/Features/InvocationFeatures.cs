@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             Guard.AgainstNull(nameof(instance), instance);
 
-            _features[typeof(T)] = instance;
+            _features[typeof(T)] = instance!;
         }
 
         IEnumerator IEnumerable.GetEnumerator()

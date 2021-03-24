@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     {
         public static string GetReflectionFullName(this TypeReference typeRef)
         {
-            return typeRef.FullName.Replace("/", "+");
+            return typeRef.FullName.Replace('/', '+');
         }
     }
 }

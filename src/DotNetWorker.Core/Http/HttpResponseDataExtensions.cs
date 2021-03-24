@@ -25,15 +25,9 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <param name="encoding">The encoding to use when writing the string. Defaults to UTF-8</param>
         public static void WriteString(this HttpResponseData response, string value, Encoding? encoding = null)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
+            Guard.AgainstNull(nameof(response), response);
 
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            Guard.AgainstNull(nameof(value), value);
 
             encoding ??= Encoding.UTF8;
 
@@ -50,15 +44,9 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public static Task WriteStringAsync(this HttpResponseData response, string value, Encoding? encoding = null)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
+            Guard.AgainstNull(nameof(response), response);
 
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            Guard.AgainstNull(nameof(value), value);
 
             encoding ??= Encoding.UTF8;
 
@@ -92,10 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="ValueTask"/> that represents the asynchronous operation.</returns>
         public static ValueTask WriteAsJsonAsync<T>(this HttpResponseData response, T instance, string contentType, CancellationToken cancellationToken = default)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
+            Guard.AgainstNull(nameof(response), response);
 
             ObjectSerializer serializer = response.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
                  ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
@@ -131,20 +116,11 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="ValueTask"/> that represents the asynchronous operation.</returns>
         public static ValueTask WriteAsJsonAsync<T>(this HttpResponseData response, T instance, ObjectSerializer serializer, string contentType, CancellationToken cancellationToken = default)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
+            Guard.AgainstNull(nameof(response), response);
 
-            if (serializer is null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
+            Guard.AgainstNull(nameof(serializer), serializer);
 
-            if (contentType is null)
-            {
-                throw new ArgumentNullException(nameof(contentType));
-            }
+            Guard.AgainstNull(nameof(contentType), contentType);
 
             response.Headers.Add("Content-Type", contentType);
             response.StatusCode = System.Net.HttpStatusCode.OK;
@@ -159,15 +135,9 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <param name="value">The byte content to write to the request body.</param>
         public static void WriteBytes(this HttpResponseData response, byte[] value)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
+            Guard.AgainstNull(nameof(response), response);
 
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            Guard.AgainstNull(nameof(value), value);
 
             response.Body.Write(value, 0, value.Length);
         }
@@ -180,15 +150,9 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public static Task WriteBytesAsync(this HttpResponseData response, byte[] value)
         {
-            if (response is null)
-            {
-                throw new ArgumentNullException(nameof(response));
-            }
+            Guard.AgainstNull(nameof(response), response);
 
-            if (value is null)
-            {
-                throw new ArgumentNullException(nameof(value));
-            }
+            Guard.AgainstNull(nameof(value), value);
 
             return response.Body.WriteAsync(value, 0, value.Length);
         }

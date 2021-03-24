@@ -24,11 +24,8 @@ namespace Microsoft.Extensions.Hosting
         /// <returns>The <see cref="IHostBuilder"/>.</returns>
         public static IHostBuilder ConfigureFunctionsWorker(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
         {
-            if (configure is null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
+            Guard.AgainstNull(nameof(configure), configure);
+            
             builder.ConfigureServices((context, services) =>
             {
                 IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerCore(configureOptions);

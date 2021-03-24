@@ -27,10 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="Task{String}"/> that represents the asynchronous read operation.</returns>
         public static async Task<string?> ReadAsStringAsync(this HttpRequestData request, Encoding? encoding = null)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            Guard.AgainstNull(nameof(request), request);
 
             if (request.Body is null)
             {
@@ -51,11 +48,8 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="string"/> that represents request body.</returns>
         public static string? ReadAsString(this HttpRequestData request, Encoding? encoding = null)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
-
+            Guard.AgainstNull(nameof(request), request);
+            
             if (request.Body is null)
             {
                 return null;
@@ -76,10 +70,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="ValueTask{T}"/> representing the asynchronous operation.</returns>
         public static ValueTask<T?> ReadFromJsonAsync<T>(this HttpRequestData request, CancellationToken cancellationToken = default)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            Guard.AgainstNull(nameof(request), request);
 
             ObjectSerializer serializer = request.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
                  ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
@@ -97,15 +88,9 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <returns>A <see cref="ValueTask{T}"/> representing the asynchronous operation.</returns>
         public static ValueTask<T?> ReadFromJsonAsync<T>(this HttpRequestData request, ObjectSerializer serializer, CancellationToken cancellationToken = default)
         {
-            if (request is null)
-            {
-                throw new ArgumentNullException(nameof(request));
-            }
+            Guard.AgainstNull(nameof(request), request);
 
-            if (serializer is null)
-            {
-                throw new ArgumentNullException(nameof(serializer));
-            }
+            Guard.AgainstNull(nameof(serializer), serializer);
 
             ValueTask<object?> result = serializer.DeserializeAsync(request.Body, typeof(T), cancellationToken);
 

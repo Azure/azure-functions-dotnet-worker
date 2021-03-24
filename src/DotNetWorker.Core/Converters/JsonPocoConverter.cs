@@ -16,15 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         public JsonPocoConverter(IOptions<WorkerOptions> options)
         {
-            if (options == null)
-            {
-                throw new ArgumentNullException(nameof(options));
-            }
-            if (options.Value.Serializer == null)
-            {
-                throw new InvalidOperationException(nameof(options.Value.Serializer));
-            }
+            Guard.AgainstNull(nameof(options), options);
 
+            Guard.AgainstNull(nameof(options.Value.Serializer), options.Value.Serializer);
+            
             _serializer = options.Value.Serializer;
         }
 

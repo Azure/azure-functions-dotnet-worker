@@ -41,10 +41,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public void Set<T>(T instance)
         {
-            if (instance is null)
-            {
-                throw new ArgumentNullException(nameof(instance));
-            }
+            Guard.AgainstNull(nameof(instance), instance);
 
             _features[typeof(T)] = instance;
         }

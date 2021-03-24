@@ -30,10 +30,7 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerCore(this IServiceCollection services, Action<WorkerOptions>? configure = null)
         {
-            if (services is null)
-            {
-                throw new ArgumentNullException(nameof(services));
-            }
+            Guard.AgainstNull(nameof(services), services);
 
             // Request handling
             services.AddSingleton<IFunctionsApplication, FunctionsApplication>();

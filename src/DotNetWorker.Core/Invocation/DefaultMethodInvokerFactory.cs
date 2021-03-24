@@ -16,10 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     {
         public IMethodInvoker<TInstance, TReturn> Create<TInstance, TReturn>(MethodInfo method)
         {
-            if (method == null)
-            {
-                throw new ArgumentNullException("method");
-            }
+            Guard.AgainstNull(nameof(method), method);
 
             if (typeof(TInstance) != method.ReflectedType)
             {

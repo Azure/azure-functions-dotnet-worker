@@ -7,6 +7,9 @@
 
     <!--Version information-->
     <VersionPrefix>3.2.1</VersionPrefix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <Import Project="..\..\build\Extensions.props" />

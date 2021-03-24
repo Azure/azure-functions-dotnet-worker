@@ -8,6 +8,9 @@
     <!--Version information-->
     <MajorProductVersion>1</MajorProductVersion>
     <VersionSuffix>-beta</VersionSuffix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <Import Project="..\..\build\Extensions.props" />

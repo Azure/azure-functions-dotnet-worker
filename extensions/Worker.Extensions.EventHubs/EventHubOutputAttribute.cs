@@ -5,6 +5,9 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Attribute used to specify that the attribute target should output its data to Event Hubs.
+    /// </summary>
     public sealed class EventHubOutputAttribute : OutputBindingAttribute
     {
         /// <summary>

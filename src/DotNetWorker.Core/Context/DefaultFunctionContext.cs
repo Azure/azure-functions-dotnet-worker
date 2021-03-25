@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class DefaultFunctionContext : FunctionContext, IDisposable
+    internal sealed class DefaultFunctionContext : FunctionContext, IDisposable
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly FunctionInvocation _invocation;
@@ -56,7 +56,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override BindingContext BindingContext => _bindingContext ??= new DefaultBindingContext(this);
 
-        public virtual void Dispose()
+        public override RetryContext RetryContext => Features.GetRequired<IExecutionRetryFeature>().Context;
+
+        public void Dispose()
         {
             if (_instanceServicesScope != null)
             {

@@ -35,6 +35,12 @@ namespace Microsoft.Azure.Functions.Worker
         public abstract BindingContext BindingContext { get; }
 
         /// <summary>
+        /// Gets the retry context containing information about retry acvitity for the event that triggered
+        /// the current function invocation.
+        /// </summary>
+        public abstract RetryContext RetryContext { get; }
+
+        /// <summary>
         /// Gets or sets the <see cref="IServiceProvider"/> that provides access to this execution's services.
         /// </summary>
         public abstract IServiceProvider InstanceServices { get; set; }

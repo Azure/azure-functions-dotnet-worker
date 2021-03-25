@@ -29,7 +29,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             _mockApplication
                 .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>()))
-                .Returns(_context);
+                .Returns<IInvocationFeatures>(f =>
+                {
+                    _context = new TestFunctionContext(f);
+                    return _context;
+                });
 
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
@@ -111,6 +115,20 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public async Task Invoke_SetsRetryContext()
+        {
+            var request = CreateInvocationRequest();
+
+            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
+                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object);
+            
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True(_context.IsDisposed);
+            Assert.Equal(request.RetryContext.RetryCount, _context.RetryContext.RetryCount);
+            Assert.Equal(request.RetryContext.MaxRetryCount, _context.RetryContext.MaxRetryCount);
+        }
+
+        [Fact]
         public async Task Invoke_CreateContextThrows_ReturnsFailure()
         {
             _mockApplication
@@ -163,6 +181,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 {
                     TraceParent = Guid.NewGuid().ToString(),
                     TraceState = Guid.NewGuid().ToString()
+                },
+                RetryContext = new Grpc.Messages.RetryContext
+                {
+                    MaxRetryCount = 3,
+                    RetryCount = 2
                 }
             };
         }

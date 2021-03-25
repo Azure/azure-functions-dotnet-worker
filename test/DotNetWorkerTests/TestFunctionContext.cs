@@ -19,15 +19,26 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
         }
 
-        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation)
+        public TestFunctionContext(IInvocationFeatures features)
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), features)
+        {
+        }
+
+        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, IInvocationFeatures features = null)
         {
             FunctionDefinition = functionDefinition;
             _invocation = invocation;
+
+            if (features != null)
+            {
+                Features = features;
+            }
 
             Features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature
             {
                 OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
             });
+
 
             BindingContext = new DefaultBindingContext(this);
         }
@@ -49,6 +60,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override TraceContext TraceContext => _invocation.TraceContext;
 
         public override BindingContext BindingContext { get; }
+
+        public override RetryContext RetryContext => Features.Get<IExecutionRetryFeature>()?.Context;
 
         public void Dispose()
         {

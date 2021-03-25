@@ -3,11 +3,12 @@
 
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.Worker.Context
+namespace Microsoft.Azure.Functions.Worker.Grpc
 {
-    internal class GrpcFunctionInvocation : FunctionInvocation
+    internal sealed class GrpcFunctionInvocation : FunctionInvocation, IExecutionRetryFeature
     {
-        private InvocationRequest _invocationRequest;
+        private readonly InvocationRequest _invocationRequest;
+        private RetryContext? _retryContext;
 
         public GrpcFunctionInvocation(InvocationRequest invocationRequest)
         {
@@ -20,5 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Context
         public override string FunctionId => _invocationRequest.FunctionId;
 
         public override TraceContext TraceContext { get; }
+
+        public RetryContext Context => _retryContext ??= new GrpcRetryContext(_invocationRequest.RetryContext);
     }
 }

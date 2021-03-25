@@ -13,9 +13,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         public static NullFunctionActivator Instance { get; } = new NullFunctionActivator();
 
-        public T? CreateInstance<T>(IServiceProvider services)
+        public object? CreateInstance(Type instanceType, FunctionContext context)
         {
-            return default(T);
+            return null;
         }
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             var invoker = _invokerCache.GetOrAdd(context.FunctionId,
                 _ => _invokerFactory.Create(context.FunctionDefinition));
 
-            object? instance = invoker.CreateInstance(context.InstanceServices);
+            object? instance = invoker.CreateInstance(context);
             var modelBindingFeature = context.Features.Get<IModelBindingFeature>();
 
             object?[] inputArguments;

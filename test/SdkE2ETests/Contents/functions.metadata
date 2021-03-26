@@ -34,7 +34,7 @@
         "connection": "AzureWebJobsStorage"
       },
       {
-        "name": "HttpReponse",
+        "name": "HttpResponse",
         "type": "http",
         "direction": "Out"
       }
@@ -94,7 +94,7 @@
         "connection": "AzureWebJobsStorage"
       },
       {
-        "name": "HttpReponse",
+        "name": "HttpResponse",
         "type": "http",
         "direction": "Out"
       }

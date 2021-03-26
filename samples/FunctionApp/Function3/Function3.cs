@@ -19,7 +19,7 @@ namespace FunctionApp
             return new MyOutputType()
             {
                 Name = "some name",
-                HttpReponse = response
+                HttpResponse = response
             };
         }
     }
@@ -29,6 +29,6 @@ namespace FunctionApp
         [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
         public string Name { get; set; }
 
-        public HttpResponseData HttpReponse { get; set; }
+        public HttpResponseData HttpResponse { get; set; }
     }
 }

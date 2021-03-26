@@ -27,7 +27,7 @@ namespace FunctionApp
             return new MyOutputType()
             {
                 Book = bookVal,
-                HttpReponse = response
+                HttpResponse = response
             };
         }        
 
@@ -36,7 +36,7 @@ namespace FunctionApp
             [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
             public Book Book { get; set; }
 
-            public HttpResponseData HttpReponse { get; set; }
+            public HttpResponseData HttpResponse { get; set; }
         }
 
         public class Book

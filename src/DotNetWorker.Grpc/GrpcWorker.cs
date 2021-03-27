@@ -235,6 +235,7 @@ namespace Microsoft.Azure.Functions.Worker
             var response = new FunctionLoadResponse
             {
                 FunctionId = request.FunctionId,
+                Result = StatusResult.Success
             };
 
             if (!request.Metadata.IsProxy)
@@ -243,10 +244,6 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     FunctionDefinition definition = request.ToFunctionDefinition(methodInfoLocator);
                     application.LoadFunction(definition);
-                    response.Result = new StatusResult
-                    {
-                        Status = StatusResult.Types.Status.Success
-                    };
                 }
                 catch (Exception ex)
                 {

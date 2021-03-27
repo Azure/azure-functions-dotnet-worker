@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal partial class DefaultFunctionExecutor : IFunctionExecutor
     {
-        private ConcurrentDictionary<string, IFunctionInvoker> _invokerCache = new ConcurrentDictionary<string, IFunctionInvoker>();
+        private readonly ConcurrentDictionary<string, IFunctionInvoker> _invokerCache = new();
 
         private readonly ILogger<DefaultFunctionExecutor> _logger;
         private readonly IFunctionInvokerFactory _invokerFactory;

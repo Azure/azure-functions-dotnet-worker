@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         {
             if (method == null)
             {
-                throw new ArgumentNullException("method");
+                throw new ArgumentNullException(nameof(method));
             }
 
             if (typeof(TInstance) != method.ReflectedType)

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -16,7 +16,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
     internal class FunctionMetadataJsonReader
     {
         private readonly IOptions<FunctionMetadataJsonReaderOptions> _options;
-        private const string _fileName = "functions.metadata";
+        private const string FileName = "functions.metadata";
 
         public FunctionMetadataJsonReader(IOptions<FunctionMetadataJsonReaderOptions> options)
         {
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
         public virtual async Task<ImmutableArray<FunctionMetadata>> ReadMetadataAsync()
         {
-            string metadataFile = Path.Combine(_options.Value.FunctionMetadataFileDrectory, _fileName);
+            string metadataFile = Path.Combine(_options.Value.FunctionMetadataFileDrectory, FileName);
 
             if (File.Exists(metadataFile))
             {

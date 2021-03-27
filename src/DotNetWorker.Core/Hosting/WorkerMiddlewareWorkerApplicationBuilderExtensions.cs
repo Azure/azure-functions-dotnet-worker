@@ -75,15 +75,13 @@ namespace Microsoft.Extensions.Hosting
                 return builder;
             }
 
-            builder.Services.AddSingleton<OutputBindingsMiddleware>();
+            builder.Services.AddSingleton<OutputBindingsMiddleware>(p => throw new InvalidOperationException($"Type {nameof(OutputBindingsMiddleware)} cannot be resolved using the container."));
 
             builder.Use(next =>
             {
                 return context =>
                 {
-                    var middleware = context.InstanceServices.GetRequiredService<OutputBindingsMiddleware>();
-
-                    return middleware.Invoke(context, next);
+                    return OutputBindingsMiddleware.Invoke(context, next);
                 };
             });
 

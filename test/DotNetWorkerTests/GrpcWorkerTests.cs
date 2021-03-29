@@ -55,6 +55,18 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public void LoadFunction_WithProxyMetadata_ReturnsSuccess()
+        {
+            FunctionLoadRequest request = CreateFunctionLoadRequest();
+
+            request.Metadata.IsProxy = true;
+
+            var response = GrpcWorker.FunctionLoadRequestHandler(request, _mockApplication.Object, _mockMethodInfoLocator.Object);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+        }
+
+        [Fact]
         public void LoadFunction_Throws_ReturnsFailure()
         {
             _mockApplication

@@ -33,9 +33,6 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
 
-        private Task? _writerTask;
-        private Task? _readerTask;
-
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions)
         {
@@ -58,10 +55,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Task StartAsync(CancellationToken token)
         {
-            var eventStream = _rpcClient.EventStream();
+            var eventStream = _rpcClient.EventStream(cancellationToken: token);
 
-            _writerTask = StartWriterAsync(eventStream.RequestStream);
-            _readerTask = StartReaderAsync(eventStream.ResponseStream);
+            _ = StartWriterAsync(eventStream.RequestStream);
+            _ = StartReaderAsync(eventStream.ResponseStream);
 
             return SendStartStreamMessageAsync(eventStream.RequestStream);
         }

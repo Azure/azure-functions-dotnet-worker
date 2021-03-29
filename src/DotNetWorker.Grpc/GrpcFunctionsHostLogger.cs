@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
     {
         private readonly string _category;
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
-        private IExternalScopeProvider _scopeProvider;
+        private readonly IExternalScopeProvider _scopeProvider;
 
         public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider)
         {
@@ -77,24 +77,16 @@ namespace Microsoft.Azure.Functions.Worker.Logging
 
         private static Level ToRpcLogLevel(LogLevel logLevel)
         {
-            switch (logLevel)
+            return logLevel switch
             {
-                case LogLevel.Trace:
-                    return Level.Trace;
-                case LogLevel.Debug:
-                    return Level.Debug;
-                case LogLevel.Information:
-                    return Level.Information;
-                case LogLevel.Warning:
-                    return Level.Warning;
-                case LogLevel.Error:
-                    return Level.Error;
-                case LogLevel.Critical:
-                    return Level.Critical;
-                case LogLevel.None:
-                default:
-                    return Level.None;
-            }
+                LogLevel.Trace => Level.Trace,
+                LogLevel.Debug => Level.Debug,
+                LogLevel.Information => Level.Information,
+                LogLevel.Warning => Level.Warning,
+                LogLevel.Error => Level.Error,
+                LogLevel.Critical => Level.Critical,
+                _ => Level.None,
+            };
         }
 
         private class EmptyDisposable : IDisposable

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
     internal class GrpcWorkerDiagnostics : IWorkerDiagnostics
     {
-        private ChannelWriter<StreamingMessage> _outputChannel;
+        private readonly ChannelWriter<StreamingMessage> _outputChannel;
 
         internal static readonly JsonSerializerOptions SerializerOptions;
 

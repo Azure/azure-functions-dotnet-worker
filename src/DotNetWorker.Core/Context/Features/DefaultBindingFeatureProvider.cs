@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     internal class DefaultBindingFeatureProvider : IInvocationFeatureProvider
     {
-        private readonly static Type _featureType = typeof(IModelBindingFeature);
+        private static readonly Type _featureType = typeof(IModelBindingFeature);
         private readonly IEnumerable<IConverter> _converters;
 
         public DefaultBindingFeatureProvider(IEnumerable<IConverter> converters)

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.OutputBindings
 {
     internal sealed class OutputBindingsMiddleware
     {
-        public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
+        public static async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
             await next(context);
 

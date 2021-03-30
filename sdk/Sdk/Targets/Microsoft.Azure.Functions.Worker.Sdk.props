@@ -13,6 +13,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <PropertyGroup>
     <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <FunctionsExecutionModel>isolated</FunctionsExecutionModel>
+    <ToolingSuffix>net5-isolated</ToolingSuffix>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
     <_IsFunctionsSdkBuild>true</_IsFunctionsSdkBuild>
   </PropertyGroup>

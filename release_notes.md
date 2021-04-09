@@ -9,6 +9,7 @@
 - Added `TimerInfo` definition allowing for binding information with a built-in type
 - `WriteBytesAsync` API for `HttpResponseData`
 - Updates/enhancements to tooling JSON output
+  - **Warning**: It's required to have `azure-functions-core-tools` >= `3.0.3442` to debug using `func host start --dotnet-isolated-debug`
 - `IFunctionActivator` and supporting APIs revised and made public
   - Enables custom handling of function class instantiation
 - Fixed issue with proxy medatada handling

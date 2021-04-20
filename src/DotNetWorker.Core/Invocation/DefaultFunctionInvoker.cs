@@ -21,9 +21,9 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         // For testing
         internal IFunctionActivator FunctionActivator { get; }
 
-        public object CreateInstance(IServiceProvider instanceServices)
+        public object CreateInstance(FunctionContext context)
         {
-            return FunctionActivator.CreateInstance<TInstance>(instanceServices);
+            return FunctionActivator.CreateInstance(typeof(TInstance), context);
         }
 
         public Task<object> InvokeAsync(object instance, object[] arguments)

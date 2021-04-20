@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// Creates a default Azure FUnctions Worker configured host, runs and
+        /// Creates a default Azure Functions Worker configured host, runs and
         /// returns a <see cref="Task"/> that will complete when the host shuts down.
         /// </summary>
         /// <param name="configureService">An option delegate to configure host services.</param>

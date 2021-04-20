@@ -6,24 +6,24 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.InteropServices;
 
+// This class is instantiated and used in serialization.
+#pragma warning disable CA1822
+
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class WorkerInformation
+    internal sealed class WorkerInformation
     {
-        private static Assembly _thisAssembly = typeof(WorkerInformation).Assembly;
-        private static FileVersionInfo _fileVersionInfo = FileVersionInfo.GetVersionInfo(_thisAssembly.Location);
+        private static readonly Assembly _thisAssembly = typeof(WorkerInformation).Assembly;
+        private static readonly FileVersionInfo _fileVersionInfo = FileVersionInfo.GetVersionInfo(_thisAssembly.Location);
 
-        private WorkerInformation()
-        {
-        }
+        public static WorkerInformation Instance = new();
 
-        public static WorkerInformation Instance = new WorkerInformation();
+        public int ProcessId => Environment.ProcessId;
 
-        public int ProcessId { get; } = Process.GetCurrentProcess().Id;
+        public string WorkerVersion => _thisAssembly.GetName().Version?.ToString()!;
 
-        public string WorkerVersion { get; } = _thisAssembly.GetName().Version?.ToString()!;
 
-        public string? ProductVersion { get; } = _fileVersionInfo.ProductVersion;
+        public string? ProductVersion => _fileVersionInfo.ProductVersion;
 
         public string FrameworkDescription => RuntimeInformation.FrameworkDescription;
 
@@ -36,3 +36,4 @@ namespace Microsoft.Azure.Functions.Worker
         public string CommandLine => Environment.CommandLine;
     }
 }
+#pragma warning restore CA1822

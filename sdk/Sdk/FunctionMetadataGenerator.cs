@@ -71,9 +71,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                             ReaderParameters readerParams = new ReaderParameters { AssemblyResolver = resolver };
 
-                            var moduleDefintion = ModuleDefinition.ReadModule(path, readerParams);
+                            var moduleDefinition = ModuleDefinition.ReadModule(path, readerParams);
 
-                            functions.AddRange(GenerateFunctionMetadata(moduleDefintion));
+                            functions.AddRange(GenerateFunctionMetadata(moduleDefinition));
                         }
                         catch (BadImageFormatException)
                         {
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         catch (FunctionsMetadataGenerationException ex)
                         {
                             _logger.LogError($"Failed to generate function metadata from {Path.GetFileName(path)}: {ex.Message}", path);
-                            throw ex;
+                            throw;
                         }
                         catch (Exception ex)
                         {
@@ -168,10 +168,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     TypeDefinition declaringType = method.DeclaringType;
 
                     string actualMethodName = method.Name;
-                    string declaryingTypeName = declaringType.GetReflectionFullName();
+                    string declaringTypeName = declaringType.GetReflectionFullName();
                     string assemblyName = declaringType.Module.Assembly.Name.Name;
 
-                    function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaryingTypeName, assemblyName);
+                    function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaringTypeName, assemblyName);
 
                     return true;
                 }
@@ -180,17 +180,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyName)
+        private static SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyName)
         {
             var function = new SdkFunctionMetadata
             {
                 Name = functionName,
                 ScriptFile = $"{assemblyName}.dll",
                 EntryPoint = $"{declaringTypeName}.{actualMethodName}",
-                Language = "dotnet-isolated"
+                Language = "dotnet-isolated",
+                Properties =
+                {
+                    ["IsCodeless"] = false
+                }
             };
 
-            function.Properties["IsCodeless"] = false;
 
             return function;
         }
@@ -241,7 +244,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
         }
 
-        private bool IsHttpTrigger(ExpandoObject bindingMetadata)
+        private static bool IsHttpTrigger(ExpandoObject bindingMetadata)
         {
             return bindingMetadata.Any(kvp => string.Equals(kvp.Key, "Type", StringComparison.Ordinal)
                 && string.Equals(kvp.Value?.ToString(), Constants.HttpTriggerBindingType, StringComparison.Ordinal));
@@ -306,7 +309,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     if (foundBinding)
                     {
                         throw new FunctionsMetadataGenerationException($"Found multiple Output bindings on method '{method.FullName}'. " +
-                            $"Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
+                            "Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 
                     AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, Constants.ReturnBindingName);
@@ -456,8 +459,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bool isArray = type.IsArray && !string.Equals(type.FullName, Constants.ByteArrayType, StringComparison.Ordinal);
             if (isArray)
             {
-                TypeSpecification? typeSpecification = type as TypeSpecification;
-                if (typeSpecification is not null)
+                if (type is TypeSpecification typeSpecification)
                 {
                     dataType = GetDataTypeFromType(typeSpecification.ElementType.FullName);
                     return true;
@@ -544,10 +546,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     return typeName;
                 }
-                else
-                {
-                    return null;
-                }
+
+                return null;
             }
 
             TypeDefinition definition = type.Resolve();
@@ -572,10 +572,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return definition.Interfaces
-                    .Select(i => ResolveIEnumerableOfTType(i.InterfaceType, foundMapping))
-                    .Where(name => name is not null)
-                    .FirstOrDefault()
-                ?? ResolveIEnumerableOfTType(definition.BaseType, foundMapping);
+                       .Select(i => ResolveIEnumerableOfTType(i.InterfaceType, foundMapping))
+                       .FirstOrDefault(name => name is not null)
+                   ?? ResolveIEnumerableOfTType(definition.BaseType, foundMapping);
         }
 
         private static DataType GetDataTypeFromType(string fullName)
@@ -626,9 +625,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute)
         {
-            AssemblyDefinition extensionAssemblyDefintion = attribute.AttributeType.Resolve().Module.Assembly;
+            AssemblyDefinition extensionAssemblyDefinition = attribute.AttributeType.Resolve().Module.Assembly;
 
-            foreach (var assemblyAttribute in extensionAssemblyDefintion.CustomAttributes)
+            foreach (var assemblyAttribute in extensionAssemblyDefinition.CustomAttributes)
             {
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
                 {

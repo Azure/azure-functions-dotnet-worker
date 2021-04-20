@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 {
     internal interface IFunctionInvoker
     {
-        object CreateInstance(IServiceProvider instanceServices);
+        object CreateInstance(FunctionContext context);
 
         Task<object> InvokeAsync(object instance, object[] arguments);
     }

@@ -23,9 +23,7 @@ namespace Microsoft.Azure.Functions.Worker
             var type = typeof(T);
             if (!_features.TryGetValue(type, out object? feature))
             {
-                _featureProviders.FirstOrDefault(t => t.TryCreate(type, out feature));
-
-                if (feature != null && !_features.TryAdd(type, feature))
+                if (_featureProviders.Any(t => t.TryCreate(type, out feature)) && !_features.TryAdd(type, feature!))
                 {
                     feature = _features[type];
                 }

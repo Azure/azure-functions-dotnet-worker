@@ -22,14 +22,8 @@ internal class StartupHook
         const int SleepTime = 500;
         const int MaxWaitCycles = (60 * 1000) / SleepTime;
 
-        Console.WriteLine($"Azure Functions .NET Worker (PID: { Environment.ProcessId }) initialized in debug mode. Waiting for debugger to attach...");
-
+        string? debuggerWaitEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_DEBUGGER_WAIT");
         string? jsonOutputEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_JSON_OUTPUT");
-
-        if (jsonOutputEnabled is not null && string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
-        {
-            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { Environment.ProcessId } }}");
-        }
 
         static bool WaitOnDebugger(int cycle)
         {
@@ -48,9 +42,19 @@ internal class StartupHook
             return true;
         }
 
-        for (int i = 0; WaitOnDebugger(i); i++)
+        if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Thread.Sleep(SleepTime);
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { Environment.ProcessId } }}");
+        }
+
+        if (string.Equals(debuggerWaitEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
+        {
+            Console.WriteLine($"Azure Functions .NET Worker (PID: { Environment.ProcessId }) initialized in debug mode. Waiting for debugger to attach...");
+
+            for (int i = 0; WaitOnDebugger(i); i++)
+            {
+                Thread.Sleep(SleepTime);
+            }
         }
     }
 }

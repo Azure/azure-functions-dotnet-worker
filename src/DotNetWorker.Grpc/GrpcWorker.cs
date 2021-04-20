@@ -33,9 +33,6 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
 
-        private Task? _writerTask;
-        private Task? _readerTask;
-
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions)
         {
@@ -58,10 +55,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Task StartAsync(CancellationToken token)
         {
-            var eventStream = _rpcClient.EventStream();
+            var eventStream = _rpcClient.EventStream(cancellationToken: token);
 
-            _writerTask = StartWriterAsync(eventStream.RequestStream);
-            _readerTask = StartReaderAsync(eventStream.ResponseStream);
+            _ = StartWriterAsync(eventStream.RequestStream);
+            _ = StartReaderAsync(eventStream.ResponseStream);
 
             return SendStartStreamMessageAsync(eventStream.RequestStream);
         }
@@ -235,6 +232,7 @@ namespace Microsoft.Azure.Functions.Worker
             var response = new FunctionLoadResponse
             {
                 FunctionId = request.FunctionId,
+                Result = StatusResult.Success
             };
 
             if (!request.Metadata.IsProxy)
@@ -243,10 +241,6 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     FunctionDefinition definition = request.ToFunctionDefinition(methodInfoLocator);
                     application.LoadFunction(definition);
-                    response.Result = new StatusResult
-                    {
-                        Status = StatusResult.Types.Status.Success
-                    };
                 }
                 catch (Exception ex)
                 {

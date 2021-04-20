@@ -28,7 +28,7 @@ namespace SampleApp
             return new MyOutputType()
             {
                 Name = myQueueOutput,
-                HttpReponse = response
+                HttpResponse = response
             };
         }
     }
@@ -38,7 +38,7 @@ namespace SampleApp
         [QueueOutput("myQueue")]
         public string Name { get; set; }
 
-        public HttpResponseData HttpReponse { get; set; }
+        public HttpResponseData HttpResponse { get; set; }
     }
     //</docsnippet_multiple_outputs>
 }

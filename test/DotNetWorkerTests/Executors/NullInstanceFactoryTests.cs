@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 // Copyright (c) .NET Foundation. All rights reserved.
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             IFunctionActivator product = NullFunctionActivator.Instance;
 
             // Act
-            object instance = product.CreateInstance<object>(new ServiceCollection().BuildServiceProvider());
+            object instance = product.CreateInstance(typeof(object), new TestFunctionContext());
 
             // Assert
             Assert.Null(instance);

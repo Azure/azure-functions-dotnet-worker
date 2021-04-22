@@ -8,6 +8,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <MinorProductVersion>1</MinorProductVersion>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

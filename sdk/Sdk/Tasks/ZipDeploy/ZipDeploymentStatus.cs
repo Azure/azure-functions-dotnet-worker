@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
@@ -45,6 +45,7 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
         {
             DeployStatus deployStatus = DeployStatus.Pending;
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(MaxMinutesToWait));
+
             if (_logMessages)
             {
                 _log.LogMessage(StringMessages.DeploymentStatusPolling);
@@ -72,19 +73,28 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
 
         private async Task<DeployStatus> GetDeploymentStatusAsync(string deploymentUrl, string userName, string password, int retryCount, TimeSpan retryDelay, CancellationTokenSource cts)
         {
-            IDictionary<string, string>? json = await InvokeGetRequestWithRetryAsync<Dictionary<string, string>>(deploymentUrl, userName, password, retryCount, retryDelay, cts);
-            string? statusString = null;
-            if (json != null && !json.TryGetValue("status", out statusString))
-            {
-                return DeployStatus.Unknown;
-            }
+            IDictionary<string, object>? json = await InvokeGetRequestWithRetryAsync<Dictionary<string, object>>(deploymentUrl, userName, password, retryCount, retryDelay, cts);
 
-            if (Enum.TryParse(statusString, out DeployStatus result))
+            if (json != null && TryParseDeploymentStatus(json, out DeployStatus result))
             {
                 return result;
             }
 
             return DeployStatus.Unknown;
+        }
+
+        private static bool TryParseDeploymentStatus(IDictionary<string, object> json, out DeployStatus status)
+        {
+            status = DeployStatus.Unknown;
+
+            if (json.TryGetValue("status", out object statusObj)
+                && int.TryParse(statusObj.ToString(), out int statusInt)
+                && Enum.TryParse(statusInt.ToString(), out status))
+            {
+                return true;
+            }
+
+            return false;
         }
 
         private async Task<T?> InvokeGetRequestWithRetryAsync<T>(string url, string userName, string password, int retryCount, TimeSpan retryDelay, CancellationTokenSource cts)

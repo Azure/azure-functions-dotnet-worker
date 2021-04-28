@@ -270,7 +270,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name ="_WorkerExtensionsFullPublish">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" RemoveProperties="DeployOnBuild" Targets="Publish" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
+    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" RemoveProperties="DeployOnBuild" Targets="Publish" Properties="Configuration=Release;PublishDir=$(ExtensionsCsProjFilePath)\publishout;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
   </Target>
 
   <Target Name="_WorkerExtensionsRestorePublish">

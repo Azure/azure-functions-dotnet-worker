@@ -192,7 +192,17 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         AfterTargets="Publish"
         DependsOnTargets="_GenerateFunctionsAndCopyContentFiles;_WorkerExtensionsPublish"
           >
-  </Target>  
+  </Target>
+
+  <!--
+    ============================================================
+
+    This targets gets called when publish is invoked with DeployOnBuild
+    set. This target is responsible for overriding the publish targets
+    from Publish SDK and generating function.json during publish.
+
+    ============================================================
+    -->
   
   <PropertyGroup>
     <CorePublishDependsOn>

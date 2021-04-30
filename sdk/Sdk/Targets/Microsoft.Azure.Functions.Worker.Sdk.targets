@@ -1,6 +1,6 @@
 ﻿<!--
 ***********************************************************************************************
-Microsoft.Azure.Functions.Worker.targets
+Microsoft.Azure.Functions.Worker.Sdk.targets
 
 WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
           created a backup copy.  Incorrect changes to this file will make it
@@ -27,6 +27,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <UsingTask TaskName="GenerateFunctionMetadata"
            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+
+  <UsingTask TaskName="CreateZipFileTask"
+           AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+
+  <UsingTask TaskName="ZipDeployTask"
+            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
   <Target Name="_FunctionsPostBuild" AfterTargets="Build">
 
@@ -84,7 +90,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name ="_WorkerExtensionsBuild" AfterTargets="_WorkerExtensionsRestore">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\buildout;CopyLocalLockFileAssemblies=true"/>
+    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" RemoveProperties="DeployOnBuild" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\buildout;CopyLocalLockFileAssemblies=true"/>
   </Target>
 
   <Target Name="_WorkerExtensionsRestore" AfterTargets="_FunctionsPostBuild">
@@ -105,6 +111,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OutputPath="$(TargetDir)\$(_FunctionsExtensionsJsonName)"/>
     
   </Target>
+
+  <!--
+  ***********************************************************************************************
+  Import the Publish target
+  ***********************************************************************************************
+ -->
+  <Import Project="$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets"
+          Condition="Exists('$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets')" />
 
   <Target
     Name="_CleanFunctions"
@@ -178,7 +192,17 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         AfterTargets="Publish"
         DependsOnTargets="_GenerateFunctionsAndCopyContentFiles;_WorkerExtensionsPublish"
           >
-  </Target>  
+  </Target>
+
+  <!--
+    ============================================================
+
+    This targets gets called when publish is invoked with DeployOnBuild
+    set. This target is responsible for overriding the publish targets
+    from Publish SDK and generating function.json during publish.
+
+    ============================================================
+    -->
   
   <PropertyGroup>
     <CorePublishDependsOn>
@@ -244,7 +268,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name ="_WorkerExtensionsPublish" AfterTargets="_WorkerExtensionsRestorePublish">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
+    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" RemoveProperties="DeployOnBuild" Targets="Build" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
   </Target>
 
   <Target Name="_WorkerExtensionsRestorePublish" AfterTargets="_GenerateFunctionsAndCopyContentFiles">

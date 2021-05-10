@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<FunctionRpcClient>(p =>
             {
                 IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>()
-                    ?? throw new InvalidOperationException("gRPC Serivces are not correctly registered.");
+                    ?? throw new InvalidOperationException("gRPC Services are not correctly registered.");
 
                 GrpcWorkerStartupOptions arguments = argumentsOptions.Value;
 

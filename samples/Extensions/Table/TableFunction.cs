@@ -4,28 +4,26 @@
 using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace SampleApp
 {
     public static class TableFunction
     {
         [Function("TableFunction")]
-        [TableOutput("outputQueue", Connection = "ServiceBusConnection")]
+        [TableOutput("OutputTable", Connection = "AzureWebJobsStorage")]
         public static MyTableData Run([QueueTrigger("table-items")] string input,
-            [TableInput("MyTable", "MyPartition", "{queueTrigger}")] JObject tableItem,
+            [TableInput("MyTable", "MyPartition", "{queueTrigger}")] MyTableData tableInput,
             FunctionContext context)
         {
             var logger = context.GetLogger("TableFunction");
 
-            logger.LogInformation(tableItem.ToString());
+            logger.LogInformation($"PK={tableInput.PartitionKey}, RK={tableInput.RowKey}, Text={tableInput.Text}");
 
-            var message = $"Output message created at {DateTime.Now}";
             return new MyTableData()
             {
                 PartitionKey = "queue",
                 RowKey = Guid.NewGuid().ToString(),
-                Text = message
+                Text = $"Output record with rowkey {input} created at {DateTime.Now}"
             };
         }
     }

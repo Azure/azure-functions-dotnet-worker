@@ -11,8 +11,8 @@ namespace SampleApp
         //<docsnippet_queue_output_binding>
         //<docsnippet_queue_trigger>
         [Function("QueueFunction")]
-        [QueueOutput("functionstesting2")]
-        public static string Run([QueueTrigger("functionstesting2")] Book myQueueItem,
+        [QueueOutput("myqueue-output")]
+        public static string Run([QueueTrigger("myqueue-items")] Book myQueueItem,
             FunctionContext context)
         //</docsnippet_queue_trigger>
         {

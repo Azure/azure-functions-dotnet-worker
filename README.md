@@ -76,6 +76,18 @@ Once the debugger is attached, the process execution will resume and you will be
 
 We're working with the Visual Studio team to provide an integrated debugging experience.
 
+#### JetBrains Rider
+
+> NOTE: To debug your Worker, you must be using the Azure Functions Core Tools version 3.0.3381 or higher. You must also have the [Azure Toolkit for Rider](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider) installed.
+
+In Rider, make sure a Run Configuration is generated for your Azure Functions project is active. You can also create a custom Run Configuration from the **Run \| Edit Configurations...** menu.
+
+To start debugging, select the run configuration and start debugging. This will compile your project, run the Core Tools, and attach the debugger to your project.
+
+Under the hood, Rider launches the Core Tools with the `--dotnet-isolated-debug` argument, and attached to the process ID for your worker process.
+
+You can place a breakpoint in any function, and inspect your code as it is running. Note that [debugging startup code may timeout (#434)](https://github.com/Azure/azure-functions-dotnet-worker/issues/434).
+
 ## Deploying to Azure
 
 ### Create the Azure resources

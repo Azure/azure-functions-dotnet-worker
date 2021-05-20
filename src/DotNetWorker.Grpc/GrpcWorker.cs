@@ -53,14 +53,14 @@ namespace Microsoft.Azure.Functions.Worker
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
         }
 
-        public Task StartAsync(CancellationToken token)
+        public async Task StartAsync(CancellationToken token)
         {
             var eventStream = _rpcClient.EventStream(cancellationToken: token);
 
+            await SendStartStreamMessageAsync(eventStream.RequestStream);
+
             _ = StartWriterAsync(eventStream.RequestStream);
             _ = StartReaderAsync(eventStream.ResponseStream);
-
-            return SendStartStreamMessageAsync(eventStream.RequestStream);
         }
 
         public Task StopAsync(CancellationToken token)
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker
             return Task.CompletedTask;
         }
 
-        public async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
+        private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
             StartStream str = new StartStream()
             {
@@ -83,7 +83,7 @@ namespace Microsoft.Azure.Functions.Worker
             await requestStream.WriteAsync(startStream);
         }
 
-        public async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
+        private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
             await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync())
             {
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        public async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
+        private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
         {
             while (await responseStream.MoveNext())
             {
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        public Task ProcessRequestAsync(StreamingMessage request)
+        private Task ProcessRequestAsync(StreamingMessage request)
         {
             // Dispatch and return.
             Task.Run(() => ProcessRequestCoreAsync(request));

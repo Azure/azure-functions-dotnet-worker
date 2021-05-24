@@ -19,7 +19,6 @@ namespace CustomMiddleware
                 })
                 .Build();
             //</docsnippet_middleware_register>
-            
             host.Run();
         }
     }

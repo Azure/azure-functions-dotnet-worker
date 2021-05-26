@@ -55,7 +55,7 @@ jobs:
     inputs:
       ConnectedServiceName: 'ESRP Service'
       FolderPath: 'sdk\sdk\bin\Release'
-      Pattern: Microsoft.Azure.Functions.Worker.Sdk.dll
+      Pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
       signConfigType: inlineSignParams
       inlineOperation: |
         [

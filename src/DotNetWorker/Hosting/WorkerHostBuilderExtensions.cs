@@ -126,6 +126,11 @@ namespace Microsoft.Extensions.Hosting
         public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
         {
             builder
+                .ConfigureHostConfiguration(config =>
+                {
+                    // Add AZURE_FUNCTIONS_ prefixed environment variables
+                    config.AddEnvironmentVariables("AZURE_FUNCTIONS_");
+                })
                 .ConfigureAppConfiguration(configBuilder =>
                 {
                     var cmdLine = Environment.GetCommandLineArgs();

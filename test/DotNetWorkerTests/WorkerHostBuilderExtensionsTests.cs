@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 using System.Linq;
 using Microsoft.Extensions.Configuration.EnvironmentVariables;
+using System;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -47,6 +48,27 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Providers.Any(p => p is EnvironmentVariablesConfigurationProvider);
 
             Assert.True(environmentVariablesProviderRegistered, "Environment variables provider not registered.");
+        }
+
+        [Fact]
+        public void AzureFunctions_PrefixedVariables_AreRegistered()
+        {
+            string functionsEnvironment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
+            Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", "Development");
+            try
+            {
+                var host = new HostBuilder()
+                    .ConfigureFunctionsWorkerDefaults()
+                    .Build();
+
+                var environment = host.Services.GetService<IHostEnvironment>();
+
+                Assert.Equal("Development", environment.EnvironmentName);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", functionsEnvironment);
+            }
         }
     }
 }

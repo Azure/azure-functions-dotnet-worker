@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         {
             foreach (var header in headers)
             {
-                base.Add(header.Key, header.Value);
+                base.TryAddWithoutValidation(header.Key, header.Value);
             }
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         {
             foreach (var header in headers)
             {
-                base.Add(header.Key, header.Value);
+                base.TryAddWithoutValidation(header.Key, header.Value);
             }
         }
     }

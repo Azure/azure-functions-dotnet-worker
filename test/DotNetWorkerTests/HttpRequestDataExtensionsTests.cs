@@ -84,3 +84,4 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
     }
 }
+

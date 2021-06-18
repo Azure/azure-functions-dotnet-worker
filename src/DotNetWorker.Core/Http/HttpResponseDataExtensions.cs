@@ -147,8 +147,6 @@ namespace Microsoft.Azure.Functions.Worker.Http
             }
 
             response.Headers.Add("Content-Type", contentType);
-            response.StatusCode = System.Net.HttpStatusCode.OK;
-
             return serializer.SerializeAsync(response.Body, instance, typeof(T), cancellationToken);
         }
 

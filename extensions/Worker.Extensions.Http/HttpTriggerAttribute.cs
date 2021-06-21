@@ -92,32 +92,27 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         public AuthorizationLevel AuthLevel { get; private set; }
 
-        private static AuthorizationLevel GetAuthorizationLevel(string authLevel)
+        private static AuthorizationLevel GetAuthorizationLevel(string authLevelKey)
         {
-            if (string.IsNullOrWhiteSpace(authLevel))
+            if (string.IsNullOrWhiteSpace(authLevelKey))
             {
                 return AuthorizationLevel.Function;
             }
 
-            var trimmed = authLevel.Trim();
+            var trimmed = authLevelKey.Trim();
             if (string.IsNullOrWhiteSpace(trimmed))
             {
                 return AuthorizationLevel.Function;
             }
 
-            if (!trimmed.StartsWith("%"))
-            {
-                return AuthorizationLevel.Function;
-            }
-
-            if (!trimmed.EndsWith("%"))
+            if ((trimmed.StartsWith("%") && trimmed.EndsWith("%")) == false)
             {
                 return AuthorizationLevel.Function;
             }
 
             trimmed = trimmed.Trim('%');
-            var authLevelKey = Environment.GetEnvironmentVariable(trimmed);
-            var authorizationLevel = Enum.TryParse<AuthorizationLevel>(authLevelKey, ignoreCase: true, out var result)
+            var authLevel = Environment.GetEnvironmentVariable(trimmed);
+            var authorizationLevel = Enum.TryParse<AuthorizationLevel>(authLevel, ignoreCase: true, out var result)
                                      ? result
                                      : AuthorizationLevel.Function;
 

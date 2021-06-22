@@ -160,7 +160,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4" }
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0-beta.4" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0-beta.4" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -263,7 +264,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4" }
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0-beta.4" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0-beta.4" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -325,7 +327,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.4" }
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0-beta.4" }
             });
 
             void ValidateHttpTrigger(ExpandoObject b)

@@ -2,4 +2,4 @@
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->
-- Updated behavior of the HttpHeadersCollection implementation to avoid double validation of headers processed by the host.
+- Implementation of new (Track 2) Azure Storage SDK extensions (Blobs and Queues)

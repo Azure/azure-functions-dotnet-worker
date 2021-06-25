@@ -3,7 +3,7 @@
   <PropertyGroup>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.SendGrid</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.SendGrid</RootNamespace>
-    <Description>Azure Service Bus extensions for .NET isolated functions</Description>
+    <Description>Azure SendGrid extension for .NET isolated functions</Description>
 
     <!--Version information-->
     <VersionPrefix>3.0.2</VersionPrefix>

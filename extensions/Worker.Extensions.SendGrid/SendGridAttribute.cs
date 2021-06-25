@@ -7,8 +7,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Attribute used to bind a parameter to a SendGridMessage that will automatically be
-    /// sent when the function completes.
+    /// Initializes a new instance of the <see cref="SendGridOutputAttribute"/> class.
     /// </summary>
     public sealed class SendGridOutputAttribute : OutputBindingAttribute
     {

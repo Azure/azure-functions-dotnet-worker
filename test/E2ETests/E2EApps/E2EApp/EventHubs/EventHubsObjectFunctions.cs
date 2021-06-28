@@ -4,9 +4,10 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
-    public static class EventHubsObjectFunctions
+    public static class EventHubsObjectFunctionsF
     {
-        [Function(nameof(EventHubsObjectFunction))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(EventHubsObjectFunction))]
         [EventHubOutput("test-eventhub-output-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
         public static TestData EventHubsObjectFunction([EventHubTrigger("test-eventhub-input-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting", IsBatched = false)] TestData input,
             FunctionContext context)
@@ -16,7 +17,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input;
         }
 
-        [Function(nameof(EventHubsVerifyOutputObject))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(EventHubsVerifyOutputObject))]
         [QueueOutput("test-eventhub-output-object-dotnet-isolated")]
         public static TestData EventHubsVerifyOutputObject([EventHubTrigger("test-eventhub-output-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting", IsBatched = false)] TestData input,
             FunctionContext context)
@@ -26,7 +28,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input;
         }
 
-        [Function(nameof(TestObject))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(TestObject))]
         [EventHubOutput("test-eventhub-input-object-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
         public static TestData TestObject(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,

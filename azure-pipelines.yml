@@ -281,16 +281,10 @@ jobs:
         arguments: '-c Release'
         projects: 'DotNetWorker.sln'
 
-    - pwsh: ./setup-e2e-tests.ps1 -SkipEmulators
+    - pwsh: ./setup-e2e-tests.ps1 -SkipCosmosDBEmulator
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)
-
-    - bash: |
-        sudo npm install -g azurite
-        sudo mkdir azurite
-        sudo azurite --silent --location azurite --debug azurite\debug.log &
-      displayName: 'Install and Run Azurite'
     
     - task: DotNetCoreCLI@2
       displayName: 'Run E2E tests'

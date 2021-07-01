@@ -80,10 +80,10 @@ namespace Microsoft.Azure.Functions.Worker.Http
         {
             return WriteAsJsonAsync(response, instance, "application/json; charset=utf-8", HttpStatusCode.OK, cancellationToken);
         }
-        
+
         /// <summary>
         /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
-        /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to 200.
+        /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
         /// <param name="response">The response to write JSON to.</param>
@@ -114,15 +114,14 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 throw new ArgumentNullException(nameof(response));
             }
 
-            ObjectSerializer serializer = response.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
-                 ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
+            ObjectSerializer serializer = GetObjectSerializer(response);
 
             return WriteAsJsonAsync(response, instance, serializer, contentType, HttpStatusCode.OK, cancellationToken);
         }
-      
+
         /// <summary>
         /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
-        /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to 200.
+        /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
         /// <param name="response">The response to write JSON to.</param>
@@ -139,8 +138,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 throw new ArgumentNullException(nameof(response));
             }
 
-            ObjectSerializer serializer = response.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
-                                          ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
+            ObjectSerializer serializer = GetObjectSerializer(response);
 
             return WriteAsJsonAsync(response, instance, serializer, contentType, statusCode, cancellationToken);
         }
@@ -163,7 +161,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
 
         /// <summary>
         /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
-        /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to 200.
+        /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
         /// <param name="response">The response to write JSON to.</param>
@@ -198,7 +196,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
 
         /// <summary>
         /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
-        /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to 200.
+        /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
         /// <param name="response">The response to write JSON to.</param>
@@ -270,6 +268,12 @@ namespace Microsoft.Azure.Functions.Worker.Http
             }
 
             return response.Body.WriteAsync(value, 0, value.Length);
+        }
+
+        private static ObjectSerializer GetObjectSerializer(HttpResponseData response)
+        {
+            return response.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
+                ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
         }
     }
 }

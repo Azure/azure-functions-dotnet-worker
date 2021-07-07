@@ -42,6 +42,31 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         private static bool _isInitialized = false;
 
+        public static async Task DeleteFileAsync(string fileName)
+        {
+            void DeleteLoop()
+            {
+                if (File.Exists(fileName))
+                {
+                    File.Delete(fileName);
+                }
+            }
+
+            for (int i = 0; i < 5; i++)
+            {
+                try
+                {
+                    DeleteLoop();
+                    break;
+                }
+                catch
+                {
+                    await Task.Delay(1000);
+                }
+            }
+
+        }
+
         public static async Task<string> InitializeTestAsync(ITestOutputHelper testOutputHelper, string testName)
         {
             if (!_isInitialized)

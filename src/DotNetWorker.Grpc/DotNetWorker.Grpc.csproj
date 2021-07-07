@@ -8,7 +8,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>2</MinorProductVersion>
+    <MinorProductVersion>3</MinorProductVersion>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -38,9 +38,5 @@
     <Protobuf Update=".\protobuf\src\proto\FunctionRpc.proto" Access="Internal" />
     <Protobuf Update=".\protobuf\src\proto\identity\ClaimsIdentityRpc.proto" Access="Internal" />
     <Protobuf Update=".\protobuf\src\proto\shared\NullableTypes.proto" Access="Internal" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Binding\" />
   </ItemGroup>
 </Project>

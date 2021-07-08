@@ -28,7 +28,10 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             string zipName = Path.Combine(Directory.GetParent(directoryToZip).FullName, $"{testName}.zip");
 
-            await TestUtility.DeleteFileAsync(zipName);
+            if (File.Exists(zipName))
+            {
+                File.Delete(zipName);
+            }
 
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
 

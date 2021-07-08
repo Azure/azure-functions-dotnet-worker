@@ -52,19 +52,37 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                 }
             }
 
-            for (int i = 0; i < 5; i++)
+            await RetryWithDelayAsync(DeleteLoop);
+        }
+
+        public static async Task DeleteDirectoryAsync(string directoryName)
+        {
+            void DeleteLoop()
+            {
+                if (Directory.Exists(directoryName))
+                {
+                    Directory.Delete(directoryName, recursive: true);
+                }
+            }
+
+            await RetryWithDelayAsync(DeleteLoop);
+        }
+
+        private static async Task RetryWithDelayAsync(Action action)
+        {
+            int max = 5;
+            for (int i = 0; i < max; i++)
             {
                 try
                 {
-                    DeleteLoop();
+                    action();
                     break;
                 }
-                catch
+                catch when (i < max - 1)
                 {
                     await Task.Delay(1000);
                 }
             }
-
         }
 
         public static async Task<string> InitializeTestAsync(ITestOutputHelper testOutputHelper, string testName)
@@ -84,7 +102,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                 _isInitialized = true;
             }
 
-            return InitializeOutputDir(testName);
+            return await InitializeOutputDir(testName);
         }
 
         public static void ValidateFunctionsMetadata(string actualFilePath, string embeddedResourceName)
@@ -128,15 +146,13 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
         }
 
-        private static string InitializeOutputDir(string testName)
+        private static async Task<string> InitializeOutputDir(string testName)
         {
             string outputDir = Path.Combine(TestOutputDir, testName);
 
-            if (Directory.Exists(outputDir))
-            {
-                Directory.Delete(outputDir, true);
-                Directory.CreateDirectory(outputDir);
-            }
+            await DeleteDirectoryAsync(outputDir);
+
+            Directory.CreateDirectory(outputDir);
 
             return outputDir;
         }

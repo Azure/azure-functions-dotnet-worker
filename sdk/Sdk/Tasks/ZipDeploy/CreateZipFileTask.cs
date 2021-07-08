@@ -84,19 +84,35 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
 
         internal static void ModifyUnixFilePermissions(string zipFilePath, string entryRootPath, string entryName)
         {
-            var zipFile = new ZipFile(zipFilePath);
-            zipFile.EntryFactory = new EntryFactory();
-            zipFile.BeginUpdate();
+            using (var zipFile = new ZipFile(zipFilePath))
+            {
+                zipFile.EntryFactory = new EntryFactory();
+                zipFile.BeginUpdate();
 
-            try
-            {
-                // This will overwrite the existing entry.
-                zipFile.Add(Path.Combine(entryRootPath, entryName), entryName);
-            }
-            finally
-            {
-                zipFile.CommitUpdate();
-                zipFile.Close();
+                try
+                {
+                    string entryFullPath = Path.Combine(entryRootPath, entryName);
+
+                    // In Windows, we leave off the .exe, so need to adjust the entry name
+                    if (!File.Exists(entryFullPath))
+                    {
+                        entryFullPath += ".exe";
+                        entryName += ".exe";
+
+                        if (!File.Exists(entryFullPath))
+                        {
+                            return;
+                        }
+                    }
+
+                    // This will overwrite the existing entry.
+                    zipFile.Add(entryFullPath, entryName);
+                }
+                finally
+                {
+                    zipFile.CommitUpdate();
+                    zipFile.Close();
+                }
             }
         }
 

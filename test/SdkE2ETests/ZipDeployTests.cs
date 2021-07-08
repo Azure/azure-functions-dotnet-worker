@@ -21,9 +21,9 @@ namespace Microsoft.Azure.Functions.SdkTests
         [InlineData("linux-x64", true)]
         [InlineData("win-x64", false)]
         [InlineData("win-x64", true)]
-        public async Task Zip(string rid, bool selfContained)
+        public async Task CreateZipFileFromDirectory_SetsExecutableFlag_WhenSelfContained(string rid, bool selfContained)
         {
-            string testName = $"{nameof(Zip)}_{rid}_{selfContained}";
+            string testName = nameof(CreateZipFileFromDirectory_SetsExecutableFlag_WhenSelfContained);
             string directoryToZip = await TestUtility.InitializeTestAsync(_testOutputHelper, testName);
 
             string zipName = Path.Combine(Directory.GetParent(directoryToZip).FullName, $"{testName}.zip");
@@ -39,30 +39,27 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             CreateZipFileTask.CreateZipFileFromDirectory(directoryToZip, zipName);
 
-            using (var stream = new FileStream(zipName, FileMode.Open, FileAccess.Read))
+            using (var zip = new ZipFile(zipName))
             {
-                using (var zip = new ZipFile(stream))
+                Assert.Equal(Directory.GetFiles(directoryToZip, "*", SearchOption.AllDirectories).Length, zip.Count);
+
+                for (int i = 0; i < zip.Count; i++)
                 {
-                    Assert.Equal(Directory.GetFiles(directoryToZip, "*", SearchOption.AllDirectories).Length, zip.Count);
-
-                    for (int i = 0; i < zip.Count; i++)
+                    var entry = zip[i];
+                    if (selfContained &&
+                        (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
                     {
-                        var entry = zip[i];
-                        if (selfContained &&
-                            (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
-                        {
-                            Assert.Equal(3, entry.HostSystem);
-                            Assert.Equal(CreateZipFileTask.UnixExecutablePermissions, entry.ExternalFileAttributes);
-                        }
-                        else
-                        {
-                            Assert.Equal(0, entry.HostSystem);
-                            Assert.Equal(0, entry.ExternalFileAttributes);
-                        }
+                        Assert.Equal(3, entry.HostSystem);
+                        Assert.Equal(CreateZipFileTask.UnixExecutablePermissions, entry.ExternalFileAttributes);
                     }
-
-                    zip.Close();
+                    else
+                    {
+                        Assert.Equal(0, entry.HostSystem);
+                        Assert.Equal(0, entry.ExternalFileAttributes);
+                    }
                 }
+
+                zip.Close();
             }
         }
     }

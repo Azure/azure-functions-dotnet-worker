@@ -1,40 +1,44 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.DependencyInjection;
-using Xunit;
-using System.Linq;
-using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using System;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.EnvironmentVariables;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class WorkerHostBuilderExtensionsTests
     {
         [Theory]
-        [InlineData("/home/usr/", "\"/home/usr/\"")]
-        [InlineData(null, "--host")]
-        public void QuoteFirstArg(string firstArg, string expected)
+        [InlineData("--host", "127.0.0.1", "--port", "45040")]
+        [InlineData("/home/usr/a.dll", "--host", "127.0.0.1", "--port", "45040")]
+        [InlineData("/home/usr/a.dll", "/home/usr/a.dll", "--host", "127.0.0.1", "--port", "45040")]
+        public void QuoteFirstArg(params string[] args)
         {
-            var cmdLineList = new List<string> { "--host", "127.0.0.1" };
-
-            if (firstArg != null)
-            {
-                cmdLineList.Insert(0, firstArg);
-            }
-
-            var cmdLine = cmdLineList.ToArray();
-
             var configBuilder = new ConfigurationBuilder();
-            WorkerHostBuilderExtensions.RegisterCommandLine(configBuilder, cmdLine);
-
-            Assert.Equal(expected, cmdLine[0]);
+            WorkerHostBuilderExtensions.RegisterCommandLine(configBuilder, args);
 
             var config = configBuilder.Build();
+
             Assert.Equal("127.0.0.1", config["host"]);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        public void RegisterCommandLine_NoArgs(int count)
+        {
+            var args = Enumerable.Repeat<string>("test", count).ToArray();
+
+            var configBuilder = new ConfigurationBuilder();
+            WorkerHostBuilderExtensions.RegisterCommandLine(configBuilder, args);
+
+            // Ensures we don't throw an IndexOutOfRangeException; no assert necessary.
+            configBuilder.Build();
         }
 
         [Fact]

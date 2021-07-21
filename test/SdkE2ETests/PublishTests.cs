@@ -36,23 +36,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         private async Task RunPublishTest(string outputDir, string additionalParams = null)
         {
-            // Name of the csproj
-            string projectNameToTest = "FunctionApp";
-            string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, projectNameToTest);
+            // Name of the csproj            
+            string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
 
-            // Restore
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest}.csproj --source {TestUtility.LocalPackages}";
-            int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
-
-            // Publish
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
-            dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
-            exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
+            await TestUtility.RestoreAndPublishProjectAsync(projectFileDirectory, outputDir, additionalParams, _testOutputHelper);
 
             // Make sure files are in /.azurefunctions
             string azureFunctionsDir = Path.Combine(outputDir, ".azurefunctions");

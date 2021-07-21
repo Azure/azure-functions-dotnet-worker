@@ -86,6 +86,27 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public async Task WriteAsJsonAsync_StatusCodeOverload_AppliesParameters()
+        {
+            FunctionContext context = CreateContext(new NewtonsoftJsonObjectSerializer());
+            var response = CreateResponse(context);
+
+            var poco = new ResponsePoco
+            {
+                Name = "Test",
+                SomeInt = 42
+            };
+
+            await HttpResponseDataExtensions.WriteAsJsonAsync(response, poco, HttpStatusCode.BadRequest);
+
+            string result = ReadResponseBody(response);
+            
+            Assert.Equal("application/json; charset=utf-8", response.Headers.GetValues("content-type").FirstOrDefault());
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal("{\"jsonnetname\":\"Test\",\"jsonnetint\":42}", result);
+        }
+
+        [Fact]
         public async Task WriteAsJsonAsync_SerializerAndContentTypeOverload_AppliesParameters()
         {
             FunctionContext context = CreateContext();

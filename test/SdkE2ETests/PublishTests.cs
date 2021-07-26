@@ -36,23 +36,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         private async Task RunPublishTest(string outputDir, string additionalParams = null)
         {
-            // Name of the csproj
-            string projectNameToTest = "FunctionApp";
-            string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, projectNameToTest);
+            // Name of the csproj            
+            string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
 
-            // Restore
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest}.csproj --source {TestUtility.LocalPackages}";
-            int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
-
-            // Publish
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
-            dotnetArgs = $"publish {projectNameToTest}.csproj --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
-            exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: _testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
-            _testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
+            await TestUtility.RestoreAndPublishProjectAsync(projectFileDirectory, outputDir, additionalParams, _testOutputHelper);
 
             // Make sure files are in /.azurefunctions
             string azureFunctionsDir = Path.Combine(outputDir, ".azurefunctions");
@@ -77,9 +64,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                     new Extension("Startup",
                         "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"),
-                    new Extension("AzureStorage",
-                        "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage, Version=4.0.4.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
-                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.dll")
+                    new Extension("AzureStorageBlobs",
+                        "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageBlobsWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Blobs, Version=5.0.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Blobs.dll"),
+                    new Extension("AzureStorageQueues",
+                        "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageQueuesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Queues, Version=5.0.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll")
                 }
             });
             Assert.True(JToken.DeepEquals(extensionsJsonContents, expected), $"Actual: {extensionsJsonContents}{Environment.NewLine}Expected: {expected}");

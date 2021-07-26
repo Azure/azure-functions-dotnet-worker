@@ -5,7 +5,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
     public static class EventHubsStringFunctions
     {
-        [Function(nameof(EventHubsStringTrigger))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(EventHubsStringTrigger))]
         [EventHubOutput("test-output-string-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
         public static string EventHubsStringTrigger([EventHubTrigger("test-input-string-dotnet-isolated", Connection = "EventHubConnectionAppSetting")] string[] input,
             FunctionContext context)
@@ -15,7 +16,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input[0];
         }
 
-        [Function(nameof(EventHubsVerifyOutputString))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(EventHubsVerifyOutputString))]
         [QueueOutput("test-eventhub-output-string-dotnet-isolated")]
         public static string EventHubsVerifyOutputString([EventHubTrigger("test-output-string-dotnet-isolated", Connection = "EventHubConnectionAppSetting")] string[] input,
             FunctionContext context)
@@ -25,7 +27,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input[0];
         }
 
-        [Function(nameof(Test))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(Test))]
         [EventHubOutput("test-input-string-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
         public static string Test(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,

@@ -20,7 +20,7 @@ namespace SampleApp
             logger.LogInformation($"Input Item = {myBlob}");
 
             // Blob Output
-            return "queue message";
+            return "blob-output content";
         }
     }
 }

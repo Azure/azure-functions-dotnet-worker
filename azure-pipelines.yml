@@ -55,7 +55,7 @@ jobs:
     inputs:
       ConnectedServiceName: 'ESRP Service'
       FolderPath: 'sdk\sdk\bin\Release'
-      Pattern: Microsoft.Azure.Functions.Worker.Sdk.dll
+      Pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
       signConfigType: inlineSignParams
       inlineOperation: |
         [
@@ -281,7 +281,7 @@ jobs:
         arguments: '-c Release'
         projects: 'DotNetWorker.sln'
 
-    - pwsh: ./setup-e2e-tests.ps1 -SkipEmulators
+    - pwsh: ./setup-e2e-tests.ps1 -SkipCosmosDBEmulator
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)

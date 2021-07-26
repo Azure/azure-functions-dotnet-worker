@@ -94,7 +94,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                         _logger.LogInformation($"  Current state: process starting");
                         return false;
                     }
-                });
+                }, userMessageCallback: ()=> "The host startup process failed." );
             }
         }
 

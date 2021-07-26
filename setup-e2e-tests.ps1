@@ -1,7 +1,10 @@
 param(    
     [Parameter(Mandatory=$false)]
     [Switch]
-    $SkipEmulators,
+    $SkipStorageEmulator,
+    [Parameter(Mandatory=$false)]
+    [Switch]
+    $SkipCosmosDBEmulator,
     [Parameter(Mandatory=$false)]
     [Switch]
     $SkipCoreTools
@@ -94,15 +97,15 @@ if (Test-Path $output)
 
 .\tools\devpack.ps1 -E2E -AdditionalPackArgs @("-c","Release") -SkipBuildOnPack
 
-if (!$SkipEmulators)
-{
-  .\tools\start-emulators.ps1
-}
-else 
+if ($SkipStorageEmulator -And $SkipCosmosDBEmulator)
 {
   Write-Host
   Write-Host "---Skipping emulator startup---"
   Write-Host
+}
+else 
+{
+  .\tools\start-emulators.ps1 -SkipStorageEmulator:$SkipStorageEmulator -SkipCosmosDBEmulator:$SkipCosmosDBEmulator
 }
 
 StopOnFailedExecution

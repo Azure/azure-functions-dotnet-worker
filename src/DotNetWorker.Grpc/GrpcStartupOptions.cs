@@ -14,6 +14,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         public string? RequestId { get; set; }
 
-        public int MaxMessageLength { get; set; }
+        public int GrpcMaxMessageLength { get; set; }
     }
 }

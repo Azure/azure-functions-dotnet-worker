@@ -7,7 +7,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
     public static class EventHubsEnumerableFunctions
     {
-        [Function(nameof(EventHubsEnumerableTrigger))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(EventHubsEnumerableTrigger))]
         [EventHubOutput("test-output-string-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
         public static TestData EventHubsEnumerableTrigger([EventHubTrigger("test-input-enumerable-dotnet-isolated", Connection = "EventHubConnectionAppSetting")] List<TestData> input,
             FunctionContext context)
@@ -18,7 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input[0];
         }
 
-        [Function(nameof(EventHubsVerifyOutputEnumerable))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(EventHubsVerifyOutputEnumerable))]
         [QueueOutput("test-eventhub-output-string-dotnet-isolated")]
         public static string EventHubsVerifyOutputEnumerable([EventHubTrigger("test-output-enumerable-dotnet-isolated", Connection = "EventHubConnectionAppSetting")] List<string> input,
             FunctionContext context)
@@ -28,7 +30,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             return input[0];
         }
 
-        [Function(nameof(TestEnumerable))]
+        // TODO: We need to enable Event Hubs tests.
+        // [Function(nameof(TestEnumerable))]
         [EventHubOutput("test-input-enumerable-dotnet-isolated", Connection = "EventHubConnectionAppSetting")]
         public static TestData TestEnumerable(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,

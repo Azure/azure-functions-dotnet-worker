@@ -51,12 +51,20 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<FunctionRpcClient>(p =>
             {
                 IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>()
-                    ?? throw new InvalidOperationException("gRPC Serivces are not correctly registered.");
+                    ?? throw new InvalidOperationException("gRPC Services are not correctly registered.");
 
                 GrpcWorkerStartupOptions arguments = argumentsOptions.Value;
 
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress($"http://{arguments.Host}:{arguments.Port}", new GrpcChannelOptions()
+                string uriString = $"http://{arguments.Host}:{arguments.Port}";
+                if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
                 {
+                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
+                }
+
+                GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
+                {
+                    MaxReceiveMessageSize = arguments.GrpcMaxMessageLength,
+                    MaxSendMessageSize = arguments.GrpcMaxMessageLength,
                     Credentials = ChannelCredentials.Insecure
                 });
 

@@ -6,7 +6,9 @@
     <Description>Azure Event Hubs extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.2.0</VersionPrefix>
+    <VersionPrefix>5.0.0</VersionPrefix>
+    <VersionSuffix>-beta.6</VersionSuffix>
+
   </PropertyGroup>
 
   <Import Project="..\..\build\Extensions.props" />

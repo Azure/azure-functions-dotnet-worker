@@ -82,15 +82,37 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             }
         }
 
+        public static async Task RestoreAndPublishProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)
+        {
+            // Name of the csproj
+            string projectNameToTest = Path.GetFileName(fullPathToProjFile);
+            string projectFileDirectory = Path.GetDirectoryName(fullPathToProjFile);
+
+            // Restore
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
+            string dotnetArgs = $"restore {projectNameToTest} --source {TestUtility.LocalPackages}";
+            int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            Assert.True(exitCode.HasValue && exitCode.Value == 0);
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
+
+            // Publish
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
+            dotnetArgs = $"publish {projectNameToTest} --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
+            exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            Assert.True(exitCode.HasValue && exitCode.Value == 0);
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
+        }
+
         private static string InitializeOutputDir(string testName)
         {
             string outputDir = Path.Combine(TestOutputDir, testName);
 
             if (Directory.Exists(outputDir))
             {
-                Directory.Delete(outputDir, true);
-                Directory.CreateDirectory(outputDir);
+                Directory.Delete(outputDir, recursive: true);
             }
+
+            Directory.CreateDirectory(outputDir);
 
             return outputDir;
         }

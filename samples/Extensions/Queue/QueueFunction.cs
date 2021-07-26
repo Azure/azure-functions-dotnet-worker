@@ -13,6 +13,7 @@ namespace SampleApp
         [Function("QueueFunction")]
         [QueueOutput("output-queue")]
         public static string[] Run([QueueTrigger("input-queue")] Book myQueueItem,
+
             FunctionContext context)
         //</docsnippet_queue_trigger>
         {

@@ -6,7 +6,7 @@
     <Description>Warmup extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.0.1</VersionPrefix>
+    <VersionPrefix>4.0.2</VersionPrefix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Extensions.props" />

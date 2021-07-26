@@ -126,6 +126,11 @@ namespace Microsoft.Extensions.Hosting
         public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
         {
             builder
+                .ConfigureHostConfiguration(config =>
+                {
+                    // Add AZURE_FUNCTIONS_ prefixed environment variables
+                    config.AddEnvironmentVariables("AZURE_FUNCTIONS_");
+                })
                 .ConfigureAppConfiguration(configBuilder =>
                 {
                     var cmdLine = Environment.GetCommandLineArgs();
@@ -149,10 +154,24 @@ namespace Microsoft.Extensions.Hosting
 
         internal static void RegisterCommandLine(IConfigurationBuilder builder, string[] cmdLine)
         {
-            if (cmdLine.Length > 0 &&
-                !cmdLine[0].StartsWith("--"))
+            // If either of the first two arguments do not begin with '--', wrap them in
+            // quotes. On Linux, either of these first two arguments can be the path to the
+            // assembly, which begins with a '/' and is interpreted as a switch.
+            for (int i = 0; i <= 1; i++)
             {
-                cmdLine[0] = $"\"{cmdLine[0]}\"";
+                if (cmdLine.Length <= i)
+                {
+                    break;
+                }
+
+                string arg = cmdLine[i];
+
+                if (arg.StartsWith("--"))
+                {
+                    break;
+                }
+
+                cmdLine[i] = $"\"{arg}\"";
             }
 
             builder.AddCommandLine(cmdLine);

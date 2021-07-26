@@ -1,63 +1,102 @@
 param(
     [Parameter(Mandatory=$false)]
     [Switch]
+    $SkipStorageEmulator,
+    [Parameter(Mandatory=$false)]
+    [Switch]
+    $SkipCosmosDBEmulator,
+    [Parameter(Mandatory=$false)]
+    [Switch]
     $NoWait
 )
 
-Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
-$storageEmulatorExe = "${Env:ProgramFiles(x86)}\Microsoft SDKs\Azure\Storage Emulator\AzureStorageEmulator.exe" 
+Write-Host "Skip CosmosDB Emulator: $SkipCosmosDBEmulator"
+Write-Host "Skip Storage Emulator: $SkipStorageEmulator"
+
+if (!$SkipCosmosDBEmulator)
+{
+    Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+}
 
 $startedCosmos = $false
 $startedStorage = $false
 
+if (!$IsWindows -and !$IsLinux -and !$IsMacOs)
+{
+  # For pre-PS6
+  Write-Host "Could not resolve OS. Assuming Windows."
+  $IsWindows = $true
+}
+
 function IsStorageEmulatorRunning()
 {
-    $command = & $storageEmulatorExe "status"
-    foreach ($line in $command)
+    try
     {
-        if ($line.StartsWith("IsRunning: "))
-        {
-            if ($line.Replace("IsRunning: ", "") -eq "True")
-            {                
-                return $true
-            }
-        }      
+        $response = Invoke-WebRequest -Uri "http://127.0.0.1:10000/"
+        $StatusCode = $Response.StatusCode
     }
+    catch
+    {
+        $StatusCode = $_.Exception.Response.StatusCode.value__
+    }
+
+    if ($StatusCode -eq 400)
+    {
+        return $true
+    }
+
     return $false
 }
 
-Write-Host ""
-Write-Host "---Starting CosmosDB emulator---"
-$cosmosStatus = Get-CosmosDbEmulatorStatus
-
-if ($cosmosStatus -ne "Running")
+if (!$SkipCosmosDBEmulator)
 {
-    Write-Host "CosmosDB emulator is not running. Starting emulator."
-    Start-CosmosDbEmulator -NoWait
-    $startedCosmos = $true
-}
-else
-{    
-    Write-Host "CosmosDB emulator is already running."
+    Write-Host ""
+    Write-Host "---Starting CosmosDB emulator---"
+    $cosmosStatus = Get-CosmosDbEmulatorStatus
+
+    if ($cosmosStatus -ne "Running")
+    {
+        Write-Host "CosmosDB emulator is not running. Starting emulator."
+        Start-CosmosDbEmulator -NoWait
+        $startedCosmos = $true
+    }
+    else
+    {    
+        Write-Host "CosmosDB emulator is already running."
+    }
 }
 
-Write-Host "------"
-Write-Host ""
-Write-Host "---Starting Storage emulator---"
-$storageEmulatorRunning = IsStorageEmulatorRunning
+if (!$SkipStorageEmulator)
+{
+    Write-Host "------"
+    Write-Host ""
+    Write-Host "---Starting Storage emulator---"
+    $storageEmulatorRunning = IsStorageEmulatorRunning
+ 
+    if ($storageEmulatorRunning -eq $false)
+    {
+        if ($IsWindows)
+        {
+            npm install -g azurite
+            Start-Process azurite.cmd -ArgumentList "--silent"
+        }
+        else
+        {
+            sudo npm install -g azurite
+            sudo mkdir azurite
+            sudo azurite --silent --location azurite --debug azurite\debug.log &
+        }
 
-if ($storageEmulatorRunning -eq $false)
-{
-    Write-Host "Storage emulator is not running. Starting emulator."    
-    Start-Process -FilePath $storageEmulatorExe -ArgumentList "start"
-    $startedStorage = $true
+        $startedStorage = $true
+    }
+    else
+    {
+        Write-Host "Storage emulator is already running."
+    }
+
+    Write-Host "------"
+    Write-Host 
 }
-else
-{
-    Write-Host "Storage emulator is already running."
-}
-Write-Host "------"
-Write-Host 
 
 if ($NoWait -eq $true)
 {
@@ -66,7 +105,7 @@ if ($NoWait -eq $true)
     exit 0
 }
 
-if ($startedCosmos -eq $true)
+if (!$SkipCosmosDBEmulator -and $startedCosmos -eq $true)
 {
     Write-Host "---Waiting for CosmosDB emulator to be running---"
     while ($cosmosStatus -ne "Running")
@@ -80,7 +119,7 @@ if ($startedCosmos -eq $true)
     Write-Host
 }
 
-if ($startedStorage -eq $true)
+if (!$SkipStorageEmulator -and $startedStorage -eq $true)
 {
     Write-Host "---Waiting for Storage emulator to be running---"
     $storageEmulatorRunning = IsStorageEmulatorRunning

@@ -11,16 +11,20 @@ namespace SampleApp
         //<docsnippet_queue_output_binding>
         //<docsnippet_queue_trigger>
         [Function("QueueFunction")]
-        [QueueOutput("functionstesting2")]
-        public static string Run([QueueTrigger("functionstesting2")] Book myQueueItem,
+        [QueueOutput("output-queue")]
+        public static string[] Run([QueueTrigger("input-queue")] Book myQueueItem,
             FunctionContext context)
         //</docsnippet_queue_trigger>
         {
+            // Use a string array to return more than one message.
+            string[] messages = {
+                $"Book name = {myQueueItem.Name}",
+                $"Book ID = {myQueueItem.Id}"};
             var logger = context.GetLogger("QueueFunction");
-            logger.LogInformation($"Book name = {myQueueItem.Name}");
+            logger.LogInformation($"{messages[0]},{messages[1]}");
 
-            // Queue Output
-            return "queue message";
+            // Queue Output messages
+            return messages;
         }
         //</docsnippet_queue_output_binding>
     }

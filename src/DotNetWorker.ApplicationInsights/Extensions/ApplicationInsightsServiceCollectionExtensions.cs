@@ -166,7 +166,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ITelemetryModule, AppServicesHeartbeatTelemetryModule>();
 
             services.AddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
-            services.AddSingleton<TelemetryConfiguration>(provider =>
+            services.AddSingleton(provider =>
             {
                 var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
 
@@ -188,9 +188,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // Active configuration is used to report AppInsights heartbeats
                 // role environment telemetry initializer is needed to correlate heartbeats to particular host
 
-                // TODO: Migrate away from TelemetryConfiguration.Active per 
-                // https://github.com/microsoft/ApplicationInsights-dotnet/issues/1152 
-                var activeConfig = TelemetryConfiguration.Active;
+                var activeConfig = TelemetryConfiguration.CreateDefault();
                 if (!string.IsNullOrEmpty(options?.InstrumentationKey) &&
                     string.IsNullOrEmpty(activeConfig.InstrumentationKey))
                 {
@@ -226,7 +224,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 return config;
             });
 
-            services.AddSingleton<TelemetryClient>(provider =>
+            services.AddSingleton(provider =>
             {
                 var configuration = provider.GetService<TelemetryConfiguration>();
                 var client = new TelemetryClient(configuration);

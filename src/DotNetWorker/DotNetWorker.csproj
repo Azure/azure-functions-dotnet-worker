@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
     <ProjectReference Include="..\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
   </ItemGroup>

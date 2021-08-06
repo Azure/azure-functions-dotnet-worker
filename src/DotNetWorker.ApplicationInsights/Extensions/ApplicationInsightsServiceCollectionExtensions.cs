@@ -56,8 +56,8 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ITelemetryInitializer, HttpDependenciesParsingTelemetryInitializer>();
             services.AddSingleton<ITelemetryInitializer>(provider =>
             {
-                ApplicationInsightsLoggerOptions options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>().Value;
-                if (options.HttpAutoCollectionOptions.EnableHttpTriggerExtendedInfoCollection)
+                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
+                if (options?.HttpAutoCollectionOptions.EnableHttpTriggerExtendedInfoCollection == true)
                 {
                     var httpContextAccessor = provider.GetService<IHttpContextAccessor>();
                     if (httpContextAccessor != null)
@@ -77,10 +77,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<ITelemetryModule>(provider =>
             {
-                ApplicationInsightsLoggerOptions options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>().Value;
-                if (options.EnableLiveMetrics)
+                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
+                if (options?.EnableLiveMetrics == true)
                 {
-                    return provider.GetService<QuickPulseTelemetryModule>();
+                    var qpTelemetryModule = provider.GetService<QuickPulseTelemetryModule>();
+                    if (qpTelemetryModule != null)
+                    {
+                        return qpTelemetryModule;
+                    }
                 }
 
                 return NullTelemetryModule.Instance;
@@ -88,8 +92,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<ITelemetryModule>(provider =>
             {
-                ApplicationInsightsLoggerOptions options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>().Value;
-                if (options.EnablePerformanceCountersCollection)
+                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
+                if (options?.EnablePerformanceCountersCollection == true)
                 {
                     return new PerformanceCollectorModule
                     {
@@ -105,12 +109,11 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<ITelemetryModule>(provider =>
             {
-                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>().Value;
+                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
 
-                DependencyTrackingTelemetryModule dependencyCollector = null;
-                if (options.EnableDependencyTracking)
+                if (options?.EnableDependencyTracking == true)
                 {
-                    dependencyCollector = new DependencyTrackingTelemetryModule();
+                    var dependencyCollector = new DependencyTrackingTelemetryModule();
                     var excludedDomains = dependencyCollector.ExcludeComponentCorrelationHttpHeadersOnDomains;
                     excludedDomains.Add("core.windows.net");
                     excludedDomains.Add("core.chinacloudapi.cn");
@@ -142,8 +145,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<ITelemetryModule>(provider =>
             {
-                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>().Value;
-                if (options.HttpAutoCollectionOptions.EnableHttpTriggerExtendedInfoCollection)
+                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
+                if (options?.HttpAutoCollectionOptions.EnableHttpTriggerExtendedInfoCollection == true)
                 {
                     var appIdProvider = provider.GetService<IApplicationIdProvider>();
 
@@ -165,29 +168,30 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ITelemetryChannel, ServerTelemetryChannel>();
             services.AddSingleton<TelemetryConfiguration>(provider =>
             {
-                ApplicationInsightsLoggerOptions options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>().Value;
+                var options = provider.GetService<IOptions<ApplicationInsightsLoggerOptions>>()?.Value;
 
-                Activity.DefaultIdFormat = options.HttpAutoCollectionOptions.EnableW3CDistributedTracing
+                Activity.DefaultIdFormat = options?.HttpAutoCollectionOptions.EnableW3CDistributedTracing == true
                     ? ActivityIdFormat.W3C
                     : ActivityIdFormat.Hierarchical;
                 Activity.ForceDefaultIdFormat = true;
 
-                LoggerFilterOptions filterOptions = CreateFilterOptions(provider.GetService<IOptions<LoggerFilterOptions>>().Value);
+                var filterOptions = CreateFilterOptions(provider.GetService<IOptions<LoggerFilterOptions>>()?.Value);
+                var channel = provider.GetService<ITelemetryChannel>();
+                var config = TelemetryConfiguration.CreateDefault();
 
-                ITelemetryChannel channel = provider.GetService<ITelemetryChannel>();
-                TelemetryConfiguration config = TelemetryConfiguration.CreateDefault();
-
-                IApplicationIdProvider appIdProvider = provider.GetService<IApplicationIdProvider>();
-                ISdkVersionProvider sdkVersionProvider = provider.GetService<ISdkVersionProvider>();
-                IRoleInstanceProvider roleInstanceProvider = provider.GetService<IRoleInstanceProvider>();
+                var appIdProvider = provider.GetService<IApplicationIdProvider>();
+                var sdkVersionProvider = provider.GetService<ISdkVersionProvider>();
+                var roleInstanceProvider = provider.GetService<IRoleInstanceProvider>();
 
                 // Because of https://github.com/Microsoft/ApplicationInsights-dotnet-server/issues/943
                 // we have to touch (and create) Active configuration before initializing telemetry modules
                 // Active configuration is used to report AppInsights heartbeats
                 // role environment telemetry initializer is needed to correlate heartbeats to particular host
 
+                // TODO: Migrate away from TelemetryConfiguration.Active per 
+                // https://github.com/microsoft/ApplicationInsights-dotnet/issues/1152 
                 var activeConfig = TelemetryConfiguration.Active;
-                if (!string.IsNullOrEmpty(options.InstrumentationKey) &&
+                if (!string.IsNullOrEmpty(options?.InstrumentationKey) &&
                     string.IsNullOrEmpty(activeConfig.InstrumentationKey))
                 {
                     activeConfig.InstrumentationKey = options.InstrumentationKey;
@@ -196,7 +200,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 // Set ConnectionString second because it takes precedence and
                 // we don't want InstrumentationKey to overwrite the value
                 // ConnectionString sets
-                if (!string.IsNullOrEmpty(options.ConnectionString) &&
+                if (!string.IsNullOrEmpty(options?.ConnectionString) &&
                     string.IsNullOrEmpty(activeConfig.ConnectionString))
                 {
                     activeConfig.ConnectionString = options.ConnectionString;
@@ -224,10 +228,10 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddSingleton<TelemetryClient>(provider =>
             {
-                TelemetryConfiguration configuration = provider.GetService<TelemetryConfiguration>();
-                TelemetryClient client = new TelemetryClient(configuration);
+                var configuration = provider.GetService<TelemetryConfiguration>();
+                var client = new TelemetryClient(configuration);
 
-                ISdkVersionProvider versionProvider = provider.GetService<ISdkVersionProvider>();
+                var versionProvider = provider.GetService<ISdkVersionProvider>();
                 client.Context.GetInternalContext().SdkVersion = versionProvider?.GetSdkVersion();
 
                 return client;
@@ -238,29 +242,31 @@ namespace Microsoft.Extensions.DependencyInjection
             return services;
         }
 
-        internal static LoggerFilterOptions CreateFilterOptions(LoggerFilterOptions registeredOptions)
+        internal static LoggerFilterOptions CreateFilterOptions(LoggerFilterOptions? registeredOptions)
         {
+            var customFilterOptions = new LoggerFilterOptions();
+
             // We want our own copy of the rules, excluding the 'allow-all' rule that we added for this provider.
-            LoggerFilterOptions customFilterOptions = new LoggerFilterOptions
+            if (registeredOptions != null)
             {
-                MinLevel = registeredOptions.MinLevel
-            };
+                customFilterOptions.MinLevel = registeredOptions.MinLevel;
 
-            ApplicationInsightsLoggerFilterRule allowAllRule = registeredOptions.Rules.OfType<ApplicationInsightsLoggerFilterRule>().Single();
+                var allowAllRule = registeredOptions.Rules.OfType<ApplicationInsightsLoggerFilterRule>().Single();
 
-            // Copy all existing rules
-            foreach (LoggerFilterRule rule in registeredOptions.Rules)
-            {
-                if (rule != allowAllRule)
+                // Copy all existing rules
+                foreach (var rule in registeredOptions.Rules)
+                {
+                    if (rule != allowAllRule)
+                    {
+                        customFilterOptions.Rules.Add(rule);
+                    }
+                }
+
+                // Copy 'hidden' rules
+                foreach (var rule in allowAllRule.ChildRules)
                 {
                     customFilterOptions.Rules.Add(rule);
                 }
-            }
-
-            // Copy 'hidden' rules
-            foreach (LoggerFilterRule rule in allowAllRule.ChildRules)
-            {
-                customFilterOptions.Rules.Add(rule);
             }
 
             return customFilterOptions;
@@ -268,27 +274,27 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static void SetupTelemetryConfiguration(
             TelemetryConfiguration configuration,
-            ApplicationInsightsLoggerOptions options,
-            ITelemetryChannel channel,
+            ApplicationInsightsLoggerOptions? options,
+            ITelemetryChannel? channel,
             IEnumerable<ITelemetryInitializer> telemetryInitializers,
             IEnumerable<ITelemetryModule> telemetryModules,
-            IApplicationIdProvider applicationIdProvider,
+            IApplicationIdProvider? applicationIdProvider,
             LoggerFilterOptions filterOptions,
-            IRoleInstanceProvider roleInstanceProvider,
-            QuickPulseInitializationScheduler delayer)
+            IRoleInstanceProvider? roleInstanceProvider,
+            QuickPulseInitializationScheduler? delayer)
         {
-            if (options.ConnectionString != null)
+            if (options?.ConnectionString != null)
             {
                 configuration.ConnectionString = options.ConnectionString;
             }
-            else if (options.InstrumentationKey != null)
+            else if (options?.InstrumentationKey != null)
             {
                 configuration.InstrumentationKey = options.InstrumentationKey;
             }
 
             configuration.TelemetryChannel = channel;
 
-            foreach (ITelemetryInitializer initializer in telemetryInitializers)
+            foreach (var initializer in telemetryInitializers)
             {
                 if (!(initializer is NullTelemetryInitializer))
                 {
@@ -298,13 +304,13 @@ namespace Microsoft.Extensions.DependencyInjection
 
             (channel as ServerTelemetryChannel)?.Initialize(configuration);
 
-            QuickPulseTelemetryModule quickPulseModule = null;
-            foreach (ITelemetryModule module in telemetryModules)
+            QuickPulseTelemetryModule? quickPulseModule = null;
+            foreach (var module in telemetryModules)
             {
                 if (module is QuickPulseTelemetryModule telemetryModule)
                 {
                     quickPulseModule = telemetryModule;
-                    if (options.LiveMetricsAuthenticationApiKey != null)
+                    if (options?.LiveMetricsAuthenticationApiKey != null)
                     {
                         quickPulseModule.AuthenticationApiKey = options.LiveMetricsAuthenticationApiKey;
                     }
@@ -312,7 +318,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     quickPulseModule.ServerId = roleInstanceProvider?.GetRoleInstanceName();
 
                     // QuickPulse can have a startup performance hit, so delay its initialization.
-                    delayer.ScheduleInitialization(() => module.Initialize(configuration), options.LiveMetricsInitializationDelay);
+                    delayer?.ScheduleInitialization(() => module.Initialize(configuration), options?.LiveMetricsInitializationDelay);
                 }
                 else if (module != null)
                 {
@@ -320,7 +326,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
             }
 
-            QuickPulseTelemetryProcessor quickPulseProcessor = null;
+            QuickPulseTelemetryProcessor? quickPulseProcessor = null;
             configuration.TelemetryProcessorChainBuilder
                 .Use((next) => new OperationFilteringTelemetryProcessor(next))
                 .Use((next) =>
@@ -330,7 +336,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 })
                 .Use((next) => new FilteringTelemetryProcessor(filterOptions, next));
 
-            if (options.SamplingSettings != null)
+            if (options?.SamplingSettings != null)
             {
                 configuration.TelemetryProcessorChainBuilder.Use((next) =>
                 {
@@ -347,7 +353,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 });
             }
 
-            if (options.SnapshotConfiguration != null)
+            if (options?.SnapshotConfiguration != null)
             {
                 configuration.TelemetryProcessorChainBuilder.UseSnapshotCollector(options.SnapshotConfiguration);
             }
@@ -355,7 +361,7 @@ namespace Microsoft.Extensions.DependencyInjection
             configuration.TelemetryProcessorChainBuilder.Build();
             quickPulseModule?.RegisterTelemetryProcessor(quickPulseProcessor);
 
-            foreach (ITelemetryProcessor processor in configuration.TelemetryProcessors)
+            foreach (var processor in configuration.TelemetryProcessors)
             {
                 if (processor is ITelemetryModule module)
                 {

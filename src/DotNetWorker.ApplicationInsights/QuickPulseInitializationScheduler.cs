@@ -11,13 +11,13 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
     // so perform this initialization in a service that can handle cancellation.
     internal class QuickPulseInitializationScheduler : IDisposable
     {
-        private readonly CancellationTokenSource _cts = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cts = new();
+        private readonly object _lock = new();
         private bool _disposed = false;
-        private object _lock = new object();
 
-        public void ScheduleInitialization(Action initialization, TimeSpan delay)
+        public void ScheduleInitialization(Action initialization, TimeSpan? delay)
         {
-            Task.Delay(delay, _cts.Token)
+            Task.Delay(delay.GetValueOrDefault(TimeSpan.Zero), _cts.Token)
                 .ContinueWith(_ =>
                 {
                     lock (_lock)

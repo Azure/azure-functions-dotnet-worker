@@ -16,11 +16,11 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 {
     internal class WebJobsTelemetryInitializer : ITelemetryInitializer
     {
-        private static readonly string _currentProcessId = Process.GetCurrentProcess().Id.ToString();
+        private static readonly string _currentProcessId = Environment.ProcessId.ToString();
         private readonly string _sdkVersion;
         private readonly string _roleInstanceName;
 
-        public WebJobsTelemetryInitializer(ISdkVersionProvider versionProvider, IRoleInstanceProvider roleInstanceProvider)
+        public WebJobsTelemetryInitializer(ISdkVersionProvider? versionProvider, IRoleInstanceProvider? roleInstanceProvider)
         {
             if (versionProvider == null)
             {
@@ -95,8 +95,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             }
 
             // we may track traces/dependencies after function scope ends - we don't want to update those
-            RequestTelemetry? request = telemetry as RequestTelemetry;
-            if (request != null)
+            if (telemetry is RequestTelemetry request)
             {
                 UpdateRequestProperties(request);
 

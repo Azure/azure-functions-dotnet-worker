@@ -41,6 +41,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // gRPC support
             services.AddGrpc();
 
+            // ApplicationInsights logging
+            services.AddApplicationInsights();
+
             return builder;
         }
     }

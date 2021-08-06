@@ -26,7 +26,9 @@ namespace Microsoft.Azure.Functions.Logging
         {
             get
             {
+#pragma warning disable CS8603 // Possible null reference return.
                 return _value.Value;
+#pragma warning restore CS8603 // Possible null reference return.
             }
 
             set

@@ -36,7 +36,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddApplicationInsights();
             if (configure != null)
             {
-                services.Configure<ApplicationInsightsLoggerOptions>(configure);
+                services.Configure(configure);
             }
             return services;
         }

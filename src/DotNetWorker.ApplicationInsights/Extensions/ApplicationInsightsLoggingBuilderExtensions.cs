@@ -18,16 +18,16 @@ namespace Microsoft.Extensions.Logging
         /// <summary>
         /// Registers Application Insights and <see cref="ApplicationInsightsLoggerProvider"/> with an <see cref="ILoggingBuilder"/>.
         /// </summary>        
-        public static ILoggingBuilder AddApplicationInsightsWebJobs(
+        public static ILoggingBuilder AddApplicationInsightsFunctions(
             this ILoggingBuilder builder)
         {
-            return builder.AddApplicationInsightsWebJobs(null);
+            return builder.AddApplicationInsightsFunctions(null);
         }
 
         /// <summary>
         /// Registers Application Insights and <see cref="ApplicationInsightsLoggerProvider"/> with an <see cref="ILoggingBuilder"/>.
         /// </summary>        
-        public static ILoggingBuilder AddApplicationInsightsWebJobs(
+        public static ILoggingBuilder AddApplicationInsightsFunctions(
             this ILoggingBuilder builder,
             Action<ApplicationInsightsLoggerOptions>? configure)
         {

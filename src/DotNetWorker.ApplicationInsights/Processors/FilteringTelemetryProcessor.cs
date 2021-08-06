@@ -12,12 +12,11 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 {
     internal class FilteringTelemetryProcessor : ITelemetryProcessor
     {
-        private static readonly LoggerRuleSelector RuleSelector = new LoggerRuleSelector();
         private static readonly Type ProviderType = typeof(ApplicationInsightsLoggerProvider);
 
-        private readonly ConcurrentDictionary<string, LoggerFilterRule> _ruleMap = new ConcurrentDictionary<string, LoggerFilterRule>();
+        private readonly ConcurrentDictionary<string, LoggerFilterRule> _ruleMap = new();
         private readonly LoggerFilterOptions _filterOptions;
-        private ITelemetryProcessor _next;
+        private readonly ITelemetryProcessor _next;
 
         public FilteringTelemetryProcessor(LoggerFilterOptions filterOptions, ITelemetryProcessor next)
         {
@@ -67,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 
         private LoggerFilterRule SelectRule(string categoryName)
         {
-            RuleSelector.Select(_filterOptions, ProviderType, categoryName,
+            LoggerRuleSelector.Select(_filterOptions, ProviderType, categoryName,
                 out LogLevel? minLevel, out Func<string, string, LogLevel, bool>? filter);
 
             return new LoggerFilterRule(ProviderType.FullName, categoryName, minLevel, filter);

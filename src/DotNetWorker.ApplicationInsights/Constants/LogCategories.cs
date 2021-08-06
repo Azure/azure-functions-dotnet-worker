@@ -10,8 +10,8 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
     /// </summary>
     public static class LogCategories
     {
-        private static readonly Regex _userFunctionRegex = new Regex(@"^Function\.[^\s\.]+\.User$");
-        private static readonly Regex _functionRegex = new Regex(@"^Function\.[^\s\.]+$");
+        private static readonly Regex _userFunctionRegex = new(@"^Function\.[^\s\.]+\.User$");
+        private static readonly Regex _functionRegex = new(@"^Function\.[^\s\.]+$");
 
         public const string HostGeneral = "Host.General";
 

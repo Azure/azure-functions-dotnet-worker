@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         private readonly ApplicationInsightsLoggerOptions _loggerOptions;
         private readonly string _categoryName;
         private readonly bool _isUserFunction = false;
-        private static readonly ConcurrentDictionary<string, string> _prefixedProperyNames = new ConcurrentDictionary<string, string>();
+        private static readonly ConcurrentDictionary<string, string> _prefixedProperyNames = new();
 
         private const string DefaultCategoryName = "Default";
         private const string DateTimeFormatString = "yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'fffK";
@@ -35,8 +35,8 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         internal const string MetricMaxKey = "max";
         internal const string MetricStandardDeviationKey = "standarddeviation";
 
-        private static readonly HashSet<string> SystemScopeKeys = new HashSet<string>
-            {
+        private static readonly HashSet<string> SystemScopeKeys = new()
+        {
                 LogConstants.CategoryNameKey,
                 LogConstants.LogLevelKey,
                 LogConstants.EventIdKey,
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             }
 
             // Initialize stateValues so the rest of the methods don't have to worry about null values.
-            stateValues = stateValues ?? new Dictionary<string, object>();
+            stateValues ??= new Dictionary<string, object>();
 
             // Add some well-known properties to the scope dictionary so the TelemetryInitializer can add them
             // for all telemetry.
@@ -217,23 +217,15 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 
         private static SeverityLevel? GetSeverityLevel(LogLevel logLevel)
         {
-            switch (logLevel)
+            return logLevel switch
             {
-                case LogLevel.Trace:
-                case LogLevel.Debug:
-                    return SeverityLevel.Verbose;
-                case LogLevel.Information:
-                    return SeverityLevel.Information;
-                case LogLevel.Warning:
-                    return SeverityLevel.Warning;
-                case LogLevel.Error:
-                    return SeverityLevel.Error;
-                case LogLevel.Critical:
-                    return SeverityLevel.Critical;
-                case LogLevel.None:
-                default:
-                    return null;
-            }
+                LogLevel.Trace or LogLevel.Debug => SeverityLevel.Verbose,
+                LogLevel.Information => SeverityLevel.Information,
+                LogLevel.Warning => SeverityLevel.Warning,
+                LogLevel.Error => SeverityLevel.Error,
+                LogLevel.Critical => SeverityLevel.Critical,
+                _ => null,
+            };
         }
 
         // Makes sure these are done in the correct order. If there are duplicate keys, the last State property wins.
@@ -309,10 +301,10 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                         // We won't use the format string here
                         break;
                     default:
-                        if (value.Value is TimeSpan)
+                        if (value.Value is TimeSpan span)
                         {
                             // if it's a TimeSpan, log the milliseconds
-                            metrics.Add(value.Key, ((TimeSpan)value.Value).TotalMilliseconds);
+                            metrics.Add(value.Key, span.TotalMilliseconds);
                         }
                         else if (value.Value is double || value.Value is int)
                         {
@@ -508,7 +500,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                             operation = CreateRequestFromLinks(activities, functionName);
                         }
 
-                        if (this.TryGetAverageTimeInQueueForBatch(activities, operation.Telemetry.Timestamp, out long enqueuedTime))
+                        if (TryGetAverageTimeInQueueForBatch(activities, operation.Telemetry.Timestamp, out long enqueuedTime))
                         {
                             operation.Telemetry.Metrics["timeSinceEnqueued"] = enqueuedTime;
                         }
@@ -573,7 +565,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             return operation;
         }
 
-        private void PopulateLinks(Activity[] activities, RequestTelemetry request)
+        private static void PopulateLinks(Activity[] activities, RequestTelemetry request)
         {
             if (activities.Any(l => l.Recorded))
             {
@@ -613,12 +605,12 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                 linksJson.Remove(linksJson.Length - 1, 1);
             }
 
-            linksJson.Append("]");
+            linksJson.Append(']');
 
             request.Properties["_MS.links"] = linksJson.ToString();
         }
 
-        private bool IsHttpRequestActivity(Activity activity)
+        private static bool IsHttpRequestActivity(Activity activity)
         {
             // Http Activity could be created by ASP.NET Core and then is has OperationName = "Microsoft.AspNetCore.Hosting.HttpRequestIn"
             // or it could be created by ApplicationInsights in certain scenarios (like W3C support until it is integrated into the ASP.NET Core)
@@ -657,13 +649,13 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             return address;
         }
 
-        private bool TryGetAverageTimeInQueueForBatch(Activity[] links, DateTimeOffset requestStartTime, out long avgTimeInQueue)
+        private static bool TryGetAverageTimeInQueueForBatch(Activity[] links, DateTimeOffset requestStartTime, out long avgTimeInQueue)
         {
             avgTimeInQueue = 0;
             int linksCount = 0;
             foreach (var link in links)
             {
-                if (!this.TryGetEnqueuedTime(link, out var msgEnqueuedTime))
+                if (!TryGetEnqueuedTime(link, out var msgEnqueuedTime))
                 {
                     // instrumentation does not consistently report enqueued time, ignoring whole span
                     return false;
@@ -682,7 +674,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             return true;
         }
 
-        private bool TryGetEnqueuedTime(Activity link, out long enqueuedTime)
+        private static bool TryGetEnqueuedTime(Activity link, out long enqueuedTime)
         {
             enqueuedTime = 0;
             foreach (var tag in link.Tags)

@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         private const string DefaultProductionSlotName = "production";
         private const string WebAppSuffix = ".azurewebsites.net";
 
-        private ConcurrentDictionary<string, string> _siteNodeNames = new ConcurrentDictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        private readonly ConcurrentDictionary<string, string> _siteNodeNames = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
         /// Initializes <see cref="ITelemetry" /> device context.

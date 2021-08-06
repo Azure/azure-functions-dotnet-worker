@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Logging
 {
     internal class DictionaryLoggerScope
     {
-        private static AsyncLocal<DictionaryLoggerScope> _value = new AsyncLocal<DictionaryLoggerScope>();
+        private static readonly AsyncLocal<DictionaryLoggerScope> _value = new();
 
         private DictionaryLoggerScope(IReadOnlyDictionary<string, object> state, DictionaryLoggerScope parent)
         {

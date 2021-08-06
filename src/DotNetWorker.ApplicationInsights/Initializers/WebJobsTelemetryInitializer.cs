@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
     {
         private static readonly string _currentProcessId = Environment.ProcessId.ToString();
         private readonly string _sdkVersion;
-        private readonly string _roleInstanceName;
+        private readonly string? _roleInstanceName;
 
         public WebJobsTelemetryInitializer(ISdkVersionProvider? versionProvider, IRoleInstanceProvider? roleInstanceProvider)
         {
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             telemetryProps[LogConstants.ProcessIdKey] = _currentProcessId;
 
             // Apply our special scope properties
-            IDictionary<string, object> scopeProps = DictionaryLoggerScope.GetMergedStateDictionaryOrNull();
+            var scopeProps = DictionaryLoggerScope.GetMergedStateDictionaryOrNull();
 
             string? invocationId = scopeProps?.GetValueOrDefault<string>(ScopeKeys.FunctionInvocationId);
             if (invocationId != null)
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                 telemetryContext.Operation.Name = scopeProps.GetValueOrDefault<string>(ScopeKeys.FunctionName);
 
                 // Apply Category and LogLevel to all telemetry
-                string category = scopeProps.GetValueOrDefault<string>(LogConstants.CategoryNameKey);
+                var category = scopeProps.GetValueOrDefault<string>(LogConstants.CategoryNameKey);
                 if (category != null)
                 {
                     telemetryProps[LogConstants.CategoryNameKey] = category;
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                     telemetryProps[LogConstants.EventIdKey] = eventId.Value.ToString();
                 }
 
-                string eventName = scopeProps.GetValueOrDefault<string>(LogConstants.EventNameKey);
+                var eventName = scopeProps.GetValueOrDefault<string>(LogConstants.EventNameKey);
                 if (eventName != null)
                 {
                     telemetryProps[LogConstants.EventNameKey] = eventName;

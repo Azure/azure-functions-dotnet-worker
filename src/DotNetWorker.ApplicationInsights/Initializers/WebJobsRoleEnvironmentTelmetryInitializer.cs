@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                 return;
             }
 
-            Lazy<string> siteSlotName = new Lazy<string>(() =>
+            var siteSlotName = new Lazy<string?>(() =>
             {
                 // We cannot cache these values as the environment variables can change on the fly.
                 return GetAzureWebsiteUniqueSlotName();
@@ -69,10 +69,10 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         /// <summary>
         /// Gets a value that uniquely identifies the site and slot.
         /// </summary>
-        private static string GetAzureWebsiteUniqueSlotName()
+        private static string? GetAzureWebsiteUniqueSlotName()
         {
-            string name = Environment.GetEnvironmentVariable(AzureWebsiteName);
-            string slotName = Environment.GetEnvironmentVariable(AzureWebsiteSlotName);
+            string? name = Environment.GetEnvironmentVariable(AzureWebsiteName);
+            string? slotName = Environment.GetEnvironmentVariable(AzureWebsiteSlotName);
 
             if (!string.IsNullOrEmpty(slotName) &&
                 !string.Equals(slotName, DefaultProductionSlotName, StringComparison.OrdinalIgnoreCase))

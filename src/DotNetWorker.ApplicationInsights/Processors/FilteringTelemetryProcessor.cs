@@ -39,14 +39,14 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 
             if (item is ISupportProperties telemetry && _filterOptions != null)
             {
-                if (!telemetry.Properties.TryGetValue(LogConstants.CategoryNameKey, out string categoryName))
+                if (!telemetry.Properties.TryGetValue(LogConstants.CategoryNameKey, out string? categoryName))
                 {
                     // If no category is specified, it will be filtered by the default filter
                     categoryName = string.Empty;
                 }
 
                 // Extract the log level and apply the filter
-                if (telemetry.Properties.TryGetValue(LogConstants.LogLevelKey, out string logLevelString) &&
+                if (telemetry.Properties.TryGetValue(LogConstants.LogLevelKey, out string? logLevelString) &&
                     Enum.TryParse(logLevelString, out LogLevel logLevel))
                 {
                     LoggerFilterRule filterRule = _ruleMap.GetOrAdd(categoryName, c => SelectRule(c));
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         private LoggerFilterRule SelectRule(string categoryName)
         {
             RuleSelector.Select(_filterOptions, ProviderType, categoryName,
-                out LogLevel? minLevel, out Func<string, string, LogLevel, bool> filter);
+                out LogLevel? minLevel, out Func<string, string, LogLevel, bool>? filter);
 
             return new LoggerFilterRule(ProviderType.FullName, categoryName, minLevel, filter);
         }

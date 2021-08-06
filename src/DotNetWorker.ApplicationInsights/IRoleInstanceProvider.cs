@@ -6,7 +6,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 {
     internal interface IRoleInstanceProvider
     {
-        string GetRoleInstanceName();
+        string? GetRoleInstanceName();
     }
 
     internal class WebJobsRoleInstanceProvider : IRoleInstanceProvider
@@ -15,16 +15,13 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         internal const string WebSiteInstanceIdKey = "WEBSITE_INSTANCE_ID";
         internal const string ContainerNameKey = "CONTAINER_NAME";
 
-        private readonly string _roleInstanceName = GetRoleInstance();
+        private readonly string? _roleInstanceName = GetRoleInstance();
 
-        public string GetRoleInstanceName()
-        {
-            return _roleInstanceName;
-        }
+        public string? GetRoleInstanceName() => _roleInstanceName;
 
-        private static string GetRoleInstance()
+        private static string? GetRoleInstance()
         {
-            string instanceName = Environment.GetEnvironmentVariable(WebSiteInstanceIdKey);
+            string? instanceName = Environment.GetEnvironmentVariable(WebSiteInstanceIdKey);
             if (string.IsNullOrEmpty(instanceName))
             {
                 instanceName = Environment.GetEnvironmentVariable(ComputerNameKey);

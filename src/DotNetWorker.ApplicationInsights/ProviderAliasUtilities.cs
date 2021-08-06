@@ -9,7 +9,7 @@ namespace Microsoft.Extensions.Logging
 {
     internal static class ProviderAliasUtilities
     {
-        internal static string GetAlias(Type providerType)
+        internal static string? GetAlias(Type providerType)
         {
             var attribute = providerType.GetCustomAttributes<ProviderAliasAttribute>(inherit: false).FirstOrDefault();
             return attribute?.Alias;

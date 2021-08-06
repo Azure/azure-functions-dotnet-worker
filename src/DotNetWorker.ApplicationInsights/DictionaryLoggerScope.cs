@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Logging
             }
         }
 
-        public static IDisposable Push(object state)
+        public static IDisposable? Push(object state)
         {
             IDictionary<string, object> stateValues;
 
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Functions.Logging
 
         // Builds a state dictionary of all scopes. If an inner scope
         // contains the same key as an outer scope, it overwrites the value.
-        public static IDictionary<string, object> GetMergedStateDictionaryOrNull()
+        public static IDictionary<string, object>? GetMergedStateDictionaryOrNull()
         {
             IDictionary<string, object>? scopeInfo = null;
 

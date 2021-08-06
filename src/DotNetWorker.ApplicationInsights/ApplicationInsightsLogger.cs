@@ -56,14 +56,14 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             _telemetryClient = client;
             _loggerOptions = loggerOptions;
             _categoryName = categoryName ?? DefaultCategoryName;
-            _isUserFunction = LogCategories.IsFunctionUserCategory(categoryName);
+            _isUserFunction = LogCategories.IsFunctionUserCategory(_categoryName);
         }
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state,
             Exception exception, Func<TState, Exception, string> formatter)
         {
-            string formattedMessage = formatter?.Invoke(state, exception);
-            IEnumerable<KeyValuePair<string, object>> stateValues = state as IEnumerable<KeyValuePair<string, object>>;
+            var formattedMessage = formatter?.Invoke(state, exception);
+            var stateValues = state as IEnumerable<KeyValuePair<string, object>>;
 
             // If we don't have anything here, there's nothing to log.
             if (stateValues == null && string.IsNullOrEmpty(formattedMessage) && exception == null)
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         }
 
         // Applies scope properties; filters most system properties, which are used internally
-        private static void ApplyScopeProperties(IDictionary<string, string> properties)
+        private static void ApplyScopeProperties(IDictionary<string, string?> properties)
         {
             var scopeProperties = DictionaryLoggerScope.GetMergedStateDictionaryOrNull();
             if (scopeProperties != null)
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             }
         }
 
-        private void LogException(LogLevel logLevel, IEnumerable<KeyValuePair<string, object>> values, Exception exception, string formattedMessage)
+        private void LogException(LogLevel logLevel, IEnumerable<KeyValuePair<string, object>> values, Exception exception, string? formattedMessage)
         {
             ExceptionTelemetry telemetry = new ExceptionTelemetry(exception)
             {
@@ -198,9 +198,9 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             _telemetryClient.TrackException(telemetry);
         }
 
-        private void LogTrace(LogLevel logLevel, IEnumerable<KeyValuePair<string, object>> values, string formattedMessage)
+        private void LogTrace(LogLevel logLevel, IEnumerable<KeyValuePair<string, object>> values, string? formattedMessage)
         {
-            var properties = new Dictionary<string, string>();
+            var properties = new Dictionary<string, string?>();
             ApplyScopeAndStateProperties(properties, values);
 
             var severityLevel = GetSeverityLevel(logLevel);
@@ -237,13 +237,13 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         }
 
         // Makes sure these are done in the correct order. If there are duplicate keys, the last State property wins.
-        private static void ApplyScopeAndStateProperties(IDictionary<string, string> properties, IEnumerable<KeyValuePair<string, object>> state)
+        private static void ApplyScopeAndStateProperties(IDictionary<string, string?> properties, IEnumerable<KeyValuePair<string, object>> state)
         {
             ApplyScopeProperties(properties);
             ApplyProperties(properties, state, true);
         }
 
-        internal static void ApplyProperty(IDictionary<string, string> properties, string key, object value, bool applyPrefix = false)
+        internal static void ApplyProperty(IDictionary<string, string?> properties, string key, object value, bool applyPrefix = false)
         {
             // do not apply null values
             if (value == null)
@@ -251,7 +251,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                 return;
             }
 
-            string stringValue = null;
+            string? stringValue = null;
 
             // Format dates
             Type propertyType = value.GetType();
@@ -281,7 +281,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         }
 
         // Inserts properties into the telemetry's properties. Properly formats dates, removes nulls, applies prefix, etc.
-        private static void ApplyProperties(IDictionary<string, string> properties, IEnumerable<KeyValuePair<string, object>> values, bool applyPrefix = false)
+        private static void ApplyProperties(IDictionary<string, string?> properties, IEnumerable<KeyValuePair<string, object>> values, bool applyPrefix = false)
         {
             foreach (var property in values)
             {
@@ -293,7 +293,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         {
             // Metric names will be created like "{FunctionName} {MetricName}"
             IDictionary<string, double> metrics = new Dictionary<string, double>();
-            string functionName = LoggingConstants.Unknown;
+            string? functionName = LoggingConstants.Unknown;
 
             // build up the collection of metrics to send
             foreach (KeyValuePair<string, object> value in values)
@@ -332,7 +332,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 
         private void LogFunctionResult(IEnumerable<KeyValuePair<string, object>> state, LogLevel logLevel, Exception exception)
         {
-            IDictionary<string, object> scopeProps = DictionaryLoggerScope.GetMergedStateDictionaryOrNull();
+            var scopeProps = DictionaryLoggerScope.GetMergedStateDictionaryOrNull();
             KeyValuePair<string, object>[] stateProps = state as KeyValuePair<string, object>[] ?? state.ToArray();
 
             // log associated exception details
@@ -343,7 +343,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 
             ApplyFunctionResultActivityTags(stateProps, scopeProps);
 
-            IOperationHolder<RequestTelemetry> requestOperation = scopeProps?.GetValueOrDefault<IOperationHolder<RequestTelemetry>>(OperationContext);
+            var requestOperation = scopeProps?.GetValueOrDefault<IOperationHolder<RequestTelemetry>>(OperationContext);
             if (requestOperation != null)
             {
                 // We somehow never started the operation, perhaps, it was auto-tracked by the AI SDK 
@@ -363,14 +363,14 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         /// </summary>
         /// <param name="state"></param>
         /// <param name="scope"></param>
-        private void ApplyFunctionResultActivityTags(IEnumerable<KeyValuePair<string, object>> state, IDictionary<string, object> scope)
+        private void ApplyFunctionResultActivityTags(IEnumerable<KeyValuePair<string, object>> state, IDictionary<string, object>? scope)
         {
             // Activity carries tracing context. It is managed by instrumented library (e.g. ServiceBus or Asp.Net Core)
             // and consumed by ApplicationInsights.
             // This function stamps all function-related tags on the Activity. Then WebJobsTelemetryInitializer sets them on the RequestTelemetry.
             // This way, requests reported by WebJobs (e.g. timer trigger) and requests reported by ApplicationInsights (Http, ServiceBus)
             // both have essential information about function execution
-            Activity currentActivity = Activity.Current;
+            var currentActivity = Activity.Current;
 
             // should always be true
             if (currentActivity != null)
@@ -416,12 +416,12 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
 
                 if (scope != null)
                 {
-                    if (scope.TryGetValue(LogConstants.CategoryNameKey, out object category))
+                    if (scope.TryGetValue(LogConstants.CategoryNameKey, out object? category))
                     {
                         currentActivity.AddTag(LogConstants.CategoryNameKey, category.ToString());
                     }
 
-                    if (scope.TryGetValue(LogConstants.LogLevelKey, out object logLevel))
+                    if (scope.TryGetValue(LogConstants.LogLevelKey, out object? logLevel))
                     {
                         currentActivity.AddTag(LogConstants.LogLevelKey, logLevel.ToString());
                     }
@@ -443,7 +443,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             return true;
         }
 
-        public IDisposable BeginScope<TState>(TState state)
+        public IDisposable? BeginScope<TState>(TState state)
         {
             if (state == null)
             {
@@ -477,9 +477,9 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                 // So, if we've got AspNetCore Activity and EnableHttpTriggerExtendedInfoCollection is false - track request here.
                 (!_loggerOptions.HttpAutoCollectionOptions.EnableHttpTriggerExtendedInfoCollection && IsHttpRequestActivity(currentActivity)))
             {
-                string functionName = stateValues.GetValueOrDefault<string>(ScopeKeys.FunctionName);
-                string functionInvocationId = stateValues.GetValueOrDefault<string>(ScopeKeys.FunctionInvocationId);
-                string eventName = stateValues.GetValueOrDefault<string>(ScopeKeys.Event);
+                var functionName = stateValues.GetValueOrDefault<string>(ScopeKeys.FunctionName);
+                var functionInvocationId = stateValues.GetValueOrDefault<string>(ScopeKeys.FunctionInvocationId);
+                var eventName = stateValues.GetValueOrDefault<string>(ScopeKeys.Event);
 
                 // If we have the invocation id, function name, and event, we know it's a new function. That means
                 // that we want to start a new operation and let App Insights track it for us.
@@ -493,7 +493,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
                     // it is used by EventHubs to represent context in the message.
                     // if there is just one link, we'll use it as a parent as an optimization.
                     // if there is more than one, we'll populate them as custom properties
-                    IEnumerable<Activity> links = allScopes?.GetValueOrDefault<IEnumerable<Activity>>("Links");
+                    var links = allScopes?.GetValueOrDefault<IEnumerable<Activity>>("Links");
                     var activities = links as Activity[] ?? links?.ToArray();
 
                     if (activities != null)
@@ -634,7 +634,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
             // first check for X-Forwarded-For; used by load balancers
             if (httpRequest.Headers?.TryGetValue(ApplicationInsightsScopeKeys.ForwardedForHeaderName, out StringValues headerValues) ?? false)
             {
-                string ip = headerValues.FirstOrDefault();
+                var ip = headerValues.FirstOrDefault();
                 if (!string.IsNullOrWhiteSpace(ip))
                 {
                     return RemovePort(ip);

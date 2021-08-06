@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.DependencyInjection
 {
     internal static class ApplicationInsightsServiceCollectionExtensions
     {
-        public static IServiceCollection AddApplicationInsights(this IServiceCollection services, Action<ApplicationInsightsLoggerOptions> configure)
+        public static IServiceCollection AddApplicationInsights(this IServiceCollection services, Action<ApplicationInsightsLoggerOptions>? configure)
         {
             services.AddApplicationInsights();
             if (configure != null)

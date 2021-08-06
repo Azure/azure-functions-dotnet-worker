@@ -15,21 +15,6 @@ namespace Microsoft.Extensions.Logging
     /// </summary>
     public static class ApplicationInsightsLoggingBuilderExtensions
     {
-        [Obsolete("Use " + nameof(AddApplicationInsightsWebJobs) + " instead.", false)]
-        public static ILoggingBuilder AddApplicationInsights(
-            this ILoggingBuilder builder)
-        {
-            return AddApplicationInsightsWebJobs(builder);
-        }
-
-        [Obsolete("Use " + nameof(AddApplicationInsightsWebJobs) + " instead.", false)]
-        public static ILoggingBuilder AddApplicationInsights(
-           this ILoggingBuilder builder,
-           Action<ApplicationInsightsLoggerOptions> configure)
-        {
-            return AddApplicationInsightsWebJobs(builder, configure);
-        }
-
         /// <summary>
         /// Registers Application Insights and <see cref="ApplicationInsightsLoggerProvider"/> with an <see cref="ILoggingBuilder"/>.
         /// </summary>        
@@ -44,7 +29,7 @@ namespace Microsoft.Extensions.Logging
         /// </summary>        
         public static ILoggingBuilder AddApplicationInsightsWebJobs(
             this ILoggingBuilder builder,
-            Action<ApplicationInsightsLoggerOptions> configure)
+            Action<ApplicationInsightsLoggerOptions>? configure)
         {
             builder.AddConfiguration();
             builder.Services.AddApplicationInsights(configure);
@@ -54,7 +39,7 @@ namespace Microsoft.Extensions.Logging
                 // We want all logs to flow through the logger so they show up in QuickPulse.
                 // To do that, we'll hide all registered rules inside of this one. They will be re-populated
                 // and used by the FilteringTelemetryProcessor further down the pipeline.
-                string fullTypeName = typeof(ApplicationInsightsLoggerProvider).FullName;
+                string? fullTypeName = typeof(ApplicationInsightsLoggerProvider).FullName;
                 IList<LoggerFilterRule> matchingRules = o.Rules.Where(r =>
                 {
                     return r.ProviderName == fullTypeName

@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Logging;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.RpcLog.Types;
@@ -41,38 +43,80 @@ namespace Microsoft.Azure.Functions.Worker.Logging
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            var response = new StreamingMessage();
-            string message = formatter(state, exception);
-            var rpcLog = new RpcLog
+            if (eventId == LogConstants.MetricEventId)
             {
-                EventId = eventId.ToString(),
-                Exception = exception.ToRpcException(),
-                Category = _category,
-                LogCategory = WorkerMessage.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
-                Level = ToRpcLogLevel(logLevel),
-                Message = message
-            };
-
-            // Grab the invocation id from the current scope, if present.
-            _scopeProvider.ForEachScope((scope, log) =>
+                LogMetric((IDictionary<string, object>)state!);
+            }
+            else
             {
-                if (scope is IEnumerable<KeyValuePair<string, object>> properties)
+                var response = new StreamingMessage();
+                string message = formatter(state, exception);
+                var rpcLog = new RpcLog
                 {
-                    foreach (KeyValuePair<string, object> pair in properties)
+                    EventId = eventId.ToString(),
+                    Exception = exception.ToRpcException(),
+                    Category = _category,
+                    LogCategory = WorkerMessage.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
+                    Level = ToRpcLogLevel(logLevel),
+                    Message = message
+                };
+
+                // Grab the invocation id from the current scope, if present.
+                _scopeProvider.ForEachScope((scope, log) =>
+                {
+                    if (scope is IEnumerable<KeyValuePair<string, object>> properties)
                     {
-                        if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
+                        foreach (KeyValuePair<string, object> pair in properties)
                         {
-                            log.InvocationId = pair.Value?.ToString();
-                            break;
+                            if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
+                            {
+                                log.InvocationId = pair.Value?.ToString();
+                                break;
+                            }
                         }
                     }
-                }
-            },
-            rpcLog);
+                },
+                rpcLog);
 
-            response.RpcLog = rpcLog;
+                response.RpcLog = rpcLog;
 
-            _channelWriter.TryWrite(response);
+                _channelWriter.TryWrite(response);
+            }
+        }
+
+        private void LogMetric(IDictionary<string, object> state)
+        {
+            if (state != null)
+            {
+                var response = new StreamingMessage();
+                var rpcMetric = new RpcMetric
+                {
+                    Name = state[LogConstants.NameKey] as string,
+                    Value = (double)state[LogConstants.MetricValueKey],
+                    Properties = System.Text.Json.JsonSerializer.Serialize(state)
+                };
+
+                // Grab the invocation id from the current scope, if present.
+                _scopeProvider.ForEachScope((scope, log) =>
+                {
+                    if (scope is IEnumerable<KeyValuePair<string, object>> properties)
+                    {
+                        foreach (var pair in properties)
+                        {
+                            if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
+                            {
+                                log.InvocationId = pair.Value?.ToString();
+                                break;
+                            }
+                        }
+                    }
+                },
+                rpcMetric);
+
+                response.RpcMetric = rpcMetric;
+
+                _channelWriter.TryWrite(response);
+            }
         }
 
         private static Level ToRpcLogLevel(LogLevel logLevel)

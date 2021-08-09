@@ -3,7 +3,7 @@
 
 using System.Text.RegularExpressions;
 
-namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
+namespace Microsoft.Azure.Functions.Worker.Logging
 {
     /// <summary>
     /// Constant values for log categories.

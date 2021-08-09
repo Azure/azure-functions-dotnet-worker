@@ -4,7 +4,6 @@
 using System;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -41,9 +40,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // gRPC support
             services.AddGrpc();
-
-            // ApplicationInsights logging
-            services.AddLogging(b => b.AddApplicationInsightsFunctions());
 
             return builder;
         }

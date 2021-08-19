@@ -25,7 +25,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         public static T AssertIsTypeAndConvert<T>(object target)
-            where T : class
         {
             if (target is not T converted)
             {

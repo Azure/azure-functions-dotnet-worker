@@ -14,14 +14,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             target = default;
 
-            if (context.Source is not string sourceString)
-            {
-                return false;
-            }
-
             if (context.Parameter.Type == typeof(Guid) || context.Parameter.Type == typeof(Guid?))
             {
-                if (Guid.TryParse(sourceString, out Guid parsedGuid))
+                if (context.Source is string sourceString && Guid.TryParse(sourceString, out Guid parsedGuid))
                 {
                     target = parsedGuid;
                     return true;

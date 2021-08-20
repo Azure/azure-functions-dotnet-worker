@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "myReq" },
-                    { "Type", "HttpTrigger" },
+                    { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "authLevel", "Admin" },
                     { "methods", new[] { "get", "Post" } },
@@ -86,7 +86,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "myReq" },
-                    { "Type", "HttpTrigger" },
+                    { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "authLevel", "Admin" },
                     { "methods", new[] { "get", "Post" } },
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "myReq" },
-                    { "Type", "HttpTrigger" },
+                    { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "authLevel", "Admin" },
                     { "methods", new[] { "get", "Post" } },
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "queuePayload" },
-                    { "Type", "QueueTrigger" },
+                    { "Type", "queueTrigger" },
                     { "Direction", "In" },
                     { "Connection", "MyConnection" },
                     { "queueName", "queueName" },
@@ -182,7 +182,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "$return" },
-                    { "Type", "Blob" },
+                    { "Type", "blob" },
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
                     { "Connection", "MyOtherConnection" }
@@ -198,7 +198,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "blob" },
-                    { "Type", "BlobTrigger" },
+                    { "Type", "blobTrigger" },
                     { "Direction", "In" },
                     { "blobPath", "container2/%file%" },
                     { "DataType", "String" }
@@ -210,7 +210,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "$return" },
-                    { "Type", "Queue" },
+                    { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
                 });
@@ -236,7 +236,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "timer" },
-                    { "Type", "TimerTrigger" },
+                    { "Type", "timerTrigger" },
                     { "Direction", "In" },
                     { "schedule", "0 0 0 * * *" },
                     { "RunOnStartup", false }
@@ -273,7 +273,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "queuePayload" },
-                    { "Type", "QueueTrigger" },
+                    { "Type", "queueTrigger" },
                     { "Direction", "In" },
                     { "Connection", "MyConnection" },
                     { "queueName", "queueName" },
@@ -286,7 +286,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "blobOutput" },
-                    { "Type", "Blob" },
+                    { "Type", "blob" },
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
                     { "Connection", "MyOtherConnection" },
@@ -299,7 +299,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "queueOutput" },
-                    { "Type", "Queue" },
+                    { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
                     { "DataType", "String" }
@@ -335,7 +335,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "req" },
-                    { "Type", "HttpTrigger" },
+                    { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "methods", new[] { "get" } },
                     { "DataType", "String" }
@@ -357,7 +357,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "queueOutput" },
-                    { "Type", "Queue" },
+                    { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
                     { "DataType", "String" }
@@ -389,7 +389,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
                     { "Name", "req" },
-                    { "Type", "HttpTrigger" },
+                    { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "methods", new[] { "get" } },
                     { "DataType", "String" }
@@ -468,7 +468,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 var expected = new Dictionary<string, object>()
                 {
                     { "Name", "input" },
-                    { "Type", "EventHubTrigger" },
+                    { "Type", "eventHubTrigger" },
                     { "Direction", "In" },
                     { "eventHubName", "test" },
                     { "Connection", "EventHubConnectionAppSetting" }

@@ -247,7 +247,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static bool IsHttpTrigger(ExpandoObject bindingMetadata)
         {
             return bindingMetadata.Any(kvp => string.Equals(kvp.Key, "Type", StringComparison.Ordinal)
-                && string.Equals(kvp.Value?.ToString(), Constants.HttpTriggerBindingType, StringComparison.Ordinal));
+                && string.Equals(kvp.Value?.ToString(), Constants.HttpTriggerBindingType, StringComparison.OrdinalIgnoreCase));
         }
 
         private bool TryAddOutputBindingsFromProperties(IList<ExpandoObject> bindingMetadata, TypeDefinition typeDefinition)
@@ -381,7 +381,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 bindingDict["Name"] = parameterName!;
             }
 
-            bindingDict["Type"] = bindingType;
+            // The "Type" property value must be camelCase for the scaling component to work correctly
+            bindingDict["Type"] = bindingType.ToCamelCase();
             bindingDict["Direction"] = GetBindingDirection(attribute);
 
             // Is string parameter type

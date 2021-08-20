@@ -133,10 +133,10 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .ConfigureAppConfiguration(configBuilder =>
                 {
+                    configBuilder.AddEnvironmentVariables();
+
                     var cmdLine = Environment.GetCommandLineArgs();
                     RegisterCommandLine(configBuilder, cmdLine);
-
-                    configBuilder.AddEnvironmentVariables();
                 })
                 .ConfigureServices((context, services) =>
                 {

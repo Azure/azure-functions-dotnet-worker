@@ -8,8 +8,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         /// <summary>
         /// Returns a copy of the string in camelCase.
         /// </summary>
-        internal static string ToCamelCase(this string value)
+        public static string ToCamelCase(this string value)
         {
+            // Using the same logic as in JsonCamelCaseNamingPolicy(System.Text.Json)
+
             if (string.IsNullOrEmpty(value) || !char.IsUpper(value[0]))
             {
                 return value;

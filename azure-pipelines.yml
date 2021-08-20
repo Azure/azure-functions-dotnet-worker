@@ -33,7 +33,7 @@ jobs:
     displayName: 'Build projects'
     inputs:
       command: 'build'
-      arguments: '-c Release'
+      arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: 'DotNetWorker.sln'
 
   - pwsh: ./setup-e2e-tests.ps1
@@ -220,7 +220,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: |
         **\DotNetWorker.Core.slnf
 
@@ -230,7 +230,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:CommitHash=$(Build.SourceVersion) -p:IsLocalBuild=False'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: |
         **\Worker.Extensions.*.csproj
 

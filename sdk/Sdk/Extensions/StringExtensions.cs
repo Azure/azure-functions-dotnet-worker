@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
@@ -9,7 +6,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     internal static class StringExtensions
     {
         /// <summary>
-        /// Returns a copy of the string in camelcase.
+        /// Returns a copy of the string in camelCase.
         /// </summary>
         internal static string ToCamelCase(this string value)
         {

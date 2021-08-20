@@ -381,7 +381,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 bindingDict["Name"] = parameterName!;
             }
 
-            // The "Type" property value must be camelCase for the scaling component to work correctly
+            // The "Type" property value must be camelCase for the scaling infrastructure to work correctly
             bindingDict["Type"] = bindingType.ToCamelCase();
             bindingDict["Direction"] = GetBindingDirection(attribute);
 

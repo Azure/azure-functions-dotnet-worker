@@ -12,6 +12,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         [InlineData("QueueTrigger", "queueTrigger")]
         [InlineData("HTTPTrigger", "httpTrigger")]
         [InlineData("Blob", "blob")]
+        [InlineData("http", "http")]
         [InlineData("", "")]
         [InlineData(null, null)]
         public void ToCamelCaseWorks(string input, string expectedOutput)

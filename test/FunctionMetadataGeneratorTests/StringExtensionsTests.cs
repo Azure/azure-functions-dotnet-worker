@@ -9,15 +9,14 @@ namespace Microsoft.Azure.Functions.SdkTests
     public class StringExtensionsTests
     {
         [Theory]
-        [InlineData("QueueTrigger", "queueTrigger")]
-        [InlineData("HTTPTrigger", "httpTrigger")]
+        [InlineData("HttpTrigger", "httpTrigger")]
         [InlineData("Blob", "blob")]
         [InlineData("http", "http")]
         [InlineData("", "")]
         [InlineData(null, null)]
-        public void ToCamelCaseWorks(string input, string expectedOutput)
+        public void ToLowerFirstCharacterWorks(string input, string expectedOutput)
         {
-            var actual = input.ToCamelCase();
+            var actual = input.ToLowerFirstCharacter();
 
             Assert.Equal(expectedOutput, actual);
         }

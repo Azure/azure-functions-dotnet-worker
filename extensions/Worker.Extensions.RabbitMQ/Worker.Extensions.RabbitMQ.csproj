@@ -6,8 +6,7 @@
     <Description>RabbitMQ extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <MajorProductVersion>1</MajorProductVersion>
-    <VersionSuffix>-beta</VersionSuffix>
+    <VersionPrefix>1.1.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

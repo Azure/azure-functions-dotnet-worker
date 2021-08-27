@@ -607,19 +607,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             var attributeType = attribute.AttributeType.Name;
 
             // TODO: Should "webjob type" be a property of the "worker types" and come from there?
-            attributeType = attributeType
+            return attributeType
                     .Replace("TriggerAttribute", "Trigger")
                     .Replace("InputAttribute", string.Empty)
                     .Replace("OutputAttribute", string.Empty)
                     .Replace("Attribute", string.Empty);
-
-            // Ensure first letter is lowercase to match documentation
-            if (char.IsUpper(attributeType[0]))
-            {
-                attributeType = char.ToLowerInvariant(attributeType[0]) + attributeType.Substring(1);
-            }
-
-            return attributeType;
         }
 
         private static void AddHttpOutputBinding(IList<ExpandoObject> bindingMetadata, string name)

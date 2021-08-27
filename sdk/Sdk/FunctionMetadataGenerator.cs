@@ -247,7 +247,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static bool IsHttpTrigger(ExpandoObject bindingMetadata)
         {
             return bindingMetadata.Any(kvp => string.Equals(kvp.Key, "Type", StringComparison.Ordinal)
-                && string.Equals(kvp.Value?.ToString(), Constants.HttpTriggerBindingType.ToLowerFirstCharacter(), StringComparison.Ordinal));
+                && string.Equals(kvp.Value?.ToString(), Constants.HttpTriggerBindingType, StringComparison.Ordinal));
         }
 
         private bool TryAddOutputBindingsFromProperties(IList<ExpandoObject> bindingMetadata, TypeDefinition typeDefinition)

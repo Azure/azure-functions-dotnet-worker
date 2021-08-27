@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string ReadOnlyMemoryOfBytes = "System.ReadOnlyMemory`1<System.Byte>";
 
         internal const string ReturnBindingName = "$return";
-        internal const string HttpTriggerBindingType = "HttpTrigger";
+        internal const string HttpTriggerBindingType = "httpTrigger";
         internal const string IsBatchedKey = "IsBatched";
     }
 }

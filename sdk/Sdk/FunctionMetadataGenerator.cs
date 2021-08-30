@@ -610,7 +610,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return attributeType
                     .Replace("TriggerAttribute", "Trigger")
                     .Replace("InputAttribute", string.Empty)
-                    .Replace("OutputAttribute", string.Empty);
+                    .Replace("OutputAttribute", string.Empty)
+                    .Replace("Attribute", string.Empty);
         }
 
         private static void AddHttpOutputBinding(IList<ExpandoObject> bindingMetadata, string name)

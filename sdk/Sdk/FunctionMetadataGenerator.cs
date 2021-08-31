@@ -607,11 +607,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             var attributeType = attribute.AttributeType.Name;
 
             // TODO: Should "webjob type" be a property of the "worker types" and come from there?
-            return attributeType
-                    .Replace("TriggerAttribute", "Trigger")
-                    .Replace("InputAttribute", string.Empty)
-                    .Replace("OutputAttribute", string.Empty)
-                    .Replace("Attribute", string.Empty);
+            var bindingType = attributeType
+                                .Replace("TriggerAttribute", "Trigger")
+                                .Replace("InputAttribute", string.Empty)
+                                .Replace("OutputAttribute", string.Empty)
+                                .Replace("Attribute", string.Empty);
+
+            // The first character of "Type" property value must be lower case for the scaling infrastructure to work correctly
+            bindingType = bindingType.ToLowerFirstCharacter();
+
+            return bindingType;
         }
 
         private static void AddHttpOutputBinding(IList<ExpandoObject> bindingMetadata, string name)

@@ -10,7 +10,7 @@
     "bindings": [
       {
         "name": "req",
-        "type": "HttpTrigger",
+        "type": "httpTrigger",
         "direction": "In",
         "authLevel": "Anonymous",
         "methods": [
@@ -20,7 +20,7 @@
       },
       {
         "name": "myBlob",
-        "type": "Blob",
+        "type": "blob",
         "direction": "In",
         "dataType":  "String",
         "blobPath": "test-samples/sample1.txt",
@@ -28,7 +28,7 @@
       },
       {
         "name": "Book",
-        "type": "Queue",
+        "type": "queue",
         "direction": "Out",
         "queueName": "functionstesting2",
         "connection": "AzureWebJobsStorage"
@@ -51,14 +51,14 @@
     "bindings": [
       {
         "name": "myQueueItem",
-        "type": "QueueTrigger",
+        "type": "queueTrigger",
         "direction": "In",
         "queueName": "functionstesting2",
         "connection": "AzureWebJobsStorage"
       },
       {
         "name": "myBlob",
-        "type": "Blob",
+        "type": "blob",
         "direction": "In",
         "dataType":  "String",
         "blobPath": "test-samples/sample1.txt",
@@ -77,7 +77,7 @@
     "bindings": [
       {
         "name": "req",
-        "type": "HttpTrigger",
+        "type": "httpTrigger",
         "direction": "In",
         "authLevel": "Anonymous",
         "methods": [
@@ -87,7 +87,7 @@
       },
       {
         "name": "Name",
-        "type": "Queue",
+        "type": "queue",
         "direction": "Out",
         "dataType":  "String",
         "queueName": "functionstesting2",
@@ -111,7 +111,7 @@
     "bindings": [
       {
         "name": "req",
-        "type": "HttpTrigger",
+        "type": "httpTrigger",
         "direction": "In",
         "authLevel": "Anonymous",
         "methods": [
@@ -137,7 +137,7 @@
     "bindings": [
       {
         "name": "req",
-        "type": "HttpTrigger",
+        "type": "httpTrigger",
         "direction": "In",
         "authLevel": "Anonymous",
         "methods": [

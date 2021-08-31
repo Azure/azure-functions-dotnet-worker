@@ -14,8 +14,6 @@
     <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)$(VersionSuffix)</Version>
     <AssemblyVersion Condition="$(AssemblyVersion) == ''">$(VersionPrefix).0</AssemblyVersion>
     <FileVersion  Condition="$(FileVersion) == ''">$(AssemblyVersion)</FileVersion>
-    <CommitHash Condition="$(CommitHash) == ''">N/A</CommitHash>
-    <InformationalVersion  Condition="$(InformationalVersion) == ''">$(Version) Commit hash: $(CommitHash)</InformationalVersion>
     <LangVersion>preview</LangVersion>
     <Nullable Condition="$(Nullable) == ''">enable</Nullable>
     <SignAssembly>true</SignAssembly>

@@ -610,7 +610,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             var bindingType = attributeType
                                 .Replace("TriggerAttribute", "Trigger")
                                 .Replace("InputAttribute", string.Empty)
-                                .Replace("OutputAttribute", string.Empty);
+                                .Replace("OutputAttribute", string.Empty)
                                 .Replace("Attribute", string.Empty);
 
             // The first character of "Type" property value must be lower case for the scaling infrastructure to work correctly

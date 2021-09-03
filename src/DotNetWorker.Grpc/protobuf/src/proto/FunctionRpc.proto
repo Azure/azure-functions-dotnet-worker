@@ -67,13 +67,7 @@ message StreamingMessage {
 
     // Worker logs a message back to the host
     RpcLog rpc_log = 2;
-    
-<<<<<<< HEAD
-=======
-    // Worker logs a metric back to the host
-    RpcMetric rpc_metric = 3;
 
->>>>>>> b2fb372... Reworking implementation to pipe through to gRPC
     FunctionEnvironmentReloadRequest function_environment_reload_request = 25;
 
     FunctionEnvironmentReloadResponse function_environment_reload_response = 26;
@@ -519,25 +513,6 @@ message RpcLog {
 
   // strongly-typed (ish) property bag
   map<string, TypedData> propertiesMap = 9;
-}
-
-// Used to send metrics back to the Host 
-message RpcMetric {
-  // Matching ILogger semantics
-  // https://github.com/aspnet/Logging/blob/9506ccc3f3491488fe88010ef8b9eb64594abf95/src/Microsoft.Extensions.Logging/Logger.cs
-  // Level for the Log
-  
-  // Unique id for invocation (if exists)
-  string invocation_id = 1;
-
-  // Name of the given metric
-  string name = 2;
-
-  // Value of the metric
-  double value = 3;
-
-  // json serialized property bag, or could use a type scheme like map<string, TypedData>
-  string properties = 4;
 }
 
 // Encapsulates an Exception 

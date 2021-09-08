@@ -19,7 +19,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static DiagnosticDescriptor WebJobsAttributesAreNotSuppoted { get; }
             = Create(id: "AZFW0001", title: "Invalid binding attributes", messageFormat: "The attribute '{0}' is a WebJobs attribute and not supported in the .NET Worker (Isolated Process).",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
-
+                
+        public static DiagnosticDescriptor AsyncVoidReturnType { get; }
+            = Create(id: "AZFW0002", title: "Avoid async void methods", messageFormat: "Do not use void as the return type for async methods. Use Task instead.",
+                category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
 
     }
 }

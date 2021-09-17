@@ -3,8 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Channels;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
@@ -19,6 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.Logging
     /// </summary>
     internal class GrpcFunctionsHostLogger : ILogger
     {
+        private static readonly ObjectSerializer _serializer = new JsonObjectSerializer();
+
         private readonly string _category;
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private readonly IExternalScopeProvider _scopeProvider;
@@ -89,12 +91,15 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             if (state != null)
             {
                 var response = new StreamingMessage();
-                var rpcMetric = new RpcMetric
+                var rpcMetric = new RpcLog
                 {
-                    Name = state[LogConstants.NameKey] as string,
-                    Value = (double)state[LogConstants.MetricValueKey],
-                    Properties = System.Text.Json.JsonSerializer.Serialize(state)
+                    LogCategory = RpcLogCategory.CustomMetric,
                 };
+
+                foreach (var kvp in state)
+                {
+                    rpcMetric.PropertiesMap.Add(kvp.Key, kvp.Value.ToRpc(_serializer));
+                }
 
                 // Grab the invocation id from the current scope, if present.
                 _scopeProvider.ForEachScope((scope, log) =>
@@ -113,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                 },
                 rpcMetric);
 
-                response.RpcMetric = rpcMetric;
+                response.RpcLog = rpcMetric;
 
                 _channelWriter.TryWrite(response);
             }

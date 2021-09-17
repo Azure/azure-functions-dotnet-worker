@@ -3,7 +3,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text.Json;
+using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -69,13 +69,20 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
             {
                 count++;
 
-                Assert.Equal(StreamingMessage.ContentOneofCase.RpcMetric, msg.ContentCase);
-                Assert.NotNull(msg.RpcMetric);
-                Assert.Equal("testMetric", msg.RpcMetric.Name);
-                Assert.Equal(1d, msg.RpcMetric.Value);
+                Assert.Equal(StreamingMessage.ContentOneofCase.RpcLog, msg.ContentCase);
+                Assert.NotNull(msg.RpcLog);
+                Assert.Equal(RpcLogCategory.CustomMetric, msg.RpcLog.LogCategory);
 
-                var deserializedProperties = JsonSerializer.Deserialize<IDictionary<string, object>>(msg.RpcMetric.Properties);
-                Assert.Equal("bar", deserializedProperties["foo"].ToString());
+                var propertyBag = msg.RpcLog.PropertiesMap?.ToDictionary(i => i.Key, i => i.Value);
+                Assert.NotNull(propertyBag);
+                var metricName = propertyBag[LogConstants.NameKey];
+                Assert.Equal(TypedData.DataOneofCase.String, metricName.DataCase);
+                Assert.Equal("testMetric", metricName.String);
+                var metricValue = propertyBag[LogConstants.MetricValueKey];
+                Assert.Equal(TypedData.DataOneofCase.Double, metricValue.DataCase);
+                Assert.Equal(1d, metricValue.Double);
+
+                Assert.Equal("bar", propertyBag["foo"].String);
             }
 
             Assert.Equal(1, count);

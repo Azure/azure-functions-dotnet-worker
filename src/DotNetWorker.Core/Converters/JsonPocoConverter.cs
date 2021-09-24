@@ -5,12 +5,13 @@ using System;
 using System.IO;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
-    internal class JsonPocoConverter : IConverter
+    internal class JsonPocoConverter : IInputConverter
     {
         private readonly ObjectSerializer _serializer;
 
@@ -28,13 +29,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             _serializer = options.Value.Serializer;
         }
 
-        public bool TryConvert(ConverterContext context, out object? target)
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            target = default;
-
-            if (context.Parameter.Type == typeof(string))
+            if (context.TargetType == typeof(string))
             {
-                return false;
+                return ConversionResult.Failed();
             }
 
             byte[]? bytes = null;
@@ -50,30 +49,29 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (bytes == null)
             {
-                return false;
+                return ConversionResult.Failed();
             }
 
-            return TryDeserialize(bytes, context.Parameter.Type, out target);
+            var deserializationResult = await TryDeserialize(bytes, context.TargetType);
+            var bindingResult = new ConversionResult(deserializationResult.Success, deserializationResult.DeserializedObject);
+            
+            return bindingResult;
         }
 
-        private bool TryDeserialize(byte[] bytes, Type type, out object? target)
+        private async Task<(bool Success,object? DeserializedObject)> TryDeserialize(byte[] bytes, Type type)
         {
-            target = default;
-
             try
             {
-                using (var stream = new MemoryStream(bytes))
+                await using (var stream = new MemoryStream(bytes))
                 {
-                    target = _serializer.Deserialize(stream, type, CancellationToken.None);
+                    var target =  _serializer.Deserialize(stream, type, CancellationToken.None);
+                    return (Success: true, DeserializedObject: target);
                 }
-
-                return true;
             }
             catch
             {
-                return false;
+                return (Success: false, DeserializedObject: null);
             }
-
         }
     }
 }

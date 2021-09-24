@@ -3,26 +3,21 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Core.Converters;
 using Microsoft.Azure.Functions.Worker.Diagnostics.Exceptions;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     internal class DefaultModelBindingFeature : IModelBindingFeature
     {
-        private readonly IEnumerable<IConverter> _converters;
         private bool _inputBound;
         private object?[]? _parameterValues;
 
-        public DefaultModelBindingFeature(IEnumerable<IConverter> converters)
-        {
-            _converters = converters ?? throw new ArgumentNullException(nameof(converters));
-        }
-
         public object?[]? InputArguments => _parameterValues;
 
-        public object?[] BindFunctionInput(FunctionContext context)
+        public async ValueTask<object?[]> BindFunctionInputAsync(FunctionContext context)
         {
             if (_inputBound)
             {
@@ -32,6 +27,13 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             _inputBound = true;
+                            
+            IInputConversionFeature conversionFeature = context.Features.Get<IInputConversionFeature>();
+
+            if (conversionFeature == null)
+            {                                
+                throw new InvalidOperationException("Conversion feature is missing!");
+            }
 
             List<string>? errors = null;
             for (int i = 0; i < _parameterValues.Length; i++)
@@ -46,11 +48,21 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }
 
-                var converterContext = new DefaultConverterContext(param, source, context);
+                var converterContext = new DefaultConverterContext(param.Type, source, context);
 
-                if (TryConvert(converterContext, out object? target))
+                if (param.BindingConverterType != null)
                 {
-                    _parameterValues[i] = target;
+                    converterContext.Properties = new Dictionary<string, object>
+                    {
+                        { PropertyBagKeys.ConverterType, param.BindingConverterType}
+                    };
+                }
+
+                var bindingResult = await conversionFeature!.TryConvertAsync(converterContext);
+
+                if (bindingResult.IsSuccess)
+                {
+                    _parameterValues[i] = bindingResult.Model;
                 }
                 else if (source is not null)
                 {
@@ -63,7 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     errors.Add($"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'.");
                 }
             }
-            
+
             // found errors
             if (errors is not null)
             {
@@ -71,25 +83,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             return _parameterValues;
-        }
-
-        internal bool TryConvert(ConverterContext context, out object? target)
-        {
-            target = null;
-
-            // The first converter to successfully convert wins.
-            // For example, this allows a converter that parses JSON strings to return false if the
-            // string is not valid JSON. This manager will then continue with the next matching provider.
-            foreach (var converter in _converters)
-            {
-                if (converter.TryConvert(context, out object? targetObj))
-                {
-                    target = targetObj;
-                    return true;
-                }
-            }
-
-            return false;
         }
     }
 }

@@ -2,28 +2,27 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
     /// Converter to bind Guid/Guid? type parameters.
     /// </summary>
-    internal class GuidConverter : IConverter
+    internal class GuidConverter : IInputConverter
     {
-        public bool TryConvert(ConverterContext context, out object? target)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            target = default;
-
-            if (context.Parameter.Type == typeof(Guid) || context.Parameter.Type == typeof(Guid?))
+            if (context.TargetType == typeof(Guid) || context.TargetType == typeof(Guid?))
             {
                 if (context.Source is string sourceString && Guid.TryParse(sourceString, out Guid parsedGuid))
                 {
-                    target = parsedGuid;
-                    return true;
+                    return new ValueTask<ConversionResult>(ConversionResult.Success(parsedGuid));
                 }
             }
 
-            return false;
+            return new ValueTask<ConversionResult>(ConversionResult.Failed());
         }
     }
 }

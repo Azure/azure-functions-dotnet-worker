@@ -3,6 +3,7 @@
 
 using System;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Xunit;
 
@@ -16,22 +17,27 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         private MemoryConverter _converter = new MemoryConverter();
 
         [Fact]
-        public void ConvertToByteArray()
+        public async Task ConvertToByteArray()
         {
-            var context = new TestConverterContext("output", typeof(byte[]), _sourceMemory);
-            Assert.True(_converter.TryConvert(context, out object target));
+            var context = new TestConverterContext(typeof(byte[]), _sourceMemory);
+                        
+            var conversionResult = await _converter.ConvertAsync(context);
 
-            var bytes = TestUtility.AssertIsTypeAndConvert<byte[]>(target);
+            Assert.True(conversionResult.IsSuccess);
+
+            var bytes = TestUtility.AssertIsTypeAndConvert<byte[]>(conversionResult.Model);
             Assert.Equal(_sourceBytes, bytes);
         }
 
         [Fact]
-        public void ConvertToString()
+        public async Task ConvertToString()
         {
-            var context = new TestConverterContext("output", typeof(string), _sourceMemory);
-            Assert.True(_converter.TryConvert(context, out object target));
+            var context = new TestConverterContext(typeof(string), _sourceMemory);
 
-            var convertedString = TestUtility.AssertIsTypeAndConvert<string>(target);
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.True(conversionResult.IsSuccess);
+            var convertedString = TestUtility.AssertIsTypeAndConvert<string>(conversionResult.Model);
             Assert.Equal(_sourceString, convertedString);
         }
     }

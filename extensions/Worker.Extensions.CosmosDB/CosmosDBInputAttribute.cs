@@ -11,11 +11,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Constructs a new instance.
         /// </summary>
         /// <param name="databaseName">The CosmosDB database name.</param>
-        /// <param name="collectionName">The CosmosDB collection name.</param>
-        public CosmosDBInputAttribute(string databaseName, string collectionName)
+        /// <param name="containerName">The CosmosDB container name.</param>
+        public CosmosDBInputAttribute(string databaseName, string containerName)
         {
             DatabaseName = databaseName;
-            CollectionName = collectionName;
+            ContainerName = containerName;
         }
 
         /// <summary>
@@ -25,19 +25,20 @@ namespace Microsoft.Azure.Functions.Worker
         public string DatabaseName { get; private set; }
 
         /// <summary>
-        /// The name of the collection to which the parameter applies.
+        /// The name of the container to which the parameter applies.
         /// May include binding parameters.
         /// </summary>
-        public string CollectionName { get; private set; }
+        public string ContainerName { get; private set; }
 
         /// <summary>
-        /// Optional. A string value indicating the app setting to use as the CosmosDB connection string, if different
-        /// than the one specified in the <see cref="CosmosDBOptions"/>.
+        /// Optional.
+        /// Gets or sets the connection string for the service containing 
+        /// the container to monitor.
         /// </summary>
-        public string? ConnectionStringSetting { get; set; }
+        public string? Connection { get; private set; }
 
         /// <summary>
-        /// Optional. The Id of the document to retrieve from the collection.
+        /// Optional. The Id of the document to retrieve from the container.
         /// May include binding parameters.
         /// </summary>
         public string? Id { get; set; }
@@ -45,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Optional.
         /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key 
-        /// path for the created collection.
+        /// path for the created container.
         /// When specified on an input binding, specifies the partition key value for the lookup.
         /// May include binding parameters.
         /// </summary>

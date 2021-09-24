@@ -104,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             string source = "{ \"title\": \"a\", \"Author\": \"b\" }";
             var context = new TestConverterContext(typeof(NewtonsoftBook), source);
                         
-            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+            var conversionResult = await jsonPocoConverter.ConvertAsync(context);
 
             Assert.True(conversionResult.IsSuccess);
 

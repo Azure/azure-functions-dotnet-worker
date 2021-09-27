@@ -17,6 +17,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// </summary>
         /// <param name="converterContext">The converter context.</param>
         /// <returns>An instance of <see cref="ConversionResult"/> representing the result of the conversion.</returns>
-        ValueTask<ConversionResult> TryConvertAsync(ConverterContext converterContext);
+        ValueTask<ConversionResult> ConvertAsync(ConverterContext converterContext);
     }
 }

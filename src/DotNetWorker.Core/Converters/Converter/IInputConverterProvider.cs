@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     public interface IInputConverterProvider
     {
         /// <summary>
-        /// Gets the default set of input converters.
+        /// Gets an ordered collection of default converter instances.
         /// </summary>
         IEnumerable<IInputConverter> DefaultConverters { get; }
         
@@ -22,6 +22,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// </summary>
         /// <param name="converterType">The type of IFunctionInputConverter implementation to return.</param>
         /// <returns>IFunctionInputConverter instance of the requested type.</returns>
-        IInputConverter GetConverterInstance(Type converterType);
+        IInputConverter GetOrCreateConverterInstance(Type converterType);
     }
 }

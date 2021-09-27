@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     };
                 }
 
-                var bindingResult = await conversionFeature!.TryConvertAsync(converterContext);
+                var bindingResult = await conversionFeature!.ConvertAsync(converterContext);
 
                 if (bindingResult.IsSuccess)
                 {

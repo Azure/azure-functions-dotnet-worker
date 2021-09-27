@@ -2,9 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core.Converters;
 using Microsoft.Azure.Functions.Worker.Core.Converters.Converter;
@@ -16,18 +16,21 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     /// </summary>
     internal sealed class DefaultInputConversionFeature : IInputConversionFeature
     {
-        private readonly IEnumerable<IInputConverter> _defaultConverters;
         private readonly IInputConverterProvider _inputConverterProvider;
 
         public DefaultInputConversionFeature(IInputConverterProvider inputConverterProvider)
         {
-            _defaultConverters = inputConverterProvider.DefaultConverters;
             _inputConverterProvider = inputConverterProvider ?? throw new ArgumentNullException(nameof(inputConverterProvider));
         }
 
-        public async ValueTask<ConversionResult> TryConvertAsync(ConverterContext converterContext)
+        /// <summary>
+        /// Executes a conversion operation with the context information provided.
+        /// </summary>
+        /// <param name="converterContext">The converter context.</param>
+        /// <returns>An instance of <see cref="ConversionResult"/> representing the result of the conversion.</returns>
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext converterContext)
         {
-            // Check a converter is explicitly passed via the converter context.
+            // Check a converter is explicitly specified via the converter context. If so, use that.
             IInputConverter? converterFromContext = GetConverterFromContext(converterContext);
 
             if (converterFromContext != null)
@@ -40,13 +43,13 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            // Use the default converters.
+            // Check the default converters and see which one can successfully convert.
             // The first converter to successfully convert wins.
             // For example, this allows a converter that parses JSON strings to return false if the
             // string is not valid JSON. This manager will then continue with the next matching provider.
-            foreach (var defaultConverter in _defaultConverters)
+            foreach (var converter in _inputConverterProvider.DefaultConverters)
             {
-                var conversionResult = await ConvertAsyncUsingConverter(defaultConverter, converterContext);
+                var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
 
                 if (conversionResult.IsSuccess)
                 {
@@ -65,10 +68,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 return new ValueTask<ConversionResult>(conversionResultTask.Result);
             }
-            else
-            {
-                return AwaitAndReturnConversionTaskResult(conversionResultTask);
-            }
+
+            return AwaitAndReturnConversionTaskResult(conversionResultTask);
         }
 
         private async ValueTask<ConversionResult> AwaitAndReturnConversionTaskResult(ValueTask<ConversionResult> conversionResultTask)
@@ -78,6 +79,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return result;
         }
 
+        /// <summary>
+        /// Gets an <see cref="IInputConverter"/> instance if converter context has information about what converter to be used.
+        /// </summary>
+        /// <param name="context">The converter context.</param>
+        /// <returns>An IInputConverter instance or null</returns>
         private IInputConverter? GetConverterFromContext(ConverterContext context)
         {
             Type? converterType = default;
@@ -90,19 +96,19 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
             else
             {
-                // check the class used as TargetType has a BindingConverter attribute decoration.
-                var binderType = typeof(InputConverterAttribute);
-                var binderAttr = context.TargetType.GetCustomAttributes(binderType, inherit: true).FirstOrDefault();
+                // check the type used as "TargetType" has an "InputConverter" attribute decoration.
+                var converterAttributeType = typeof(InputConverterAttribute);
+                var converterAttribute = context.TargetType.GetCustomAttributes(converterAttributeType, inherit: true).FirstOrDefault();
 
-                if (binderAttr != null)
+                if (converterAttribute != null)
                 {
-                    converterType = ((InputConverterAttribute)binderAttr).ConverterType;
+                    converterType = ((InputConverterAttribute)converterAttribute).ConverterType;
                 }
             }
 
             if (converterType != null)
             {
-                return this._inputConverterProvider.GetConverterInstance(converterType);
+                return this._inputConverterProvider.GetOrCreateConverterInstance(converterType);
             }
 
             return null;

@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -26,20 +27,21 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            DefaultConverters = CreateDefaultConverters();
+            
+            InitializeConverterCacheWithDefaultConverters();
         }
                 
         /// <summary>
-        /// Gets the built-in default converters.
+        /// Gets an ordered collection of default converter instances.
         /// </summary>
-        public IEnumerable<IInputConverter> DefaultConverters { get; }
+        public IEnumerable<IInputConverter> DefaultConverters => _defaultConverters;
                 
         /// <summary>
         /// Gets an instance of the converter for the type requested.
         /// </summary>
         /// <param name="converterType">The type of IConverter implementation to return.</param>
         /// <returns>IConverter instance of the requested type.</returns>
-        public IInputConverter GetConverterInstance(Type converterType)
+        public IInputConverter GetOrCreateConverterInstance(Type converterType)
         {
             if (converterType == null)
             {
@@ -62,17 +64,18 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             return converterInstance;
         }
-        
-        private IEnumerable<IInputConverter> CreateDefaultConverters()
+
+        private IReadOnlyList<IInputConverter> _defaultConverters;
+        private void InitializeConverterCacheWithDefaultConverters()
         {
             if (_workerOptions.InputConverters == null || _workerOptions.InputConverters.Count == 0)
             {
                 throw new InvalidOperationException("No binding converters found in worker options!");
             }
 
-            var converterList = new List<IInputConverter>(_workerOptions.InputConverters.Count);
-
             var interfaceType = typeof(IInputConverter);
+            var convertersOrdered = new List<IInputConverter>(_workerOptions.InputConverters.Count);
+            
             foreach (Type converterType in _workerOptions.InputConverters)
             {
                 if (!interfaceType.IsAssignableFrom(converterType))
@@ -80,10 +83,15 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter");
                 }
 
-                converterList.Add((IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType));
+                var converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+
+                _converterCache.TryAdd(converterType, converterInstance);
+                
+                // Keep a reference to this instance in an ordered collection so that we can iterate in order
+                convertersOrdered.Add(converterInstance);
             }
 
-            return converterList;
+            _defaultConverters = convertersOrdered;
         }
     }
 }

@@ -27,7 +27,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly DefaultFunctionExecutor _executor;
         private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
         private readonly Mock<IMethodInfoLocator> _mockLocator = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
-        //private readonly DefaultInputConversionFeature _defaultInputConversionFeature;
         private readonly Mock<IInputConversionFeature> _inputConversionFeature = new(MockBehavior.Strict);
         private MethodInfo _methodInfoToReturn;
 
@@ -42,13 +41,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _functionInvokerFactory = new DefaultFunctionInvokerFactory(methodInvokerFactory, functionActivator, _mockLocator.Object);
 
             _executor = new DefaultFunctionExecutor(_functionInvokerFactory, NullLogger<DefaultFunctionExecutor>.Instance);
-
-            var converterProvider = new Mock<IInputConverterProvider>();
-            //_defaultInputConversionFeature = new DefaultInputConversionFeature(converterProvider.Object);
-
-            //_inputConversionFeature
-            //    .Setup(m => m.ConvertAsync(It.IsAny<ConverterContext>()))
-            //    .Returns(new ValueTask<ConversionResult>(ConversionResult.Success("inputValue")));
         }
 
         [Fact]

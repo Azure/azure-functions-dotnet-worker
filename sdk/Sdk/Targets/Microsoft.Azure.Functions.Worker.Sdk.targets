@@ -20,7 +20,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
 
     <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
-    <_FunctionsExtensionTargetFramework Condition=" '$(_FunctionsExtensionTargetFramework)'==''">netcoreapp3.1</_FunctionsExtensionTargetFramework>
     <_FunctionsExtensionsDirectory>.azurefunctions</_FunctionsExtensionsDirectory>
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
     <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
@@ -47,7 +46,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       AssemblyPath="$(TargetDir)$(AssemblyName).dll" 
       ReferencePaths="@(ReferencePath)"
       ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
-      ExtensionsTargetFramework="$(_FunctionsExtensionTargetFramework)"
+      AzureFunctionsVersion="$(AzureFunctionsVersion)"
       OutputPath="$(TargetDir)"/>
 
     <Copy 

@@ -14,13 +14,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
-        private readonly string _targetFramework;
+        private readonly string _azureFunctionsVersion;
 
-        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath, string targetFramework)
+        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath, string azureFunctionsVersion)
         {
             _extensions = extensions ?? throw new ArgumentNullException(nameof(extensions));
             _outputPath = outputPath ?? throw new ArgumentNullException(nameof(outputPath));
-            _targetFramework = targetFramework ?? throw new ArgumentNullException(nameof(targetFramework));
+            _azureFunctionsVersion = azureFunctionsVersion ?? throw new ArgumentNullException(nameof(azureFunctionsVersion));
         }
 
         public void Generate()
@@ -49,14 +49,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             File.WriteAllText(filePath, csprojContent);
         }
 
+
+
+
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
 
+            string targetFrameWork = GetTargetFrameWork();
+
+            string netSdkVersion = GetNetSdkVersion();
+
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
-        <TargetFramework>{_targetFramework}</TargetFramework>
+        <TargetFramework>{targetFrameWork}</TargetFramework>
         <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
@@ -69,11 +76,31 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.0.11"" />
+        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""{netSdkVersion}"" />
         {extensionReferences}
     </ItemGroup>
 </Project>
 ";
+        }
+
+        private string GetNetSdkVersion()
+        {
+            if (_azureFunctionsVersion.StartsWith("v3", StringComparison.OrdinalIgnoreCase))
+            {
+                return "3.0.11";
+            }
+
+            return "4.0.0-preview2";
+        }
+
+        private string GetTargetFrameWork()
+        {
+            if (_azureFunctionsVersion.StartsWith("v3", StringComparison.OrdinalIgnoreCase))
+            {
+                return "netcoreapp3.1";
+            }
+
+            return "net6.0";
         }
 
         private string GetExtensionReferences()

@@ -1,34 +1,33 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
 
 namespace FunctionApp
 {
     public static class Function3
     {
         [Function("Function3")]
-        public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+        public static string Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)
         {
-            var response = req.CreateResponse(HttpStatusCode.OK);
-            response.WriteString("Success!");
+            var headers = req.Headers;
+            var logger = context.GetLogger("FunctionApp.Function3");
 
-            return new MyOutputType()
+            var cookies = req.Cookies;
+            cookies.ToList().ForEach(c => logger.LogInformation(c.Name));
+            
+            if(cookies.Count > 0)
             {
-                Name = "some name",
-                HttpResponse = response
-            };
+                return cookies.First().Name.ToString();
+            }
+
+            return "No cookies test";
         }
-    }
-
-    public class MyOutputType
-    {
-        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
-        public string Name { get; set; }
-
-        public HttpResponseData HttpResponse { get; set; }
     }
 }

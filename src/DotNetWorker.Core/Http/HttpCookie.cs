@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
@@ -10,6 +11,25 @@ namespace Microsoft.Azure.Functions.Worker.Http
     /// </summary>
     public sealed class HttpCookie : IHttpCookie
     {
+        private KeyValuePair<string, string> c;
+        private KeyValuePair<string, IEnumerable<string>> c1;
+        private IEnumerable<string> value;
+
+        public HttpCookie(KeyValuePair<string, string> c)
+        {
+            this.c = c;
+        }
+
+        public HttpCookie(KeyValuePair<string, IEnumerable<string>> c1)
+        {
+            this.c1 = c1;
+        }
+
+        public HttpCookie(IEnumerable<string> value)
+        {
+            this.value = value;
+        }
+
         /// <summary>
         /// Creates a cookie with name and value.
         /// </summary>

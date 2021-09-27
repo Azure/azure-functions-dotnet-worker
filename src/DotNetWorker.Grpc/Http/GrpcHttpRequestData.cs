@@ -20,11 +20,50 @@ namespace Microsoft.Azure.Functions.Worker
         private HttpHeadersCollection? _headers;
         private Stream? _bodyStream;
         private bool _disposed;
+        private Lazy<IReadOnlyCollection<IHttpCookie>> _cookies;
 
         public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
             : base(functionContext)
         {
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
+            _cookies = new Lazy<IReadOnlyCollection<IHttpCookie>>(() =>
+            {
+                if(_headers is null)
+                {
+                    return new List<IHttpCookie>();
+                }
+
+                // this produces either an empty list (no cookie) or a list with a single KeyValuePair
+                // in the format of ("Cookie", "cookie_1=value;cookie_2=value...")
+                var cookieList = _headers.ToLookup(item => item.Key)["Cookie"].ToList();
+
+                if (cookieList.Count > 0)
+                {
+                    // cookieList should have only one KeyValuePair, where the Value is all of the cookies concatenated
+                    // together as a string (ex. "Cookie_1=value;Cookie_2=value;Cookie_3=value")
+                    return cookieList.ConvertAll(new Converter<KeyValuePair<string, IEnumerable<string>>, IReadOnlyCollection<IHttpCookie>>(CookieStringsToHttpCookie)).First();
+                }
+
+                return new List<IHttpCookie>();
+               
+            });
+        }
+
+        public static IReadOnlyCollection<IHttpCookie> CookieStringsToHttpCookie(KeyValuePair<string, IEnumerable<string>> cookieStrings)
+        {
+            // cookieStrings.Value comes in the format "Cookie_1=value;Cookie_2=value;Cookie_3=value"
+            var separateCookies = cookieStrings.Value.First().ToString().Split(";");
+
+            List<IHttpCookie> httpCookiesList = new List<IHttpCookie>();
+
+            for(int c = 0; c < separateCookies.Length; c++)
+            {
+                var name = separateCookies[c].Split("=")[0];
+                var value = separateCookies[c].Split("=")[1];
+                httpCookiesList.Add(new HttpCookie(name, value));
+            }
+
+            return httpCookiesList;
         }
 
         public override Stream Body
@@ -66,7 +105,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override HttpHeadersCollection Headers => _headers ??= new HttpHeadersCollection(_httpData.NullableHeaders.Select(h => new KeyValuePair<string, string>(h.Key, h.Value.Value)));
 
-        public override IReadOnlyCollection<IHttpCookie> Cookies => _httpData.Cookies;
+        public override IReadOnlyCollection<IHttpCookie> Cookies
+        {
+            get
+            {
+                return _cookies.Value;
+            }
+        }
 
         public override Uri Url => _url ??= new Uri(_httpData.Url);
 

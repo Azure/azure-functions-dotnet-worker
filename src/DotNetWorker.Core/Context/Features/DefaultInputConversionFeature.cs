@@ -4,7 +4,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core.Converters;
 using Microsoft.Azure.Functions.Worker.Core.Converters.Converter;
@@ -17,6 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     internal sealed class DefaultInputConversionFeature : IInputConversionFeature
     {
         private readonly IInputConverterProvider _inputConverterProvider;
+        private static readonly Type _inputConverterAttributeType = typeof(InputConverterAttribute);
 
         public DefaultInputConversionFeature(IInputConverterProvider inputConverterProvider)
         {
@@ -90,15 +90,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             // Check a converter is specified on the conversionContext.Properties. If yes,use that.
             if (context.Properties != null
-                && context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeObj))
+                && context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeFullAssemblyNameObj))
             {
-                converterType = (Type)converterTypeObj;
+                converterType = Type.GetType(converterTypeFullAssemblyNameObj.ToString());
             }
             else
             {
                 // check the type used as "TargetType" has an "InputConverter" attribute decoration.
-                var converterAttributeType = typeof(InputConverterAttribute);
-                var converterAttribute = context.TargetType.GetCustomAttributes(converterAttributeType, inherit: true).FirstOrDefault();
+                var converterAttribute = context.TargetType.GetCustomAttributes(_inputConverterAttributeType, inherit: true).FirstOrDefault();
 
                 if (converterAttribute != null)
                 {

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             TargetType = targetType ?? throw new ArgumentNullException(nameof(context));
             FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
-            Source = source;                   
+            Source = source;
         }
 
         public override Type TargetType { get; set; }

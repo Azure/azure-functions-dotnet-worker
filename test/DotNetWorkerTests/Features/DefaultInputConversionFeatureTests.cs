@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specifiy a converter to be used.
             converterContext.Properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.ConverterType, typeof(MyTestSyncInputConverter)}
+                { PropertyBagKeys.ConverterType, typeof(MyTestSyncInputConverter).AssemblyQualifiedName }
             };
 
             var actual = await inputConversionFeature.ConvertAsync(converterContext);

@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     /// <summary>
-    /// Provider to get IInputConversionFeature instance.
+    /// Provider to get DefaultInputConversionFeature instance.
     /// </summary>
     internal sealed class DefaultInputConversionFeatureProvider : IInputConversionFeatureProvider
     {

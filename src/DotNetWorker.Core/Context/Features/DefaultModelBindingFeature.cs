@@ -27,11 +27,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             _inputBound = true;
-                            
+
             IInputConversionFeature conversionFeature = context.Features.Get<IInputConversionFeature>();
 
             if (conversionFeature == null)
-            {                                
+            {
                 throw new InvalidOperationException("Conversion feature is missing!");
             }
 
@@ -50,12 +50,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                 var converterContext = new DefaultConverterContext(param.Type, source, context);
 
-                if (param.BindingConverterType != null)
+                if (param.Properties != null)
                 {
-                    converterContext.Properties = new Dictionary<string, object>
+                    // Pass info about specific input converter type defined for this param if present.
+                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converter))
                     {
-                        { PropertyBagKeys.ConverterType, param.BindingConverterType}
-                    };
+                        converterContext.Properties = new Dictionary<string, object>()
+                        {
+                            { PropertyBagKeys.ConverterType, converter}
+                        };
+                    }
                 }
 
                 var bindingResult = await conversionFeature!.ConvertAsync(converterContext);

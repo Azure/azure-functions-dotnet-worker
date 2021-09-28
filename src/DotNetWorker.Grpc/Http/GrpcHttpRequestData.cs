@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         private HttpHeadersCollection? _headers;
         private Stream? _bodyStream;
         private bool _disposed;
-        private Lazy<IReadOnlyCollection<IHttpCookie>> _cookies;
+        private readonly Lazy<IReadOnlyCollection<IHttpCookie>> _cookies;
 
         public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
             : base(functionContext)
@@ -30,36 +30,34 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if(_headers is null)
                 {
-                    return new List<IHttpCookie>();
+                    return Array.Empty<IHttpCookie>();
                 }
 
-                // this produces either an empty list (no cookie) or a list with a single KeyValuePair
-                // in the format of ("Cookie", "cookie_1=value;cookie_2=value...")
-                var cookieList = _headers.ToLookup(item => item.Key)["Cookie"].ToList();
+                var cookieString = _headers.FirstOrDefault(item => item.Key == "Cookie").Value;
 
-                if (cookieList.Count > 0)
+                if (cookieString != null && cookieString.Count() > 0)
                 {
-                    // cookieList should have only one KeyValuePair, where the Value is all of the cookies concatenated
-                    // together as a string (ex. "Cookie_1=value;Cookie_2=value;Cookie_3=value")
-                    return cookieList.ConvertAll(new Converter<KeyValuePair<string, IEnumerable<string>>, IReadOnlyCollection<IHttpCookie>>(CookieStringsToHttpCookie)).First();
+
+                    return ToHttpCookies(cookieString);
                 }
 
-                return new List<IHttpCookie>();
-               
+                return Array.Empty<IHttpCookie>();
+
+
             });
         }
 
-        public static IReadOnlyCollection<IHttpCookie> CookieStringsToHttpCookie(KeyValuePair<string, IEnumerable<string>> cookieStrings)
+        private IReadOnlyCollection<IHttpCookie> ToHttpCookies(IEnumerable<string> cookieString)
         {
-            // cookieStrings.Value comes in the format "Cookie_1=value;Cookie_2=value;Cookie_3=value"
-            var separateCookies = cookieStrings.Value.First().ToString().Split(";");
+            var separateCookies = cookieString.First().ToString().Split(";");
 
-            List<IHttpCookie> httpCookiesList = new List<IHttpCookie>();
+            List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
 
-            for(int c = 0; c < separateCookies.Length; c++)
+            for (int c = 0; c < separateCookies.Length; c++)
             {
-                var name = separateCookies[c].Split("=")[0];
-                var value = separateCookies[c].Split("=")[1];
+                var splitArray = separateCookies[c].Split("=", StringSplitOptions.RemoveEmptyEntries);
+                var name = splitArray[0];
+                var value = splitArray[1];
                 httpCookiesList.Add(new HttpCookie(name, value));
             }
 

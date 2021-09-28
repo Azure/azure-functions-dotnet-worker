@@ -49,21 +49,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             File.WriteAllText(filePath, csprojContent);
         }
 
-
-
-
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
-
-            string targetFrameWork = GetTargetFrameWork();
-
-            string netSdkVersion = GetNetSdkVersion();
+            string targetFramework = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? Constants.NetCoreApp31 : Constants.Net60;
+            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.0.11" : "4.0.0-preview2";
 
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
-        <TargetFramework>{targetFrameWork}</TargetFramework>
+        <TargetFramework>{targetFramework}</TargetFramework>
         <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
@@ -81,26 +76,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     </ItemGroup>
 </Project>
 ";
-        }
-
-        private string GetNetSdkVersion()
-        {
-            if (_azureFunctionsVersion.StartsWith("v3", StringComparison.OrdinalIgnoreCase))
-            {
-                return "3.0.11";
-            }
-
-            return "4.0.0-preview2";
-        }
-
-        private string GetTargetFrameWork()
-        {
-            if (_azureFunctionsVersion.StartsWith("v3", StringComparison.OrdinalIgnoreCase))
-            {
-                return "netcoreapp3.1";
-            }
-
-            return "net6.0";
         }
 
         private string GetExtensionReferences()

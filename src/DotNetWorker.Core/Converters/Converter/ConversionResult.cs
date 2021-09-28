@@ -29,13 +29,13 @@
         /// <summary>
         /// Creates a new <see cref="ConversionResult"/> instance to represent a succesful conversion.
         /// </summary>
-        /// <returns>A new instance of new <see cref="ConversionResult"/>.</returns>
+        /// <returns>A new instance of <see cref="ConversionResult"/> to represent a successful conversion.</returns>
         public static ConversionResult Success(object? model) => new ConversionResult(isSuccess: true, model);
                 
         /// <summary>
         /// Creates a new <see cref="ConversionResult"/> instance to represent a failed conversion.
         /// </summary>
-        /// <returns>A new instance of new <see cref="ConversionResult"/>.</returns>
+        /// <returns>A new instance of <see cref="ConversionResult"/> to represent a failed conversion.</returns>
         public static ConversionResult Failed() => new ConversionResult(isSuccess:false, model: null);
     }
 }

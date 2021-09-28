@@ -57,9 +57,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            return default;
+            return ConversionResult.Failed();
         }
-                
+
         private ValueTask<ConversionResult> ConvertAsyncUsingConverter(IInputConverter converter, ConverterContext context)
         {
             var conversionResultTask = converter.ConvertAsync(context);
@@ -109,7 +109,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             if (converterType != null)
             {
-                return this._inputConverterProvider.GetOrCreateConverterInstance(converterType);
+                return _inputConverterProvider.GetOrCreateConverterInstance(converterType);
             }
 
             return null;

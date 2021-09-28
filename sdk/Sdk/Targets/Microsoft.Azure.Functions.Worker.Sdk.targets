@@ -224,7 +224,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       AssemblyPath="$(PublishDir)\$(AssemblyName).dll"
       ReferencePaths="@(ReferencePath)"
       ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
-      ExtensionsTargetFramework="$(_FunctionsExtensionTargetFramework)"
+      AzureFunctionsVersion="$(AzureFunctionsVersion)"
       OutputPath="$(PublishDir)"/>
     
     <Copy

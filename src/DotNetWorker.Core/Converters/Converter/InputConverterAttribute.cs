@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Converters.Converter
             }
 
             var interfaceType = typeof(IInputConverter);
-            if (interfaceType.IsAssignableFrom(converterType) == false)
+            if (!interfaceType.IsAssignableFrom(converterType))
             {
                 throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter");
             }

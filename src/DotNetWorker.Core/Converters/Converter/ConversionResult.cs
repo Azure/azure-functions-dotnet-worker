@@ -27,15 +27,6 @@
         }
 
         /// <summary>
-        /// Creates a new <see cref="ConversionResult"/> instance.
-        /// </summary>
-        public ConversionResult(object model)
-        {
-            IsSuccess = true;
-            Model = model;
-        }
-
-        /// <summary>
         /// Creates a new <see cref="ConversionResult"/> instance to represent a succesful conversion.
         /// </summary>
         /// <returns>A new instance of new <see cref="ConversionResult"/>.</returns>

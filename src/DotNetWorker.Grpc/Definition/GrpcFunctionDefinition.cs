@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             {
                 properties = new Dictionary<string, object>()
                 {                     
-                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName }
+                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }
                 };
             }
 

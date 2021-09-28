@@ -5,15 +5,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Core.Converters.Converter;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     /// <summary>
-    /// An implementation of <see cref="IInputConverterProvider"/> to get IFunctionInputConverter instances.
-    ///  - Provides IFunctionInputConverter instances from what is defined in WorkerOptions.FunctionInputConverters
-    ///  - Provides IFunctionInputConverter instances when requested for a specific type explicitly.
+    /// An implementation of <see cref="IInputConverterProvider"/> to get IInputConverter instances.
+    ///  - Provides IInputConverter instances from what is defined in WorkerOptions.InputConverters
+    ///  - Provides IInputConverter instances when requested for a specific type explicitly.
     ///  - Internally caches the instances created.
     /// </summary>
     internal sealed class DefaultInputConverterProvider : IInputConverterProvider
@@ -66,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
             else
             {
-                // Create and cache.
+                // Create the instance and cache.
                 converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
                 _converterCache[converterType] = converterInstance;
             }

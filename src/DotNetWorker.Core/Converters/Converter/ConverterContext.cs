@@ -6,6 +6,9 @@ using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
+    /// <summary>
+    /// A type defining the information needed for an input conversion operation.
+    /// </summary>
     public abstract class ConverterContext
     {
         /// <summary>

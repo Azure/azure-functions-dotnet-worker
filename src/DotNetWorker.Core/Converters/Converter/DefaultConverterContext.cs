@@ -6,8 +6,17 @@ using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
-    public class DefaultConverterContext : ConverterContext
+    /// <summary>
+    /// A type defining the information needed for an input conversion operation.
+    /// </summary>
+    public sealed class DefaultConverterContext : ConverterContext
     {
+        /// <summary>
+        /// Creates a new instance of <see cref="DefaultConverterContext"/>
+        /// </summary>
+        /// <param name="targetType">The target type.</param>
+        /// <param name="source">The source.</param>
+        /// <param name="context">The function context.</param>
         public DefaultConverterContext(Type targetType, object? source, FunctionContext context)
         {
             TargetType = targetType ?? throw new ArgumentNullException(nameof(context));

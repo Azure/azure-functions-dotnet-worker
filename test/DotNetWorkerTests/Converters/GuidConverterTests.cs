@@ -11,7 +11,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
     public class GuidConverterTests
     {
         private readonly GuidConverter _converter = new GuidConverter();
-        private readonly string _parameterName = "Id";
 
         [Theory]
         [InlineData("6cf8151848244ca78a169e14b4f13beb", typeof(Guid))]

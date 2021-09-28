@@ -72,9 +72,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return AwaitAndReturnConversionTaskResult(conversionResultTask);
         }
 
-        private async ValueTask<ConversionResult> AwaitAndReturnConversionTaskResult(ValueTask<ConversionResult> conversionResultTask)
+        private async ValueTask<ConversionResult> AwaitAndReturnConversionTaskResult(ValueTask<ConversionResult> conversionTask)
         {
-            var result = await conversionResultTask;
+            var result = await conversionTask;
 
             return result;
         }
@@ -90,14 +90,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             // Check a converter is specified on the conversionContext.Properties. If yes,use that.
             if (context.Properties != null
-                && context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeFullAssemblyNameObj))
+                && context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyQualifiedNameObj)
+                && converterTypeAssemblyQualifiedNameObj is string converterTypeAssemblyQualifiedName)
             {
-                converterType = Type.GetType(converterTypeFullAssemblyNameObj.ToString());
+                converterType = Type.GetType(converterTypeAssemblyQualifiedName);
             }
             else
             {
                 // check the type used as "TargetType" has an "InputConverter" attribute decoration.
-                var converterAttribute = context.TargetType.GetCustomAttributes(_inputConverterAttributeType, inherit: true).FirstOrDefault();
+                var converterAttribute = context.TargetType.GetCustomAttributes(_inputConverterAttributeType, inherit: true)
+                                                           .FirstOrDefault();
 
                 if (converterAttribute != null)
                 {

@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             _inputBound = true;
 
-            IInputConversionFeature inputConversionFeature = context.Features.Get<IInputConversionFeature>();
+            var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
 
             if (inputConversionFeature == null)
             {

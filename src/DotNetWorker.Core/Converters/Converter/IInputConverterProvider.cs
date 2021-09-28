@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Converters;
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     /// <summary>
-    /// An abstraction to get IFunctionInputConverter instances.
+    /// An abstraction to get IInputConverter instances.
     /// </summary>
     public interface IInputConverterProvider
     {
@@ -20,8 +20,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <summary>
         /// Gets an instance of the converter for the type requested.
         /// </summary>
-        /// <param name="converterType">The type of IFunctionInputConverter implementation to return.</param>
-        /// <returns>IFunctionInputConverter instance of the requested type.</returns>
+        /// <param name="converterType">The type of IInputConverter implementation to return.</param>
+        /// <returns>IInputConverter instance of the requested type.</returns>
         IInputConverter GetOrCreateConverterInstance(Type converterType);
     }
 }

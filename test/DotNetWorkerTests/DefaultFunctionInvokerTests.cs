@@ -91,16 +91,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_FunctionWithInputBindingAndReturn()
         {
             SetupMockResultForInputConverter("inputValue");
-
             _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithInputBindingAndReturn));
 
             var context = CreateContext(invocation: new TestFunctionInvocation());
-
             var converter = new List<IInputConverter>
             {
                 new TypeConverter()
-            };                        
-
+            };
             context.Features.Set<IInputConversionFeature>(_inputConversionFeature.Object);
             context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature());
             context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
@@ -157,22 +154,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithInputBindingAndReturn()
         {
+            SetupMockResultForInputConverter("triggerValue");
             _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithInputBindingAndReturn));
 
             var context = CreateContext(invocation: new TestFunctionInvocation());
-
             context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
-
-            var converters = new List<IInputConverter>
-            {
-                new TypeConverter()
-            };
-
-            SetupMockResultForInputConverter("triggerValue");
-
             context.Features.Set<IInputConversionFeature>(_inputConversionFeature.Object);
             context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature());
-            context.Features.Set<IInputConversionFeature>(_inputConversionFeature.Object);
 
             await _executor.ExecuteAsync(context);
 

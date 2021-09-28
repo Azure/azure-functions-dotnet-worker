@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             Assert.Equal(Guid.Parse(source.ToString()), convertedGuid);
         }
 
-        //[Theory]
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("a-string-with-four-hyphens")]
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             Assert.Null(conversionResult.Model);
         }
 
-       // [Theory]
+        [Theory]
         [InlineData("6cf81518-4824-4ca7-8a16-9e14b4f13beb", typeof(string))]
         [InlineData("6cf81518-4824-4ca7-8a16-9e14b4f13beb", typeof(int))]
         [InlineData("6cf81518-4824-4ca7-8a16-9e14b4f13beb", typeof(bool))]

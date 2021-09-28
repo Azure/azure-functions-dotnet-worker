@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             {
                 await using (var stream = new MemoryStream(bytes))
                 {
-                    var target =  _serializer.Deserialize(stream, type, CancellationToken.None);
+                    var target = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
                     return (Success: true, DeserializedObject: target);
                 }
             }

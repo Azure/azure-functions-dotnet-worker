@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
-    internal class DefaultConverterContext : ConverterContext
+    public class DefaultConverterContext : ConverterContext
     {
         public DefaultConverterContext(Type targetType, object? source, FunctionContext context)
         {
@@ -14,13 +14,26 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
             Source = source;
         }
-
+                
+        /// <summary>
+        /// The target type to which conversion should happen.
+        /// </summary>
+        /// 
         public override Type TargetType { get; set; }
-
+                
+        /// <summary>
+        /// The source data used for conversion.
+        /// </summary>
         public override object? Source { get; set; }
-
+                
+        /// <summary>
+        /// The function context.
+        /// </summary>
         public override FunctionContext FunctionContext { get; set; }
-
+                
+        /// <summary>
+        /// Dictionary for additional meta information used for conversion.
+        /// </summary>
         public override IReadOnlyDictionary<string, object>? Properties { get; set;}
     }
 }

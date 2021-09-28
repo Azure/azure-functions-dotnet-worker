@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -19,10 +18,20 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     /// </summary>
     internal sealed class DefaultInputConverterProvider : IInputConverterProvider
     {
-        private readonly ConcurrentDictionary<Type, IInputConverter> _converterCache = new();
         private readonly IServiceProvider _serviceProvider;
-        private readonly WorkerOptions _workerOptions;
-        
+        private readonly WorkerOptions _workerOptions;       
+         
+        /// <summary>
+        /// Stores all input converters.
+        /// </summary>
+        private readonly ConcurrentDictionary<Type, IInputConverter> _converterCache = new();
+
+        /// <summary>
+        /// Stores the default converter instances.
+        /// This is an ordered sub set of what is present in _converterCache.
+        /// </summary>
+        private IReadOnlyList<IInputConverter> _defaultConverters;
+
         public DefaultInputConverterProvider(IOptions<WorkerOptions> workerOptions, IServiceProvider serviceProvider)
         {
             _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
@@ -65,12 +74,15 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return converterInstance;
         }
 
-        private IReadOnlyList<IInputConverter> _defaultConverters;
+        /// <summary>
+        /// Initializes the defaultConverter cache from worker options.
+        /// </summary>
+        /// <exception cref="InvalidOperationException"></exception>
         private void InitializeConverterCacheWithDefaultConverters()
         {
             if (_workerOptions.InputConverters == null || _workerOptions.InputConverters.Count == 0)
             {
-                throw new InvalidOperationException("No binding converters found in worker options!");
+                throw new InvalidOperationException("No input converters found in worker options!");
             }
 
             var interfaceType = typeof(IInputConverter);

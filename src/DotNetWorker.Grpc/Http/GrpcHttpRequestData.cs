@@ -28,21 +28,20 @@ namespace Microsoft.Azure.Functions.Worker
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
             _cookies = new Lazy<IReadOnlyCollection<IHttpCookie>>(() =>
             {
-                if(_headers is null)
+                if(Headers is null)
                 {
                     return Array.Empty<IHttpCookie>();
                 }
 
-                var cookieString = _headers.FirstOrDefault(item => item.Key == "Cookie").Value;
+                var cookieString = Headers.FirstOrDefault(item => String.Equals(item.Key, "Cookie")).Value;
 
-                if (cookieString != null && cookieString.Count() > 0)
+                if (cookieString != null && cookieString.Any())
                 {
 
                     return ToHttpCookies(cookieString);
                 }
 
                 return Array.Empty<IHttpCookie>();
-
 
             });
         }

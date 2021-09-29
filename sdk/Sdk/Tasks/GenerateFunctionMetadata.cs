@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
         public ITaskItem[]? ReferencePaths { get; set; }
 
         [Required]
-        public string? ExtensionsTargetFramework { get; set; }
+        public string? AzureFunctionsVersion { get; set; }
 
         public override bool Execute()
         {
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
                 var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
 
                 var extensions = functionGenerator.Extensions;
-                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, ExtensionsTargetFramework!);
+                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!);
 
                 extensionsCsProjGenerator.Generate();
 

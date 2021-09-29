@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker
                 if (cookieString != null && cookieString.Any())
                 {
 
-                    return ToHttpCookies(cookieString);
+                    return ToHttpCookies(cookieString.First().ToString());
                 }
 
                 return Array.Empty<IHttpCookie>();
@@ -46,9 +46,9 @@ namespace Microsoft.Azure.Functions.Worker
             });
         }
 
-        private IReadOnlyCollection<IHttpCookie> ToHttpCookies(IEnumerable<string> cookieString)
+        private IReadOnlyCollection<IHttpCookie> ToHttpCookies(string cookieString)
         {
-            var separateCookies = cookieString.First().ToString().Split(";");
+            var separateCookies = cookieString.Split(";");
 
             List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
 

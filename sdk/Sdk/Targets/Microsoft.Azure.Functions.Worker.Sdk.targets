@@ -43,10 +43,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="_FunctionsPreBuild" BeforeTargets="Build">
       <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
-      <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionVersion is set to an incompatible version, Please set it to v4"/>
-      <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionVersion is set to an incompatible version, Please set it to v3"/>
-      <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionVersion is set to an incompatible version"/>
-      <Error Text="TargetFramework is invalid. Change the TargetFramework to net5.0 or net6.0" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp' Or ('$(TargetFrameworkVersion)' != 'v6.0' And '$(TargetFrameworkVersion)' != 'v5.0')"/>
+      <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
+      <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
+      <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version"/>
+      <Error Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp' Or ('$(TargetFrameworkVersion)' != 'v6.0' And '$(TargetFrameworkVersion)' != 'v5.0')" Text="TargetFramework is invalid. Change the TargetFramework to net5.0 or net6.0" />
       <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set."/>
   </Target>
 

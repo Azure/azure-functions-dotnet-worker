@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
             _cookies = new Lazy<IReadOnlyCollection<IHttpCookie>>(() =>
             {
-                if(Headers is null)
+                if (Headers is null)
                 {
                     return Array.Empty<IHttpCookie>();
                 }
@@ -38,29 +38,12 @@ namespace Microsoft.Azure.Functions.Worker
                 if (cookieString != null && cookieString.Any())
                 {
 
-                    return ToHttpCookies(cookieString.First().ToString());
+                    return ToHttpCookies(cookieString.First());
                 }
 
                 return Array.Empty<IHttpCookie>();
 
             });
-        }
-
-        private IReadOnlyCollection<IHttpCookie> ToHttpCookies(string cookieString)
-        {
-            var separateCookies = cookieString.Split(";");
-
-            List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
-
-            for (int c = 0; c < separateCookies.Length; c++)
-            {
-                var splitArray = separateCookies[c].Split("=", StringSplitOptions.RemoveEmptyEntries);
-                var name = splitArray[0];
-                var value = splitArray[1];
-                httpCookiesList.Add(new HttpCookie(name, value));
-            }
-
-            return httpCookiesList;
         }
 
         public override Stream Body
@@ -162,5 +145,23 @@ namespace Microsoft.Azure.Functions.Worker
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        private IReadOnlyCollection<IHttpCookie> ToHttpCookies(string cookieString)
+        {
+            var separateCookies = cookieString.Split(";");
+
+            List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
+
+            for (int c = 0; c < separateCookies.Length; c++)
+            {
+                var splitArray = separateCookies[c].Split("=", StringSplitOptions.RemoveEmptyEntries);
+                var name = splitArray[0];
+                var value = splitArray[1];
+                httpCookiesList.Add(new HttpCookie(name, value));
+            }
+
+            return httpCookiesList;
+        }
+
     }
 }

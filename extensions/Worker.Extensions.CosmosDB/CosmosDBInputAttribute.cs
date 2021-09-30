@@ -32,8 +32,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
-        /// Gets or sets the connection string for the service containing 
-        /// the container to monitor.
+        /// The name of the app setting containing your Azure Cosmos DB connection string.
         /// </summary>
         public string? Connection { get; private set; }
 

@@ -41,8 +41,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
-        /// Gets or sets the connection string for the service containing 
-        /// the container to monitor.
+        /// The name of the app setting containing your Azure Cosmos DB connection string.
         /// </summary>
         public string? Connection { get; set; }
 
@@ -81,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Optional.
         /// Defines a prefix to be used within a Leases container for this Trigger. Useful when sharing the same Lease container among multiple Triggers
         /// </summary>
-        public string? LeaseContainernPrefix { get; set; }
+        public string? LeaseContainerPrefix { get; set; }
         
         /// <summary>
         /// Optional.

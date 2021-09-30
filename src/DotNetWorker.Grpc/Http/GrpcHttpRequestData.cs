@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker
                     return Array.Empty<IHttpCookie>();
                 }
 
-                var cookieString = Headers.FirstOrDefault(item => String.Equals(item.Key, "Cookie")).Value;
+                var cookieString = Headers.FirstOrDefault(item => item.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase)).Value;
 
                 if (cookieString != null && cookieString.Any())
                 {

@@ -20,11 +20,30 @@ namespace Microsoft.Azure.Functions.Worker
         private HttpHeadersCollection? _headers;
         private Stream? _bodyStream;
         private bool _disposed;
+        private readonly Lazy<IReadOnlyCollection<IHttpCookie>> _cookies;
 
         public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
             : base(functionContext)
         {
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
+            _cookies = new Lazy<IReadOnlyCollection<IHttpCookie>>(() =>
+            {
+                if (Headers is null)
+                {
+                    return Array.Empty<IHttpCookie>();
+                }
+
+                var cookieString = Headers.FirstOrDefault(item => item.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase)).Value;
+
+                if (cookieString != null && cookieString.Any())
+                {
+
+                    return ToHttpCookies(cookieString.First());
+                }
+
+                return Array.Empty<IHttpCookie>();
+
+            });
         }
 
         public override Stream Body
@@ -66,7 +85,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override HttpHeadersCollection Headers => _headers ??= new HttpHeadersCollection(_httpData.NullableHeaders.Select(h => new KeyValuePair<string, string>(h.Key, h.Value.Value)));
 
-        public override IReadOnlyCollection<IHttpCookie> Cookies => _httpData.Cookies;
+        public override IReadOnlyCollection<IHttpCookie> Cookies
+        {
+            get
+            {
+                return _cookies.Value;
+            }
+        }
 
         public override Uri Url => _url ??= new Uri(_httpData.Url);
 
@@ -120,5 +145,23 @@ namespace Microsoft.Azure.Functions.Worker
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+
+        private IReadOnlyCollection<IHttpCookie> ToHttpCookies(string cookieString)
+        {
+            var separateCookies = cookieString.Split(";");
+
+            List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
+
+            for (int c = 0; c < separateCookies.Length; c++)
+            {
+                var splitArray = separateCookies[c].Split("=", StringSplitOptions.RemoveEmptyEntries);
+                var name = splitArray[0];
+                var value = splitArray[1];
+                httpCookiesList.Add(new HttpCookie(name, value));
+            }
+
+            return httpCookiesList;
+        }
+
     }
 }

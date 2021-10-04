@@ -7,7 +7,7 @@ using Azure.Core.Serialization;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// An options class for configuring the worker.
+    /// An options class for configuring the worker. Go
     /// </summary>    
     public class WorkerOptions
     {

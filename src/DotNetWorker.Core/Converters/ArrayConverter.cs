@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
@@ -46,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Success(target));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Failed());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
 
         private static object? GetBinaryData(IEnumerable<ReadOnlyMemory<byte>> source, Type targetType)

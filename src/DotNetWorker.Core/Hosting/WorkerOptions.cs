@@ -22,6 +22,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets a list of input converter types available for conversion operations.
         /// </summary>
-        public IList<Type> InputConverters { get;} = new List<Type>();
+        public IList<Type> InputConverters { get; } = new List<Type>();
     }
 }

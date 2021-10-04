@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (context.Source is not ReadOnlyMemory<byte> sourceMemory)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Failed());
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
             if (context.TargetType.IsAssignableFrom(typeof(string)))
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Success(target));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Failed());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
     }
 }

@@ -4,11 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Microsoft.Azure.Functions.Worker.Context.Features
+namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
     /// An implementation of <see cref="IInputConverterProvider"/> to get IInputConverter instances.

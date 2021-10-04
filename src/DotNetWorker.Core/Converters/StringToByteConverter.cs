@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             if (!(context.TargetType.IsAssignableFrom(typeof(byte[])) &&
                   context.Source is string sourceString))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Failed());
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
             var byteArray = Encoding.UTF8.GetBytes(sourceString);

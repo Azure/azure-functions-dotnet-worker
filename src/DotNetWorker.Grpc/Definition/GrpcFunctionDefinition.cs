@@ -7,10 +7,9 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using Microsoft.Azure.Functions.Worker.Core.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters.Converter;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -55,22 +54,20 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
 
-        private Dictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
+        private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
         {
-            Dictionary<string, object> properties = new();
-
             // Get the input converter attribute information, if present on the parameter.
             var inputConverterAttribute = parameterInfo?.GetCustomAttribute<InputConverterAttribute>();
 
             if (inputConverterAttribute != null)
             {
-                properties = new Dictionary<string, object>()
-                {                     
+                return new Dictionary<string, object>()
+                {
                     { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }
-                };
+                }.ToImmutableDictionary();
             }
 
-            return properties;
+            return ImmutableDictionary<string, object>.Empty;
         }
     }
 }

@@ -25,8 +25,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
-            var convertedGuid = TestUtility.AssertIsTypeAndConvert<Guid>(conversionResult.Model);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
+            var convertedGuid = TestUtility.AssertIsTypeAndConvert<Guid>(conversionResult.Value);
             Assert.Equal(Guid.Parse(source.ToString()), convertedGuid);
         }
 
@@ -45,8 +46,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.False(conversionResult.IsSuccess);
-            Assert.Null(conversionResult.Model);
+            Assert.False(conversionResult.IsHandled);                        
+            Assert.Null(conversionResult.IsSuccessful);
+            Assert.Null(conversionResult.Value);
         }
 
         [Theory]
@@ -59,8 +61,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.False(conversionResult.IsSuccess);
-            Assert.Null(conversionResult.Model);
+            Assert.False(conversionResult.IsHandled);
+            Assert.Null(conversionResult.IsSuccessful);
+            Assert.Null(conversionResult.Value);
         }
     }
 }

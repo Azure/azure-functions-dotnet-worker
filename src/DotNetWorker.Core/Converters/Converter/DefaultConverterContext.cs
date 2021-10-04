@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     /// <summary>
     /// A type defining the information needed for an input conversion operation.
     /// </summary>
-    public sealed class DefaultConverterContext : ConverterContext
+    internal sealed class DefaultConverterContext : ConverterContext
     {
         /// <summary>
         /// Creates a new instance of <see cref="DefaultConverterContext"/>
@@ -23,26 +23,17 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
             Source = source;
         }
-                
-        /// <summary>
-        /// The target type to which conversion should happen.
-        /// </summary>
-        /// 
+
+        /// <inheritdoc/>
         public override Type TargetType { get; set; }
-                
-        /// <summary>
-        /// The source data used for conversion.
-        /// </summary>
+
+        /// <inheritdoc/>
         public override object? Source { get; set; }
-                
-        /// <summary>
-        /// The function context.
-        /// </summary>
+
+        /// <inheritdoc/>
         public override FunctionContext FunctionContext { get; set; }
-                
-        /// <summary>
-        /// Dictionary for additional meta information used for conversion.
-        /// </summary>
+
+        /// <inheritdoc/>
         public override IReadOnlyDictionary<string, object>? Properties { get; set;}
     }
 }

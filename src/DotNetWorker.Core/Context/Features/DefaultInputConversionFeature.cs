@@ -5,8 +5,6 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters.Converter;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
@@ -37,27 +35,26 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 var conversionResult = await ConvertAsyncUsingConverter(converterFromContext, converterContext);
 
-                if (conversionResult.IsSuccess)
+                if (conversionResult.IsHandled)
                 {
                     return conversionResult;
                 }
             }
 
-            // Check the default converters and see which one can successfully convert.
-            // The first converter to successfully convert wins.
-            // For example, this allows a converter that parses JSON strings to return false if the
-            // string is not valid JSON. This manager will then continue with the next matching provider.
+            // The first converter which can handle the conversion wins.
             foreach (var converter in _inputConverterProvider.DefaultConverters)
             {
                 var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
 
-                if (conversionResult.IsSuccess)
+                if (conversionResult.IsHandled)
                 {
                     return conversionResult;
                 }
+                            
+                // If "IsHandled" is false, we move on to the next converter and try to convert with that.
             }
 
-            return ConversionResult.Failed();
+            return ConversionResult.Unhandled();
         }
 
         private ValueTask<ConversionResult> ConvertAsyncUsingConverter(IInputConverter converter, ConverterContext context)

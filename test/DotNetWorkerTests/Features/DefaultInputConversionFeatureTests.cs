@@ -8,8 +8,6 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters.Converter;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Features
@@ -39,8 +37,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsSuccess);
-            var targetEnum = TestUtility.AssertIsTypeAndConvert<IReadOnlyList<Book>>(actual.Model);
+            Assert.True(actual.IsHandled);
+            Assert.True(actual.IsSuccessful);
+
+            var targetEnum = TestUtility.AssertIsTypeAndConvert<IReadOnlyList<Book>>(actual.Value);
             Assert.Collection(targetEnum,
                 p => Assert.True(p.Id == "1" && p.Author == "a"),
                 p => Assert.True(p.Id == "2" && p.Author == "c"),
@@ -54,9 +54,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsSuccess);
-            TestUtility.AssertIsTypeAndConvert<Guid>(actual.Model);
-            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d", actual.Model.ToString());
+            Assert.True(actual.IsHandled);
+            Assert.True(actual.IsSuccessful);
+            TestUtility.AssertIsTypeAndConvert<Guid>(actual.Value);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d", actual.Value.ToString());
         }
 
         [Fact]
@@ -71,9 +72,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsSuccess);
-            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d-converted value", actual.Model);
-            TestUtility.AssertIsTypeAndConvert<string>(actual.Model);
+            Assert.True(actual.IsSuccessful);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d-converted value", actual.Value);
+            TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
         }
 
         [Fact]
@@ -85,8 +86,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsSuccess);
-            var customer = TestUtility.AssertIsTypeAndConvert<Customer>(actual.Model);
+            Assert.True(actual.IsHandled);
+            Assert.True(actual.IsSuccessful);
+            var customer = TestUtility.AssertIsTypeAndConvert<Customer>(actual.Value);
             Assert.Equal("16-converted customer", customer.Name);
         }
 
@@ -100,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 await Task.Delay(1);  // simulate an async operation.
                 var customer = new Customer(context.Source.ToString(), context.Source + "-converted customer");
 
-                return ConversionResult.Success(model: customer);
+                return ConversionResult.Success(value: customer);
             }
         }
 
@@ -108,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
             {
-                var result = ConversionResult.Success(model: context.Source + "-converted value");
+                var result = ConversionResult.Success(value: context.Source + "-converted value");
 
                 return new ValueTask<ConversionResult>(result);
             }

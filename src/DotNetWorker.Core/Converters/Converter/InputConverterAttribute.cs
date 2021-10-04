@@ -4,7 +4,7 @@
 using System;
 using Microsoft.Azure.Functions.Worker.Converters;
 
-namespace Microsoft.Azure.Functions.Worker.Core.Converters.Converter
+namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
     /// An attribute that can specify a type of <see cref="IInputConverter"/> to use for function input conversion.
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Converters.Converter
         /// Creates a new instance of <see cref="InputConverterAttribute"/>
         /// </summary>
         /// <param name="converterType">The input converter type.</param>
-        /// <exception cref="InvalidOperationException">Thrown when the converterType parameter value is a type which has not implemented Microsoft.Azure.Functions.Worker.Converters.</exception>
+        /// <exception cref="InvalidOperationException">Thrown when the converterType parameter value is a type which has not implemented Microsoft.Azure.Functions.Worker.Converters.IInputConverter</exception>
         public InputConverterAttribute(Type converterType)
         {
             if (converterType == null)

@@ -20,12 +20,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         public async Task ConvertToByteArray()
         {
             var context = new TestConverterContext(typeof(byte[]), _sourceMemory);
-                        
+
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
 
-            var bytes = TestUtility.AssertIsTypeAndConvert<byte[]>(conversionResult.Model);
+            var bytes = TestUtility.AssertIsTypeAndConvert<byte[]>(conversionResult.Value);
             Assert.Equal(_sourceBytes, bytes);
         }
 
@@ -36,8 +37,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
-            var convertedString = TestUtility.AssertIsTypeAndConvert<string>(conversionResult.Model);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
+            var convertedString = TestUtility.AssertIsTypeAndConvert<string>(conversionResult.Value);
             Assert.Equal(_sourceString, convertedString);
         }
     }

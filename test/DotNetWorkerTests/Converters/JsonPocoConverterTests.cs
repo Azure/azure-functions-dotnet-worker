@@ -37,9 +37,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
                         
             var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            Assert.False(conversionResult.IsSuccess);
-
-            Assert.Null(conversionResult.Model);
+            Assert.True(conversionResult.IsHandled);
+            Assert.False(conversionResult.IsSuccessful);
+            Assert.Null(conversionResult.Value);
+            Assert.NotNull(conversionResult.Error);
         }
 
         [Fact]
@@ -50,9 +51,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
                         
             var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
 
-            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Model);
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
             Assert.Equal("a", book.Title);
             Assert.Equal("b", book.Author);
         }
@@ -63,12 +65,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
             var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
             var context = new TestConverterContext(typeof(Book), sourceMemory);
-                        
+
             var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
+            Assert.True(conversionResult.IsSuccessful);
 
-            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Model);
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
             Assert.Equal("a", book.Title);
             Assert.Equal("b", book.Author);
         }
@@ -81,9 +83,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
 
-            var targetEnum = TestUtility.AssertIsTypeAndConvert<IEnumerable<string>>(conversionResult.Model);
+            var targetEnum = TestUtility.AssertIsTypeAndConvert<IEnumerable<string>>(conversionResult.Value);
             Assert.Collection(targetEnum,
                 p => Assert.True(p == "a"),
                 p => Assert.True(p == "b"),
@@ -106,9 +109,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
                         
             var conversionResult = await jsonPocoConverter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsSuccess);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
 
-            var book = TestUtility.AssertIsTypeAndConvert<NewtonsoftBook>(conversionResult.Model);
+            var book = TestUtility.AssertIsTypeAndConvert<NewtonsoftBook>(conversionResult.Value);
             Assert.Equal("a", book.BookTitle);
             Assert.Equal("b", book.BookAuthor);
         }

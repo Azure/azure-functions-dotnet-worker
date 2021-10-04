@@ -3,17 +3,17 @@
 
 using System;
 using System.Collections.Generic;
-using Microsoft.Azure.Functions.Worker.Converters;
 
-namespace Microsoft.Azure.Functions.Worker.Context.Features
+namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
     /// An abstraction to get IInputConverter instances.
     /// </summary>
-    public interface IInputConverterProvider
+    internal interface IInputConverterProvider
     {
         /// <summary>
-        /// Gets an ordered collection of default converter instances.
+        /// Gets an ordered collection of converter instances.
+        /// This includes the default converters and the ones explicitly registered by user.
         /// </summary>
         IEnumerable<IInputConverter> DefaultConverters { get; }
         

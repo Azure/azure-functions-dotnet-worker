@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (context.TargetType == typeof(string))
             {
-                return ConversionResult.Failed();
+                return ConversionResult.Unhandled();
             }
 
             byte[]? bytes = null;
@@ -49,28 +49,25 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (bytes == null)
             {
-                return ConversionResult.Failed();
+                return ConversionResult.Unhandled();
             }
 
-            var deserializationResult = await TryDeserialize(bytes, context.TargetType);
-            var bindingResult = new ConversionResult(deserializationResult.Success, deserializationResult.DeserializedObject);
-            
-            return bindingResult;
+            return await GetConversionResultFromDeserialization(bytes, context.TargetType);
         }
 
-        private async Task<(bool Success,object? DeserializedObject)> TryDeserialize(byte[] bytes, Type type)
+        private async Task<ConversionResult> GetConversionResultFromDeserialization(byte[] bytes, Type type)
         {
             try
             {
                 await using (var stream = new MemoryStream(bytes))
                 {
-                    var target = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
-                    return (Success: true, DeserializedObject: target);
+                    var deserializedObject = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
+                    return ConversionResult.Success(deserializedObject);
                 }
             }
-            catch
+            catch (Exception ex)
             {
-                return (Success: false, DeserializedObject: null);
+                return ConversionResult.Failed(ex);
             }
         }
     }

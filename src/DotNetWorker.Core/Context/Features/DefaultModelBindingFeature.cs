@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters;
 using Microsoft.Azure.Functions.Worker.Diagnostics.Exceptions;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
@@ -14,7 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     {
         private bool _inputBound;
         private object?[]? _parameterValues;
-
         public object?[]? InputArguments => _parameterValues;
 
         public async ValueTask<object?[]> BindFunctionInputAsync(FunctionContext context)
@@ -52,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                 if (param.Properties != null)
                 {
-                    // Pass info about specific input converter type defined for this param if present.
+                    // Pass info about specific input converter type defined for this parameter if present.
                     if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
                     {
                         converterContext.Properties = new Dictionary<string, object>()
@@ -64,19 +62,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                 var bindingResult = await inputConversionFeature!.ConvertAsync(converterContext);
 
-                if (bindingResult.IsSuccess)
+                if (bindingResult.IsHandled && bindingResult.IsSuccessful!.Value)
                 {
-                    _parameterValues[i] = bindingResult.Model;
+                    _parameterValues[i] = bindingResult.Value;
                 }
-                else if (source is not null)
+                else if (bindingResult.IsHandled && !bindingResult.IsSuccessful!.Value && source is not null)
                 {
                     // Don't initialize this list unless we have to
-                    if (errors is null)
-                    {
-                        errors = new List<string>();
-                    }
+                    errors ??= new List<string>();
 
-                    errors.Add($"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'.");
+                    errors.Add($"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'. Error:{bindingResult.Error}");
                 }
             }
 

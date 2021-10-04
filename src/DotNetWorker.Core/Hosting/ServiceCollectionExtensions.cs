@@ -53,6 +53,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();
 
             // Input conversion feature
+            services.AddSingleton<IConverterContextFactory, DefaultConverterContextFactory>();
             services.AddSingleton<IInputConversionFeatureProvider, DefaultInputConversionFeatureProvider>();
             services.AddSingleton<IInputConverterProvider, DefaultInputConverterProvider>();
 
@@ -77,14 +78,12 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            return new FunctionsWorkerApplicationBuilder(services); ;
+            return new FunctionsWorkerApplicationBuilder(services);
         }
 
         /// <summary>
-        /// Adds the built-in function input converters to worker options.
+        /// Adds the built-in input converters to worker options.
         /// </summary>
-        /// <param name="services">The <see cref="IServiceCollection"/>.</param>
-        /// <returns>The <see cref="IServiceCollection"/>.</returns>
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
             return services.Configure<WorkerOptions>((workerOption) =>

@@ -27,22 +27,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         public async Task ConvertCollectionBytesToJaggedByteArray()
         {
             var context = new TestConverterContext(typeof(byte[][]), _sourceMemoryEnumerable);
-                        
-            var coneversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsSuccess);
-            TestUtility.AssertIsTypeAndConvert<byte[][]>(coneversionResult.Model);
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
+            TestUtility.AssertIsTypeAndConvert<byte[][]>(conversionResult.Value);
         }
 
         [Fact]
         public async Task ConvertCollectionBytesToReadOnlyByteArray()
         {
             var context = new TestConverterContext(typeof(ReadOnlyMemory<byte>[]), _sourceMemoryEnumerable);
-                        
-            var coneversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsSuccess);
-            TestUtility.AssertIsTypeAndConvert<ReadOnlyMemory<byte>[]>(coneversionResult.Model);
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
+            TestUtility.AssertIsTypeAndConvert<ReadOnlyMemory<byte>[]>(conversionResult.Value);
         }
 
         [Fact]
@@ -50,10 +52,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         {
             var context = new TestConverterContext(typeof(string[]), _sourceStringEnumerable);
 
-            var coneversionResult = await _converter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsSuccess);
-            TestUtility.AssertIsTypeAndConvert<string[]>(coneversionResult.Model);
+            Assert.True(conversionResult.IsHandled);
+            Assert.True(conversionResult.IsSuccessful);
+            TestUtility.AssertIsTypeAndConvert<string[]>(conversionResult.Value);
         }
 
         [Fact]
@@ -63,19 +66,21 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var coneversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsSuccess);
-            TestUtility.AssertIsTypeAndConvert<long[]>(coneversionResult.Model);
+            Assert.True(coneversionResult.IsHandled);
+            Assert.True(coneversionResult.IsSuccessful);
+            TestUtility.AssertIsTypeAndConvert<long[]>(coneversionResult.Value);
         }
 
         [Fact]
         public async Task ConvertCollectionDoubleToDoubleArray()
         {
             var context = new TestConverterContext(typeof(double[]), _sourceDoubleEnumerable);
-                        
+
             var coneversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsSuccess);
-            TestUtility.AssertIsTypeAndConvert<double[]>(coneversionResult.Model);
+            Assert.True(coneversionResult.IsHandled);
+            Assert.True(coneversionResult.IsSuccessful);
+            TestUtility.AssertIsTypeAndConvert<double[]>(coneversionResult.Value);
         }
     }
 }

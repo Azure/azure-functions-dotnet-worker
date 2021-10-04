@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(bindingResult);
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Failed());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
     }
 }

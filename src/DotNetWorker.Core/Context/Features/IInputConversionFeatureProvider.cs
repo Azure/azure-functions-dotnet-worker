@@ -6,9 +6,9 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     /// <summary>
-    /// Provider abstraction to get IFunctionInputConversionFeature instance.
+    /// Provider abstraction to get IInputConversionFeature instance.
     /// </summary>
-    public interface IInputConversionFeatureProvider
+    internal interface IInputConversionFeatureProvider
     {
         /// <summary>
         /// Tries to create an instance of IInputConversionFeature feature.

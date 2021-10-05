@@ -88,6 +88,11 @@ message StreamingMessage {
   }
 }
 
+    // Worker Indexing message types
+    FunctionsMetadataRequest functions_metadata_request = 29;
+    FunctionMetadataResponses function_metadata_responses = 30;
+
+
 // Process.Start required info
 //   connection details
 //   protocol type

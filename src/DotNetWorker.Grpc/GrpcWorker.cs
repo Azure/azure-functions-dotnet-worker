@@ -266,5 +266,27 @@ namespace Microsoft.Azure.Functions.Worker
 
             return response;
         }
+
+        /*
+         * * Need to ask about the design of this, how to name things, and how many new classes to create?
+        internal static async Task<FunctionMetadatResponse> HandleFunctionsMetadataRequest(FunctionMetadatRequest req)
+        {
+            var directory = req.directory;
+
+            // get list of function metadata 
+            // this could be in a few places - maybe try building onto function metadata generator file?
+            funcMetadata = someFile.index_functions(directory) 
+
+            // this is the python version of the response
+            // are we sending a task + type or writing out a message?
+            return protos.StreamingMessage(
+                request_id = req.request_id,
+                function_metadata_responses = protos.FunctionMetadataResponses(
+                    results = function_metadata,
+                    overall_status = protos.StatusResult(
+                        status = protos.StatusResult.Success)));
+        }
+        */
+        
     }
 }

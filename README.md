@@ -1,26 +1,54 @@
-![Azure Functions Logo](https://raw.githubusercontent.com/Azure/azure-functions-cli/master/src/Azure.Functions.Cli/npm/assets/azure-functions-logo-color-raster.png)
+# Azure Functions Language Worker Protobuf
 
 |Branch|Status|
 |---|---|
 |main|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=main)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=main)|
 |release/1.x|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=release%2F1.x)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=release%2F1.x)|
 
+To use this repo in Azure Functions language workers, follow steps below to add this repo as a subtree (*Adding This Repo*). If this repo is already embedded in a language worker repo, follow the steps to update the consumed file (*Pulling Updates*).
 
-# Azure Functions .NET Worker
+Learn more about Azure Function's projects on the [meta](https://github.com/azure/azure-functions) repo.
 
-Welcome to the Azure Functions .NET Worker Repository. The .NET Worker provides .NET 5 support in Azure Functions, introducing an **Isolated Model**, running as an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
+## Adding This Repo
 
-A .NET Isolated function app works differently than a .NET Core 3.1 function app. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
+From within the Azure Functions language worker repo:
+1.	Define remote branch for cleaner git commands
+    -	`git remote add proto-file https://github.com/azure/azure-functions-language-worker-protobuf.git`
+    -	`git fetch proto-file`
+2.	Index contents of azure-functions-worker-protobuf to language worker repo
+    -	`git read-tree  --prefix=<path in language worker repo> -u proto-file/<version branch>`
+3.	Add new path in language worker repo to .gitignore file
+    -   In .gitignore, add path in language worker repo
+4.	Finalize with commit
+    -	`git commit -m "Added subtree from https://github.com/azure/azure-functions-language-worker-protobuf. Branch: <version branch>. Commit: <latest protobuf commit hash>"`
+    -	`git push`
 
-## Binding Model
+## Pulling Updates
 
-.NET Isolated introduces a new binding model, slightly different from the binding model exposed in .NET Core 3 Azure Functions. More information can be [found here](https://github.com/Azure/azure-functions-dotnet-worker/wiki/.NET-Worker-bindings). Please review our samples for usage information.
+From within the Azure Functions language worker repo:
+1.	Define remote branch for cleaner git commands
+    -	`git remote add proto-file https://github.com/azure/azure-functions-language-worker-protobuf.git`
+    -	`git fetch proto-file`
+2.	Pull a specific release tag
+    -   `git fetch proto-file refs/tags/<tag-name>`
+        -   Example: `git fetch proto-file refs/tags/v1.1.0-protofile`
+3.	Merge updates
+    -   Merge with an explicit path to subtree: `git merge -X subtree=<path in language worker repo> --squash <tag-name> --allow-unrelated-histories --strategy-option theirs`
+        -   Example: `git merge -X subtree=src/WebJobs.Script.Grpc/azure-functions-language-worker-protobuf --squash v1.1.0-protofile --allow-unrelated-histories --strategy-option theirs`
+4.	Finalize with commit
+    -	`git commit -m "Updated subtree from https://github.com/azure/azure-functions-language-worker-protobuf. Tag: <tag-name>. Commit: <commit hash>"`
+    -	`git push`
 
-## Middleware
+## Releasing a Language Worker Protobuf version
 
-The Azure Functions .NET Isolated supports middleware registration, following a model similar to what exists in ASP.NET and giving you the ability to inject logic into the invocation pipeline, pre and post function executions.
+1.	Draft a release in the GitHub UI
+    -   Be sure to include details of the release
+2.	Create a release version, following semantic versioning guidelines ([semver.org](https://semver.org/))
+3.	Tag the version with the pattern: `v<M>.<m>.<p>-protofile` (example: `v1.1.0-protofile`)
+3.	Merge `dev` to `master`
 
-## Samples
+## Consuming FunctionRPC.proto
+*Note: Update versionNumber before running following commands*
 
 You can find samples on how to use different features of the .NET Worker under `samples` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples)).
 
@@ -122,10 +150,10 @@ Please create issues in this repo. Thanks!
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.opensource.microsoft.com.
+the rights to use your contribution. For details, visit https://cla.microsoft.com.
 
-When you submit a pull request, a CLA bot will automatically determine whether you need to provide
-a CLA and decorate the PR appropriately (e.g., status check, comment). Simply follow the instructions
+When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
+a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
 provided by the bot. You will only need to do this once across all repos using our CLA.
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).

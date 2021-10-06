@@ -18,12 +18,14 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     internal sealed class DefaultInputConverterProvider : IInputConverterProvider
     {
         private readonly IServiceProvider _serviceProvider;
-        private readonly WorkerOptions _workerOptions;       
-         
+        private readonly WorkerOptions _workerOptions;
+        private readonly Type _inputConverterInterfaceType = typeof(IInputConverter);
+
         /// <summary>
         /// Stores all input converters.
+        /// Key is assembly qualified name of the Converter implementation and value is the instance of it.
         /// </summary>
-        private readonly ConcurrentDictionary<Type, IInputConverter> _converterCache = new();
+        private readonly ConcurrentDictionary<string, IInputConverter> _converterCache = new();
 
         /// <summary>
         /// Stores the default converter instances.
@@ -43,66 +45,78 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// Gets an ordered collection of default converter instances.
         /// </summary>
         public IEnumerable<IInputConverter> DefaultConverters => _defaultConverters;
-                
+
         /// <summary>
         /// Gets an instance of the converter for the type requested.
         /// </summary>
-        /// <param name="converterType">The type of IConverter implementation to return.</param>
+        /// <param name="converterTypeName">The assembly qualified name of the type for which we are requesting an IInputConverter instance.</param>
+        /// <exception cref="ArgumentNullException">Throws when the converterTypeName param is null.</exception>
         /// <returns>IConverter instance of the requested type.</returns>
-        public IInputConverter GetOrCreateConverterInstance(Type converterType)
+        public IInputConverter GetOrCreateConverterInstance(string converterTypeName)
         {
-            if (converterType == null)
+            if (converterTypeName is null)
             {
-                throw new ArgumentNullException((nameof(converterType)));
+                throw new ArgumentNullException((nameof(converterTypeName)));
             }
 
-            IInputConverter converterInstance;
-            
-            // Get the IConverter instance for converterType from cache if present.
-            if (_converterCache.TryGetValue(converterType, out var converterFromCache))
+            // Get from cache or create and cache
+            return _converterCache.GetOrAdd(converterTypeName, (key, converterTypeFullName) =>
             {
-                converterInstance = converterFromCache;
-            }
-            else
-            {
-                // Create the instance and cache.
-                converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
-                _converterCache[converterType] = converterInstance;
-            }
+                // Create the instance and cache that against the assembly qualified name of the type.
+                var converterType = Type.GetType(converterTypeFullName);
 
-            return converterInstance;
+                if (converterType is null)
+                {
+                    throw new InvalidOperationException($"Could not create an instance of {converterTypeFullName}");
+                }
+
+                ThrowIfTypeCannotBeAssigned(converterType);
+
+                var converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+                _converterCache[converterTypeFullName] = converterInstance;
+
+                return converterInstance;
+
+            },converterTypeName);
         }
 
         /// <summary>
-        /// Initializes the defaultConverter cache from worker options.
+        /// Initializes the converter cache from worker options.
         /// </summary>
-        /// <exception cref="InvalidOperationException"></exception>
         private void InitializeConverterCacheWithDefaultConverters()
         {
-            if (_workerOptions.InputConverters == null || _workerOptions.InputConverters.Count == 0)
+            if (_workerOptions.InputConverters is null || _workerOptions.InputConverters.Count == 0)
             {
                 throw new InvalidOperationException("No input converters found in worker options!");
             }
 
-            var interfaceType = typeof(IInputConverter);
             var convertersOrdered = new List<IInputConverter>(_workerOptions.InputConverters.Count);
             
             foreach (Type converterType in _workerOptions.InputConverters)
             {
-                if (!interfaceType.IsAssignableFrom(converterType))
-                {
-                    throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter");
-                }
+                ThrowIfTypeCannotBeAssigned(converterType);
 
                 var converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
 
-                _converterCache.TryAdd(converterType, converterInstance);
-                
+                _converterCache.TryAdd(converterType.AssemblyQualifiedName!, converterInstance);
+
                 // Keep a reference to this instance in an ordered collection so that we can iterate in order
                 convertersOrdered.Add(converterInstance);
             }
 
             _defaultConverters = convertersOrdered;
+        }
+
+        /// <summary>
+        /// Make sure the converter type is a type which implemented IInputConverter interface 
+        /// </summary>
+        private void ThrowIfTypeCannotBeAssigned(Type converterType)
+        {
+            if (!_inputConverterInterfaceType.IsAssignableFrom(converterType))
+            {
+                throw new InvalidOperationException(
+                    $"{converterType.Name} must implement {_inputConverterInterfaceType.FullName} to be used as an input converter");
+            }
         }
     }
 }

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -15,6 +16,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     {
         private readonly IInputConverterProvider _inputConverterProvider;
         private static readonly Type _inputConverterAttributeType = typeof(InputConverterAttribute);
+
+        // Users may create a POCO and specify a special converter implementation
+        // to be used using "InputConverter" attribute. We cache that mapping here.
+        // Key is assembly qualified name of POCO and Value is assembly qualified name of converter implementation.
+        private static readonly ConcurrentDictionary<string, string?> _typeToConverterCache = new();
 
         public DefaultInputConversionFeature(IInputConverterProvider inputConverterProvider)
         {
@@ -31,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             // Check a converter is explicitly specified via the converter context. If so, use that.
             IInputConverter? converterFromContext = GetConverterFromContext(converterContext);
 
-            if (converterFromContext != null)
+            if (converterFromContext is not null)
             {
                 var conversionResult = await ConvertAsyncUsingConverter(converterFromContext, converterContext);
 
@@ -50,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 {
                     return conversionResult;
                 }
-                            
+
                 // If "IsHandled" is false, we move on to the next converter and try to convert with that.
             }
 
@@ -83,33 +89,49 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <returns>An IInputConverter instance or null</returns>
         private IInputConverter? GetConverterFromContext(ConverterContext context)
         {
-            Type? converterType = default;
+            string? converterTypeFullName;
 
             // Check a converter is specified on the conversionContext.Properties. If yes,use that.
-            if (context.Properties != null
-                && context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyQualifiedNameObj)
+            if (context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyQualifiedNameObj)
                 && converterTypeAssemblyQualifiedNameObj is string converterTypeAssemblyQualifiedName)
             {
-                converterType = Type.GetType(converterTypeAssemblyQualifiedName);
+                converterTypeFullName = converterTypeAssemblyQualifiedName;
             }
             else
             {
                 // check the type used as "TargetType" has an "InputConverter" attribute decoration.
-                var converterAttribute = context.TargetType.GetCustomAttributes(_inputConverterAttributeType, inherit: true)
-                                                           .FirstOrDefault();
-
-                if (converterAttribute != null)
-                {
-                    converterType = ((InputConverterAttribute)converterAttribute).ConverterType;
-                }
+                converterTypeFullName = GetConverterTypeNameFromAttributeOnType(context.TargetType);
             }
 
-            if (converterType != null)
+            if (converterTypeFullName is not null)
             {
-                return _inputConverterProvider.GetOrCreateConverterInstance(converterType);
+                return _inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName);
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Checks a type has an "InputConverter" attribute decoration present
+        /// and if present, return the assembly qualified name of the "ConverterType" property.
+        /// else return null.
+        /// </summary>
+        private static string? GetConverterTypeNameFromAttributeOnType(Type targetType)
+        {            
+            return _typeToConverterCache.GetOrAdd(targetType.AssemblyQualifiedName!, (key, type) =>
+            {
+                var converterAttribute = type.GetCustomAttributes(_inputConverterAttributeType, inherit: true)
+                                                   .FirstOrDefault();
+
+                if (converterAttribute is null)
+                {
+                    return null;
+                }
+
+                Type converterType = ((InputConverterAttribute)converterAttribute).ConverterType;
+                return converterType.AssemblyQualifiedName!;
+                
+            },targetType);
         }
     }
 }

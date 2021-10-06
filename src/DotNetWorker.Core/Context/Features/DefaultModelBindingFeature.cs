@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Diagnostics.Exceptions;
@@ -20,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             if (_inputBound)
             {
                 throw new InvalidOperationException("Duplicate binding call detected. " +
-                    $"Input parameters can only be bound to arguments once. Use the {nameof(InputArguments)} property to inspect values.");
+                                                    $"Input parameters can only be bound to arguments once. Use the {nameof(InputArguments)} property to inspect values.");
             }
 
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
@@ -46,21 +47,20 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }
 
-                var converterContext = new DefaultConverterContext(param.Type, source, context);
+                IReadOnlyDictionary<string, object> properties = ImmutableDictionary<string, object>.Empty;
 
-                if (param.Properties != null)
+                // Pass info about specific input converter type defined for this parameter if present.
+                if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
                 {
-                    // Pass info about specific input converter type defined for this parameter if present.
-                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
+                    properties = new Dictionary<string, object>()
                     {
-                        converterContext.Properties = new Dictionary<string, object>()
-                        {
-                            { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName}
-                        };
-                    }
+                        { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName }
+                    };
                 }
 
-                var bindingResult = await inputConversionFeature!.ConvertAsync(converterContext);
+                var converterContext = new DefaultConverterContext(param.Type, source, context, properties);
+                
+                var bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
 
                 if (bindingResult.IsHandled && bindingResult.IsSuccessful!.Value)
                 {
@@ -71,14 +71,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     // Don't initialize this list unless we have to
                     errors ??= new List<string>();
 
-                    errors.Add($"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'. Error:{bindingResult.Error}");
+                    errors.Add(
+                        $"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'. Error:{bindingResult.Error}");
                 }
             }
 
             // found errors
             if (errors is not null)
             {
-                throw new FunctionInputConverterException($"Error converting {errors.Count} input parameters for Function '{context.FunctionDefinition.Name}': {string.Join(Environment.NewLine, errors)}");
+                throw new FunctionInputConverterException(
+                    $"Error converting {errors.Count} input parameters for Function '{context.FunctionDefinition.Name}': {string.Join(Environment.NewLine, errors)}");
             }
 
             return _parameterValues;

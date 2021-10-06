@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -11,29 +12,30 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     /// </summary>
     internal sealed class DefaultConverterContext : ConverterContext
     {
-        /// <summary>
-        /// Creates a new instance of <see cref="DefaultConverterContext"/>
-        /// </summary>
-        /// <param name="targetType">The target type.</param>
-        /// <param name="source">The source.</param>
-        /// <param name="context">The function context.</param>
         public DefaultConverterContext(Type targetType, object? source, FunctionContext context)
+            : this(targetType, source, context, ImmutableDictionary<string, object>.Empty)
+        {
+            
+        }
+
+        public DefaultConverterContext(Type targetType, object? source, FunctionContext context, IReadOnlyDictionary<string, object> properties)
         {
             TargetType = targetType ?? throw new ArgumentNullException(nameof(context));
-            FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
             Source = source;
+            FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
+            Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
         /// <inheritdoc/>
-        public override Type TargetType { get; set; }
+        public override Type TargetType { get; }
 
         /// <inheritdoc/>
-        public override object? Source { get; set; }
+        public override object? Source { get; }
 
         /// <inheritdoc/>
-        public override FunctionContext FunctionContext { get; set; }
+        public override FunctionContext FunctionContext { get; }
 
         /// <inheritdoc/>
-        public override IReadOnlyDictionary<string, object>? Properties { get; set;}
+        public override IReadOnlyDictionary<string, object> Properties { get; }
     }
 }

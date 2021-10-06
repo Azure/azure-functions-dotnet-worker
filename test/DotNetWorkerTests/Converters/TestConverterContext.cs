@@ -16,12 +16,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             FunctionContext = context ?? new TestFunctionContext();
         }
 
-        public override object Source { get; set; }
+        public override object Source { get; }
 
-        public override FunctionContext FunctionContext { get; set; }
+        public override FunctionContext FunctionContext { get; }
 
-        public override Type TargetType { get; set; }
+        public override Type TargetType { get; }
 
-        public override IReadOnlyDictionary<string, object> Properties { get; set; }
+        public override IReadOnlyDictionary<string, object> Properties { get; }
     }
 }

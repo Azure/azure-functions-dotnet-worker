@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
@@ -63,12 +64,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         [Fact]
         public async Task Convert_Using_Converter_Specified_In_ConverterContext_Properties()
         {
-            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d");
             // Explicitly specify a converter to be used via ConverterContext.Properties.
-            converterContext.Properties = new Dictionary<string, object>()
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.ConverterType, typeof(MySimpleSyncInputConverter).AssemblyQualifiedName }
             };
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
@@ -116,12 +117,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             }
         }
 
-        private DefaultConverterContext CreateConverterContext(Type targetType, object source)
+        private DefaultConverterContext CreateConverterContext(Type targetType, object source, IReadOnlyDictionary<string, object> properties = null)
         {
             var definition = new TestFunctionDefinition();
             var functionContext = new TestFunctionContext(definition, null);
 
-            return new DefaultConverterContext(targetType, source, functionContext);
+            return new DefaultConverterContext(targetType, source, functionContext, properties ?? ImmutableDictionary<string, object>.Empty);
         }
     }
 }

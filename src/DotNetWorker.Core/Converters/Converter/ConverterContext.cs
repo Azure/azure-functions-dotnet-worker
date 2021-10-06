@@ -14,21 +14,21 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <summary>
         /// The target type to which conversion should happen.
         /// </summary>
-        public abstract Type TargetType { get; set; }
-                
+        public abstract Type TargetType { get; }
+
         /// <summary>
         /// The source data used for conversion.
         /// </summary>
-        public abstract object? Source { get; set; }
+        public abstract object? Source { get; }
 
         /// <summary>
         /// The function context.
         /// </summary>
-        public abstract FunctionContext FunctionContext { get; set; }
+        public abstract FunctionContext FunctionContext { get; }
                 
         /// <summary>
         /// Dictionary for additional meta information used for conversion.
         /// </summary>
-        public abstract IReadOnlyDictionary<string, object>? Properties { get; set;}
+        public abstract IReadOnlyDictionary<string, object> Properties { get; }
     }
 }

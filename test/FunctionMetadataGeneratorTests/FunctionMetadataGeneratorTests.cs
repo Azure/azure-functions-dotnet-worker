@@ -494,7 +494,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         [Fact]
         public void CardinalityMany_WithNotIterableTypeThrows()
-        { 
+        {
             var generator = new FunctionMetadataGenerator();
             var typeDef = TestUtility.GetTypeDefinition(typeof(EventHubNotBatched));
 
@@ -503,15 +503,47 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void NoBindingUsage_StillAddsExtension()
+        public void EnableImplicitRegistration_NotSet()
+        {
+            // This test assembly explicitly has an ExtensionInformationAttribute, without setting EnableImplicitRegistration
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+
+            generator.GenerateFunctionMetadata(module);
+            Assert.Empty(generator.Extensions);
+        }
+
+        [Fact]
+        public void EnableImplicitRegistration_True()
         {
             var generator = new FunctionMetadataGenerator();
-            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);            
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+
+            // Inject enableImplicitRegistration = true into the constructor
+            var enableImplicitRegistrationParam = new CustomAttributeArgument(TestUtility.GetTypeDefinition(typeof(bool)), true);
+            var extInfo = module.Assembly.CustomAttributes.Single(p => p.AttributeType.FullName == Constants.ExtensionsInformationType);
+            extInfo.ConstructorArguments.Add(enableImplicitRegistrationParam);
+
             generator.GenerateFunctionMetadata(module);
             var extension = generator.Extensions.Single();
 
             Assert.Equal("SdkTests", extension.Key);
             Assert.Equal("1.0.0", extension.Value);
+        }
+
+        [Fact]
+        public void EnableImplicitRegistration_False()
+        {            
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+
+            // Inject enableImplicitRegistration = false into the constructor
+            var enableImplicitRegistrationParam = new CustomAttributeArgument(TestUtility.GetTypeDefinition(typeof(bool)), false);
+            var extInfo = module.Assembly.CustomAttributes.Single(p => p.AttributeType.FullName == Constants.ExtensionsInformationType);
+            extInfo.ConstructorArguments.Add(enableImplicitRegistrationParam);
+
+            generator.GenerateFunctionMetadata(module);
+            Assert.Empty(generator.Extensions);
         }
 
         private class EventHubNotBatched

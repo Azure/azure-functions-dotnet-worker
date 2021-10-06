@@ -14,12 +14,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ApplicationInsights" Version="1.0.0-preview3" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.0.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />    
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />

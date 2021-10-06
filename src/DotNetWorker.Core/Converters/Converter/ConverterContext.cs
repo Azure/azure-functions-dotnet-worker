@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         public abstract FunctionContext FunctionContext { get; }
                 
         /// <summary>
-        /// Dictionary for additional meta information used for conversion.
+        /// Property bag of additional meta information used for conversion.
         /// </summary>
         public abstract IReadOnlyDictionary<string, object> Properties { get; }
     }

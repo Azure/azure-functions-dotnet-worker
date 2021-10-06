@@ -59,7 +59,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 throw new ArgumentNullException((nameof(converterTypeName)));
             }
 
-            // Get from cache or create and cache
+            // Get from cache or create the instance and cache
             return _converterCache.GetOrAdd(converterTypeName, (key, converterTypeFullName) =>
             {
                 // Create the instance and cache that against the assembly qualified name of the type.

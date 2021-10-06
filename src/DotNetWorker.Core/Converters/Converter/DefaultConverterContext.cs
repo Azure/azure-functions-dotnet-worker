@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -12,12 +11,6 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     /// </summary>
     internal sealed class DefaultConverterContext : ConverterContext
     {
-        public DefaultConverterContext(Type targetType, object? source, FunctionContext context)
-            : this(targetType, source, context, ImmutableDictionary<string, object>.Empty)
-        {
-            
-        }
-
         public DefaultConverterContext(Type targetType, object? source, FunctionContext context, IReadOnlyDictionary<string, object> properties)
         {
             TargetType = targetType ?? throw new ArgumentNullException(nameof(context));

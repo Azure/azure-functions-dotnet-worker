@@ -98,16 +98,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(ModuleDefinition module)
         {
             var functions = new List<SdkFunctionMetadata>();
+            bool functionFound = false;
 
             foreach (TypeDefinition type in module.Types)
             {
                 var functionsResult = GenerateFunctionMetadata(type).ToArray();
                 if (functionsResult.Any())
                 {
+                    functionFound = true;
                     _logger.LogMessage($"Found {functionsResult.Length} functions in '{type.GetReflectionFullName()}'.");
                 }
 
                 functions.AddRange(functionsResult);
+            }
+
+            // If the assembly has an ExtensionInformation attribute, always add it to the extensions list
+            if (!functionFound && TryAddExtensionInfo(_extensions, module.Assembly))
+            {
+                _logger.LogMessage($"Found {Constants.ExtensionsInformationType}.");                
             }
 
             return functions;
@@ -632,7 +640,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute)
         {
             AssemblyDefinition extensionAssemblyDefinition = attribute.AttributeType.Resolve().Module.Assembly;
+            TryAddExtensionInfo(extensions, extensionAssemblyDefinition);
+        }
 
+        private static bool TryAddExtensionInfo(IDictionary<string,string> extensions, AssemblyDefinition extensionAssemblyDefinition)
+        {
             foreach (var assemblyAttribute in extensionAssemblyDefinition.CustomAttributes)
             {
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
@@ -643,9 +655,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     extensions[extensionName] = extensionVersion;
 
                     // Only 1 extension per library
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private static string GetBindingDirection(CustomAttribute attribute)

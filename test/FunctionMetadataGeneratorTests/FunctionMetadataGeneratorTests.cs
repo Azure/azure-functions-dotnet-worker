@@ -502,6 +502,18 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Contains("Function is configured to process events in batches but parameter type is not iterable", exception.Message);
         }
 
+        [Fact]
+        public void NoBindingUsage_StillAddsExtension()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);            
+            generator.GenerateFunctionMetadata(module);
+            var extension = generator.Extensions.Single();
+
+            Assert.Equal("SdkTests", extension.Key);
+            Assert.Equal("1.0.0", extension.Value);
+        }
+
         private class EventHubNotBatched
         {
             [Function("EventHubTrigger")]

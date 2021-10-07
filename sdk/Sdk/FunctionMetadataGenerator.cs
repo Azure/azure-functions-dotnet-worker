@@ -98,16 +98,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(ModuleDefinition module)
         {
             var functions = new List<SdkFunctionMetadata>();
+            bool moduleExtensionRegistered = false;
 
             foreach (TypeDefinition type in module.Types)
             {
                 var functionsResult = GenerateFunctionMetadata(type).ToArray();
                 if (functionsResult.Any())
                 {
+                    moduleExtensionRegistered = true;
                     _logger.LogMessage($"Found {functionsResult.Length} functions in '{type.GetReflectionFullName()}'.");
                 }
 
                 functions.AddRange(functionsResult);
+            }
+
+            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
+            {
+                _logger.LogMessage($"Implicitly registered {module.FileName} as an extension.");
             }
 
             return functions;
@@ -227,7 +234,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     AddHttpOutputBinding(bindingMetadata, Constants.ReturnBindingName);
                 }
                 else
-                {                    
+                {
                     TypeDefinition returnDefinition = returnType.Resolve()
                         ?? throw new FunctionsMetadataGenerationException($"Couldn't find the type definition '{returnType}' for method '{method.FullName}'");
 
@@ -345,7 +352,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             if (typeReference.IsGenericInstance
-                && typeReference is GenericInstanceType genericType 
+                && typeReference is GenericInstanceType genericType
                 && string.Equals(typeReference.GetElementType().FullName, Constants.TaskGenericType, StringComparison.Ordinal))
             {
                 // T from Task<T>
@@ -632,20 +639,36 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute)
         {
             AssemblyDefinition extensionAssemblyDefinition = attribute.AttributeType.Resolve().Module.Assembly;
+            TryAddExtensionInfo(extensions, extensionAssemblyDefinition);
+        }
 
+        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, bool usedByFunction = true)
+        {
             foreach (var assemblyAttribute in extensionAssemblyDefinition.CustomAttributes)
             {
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
                 {
                     string extensionName = assemblyAttribute.ConstructorArguments[0].Value.ToString();
                     string extensionVersion = assemblyAttribute.ConstructorArguments[1].Value.ToString();
+                    bool implicitlyRegister = false;
 
-                    extensions[extensionName] = extensionVersion;
+                    if (assemblyAttribute.ConstructorArguments.Count >= 3)
+                    {
+                        // EnableImplicitRegistration
+                        implicitlyRegister = (bool)assemblyAttribute.ConstructorArguments[2].Value;
+                    }
+
+                    if (usedByFunction || implicitlyRegister)
+                    {
+                        extensions[extensionName] = extensionVersion;
+                    }
 
                     // Only 1 extension per library
-                    return;
+                    return true;
                 }
             }
+
+            return false;
         }
 
         private static string GetBindingDirection(CustomAttribute attribute)

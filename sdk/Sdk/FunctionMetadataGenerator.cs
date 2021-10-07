@@ -98,21 +98,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(ModuleDefinition module)
         {
             var functions = new List<SdkFunctionMetadata>();
-            bool functionFound = false;
+            bool moduleExtensionRegistered = false;
 
             foreach (TypeDefinition type in module.Types)
             {
                 var functionsResult = GenerateFunctionMetadata(type).ToArray();
                 if (functionsResult.Any())
                 {
-                    functionFound = true;
+                    moduleExtensionRegistered = true;
                     _logger.LogMessage($"Found {functionsResult.Length} functions in '{type.GetReflectionFullName()}'.");
                 }
 
                 functions.AddRange(functionsResult);
             }
             
-            if (!functionFound && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
+            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
             {
                 _logger.LogMessage($"Implicitly registered {module.FileName} as an extension.");
             }

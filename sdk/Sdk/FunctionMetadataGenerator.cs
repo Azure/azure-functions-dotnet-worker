@@ -111,7 +111,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 functions.AddRange(functionsResult);
             }
-            
+
             if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
             {
                 _logger.LogMessage($"Implicitly registered {module.FileName} as an extension.");
@@ -649,7 +649,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
                 {
                     string extensionName = assemblyAttribute.ConstructorArguments[0].Value.ToString();
-                    string extensionVersion = assemblyAttribute.ConstructorArguments[1].Value.ToString();                    
+                    string extensionVersion = assemblyAttribute.ConstructorArguments[1].Value.ToString();
                     bool implicitlyRegister = false;
 
                     if (assemblyAttribute.ConstructorArguments.Count >= 3)

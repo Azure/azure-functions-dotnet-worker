@@ -38,8 +38,6 @@ jobs:
 
   - pwsh: ./setup-e2e-tests.ps1
     displayName: "Setup E2E tests"
-    env:
-      CORE_TOOLS_URL: $(CORE_TOOLS_URL)  
 
   - task: DotNetCoreCLI@2
     displayName: 'Run tests'

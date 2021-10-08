@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Optional.
         /// The name of the app setting containing your Azure Cosmos DB connection string.
         /// </summary>
-        public string? Connection { get; private set; }
+        public string? Connection { get; set; }
 
         /// <summary>
         /// Optional. The Id of the document to retrieve from the container.

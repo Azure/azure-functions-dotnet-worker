@@ -60,24 +60,21 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
 
             // Get from cache or create the instance and cache
-            return _converterCache.GetOrAdd(converterTypeName, (key, converterTypeFullName) =>
+            return _converterCache.GetOrAdd(converterTypeName, (key, converterTypeAssemblyQualifiedName) =>
             {
                 // Create the instance and cache that against the assembly qualified name of the type.
-                var converterType = Type.GetType(converterTypeFullName);
+                var converterType = Type.GetType(converterTypeAssemblyQualifiedName);
 
                 if (converterType is null)
                 {
-                    throw new InvalidOperationException($"Could not create an instance of {converterTypeFullName}");
+                    throw new InvalidOperationException($"Could not create an instance of {converterTypeAssemblyQualifiedName}");
                 }
 
-                ThrowIfTypeCannotBeAssigned(converterType);
+                EnsureTypeCanBeAssigned(converterType);
 
-                var converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
-                _converterCache[converterTypeFullName] = converterInstance;
+                return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
 
-                return converterInstance;
-
-            },converterTypeName);
+            }, converterTypeName);
         }
 
         /// <summary>
@@ -94,7 +91,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             
             foreach (Type converterType in _workerOptions.InputConverters)
             {
-                ThrowIfTypeCannotBeAssigned(converterType);
+                EnsureTypeCanBeAssigned(converterType);
 
                 var converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
 
@@ -108,9 +105,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         }
 
         /// <summary>
-        /// Make sure the converter type is a type which implemented IInputConverter interface 
+        /// Make sure the converter type is a type which has implemented <see cref="IInputConverter"/> interface 
         /// </summary>
-        private void ThrowIfTypeCannotBeAssigned(Type converterType)
+        private void EnsureTypeCanBeAssigned(Type converterType)
         {
             if (!_inputConverterInterfaceType.IsAssignableFrom(converterType))
             {

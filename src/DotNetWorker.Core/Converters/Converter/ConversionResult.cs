@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <param name="isHandled">Indicates whether the converter acted on the input.</param>
         /// <param name="isSuccessful">Indicates whether the conversion operation was successful or not.</param>
         /// <param name="value">The value produced from the successful conversion.</param>
-        /// <param name="error">The exception which caused the conversion to fail</param>
+        /// <param name="error">The exception which caused the conversion to fail.</param>
         private ConversionResult(bool isHandled, bool? isSuccessful = null, object? value = null, Exception? error = null)
         {
             IsHandled = isHandled;
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <summary>
         /// Creates a new <see cref="ConversionResult"/> instance to represent an unhandled input conversion.
         /// </summary>
-        /// <returns>A new instance of <see cref="ConversionResult"/> where IsHandled property value is set to true.</returns>
+        /// <returns>A new instance of <see cref="ConversionResult"/> where the IsHandled property value is set to false.</returns>
         public static ConversionResult Unhandled() => _unhandledConversionResult;
 
         /// <summary>

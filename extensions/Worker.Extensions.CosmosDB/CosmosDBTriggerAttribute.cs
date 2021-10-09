@@ -9,88 +9,79 @@ namespace Microsoft.Azure.Functions.Worker
     public sealed class CosmosDBTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>
-        /// Triggers an event when changes occur on a monitored collection
+        /// Triggers an event when changes occur on a monitored container
         /// </summary>
-        /// <param name="databaseName">Name of the database of the collection to monitor for changes</param>
-        /// <param name="collectionName">Name of the collection to monitor for changes</param>
-        public CosmosDBTriggerAttribute(string databaseName, string collectionName)
+        /// <param name="databaseName">Name of the database of the container to monitor for changes</param>
+        /// <param name="containerName">Name of the container to monitor for changes</param>
+        public CosmosDBTriggerAttribute(string databaseName, string containerName)
         {
-            if (string.IsNullOrWhiteSpace(collectionName))
+            if (string.IsNullOrWhiteSpace(containerName))
             {
-                throw new ArgumentException("Missing information for the collection to monitor", "collectionName");
+                throw new ArgumentException("Missing information for the container to monitor", nameof(containerName));
             }
 
             if (string.IsNullOrWhiteSpace(databaseName))
             {
-                throw new ArgumentException("Missing information for the collection to monitor", "databaseName");
+                throw new ArgumentException("Missing information for the container to monitor", nameof(databaseName));
             }
 
-            CollectionName = collectionName;
+            ContainerName = containerName;
             DatabaseName = databaseName;
         }
 
         /// <summary>
-        /// Connection string for the service containing the collection to monitor
+        /// Name of the container to monitor for changes
         /// </summary>
-        public string? ConnectionStringSetting { get; set; }
+        public string ContainerName { get; private set; }
 
         /// <summary>
-        /// Name of the collection to monitor for changes
-        /// </summary>
-        public string CollectionName { get; private set; }
-
-        /// <summary>
-        /// Name of the database containing the collection to monitor for changes
+        /// Name of the database containing the container to monitor for changes
         /// </summary>
         public string DatabaseName { get; private set; }
 
         /// <summary>
-        /// Connection string for the service containing the lease collection
+        /// Optional.
+        /// The name of the app setting containing your Azure Cosmos DB connection string.
         /// </summary>
-        public string? LeaseConnectionStringSetting { get; set; }
+        public string? Connection { get; set; }
+
 
         /// <summary>
-        /// Name of the lease collection. Default value is "leases"
+        /// Name of the lease container. Default value is "leases"
         /// </summary>
-        public string? LeaseCollectionName { get; set; }
+        public string? LeaseContainerName { get; set; }
 
         /// <summary>
-        /// Name of the database containing the lease collection
+        /// Name of the database containing the lease container
         /// </summary>
         public string? LeaseDatabaseName { get; set; }
 
         /// <summary>
-        /// Optional.
-        /// Only applies to lease collection.
-        /// If true, the database and collection for leases will be automatically created if it does not exist.
+        /// Gets or sets the connection string for the service containing the lease container.
         /// </summary>
-        public bool CreateLeaseCollectionIfNotExists { get; set; } = false;
+        public string? LeaseConnection { get; set; }
+
 
         /// <summary>
         /// Optional.
-        /// When specified on an output binding and <see cref="CreateLeaseCollectionIfNotExists"/> is true, defines the throughput of the created
-        /// collection.
+        /// Only applies to lease container.
+        /// If true, the database and container for leases will be automatically created if it does not exist.
         /// </summary>
-        public int LeasesCollectionThroughput { get; set; }
+        public bool CreateLeaseContainerIfNotExists { get; set; } = false;
 
         /// <summary>
         /// Optional.
-        /// Defines a prefix to be used within a Leases collection for this Trigger. Useful when sharing the same Lease collection among multiple Triggers
+        /// When specified on an output binding and <see cref="CreateLeaseContainerIfNotExists"/> is true, defines the throughput of the created
+        /// container.
         /// </summary>
-        public string? LeaseCollectionPrefix { get; set; }
+        public int LeasesContainerThroughput { get; set; }
 
         /// <summary>
         /// Optional.
-        /// Customizes the amount of milliseconds between lease checkpoints. Default is always after a Function call.
+        /// Defines a prefix to be used within a Leases container for this Trigger. Useful when sharing the same Lease container among multiple Triggers
         /// </summary>
-        public int CheckpointInterval { get; set; }
-
-        /// <summary>
-        /// Optional.
-        /// Customizes the amount of documents between lease checkpoints. Default is always after a Function call.
-        /// </summary>
-        public int CheckpointDocumentCount { get; set; }
-
+        public string? LeaseContainerPrefix { get; set; }
+        
         /// <summary>
         /// Optional.
         /// Customizes the delay in milliseconds in between polling a partition for new changes on the feed, after all current changes are drained.  Default is 5000 (5 seconds).
@@ -129,6 +120,14 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
+        /// GGets or sets the a date and time to initialize the change feed read operation from. 
+        /// The recommended format is ISO 8601 with the UTC designator. 
+        /// For example: "2021-02-16T14:19:29Z"
+        /// </summary>
+        public bool? StartFromTime { get; set; }
+
+        /// <summary>
+        /// Optional.
         /// Defines preferred locations (regions) for geo-replicated database accounts in the Azure Cosmos DB service.
         /// Values should be comma-separated.
         /// </summary>
@@ -136,24 +135,5 @@ namespace Microsoft.Azure.Functions.Worker
         /// PreferredLocations = "East US,South Central US,North Europe".
         /// </example>
         public string? PreferredLocations { get; set; }
-
-        /// <summary>
-        /// Optional.
-        /// Enable to use with Multi Master accounts.
-        /// </summary>
-        /// <remarks>
-        /// This setting only applies to the Leases collection, as there are no write operations done to the monitored collection.
-        /// </remarks>
-        public bool UseMultipleWriteLocations { get; set; }
-
-        /// <summary>
-        /// Optional.
-        /// Enables the use of JsonConvert.DefaultSettings in the monitored Azure Cosmos DB collection.
-        /// <remarks>
-        /// This setting only applies to the monitored collection and the consumer to setup the serialization used in the monitored collection.
-        /// The JsonConvert.DefaultSettings must be set in a class derived from CosmosDBWebJobsStartup.
-        /// </remarks>
-        /// </summary>
-        public bool UseDefaultJsonSerialization { get; set; }
     }
 }

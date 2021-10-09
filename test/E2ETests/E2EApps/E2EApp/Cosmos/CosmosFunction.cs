@@ -13,15 +13,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         [Function(nameof(CosmosTrigger))]
         [CosmosDBOutput(
             databaseName: "%CosmosDb%",
-            collectionName: "%CosmosCollOut%",
-            ConnectionStringSetting = "CosmosConnection",
+            containerName: "%CosmosCollOut%",
+            Connection = "CosmosConnection",
             CreateIfNotExists = true)]
         public static object CosmosTrigger([CosmosDBTrigger(
             databaseName: "%CosmosDb%",
-            collectionName: "%CosmosCollIn%",
-            ConnectionStringSetting = "CosmosConnection",
-            LeaseCollectionName = "leases",
-            CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<MyDocument> input, FunctionContext context)
+            containerName: "%CosmosCollIn%",
+            Connection = "CosmosConnection",
+            LeaseContainerName = "leases",
+            CreateLeaseContainerIfNotExists = true)] IReadOnlyList<MyDocument> input, FunctionContext context)
         {
             if (input != null && input.Count > 0)
             {

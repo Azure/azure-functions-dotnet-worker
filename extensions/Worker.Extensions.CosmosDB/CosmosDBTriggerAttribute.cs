@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (string.IsNullOrWhiteSpace(databaseName))
             {
-                throw new ArgumentException("Missing information for the container to monitor", nameof(databaseName);
+                throw new ArgumentException("Missing information for the container to monitor", nameof(databaseName));
             }
 
             ContainerName = containerName;

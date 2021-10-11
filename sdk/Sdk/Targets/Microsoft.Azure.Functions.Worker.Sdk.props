@@ -11,9 +11,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
     <FunctionsExecutionModel>isolated</FunctionsExecutionModel>
-    <FunctionsToolingSuffix>net5-isolated</FunctionsToolingSuffix>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
     <_IsFunctionsSdkBuild>true</_IsFunctionsSdkBuild>
   </PropertyGroup>

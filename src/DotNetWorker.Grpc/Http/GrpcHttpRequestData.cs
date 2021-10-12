@@ -37,12 +37,10 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (cookieString != null && cookieString.Any())
                 {
-
                     return ToHttpCookies(cookieString.First());
                 }
 
                 return Array.Empty<IHttpCookie>();
-
             });
         }
 
@@ -103,7 +101,7 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     _identities = _httpData.Identities?.Select(id =>
                     {
-                        var identity = new ClaimsIdentity(id.AuthenticationType.Value, id.NameClaimType.Value, id.RoleClaimType.Value);
+                        var identity = new ClaimsIdentity(id.AuthenticationType?.Value, id.NameClaimType.Value, id.RoleClaimType.Value);
                         identity.AddClaims(id.Claims.Select(c => new Claim(c.Type, c.Value)));
 
                         return identity;

@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-namespace Microsoft.Azure.Functions.Worker.Context
+namespace Microsoft.Azure.Functions.Worker
 {
-    internal class DefaultTraceContext : TraceContext
+    internal sealed class DefaultTraceContext : TraceContext
     {
         public DefaultTraceContext(string traceParent, string traceState)
         {

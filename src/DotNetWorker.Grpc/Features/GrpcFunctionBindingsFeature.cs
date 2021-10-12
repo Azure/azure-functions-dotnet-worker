@@ -1,12 +1,16 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 
-namespace Microsoft.Azure.Functions.Worker.Context.Features
+namespace Microsoft.Azure.Functions.Worker.Grpc.Features
 {
     internal class GrpcFunctionBindingsFeature : IFunctionBindingsFeature
     {

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -127,6 +128,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
             }
+            else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
+            {
+                responseMessage.FunctionMetadataResponses = FunctionsMetadataRequestHandler(request.FunctionsMetadataRequest);
+            }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
                 responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
@@ -239,6 +244,78 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
+        // Need to ask about the design of this, how to name things, and how many new classes to create?
+        internal static FunctionMetadataResponses FunctionsMetadataRequestHandler(FunctionsMetadataRequest request)
+        {
+            var directory = request.FunctionAppDirectory;
+
+            var response = new FunctionMetadataResponses
+            {
+                OverallStatus = StatusResult.Success
+            };
+
+            try
+            {
+                // we need to get a list of items of type "FunctionLoadRequests" which has a field RpcFunctionMetadata
+                var functionMetadata = GetFunctionLoadRequests(directory);
+
+                for (int i = 0; i < functionMetadata.Count; i++)
+                {
+                    response.Results.Add(functionMetadata[i]);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.OverallStatus = new StatusResult
+                {
+                    Status = StatusResult.Types.Status.Failure,
+                    Exception = ex.ToRpcException()
+                };
+            }
+
+            return response;
+        }
+
+        internal static IReadOnlyList<FunctionLoadRequest> GetFunctionLoadRequests(string directory)
+        {
+            // The logic for getting functionMetadata already exists in this repo, but it takes in things we don't have and creates more than we need
+            // TODO: Discuss w/ team to see how we can refactor or workaround existing classes/methods
+            var functionGenerator = new FunctionMetadataGenerator(); // in the fileGenerateFunctionMetadata this takes MSBuilder.
+                                                                     
+
+            var functions = functionGenerator.GenerateFunctionMetadata(directory);
+
+            var functionRequests = new List<FunctionLoadRequest>(functions.Count);
+
+            foreach (var metadata in functions)
+            {
+                FunctionLoadRequest request = new FunctionLoadRequest()
+                {
+                    FunctionId = metadata.GetFunctionId(), // TODO: this doesn't exist in SdkFunctionMetadata which is used internally in this repo
+                    Metadata = new RpcFunctionMetadata()
+                    {
+                        Name = metadata.Name,
+                        Directory = metadata.FunctionDirectory ?? string.Empty,
+                        EntryPoint = metadata.EntryPoint ?? string.Empty,
+                        ScriptFile = metadata.ScriptFile ?? string.Empty,
+                        IsProxy = metadata.IsProxy() // this also doesn't exist in SdkFunctionMetadata
+                    }
+                };
+
+                foreach (var binding in metadata.Bindings)
+                {
+                    BindingInfo bindingInfo = binding.ToBindingInfo();
+
+                    request.Metadata.Bindings.Add(binding.Name, bindingInfo);
+                }
+
+                functionRequests.Add(request);
+            }
+                
+
+            return functionRequests;
+        }
+
         internal static FunctionLoadResponse FunctionLoadRequestHandler(FunctionLoadRequest request, IFunctionsApplication application, IMethodInfoLocator methodInfoLocator)
         {
             var response = new FunctionLoadResponse
@@ -266,27 +343,5 @@ namespace Microsoft.Azure.Functions.Worker
 
             return response;
         }
-
-        /*
-         * * Need to ask about the design of this, how to name things, and how many new classes to create?
-        internal static async Task<FunctionMetadatResponse> HandleFunctionsMetadataRequest(FunctionMetadatRequest req)
-        {
-            var directory = req.directory;
-
-            // get list of function metadata 
-            // this could be in a few places - maybe try building onto function metadata generator file?
-            funcMetadata = someFile.index_functions(directory) 
-
-            // this is the python version of the response
-            // are we sending a task + type or writing out a message?
-            return protos.StreamingMessage(
-                request_id = req.request_id,
-                function_metadata_responses = protos.FunctionMetadataResponses(
-                    results = function_metadata,
-                    overall_status = protos.StatusResult(
-                        status = protos.StatusResult.Success)));
-        }
-        */
-        
     }
 }

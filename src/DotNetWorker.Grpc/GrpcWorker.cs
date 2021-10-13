@@ -282,7 +282,6 @@ namespace Microsoft.Azure.Functions.Worker
             // TODO: Discuss w/ team to see how we can refactor or workaround existing classes/methods
             var functionGenerator = new FunctionMetadataGenerator(); // in the fileGenerateFunctionMetadata this takes MSBuilder.
                                                                      
-
             var functions = functionGenerator.GenerateFunctionMetadata(directory);
 
             var functionRequests = new List<FunctionLoadRequest>(functions.Count);
@@ -298,7 +297,7 @@ namespace Microsoft.Azure.Functions.Worker
                         Directory = metadata.FunctionDirectory ?? string.Empty,
                         EntryPoint = metadata.EntryPoint ?? string.Empty,
                         ScriptFile = metadata.ScriptFile ?? string.Empty,
-                        IsProxy = metadata.IsProxy() // this also doesn't exist in SdkFunctionMetadata
+                        IsProxy = metadata.IsProxy() // TODO: this also doesn't exist in SdkFunctionMetadata
                     }
                 };
 

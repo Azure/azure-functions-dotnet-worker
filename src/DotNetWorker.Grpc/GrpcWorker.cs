@@ -244,7 +244,6 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        // Need to ask about the design of this, how to name things, and how many new classes to create?
         internal static FunctionMetadataResponses FunctionsMetadataRequestHandler(FunctionsMetadataRequest request)
         {
             var directory = request.FunctionAppDirectory;
@@ -278,15 +277,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static IReadOnlyList<FunctionLoadRequest> GetFunctionLoadRequests(string directory)
         {
-            // The logic for getting functionMetadata already exists in this repo, but it takes in things we don't have and creates more than we need
-            // TODO: Discuss w/ team to see how we can refactor or workaround existing classes/methods
-            var functionGenerator = new FunctionMetadataGenerator(); // in the fileGenerateFunctionMetadata this takes MSBuilder.
+            var functionGenerator = new FunctionMetadataGenerator(); 
                                                                      
-            var functions = functionGenerator.GenerateFunctionMetadata(directory);
+            var functionsMetadata = functionGenerator.GenerateFunctionMetadata(directory);
 
-            var functionRequests = new List<FunctionLoadRequest>(functions.Count);
+            var functionRequests = new List<FunctionLoadRequest>(functionsMetadata.Count);
 
-            foreach (var metadata in functions)
+            foreach (var metadata in functionsMetadata)
             {
                 FunctionLoadRequest request = new FunctionLoadRequest()
                 {

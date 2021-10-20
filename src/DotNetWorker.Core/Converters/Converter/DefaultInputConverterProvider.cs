@@ -84,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (_workerOptions.InputConverters is null || _workerOptions.InputConverters.Count == 0)
             {
-                throw new InvalidOperationException("No input converters found in worker options!");
+                throw new InvalidOperationException("No input converters found in worker options");
             }
 
             var convertersOrdered = new List<IInputConverter>(_workerOptions.InputConverters.Count);

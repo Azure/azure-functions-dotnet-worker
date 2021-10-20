@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             if (conversionResultTask.IsCompletedSuccessfully)
             {
-                return new ValueTask<ConversionResult>(conversionResultTask.Result);
+                return conversionResultTask;
             }
 
             return AwaitAndReturnConversionTaskResult(conversionResultTask);
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             string? converterTypeFullName;
 
-            // Check a converter is specified on the conversionContext.Properties. If yes,use that.
+            // Check a converter is specified on the conversionContext.Properties. If yes, use that.
             if (context.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyQualifiedNameObj)
                 && converterTypeAssemblyQualifiedNameObj is string converterTypeAssemblyQualifiedName)
             {
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return _typeToConverterCache.GetOrAdd(targetType.AssemblyQualifiedName!, (key, type) =>
             {
                 var converterAttribute = type.GetCustomAttributes(_inputConverterAttributeType, inherit: true)
-                                                   .FirstOrDefault();
+                                             .FirstOrDefault();
 
                 if (converterAttribute is null)
                 {

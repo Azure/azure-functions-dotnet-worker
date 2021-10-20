@@ -279,7 +279,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var functionGenerator = new FunctionMetadataGenerator(); 
                                                                      
-            var functionsMetadata = functionGenerator.GenerateFunctionMetadata(directory);
+            var functionsMetadata = functionGenerator.GenerateFunctionMetadata(directory, ).ToList();
 
             var functionRequests = new List<FunctionLoadRequest>(functionsMetadata.Count);
 

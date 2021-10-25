@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 var conversionResult = await ConvertAsyncUsingConverter(converterFromContext, converterContext);
 
-                if (conversionResult.IsHandled)
+                if (conversionResult.Status != ConversionStatus.Unhandled)
                 {
                     return conversionResult;
                 }
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
 
-                if (conversionResult.IsHandled)
+                if (conversionResult.Status != ConversionStatus.Unhandled)
                 {
                     return conversionResult;
                 }

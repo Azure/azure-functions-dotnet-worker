@@ -30,8 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsHandled);
-            Assert.True(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             TestUtility.AssertIsTypeAndConvert<byte[][]>(conversionResult.Value);
         }
 
@@ -41,9 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var context = new TestConverterContext(typeof(ReadOnlyMemory<byte>[]), _sourceMemoryEnumerable);
 
             var conversionResult = await _converter.ConvertAsync(context);
-
-            Assert.True(conversionResult.IsHandled);
-            Assert.True(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             TestUtility.AssertIsTypeAndConvert<ReadOnlyMemory<byte>[]>(conversionResult.Value);
         }
 
@@ -54,8 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsHandled);
-            Assert.True(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             TestUtility.AssertIsTypeAndConvert<string[]>(conversionResult.Value);
         }
 
@@ -64,11 +60,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         {
             var context = new TestConverterContext(typeof(long[]), _sourceLongEnumerable);
 
-            var coneversionResult = await _converter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsHandled);
-            Assert.True(coneversionResult.IsSuccessful);
-            TestUtility.AssertIsTypeAndConvert<long[]>(coneversionResult.Value);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<long[]>(conversionResult.Value);
         }
 
         [Fact]
@@ -76,11 +71,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         {
             var context = new TestConverterContext(typeof(double[]), _sourceDoubleEnumerable);
 
-            var coneversionResult = await _converter.ConvertAsync(context);
+            var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(coneversionResult.IsHandled);
-            Assert.True(coneversionResult.IsSuccessful);
-            TestUtility.AssertIsTypeAndConvert<double[]>(coneversionResult.Value);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<double[]>(conversionResult.Value);
         }
     }
 }

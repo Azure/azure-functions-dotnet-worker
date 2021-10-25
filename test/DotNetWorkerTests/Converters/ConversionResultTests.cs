@@ -14,8 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         {
             var conversionResult = ConversionResult.Unhandled();
 
-            Assert.False(conversionResult.IsHandled);
-            Assert.Null(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
             Assert.Null(conversionResult.Value);
             Assert.Null(conversionResult.Error);
         }
@@ -25,8 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         {
             var conversionResult = ConversionResult.Success(value: "foo");
 
-            Assert.True(conversionResult.IsHandled);
-            Assert.True(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             Assert.Null(conversionResult.Error);
             var convertedValue = TestUtility.AssertIsTypeAndConvert<string>(conversionResult.Value);
             Assert.Equal("foo", convertedValue);
@@ -38,8 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var exception = new ArgumentException();
             var conversionResult = ConversionResult.Failed(exception);
 
-            Assert.True(conversionResult.IsHandled);
-            Assert.False(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
             Assert.Null(conversionResult.Value);
             Assert.Equal(exception, conversionResult.Error);
         }

@@ -23,9 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsHandled);
-            Assert.True(conversionResult.IsSuccessful);
-
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             var bytes = TestUtility.AssertIsTypeAndConvert<byte[]>(conversionResult.Value);
             Assert.Equal(_sourceBytes, bytes);
         }
@@ -37,8 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             var conversionResult = await _converter.ConvertAsync(context);
 
-            Assert.True(conversionResult.IsHandled);
-            Assert.True(conversionResult.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             var convertedString = TestUtility.AssertIsTypeAndConvert<string>(conversionResult.Value);
             Assert.Equal(_sourceString, convertedString);
         }

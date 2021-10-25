@@ -62,11 +62,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 
                 var bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
 
-                if (bindingResult.IsHandled && bindingResult.IsSuccessful!.Value)
+                if (bindingResult.Status == ConversionStatus.Succeeded)
                 {
                     _parameterValues[i] = bindingResult.Value;
                 }
-                else if (bindingResult.IsHandled && !bindingResult.IsSuccessful!.Value && source is not null)
+                else if (bindingResult.Status == ConversionStatus.Failed && source is not null)
                 {
                     // Don't initialize this list unless we have to
                     errors ??= new List<string>();

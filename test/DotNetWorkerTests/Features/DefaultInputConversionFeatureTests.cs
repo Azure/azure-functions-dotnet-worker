@@ -38,8 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsHandled);
-            Assert.True(actual.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
 
             var targetEnum = TestUtility.AssertIsTypeAndConvert<IReadOnlyList<Book>>(actual.Value);
             Assert.Collection(targetEnum,
@@ -55,10 +54,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsHandled);
-            Assert.True(actual.IsSuccessful);
-            TestUtility.AssertIsTypeAndConvert<Guid>(actual.Value);
-            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d", actual.Value.ToString());
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+
+            var value = TestUtility.AssertIsTypeAndConvert<Guid>(actual.Value);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d", value.ToString());
         }
 
         [Fact]
@@ -73,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
             Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d-converted value", actual.Value);
             TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
         }
@@ -87,8 +86,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
 
-            Assert.True(actual.IsHandled);
-            Assert.True(actual.IsSuccessful);
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
             var customer = TestUtility.AssertIsTypeAndConvert<Customer>(actual.Value);
             Assert.Equal("16-converted customer", customer.Name);
         }

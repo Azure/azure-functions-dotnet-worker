@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
                 if (converterType is null)
                 {
-                    throw new InvalidOperationException($"Could not create an instance of {converterTypeAssemblyQualifiedName}");
+                    throw new InvalidOperationException($"Could not create an instance of {converterTypeAssemblyQualifiedName}.");
                 }
 
                 EnsureTypeCanBeAssigned(converterType);
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (_workerOptions.InputConverters is null || _workerOptions.InputConverters.Count == 0)
             {
-                throw new InvalidOperationException("No input converters found in worker options");
+                throw new InvalidOperationException("No input converters found in worker options.");
             }
 
             var convertersOrdered = new List<IInputConverter>(_workerOptions.InputConverters.Count);
@@ -112,7 +112,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             if (!_inputConverterInterfaceType.IsAssignableFrom(converterType))
             {
                 throw new InvalidOperationException(
-                    $"{converterType.Name} must implement {_inputConverterInterfaceType.FullName} to be used as an input converter");
+                    $"{converterType.Name} must implement {_inputConverterInterfaceType.FullName} to be used as an input converter.");
             }
         }
     }

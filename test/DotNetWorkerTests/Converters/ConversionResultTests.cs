@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
     public class ConversionResultTests
     {
         [Fact]
-        public void Unhandled_Result_Properties()
+        public void Verify_Unhandled_Result_Properties()
         {
             var conversionResult = ConversionResult.Unhandled();
 
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Fact]
-        public void Success_Result_Properties()
+        public void Verify_Success_Result_Properties()
         {
             var conversionResult = ConversionResult.Success(value: "foo");
 
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Fact]
-        public void Failed_Result_Properties()
+        public void Verify_Failed_Result_Properties()
         {
             var exception = new ArgumentException();
             var conversionResult = ConversionResult.Failed(exception);

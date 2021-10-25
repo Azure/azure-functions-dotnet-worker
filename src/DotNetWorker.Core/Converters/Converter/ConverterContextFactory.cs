@@ -7,6 +7,9 @@ using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
+    /// <summary>
+    /// A factory for creating <see cref="ConverterContext"/> instances.
+    /// </summary>
     internal sealed class DefaultConverterContextFactory : IConverterContextFactory
     {
         /// <inheritdoc/>

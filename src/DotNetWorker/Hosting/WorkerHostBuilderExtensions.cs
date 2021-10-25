@@ -60,7 +60,7 @@ namespace Microsoft.Extensions.Hosting
 
         /// <summary>
         /// Configures the default set of Functions Worker services to the provided <see cref="IHostBuilder"/>,
-        /// with a delegate to configure a provided <see cref="IFunctionsWorkerApplicationBuilder"/> and a delegate to configure the <see cref="WorkerOptions"/>.
+        /// with a delegate to configure a provided <see cref="WorkerOptions"/>.
         /// The following defaults are configured:
         /// <list type="bullet">
         ///     <item><description>A default set of converters.</description></item>

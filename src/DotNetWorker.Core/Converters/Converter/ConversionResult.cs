@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <summary>
         /// Creates a new <see cref="ConversionResult"/> instance to represent an unhandled input conversion.
         /// </summary>
-        /// <returns>A new instance of <see cref="ConversionResult"/> where the IsHandled property value is set to false.</returns>
+        /// <returns>A new instance of <see cref="ConversionResult"/> where the Status property value is set to Unhandled.</returns>
         public static ConversionResult Unhandled() => _unhandledConversionResult;
 
         /// <summary>

@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -36,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             var interfaceType = typeof(IInputConverter);
             if (!interfaceType.IsAssignableFrom(converterType))
             {
-                throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter");
+                throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter.");
             }
 
             ConverterType = converterType;

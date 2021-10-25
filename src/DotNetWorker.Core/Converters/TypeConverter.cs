@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
@@ -16,8 +15,8 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             if (sourceType is not null &&
                 context.TargetType.IsAssignableFrom(sourceType))
             {
-                var bindingResult = ConversionResult.Success(context.Source);
-                return new ValueTask<ConversionResult>(bindingResult);
+                var conversionResult = ConversionResult.Success(context.Source);
+                return new ValueTask<ConversionResult>(conversionResult);
             }
 
             return new ValueTask<ConversionResult>(ConversionResult.Unhandled());

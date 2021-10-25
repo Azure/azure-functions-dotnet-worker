@@ -18,9 +18,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
 
             var byteArray = Encoding.UTF8.GetBytes(sourceString);
-            var bindingResult = ConversionResult.Success(byteArray);
+            var conversionResult = ConversionResult.Success(byteArray);
 
-            return new ValueTask<ConversionResult>(bindingResult);
+            return new ValueTask<ConversionResult>(conversionResult);
         }
     }
 }

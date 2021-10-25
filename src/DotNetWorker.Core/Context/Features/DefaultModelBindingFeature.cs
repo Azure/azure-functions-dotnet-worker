@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             if (_inputBound)
             {
                 throw new InvalidOperationException("Duplicate binding call detected. " +
-                                                    $"Input parameters can only be bound to arguments once. Use the {nameof(InputArguments)} property to inspect values.");
+                    $"Input parameters can only be bound to arguments once. Use the {nameof(InputArguments)} property to inspect values.");
             }
 
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             if (inputConversionFeature == null)
             {
-                throw new InvalidOperationException("Input conversion feature is missing!");
+                throw new InvalidOperationException("Input conversion feature is missing.");
             }
 
             List<string>? errors = null;

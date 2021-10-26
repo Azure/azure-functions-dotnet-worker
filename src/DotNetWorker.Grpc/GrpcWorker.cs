@@ -16,6 +16,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Options;
+using Microsoft.Azure.WebJobs.Script.Description;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
@@ -277,30 +278,41 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static IReadOnlyList<FunctionLoadRequest> GetFunctionLoadRequests(string directory)
         {
-            var functionGenerator = new FunctionMetadataGenerator(); 
-                                                                     
-            var functionsMetadata = functionGenerator.GenerateFunctionMetadata(directory, ).ToList();
+            var functionGenerator = new FunctionMetadataJsonReader(directory);
 
-            var functionRequests = new List<FunctionLoadRequest>(functionsMetadata.Count);
+            var functionsMetadata = functionGenerator.ReadMetadataAsync().Result;
+
+            var functionRequests = new List<FunctionLoadRequest>(functionsMetadata.Length);
 
             foreach (var metadata in functionsMetadata)
             {
+                var funcId = Guid.NewGuid().ToString(); 
+
                 FunctionLoadRequest request = new FunctionLoadRequest()
                 {
-                    FunctionId = metadata.GetFunctionId(), // TODO: this doesn't exist in SdkFunctionMetadata which is used internally in this repo
+                    FunctionId = funcId, 
                     Metadata = new RpcFunctionMetadata()
                     {
                         Name = metadata.Name,
                         Directory = metadata.FunctionDirectory ?? string.Empty,
                         EntryPoint = metadata.EntryPoint ?? string.Empty,
                         ScriptFile = metadata.ScriptFile ?? string.Empty,
-                        IsProxy = metadata.IsProxy() // TODO: this also doesn't exist in SdkFunctionMetadata
+                        IsProxy = false
                     }
                 };
 
                 foreach (var binding in metadata.Bindings)
                 {
-                    BindingInfo bindingInfo = binding.ToBindingInfo();
+                    BindingInfo bindingInfo = new BindingInfo
+                    {
+                        Direction = (BindingInfo.Types.Direction)binding.Direction,
+                        Type = binding.Type
+                    };
+
+                    if (binding.DataType != null)
+                    {
+                        bindingInfo.DataType = (BindingInfo.Types.DataType)binding.DataType;
+                    }
 
                     request.Metadata.Bindings.Add(binding.Name, bindingInfo);
                 }

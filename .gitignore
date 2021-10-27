@@ -3,6 +3,14 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+Azure.Functions.Cli
+
+# For local nuget packages
+[Ll]ocal/
+
+# ignore protobuf
+src/protos
+
 # User-specific files
 *.suo
 *.user

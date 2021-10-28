@@ -3,7 +3,6 @@
     "language": "dotnet-isolated",
     "extensions": [ ".dll" ],
     "defaultExecutablePath": "$functionExe$",
-    "defaultWorkerPath": "$functionWorker$",
-    "workerIndexing": "true"
+    "defaultWorkerPath": "$functionWorker$"
   }
 }

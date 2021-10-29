@@ -250,7 +250,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             var response = new FunctionMetadataResponses
             {
-                OverallStatus = StatusResult.Success
+                Result = StatusResult.Success
             };
 
             try
@@ -259,12 +259,12 @@ namespace Microsoft.Azure.Functions.Worker
 
                 for (int i = 0; i < functionMetadata.Count; i++)
                 {
-                    response.Results.Add(functionMetadata[i]);
+                    response.FunctionLoadRequestsResults.Add(functionMetadata[i]);
                 }
             }
             catch (Exception ex)
             {
-                response.OverallStatus = new StatusResult
+                response.Result = new StatusResult
                 {
                     Status = StatusResult.Types.Status.Failure,
                     Exception = ex.ToRpcException()

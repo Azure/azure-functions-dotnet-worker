@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -11,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
 { 
     internal class FunctionMetadataJsonReader
     {
-        private string _directory;
+        private readonly string _directory;
         private const string FileName = "functions.metadata";
 
         public FunctionMetadataJsonReader(string directory)
@@ -58,10 +61,8 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
             }
-            else
-            {
-                return ImmutableArray<FunctionMetadata>.Empty;
-            }
+
+            return ImmutableArray<FunctionMetadata>.Empty;
         }
     }
 }

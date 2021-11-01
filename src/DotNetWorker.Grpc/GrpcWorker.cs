@@ -16,6 +16,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
@@ -130,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
-                responseMessage.FunctionMetadataResponses = FunctionsMetadataRequestHandler(request.FunctionsMetadataRequest);
+                responseMessage.FunctionMetadataResponses = await FunctionsMetadataRequestHandler(request.FunctionsMetadataRequest);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
@@ -244,7 +245,7 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static FunctionMetadataResponses FunctionsMetadataRequestHandler(FunctionsMetadataRequest request)
+        internal static async Task<FunctionMetadataResponses> FunctionsMetadataRequestHandler(FunctionsMetadataRequest request)
         {
             var directory = request.FunctionAppDirectory;
 
@@ -255,7 +256,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadata = GetFunctionLoadRequests(directory);
+                var functionMetadata = await GetFunctionLoadRequests(directory);
 
                 for (int i = 0; i < functionMetadata.Count; i++)
                 {
@@ -274,11 +275,11 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static IReadOnlyList<FunctionLoadRequest> GetFunctionLoadRequests(string directory)
+        internal static async Task<IReadOnlyList<FunctionLoadRequest>> GetFunctionLoadRequests(string directory)
         {
             var functionGenerator = new FunctionMetadataJsonReader(directory);
 
-            var functionsMetadata = functionGenerator.ReadMetadataAsync().Result;
+            var functionsMetadata = await functionGenerator.ReadMetadataAsync();
 
             var functionRequests = new List<FunctionLoadRequest>(functionsMetadata.Length);
 
@@ -295,7 +296,8 @@ namespace Microsoft.Azure.Functions.Worker
                         Directory = metadata.FunctionDirectory ?? string.Empty,
                         EntryPoint = metadata.EntryPoint ?? string.Empty,
                         ScriptFile = metadata.ScriptFile ?? string.Empty,
-                        IsProxy = false
+                        IsProxy = false,
+                        Language = "dotnet-isolated"
                     }
                 };
 
@@ -315,9 +317,10 @@ namespace Microsoft.Azure.Functions.Worker
                     request.Metadata.Bindings.Add(binding.Name, bindingInfo);
                 }
 
+                request.Metadata.RawBindings.Add(JsonConvert.SerializeObject(metadata.Bindings));
+
                 functionRequests.Add(request);
-            }
-                
+            }        
 
             return functionRequests;
         }

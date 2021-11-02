@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
-                responseMessage.FunctionMetadataResponses = await FunctionsMetadataRequestHandler(request.FunctionsMetadataRequest);
+                responseMessage.FunctionMetadataResponses = await FunctionsMetadataRequestHandlerAsync(request.FunctionsMetadataRequest);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
@@ -245,7 +245,7 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static async Task<FunctionMetadataResponses> FunctionsMetadataRequestHandler(FunctionsMetadataRequest request)
+        internal static async Task<FunctionMetadataResponses> FunctionsMetadataRequestHandlerAsync(FunctionsMetadataRequest request)
         {
             var directory = request.FunctionAppDirectory;
 
@@ -256,7 +256,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadata = await GetFunctionLoadRequests(directory);
+                var functionMetadata = await GetFunctionLoadRequestsAsync(directory);
 
                 for (int i = 0; i < functionMetadata.Count; i++)
                 {
@@ -275,7 +275,7 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static async Task<IReadOnlyList<FunctionLoadRequest>> GetFunctionLoadRequests(string directory)
+        internal static async Task<IReadOnlyList<FunctionLoadRequest>> GetFunctionLoadRequestsAsync(string directory)
         {
             var functionGenerator = new FunctionMetadataJsonReader(directory);
 

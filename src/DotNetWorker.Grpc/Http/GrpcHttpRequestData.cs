@@ -153,7 +153,7 @@ namespace Microsoft.Azure.Functions.Worker
             for (int c = 0; c < separateCookies.Length; c++)
             {
                 var splitArray = separateCookies[c].Split("=", StringSplitOptions.RemoveEmptyEntries);
-                var name = splitArray[0];
+                var name = splitArray[0].Trim();
                 var value = splitArray[1];
                 httpCookiesList.Add(new HttpCookie(name, value));
             }

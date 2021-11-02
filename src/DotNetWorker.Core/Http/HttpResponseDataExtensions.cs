@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
+        /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to 200.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
+        /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>

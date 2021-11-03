@@ -1,13 +1,21 @@
-param(    
-    [Parameter(Mandatory=$false)]
+param(
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+    [String]
+    [ValidateSet("3", "4")]
+    $FunctionsRuntimeVersion,
+
     [Switch]
     $SkipStorageEmulator,
-    [Parameter(Mandatory=$false)]
+
     [Switch]
     $SkipCosmosDBEmulator,
-    [Parameter(Mandatory=$false)]
+
     [Switch]
-    $SkipCoreTools
+    $SkipCoreTools,
+
+    [Switch]
+    $UseCoreToolsBuildFromIntegrationTests
 )
 
 # A function that checks exit codes and fails script if an error is found 
@@ -18,9 +26,6 @@ function StopOnFailedExecution {
   }
 }
 
-$currDir =  Get-Location
-$output = "$currDir/Azure.Functions.Cli.zip"
-
 if($SkipCoreTools)
 {
   Write-Host
@@ -28,63 +33,60 @@ if($SkipCoreTools)
 }
 else
 {
-  Write-Host
-  Write-Host "---Core Tools download---"
-  Write-Host "Deleting Functions Core Tools if exists...."
-  Remove-Item -Force ./Azure.Functions.Cli.zip -ErrorAction Ignore
-  Remove-Item -Recurse -Force ./Azure.Functions.Cli -ErrorAction Ignore
+  $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+  if ($IsWindows) {
+      $os = "win"
+      $coreToolsURL = $env:CORE_TOOLS_URL
+  }
+  else {
+      if ($IsMacOS) {
+          $os = "osx"
+      } else {
+          $os = "linux"
+          $coreToolsURL = $env:CORE_TOOLS_URL_LINUX
+      }
+  }
 
-  if (!$IsWindows -and !$IsLinux)
+  if ($UseCoreToolsBuildFromIntegrationTests.IsPresent)
   {
-    # For pre-PS6
-    Write-Host "Could not resolve OS. Assuming Windows."
-    $IsWindows = $true
-  }
-  
-  $coreToolsURL = ""
-  
-  if ($IsWindows)
-  {
-    $coreToolsURL = $env:CORE_TOOLS_URL
-    if (!$coreToolsURL)
-    {        
-        $coreToolsURL = "https://functionsclibuilds.blob.core.windows.net/builds/3/latest/Azure.Functions.Cli.min.win-x86.zip"
-        Write-Host "Using default url for Core Tools Windows: $coreToolsURL"
-        Invoke-RestMethod -Uri 'https://functionsclibuilds.blob.core.windows.net/builds/3/latest/version.txt' -OutFile version.txt
-    }
-  }
-  elseif ($IsLinux)
-  {
-    $coreToolsURL = $env:CORE_TOOLS_URL_LINUX
-    if (!$coreToolsURL)
-    {       
-        $coreToolsURL = "https://functionsclibuilds.blob.core.windows.net/builds/3/latest/Azure.Functions.Cli.linux-x64.zip"
-        Write-Host "Using default url for Core Tools Linux: $coreToolsURL"
-        Invoke-RestMethod -Uri 'https://functionsclibuilds.blob.core.windows.net/builds/3/latest/version.txt' -OutFile version.txt
-    }
+    Write-Host ""
+    Write-Host "Install the Core Tools for Integration Tests..."
+    $coreToolsURL = "https://functionsintegclibuilds.blob.core.windows.net/builds/$FunctionsRuntimeVersion/latest/Azure.Functions.Cli.$os-$arch.zip"
+    $versionUrl = "https://functionsintegclibuilds.blob.core.windows.net/builds/$FunctionsRuntimeVersion/latest/version.txt"
   }
   else
   {
-      Write-Host "Could not determine the core tools URL."
-      exit 1
+    if ([string]::IsNullOrWhiteSpace($coreToolsURL))
+    {
+      $coreToolsURL = "https://functionsclibuilds.blob.core.windows.net/builds/$FunctionsRuntimeVersion/latest/Azure.Functions.Cli.$os-$arch.zip"
+      $versionUrl = "https://functionsclibuilds.blob.core.windows.net/builds/$FunctionsRuntimeVersion/latest/version.txt"
+    }
   }
-  Write-Host "Downloading Core Tools from $coreToolsURL"
-  if (Test-Path version.txt)
-  {
-    Write-Host "Using Functions Core Tools version: $(Get-Content -Raw version.txt)"
-    Remove-Item version.txt
-  }  
 
-  $wc = New-Object System.Net.WebClient
-  $wc.DownloadFile($coreToolsURL, $output)
+  Write-Host ""
+  Write-Host "---Downloading the Core Tools for Functions V$FunctionsRuntimeVersion---"
+  Write-Host "Core Tools download url: $coreToolsURL"
 
-  $destinationPath = "./Azure.Functions.Cli"
-  Write-Host "Extracting Functions Core Tools to $destinationPath"
-  Expand-Archive "./Azure.Functions.Cli.zip" -DestinationPath $destinationPath
-  
-  if ($IsLinux)
+  $FUNC_CLI_DIRECTORY = Join-Path $PSScriptRoot 'Azure.Functions.Cli'
+  Write-Host 'Deleting Functions Core Tools if exists...'
+  Remove-Item -Force "$FUNC_CLI_DIRECTORY.zip" -ErrorAction Ignore
+  Remove-Item -Recurse -Force $FUNC_CLI_DIRECTORY -ErrorAction Ignore
+
+  if ($versionUrl)
   {
-    & "chmod" "a+x" "$destinationPath/func"
+    $version = Invoke-RestMethod -Uri $versionUrl
+    Write-Host "Downloading Functions Core Tools (Version: $version)..."
+  }
+
+  $output = "$FUNC_CLI_DIRECTORY.zip"
+  Invoke-RestMethod -Uri $coreToolsURL -OutFile $output
+
+  Write-Host 'Extracting Functions Core Tools...'
+  Expand-Archive $output -DestinationPath $FUNC_CLI_DIRECTORY
+
+  if ($IsMacOS -or $IsLinux)
+  {
+    & "chmod" "a+x" "$FUNC_CLI_DIRECTORY/func"
   }
   
   Write-Host "------"
@@ -92,7 +94,7 @@ else
 
 if (Test-Path $output) 
 {
-  Remove-Item $output
+  Remove-Item $output -Recurse -Force -ErrorAction Ignore
 }
 
 .\tools\devpack.ps1 -E2E -AdditionalPackArgs @("-c","Release") -SkipBuildOnPack

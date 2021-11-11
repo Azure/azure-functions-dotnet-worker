@@ -14,6 +14,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     {
         private bool _inputBound;
         private object?[]? _parameterValues;
+        private readonly IConverterContextFactory _converterContextFactory;
+
+        public DefaultModelBindingFeature(IConverterContextFactory converterContextFactory)
+        {
+            _converterContextFactory = converterContextFactory ??
+                                       throw new ArgumentNullException(nameof(converterContextFactory));
+        }
+
         public object?[]? InputArguments => _parameterValues;
 
         public async ValueTask<object?[]> BindFunctionInputAsync(FunctionContext context)
@@ -58,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     };
                 }
 
-                var converterContext = new DefaultConverterContext(param.Type, source, context, properties);
+                var converterContext = _converterContextFactory.Create(param.Type, source, context, properties);
                 
                 var bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
 

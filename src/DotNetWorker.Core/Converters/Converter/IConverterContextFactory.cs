@@ -29,6 +29,5 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <param name="properties">A property bag for specifying additional meta data.</param>
         /// <returns>A new instance of <see cref="ConverterContext"/></returns>
         ConverterContext Create(Type targetType, object? source, FunctionContext functionContext, IReadOnlyDictionary<string, object> properties);
-
     }
 }

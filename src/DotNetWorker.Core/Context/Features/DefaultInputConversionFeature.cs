@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     return conversionResult;
                 }
 
-                // If "IsHandled" is false, we move on to the next converter and try to convert with that.
+                // If "Status" is Unhandled, we move on to the next converter and try to convert with that.
             }
 
             return ConversionResult.Unhandled();

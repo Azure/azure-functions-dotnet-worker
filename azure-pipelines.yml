@@ -29,6 +29,7 @@ jobs:
   - pwsh: ./tools/start-emulators.ps1 -NoWait
     displayName: "Start emulators (-NoWait)"
 
+  - template: build/install-dotnet.yml
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:
@@ -36,7 +37,14 @@ jobs:
       arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: 'DotNetWorker.sln'
 
-  - pwsh: ./setup-e2e-tests.ps1
+  - pwsh: |
+      $useIntegrationTestingCoreTools = $null
+      if (-not ([bool]::TryParse($env:USECORETOOLSBUILDFROMINTEGRATIONTESTS, [ref] $useIntegrationTestingCoreTools)))
+      {
+        throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
+      }
+      ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
+                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2
@@ -272,6 +280,7 @@ jobs:
     vmImage: 'ubuntu-latest'
     
   steps:
+    - template: build/install-dotnet.yml
     - task: DotNetCoreCLI@2
       displayName: 'Build projects'
       inputs:
@@ -279,7 +288,15 @@ jobs:
         arguments: '-c Release'
         projects: 'DotNetWorker.sln'
 
-    - pwsh: ./setup-e2e-tests.ps1 -SkipCosmosDBEmulator
+    - pwsh: |
+        $useIntegrationTestingCoreTools = $null
+        if (-not ([bool]::TryParse($env:USECORETOOLSBUILDFROMINTEGRATIONTESTS, [ref] $useIntegrationTestingCoreTools)))
+        {
+          throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
+        }
+        ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
+                              -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
+                              -SkipCosmosDBEmulator
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)

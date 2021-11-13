@@ -1,8 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
 
@@ -20,8 +18,8 @@ namespace Microsoft.Azure.Functions.Worker
         public ObjectSerializer? Serializer { get; set; }
 
         /// <summary>
-        /// Gets a list of input converter types available for conversion operations.
+        /// Gets the collection of input converters.
         /// </summary>
-        public IList<Type> InputConverters { get; } = new List<Type>();
+        public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
     }
 }

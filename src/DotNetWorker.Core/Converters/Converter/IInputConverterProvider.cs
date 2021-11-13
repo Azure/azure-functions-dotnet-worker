@@ -11,11 +11,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     internal interface IInputConverterProvider
     {
         /// <summary>
-        /// Gets an ordered collection of converter instances.
+        /// Gets a collection of registered input converter instances in the order they were registered.
         /// This includes the default converters and the ones explicitly registered by user.
         /// </summary>
-        IEnumerable<IInputConverter> DefaultConverters { get; }
-        
+        IEnumerable<IInputConverter> RegisteredInputConverters { get; }
+
         /// <summary>
         /// Gets an instance of the converter for the type requested.
         /// </summary>

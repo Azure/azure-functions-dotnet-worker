@@ -47,8 +47,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            // The first converter which can handle the conversion wins.
-            foreach (var converter in _inputConverterProvider.DefaultConverters)
+            // Use the registered converters. The first converter which can handle the conversion wins.
+            foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
             {
                 var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
 
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// else return null.
         /// </summary>
         private static string? GetConverterTypeNameFromAttributeOnType(Type targetType)
-        {            
+        {
             return _typeToConverterCache.GetOrAdd(targetType.AssemblyQualifiedName!, (key, type) =>
             {
                 var converterAttribute = type.GetCustomAttributes(_inputConverterAttributeType, inherit: true)
@@ -130,8 +130,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                 Type converterType = ((InputConverterAttribute)converterAttribute).ConverterType;
                 return converterType.AssemblyQualifiedName!;
-                
-            },targetType);
+
+            }, targetType);
         }
     }
 }

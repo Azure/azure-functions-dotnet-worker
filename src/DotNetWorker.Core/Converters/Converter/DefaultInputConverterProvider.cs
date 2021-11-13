@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -27,24 +28,33 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// </summary>
         private readonly ConcurrentDictionary<string, IInputConverter> _converterCache = new();
 
-        /// <summary>
-        /// Stores the default converter instances.
-        /// This is an ordered sub set of what is present in _converterCache.
-        /// </summary>
-        private IReadOnlyList<IInputConverter> _defaultConverters;
-
         public DefaultInputConverterProvider(IOptions<WorkerOptions> workerOptions, IServiceProvider serviceProvider)
         {
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
-            
-            InitializeConverterCacheWithDefaultConverters();
+
+            if (!_workerOptions.InputConverters.Any())
+            {
+                throw new InvalidOperationException("No input converters found in worker options.");
+            }
         }
-                
+
         /// <summary>
-        /// Gets an ordered collection of default converter instances.
+        /// Get a collection of registered converter instances.
         /// </summary>
-        public IEnumerable<IInputConverter> DefaultConverters => _defaultConverters;
+        public IEnumerable<IInputConverter> RegisteredInputConverters
+        {
+            get
+            {
+                foreach (var converterType in _workerOptions.InputConverters!)
+                {
+                    yield return _converterCache.GetOrAdd(converterType.AssemblyQualifiedName!, (key) =>
+                    {
+                        return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+                    });
+                }
+            }
+        }
 
         /// <summary>
         /// Gets an instance of the converter for the type requested.
@@ -75,33 +85,6 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
 
             }, converterTypeName);
-        }
-
-        /// <summary>
-        /// Initializes the converter cache from worker options.
-        /// </summary>
-        private void InitializeConverterCacheWithDefaultConverters()
-        {
-            if (_workerOptions.InputConverters is null || _workerOptions.InputConverters.Count == 0)
-            {
-                throw new InvalidOperationException("No input converters found in worker options.");
-            }
-
-            var convertersOrdered = new List<IInputConverter>(_workerOptions.InputConverters.Count);
-            
-            foreach (Type converterType in _workerOptions.InputConverters)
-            {
-                EnsureTypeCanBeAssigned(converterType);
-
-                var converterInstance = (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
-
-                _converterCache.TryAdd(converterType.AssemblyQualifiedName!, converterInstance);
-
-                // Keep a reference to this instance in an ordered collection so that we can iterate in order
-                convertersOrdered.Add(converterInstance);
-            }
-
-            _defaultConverters = convertersOrdered;
         }
 
         /// <summary>

@@ -88,13 +88,13 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services.Configure<WorkerOptions>((workerOption) =>
             {
-                workerOption.InputConverters.Add(typeof(FunctionContextConverter));
-                workerOption.InputConverters.Add(typeof(TypeConverter));
-                workerOption.InputConverters.Add(typeof(GuidConverter));
-                workerOption.InputConverters.Add(typeof(MemoryConverter));
-                workerOption.InputConverters.Add(typeof(StringToByteConverter));
-                workerOption.InputConverters.Add(typeof(JsonPocoConverter));
-                workerOption.InputConverters.Add(typeof(ArrayConverter));
+                workerOption.InputConverters.Register<FunctionContextConverter>();
+                workerOption.InputConverters.Register<TypeConverter>();
+                workerOption.InputConverters.Register<GuidConverter>();
+                workerOption.InputConverters.Register<MemoryConverter>();
+                workerOption.InputConverters.Register<StringToByteConverter>();
+                workerOption.InputConverters.Register<JsonPocoConverter>();
+                workerOption.InputConverters.Register<ArrayConverter>();
             });
         }
     }

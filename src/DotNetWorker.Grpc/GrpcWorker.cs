@@ -16,7 +16,6 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
@@ -247,8 +246,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static async Task<FunctionMetadataResponses> FunctionsMetadataRequestHandlerAsync(FunctionsMetadataRequest request)
         {
-            var directory = request.FunctionAppDirectory;
-
             var response = new FunctionMetadataResponses
             {
                 Result = StatusResult.Success
@@ -256,11 +253,13 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadata = await GetFunctionLoadRequestsAsync(directory);
+                var functionGenerator = new FunctionMetadataJsonReader(request.FunctionAppDirectory);
 
-                for (int i = 0; i < functionMetadata.Count; i++)
+                var functionLoadRequests = await functionGenerator.ReadMetadataAsync();
+
+                for (int i = 0; i < functionLoadRequests.Length; i++)
                 {
-                    response.FunctionLoadRequestsResults.Add(functionMetadata[i]);
+                    response.FunctionLoadRequestsResults.Add(functionLoadRequests[i]);
                 }
             }
             catch (Exception ex)
@@ -273,56 +272,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
-        }
-
-        internal static async Task<IReadOnlyList<FunctionLoadRequest>> GetFunctionLoadRequestsAsync(string directory)
-        {
-            var functionGenerator = new FunctionMetadataJsonReader(directory);
-
-            var functionsMetadata = await functionGenerator.ReadMetadataAsync();
-
-            var functionRequests = new List<FunctionLoadRequest>(functionsMetadata.Length);
-
-            foreach (var metadata in functionsMetadata)
-            {
-                var funcId = Guid.NewGuid().ToString(); 
-
-                FunctionLoadRequest request = new FunctionLoadRequest()
-                {
-                    FunctionId = funcId, 
-                    Metadata = new RpcFunctionMetadata()
-                    {
-                        Name = metadata.Name,
-                        Directory = metadata.FunctionDirectory ?? string.Empty,
-                        EntryPoint = metadata.EntryPoint ?? string.Empty,
-                        ScriptFile = metadata.ScriptFile ?? string.Empty,
-                        IsProxy = false,
-                        Language = "dotnet-isolated"
-                    }
-                };
-
-                foreach (var binding in metadata.Bindings)
-                {
-                    BindingInfo bindingInfo = new BindingInfo
-                    {
-                        Direction = (BindingInfo.Types.Direction)binding.Direction,
-                        Type = binding.Type
-                    };
-
-                    if (binding.DataType != null)
-                    {
-                        bindingInfo.DataType = (BindingInfo.Types.DataType)binding.DataType;
-                    }
-
-                    request.Metadata.Bindings.Add(binding.Name, bindingInfo);
-                }
-
-                request.Metadata.RawBindings.Add(JsonConvert.SerializeObject(metadata.Bindings));
-
-                functionRequests.Add(request);
-            }        
-
-            return functionRequests;
         }
 
         internal static FunctionLoadResponse FunctionLoadRequestHandler(FunctionLoadRequest request, IFunctionsApplication application, IMethodInfoLocator methodInfoLocator)

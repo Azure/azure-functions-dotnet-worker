@@ -29,8 +29,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 using (var fs = File.OpenRead(metadataFile))
                 {
-                    var jsonMetadataList =
-                    await JsonSerializer.DeserializeAsync<JsonElement>(fs);
+                    var jsonMetadataList = await JsonSerializer.DeserializeAsync<JsonElement>(fs);
 
                     var functionRequests = new List<FunctionLoadRequest>(jsonMetadataList.GetArrayLength());
 

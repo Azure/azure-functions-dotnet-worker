@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             }
             else
             {
-                inputArguments = modelBindingFeature.BindFunctionInput(context);
+                inputArguments = await modelBindingFeature.BindFunctionInputAsync(context);
             }
 
             context.GetBindings().InvocationResult = await invoker.InvokeAsync(instance, inputArguments);

@@ -6,8 +6,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -34,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             Parameters = methodInfoLocator.GetMethod(PathToAssembly, EntryPoint)
                 .GetParameters()
                 .Where(p => p.Name != null)
-                .Select(p => new FunctionParameter(p.Name!, p.ParameterType))
+                .Select(p => new FunctionParameter(p.Name!, p.ParameterType, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
         }
 
@@ -51,5 +53,21 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
+
+        private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
+        {
+            // Get the input converter attribute information, if present on the parameter.
+            var inputConverterAttribute = parameterInfo?.GetCustomAttribute<InputConverterAttribute>();
+
+            if (inputConverterAttribute != null)
+            {
+                return new Dictionary<string, object>()
+                {
+                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }
+                }.ToImmutableDictionary();
+            }
+
+            return ImmutableDictionary<string, object>.Empty;
+        }
     }
 }

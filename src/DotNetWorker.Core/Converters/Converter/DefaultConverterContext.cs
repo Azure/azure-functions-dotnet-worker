@@ -1,23 +1,34 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using Microsoft.Azure.Functions.Worker.Pipeline;
+using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
-    internal class DefaultConverterContext : ConverterContext
+    /// <summary>
+    /// A type defining the information needed for an input conversion operation.
+    /// </summary>
+    internal sealed class DefaultConverterContext : ConverterContext
     {
-        public DefaultConverterContext(FunctionParameter parameter, object? source, FunctionContext context)
+        public DefaultConverterContext(Type targetType, object? source, FunctionContext context, IReadOnlyDictionary<string, object> properties)
         {
-            Parameter = parameter ?? throw new System.ArgumentNullException(nameof(parameter));
-            FunctionContext = context ?? throw new System.ArgumentNullException(nameof(context));
+            TargetType = targetType ?? throw new ArgumentNullException(nameof(context));
             Source = source;
+            FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
+            Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
-        public override object? Source { get; set; }
+        /// <inheritdoc/>
+        public override Type TargetType { get; }
 
-        public override FunctionParameter Parameter { get; set; }
+        /// <inheritdoc/>
+        public override object? Source { get; }
 
-        public override FunctionContext FunctionContext { get; set; }
+        /// <inheritdoc/>
+        public override FunctionContext FunctionContext { get; }
+
+        /// <inheritdoc/>
+        public override IReadOnlyDictionary<string, object> Properties { get; }
     }
 }

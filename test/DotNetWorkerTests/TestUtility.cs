@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit.Sdk;
@@ -13,15 +14,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         public static string DefaultPropertyName = "input";
 
-        public static DefaultModelBindingFeature GetDefaultBindingFeature(Action<WorkerOptions> configure = null)
+        public static DefaultInputConversionFeature GetDefaultInputConversionFeature(Action<WorkerOptions> configure = null)
         {
             return new ServiceCollection()
+                .AddSingleton<IInputConverterProvider, DefaultInputConverterProvider>()
                 .Configure<WorkerOptions>(o => configure?.Invoke(o))
-                .AddSingleton<DefaultModelBindingFeature>()
+                .AddSingleton<DefaultInputConversionFeature>()
                 .RegisterOutputChannel()
-                .RegisterDefaultConverters()
+                .AddDefaultInputConvertersToWorkerOptions()
                 .BuildServiceProvider()
-                .GetService<DefaultModelBindingFeature>();
+                .GetService<DefaultInputConversionFeature>();
         }
 
         public static T AssertIsTypeAndConvert<T>(object target)

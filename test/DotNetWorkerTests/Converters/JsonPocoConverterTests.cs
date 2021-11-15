@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Options;
@@ -29,52 +30,60 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Fact]
-        public void SourceIsNotValidJsonString_ReturnsNull()
+        public async Task SourceIsNotValidJsonString_ReturnsNull()
         {
             string source = "invalid string";
-            var context = new TestConverterContext("input", typeof(Book), source);
+            var context = new TestConverterContext(typeof(Book), source);
+                        
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            Assert.False(_jsonPocoConverter.TryConvert(context, out object target));
-
-            Assert.Null(target);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Null(conversionResult.Value);
+            Assert.NotNull(conversionResult.Error);
         }
 
         [Fact]
-        public void SuccessfulConversion()
+        public async Task SuccessfulConversion()
         {
             string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
-            var context = new TestConverterContext("input", typeof(Book), source);
+            var context = new TestConverterContext(typeof(Book), source);
+                        
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            Assert.True(_jsonPocoConverter.TryConvert(context, out object bookObj));
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
 
-            var book = TestUtility.AssertIsTypeAndConvert<Book>(bookObj);
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
             Assert.Equal("a", book.Title);
             Assert.Equal("b", book.Author);
         }
 
         [Fact]
-        public void ConvertMemory()
+        public async Task ConvertMemory()
         {
             string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
             var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
-            var context = new TestConverterContext("input", typeof(Book), sourceMemory);
+            var context = new TestConverterContext(typeof(Book), sourceMemory);
 
-            Assert.True(_jsonPocoConverter.TryConvert(context, out object bookObj));
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            var book = TestUtility.AssertIsTypeAndConvert<Book>(bookObj);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
             Assert.Equal("a", book.Title);
             Assert.Equal("b", book.Author);
         }
 
         [Fact]
-        public void ConvertJsonStringArrayToIEnumerableOfT()
+        public async Task ConvertJsonStringArrayToIEnumerableOfT()
         {
             var source = "[ \"a\", \"b\", \"c\" ]";
-            var context = new TestConverterContext("input", typeof(IEnumerable<string>), source);
+            var context = new TestConverterContext(typeof(IEnumerable<string>), source);
 
-            Assert.True(_jsonPocoConverter.TryConvert(context, out object target));
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 
-            var targetEnum = TestUtility.AssertIsTypeAndConvert<IEnumerable<string>>(target);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var targetEnum = TestUtility.AssertIsTypeAndConvert<IEnumerable<string>>(conversionResult.Value);
             Assert.Collection(targetEnum,
                 p => Assert.True(p == "a"),
                 p => Assert.True(p == "b"),
@@ -82,7 +91,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Fact]
-        public void Newtonsoft()
+        public async Task Newtonsoft()
         {
             var options = new WorkerOptions
             {
@@ -93,11 +102,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var jsonPocoConverter = new JsonPocoConverter(wrapper);
 
             string source = "{ \"title\": \"a\", \"Author\": \"b\" }";
-            var context = new TestConverterContext("input", typeof(NewtonsoftBook), source);
+            var context = new TestConverterContext(typeof(NewtonsoftBook), source);
+                        
+            var conversionResult = await jsonPocoConverter.ConvertAsync(context);
 
-            Assert.True(jsonPocoConverter.TryConvert(context, out object bookObj));
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
 
-            var book = TestUtility.AssertIsTypeAndConvert<NewtonsoftBook>(bookObj);
+            var book = TestUtility.AssertIsTypeAndConvert<NewtonsoftBook>(conversionResult.Value);
             Assert.Equal("a", book.BookTitle);
             Assert.Equal("b", book.BookAuthor);
         }

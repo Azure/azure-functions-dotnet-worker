@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 using Google.Protobuf.Collections;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Xunit;
@@ -23,43 +24,57 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         private static readonly RepeatedField<long> _sourceLongEnumerable = new RepeatedField<long>() { 2000 };
 
         [Fact]
-        public void ConvertCollectionBytesToJaggedByteArray()
+        public async Task ConvertCollectionBytesToJaggedByteArray()
         {
-            var context = new TestConverterContext("output", typeof(byte[][]), _sourceMemoryEnumerable);
-            Assert.True(_converter.TryConvert(context, out object target));
-            TestUtility.AssertIsTypeAndConvert<byte[][]>(target);
+            var context = new TestConverterContext(typeof(byte[][]), _sourceMemoryEnumerable);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<byte[][]>(conversionResult.Value);
         }
 
         [Fact]
-        public void ConvertCollectionBytesToReadOnlyByteArray()
+        public async Task ConvertCollectionBytesToReadOnlyByteArray()
         {
-            var context = new TestConverterContext("output", typeof(ReadOnlyMemory<byte>[]), _sourceMemoryEnumerable);
-            Assert.True(_converter.TryConvert(context, out object target));
-            TestUtility.AssertIsTypeAndConvert<ReadOnlyMemory<byte>[]>(target);
+            var context = new TestConverterContext(typeof(ReadOnlyMemory<byte>[]), _sourceMemoryEnumerable);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<ReadOnlyMemory<byte>[]>(conversionResult.Value);
         }
 
         [Fact]
-        public void ConvertCollectionStringToStringArray()
+        public async Task ConvertCollectionStringToStringArray()
         {
-            var context = new TestConverterContext("output", typeof(string[]), _sourceStringEnumerable);
-            Assert.True(_converter.TryConvert(context, out object target));
-            TestUtility.AssertIsTypeAndConvert<string[]>(target);
+            var context = new TestConverterContext(typeof(string[]), _sourceStringEnumerable);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<string[]>(conversionResult.Value);
         }
 
         [Fact]
-        public void ConvertCollectionSint64ToLongArray()
+        public async Task ConvertCollectionSint64ToLongArray()
         {
-            var context = new TestConverterContext("output", typeof(long[]), _sourceLongEnumerable);
-            Assert.True(_converter.TryConvert(context, out object target));
-            TestUtility.AssertIsTypeAndConvert<long[]>(target);
+            var context = new TestConverterContext(typeof(long[]), _sourceLongEnumerable);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<long[]>(conversionResult.Value);
         }
 
         [Fact]
-        public void ConvertCollectionDoubleToDoubleArray()
+        public async Task ConvertCollectionDoubleToDoubleArray()
         {
-            var context = new TestConverterContext("output", typeof(double[]), _sourceDoubleEnumerable);
-            Assert.True(_converter.TryConvert(context, out object target));
-            TestUtility.AssertIsTypeAndConvert<double[]>(target);
+            var context = new TestConverterContext(typeof(double[]), _sourceDoubleEnumerable);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            TestUtility.AssertIsTypeAndConvert<double[]>(conversionResult.Value);
         }
     }
 }

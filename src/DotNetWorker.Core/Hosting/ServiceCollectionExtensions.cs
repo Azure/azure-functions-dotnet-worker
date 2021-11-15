@@ -52,6 +52,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IInvocationFeaturesFactory, DefaultInvocationFeaturesFactory>();
             services.AddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();
 
+            // Input conversion feature
+            services.AddSingleton<IConverterContextFactory, DefaultConverterContextFactory>();
+            services.AddSingleton<IInputConversionFeatureProvider, DefaultInputConversionFeatureProvider>();
+            services.AddSingleton<IInputConverterProvider, DefaultInputConverterProvider>();
+
             // Output Bindings
             services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
 
@@ -73,18 +78,24 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            return new FunctionsWorkerApplicationBuilder(services); ;
+            return new FunctionsWorkerApplicationBuilder(services);
         }
 
-        internal static IServiceCollection RegisterDefaultConverters(this IServiceCollection services)
+        /// <summary>
+        /// Adds the built-in input converters to worker options.
+        /// </summary>
+        internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
-            return services.AddSingleton<IConverter, FunctionContextConverter>()
-                           .AddSingleton<IConverter, TypeConverter>()
-                           .AddSingleton<IConverter, GuidConverter>()
-                           .AddSingleton<IConverter, MemoryConverter>()
-                           .AddSingleton<IConverter, StringToByteConverter>()
-                           .AddSingleton<IConverter, JsonPocoConverter>()
-                           .AddSingleton<IConverter, ArrayConverter>();
+            return services.Configure<WorkerOptions>((workerOption) =>
+            {
+                workerOption.InputConverters.Register<FunctionContextConverter>();
+                workerOption.InputConverters.Register<TypeConverter>();
+                workerOption.InputConverters.Register<GuidConverter>();
+                workerOption.InputConverters.Register<MemoryConverter>();
+                workerOption.InputConverters.Register<StringToByteConverter>();
+                workerOption.InputConverters.Register<JsonPocoConverter>();
+                workerOption.InputConverters.Register<ArrayConverter>();
+            });
         }
     }
 }

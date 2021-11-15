@@ -1,22 +1,22 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
-    internal class FunctionContextConverter : IConverter
+    internal class FunctionContextConverter : IInputConverter
     {
-        public bool TryConvert(ConverterContext context, out object? target)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            target = null;
-
             // Special handling for the context.
-            if (context.Parameter.Type == typeof(FunctionContext))
+            if (context.TargetType == typeof(FunctionContext))
             {
-                target = context.FunctionContext;
-                return true;
+                return new ValueTask<ConversionResult>(ConversionResult.Success(context.FunctionContext));
             }
 
-            return false;
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
     }
 }

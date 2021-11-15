@@ -4,20 +4,21 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     // Converting IEnumerable<> to Array
-    internal class ArrayConverter : IConverter
+    internal class ArrayConverter : IInputConverter
     {
         // Convert IEnumerable to array
-        public bool TryConvert(ConverterContext context, out object? target)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            target = null;
+            object? target = null;
             // Ensure requested type is an array
-            if (context.Parameter.Type.IsArray)
+            if (context.TargetType.IsArray)
             {
-                Type? elementType = context.Parameter.Type.GetElementType();
+                Type? elementType = context.TargetType.GetElementType();
                 if (elementType is not null)
                 {
                     // Ensure that we can assign from source to parameter type
@@ -39,7 +40,12 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 }
             }
 
-            return target is not null;
+            if (target is not null)
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Success(target));
+            }
+
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
 
         private static object? GetBinaryData(IEnumerable<ReadOnlyMemory<byte>> source, Type targetType)

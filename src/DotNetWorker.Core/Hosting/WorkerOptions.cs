@@ -16,5 +16,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// this is a default <see cref="JsonObjectSerializer"/> with default <see cref="JsonSerializerOptions"/>.
         /// </summary>
         public ObjectSerializer? Serializer { get; set; }
+
+        /// <summary>
+        /// Gets the collection of input converters.
+        /// </summary>
+        public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
     }
 }

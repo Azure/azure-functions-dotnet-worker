@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -18,6 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     {
         private readonly Mock<IFunctionsApplication> _mockApplication = new(MockBehavior.Strict);
         private readonly Mock<IInvocationFeaturesFactory> _mockFeaturesFactory = new(MockBehavior.Strict);
+        private readonly Mock<IInputConversionFeatureProvider> _mockInputConversionFeatureProvider = new(MockBehavior.Strict);
+        private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
         private readonly Mock<IOutputBindingsInfoProvider> _mockOutputBindingsInfoProvider = new(MockBehavior.Strict);
         private readonly Mock<IMethodInfoLocator> _mockMethodInfoLocator = new(MockBehavior.Strict);
         private TestFunctionContext _context = new();
@@ -46,6 +49,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _mockMethodInfoLocator
                 .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(typeof(GrpcWorkerTests).GetMethod(nameof(TestRun), BindingFlags.Instance | BindingFlags.NonPublic));
+
+            IInputConversionFeature conversionFeature = mockConversionFeature.Object;
+            _mockInputConversionFeatureProvider
+                .Setup(m=>m.TryCreate(typeof(DefaultInputConversionFeature), out conversionFeature))
+                .Returns(true);
         }
 
         [Fact]
@@ -108,7 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = CreateInvocationRequest();
 
             var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object);
+                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
@@ -120,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = CreateInvocationRequest();
 
             var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object);
+                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
             
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
@@ -138,7 +146,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = CreateInvocationRequest();
 
             var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object);
+                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
@@ -155,7 +163,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = CreateInvocationRequest();
 
             var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object);
+                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);

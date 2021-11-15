@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
@@ -27,7 +29,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly DefaultFunctionExecutor _executor;
         private readonly DefaultFunctionInvokerFactory _functionInvokerFactory;
         private readonly Mock<IMethodInfoLocator> _mockLocator = new Mock<IMethodInfoLocator>(MockBehavior.Strict);
-
+        private readonly Mock<IInputConversionFeature> _mockInputConversionFeature = new(MockBehavior.Strict);
+        private readonly Mock<IConverterContextFactory> _mockConvertContextFactory = new(MockBehavior.Strict);
         private MethodInfo _methodInfoToReturn;
 
         public DefaultFunctionInvokerTests()
@@ -35,6 +38,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _mockLocator
                 .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(() => _methodInfoToReturn);
+
+            var functionContext = new TestFunctionContext(new TestFunctionDefinition(), invocation: null);
+            _mockConvertContextFactory
+                .Setup(m=> m.Create(It.IsAny<Type>(), It.IsAny<object>(), It.IsAny<FunctionContext>(),It.IsAny<IReadOnlyDictionary<string, object>>()))
+                .Returns(new DefaultConverterContext(typeof(string),"foo", functionContext, ImmutableDictionary<string, object>.Empty));
 
             var functionActivator = new DefaultFunctionActivator();
             var methodInvokerFactory = new DefaultMethodInvokerFactory();
@@ -90,21 +98,21 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_FunctionWithInputBindingAndReturn()
         {
+            SetupMockResultForInputConverter("foo");
             _methodInfoToReturn = typeof(Functions).GetMethod(nameof(Functions.FunctionWithInputBindingAndReturn));
 
             var context = CreateContext(invocation: new TestFunctionInvocation());
-
-            var converter = new List<IConverter>
+            var converter = new List<IInputConverter>
             {
                 new TypeConverter()
             };
-
-            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(converter));
+            context.Features.Set<IInputConversionFeature>(_mockInputConversionFeature.Object);
+            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(_mockConvertContextFactory.Object));
             context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
 
             await _executor.ExecuteAsync(context);
 
-            Assert.Equal("inputValue", context.GetBindings().InvocationResult);
+            Assert.Equal("foo", context.GetBindings().InvocationResult);
         }
 
         [Fact]
@@ -154,22 +162,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task InvokeAsync_StaticFunctionWithInputBindingAndReturn()
         {
+            SetupMockResultForInputConverter("triggerValue");
             _methodInfoToReturn = typeof(StaticFunctions).GetMethod(nameof(StaticFunctions.StaticFunctionWithInputBindingAndReturn));
 
             var context = CreateContext(invocation: new TestFunctionInvocation());
-
             context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
-
-            var converter = new List<IConverter>
-            {
-                new TypeConverter()
-            };
-
-            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(converter));
+            context.Features.Set<IInputConversionFeature>(_mockInputConversionFeature.Object);
+            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(_mockConvertContextFactory.Object));
 
             await _executor.ExecuteAsync(context);
 
             Assert.Equal("triggerValue", context.GetBindings().InvocationResult);
+        }
+
+        private void SetupMockResultForInputConverter(string mockOutputValue)
+        {
+            _mockInputConversionFeature
+                .Setup(m => m.ConvertAsync(It.IsAny<ConverterContext>()))
+                .Returns(new ValueTask<ConversionResult>(ConversionResult.Success(mockOutputValue)));
         }
 
         private FunctionContext CreateContext(FunctionDefinition definition = null, FunctionInvocation invocation = null)

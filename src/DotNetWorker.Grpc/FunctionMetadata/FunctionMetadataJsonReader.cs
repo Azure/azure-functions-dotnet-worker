@@ -33,11 +33,11 @@ namespace Microsoft.Azure.Functions.Worker
 
                     var functionRequests = new List<FunctionLoadRequest>(jsonMetadataList.GetArrayLength());
 
+                    var options = new JsonSerializerOptions();
+                    options.PropertyNameCaseInsensitive = true;
+
                     foreach (var jsonMetadata in jsonMetadataList.EnumerateArray())
                     {
-                        var options = new JsonSerializerOptions();
-                        options.PropertyNameCaseInsensitive = true;
-
                         var functionMetadata = JsonSerializer.Deserialize<RpcFunctionMetadata>(jsonMetadata.GetRawText(), options);
 
                         if (functionMetadata is null)

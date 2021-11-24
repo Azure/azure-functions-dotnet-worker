@@ -106,7 +106,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             BindingInfo bindingInfo = new BindingInfo
             {
-                Direction = Enum.Parse<BindingInfo.Types.Direction>(jsonDirection.ToString()),
+                Direction = Enum.Parse<BindingInfo.Types.Direction>(jsonDirection.ToString()!),
                 Type = jsonType.ToString()
             };
 
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (hasDataType)
             {
-                bindingInfo.DataType = Enum.Parse<BindingInfo.Types.DataType>(jsonDataType.ToString());
+                bindingInfo.DataType = Enum.Parse<BindingInfo.Types.DataType>(jsonDataType.ToString()!);
             }
 
             return bindingInfo;

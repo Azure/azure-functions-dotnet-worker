@@ -253,9 +253,9 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionGenerator = new FunctionMetadataJsonReader(request.FunctionAppDirectory);
+                var functionReader = new FunctionMetadataJsonReader(request.FunctionAppDirectory);
 
-                var functionLoadRequests = await functionGenerator.ReadMetadataAsync();
+                var functionLoadRequests = await functionReader.ReadMetadataAsync();
 
                 for (int i = 0; i < functionLoadRequests.Length; i++)
                 {

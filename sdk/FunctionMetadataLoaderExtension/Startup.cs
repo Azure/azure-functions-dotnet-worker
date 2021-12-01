@@ -22,6 +22,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         private const string WorkerConfigFile = "worker.config.json";
         private const string ExePathPropertyName = "defaultExecutablePath";
         private const string WorkerPathPropertyName = "defaultWorkerPath";
+        private const string EnableWorkerIndexingFlag = "workerIndexing";
         private const string WorkerRootToken = "{WorkerRoot}";
 
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
@@ -48,9 +49,15 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)
         {
             string appRootPath = context.ApplicationRootPath;
-            builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
-            builder.Services.AddSingleton<FunctionMetadataJsonReader>();
-            builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
+            WorkerConfigDescription newWorkerDescription = GetUpdatedWorkerDescription(appRootPath);
+
+            if (string.IsNullOrEmpty(newWorkerDescription.EnableWorkerIndexing) ||
+                (!string.IsNullOrEmpty(newWorkerDescription.EnableWorkerIndexing) && newWorkerDescription.EnableWorkerIndexing!.Equals("false", StringComparison.OrdinalIgnoreCase)))
+            {
+                builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
+                builder.Services.AddSingleton<FunctionMetadataJsonReader>();
+                builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
+            }
         }
 
         public void Configure(IWebJobsBuilder builder)
@@ -151,6 +158,9 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             [JsonProperty(WorkerPathPropertyName)]
             public string? DefaultWorkerPath { get; set; }
+
+            [JsonProperty(EnableWorkerIndexingFlag)]
+            public string? EnableWorkerIndexing { get; set; }
         }
     }
 }

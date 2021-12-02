@@ -17,7 +17,7 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 {
-    internal class Startup : IWebJobsStartup2, IWebJobsConfigurationStartup
+    internal class Startup : IWebJobsConfigurationStartup
     {
         private const string WorkerConfigFile = "worker.config.json";
         private const string ExePathPropertyName = "defaultExecutablePath";
@@ -44,20 +44,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             Environment.SetEnvironmentVariable("DOTNET_NOLOGO", "true");
             Environment.SetEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "true");
             Environment.SetEnvironmentVariable("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "true");
-        }
-
-        public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)
-        {
-            string appRootPath = context.ApplicationRootPath;
-            WorkerConfigDescription newWorkerDescription = GetUpdatedWorkerDescription(appRootPath);
-
-            if (string.IsNullOrEmpty(newWorkerDescription.EnableWorkerIndexing) ||
-                (!string.IsNullOrEmpty(newWorkerDescription.EnableWorkerIndexing) && newWorkerDescription.EnableWorkerIndexing!.Equals("false", StringComparison.OrdinalIgnoreCase)))
-            {
-                builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
-                builder.Services.AddSingleton<FunctionMetadataJsonReader>();
-                builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
-            }
         }
 
         public void Configure(IWebJobsBuilder builder)

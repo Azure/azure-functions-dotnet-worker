@@ -1,7 +1,8 @@
 {
   "IsEncrypted": false,
   "Values": {
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "AzureWebJobsStorage": "<connection string>",
+    "SqlConnectionString": "<connection-string>",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
   }
 }

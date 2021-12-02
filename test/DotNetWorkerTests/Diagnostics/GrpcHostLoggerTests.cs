@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
@@ -26,6 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
             var outputChannel = new GrpcHostChannel(_channel);
             _provider = new GrpcFunctionsHostLoggerProvider(outputChannel);
             _provider.SetScopeProvider(new LoggerExternalScopeProvider());
+            _provider.SetObjectSerializer(new JsonObjectSerializer());
         }
 
         [Fact]

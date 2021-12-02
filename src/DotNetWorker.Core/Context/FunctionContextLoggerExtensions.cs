@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             return context.InstanceServices
                     .GetService<ILoggerFactory>()!
-                    .CreateLogger(Logging.LogCategories.CreateFunctionUserCategory(categoryName));
+                    .CreateLogger(categoryName);
         }
     }
 }

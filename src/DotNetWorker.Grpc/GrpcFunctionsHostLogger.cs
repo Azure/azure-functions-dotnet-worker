@@ -19,17 +19,17 @@ namespace Microsoft.Azure.Functions.Worker.Logging
     /// </summary>
     internal class GrpcFunctionsHostLogger : ILogger
     {
-        private static readonly ObjectSerializer _serializer = new JsonObjectSerializer();
-
         private readonly string _category;
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private readonly IExternalScopeProvider _scopeProvider;
+        private readonly ObjectSerializer _serializer;
 
-        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider)
+        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider, ObjectSerializer serializer)
         {
             _category = category ?? throw new ArgumentNullException(nameof(category));
             _channelWriter = channelWriter ?? throw new ArgumentNullException(nameof(channelWriter));
             _scopeProvider = scopeProvider ?? throw new ArgumentNullException(nameof(scopeProvider));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public IDisposable BeginScope<TState>(TState state)

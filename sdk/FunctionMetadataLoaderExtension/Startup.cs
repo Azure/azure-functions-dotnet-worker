@@ -7,9 +7,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader;
 using Microsoft.Azure.WebJobs.Hosting;
-using Microsoft.Azure.WebJobs.Script.Description;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -22,7 +20,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         private const string WorkerConfigFile = "worker.config.json";
         private const string ExePathPropertyName = "defaultExecutablePath";
         private const string WorkerPathPropertyName = "defaultWorkerPath";
-        private const string EnableWorkerIndexingFlag = "workerIndexing";
         private const string WorkerRootToken = "{WorkerRoot}";
 
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
@@ -144,9 +141,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             [JsonProperty(WorkerPathPropertyName)]
             public string? DefaultWorkerPath { get; set; }
-
-            [JsonProperty(EnableWorkerIndexingFlag)]
-            public string? EnableWorkerIndexing { get; set; }
         }
     }
 }

@@ -11,9 +11,9 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 {
     internal class GrpcFunctionsHostLoggerProvider : ILoggerProvider, ISupportExternalScope
     {
+        private readonly ObjectSerializer _serializer;
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private IExternalScopeProvider? _scopeProvider;
-        private ObjectSerializer _serializer;
 
         public GrpcFunctionsHostLoggerProvider(GrpcHostChannel outputChannel, ObjectSerializer serializer)
         {

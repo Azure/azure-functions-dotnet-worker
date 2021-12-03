@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         /// <summary>
         /// Gets the event id for a metric event.
         /// </summary>
-        internal const int MetricEventId = 1;
+        internal static EventId MetricEventId = new EventId(1, "MS_LogMetric");
 
         /// <summary>
         /// Gets the name of the key used to store a metric sum.

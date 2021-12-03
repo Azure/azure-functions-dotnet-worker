@@ -13,14 +13,15 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
     {
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private IExternalScopeProvider? _scopeProvider;
-        private ObjectSerializer? _serializer;
+        private ObjectSerializer _serializer;
 
-        public GrpcFunctionsHostLoggerProvider(GrpcHostChannel outputChannel)
+        public GrpcFunctionsHostLoggerProvider(GrpcHostChannel outputChannel, ObjectSerializer serializer)
         {
             _channelWriter = outputChannel.Channel.Writer;
+            _serializer = serializer;
         }
 
-        public ILogger CreateLogger(string categoryName) => new GrpcFunctionsHostLogger(categoryName, _channelWriter, _scopeProvider!, _serializer!);
+        public ILogger CreateLogger(string categoryName) => new GrpcFunctionsHostLogger(categoryName, _channelWriter, _scopeProvider!, _serializer);
 
         public void Dispose()
         {
@@ -29,11 +30,6 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         public void SetScopeProvider(IExternalScopeProvider scopeProvider)
         {
             _scopeProvider = scopeProvider;
-        }
-
-        public void SetObjectSerializer(ObjectSerializer serializer)
-        {
-            _serializer = serializer;
         }
     }
 }

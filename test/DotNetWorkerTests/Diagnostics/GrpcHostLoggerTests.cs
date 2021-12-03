@@ -25,9 +25,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
         {
             _channel = Channel.CreateUnbounded<StreamingMessage>();
             var outputChannel = new GrpcHostChannel(_channel);
-            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel);
+            var serializer = new JsonObjectSerializer();
+            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel, serializer);
             _provider.SetScopeProvider(new LoggerExternalScopeProvider());
-            _provider.SetObjectSerializer(new JsonObjectSerializer());
         }
 
         [Fact]

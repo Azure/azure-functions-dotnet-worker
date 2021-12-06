@@ -11,6 +11,7 @@ using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Xunit;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.RpcLog.Types;
 
@@ -25,8 +26,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
         {
             _channel = Channel.CreateUnbounded<StreamingMessage>();
             var outputChannel = new GrpcHostChannel(_channel);
-            var serializer = new JsonObjectSerializer();
-            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel, serializer);
+            var workerOptions = Options.Create(new WorkerOptions { Serializer = new JsonObjectSerializer() });
+            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel, workerOptions);
             _provider.SetScopeProvider(new LoggerExternalScopeProvider());
         }
 

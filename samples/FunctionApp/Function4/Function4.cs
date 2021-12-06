@@ -17,9 +17,9 @@ namespace FunctionApp
         {
             var sw = new Stopwatch();
             sw.Restart();
-            var logger = executionContext.GetLogger("FunctionApp.Function4");
 
-            logger.LogInformation("message logged");
+            var logger = executionContext.GetLogger("FunctionApp.Function4");
+            logger.LogInformation("Message logged");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
 

@@ -124,9 +124,8 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             }
         }
 
-        private static Level ToRpcLogLevel(LogLevel logLevel)
-        {
-            return logLevel switch
+        private static Level ToRpcLogLevel(LogLevel logLevel) =>
+            logLevel switch
             {
                 LogLevel.Trace => Level.Trace,
                 LogLevel.Debug => Level.Debug,
@@ -136,7 +135,6 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                 LogLevel.Critical => Level.Critical,
                 _ => Level.None,
             };
-        }
 
         private class EmptyDisposable : IDisposable
         {

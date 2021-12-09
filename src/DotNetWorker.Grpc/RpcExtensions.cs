@@ -51,30 +51,14 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
 
         public static TypedData ToRpc(this object value, ObjectSerializer serializer)
         {
-            if (value == null)
+            return value switch
             {
-                return _emptyTypedData;
-            }
-
-            var typedData = new TypedData();
-
-            switch (value)
-            {
-                case byte[] arr:
-                    typedData.Bytes = ByteString.CopyFrom(arr);
-                    break;
-                case string str:
-                    typedData.String = str;
-                    break;
-                case double dbl:
-                    typedData.Double = dbl;
-                    break;
-                default:
-                    typedData = value.ToRpcDefault(serializer);
-                    break;
-            }
-
-            return typedData;
+                null => _emptyTypedData,
+                byte[] arr => new TypedData() { Bytes = ByteString.CopyFrom(arr) },
+                string str => new TypedData() { String = str },
+                double dbl => new TypedData() { Double = dbl },
+                _ => value.ToRpcDefault(serializer)
+            };
         }
 
         internal static TypedData ToRpcDefault(this object value, ObjectSerializer serializer)

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB</AssemblyName>
@@ -13,10 +13,10 @@
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Extensions.props" />
+  <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
   </ItemGroup>
 
 </Project>

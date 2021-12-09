@@ -41,31 +41,31 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestUtility", "test\TestUti
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "extensions", "extensions", "{A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http", "extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj", "{1E601406-6923-4CB9-AAD7-928E08906B10}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http", "extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj", "{1E601406-6923-4CB9-AAD7-928E08906B10}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Abstractions", "extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj", "{B5F66802-0968-4B99-8E97-E42C744CE5CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Abstractions", "extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj", "{B5F66802-0968-4B99-8E97-E42C744CE5CE}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage", "extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj", "{D6EAB0C1-491C-4723-B1F3-B6F5461CD359}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage", "extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj", "{D6EAB0C1-491C-4723-B1F3-B6F5461CD359}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Timer", "extensions\Worker.Extensions.Timer\Worker.Extensions.Timer.csproj", "{4DBEC557-E5CC-41E9-9319-BC02615CF228}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Timer", "extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj", "{4DBEC557-E5CC-41E9-9319-BC02615CF228}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.CosmosDB", "extensions\Worker.Extensions.CosmosDB\Worker.Extensions.CosmosDB.csproj", "{37F71B56-1FC7-4BEC-9AB4-FF57C6BF2882}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.CosmosDB", "extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj", "{37F71B56-1FC7-4BEC-9AB4-FF57C6BF2882}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.EventGrid", "extensions\Worker.Extensions.EventGrid\Worker.Extensions.EventGrid.csproj", "{9C305047-0B81-4DA1-98D4-BC8B391A2297}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.EventGrid", "extensions\Worker.Extensions.EventGrid\src\Worker.Extensions.EventGrid.csproj", "{9C305047-0B81-4DA1-98D4-BC8B391A2297}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.ServiceBus", "extensions\Worker.Extensions.ServiceBus\Worker.Extensions.ServiceBus.csproj", "{660B4D9D-081A-4DCA-BD7A-E196F4529BFD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.ServiceBus", "extensions\Worker.Extensions.ServiceBus\src\Worker.Extensions.ServiceBus.csproj", "{660B4D9D-081A-4DCA-BD7A-E196F4529BFD}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.EventHubs", "extensions\Worker.Extensions.EventHubs\Worker.Extensions.EventHubs.csproj", "{4A5770BE-6BB7-448F-A818-DD1450F8CBDC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.EventHubs", "extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj", "{4A5770BE-6BB7-448F-A818-DD1450F8CBDC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.RabbitMQ", "extensions\Worker.Extensions.RabbitMQ\Worker.Extensions.RabbitMQ.csproj", "{55652CF7-E58B-4564-A76B-D49DC71878DC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.RabbitMQ", "extensions\Worker.Extensions.RabbitMQ\src\Worker.Extensions.RabbitMQ.csproj", "{55652CF7-E58B-4564-A76B-D49DC71878DC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.SignalRService", "extensions\Worker.Extensions.SignalRService\Worker.Extensions.SignalRService.csproj", "{A9802FBA-CF59-462B-88A0-1D7D0D19C748}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.SignalRService", "extensions\Worker.Extensions.SignalRService\src\Worker.Extensions.SignalRService.csproj", "{A9802FBA-CF59-462B-88A0-1D7D0D19C748}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.SendGrid", "extensions\Worker.Extensions.SendGrid\Worker.Extensions.SendGrid.csproj", "{59EB5B01-4756-48BB-8B37-70D29E3BDFB6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.SendGrid", "extensions\Worker.Extensions.SendGrid\src\Worker.Extensions.SendGrid.csproj", "{59EB5B01-4756-48BB-8B37-70D29E3BDFB6}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Warmup", "extensions\Worker.Extensions.Warmup\Worker.Extensions.Warmup.csproj", "{BDA0BCB4-BD26-4B10-B865-87082F290B38}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Warmup", "extensions\Worker.Extensions.Warmup\src\Worker.Extensions.Warmup.csproj", "{BDA0BCB4-BD26-4B10-B865-87082F290B38}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Kafka", "extensions\Worker.Extensions.Kafka\Worker.Extensions.Kafka.csproj", "{F63A63A9-FE09-4225-A293-6A58F9C1E520}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Kafka", "extensions\Worker.Extensions.Kafka\src\Worker.Extensions.Kafka.csproj", "{F63A63A9-FE09-4225-A293-6A58F9C1E520}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers", "sdk\Sdk.Analyzers\Sdk.Analyzers.csproj", "{055D602D-D2B3-416B-AC59-1972D832032A}"
 EndProject
@@ -95,9 +95,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "net-5-entity-framework", "s
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Configuration", "samples\Configuration\Configuration.csproj", "{035AAD56-5F51-476C-8556-0F6CFD6EF1BF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage.Queues", "extensions\Worker.Extensions.Storage.Queues\Worker.Extensions.Storage.Queues.csproj", "{1D2A2B02-BFA8-4E53-9844-88359C5B2671}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage.Queues", "extensions\Worker.Extensions.Storage.Queues\src\Worker.Extensions.Storage.Queues.csproj", "{1D2A2B02-BFA8-4E53-9844-88359C5B2671}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage.Blobs", "extensions\Worker.Extensions.Storage.Blobs\Worker.Extensions.Storage.Blobs.csproj", "{FC352905-BD72-4049-8D32-3CBB9304FDC8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage.Blobs", "extensions\Worker.Extensions.Storage.Blobs\src\Worker.Extensions.Storage.Blobs.csproj", "{FC352905-BD72-4049-8D32-3CBB9304FDC8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

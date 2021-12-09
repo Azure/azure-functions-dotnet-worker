@@ -15,11 +15,11 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Extensions.props" />
+  <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
-    <ProjectReference Include="..\Worker.Extensions.Storage.Blobs\Worker.Extensions.Storage.Blobs.csproj" />
-    <ProjectReference Include="..\Worker.Extensions.Storage.Queues\Worker.Extensions.Storage.Queues.csproj" />
+    <ProjectReference Include="..\..\Worker.Extensions.Storage.Blobs\src\Worker.Extensions.Storage.Blobs.csproj" />
+    <ProjectReference Include="..\..\Worker.Extensions.Storage.Queues\src\Worker.Extensions.Storage.Queues.csproj" />
   </ItemGroup>
 
 </Project>

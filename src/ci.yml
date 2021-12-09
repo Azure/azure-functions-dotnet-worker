@@ -1,10 +1,19 @@
 trigger:
-- main
-- release/*
-
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - src/
 pr:
-- main
-- release/*
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - src/
 
 jobs:
 - job: "Build_And_Test_Windows"
@@ -16,20 +25,17 @@ jobs:
       buildNumberTemp: $(Build.BuildNumber)
     ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
       isReleaseBuildTemp: true
-    ${{ if contains(variables['Build.SourceBranch'], '/release/extensions' ) }}:
-      isExtensionsReleaseTemp: true
     buildNumber: $[variables.buildNumberTemp]
     isReleaseBuild: $[variables.isReleaseBuildTemp]
-    isExtensionsRelease: $[variables.isExtensionsReleaseTemp]
     solution: '**/*.sln'
     buildPlatform: 'Any CPU'
     buildConfiguration: 'Release'
 
   steps:
-  - pwsh: ./tools/start-emulators.ps1 -NoWait
+  - pwsh: ../tools/start-emulators.ps1 -NoWait
     displayName: "Start emulators (-NoWait)"
 
-  - template: build/install-dotnet.yml
+  - template: ../build/install-dotnet.yml
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:
@@ -120,76 +126,12 @@ jobs:
         ]
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    displayName: 'MetadataLoader: ESRP CodeSigning - Authenticode'
-    condition: eq(variables.isReleaseBuild, true)
-    inputs:
-      ConnectedServiceName: 'ESRP Service'
-      FolderPath: 'sdk\FunctionMetadataLoaderExtension\bin\Release'
-      Pattern: Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolSign",
-            "Parameters": {
-              "OpusName": "Microsoft",
-              "OpusInfo": "http://www.microsoft.com",
-              "FileDigest": "/fd \"SHA256\"",
-              "PageHash": "/NPH",
-              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          },
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolVerify",
-            "Parameters": {},
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          }
-        ]
-
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'DotnetWorker: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
       ConnectedServiceName: 'ESRP Service'
       FolderPath: 'src'
       Pattern: Microsoft.Azure.Functions.Worker*.dll
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolSign",
-            "Parameters": {
-              "OpusName": "Microsoft",
-              "OpusInfo": "http://www.microsoft.com",
-              "FileDigest": "/fd \"SHA256\"",
-              "PageHash": "/NPH",
-              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          },
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolVerify",
-            "Parameters": {},
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          }
-        ]
-
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
-    displayName: 'Extensions: ESRP CodeSigning - Authenticode'
-    condition: eq(variables.isExtensionsRelease, true)
-    inputs:
-      ConnectedServiceName: 'ESRP Service'
-      FolderPath: 'extensions'
-      Pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
       signConfigType: inlineSignParams
       inlineOperation: |
         [
@@ -229,16 +171,6 @@ jobs:
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: |
         **\DotNetWorker.Core.slnf
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Build Extension packages'
-    condition: eq(variables.isExtensionsRelease, true)
-    inputs:
-      command: 'custom'
-      custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: |
-        **\Worker.Extensions.*.csproj
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'ESRP CodeSigning: Nupkg'
@@ -280,7 +212,7 @@ jobs:
     vmImage: 'ubuntu-latest'
     
   steps:
-    - template: build/install-dotnet.yml
+    - template: ../build/install-dotnet.yml
     - task: DotNetCoreCLI@2
       displayName: 'Build projects'
       inputs:

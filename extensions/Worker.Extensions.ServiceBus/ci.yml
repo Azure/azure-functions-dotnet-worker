@@ -1,0 +1,22 @@
+trigger:
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - extensions/Worker.Extensions.ServiceBus/
+
+pr:
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - extensions/Worker.Extensions.ServiceBus/
+
+extends:
+  template: ../../build/pipelines/templates/extensions-ci.yml
+  parameters:
+    ExtensionDirectory: extensions/Worker.Extensions.ServiceBus

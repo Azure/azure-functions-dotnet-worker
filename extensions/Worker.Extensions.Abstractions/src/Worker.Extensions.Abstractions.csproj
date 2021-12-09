@@ -9,6 +9,6 @@
     <MinorProductVersion>1</MinorProductVersion>
   </PropertyGroup>
 
-  <Import Project="..\..\build\Common.props" />
+  <Import Project="..\..\..\build\Common.props" />
 
 </Project>

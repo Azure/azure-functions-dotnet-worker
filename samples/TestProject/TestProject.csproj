@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <SelfContained>false</SelfContained>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.1" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>  
+  </ItemGroup>
+
+  <ItemGroup>
+    <!--<ProjectReference Include="..\..\src\DotNetWorker.TestHost\DotNetWorker.TestHost.csproj" />-->    
+    <ProjectReference Include="..\..\src\DotNetWorker.TestHost\DotNetWorker.TestHost.csproj" />    
+    <ProjectReference Include="..\FunctionApp\FunctionApp.csproj" />
+  </ItemGroup>
+
+</Project>

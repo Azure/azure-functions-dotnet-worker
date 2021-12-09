@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.TestHost</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.TestHost</RootNamespace>
+  </PropertyGroup>
+
+  <Import Project="..\..\build\Common.props" />
+
+  <ItemGroup>
+    <Compile Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataJsonReader.cs" Link="FunctionMetadataJsonReader.cs" />
+    <Compile Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataJsonReaderOptions.cs" Link="FunctionMetadataJsonReaderOptions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.0-preview" />    
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include=".\Targets\**\*">
+      <PackagePath>build</PackagePath>
+      <Pack>true</Pack>
+    </None>
+  </ItemGroup>
+
+</Project>

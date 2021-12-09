@@ -14,7 +14,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         private readonly Dictionary<string, IEnumerable<string>> _functionErrors = new Dictionary<string, IEnumerable<string>>();
         private readonly FunctionMetadataJsonReader _reader;
 
-        public JsonFunctionProvider(FunctionMetadataJsonReader reader, string metadataFileDirectory)
+        public JsonFunctionProvider(FunctionMetadataJsonReader reader)
         {
             _reader = reader ?? throw new ArgumentNullException(nameof(reader));
         }

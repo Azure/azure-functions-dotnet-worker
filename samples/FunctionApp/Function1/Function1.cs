@@ -21,6 +21,7 @@ namespace FunctionApp
 
             response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             response.Headers.Add("Content-Type", "text/html; charset=utf-8");
+            response.Cookies.Append("name", "value");
             response.WriteString("Book Sent to Queue!");
 
             return new MyOutputType()
@@ -28,7 +29,7 @@ namespace FunctionApp
                 Book = bookVal,
                 HttpResponse = response
             };
-        }        
+        }
 
         public class MyOutputType
         {

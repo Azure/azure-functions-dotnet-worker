@@ -14,14 +14,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public static readonly string DefaultId = "TestId";
         public static readonly string DefaultName = "TestName";
 
-        public TestFunctionDefinition(string functionId = null, IDictionary<string, BindingMetadata> inputBindings = null, IDictionary<string, BindingMetadata> outputBindings = null, IEnumerable<FunctionParameter> parameters = null)
+        public TestFunctionDefinition(string functionId = null, string entryPoint = null,
+            IDictionary<string, BindingMetadata> inputBindings = null, IDictionary<string, BindingMetadata> outputBindings = null, IEnumerable<FunctionParameter> parameters = null)
         {
-            if (functionId is not null)
-            {
-                Id = functionId;
-            }
+            Id = functionId ?? DefaultId;
 
-            Parameters = parameters == null ? ImmutableArray<FunctionParameter>.Empty : parameters.ToImmutableArray();
+            Parameters = parameters?.ToImmutableArray() ?? ImmutableArray<FunctionParameter>.Empty;
+
+            EntryPoint = entryPoint ?? DefaultEntrypPoint;
+
             InputBindings = inputBindings == null ? ImmutableDictionary<string, BindingMetadata>.Empty : inputBindings.ToImmutableDictionary();
             OutputBindings = outputBindings == null ? ImmutableDictionary<string, BindingMetadata>.Empty : outputBindings.ToImmutableDictionary();
         }
@@ -30,9 +31,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override string PathToAssembly { get; } = DefaultPathToAssembly;
 
-        public override string EntryPoint { get; } = DefaultEntrypPoint;
+        public override string EntryPoint { get; }
 
-        public override string Id { get; } = DefaultId;
+        public override string Id { get; }
 
         public override string Name { get; } = DefaultName;
 

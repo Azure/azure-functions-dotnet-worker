@@ -19,6 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly DefaultFunctionInvokerFactory _invokerFactory;
 
         private MethodInfo _functionMethod;
+        private static readonly string _pathToAssembly = typeof(DefaultFunctionInvokerFactoryTests).Assembly.Location;
 
         public DefaultFunctionInvokerFactoryTests()
         {
@@ -36,10 +37,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_ReturnsFunctionInvoker()
         {
             // Arrange
-            _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
+            var methodInfo = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
+            var definition = TestUtility.CreateDefinition(methodInfo);
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
+            IFunctionInvoker invoker = _invokerFactory.Create(definition);
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -49,10 +51,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_IfStatic_UsesNullInstanceFactory()
         {
             // Arrange
-            _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
+            var methodInfo = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.StaticReturnVoid));
+            var definition = TestUtility.CreateDefinition(methodInfo);
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
+            IFunctionInvoker invoker = _invokerFactory.Create(definition);
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -65,10 +68,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_IfInstance_UsesActivatorInstanceFactory()
         {
             // Arrange
-            _functionMethod = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.InstanceReturnVoid));
+            var methodInfo = GetMethodInfo(nameof(DefaultFunctionInvokerFactoryTests.InstanceReturnVoid));
+            var definition = TestUtility.CreateDefinition(methodInfo);
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
+            IFunctionInvoker invoker = _invokerFactory.Create(definition);
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<DefaultFunctionInvokerFactoryTests, object>>(invoker);
@@ -80,10 +84,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void Create_IfInstanceAndMethodIsInherited_UsesReflectedType()
         {
             // Arrange
-            _functionMethod = GetMethodInfo(typeof(Subclass), nameof(Subclass.InheritedReturnVoid));
+            var methodInfo = GetMethodInfo(typeof(Subclass), nameof(Subclass.InheritedReturnVoid));
+            var definition = TestUtility.CreateDefinition(methodInfo);
 
             // Act
-            IFunctionInvoker invoker = _invokerFactory.Create(new TestFunctionDefinition());
+            IFunctionInvoker invoker = _invokerFactory.Create(definition);
 
             // Assert
             Assert.IsType<DefaultFunctionInvoker<Subclass, object>>(invoker);
@@ -117,7 +122,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         protected void InheritedReturnVoid() { }
 
-        private class Subclass : DefaultFunctionInvokerFactoryTests
+        public class Subclass : DefaultFunctionInvokerFactoryTests
         {
         }
     }

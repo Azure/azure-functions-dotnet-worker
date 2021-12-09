@@ -32,10 +32,10 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 ?? ImmutableDictionary<string, BindingMetadata>.Empty;
 
             Parameters = methodInfoLocator.GetMethod(PathToAssembly, EntryPoint)
-                .GetParameters()
-                .Where(p => p.Name != null)
-                .Select(p => new FunctionParameter(p.Name!, p.ParameterType))
-                .ToImmutableArray();
+               .GetParameters()
+               .Where(p => p.Name != null)
+               .Select(p => new FunctionParameter(p.Name!, p.ParameterType))
+               .ToImmutableArray();
         }
 
         public override string PathToAssembly { get; }

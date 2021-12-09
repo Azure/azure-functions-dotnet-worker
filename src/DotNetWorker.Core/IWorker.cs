@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal interface IWorker
+    public interface IWorker
     {
         Task StartAsync(CancellationToken token);
 

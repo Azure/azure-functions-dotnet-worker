@@ -64,5 +64,10 @@ namespace Microsoft.Azure.Functions.Worker
                 return _functionExecutionDelegate(context);
             }
         }
+
+        public void DisposeContext(FunctionContext context, Exception? exception)
+        {
+            (context as IDisposable)?.Dispose();
+        }
     }
 }

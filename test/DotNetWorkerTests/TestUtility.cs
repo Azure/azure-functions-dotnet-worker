@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -39,5 +40,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             options ??= new TOptions();
             return new OptionsWrapper<TOptions>(options);
         }
+
+        public static FunctionDefinition CreateDefinition(MethodInfo methodInfo)
+        {
+            return new TestFunctionDefinition(entryPoint: $"{methodInfo.ReflectedType.FullName}.{methodInfo.Name}");
+        }
+
     }
 }

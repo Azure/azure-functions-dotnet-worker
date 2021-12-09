@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
 namespace CustomMiddleware
@@ -12,6 +12,10 @@ namespace CustomMiddleware
         {
             //<docsnippet_middleware_register>
             var host = new HostBuilder()
+                .ConfigureAppConfiguration(configurationBuilder =>
+                {
+                    configurationBuilder.AddJsonFile("...");
+                })
                 .ConfigureFunctionsWorkerDefaults(workerApplication =>
                 {
                     // Register our custom middleware with the worker

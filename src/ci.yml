@@ -1,10 +1,19 @@
 trigger:
-- main
-- release/*
-
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - src/
 pr:
-- main
-- release/*
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - src/
 
 jobs:
 - job: "Build_And_Test_Windows"

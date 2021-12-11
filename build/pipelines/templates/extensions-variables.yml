@@ -3,11 +3,8 @@
       buildNumberTemp: $(Build.BuildNumber)
     ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
       isReleaseBuildTemp: true
-    ${{ if contains(variables['Build.SourceBranch'], '/release/extensions' ) }}:
-      isExtensionsReleaseTemp: true
     buildNumber: $[variables.buildNumberTemp]
     isReleaseBuild: $[variables.isReleaseBuildTemp]
-    isExtensionsRelease: $[variables.isExtensionsReleaseTemp]
     solution: '**/*.sln'
     buildPlatform: 'Any CPU'
     buildConfiguration: 'Release'

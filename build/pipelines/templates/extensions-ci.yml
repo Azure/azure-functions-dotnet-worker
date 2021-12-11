@@ -40,7 +40,7 @@ jobs:
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
     displayName: 'ESRP CodeSigning - Authenticode'
-    condition: eq(variables.isExtensionsRelease, true)
+    condition: eq(variables.isReleaseBuild, true)
     inputs:
       ConnectedServiceName: 'ESRP Service'
       FolderPath: 'extensions'

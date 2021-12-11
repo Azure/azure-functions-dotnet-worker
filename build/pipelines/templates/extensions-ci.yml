@@ -102,5 +102,11 @@ jobs:
     inputs:
       contents: '**\CodeSignSummary-*.md'
 
+  - task: ManifestGeneratorTask@0
+    displayName: 'SBOM Generation Task'
+    inputs:
+      BuildDropPath: '$(System.DefaultWorkingDirectory)/packages'
+      Verbosity: 'Information'
+      
   - publish: $(System.DefaultWorkingDirectory)/packages
     artifact: drop

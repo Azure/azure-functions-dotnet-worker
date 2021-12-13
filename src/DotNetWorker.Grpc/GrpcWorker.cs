@@ -130,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
-                responseMessage.FunctionMetadataResponses = await FunctionsMetadataRequestHandlerAsync(request.FunctionsMetadataRequest);
+                responseMessage.FunctionMetadataResponse = await FunctionsMetadataRequestHandlerAsync(request.FunctionsMetadataRequest);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
@@ -244,22 +244,23 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static async Task<FunctionMetadataResponses> FunctionsMetadataRequestHandlerAsync(FunctionsMetadataRequest request)
+        internal static async Task<FunctionMetadataResponse> FunctionsMetadataRequestHandlerAsync(FunctionsMetadataRequest request)
         {
-            var response = new FunctionMetadataResponses
+            var response = new FunctionMetadataResponse
             {
-                Result = StatusResult.Success
+                Result = StatusResult.Success,
+                UseDefaultMetadataIndexing = false
             };
 
             try
             {
                 var functionReader = new FunctionMetadataJsonReader(request.FunctionAppDirectory);
 
-                var functionLoadRequests = await functionReader.ReadMetadataAsync();
+                var functionMetadataList = await functionReader.ReadMetadataAsync();
 
-                for (int i = 0; i < functionLoadRequests.Length; i++)
+                for (int i = 0; i < functionMetadataList.Length; i++)
                 {
-                    response.FunctionLoadRequestsResults.Add(functionLoadRequests[i]);
+                    response.FunctionMetadataResults.Add(functionMetadataList[i]);
                 }
             }
             catch (Exception ex)

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker
             _directory = directory ?? throw new ArgumentNullException(nameof(directory));
         }
 
-        public virtual async Task<ImmutableArray<FunctionLoadRequest>> ReadMetadataAsync()
+        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> ReadMetadataAsync()
         {
             string metadataFile = Path.Combine(_directory, FileName);
 
@@ -29,9 +29,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 using (var fs = File.OpenRead(metadataFile))
                 {
+                    // deserialize as json element to preserve raw bindings
                     var jsonMetadataList = await JsonSerializer.DeserializeAsync<JsonElement>(fs);
 
-                    var functionRequests = new List<FunctionLoadRequest>(jsonMetadataList.GetArrayLength());
+                    var functionMetadataResults= new List<RpcFunctionMetadata>(jsonMetadataList.GetArrayLength());
 
                     var options = new JsonSerializerOptions();
                     options.PropertyNameCaseInsensitive = true;
@@ -45,40 +46,31 @@ namespace Microsoft.Azure.Functions.Worker
                             throw new NullReferenceException("Function metadata could not be found.");
                         }
 
-                        var funcId = Guid.NewGuid().ToString();
-
                         // hard-coded values that are checked for when the host validates functions
                         functionMetadata.IsProxy = false;
                         functionMetadata.Language = "dotnet-isolated";
-                        
-                        FunctionLoadRequest request = new FunctionLoadRequest()
-                        {
-                            FunctionId = funcId,
-                            ManagedDependencyEnabled = false,
-                            Metadata = functionMetadata
-                        };
 
                         var rawBindings = GetRawBindings(jsonMetadata);
 
                         foreach (var binding in rawBindings.EnumerateArray())
                         {
-                            request.Metadata.RawBindings.Add(binding.GetRawText());
+                            functionMetadata.RawBindings.Add(binding.GetRawText());
 
                             BindingInfo bindingInfo = CreateBindingInfo(binding);
 
                             binding.TryGetProperty("name", out JsonElement jsonName);
 
-                            request.Metadata.Bindings.Add(jsonName.ToString(), bindingInfo);
+                            functionMetadata.Bindings.Add(jsonName.ToString(), bindingInfo);
                         }
 
-                        functionRequests.Add(request);
+                        functionMetadataResults.Add(functionMetadata);
                     }
 
-                    return functionRequests.ToImmutableArray();
+                    return functionMetadataResults.ToImmutableArray();
                 }
             }
 
-            return ImmutableArray<FunctionLoadRequest>.Empty;
+            return ImmutableArray<RpcFunctionMetadata>.Empty;
         }
 
         internal static JsonElement GetRawBindings(JsonElement jsonMetadata)

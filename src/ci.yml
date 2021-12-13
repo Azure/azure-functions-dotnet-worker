@@ -216,6 +216,7 @@ jobs:
 
 - job: "E2ETests_Ubuntu"  
   pool:
+    name: '1ES-Hosted-AzFunc'
     vmImage: 'MMSUbuntu20.04TLS'
     
   steps:

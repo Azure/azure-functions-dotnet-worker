@@ -216,7 +216,7 @@ jobs:
 
 - job: "E2ETests_Ubuntu"  
   pool:
-    vmImage: 'MMSUbuntu18.04TLS'
+    vmImage: 'MMSUbuntu20.04TLS'
     
   steps:
     - template: ../build/install-dotnet.yml

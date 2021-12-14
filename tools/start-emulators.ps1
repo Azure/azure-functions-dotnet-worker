@@ -57,7 +57,7 @@ if (!$SkipCosmosDBEmulator)
     if ($cosmosStatus -ne "Running")
     {
         Write-Host "CosmosDB emulator is not running. Starting emulator in blocking fashion(without -NoWait), with debug flag."
-        Start-CosmosDbEmulator -debug
+        Start-CosmosDbEmulator -debug -Trace
         $startedCosmos = $true
     }
     else

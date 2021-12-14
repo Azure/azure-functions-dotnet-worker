@@ -51,13 +51,12 @@ function IsStorageEmulatorRunning()
 if (!$SkipCosmosDBEmulator)
 {
     Write-Host ""
-    Write-Host "---Starting CosmosDB emulator with debug---"
+    Write-Host "---Starting CosmosDB emulator---"
     $cosmosStatus = Get-CosmosDbEmulatorStatus
 
     if ($cosmosStatus -ne "Running")
     {
         Write-Host "CosmosDB emulator is not running. Starting emulator."
-        # Without the -NoUI flag, the emulator is not starting in the new IES hosting agent pools.
         Start-CosmosDbEmulator -NoWait -NoUI
         $startedCosmos = $true
     }

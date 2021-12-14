@@ -56,8 +56,9 @@ if (!$SkipCosmosDBEmulator)
 
     if ($cosmosStatus -ne "Running")
     {
-        Write-Host "CosmosDB emulator is not running. Starting emulator in blocking fashion(without -NoWait), with debug flag."
-        Start-CosmosDbEmulator -NoUI
+        Write-Host "CosmosDB emulator is not running. Starting emulator."
+        # Without the -NoUI flag, the emulator is not starting in the new IES hosting agent pools.
+        Start-CosmosDbEmulator -NoWait -NoUI
         $startedCosmos = $true
     }
     else

@@ -56,8 +56,8 @@ if (!$SkipCosmosDBEmulator)
 
     if ($cosmosStatus -ne "Running")
     {
-        Write-Host "CosmosDB emulator is not running. Starting emulator."
-        Start-CosmosDbEmulator -NoWait
+        Write-Host "CosmosDB emulator is not running. Starting emulator in blocking fashion(without -NoWait)."
+        Start-CosmosDbEmulator
         $startedCosmos = $true
     }
     else

@@ -51,13 +51,13 @@ function IsStorageEmulatorRunning()
 if (!$SkipCosmosDBEmulator)
 {
     Write-Host ""
-    Write-Host "---Starting CosmosDB emulator---"
+    Write-Host "---Starting CosmosDB emulator with debug---"
     $cosmosStatus = Get-CosmosDbEmulatorStatus
 
     if ($cosmosStatus -ne "Running")
     {
-        Write-Host "CosmosDB emulator is not running. Starting emulator in blocking fashion(without -NoWait)."
-        Start-CosmosDbEmulator
+        Write-Host "CosmosDB emulator is not running. Starting emulator in blocking fashion(without -NoWait), with debug flag."
+        Start-CosmosDbEmulator -debug
         $startedCosmos = $true
     }
     else

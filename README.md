@@ -70,6 +70,7 @@ You can place a breakpoint in any function, and inspect your code as it is runni
 
 - [Powershell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.2)
 - [CosmosDb Emulator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator?tabs=ssl-netstd21)
+- Azurite (the set up script will download this automatically)
 
 ### Instructions
 

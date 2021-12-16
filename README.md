@@ -64,6 +64,21 @@ Under the hood, Rider launches the Core Tools with the `--dotnet-isolated-debug`
 
 You can place a breakpoint in any function, and inspect your code as it is running. Note that [debugging startup code may timeout (#434)](https://github.com/Azure/azure-functions-dotnet-worker/issues/434).
 
+## Running E2E Tests
+
+### Requirements
+
+- [Powershell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.2)
+- [CosmosDb Emulator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator?tabs=ssl-netstd21)
+- Azurite (the set up script will download this automatically)
+
+### Instructions
+
+1. Run `setup-e2e-tests.ps1`. Once the build succeeds and the emulators are started correctly, you are done with the setup.
+1. Run `run-e2e-tests.ps1` to run the tests or use the Test Explorer in VS.
+
+**Note:** Do **not** add the switch to skip the core-tools download when running `set-up-e2e-tests.ps1` as it will lead to an incomplete setup. 
+
 ## Deploying to Azure
 
 ### Create the Azure resources
@@ -86,7 +101,6 @@ You can place a breakpoint in any function, and inspect your code as it is runni
     az functionapp create --resource-group AzureFunctionsQuickstart-rg --consumption-plan-location westeurope --runtime dotnet-isolated --functions-version 3 --name <APP_NAME> --storage-account <STORAGE_NAME>
     ```
 
-
 ### Deploy the app
 
 1. Ensure you are in your functions project folder.
@@ -95,6 +109,11 @@ You can place a breakpoint in any function, and inspect your code as it is runni
     ```bash
     func azure functionapp publish <APP_NAME>
     ```
+
+## Known issues
+
+* Optimizations are not all in place in the consumption plan and you may experience longer cold starts.
+
 ## Feedback
 
 Please create issues in this repo. Thanks!

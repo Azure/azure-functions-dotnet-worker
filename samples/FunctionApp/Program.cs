@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -12,7 +13,7 @@ namespace FunctionApp
         static async Task Main(string[] args)
         {
 // #if DEBUG
-//          Debugger.Launch();
+            Debugger.Launch();
 // #endif
             //<docsnippet_startup>
             var host = new HostBuilder()

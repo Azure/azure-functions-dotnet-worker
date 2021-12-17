@@ -15,10 +15,13 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly string _directory;
         private const string FileName = "functions.metadata";
+        private JsonSerializerOptions deserializationOptions;
 
         public FunctionMetadataProvider(string directory)
         {
             _directory = directory ?? throw new ArgumentNullException(nameof(directory));
+            deserializationOptions = new JsonSerializerOptions();
+            deserializationOptions.PropertyNameCaseInsensitive = true;
         }
 
         public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync()
@@ -34,12 +37,9 @@ namespace Microsoft.Azure.Functions.Worker
 
                     var functionMetadataResults= new List<RpcFunctionMetadata>(jsonMetadataList.GetArrayLength());
 
-                    var options = new JsonSerializerOptions();
-                    options.PropertyNameCaseInsensitive = true;
-
                     foreach (var jsonMetadata in jsonMetadataList.EnumerateArray())
                     {
-                        var functionMetadata = JsonSerializer.Deserialize<RpcFunctionMetadata>(jsonMetadata.GetRawText(), options);
+                        var functionMetadata = JsonSerializer.Deserialize<RpcFunctionMetadata>(jsonMetadata.GetRawText(), deserializationOptions);
 
                         if (functionMetadata is null)
                         {

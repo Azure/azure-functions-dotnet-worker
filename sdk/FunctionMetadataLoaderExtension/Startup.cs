@@ -42,12 +42,6 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             Environment.SetEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "true");
             Environment.SetEnvironmentVariable("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "true");
         }
-
-        public void Configure(IWebJobsBuilder builder)
-        {
-            // This will not be called.
-        }
-
         private static WorkerConfigDescription GetUpdatedWorkerDescription(string appRootPath)
         {
             string fullPathToWorkerConfig = Path.Combine(appRootPath, WorkerConfigFile);

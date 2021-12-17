@@ -11,17 +11,17 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 { 
-    internal class FunctionMetadataJsonReader
+    internal class FunctionMetadataProvider : IFunctionMetadataProvider
     {
         private readonly string _directory;
         private const string FileName = "functions.metadata";
 
-        public FunctionMetadataJsonReader(string directory)
+        public FunctionMetadataProvider(string directory)
         {
             _directory = directory ?? throw new ArgumentNullException(nameof(directory));
         }
 
-        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> ReadMetadataAsync()
+        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync()
         {
             string metadataFile = Path.Combine(_directory, FileName);
 

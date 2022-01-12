@@ -6,20 +6,8 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Attribute used to bind a list of SignalR Service endpoints to the parameter.
+    /// Binds a list of <see cref="SignalREndpoint"/> to the parameter.
     /// </summary>
-    /// <remarks>
-    /// The SignalR Service endpoint can have following properties:
-    /// <code>
-    /// public class ServiceEndpoint
-    /// {
-    ///     public EndpointType EndpointType { get; set; } //enum type, "Primary" or "Secondary"
-    ///     public string Name { get; set; }
-    ///     public string Endpoint { get; set; }
-    ///     public bool Online { get; set; }
-    /// }
-    /// </code>
-    /// </remarks>
     public sealed class SignalREndpointsInputAttribute : InputBindingAttribute
     {
         public SignalREndpointsInputAttribute(string hubName)

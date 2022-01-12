@@ -6,17 +6,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Attribute used to bind necessary information for a SignalR client to connect to SignalR Service.
-    /// <para> 
-    /// The connection info object will have the following properties:
-    /// <code>
-    /// public class MyConnectionInfo 
-    /// {
-    /// public string Url { get; set; }
-    /// public string AccessToken { get; set; }
-    /// } 
-    /// </code>
-    /// </para>
+    /// Provides <see cref="SignalRConnectionInfo"/> for a SignalR client to connect to SignalR Service.
     /// </summary>
     public sealed class SignalRConnectionInfoInputAttribute : InputBindingAttribute
     {

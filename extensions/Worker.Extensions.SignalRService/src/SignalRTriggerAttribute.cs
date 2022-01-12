@@ -1,32 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Attribute used to mark a function that should be triggered by messages sent from SignalR clients.
+    /// Binds to a <see cref="SignalRInvocationContext"/> to mark a function that should be triggered by messages sent from SignalR clients.
     /// </summary>
-    /// <remarks>
-    /// The attribute target can have following attributes:
-    /// <code>
-    /// public class InvocationContext
-    /// {
-    ///     public object[] Arguments { get; set; }
-    ///     public string Error { get; set; }
-    ///     public string Category { get; set; }
-    ///     public string Event { get; set; }
-    ///     public string Hub { get; set; }
-    ///     public string ConnectionId { get; set; }
-    ///     public string UserId { get; set; }
-    ///     public IDictionary<string, string> Headers { get; set; }
-    ///     public IDictionary<string, string> Query { get; set; }
-    ///     public IDictionary<string, string> Claims { get; set; }
-    /// }
-    /// </code>
-    /// </remarks>
     public sealed class SignalRTriggerAttribute : TriggerBindingAttribute
     {
         public SignalRTriggerAttribute(string hubName, string category, string @event) : this(hubName, category, @event, Array.Empty<string>())

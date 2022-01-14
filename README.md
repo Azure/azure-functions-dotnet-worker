@@ -109,6 +109,7 @@ You can place a breakpoint in any function, and inspect your code as it is runni
     ```bash
     func azure functionapp publish <APP_NAME>
     ```
+
 ## Known issues
 
 * Optimizations are not all in place in the consumption plan and you may experience longer cold starts.

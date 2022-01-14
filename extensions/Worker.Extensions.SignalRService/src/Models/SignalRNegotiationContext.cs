@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         public SignalREndpointConnectionInfo[] Endpoints { get; set; }
     }
-    
+
     /// <summary>
     /// Contains metadata of an SignalR endpoint and connection information for a client to connect to the SignalR Service.
     /// </summary>
@@ -23,18 +23,22 @@ namespace Microsoft.Azure.Functions.Worker
         /// The type of an endpoint.
         /// </summary>
         public SignalREndpointType EndpointType { get; set; }
+
         /// <summary>
         /// The name of the endpoint.
         /// </summary>
         public string Name { get; set; }
+
         /// <summary>
         /// The URL of the endpoint.
         /// </summary>
         public string Endpoint { get; set; }
+
         /// <summary>
         /// Whether the SignalR Service behind the endpoint is healthy.
         /// </summary>
         public bool Online { get; set; }
+
         /// <summary>
         /// The connection information for a client to connect to SignalR Service. Returns this field to the client if you choose this endpoint.
         /// </summary>

@@ -9,12 +9,12 @@ namespace Microsoft.Azure.Functions.Worker
     public sealed class SignalRConnectionInfo
     {
         /// <summary>
-        /// Gets the URL for a client to connect to SignalR Service.
+        /// The URL for a client to connect to SignalR Service.
         /// </summary>
         public string Url { get; set; }
 
         /// <summary>
-        /// Gets the access token for a client to connect to SignalR service.
+        /// The access token for a client to connect to SignalR service.
         /// </summary>
         public string AccessToken { get; set; }
     }

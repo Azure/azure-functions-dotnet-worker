@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Required. The target to send to.
         /// </summary>
-        public string Target { get; set; }
+        public string Target { get; }
 
         /// <summary>
         /// The arguments to send.

@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// The error message of connections disconnected event.
         /// Only connections disconnected event can have this property, and it can be empty if the connection is closed with no error.
         /// </summary>
-        public string Error { get; set; }
+        public string? Error { get; set; }
 
         /// <summary>
         /// The category of the invocation.
@@ -28,8 +28,8 @@ namespace Microsoft.Azure.Functions.Worker
         public SignalRInvocationCategory Category { get; set; }
 
         /// <summary>
-        ///  For <see cref="SignalRInvocationCategory.messages"/> category, the event is the target in invocation message sent from clients. 
-        ///  For <see cref="SignalRInvocationCategory.connections"/> category, only "connected" and "disconnected" are used.
+        ///  For <see cref="SignalRInvocationCategory.Messages"/> category, the event is the target in invocation message sent from clients. 
+        ///  For <see cref="SignalRInvocationCategory.Connections"/> category, only "connected" and "disconnected" are used.
         /// </summary>
         public string Event { get; set; }
 
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.Functions.Worker
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum SignalRInvocationCategory
     {
-        connections,
-        messages
+        Connections,
+        Messages
     }
 }

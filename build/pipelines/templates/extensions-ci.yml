@@ -7,7 +7,8 @@ jobs:
 - job: "Build_And_Test_Windows"
   pool:
     name: '1ES-Hosted-AzFunc'
-    vmImage: 'MMS2022TLS'
+    demands:
+      - ImageOverride -equals MMS2022TLS
 
   variables:
     - template: extensions-variables.yml

@@ -19,7 +19,8 @@ jobs:
 - job: "Build_And_Test_Windows"
   pool:
     name: '1ES-Hosted-AzFunc'
-    vmImage: 'MMS2022TLS'
+    demands:
+      - ImageOverride -equals MMS2022TLS
 
   variables:
     ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
@@ -217,8 +218,9 @@ jobs:
 - job: "E2ETests_Ubuntu"  
   pool:
     name: '1ES-Hosted-AzFunc'
-    vmImage: 'MMSUbuntu20.04TLS'
-    
+    demands:
+      - ImageOverride -equals MMSUbuntu20.04TLS
+
   steps:
     - template: ../build/install-dotnet.yml
     - task: DotNetCoreCLI@2

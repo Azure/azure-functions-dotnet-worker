@@ -46,6 +46,9 @@ namespace Microsoft.Extensions.DependencyInjection
                 logging.Services.AddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
             });
 
+            // FunctionMetadataProvider for worker driven function-indexing
+            services.AddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
+
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();
             services.AddSingleton<FunctionRpcClient>(p =>
@@ -75,6 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Configure<IConfiguration>((arguments, config) =>
                 {
                     config.Bind(arguments);
+                    arguments.ScriptRoot = config["AzureWebJobsScriptRoot"];
                 });
 
             return services;

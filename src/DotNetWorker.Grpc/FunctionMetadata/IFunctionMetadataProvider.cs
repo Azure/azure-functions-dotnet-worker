@@ -14,6 +14,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets all function metadata that this provider knows about asynchronously
         /// </summary>
         /// <returns>A Task with IEnumerable of FunctionMetadata</returns>
-        Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync();
+        Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync(string directory);
     }
 }

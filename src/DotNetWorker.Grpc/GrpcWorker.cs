@@ -35,13 +35,13 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
-        private readonly string _appLocation;
-        private Task<FunctionMetadataResponse> _functionMetadataResponse;
+        private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private Task<FunctionMetadataResponse>? _functionMetadataResponseTask;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
-            IInputConversionFeatureProvider inputConversionFeatureProvider)
+            IInputConversionFeatureProvider inputConversionFeatureProvider, IFunctionMetadataProvider functionMetadataProvider)
         {
             if (outputChannel == null)
             {
@@ -59,21 +59,19 @@ namespace Microsoft.Azure.Functions.Worker
             _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
-            _appLocation = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot")!;
-            _functionMetadataResponse = Task.FromResult(new FunctionMetadataResponse
-            {
-                Result = new StatusResult
-                {
-                    Status = StatusResult.Types.Status.Failure
-                }
-            });
+            _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
         }
 
         public async Task StartAsync(CancellationToken token)
         {
             var eventStream = _rpcClient.EventStream(cancellationToken: token);
 
-            _functionMetadataResponse = GetFunctionMetadataAsync(_appLocation);
+            if(_startupOptions.Value.ScriptRoot is null)
+            {
+                throw new ArgumentNullException(nameof(_startupOptions.Value.ScriptRoot));
+            }
+
+            _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.ScriptRoot);
 
             await SendStartStreamMessageAsync(eventStream.RequestStream);
 
@@ -142,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
-                responseMessage.FunctionMetadataResponse = await _functionMetadataResponse;
+                responseMessage.FunctionMetadataResponse = await _functionMetadataResponseTask!;
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
@@ -266,9 +264,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionProvider = new FunctionMetadataProvider(functionAppDirectory);
-
-                var functionMetadataList = await functionProvider.GetFunctionMetadataAsync();
+                var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
 
                 for (int i = 0; i < functionMetadataList.Length; i++)
                 {

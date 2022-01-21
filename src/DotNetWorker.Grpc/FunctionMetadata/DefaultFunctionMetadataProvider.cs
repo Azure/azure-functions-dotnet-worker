@@ -11,22 +11,20 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 { 
-    internal class FunctionMetadataProvider : IFunctionMetadataProvider
+    internal class DefaultFunctionMetadataProvider : IFunctionMetadataProvider
     {
-        private readonly string _directory;
         private const string FileName = "functions.metadata";
         private JsonSerializerOptions deserializationOptions;
 
-        public FunctionMetadataProvider(string directory)
+        public DefaultFunctionMetadataProvider()
         {
-            _directory = directory ?? throw new ArgumentNullException(nameof(directory));
             deserializationOptions = new JsonSerializerOptions();
             deserializationOptions.PropertyNameCaseInsensitive = true;
         }
 
-        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync()
+        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
-            string metadataFile = Path.Combine(_directory, FileName);
+            string metadataFile = Path.Combine(directory, FileName);
 
             if (File.Exists(metadataFile))
             {

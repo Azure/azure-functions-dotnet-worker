@@ -28,7 +28,7 @@ namespace CustomMiddleware
             context.Items.Add("functionitem", "Hello from function!");
 
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.WriteString("Welcome to .NET 5!!");
+            response.WriteString("Welcome to .NET 6!!");
 
             return response;
         }

@@ -3,6 +3,8 @@
 
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Microsoft.Azure.Functions.Worker.Extensions.SignalRService;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -28,8 +30,8 @@ namespace Microsoft.Azure.Functions.Worker
         public SignalRInvocationCategory Category { get; set; }
 
         /// <summary>
-        ///  For <see cref="SignalRInvocationCategory.Messages"/> category, the event is the target in invocation message sent from clients. 
         ///  For <see cref="SignalRInvocationCategory.Connections"/> category, only "connected" and "disconnected" are used.
+        ///  For <see cref="SignalRInvocationCategory.Messages"/> category, the event is the target in invocation message sent from clients. 
         /// </summary>
         public string Event { get; set; }
 
@@ -50,21 +52,30 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// The headers of request.
-        /// Headers with duplicated key will be joined by comma.
         /// </summary>
-        public IDictionary<string, string> Headers { get; set; }
+        /// <remarks>
+        /// If you use Newtonsoft.Json object serializer, you have to take care of the JSON deserialization yourself.
+        /// </remarks>
+        [JsonConverter(typeof(HttpHeaderDictionaryConverter))]
+        public IDictionary<string, StringValues> Headers { get; set; }
 
         /// <summary>
         /// The query of the request when client connect to the service.
-        /// Queries with duplicated key will be joined by comma.
         /// </summary>
-        public IDictionary<string, string> Query { get; set; }
+        /// <remarks>
+        /// If you use Newtonsoft.Json object serializer, you have to take care of the JSON deserialization yourself.
+        /// </remarks>
+        [JsonConverter(typeof(HttpHeaderDictionaryConverter))]
+        public IDictionary<string, StringValues> Query { get; set; }
 
         /// <summary>
         /// The claims of the client.
-        /// If you multiple claims have the same key, only the first one will be reserved.
         /// </summary>
-        public IDictionary<string, string> Claims { get; set; }
+        /// <remarks>
+        /// If you use Newtonsoft.Json object serializer, you have to take care of the JSON deserialization yourself.
+        /// </remarks>
+        [JsonConverter(typeof(HttpHeaderDictionaryConverter))]
+        public IDictionary<string, StringValues> Claims { get; set; }
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]

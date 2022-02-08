@@ -4,7 +4,6 @@
 // This is excluded in the projec for other targets,
 // but conditionally compiling for clarity.
 // This implementation will be used in .NET Standard 2.0
-
 #if NETSTANDARD2_0
 using System;
 using System.Collections.Concurrent;

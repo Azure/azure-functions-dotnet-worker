@@ -47,6 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
                         // hard-coded values that are checked for when the host validates functions
                         functionMetadata.IsProxy = false;
                         functionMetadata.Language = "dotnet-isolated";
+                        functionMetadata.FunctionId = Guid.NewGuid().ToString();
 
                         var rawBindings = GetRawBindings(jsonMetadata);
 

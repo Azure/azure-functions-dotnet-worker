@@ -6,29 +6,8 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Attribute used to bind SignalR negotiation context to a parameter, which provides information to choose an available SignalR endpoint and corresponding connection info for a SignalR client to connect to SignalR Service.
+    /// Provides <see cref="SignalRNegotiationContext"/> to a parameter, which provides information to choose an available SignalR endpoint and corresponding connection info for a SignalR client to connect to SignalR Service.
     /// </summary>
-    /// <remarks>
-    /// The target object can have following attributes:
-    /// <code>
-    /// public class NegotiationContext
-    /// {
-    ///     public EndpointConnectionInfo[] Endpoints { get; set; }
-    /// }
-    /// public class EndpointConnectionInfo
-    /// {
-    ///     public EndpointType EndpointType { get; set; }  // enum type, "Primary" or "Secondary"
-    ///     public string Name { get; set; }
-    ///     public string Endpoint { get; set; }
-    ///     public bool Online { get; set; }
-    ///     public SignalRConnectionInfo ConnectionInfo { get; set; }
-    /// }
-    /// public class SignalRConnectionInfo
-    /// {
-    ///     public string Url { get; set; }
-    ///     public string AccessToken { get; set; }
-    /// }
-    /// </code>
     /// </remarks>
     public sealed class SignalRNegotiationInputAttribute : InputBindingAttribute
     {

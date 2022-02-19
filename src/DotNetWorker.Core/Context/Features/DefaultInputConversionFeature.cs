@@ -15,13 +15,19 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     internal sealed class DefaultInputConversionFeature : IInputConversionFeature
     {
         private readonly IInputConverterProvider _inputConverterProvider;
+        
+        // Cache to store conversion result.
+        // If conversion was requested for same parameter more than once during a function invocation
+        // the result will be served from the cache for second time onwards.
+        private readonly ConcurrentDictionary<string, ValueTask<ConversionResult>> _conversionResultCache = new();
+        
         private static readonly Type _inputConverterAttributeType = typeof(InputConverterAttribute);
 
         // Users may create a POCO and specify a special converter implementation
         // to be used using "InputConverter" attribute. We cache that mapping here.
         // Key is assembly qualified name of POCO and Value is assembly qualified name of converter implementation.
         private static readonly ConcurrentDictionary<string, string?> _typeToConverterCache = new();
-
+        
         public DefaultInputConversionFeature(IInputConverterProvider inputConverterProvider)
         {
             _inputConverterProvider = inputConverterProvider ?? throw new ArgumentNullException(nameof(inputConverterProvider));
@@ -33,6 +39,13 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <param name="converterContext">The converter context.</param>
         /// <returns>An instance of <see cref="ConversionResult"/> representing the result of the conversion.</returns>
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext converterContext)
+        {
+            var key = GetCacheKey(converterContext);
+
+            return await _conversionResultCache.GetOrAdd(key, (key) => ExecuteInputConversion(converterContext));
+        }
+
+        private async ValueTask<ConversionResult> ExecuteInputConversion(ConverterContext converterContext)
         {
             // Check a converter is explicitly specified via the converter context. If so, use that.
             IInputConverter? converterFromContext = GetConverterFromContext(converterContext);
@@ -132,6 +145,23 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 return converterType.AssemblyQualifiedName!;
 
             }, targetType);
+        }
+
+        /// <summary>
+        /// Creates a cache key for the ConverterContext instance passed in.
+        /// </summary>
+        /// <param name="converterContext"></param>
+        /// <returns></returns>
+        private string GetCacheKey(ConverterContext converterContext)
+        {
+            var cacheKey = $"{converterContext.TargetType.Name}_{converterContext.Source}";
+
+            foreach (var prop in converterContext.Properties)
+            {
+                cacheKey += prop.Key;
+            }
+
+            return cacheKey;
         }
     }
 }

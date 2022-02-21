@@ -48,7 +48,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             // find the parameter from function definition for the Type requested.
             // Use that parameter definition(which has Type) to get converted value.
-
             FunctionParameter? parameter = null;
             foreach (var param in context.FunctionDefinition.Parameters)
             {
@@ -104,21 +103,24 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the output binding entries for the current function invocation.
         /// </summary>
         /// <param name="context">The function context instance.</param>
-        /// <returns>Collection of <see cref="OutputBindingData"/></returns>
-        public static IEnumerable<OutputBindingData> GetOutputBindings(this FunctionContext context)
+        /// <returns>Collection of OutputBindingData instances of the requested type T.</returns>
+        public static IEnumerable<OutputBindingData<T>> GetOutputBindings<T>(this FunctionContext context)
         {
             var bindingsFeature = context.GetBindings();
 
             foreach (var data in bindingsFeature.OutputBindingData)
             {
-                // Gets binding type (http,queue etc) from function definition.
-                string? bindingType = null;
-                if (context.FunctionDefinition.OutputBindings.TryGetValue(data.Key, out var bindingData))
+                if (data.Value is T valueAsT)
                 {
-                    bindingType = bindingData.Type;
-                }
+                    // Gets binding type (http,queue etc) from function definition.
+                    string? bindingType = null;
+                    if (context.FunctionDefinition.OutputBindings.TryGetValue(data.Key, out var bindingData))
+                    {
+                        bindingType = bindingData.Type;
+                    }
 
-                yield return new OutputBindingData(context, data.Key, data.Value, bindingType);
+                    yield return new OutputBindingData<T>(context, data.Key, valueAsT, bindingType);
+                }
             }
         }
 

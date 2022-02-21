@@ -4,11 +4,11 @@
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// A type representing the output binding data.
+    /// A type representing an output binding entry.
     /// </summary>
-    public sealed class OutputBindingData
+    public sealed class OutputBindingData<T>
     {
-        internal OutputBindingData(FunctionContext functionContext, string name, object? value, string bindingType)
+        internal OutputBindingData(FunctionContext functionContext, string name, T? value, string bindingType)
         {
             _functionContext = functionContext;
             _value = value;
@@ -17,17 +17,17 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         private readonly FunctionContext _functionContext;
-        private object? _value;
+        private T? _value;
 
         /// <summary>
-        /// Gets the name of the binding entry.
+        /// Gets the name of the output binding entry.
         /// </summary>
         public string Name { get; }
 
         /// <summary>
-        /// Gets or sets the value of the binding entry.
+        /// Gets or sets the value of the output binding entry.
         /// </summary>
-        public object? Value
+        public T? Value
         {
             get => _value;
             set

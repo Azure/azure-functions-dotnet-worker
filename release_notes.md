@@ -3,4 +3,8 @@
 - My change description (#PR/#issue)
 -->
 - Storage extensions moved to 5.0.0
-- SignalR extensions added some convenient POJOs (PR #774)
+- SignalR extensions:
+    * Support AAD authentication in connection string. (#803)
+    * Add some convenient POJOs. (#774)
+    * Support multiple Azure SignalR Service instances. (#566)
+    * Fix a bug that group name is required when group action is "RemoveAll". (#347)

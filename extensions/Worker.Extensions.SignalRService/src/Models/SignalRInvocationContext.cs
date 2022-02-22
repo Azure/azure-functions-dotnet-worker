@@ -72,6 +72,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// The claims of the client.
         /// </summary>
         /// <remarks>
+        /// If multiple claims have the same key, only the first one will be reserved.
         /// If you use Newtonsoft.Json object serializer, you have to take care of the JSON deserialization yourself.
         /// </remarks>
         [JsonConverter(typeof(HttpHeaderDictionaryConverter))]

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Context
         /// </summary>
         /// <param name="context">The FunctionContext instance.</param>
         /// <returns>HttpRequestData instance if the invocation is http, else null</returns>
-        public static async Task<HttpRequestData?> GetHttpRequestData(this FunctionContext context)
+        public static async Task<HttpRequestData?> GetHttpRequestDataAsync(this FunctionContext context)
         {
             return await context.BindInputAsync<HttpRequestData>();
         }

@@ -30,19 +30,15 @@ namespace Microsoft.Azure.Functions.Worker.Core.Context
         public static HttpResponseData? GetHttpResponseData(this FunctionContext context)
         {
             var httpInvocationResult = context.GetInvocationResult<HttpResponseData>();
-            if (httpInvocationResult !=null)
+            if (httpInvocationResult.Value != null)
             {
                 return httpInvocationResult.Value;
             }
-
+            
             // see output binding entries has a property of type HttpResponseData;
             var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault();
-            if (httpOutputBinding != null)
-            {
-                return httpOutputBinding.Value;
-            }
-
-            return default;
+            
+            return httpOutputBinding?.Value;
         }
     }
 }

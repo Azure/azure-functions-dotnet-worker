@@ -40,45 +40,63 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <typeparam name="T">The type of input item to bind to.</typeparam>
         /// <param name="context">The function context.</param>
-        /// <returns>An instance of <see cref="T"/> if binding was successful, else null</returns>
-        /// <exception cref="InvalidOperationException"></exception>
+        /// <returns>A <see cref="Task"/> wrapping an instance of T if binding was successful, else null</returns>
+        /// <exception cref="InvalidOperationException">Throws when more than one input binding entry found for the requested type.</exception>
         public static async Task<T?> BindInputAsync<T>(this FunctionContext context)
         {
-            var inputType = typeof(T);
+            var requestedInputBindingType = typeof(T);
 
             // find the parameter from function definition for the Type requested.
-            // Use that parameter definition(which has Type) to get converted value.
             FunctionParameter? parameter = null;
             foreach (var param in context.FunctionDefinition.Parameters)
             {
-                if (param.Type.IsAssignableFrom(inputType))
+                if (param.Type.IsAssignableFrom(requestedInputBindingType))
                 {
                     if (parameter != null)
                     {
                         // More than one parameter found with the type requested.
-                        // customer should use the other overload of this method with an explicit FunctionParameter instance.
-                        throw new InvalidOperationException("More than one binding item found for the requested Type. Use the BindInput overload which takes an instance of FunctionParameter");
+                        // customer should use the other overload of this method with an explicit BindingMetadata instance.
+                        throw new InvalidOperationException("More than one input binding item found for the requested type. Use the BindInputAsync overload which takes an instance of BindingMetadata");
                     }
                     parameter = param;
                 }
             }
 
-            return await BindInputAsync<T>(context, parameter);
+            if (parameter != null)
+            {
+                return await GetConvertedValueFromInputConversionFeature<T>(context, parameter);
+            }
+
+            return default;
         }
 
         /// <summary>
-        /// Binds an input item for the requested function parameter.
+        /// Binds an input item for the requested <see cref="BindingMetadata"/> instance.
         /// </summary>
         /// <param name="context">The function context.</param>
-        /// <param name="parameter">The function parameter for which input data should bound to.</param>
-        /// <returns></returns>
-        public static async Task<T?> BindInputAsync<T>(this FunctionContext context, FunctionParameter parameter)
+        /// <param name="bindingMetadata">The BindingMetadata instance for which input data should bound to.</param>
+        /// <returns>A <see cref="Task"/> wrapping an instance of T if binding was successful, else null</returns>
+        public static async Task<T?> BindInputAsync<T>(this FunctionContext context, BindingMetadata bindingMetadata)
         {
+            if (bindingMetadata == null)
+            {
+                throw new ArgumentNullException(nameof(bindingMetadata));
+            }
+
+            // find the parameter from function definition for the bindingMetadata requested.
+            FunctionParameter? parameter = null;
+            foreach (var param in context.FunctionDefinition.Parameters)
+            {
+                if (param.Name == bindingMetadata.Name)
+                {
+                    parameter = param;
+                    break;
+                }
+            }
+
             if (parameter != null)
             {
-                var convertedValue = await GetConvertedValueFromInputConversionFeature(context, parameter);
-
-                return (T)convertedValue;
+                return await GetConvertedValueFromInputConversionFeature<T>(context, parameter);
             }
 
             return default;
@@ -88,15 +106,28 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the invocation result of the current function invocation.
         /// </summary>
         /// <param name="context">The function context instance.</param>
-        /// <returns>An instance of <see cref="InvocationResult"/>.</returns>
+        /// <returns>An instance of <see cref="InvocationResult{T}"/>.</returns>
+        /// <exception cref="InvalidOperationException">Throws when the invocation result is not of the requested type.</exception>
         public static InvocationResult<T> GetInvocationResult<T>(this FunctionContext context)
         {
-            if (context.GetBindings().InvocationResult is T t)
+            if (context.GetBindings().InvocationResult is T resultAsT)
             {
-                return new InvocationResult<T>(context, t);
+                return new InvocationResult<T>(context, resultAsT);
             }
 
-            return new InvocationResult<T>(context, default); ;
+            throw new InvalidOperationException("Invocation result is not of the requested type. Consider using the overload which does not specify the type.");
+        }
+
+        /// <summary>
+        /// Gets the invocation result of the current function invocation.
+        /// </summary>
+        /// <param name="context">The function context instance.</param>
+        /// <returns>An instance of <see cref="InvocationResult"/>.</returns>
+        public static InvocationResult GetInvocationResult(this FunctionContext context)
+        {
+            var invocationResult = context.GetBindings().InvocationResult;
+
+            return new InvocationResult(context, invocationResult);
         }
 
         /// <summary>
@@ -112,7 +143,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (data.Value is T valueAsT)
                 {
-                    // Gets binding type (http,queue etc) from function definition.
+                    // Gets binding type (blob,queue etc) from function definition.
                     string? bindingType = null;
                     if (context.FunctionDefinition.OutputBindings.TryGetValue(data.Key, out var bindingData))
                     {
@@ -127,13 +158,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Executes the input conversion feature to bind the value of the parameter.
         /// </summary>
-        private static async Task<object?> GetConvertedValueFromInputConversionFeature(FunctionContext context, FunctionParameter parameter)
+        private static async Task<T?> GetConvertedValueFromInputConversionFeature<T>(FunctionContext context, FunctionParameter parameter)
         {
-            IFunctionBindingsFeature functionBindings = context.GetBindings();
-
             var converterContextFactory = context.InstanceServices.GetService<IConverterContextFactory>();
-
             var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
+            var functionBindings = context.GetBindings();
 
             // Check InputData first, then TriggerMetadata
             if (!functionBindings.InputData.TryGetValue(parameter.Name, out object? source))
@@ -144,7 +173,12 @@ namespace Microsoft.Azure.Functions.Worker
             var converterContext = converterContextFactory!.Create(parameter.Type, source, context);
             var bindingResult = await inputConversionFeature!.ConvertAsync(converterContext);
 
-            return bindingResult.Value;
+            if (bindingResult.Status == ConversionStatus.Succeeded && bindingResult.Value!=null)
+            {
+                return (T)bindingResult.Value;
+            }
+
+            return default;
         }
     }
 }

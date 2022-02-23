@@ -7,7 +7,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// A type wrapping the result of a function invocation.
     /// </summary>
     /// <typeparam name="T">The type of invocation result value.</typeparam>
-    public sealed class InvocationResult<T>
+    public class InvocationResult<T>
     {
         internal InvocationResult(FunctionContext functionContext, T? value)
         {
@@ -29,6 +29,16 @@ namespace Microsoft.Azure.Functions.Worker
                 _value = value;
                 _functionContext.GetBindings().InvocationResult = value;
             }
+        }
+    }
+
+    /// <summary>
+    /// A type wrapping the result of a function invocation.
+    /// </summary>
+    public sealed class InvocationResult : InvocationResult<object>
+    {
+        internal InvocationResult(FunctionContext functionContext, object? value) : base(functionContext, value)
+        {
         }
     }
 }

@@ -149,7 +149,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             foreach (string bindingName in outputBindings)
             {
-                testOutputBindings[bindingName] = new TestBindingMetadata($"SomeOutput{bindingName}", BindingDirection.Out);
+                testOutputBindings[bindingName] = new TestBindingMetadata("foo",$"SomeOutput{bindingName}", BindingDirection.Out);
             }
 
             var definition = new TestFunctionDefinition(outputBindings: testOutputBindings);

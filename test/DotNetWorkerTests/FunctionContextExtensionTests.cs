@@ -13,6 +13,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -72,38 +73,49 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async Task BindInputAsyncWorks_ExplicitParameter()
+        public async Task BindInputAsyncWorks_ExplicitBindingMetadata()
         {
             // Arrange
             var definition = new TestFunctionDefinition(parameters: new FunctionParameter[]
-            {
-                new FunctionParameter("req", typeof(HttpRequestData)),
-                new FunctionParameter("productId", typeof(string)),
-                new FunctionParameter("categoryId", typeof(string))
-            });
+                                    {
+                                        new FunctionParameter("myBook", typeof(string)),
+                                        new FunctionParameter("blob1", typeof(Book)),
+                                        new FunctionParameter("blob2", typeof(Book))
+                                    },
+                                    inputBindings: new Dictionary<string, BindingMetadata>
+                                    {
+                                        { "myBook", new TestBindingMetadata("queueTrigger","myBook",BindingDirection.In) },
+                                        { "blob1", new TestBindingMetadata("blob1","blob",BindingDirection.In) },
+                                        { "blob2", new TestBindingMetadata("blob2","blob",BindingDirection.In) }
+                                    });
             features.Set<FunctionDefinition>(definition);
 
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, features);
-            var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {
-                InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } }),
-                TriggerMetadata = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "categoryId", "1" } })
+                InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> {
+                    { "myBook", "book1" },
+                    { "blob1", JsonConvert.SerializeObject(new Book { Title="b1"}) },
+                    { "blob2", JsonConvert.SerializeObject(new Book { Title="b2"}) }
+                    })
             };
             features.Set<IFunctionBindingsFeature>(functionBindings);
 
             // Mock input conversion feature to return a successfully converted value.
             var conversionFeature = new Mock<IInputConversionFeature>(MockBehavior.Strict);
-            conversionFeature.Setup(a => a.ConvertAsync(It.IsAny<ConverterContext>())).ReturnsAsync(ConversionResult.Success("1"));
+            conversionFeature.Setup(a => a.ConvertAsync(It.Is<ConverterContext>(ctx => ctx.Source.ToString().Contains("b2"))))
+                             .ReturnsAsync(ConversionResult.Success(new Book { Id = "book 2" }));
+
             features.Set<IInputConversionFeature>(conversionFeature.Object);
 
             // Act
-            var categoryIdParam = _defaultFunctionContext.FunctionDefinition.Parameters.First(a => a.Name == "categoryId");
-            var actual = await _defaultFunctionContext.BindInputAsync<string>(categoryIdParam);
+            // bind to the second blob input binding(blob2).
+            var blob2InputBinding = _defaultFunctionContext.FunctionDefinition.InputBindings.Values.First(a => a.Name == "blob2");
+            var actual = await _defaultFunctionContext.BindInputAsync<Book>(blob2InputBinding);
 
             // Assert
-            var categoryIdValue = TestUtility.AssertIsTypeAndConvert<string>(actual);
-            Assert.Equal("1", categoryIdValue);
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(actual);
+            Assert.Equal("book 2", book.Id);
         }
 
         private RpcHttp CreateRpcHttp()

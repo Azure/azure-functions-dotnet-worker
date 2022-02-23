@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
     public static class FunctionContextBindingFeatureExtensions
     {
         /// <summary>
-        /// Binds an input item for the requested type.
+        /// Binds an input binding item for the requested type.
         /// </summary>
         /// <typeparam name="T">The type of input item to bind to.</typeparam>
         /// <param name="context">The function context.</param>
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// Binds an input item for the requested <see cref="BindingMetadata"/> instance.
+        /// Binds an input binding item for the requested <see cref="BindingMetadata"/> instance.
         /// </summary>
         /// <param name="context">The function context.</param>
         /// <param name="bindingMetadata">The BindingMetadata instance for which input data should bound to.</param>

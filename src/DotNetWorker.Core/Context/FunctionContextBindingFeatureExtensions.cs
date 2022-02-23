@@ -16,26 +16,6 @@ namespace Microsoft.Azure.Functions.Worker
     public static class FunctionContextBindingFeatureExtensions
     {
         /// <summary>
-        /// Gets the input binding data for the current function invocation.
-        /// </summary>
-        /// <param name="context">The function context instance.</param>
-        /// <returns>The input binding data as a read only dictionary.</returns>
-        public static IReadOnlyDictionary<string, object?> GetInputData(this FunctionContext context)
-        {
-            return context.GetBindings().InputData;
-        }
-
-        /// <summary>
-        /// Gets the trigger meta data for the current function invocation.
-        /// </summary>
-        /// <param name="context">The function context instance.</param>
-        /// <returns>The invocation trigger meta data as a read only dictionary.</returns>
-        public static IReadOnlyDictionary<string, object?> GetTriggerMetadata(this FunctionContext context)
-        {
-            return context.GetBindings().TriggerMetadata;
-        }
-
-        /// <summary>
         /// Binds an input item for the requested type.
         /// </summary>
         /// <typeparam name="T">The type of input item to bind to.</typeparam>

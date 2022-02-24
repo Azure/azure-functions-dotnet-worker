@@ -74,5 +74,39 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", functionsEnvironment);
             }
         }
+        
+        [Fact]
+        public void ConfigureFunctionsWorker_EnvironmentVariablesAreRegistered()
+        {
+            var host = new HostBuilder()
+                .ConfigureFunctionsWorker()
+                .Build();
+
+            bool environmentVariablesProviderRegistered = ((ConfigurationRoot)host.Services.GetService<IConfiguration>())
+                .Providers.Any(p => p is EnvironmentVariablesConfigurationProvider);
+
+            Assert.True(environmentVariablesProviderRegistered, "Environment variables provider not registered.");
+        }
+
+        [Fact]
+        public void ConfigureFunctionsWorker_PrefixedVariables_AreRegistered()
+        {
+            string functionsEnvironment = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT");
+            Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", "Development");
+            try
+            {
+                var host = new HostBuilder()
+                    .ConfigureFunctionsWorker()
+                    .Build();
+
+                var environment = host.Services.GetService<IHostEnvironment>();
+
+                Assert.Equal("Development", environment.EnvironmentName);
+            }
+            finally
+            {
+                Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", functionsEnvironment);
+            }
+        }
     }
 }

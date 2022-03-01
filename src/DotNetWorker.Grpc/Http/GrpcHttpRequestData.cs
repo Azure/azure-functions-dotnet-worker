@@ -12,7 +12,10 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class GrpcHttpRequestData : HttpRequestData, IAsyncDisposable, IDisposable
+    internal class GrpcHttpRequestData : HttpRequestData, IDisposable
+#if NET5_0_OR_GREATER
+        ,IAsyncDisposable
+#endif
     {
         private readonly RpcHttp _httpData;
         private Uri? _url;
@@ -70,7 +73,11 @@ namespace Microsoft.Azure.Functions.Worker
                         }
 
                         var stream = new MemoryStream(memory.Length);
+#if NET5_0_OR_GREATER
                         stream.Write(memory.Span);
+#else
+                        stream.Write(memory.Span.ToArray(), 0, memory.Span.Length);
+#endif
                         stream.Position = 0;
 
                         _bodyStream = stream;
@@ -120,10 +127,12 @@ namespace Microsoft.Azure.Functions.Worker
             return new GrpcHttpResponseData(FunctionContext, System.Net.HttpStatusCode.OK);
         }
 
+#if NET5_0
         public ValueTask DisposeAsync()
         {
             return _bodyStream?.DisposeAsync() ?? ValueTask.CompletedTask;
         }
+#endif
 
         protected virtual void Dispose(bool disposing)
         {
@@ -146,13 +155,20 @@ namespace Microsoft.Azure.Functions.Worker
 
         private IReadOnlyCollection<IHttpCookie> ToHttpCookies(string cookieString)
         {
-            var separateCookies = cookieString.Split(";");
+            var separateCookies = cookieString.Split(';');
 
             List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
 
+#if NET5_0_OR_GREATER
+            var separator = '=';
+#else
+            var separator = new[] { '=' };
+#endif
+
             for (int c = 0; c < separateCookies.Length; c++)
             {
-                var splitArray = separateCookies[c].Split("=", StringSplitOptions.RemoveEmptyEntries);
+
+                var splitArray = separateCookies[c].Split(separator, StringSplitOptions.RemoveEmptyEntries);
                 var name = splitArray[0].Trim();
                 var value = splitArray[1];
                 httpCookiesList.Add(new HttpCookie(name, value));

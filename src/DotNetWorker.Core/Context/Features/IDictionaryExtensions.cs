@@ -1,14 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-// This is excluded in the projec for other targets,
+// This is excluded in the project for other targets,
 // but conditionally compiling for clarity.
 // This implementation will be used in .NET Standard 2.0
 #if NETSTANDARD2_0
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -16,6 +15,11 @@ namespace Microsoft.Azure.Functions.Worker
     {
         internal static bool TryAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
         {
+            if (key == null)
+            {
+                throw new ArgumentNullException(nameof(key));
+            }
+
             if (dictionary.ContainsKey(key))
             {
                 return false;

@@ -159,13 +159,15 @@ namespace Microsoft.Azure.Functions.Worker
 
             List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
 
+#if NET5_0_OR_GREATER
+            var separator = '=';
+#else
+            var separator = new[] { '=' };
+#endif
+
             for (int c = 0; c < separateCookies.Length; c++)
             {
-#if NET5_0_OR_GREATER
-                var separator = '=';
-#else
-                var separator = new[] { '=' };
-#endif
+
                 var splitArray = separateCookies[c].Split(separator, StringSplitOptions.RemoveEmptyEntries);
                 var name = splitArray[0].Trim();
                 var value = splitArray[1];

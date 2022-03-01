@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 p => Assert.True(p.Id == "1" && p.Author == "a"),
                 p => Assert.True(p.Id == "2" && p.Author == "c"),
                 p => Assert.True(p.Id == "3" && p.Author == "e"));
-        }        
+        }
 
         [Fact]
         public async Task Convert_Using_Default_Converters_Guid()
@@ -89,26 +89,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal(ConversionStatus.Succeeded, actual.Status);
             var customer = TestUtility.AssertIsTypeAndConvert<Customer>(actual.Value);
             Assert.Equal("16-converted customer", customer.Name);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_Returns_Cached_Results_When_Called_MoreThanOnce()
-        {
-            var source =@"{ ""id"": ""1"", ""title"": ""bar"" }";
-
-            var converterContext1 = CreateConverterContext(typeof(Book), source);
-            var actual1 = await _defaultInputConversionFeature.ConvertAsync(converterContext1);
-
-            // Call ConvertAsync again using a new ConverterContext instance, but with same source data and target type
-            var converterContext2 = CreateConverterContext(typeof(Book), source);
-            var actual2 = await _defaultInputConversionFeature.ConvertAsync(converterContext2);
-
-            var book1 = TestUtility.AssertIsTypeAndConvert<Book>(actual1.Value);
-            var book2 = TestUtility.AssertIsTypeAndConvert<Book>(actual2.Value);
-
-            Assert.Same(book1,book2);
-            Assert.Equal(ConversionStatus.Succeeded, actual1.Status);
-            Assert.Equal(ConversionStatus.Succeeded, actual2.Status);
         }
 
         [InputConverter(typeof(MyCustomerAsyncInputConverter))]

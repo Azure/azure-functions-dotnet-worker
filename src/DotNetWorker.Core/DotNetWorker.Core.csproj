@@ -8,8 +8,7 @@
         <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
         <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <MinorProductVersion>5</MinorProductVersion>
-        <PatchProductVersion>1</PatchProductVersion>
+        <MinorProductVersion>6</MinorProductVersion>
         <VersionSuffix>-preview1</VersionSuffix>
     </PropertyGroup>
 

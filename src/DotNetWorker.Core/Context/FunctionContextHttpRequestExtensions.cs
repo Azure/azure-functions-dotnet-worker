@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         public static async ValueTask<HttpRequestData?> GetHttpRequestDataAsync(this FunctionContext context)
         {
             var httpTriggerBinding = context.FunctionDefinition.InputBindings.Values
-               .FirstOrDefault(a => a.Type == "httpTrigger");
+                                            .FirstOrDefault(a => a.Type == "httpTrigger");
 
             if (httpTriggerBinding != null)
             {
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker
                 return responseData;
             }
             
-            // see output binding entries has a property of type HttpResponseData;
+            // see output binding entries have a property of type HttpResponseData;
             var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault();
             
             return httpOutputBinding?.Value;

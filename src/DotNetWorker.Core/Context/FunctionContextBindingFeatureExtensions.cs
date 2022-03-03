@@ -47,6 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             ConversionResult bindingResult;
             var cacheKey = bindingMetadata.Name;
             var bindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
+            
             if (bindingCache!.TryGetValue(cacheKey, out var cachedResult))
             {
                 bindingResult = cachedResult;
@@ -135,7 +136,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             var converterContext = converterContextFactory!.Create(targetType, source, context);
 
-            return await inputConversionFeature!.ConvertAsync(converterContext); //default;
+            return await inputConversionFeature!.ConvertAsync(converterContext);
         }
     }
 }

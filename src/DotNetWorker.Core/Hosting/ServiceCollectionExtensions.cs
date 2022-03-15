@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
@@ -78,7 +79,11 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            return new FunctionsWorkerApplicationBuilder(services);
+            var builder = new FunctionsWorkerApplicationBuilder(services);
+
+            ExtensionStartupRunnner.RunExtensionStartupCode(builder);
+
+            return builder;
         }
 
         /// <summary>

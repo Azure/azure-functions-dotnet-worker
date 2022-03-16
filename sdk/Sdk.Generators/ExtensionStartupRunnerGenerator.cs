@@ -11,31 +11,32 @@ using System.Text;
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     /// <summary>
-    /// Generates a class with a method to return the startup type names and it's assembly names.
+    /// Generates a class with a method which has code to call the "Configure" method
+    /// of the "IWorkerExtensionStartup" implementations
     /// Also generates an attribute to decorate the class with. 
     /// </summary>
 
-    //  [AttributeUsage(AttributeTargets.Class)]
-    //  public class ExtensionStartupDataAttribute : Attribute
-    //  {
-    //  }
-    //  [ExtensionStartupData]
-    //  internal sealed class ExtensionStartupTypeInfoProvider
-    //  {
-    //    public IDictionary<string, string> GetStartupTypes()
+    // Sample code generated (with Http & Cosmos extensions particiapating in startup hook)
+
+    //[AttributeUsage(AttributeTargets.Class)]
+    //public class WorkerExtensionStartupAttribute : Attribute
+    //{
+    //}
+    //[WorkerExtensionStartup]
+    //internal class WorkerExtensionStartupRunner
+    //{
+    //    public void RunStartupForExtensions(IFunctionsWorkerApplicationBuilder builder)
     //    {
-    //        var dict = new Dictionary<string, string>(2);
-    //        dict.Add("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.MyCosmosExtensionStartup", "Microsoft.Azure.Functions.Worker.Extensions.CosmosDB, Version=4.0.1.0, Culture=neutral, PublicKeyToken=551316b6919f366c");
-    //        dict.Add("Microsoft.Azure.Functions.Worker.Extensions.Http.MyHttpExtensionStartup", "Microsoft.Azure.Functions.Worker.Extensions.Http, Version=4.0.5.0, Culture=neutral, PublicKeyToken=551316b6919f366c");
-    //        return dict;
+    //        new Microsoft.Azure.Functions.Worker.Extensions.Http.MyHttpExtensionStartup().Configure(builder);
+    //        new Microsoft.Azure.Functions.Worker.Extensions.Cosmos.MyCosmosExtensionStartup().Configure(builder);
     //    }
-    //  }
+    //}
 
     [Generator]
-    public class StartupLocatorSourceGenerator : ISourceGenerator
+    public class ExtensionStartupRunnerGenerator : ISourceGenerator
     {
         /// <summary>
-        /// The attribute extension authors apply on an assembly which contains their startup type.
+        /// The attribute which extension authors will apply on an assembly which contains their startup type.
         /// </summary>
         private string attributeTypeName = "WorkerExtensionStartupAttribute";
 
@@ -66,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
                 WriteStartupDataProviderAttribute(indentedTextWriter);
-                WriteStartupDataProviderClass(indentedTextWriter, startupTypeNames);
+                WriteStartupRunnerClass(indentedTextWriter, startupTypeNames);
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
 
@@ -94,12 +95,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                                            a.AttributeClass.GetFullName() == attributeTypeFullName
                                                         ));
 
-            foreach(var ass in context.Compilation.SourceModule.ReferencedAssemblySymbols)
+            foreach (var ass in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
                 var extensionStartupAttribute = ass.GetAttributes()
                                                    .FirstOrDefault(a => a.AttributeClass?.Name == attributeTypeName &&
                                                                         //Call GetFullName only if class name matches.
-                                                                        a.AttributeClass.GetFullName() == attributeTypeFullName); 
+                                                                        a.AttributeClass.GetFullName() == attributeTypeFullName);
                 if (extensionStartupAttribute != null)
                 {
                     TypedConstant firstConstructorParam = extensionStartupAttribute.ConstructorArguments[0];
@@ -117,18 +118,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private void WriteStartupDataProviderAttribute(IndentedTextWriter textWriter)
         {
             textWriter.WriteLine("[AttributeUsage(AttributeTargets.Class)]");
-            textWriter.WriteLine("public class ExtensionStartupDataAttribute : Attribute");
+            textWriter.WriteLine("public class WorkerExtensionStartupAttribute : Attribute");
             textWriter.WriteLine("{");
             textWriter.WriteLine("}");
         }
 
-        private static void WriteStartupDataProviderClass(IndentedTextWriter textWriter, IEnumerable<string> typeNames)
+        private static void WriteStartupRunnerClass(IndentedTextWriter textWriter, IEnumerable<string> typeNames)
         {
-            textWriter.WriteLine("[ExtensionStartupData]");
-            textWriter.WriteLine("internal sealed class ExtensionStartupTypeInfoProvider");
+            textWriter.WriteLine("[WorkerExtensionStartup]");
+            textWriter.WriteLine("internal class WorkerExtensionStartupRunner");
             textWriter.WriteLine("{");
             textWriter.Indent++;
-            textWriter.WriteLine("public void RunStartup(IFunctionsWorkerApplicationBuilder builder)");
+            textWriter.WriteLine("public void RunStartupForExtensions(IFunctionsWorkerApplicationBuilder builder)");
             textWriter.WriteLine("{");
             textWriter.Indent++;
 
@@ -136,6 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 textWriter.WriteLine($"new {fullyQualifiedTpeName}().Configure(builder);");
             }
+
             textWriter.Indent--;
             textWriter.WriteLine("}");
             textWriter.Indent--;

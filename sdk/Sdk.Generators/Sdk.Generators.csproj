@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>netstandard2.0</TargetFramework>
@@ -8,7 +8,7 @@
         <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Generators</AssemblyName>
         <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <VersionPrefix>2.0.0</VersionPrefix>
+        <VersionPrefix>2.0.3</VersionPrefix>
     </PropertyGroup>
 
     <Import Project="..\..\build\Common.props" />

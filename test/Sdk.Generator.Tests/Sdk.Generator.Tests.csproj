@@ -29,6 +29,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
       <ProjectReference Include="..\..\sdk\Sdk.Generators\Sdk.Generators.csproj" />
+      <ProjectReference Include="..\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
     </ItemGroup>
 
 </Project>

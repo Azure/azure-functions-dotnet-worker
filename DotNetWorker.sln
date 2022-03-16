@@ -103,6 +103,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Generators", "sdk\Sdk.G
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdk.Generator.Tests", "test\Sdk.Generator.Tests\Sdk.Generator.Tests.csproj", "{18A09B24-8646-40A6-BD85-2773AF567453}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worker.Extensions.Sample", "test\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj", "{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleExtensions", "SampleExtensions", "{922A387F-8595-4C74-ABF1-AEFF9530950C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -249,6 +253,10 @@ Global
 		{18A09B24-8646-40A6-BD85-2773AF567453}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{18A09B24-8646-40A6-BD85-2773AF567453}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{18A09B24-8646-40A6-BD85-2773AF567453}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -292,6 +300,8 @@ Global
 		{FC352905-BD72-4049-8D32-3CBB9304FDC8} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E} = {4B0D77E7-FA83-4FDD-9E67-CC95EAD21348}
 		{18A09B24-8646-40A6-BD85-2773AF567453} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
+		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C} = {922A387F-8595-4C74-ABF1-AEFF9530950C}
+		{922A387F-8595-4C74-ABF1-AEFF9530950C} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

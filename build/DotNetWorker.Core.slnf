@@ -3,6 +3,7 @@
     "path": "..\\DotNetWorker.sln",
     "projects": [
       "sdk\\Sdk.Analyzers\\Sdk.Analyzers.csproj",
+      "sdk\\Sdk.Generators\\Sdk.Generators.csproj",
       "sdk\\Sdk\\Sdk.csproj",
       "src\\DotNetWorker.Core\\DotNetWorker.Core.csproj",
       "src\\DotNetWorker.Grpc\\DotNetWorker.Grpc.csproj",

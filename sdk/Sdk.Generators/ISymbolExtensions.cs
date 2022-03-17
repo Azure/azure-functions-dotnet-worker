@@ -9,7 +9,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     internal static class ISymbolExtensions
     {
         /// <summary>
-        /// Walks the symbol tree to generate the fully qualified name of a symbol.
+        /// Walks the symbol tree to generate the fully qualified name of a type symbol.
+        /// Ex input: A Symbol for "Task" token
+        /// Output: "System.Threading.Tasks.Task"
         /// </summary>
         /// <param name="symbol"></param>
         /// <returns></returns>

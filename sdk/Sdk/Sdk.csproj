@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
     <MinorProductVersion>4</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
@@ -30,17 +30,13 @@
 
   </ItemGroup>
 
-  <ItemGroup>    
+  <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
-<<<<<<< HEAD
-    <PackageReference Include="SharpZipLib" Version ="1.3.3" />
-=======
-    <PackageReference Include="SharpZipLib" Version="1.3.2" />
->>>>>>> f10c7430b38af4ae100733def2605f7c25feca0e
+    <PackageReference Include="SharpZipLib" Version="1.3.3" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
-    
+
     <!-- Marks all packages as 'local only' so they don't end up in the nuspec. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" />
   </ItemGroup>
@@ -64,7 +60,7 @@
       </_PackageFiles>
     </ItemGroup>
   </Target>
-  
+
   <ItemGroup>
     <ProjectReference Include="..\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj">
       <PrivateAssets>all</PrivateAssets>

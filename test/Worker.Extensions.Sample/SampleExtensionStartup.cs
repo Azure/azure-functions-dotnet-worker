@@ -8,11 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
-<<<<<<< HEAD
 // A sample extension used for extension startup hook source generation tests.
 
-=======
->>>>>>> f10c7430b38af4ae100733def2605f7c25feca0e
 [assembly: WorkerExtensionStartup(typeof(SampleExtensionStartup))]
 
 namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
@@ -46,11 +43,7 @@ namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
 
     public class MyFooService : IMyFooService
     {
-<<<<<<< HEAD
         public string GetMessage() => $"Foo";
-=======
-        public string GetMessage() => $"Hello";
->>>>>>> f10c7430b38af4ae100733def2605f7c25feca0e
     }
 
     public interface IMyFooService

@@ -1,22 +1,21 @@
 ﻿using System;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Tests.WorkerExtensionsSample;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Worker.Extensions.Sample;
 
-[assembly: WorkerExtensionStartup(typeof(MySampleExtensionStartup))]
+[assembly: WorkerExtensionStartup(typeof(SampleExtensionStartup))]
 
-namespace Worker.Extensions.Sample
+namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
 {
-    public class MySampleExtensionStartup : IWorkerExtensionStartup
+    public class SampleExtensionStartup : IWorkerExtensionStartup
     {
         public void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
-
             applicationBuilder.UseMiddleware<StampHttpHeadersMiddleware>();
             applicationBuilder.Services.AddSingleton<IMyFooService, MyFooService>();
         }

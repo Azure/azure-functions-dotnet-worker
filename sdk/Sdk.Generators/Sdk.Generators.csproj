@@ -8,6 +8,7 @@
         <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Generators</AssemblyName>
         <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
         <VersionSuffix>-preview1</VersionSuffix>
     </PropertyGroup>
 

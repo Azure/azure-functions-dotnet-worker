@@ -8,7 +8,7 @@
         <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Generators</AssemblyName>
         <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
         <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-        <VersionPrefix>2.0.3</VersionPrefix>
+        <VersionSuffix>-preview1</VersionSuffix>
     </PropertyGroup>
 
     <Import Project="..\..\build\Common.props" />

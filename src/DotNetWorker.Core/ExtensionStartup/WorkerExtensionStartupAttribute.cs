@@ -15,8 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Core
         /// <summary>
         /// Constructs a new instance of <see cref="WorkerExtensionStartupAttribute"/>.
         /// </summary>
-        /// <param name="startupType">The type of the extension startup class implementation.
-        /// defaulted based on naming convention.</param>
+        /// <param name="startupType">The type of the extension startup class implementation.</param>
+        /// <exception cref="InvalidOperationException">Throws when startupType is not an implementation of IWorkerExtensionStartup.</exception>
+        /// <exception cref="ArgumentNullException">Throws when startupType is null.</exception>
         public WorkerExtensionStartupAttribute(Type startupType)
         {
             if (startupType == null)

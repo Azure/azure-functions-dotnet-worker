@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
+// A sample extension used for extension startup hook source generation tests.
+
 [assembly: WorkerExtensionStartup(typeof(SampleExtensionStartup))]
 
 namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
@@ -41,7 +43,7 @@ namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
 
     public class MyFooService : IMyFooService
     {
-        public string GetMessage() => $"Hello";
+        public string GetMessage() => $"Foo";
     }
 
     public interface IMyFooService

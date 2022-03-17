@@ -89,23 +89,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private IEnumerable<string> GetStartupImplementationTypeNames(GeneratorExecutionContext context)
         {
             var typeNames = new List<string>();
-            // find assemblies with "WorkerExtensionStartupAttribute".
-            // Extension authors should decorate their assembly with this attribute if they want to take part in startup.
-            var assemblies = context.Compilation.SourceModule.ReferencedAssemblySymbols
-                                    .Where(s => s.GetAttributes()
-                                                 .Any(a => a.AttributeClass?.Name == attributeTypeName &&
-                                                           //Call GetFullName only if class name matches.
-                                                           a.AttributeClass.GetFullName() == attributeTypeFullName
-                                                        ));
 
-            foreach (var ass in context.Compilation.SourceModule.ReferencedAssemblySymbols)
+            // Extension authors should decorate their assembly with "WorkerExtensionStartup" attribute
+            // if they want to take part in startup.
+            foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
-                var extensionStartupAttribute = ass.GetAttributes()
-                                                   .FirstOrDefault(a => a.AttributeClass?.Name == attributeTypeName &&
+                var extensionStartupAttribute = assembly.GetAttributes()
+                                                        .FirstOrDefault(a => a.AttributeClass?.Name == attributeTypeName &&
                                                                         //Call GetFullName only if class name matches.
                                                                         a.AttributeClass.GetFullName() == attributeTypeFullName);
                 if (extensionStartupAttribute != null)
                 {
+                    // WorkerExtensionStartup has a constructor with one parameter, the type of startup implementation class.
                     TypedConstant firstConstructorParam = extensionStartupAttribute.ConstructorArguments[0];
                     if (firstConstructorParam.Value is ITypeSymbol typeSymbol)
                     {

@@ -80,7 +80,7 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             var builder = new FunctionsWorkerApplicationBuilder(services);
-
+            // Execute startup code from worker extensions if apresent.
             ExtensionStartupRunnner.RunExtensionStartupCode(builder);
 
             return builder;

@@ -29,7 +29,8 @@ namespace Microsoft.Azure.Functions.Worker.Core
             var interfaceType = typeof(IWorkerExtensionStartup);
             if (!interfaceType.IsAssignableFrom(startupType))
             {
-                throw new InvalidOperationException($"{startupType.Name} must implement {interfaceType.FullName} to be used as an input converter.");
+                throw new InvalidOperationException(
+                    $"startupType value must be a type which implements {interfaceType.FullName}.");
             }
 
             StartupType = startupType;

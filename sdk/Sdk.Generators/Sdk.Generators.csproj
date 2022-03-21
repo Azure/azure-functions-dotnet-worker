@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk.Generators</PackageId>
-    <Description>This package provides source generation for azure function worker.</Description>
+    <Description>This package provides source generation for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Generators</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>

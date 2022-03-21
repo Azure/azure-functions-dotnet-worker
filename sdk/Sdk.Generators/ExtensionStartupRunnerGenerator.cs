@@ -20,11 +20,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     // There will be one try-catch block for each extension particiapating in startup hook.
 
     //[AttributeUsage(AttributeTargets.Class)]
-    //public class WorkerExtensionStartupAttribute : Attribute
+    //public class WorkerExtensionStartupRunnerAttribute : Attribute
     //{
     //}
-    //[WorkerExtensionStartup]
-    //internal class WorkerExtensionStartupRunner
+    //[WorkerExtensionStartupRunner]
+    //internal class WorkerExtensionStartupCodeExecutor
     //{
     //    public void RunStartupForExtensions(IFunctionsWorkerApplicationBuilder builder)
     //    {
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             // Add the source code to the compilation
-            context.AddSource($"ExtensionStartupRunner.g.cs", sourceText);
+            context.AddSource($"WorkerExtensionStartupCodeExecutor.g.cs", sourceText);
         }
 
         /// <summary>
@@ -116,15 +116,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private void WriteStartupDataProviderAttribute(IndentedTextWriter textWriter)
         {
             textWriter.WriteLine("[AttributeUsage(AttributeTargets.Class)]");
-            textWriter.WriteLine("public class WorkerExtensionStartupAttribute : Attribute");
+            textWriter.WriteLine("public class WorkerExtensionStartupRunnerAttribute : Attribute");
             textWriter.WriteLine("{");
             textWriter.WriteLine("}");
         }
 
         private static void WriteStartupRunnerClass(IndentedTextWriter textWriter, IEnumerable<string> typeNames)
         {
-            textWriter.WriteLine("[WorkerExtensionStartup]");
-            textWriter.WriteLine("internal class WorkerExtensionStartupRunner");
+            textWriter.WriteLine("[WorkerExtensionStartupRunner]");
+            textWriter.WriteLine("internal class WorkerExtensionStartupCodeExecutor");
             textWriter.WriteLine("{");
             textWriter.Indent++;
             textWriter.WriteLine("public void RunStartupForExtensions(IFunctionsWorkerApplicationBuilder builder)");

@@ -31,7 +31,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
     <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
   </PropertyGroup>
-  
+
   <UsingTask TaskName="GenerateFunctionMetadata"
            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
@@ -40,7 +40,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <UsingTask TaskName="ZipDeployTask"
             AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
- 
+
   <Target Name="_FunctionsPreBuild" BeforeTargets="Build">
       <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
       <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>

@@ -4,6 +4,6 @@
     "extensions": [ ".dll" ],
     "defaultExecutablePath": "$functionExe$",
     "defaultWorkerPath": "$functionWorker$",
-    "workerIndexing":  "true"
+    "workerIndexing":  "$enableWorkerIndexing$"
   }
 }

@@ -7,7 +7,9 @@ using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader;
 using Microsoft.Azure.WebJobs.Hosting;
+using Microsoft.Azure.WebJobs.Script.Description;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
@@ -15,15 +17,18 @@ using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 {
-    internal class Startup : IWebJobsConfigurationStartup
+    internal class Startup : IWebJobsStartup2, IWebJobsConfigurationStartup
     {
         private const string WorkerConfigFile = "worker.config.json";
         private const string ExePathPropertyName = "defaultExecutablePath";
         private const string WorkerPathPropertyName = "defaultWorkerPath";
         private const string WorkerRootToken = "{WorkerRoot}";
+        private const string WorkerIndexingPropertyName = "workerIndexing";
 
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
         private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", ExePathPropertyName);
+
+        private static bool isWorkerIndexingEnabled = false;
 
         public void Configure(WebJobsBuilderContext context, IWebJobsConfigurationBuilder builder)
         {
@@ -31,6 +36,15 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             // We need to adjust the path to the worker exe based on the root, if WorkerRootToken is found.
             WorkerConfigDescription newWorkerDescription = GetUpdatedWorkerDescription(appRootPath);
+
+
+            if (!string.IsNullOrEmpty(newWorkerDescription.EnableWorkerIndexing))
+            {
+                if (newWorkerDescription.EnableWorkerIndexing!.Equals("true", StringComparison.OrdinalIgnoreCase))
+                {
+                    isWorkerIndexingEnabled = true;
+                }
+            }
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
@@ -42,6 +56,23 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             Environment.SetEnvironmentVariable("DOTNET_CLI_TELEMETRY_OPTOUT", "true");
             Environment.SetEnvironmentVariable("DOTNET_SKIP_FIRST_TIME_EXPERIENCE", "true");
         }
+
+        public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)
+        {
+            string appRootPath = context.ApplicationRootPath;
+            if (!isWorkerIndexingEnabled)
+            {
+                builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
+                builder.Services.AddSingleton<FunctionMetadataJsonReader>();
+                builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
+            }
+        }
+
+        public void Configure(IWebJobsBuilder builder)
+        {
+            // This will not be called.
+        }
+
         private static WorkerConfigDescription GetUpdatedWorkerDescription(string appRootPath)
         {
             string fullPathToWorkerConfig = Path.Combine(appRootPath, WorkerConfigFile);
@@ -135,6 +166,9 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             [JsonProperty(WorkerPathPropertyName)]
             public string? DefaultWorkerPath { get; set; }
+
+            [JsonProperty(WorkerIndexingPropertyName)]
+            public string? EnableWorkerIndexing { get; set; }
         }
     }
 }

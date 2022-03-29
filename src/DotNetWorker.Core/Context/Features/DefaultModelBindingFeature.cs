@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Diagnostics.Exceptions;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {

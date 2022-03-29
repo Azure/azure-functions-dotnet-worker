@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal class GrpcHttpRequestData : HttpRequestData, IDisposable
 #if NET5_0_OR_GREATER
-        ,IAsyncDisposable
+        , IAsyncDisposable
 #endif
     {
         private readonly RpcHttp _httpData;
@@ -169,9 +169,9 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 // count:2 tells the split method to stop splitting after
                 // it finds the first instance of separator character.
-                var splitArray = separateCookies[c].Split(separator, count:2, StringSplitOptions.RemoveEmptyEntries);
+                var splitArray = separateCookies[c].Split(separator, count: 2, StringSplitOptions.RemoveEmptyEntries);
                 var name = splitArray[0].Trim();
-                var value = splitArray.Length>1 ? splitArray[1]: string.Empty;
+                var value = splitArray.Length > 1 ? splitArray[1] : string.Empty;
                 httpCookiesList.Add(new HttpCookie(name, value));
             }
 

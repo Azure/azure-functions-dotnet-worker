@@ -113,15 +113,5 @@ internal static BindingInfo CreateBindingInfo(JsonElement binding)
 
             return bindingInfo;
         }
-
-            var hasDataType = binding.TryGetProperty("dataType", out JsonElement jsonDataType);
-
-            if (hasDataType)
-            {
-                bindingInfo.DataType = Enum.Parse<BindingInfo.Types.DataType>(jsonDataType.ToString()!);
-            }
-
-            return bindingInfo;
-        }
     }
 }

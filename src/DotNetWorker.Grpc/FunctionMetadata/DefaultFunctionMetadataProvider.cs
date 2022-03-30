@@ -85,15 +85,14 @@ namespace Microsoft.Azure.Functions.Worker
             return bindingsJson;
         }
 
-internal static BindingInfo CreateBindingInfo(JsonElement binding)
+        internal static BindingInfo CreateBindingInfo(JsonElement binding)
         {
             var hasDirection = binding.TryGetProperty("direction", out JsonElement jsonDirection);
             var hasType = binding.TryGetProperty("type", out JsonElement jsonType);
 
             if (!hasDirection
                 || !hasType
-                || !Enum.TryParse(jsonDirection.ToString()!, out BindingInfo.Types.Direction direction)
-                || !Enum.TryParse(jsonType.ToString()!, out BindingInfo.Types.DataType dataType))
+                || !Enum.TryParse(jsonDirection.ToString()!, out BindingInfo.Types.Direction direction))
             {
                 throw new FormatException("Bindings must declare a direction and type.");
             }
@@ -108,6 +107,11 @@ internal static BindingInfo CreateBindingInfo(JsonElement binding)
 
             if (hasDataType)
             {
+                if(!Enum.TryParse(jsonDataType.ToString()!, out BindingInfo.Types.DataType dataType))
+                {
+                    throw new FormatException("Invalid DataType for a binding.");
+                }
+
                 bindingInfo.DataType = dataType;
             }
 

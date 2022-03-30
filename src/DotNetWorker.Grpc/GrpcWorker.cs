@@ -71,7 +71,13 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(_startupOptions.Value.ScriptRoot));
             }
 
-            _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.ScriptRoot);
+            if (!string.IsNullOrEmpty(_startupOptions.Value.AzureWebJobsFeatureFlags))
+            {
+                if (_startupOptions.Value.AzureWebJobsFeatureFlags.Contains("EnableWorkerIndexing"))
+                {
+                    _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.ScriptRoot);
+                }
+            }
 
             await SendStartStreamMessageAsync(eventStream.RequestStream);
 

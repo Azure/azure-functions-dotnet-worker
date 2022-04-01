@@ -272,9 +272,9 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
 
-                for (int i = 0; i < functionMetadataList.Length; i++)
+                foreach(var func in functionMetadataList)
                 {
-                    response.FunctionMetadataResults.Add(functionMetadataList[i]);
+                    response.FunctionMetadataResults.Add(func);
                 }
             }
             catch (Exception ex)

@@ -41,7 +41,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <UsingTask TaskName="ZipDeployTask"
             AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
-  <Target Name="_FunctionsPreBuild" BeforeTargets="Build">
+  <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
       <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
       <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
       <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
@@ -51,21 +51,21 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
   </Target>
 
-  <Target Name="_FunctionsPostBuild" AfterTargets="Build">
+  <Target Name="_FunctionsPostBuild" AfterTargets="AfterBuild">
 
     <PropertyGroup>
       <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
       <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
     </PropertyGroup>
-    
-    <GenerateFunctionMetadata 
-      AssemblyPath="$(TargetDir)$(AssemblyName).dll" 
+
+    <GenerateFunctionMetadata
+      AssemblyPath="$(TargetDir)$(AssemblyName).dll"
       ReferencePaths="@(ReferencePath)"
       ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       OutputPath="$(TargetDir)"/>
 
-    <Copy 
+    <Copy
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
       DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
       OverwriteReadOnlyFiles="true" />
@@ -88,7 +88,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   </Target>
 
-  <!-- 
+  <!--
   Build the webjobs extensions in ".azurefunctions"
   -->
   <!--
@@ -114,19 +114,19 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Restore" Properties="IsRestoring=true"/>
   </Target>
 
-  <!-- 
+  <!--
   Add HintPath to references in "extensions.json"
   -->
   <UsingTask TaskName="EnhanceExtensionsMetadata"
            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
-  
+
   <Target Name="_EnhanceFunctionsExtensionsMetadataPostBuild"
           AfterTargets="_WorkerExtensionsBuildCopy">
 
     <EnhanceExtensionsMetadata
       ExtensionsJsonPath="$(TargetDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"
       OutputPath="$(TargetDir)\$(_FunctionsExtensionsJsonName)"/>
-    
+
   </Target>
 
   <!--
@@ -151,11 +151,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <RemoveDir Directories="$(TargetDir)"
                ContinueOnError="true" />
   </Target>
-  
+
   <!--
   Publish targets from Functions SDK
   -->
-  
+
   <Target Name="_InitializeDotNetPublishProperties"
           BeforeTargets="PrepareForPublish"
           Condition="'$(DeployOnBuild)' != 'true'">
@@ -220,7 +220,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     ============================================================
     -->
-  
+
   <PropertyGroup>
     <CorePublishDependsOn>
       _InitializeDeployOnBuildProperties;
@@ -235,14 +235,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
       <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
     </PropertyGroup>
-    
+
     <GenerateFunctionMetadata
       AssemblyPath="$(PublishDir)\$(AssemblyName).dll"
       ReferencePaths="@(ReferencePath)"
       ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       OutputPath="$(PublishDir)"/>
-    
+
     <Copy
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
       DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
@@ -266,7 +266,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   </Target>
 
-  <!-- 
+  <!--
   Publish the webjobs extensions in ".azurefunctions"
   -->
   <!--
@@ -311,7 +311,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </FunctionsWorkerExtensionsPublishDependsOn>
   </PropertyGroup>
 
-  <!-- 
+  <!--
   Add HintPath to references in "extensions.json"
   -->
   <Target Name="_EnhanceFunctionsExtensionsMetadataPostPublish">

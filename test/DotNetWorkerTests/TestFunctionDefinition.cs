@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var parameters = new List<FunctionParameter>();
 
             // Always provide a trigger
-            inputs.Add($"triggerName", new TestBindingMetadata("bar","TestTrigger", BindingDirection.In));
+            inputs.Add($"triggerName", new TestBindingMetadata("bar", "TestTrigger", BindingDirection.In));
 
             for (int i = 0; i < inputBindingCount; i++)
             {

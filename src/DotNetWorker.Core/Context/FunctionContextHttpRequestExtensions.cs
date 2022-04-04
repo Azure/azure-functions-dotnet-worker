@@ -42,10 +42,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 return responseData;
             }
-            
+
             // see output binding entries have a property of type HttpResponseData;
             var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault();
-            
+
             return httpOutputBinding?.Value;
         }
     }

@@ -8,6 +8,9 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     public sealed class OutputBindingData<T>
     {
+        private readonly FunctionContext _functionContext;
+        private T? _value;
+
         internal OutputBindingData(FunctionContext functionContext, string name, T? value, string bindingType)
         {
             _functionContext = functionContext;
@@ -15,9 +18,6 @@ namespace Microsoft.Azure.Functions.Worker
             Name = name;
             BindingType = bindingType;
         }
-
-        private readonly FunctionContext _functionContext;
-        private T? _value;
 
         /// <summary>
         /// Gets the name of the output binding entry.

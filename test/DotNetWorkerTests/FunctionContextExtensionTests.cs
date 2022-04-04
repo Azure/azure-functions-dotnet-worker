@@ -9,7 +9,6 @@ using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task BindInputAsyncWorks()
         {
             // Arrange
-            var qTriggerFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
+            var qTriggerFunctionDefinition = new TestFunctionDefinition(parameters: new[]
                                     {
                                         new FunctionParameter("myBook", typeof(string)),
                                         new FunctionParameter("blob1", typeof(Book)),
@@ -73,7 +72,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Mock input conversion feature to return a successfully converted value for blob2 input data.
             var conversionFeature = new Mock<IInputConversionFeature>(MockBehavior.Strict);
-            conversionFeature.Setup(a => a.ConvertAsync(It.Is<ConverterContext>(ctx => ctx.Source.ToString().Contains("b2"))))
+            conversionFeature.Setup(a =>
+                    a.ConvertAsync(It.Is<ConverterContext>(ctx => ctx.Source.ToString().Contains("b2"))))
                              .ReturnsAsync(ConversionResult.Success(new Book { Id = "book 2" }));
             _features.Set<IInputConversionFeature>(conversionFeature.Object);
 
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void GetInvocationResult_Works()
         {
             // Arrange
-            var qTriggerFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
+            var qTriggerFunctionDefinition = new TestFunctionDefinition(parameters: new[]
             {
                 new FunctionParameter("myQueueItem", typeof(string))
             },
@@ -133,6 +133,35 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var book3 = TestUtility.AssertIsTypeAndConvert<Book>(actual3.Value);
             Assert.Equal("updated value from first middleware", book3.Id);
             Assert.Same(book1, book3);
+        }
+
+        [Fact]
+        public void GetInvocationResult_Throws_When_Requesting_With_IncorrectType()
+        {
+            // Arrange
+            var qTriggerFunctionDefinition = new TestFunctionDefinition(parameters: new[]
+            {
+                new FunctionParameter("myQueueItem", typeof(string))
+            },
+            inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) }
+            });
+            _features.Set<FunctionDefinition>(qTriggerFunctionDefinition);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+
+            var functionBindings = new TestFunctionBindingsFeature
+            {
+                InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "myQueueItem", "bar" } }),
+                InvocationResult = new Book { Id = "value set from within the function" }
+            };
+            _features.Set<IFunctionBindingsFeature>(functionBindings);
+
+            // Act
+            var exception = Assert.Throws<InvalidOperationException>(() => _defaultFunctionContext.GetInvocationResult<int>());
+            var expectedExceptionMsg =
+                "Requested type(System.Int32) does not match the type of Invocation result(Microsoft.Azure.Functions.Worker.Tests.Book)";
+            Assert.Equal(expectedExceptionMsg, exception.Message);
         }
 
         [Fact]

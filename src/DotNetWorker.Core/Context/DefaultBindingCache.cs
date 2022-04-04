@@ -6,6 +6,10 @@ using System.Collections.Concurrent;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// In memory cache for binding data (per invocation)
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
     internal class DefaultBindingCache<T> : IBindingCache<T>
     {
         private readonly ConcurrentDictionary<string, T> _cache = new();
@@ -14,14 +18,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             EnsureKeyNotNull(key);
 
-            if (_cache.TryGetValue(key, out var conversionResult))
-            {
-                value = conversionResult;
-                return true;
-            }
-
-            value = default;
-            return false;
+            return _cache.TryGetValue(key, out value);
         }
 
         public bool TryAdd(string key, T value)

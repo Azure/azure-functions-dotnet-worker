@@ -103,7 +103,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Assert
             Assert.NotNull(actual1);
             Assert.NotNull(actual1.Url);
-            Assert.Equal(new [] { "gzip", "deflate" }, actual1.Headers.First(a => a.Key == "Accept-Encoding").Value);
+            Assert.Equal(new[] { "gzip", "deflate" }, actual1.Headers.First(a => a.Key == "Accept-Encoding").Value);
             Assert.Equal("light", actual1.Cookies.First(x => x.Name == "theme").Value);
 
             // Calling "GetHttpRequestDataAsync" again should return same object(cached value).
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Call the GetHttpResponseData method again and verify.
             HttpResponseData actual2 = _defaultFunctionContext.GetHttpResponseData();
-            Assert.True(actual2.Headers.First(a=>a.Key== "X-Foo-Id").Value.Any());
+            Assert.True(actual2.Headers.First(a => a.Key == "X-Foo-Id").Value.Any());
         }
 
         [Fact]
@@ -152,7 +152,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } })
             };
-            
+
             // Set the outputbinding data of the function invocation.
             // In the normal(non unit test) run of the worker, this values will be set by our execution middleware pipeline.
             functionBindings.OutputBindingData.Add("MyHttpResponse", new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK));

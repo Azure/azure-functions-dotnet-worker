@@ -28,26 +28,10 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(bindingMetadata));
             }
 
-            // find the parameter from function definition for the bindingMetadata requested.
-            FunctionParameter? parameter = null;
-            foreach (var param in context.FunctionDefinition.Parameters)
-            {
-                if (param.Name == bindingMetadata.Name)
-                {
-                    parameter = param;
-                    break;
-                }
-            }
-
-            if (parameter == null)
-            {
-                return default;
-            }
-
             ConversionResult bindingResult;
             var cacheKey = bindingMetadata.Name;
             var bindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
-            
+
             if (bindingCache!.TryGetValue(cacheKey, out var cachedResult))
             {
                 bindingResult = cachedResult;
@@ -74,12 +58,13 @@ namespace Microsoft.Azure.Functions.Worker
         /// <exception cref="InvalidOperationException">Throws when the invocation result is not of the requested type.</exception>
         public static InvocationResult<T> GetInvocationResult<T>(this FunctionContext context)
         {
-            if (context.GetBindings().InvocationResult is T resultAsT)
+            var invocationResult = context.GetBindings().InvocationResult;
+            if (invocationResult is T resultAsT)
             {
                 return new InvocationResult<T>(context, resultAsT);
             }
 
-            throw new InvalidOperationException("Invocation result is not of the requested type. Consider using the overload which does not specify the type.");
+            throw new InvalidOperationException($"Requested type({typeof(T)}) does not match the type of Invocation result({invocationResult!.GetType()})");
         }
 
         /// <summary>
@@ -114,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker
                         bindingType = bindingData.Type;
                     }
 
-                    yield return new OutputBindingData<T>(context, data.Key, valueAsT, bindingType);
+                    yield return new OutputBindingData<T>(context, data.Key, valueAsT, bindingType!);
                 }
             }
         }

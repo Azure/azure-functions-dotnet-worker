@@ -2,41 +2,38 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Reflection;
 
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     internal class ExtensionStartupRunnner
     {
-        // The attribute which is applied on the auto generated class(WorkerExtensionStartupCodeExecutor)
-        // which has the code to execute each extension's startup
-        private const string StartupAttributeName = "WorkerExtensionStartupRunnerAttribute";
+        /// <summary>
+        /// Run extension startup execution code.
+        /// </summary>
+        /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> instance.</param>
 
+        /// Our source generator creates a class(WorkerExtensionStartupCodeExecutor)
+        /// which internally calls the "Configure" method on each of the participating 
+        /// extensions. Here we are calling the uber "Configure" method on the generated class.
         internal static void RunExtensionStartupCode(IFunctionsWorkerApplicationBuilder builder)
         {
-            // Find the auto(source) generated class(WorkerExtensionStartupRunner)
             var entryAssembly = Assembly.GetEntryAssembly()!;
-            var startupExecutorType = entryAssembly
-                                        .GetTypes()
-                                        .FirstOrDefault(type => type.GetCustomAttributes()
-                                                                    .Any(attr => attr.GetType().Name == StartupAttributeName));
 
-            // Our source generator will not create the file when no extension startup hooks are found.
-            if (startupExecutorType == null)
+            // Find the assembly attribute which has information about the startup code executor class
+            var startupCodeExecutorInfoAttr = entryAssembly.GetCustomAttribute<WorkerExtensionStartupCodeExecutorInfoAttribute>();
+
+            // Our source generator will not create the WorkerExtensionStartupCodeExecutor class
+            // and will not add the above assembly attribute when no extension startup hooks are found.
+            if (startupCodeExecutorInfoAttr == null)
             {
                 return;
             }
 
-            var method = startupExecutorType.GetMethod("RunStartupForExtensions");
-            if (method == null)
-            {
-                throw new InvalidOperationException(
-                    $"Types decorated with {StartupAttributeName} must have a RunStartupForExtensions method.");
-            }
-
-            var startupRunnerInstance = Activator.CreateInstance(startupExecutorType);
-            method.Invoke(startupRunnerInstance, parameters: new object[] { builder });
+            var startupCodeExecutorInstance =
+                Activator.CreateInstance(startupCodeExecutorInfoAttr
+                    .StartupCodeExecutorType) as IWorkerExtensionStartup;
+            startupCodeExecutorInstance!.Configure(builder);
         }
     }
 }

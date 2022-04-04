@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     /// <summary>
-    /// An attribute to inform that this assembly contains a worker extension startup type.
+    /// An assembly level attribute to inform that this assembly contains a worker extension startup type.
     /// </summary>
 
     [AttributeUsage(AttributeTargets.Assembly, Inherited = false, AllowMultiple = true)]

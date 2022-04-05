@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace FunctionApp
 {
-    public static class Function4
+    public static class HttpTriggerWithFunctionContextLogger
     {
-        [Function("Function4")]
+        [Function(nameof(HttpTriggerWithFunctionContextLogger))]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
         {
             var logger = executionContext.GetLogger("FunctionApp.Function4");

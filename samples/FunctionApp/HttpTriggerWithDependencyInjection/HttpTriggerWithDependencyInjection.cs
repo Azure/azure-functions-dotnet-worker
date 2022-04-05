@@ -8,18 +8,18 @@ using Microsoft.Extensions.Logging;
 
 namespace FunctionApp
 {
-    public class Function5
+    public class HttpTriggerWithDependencyInjection
     {
         private readonly IHttpResponderService _responderService;
-        private readonly ILogger<Function5> _logger;
+        private readonly ILogger<HttpTriggerWithDependencyInjection> _logger;
 
-        public Function5(IHttpResponderService responderService, ILogger<Function5> logger)
+        public HttpTriggerWithDependencyInjection(IHttpResponderService responderService, ILogger<HttpTriggerWithDependencyInjection> logger)
         {
             _responderService = responderService;
             _logger = logger;
         }
 
-        [Function(nameof(Function5))]
+        [Function(nameof(HttpTriggerWithDependencyInjection))]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req)
         {
             _logger.LogInformation("message logged");
@@ -43,7 +43,7 @@ namespace FunctionApp
         public HttpResponseData ProcessRequest(HttpRequestData httpRequest)
         {
             var response = httpRequest.CreateResponse(HttpStatusCode.OK);
-           
+
             response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             response.Headers.Add("Content-Type", "text/html; charset=utf-8");
             response.WriteString("Welcome to .NET 5!!");

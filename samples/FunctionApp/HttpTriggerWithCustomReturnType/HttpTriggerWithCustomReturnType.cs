@@ -7,9 +7,9 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace FunctionApp
 {
-    public static class Function3
+    public static class HttpTriggerWithCustomReturnType
     {
-        [Function("Function3")]
+        [Function(nameof(HttpTriggerWithCustomReturnType))]
         public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)
         {

@@ -66,16 +66,16 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var eventStream = _rpcClient.EventStream(cancellationToken: token);
 
-            if(_startupOptions.Value.ScriptRoot is null)
+            if(_startupOptions.Value.AzureWebJobsScriptRoot is null)
             {
-                throw new ArgumentNullException(nameof(_startupOptions.Value.ScriptRoot));
+                throw new ArgumentNullException(nameof(_startupOptions.Value.AzureWebJobsScriptRoot));
             }
 
             if (!string.IsNullOrEmpty(_startupOptions.Value.AzureWebJobsFeatureFlags))
             {
                 if (_startupOptions.Value.AzureWebJobsFeatureFlags.Contains("EnableWorkerIndexing"))
                 {
-                    _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.ScriptRoot);
+                    _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.AzureWebJobsScriptRoot);
                 }
             }
 

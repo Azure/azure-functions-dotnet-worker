@@ -78,7 +78,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Configure<IConfiguration>((arguments, config) =>
                 {
                     config.Bind(arguments);
-                    arguments.ScriptRoot = config["AzureWebJobsScriptRoot"];
                 });
 
             return services;

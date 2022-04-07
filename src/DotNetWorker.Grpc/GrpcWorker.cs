@@ -71,9 +71,9 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(_startupOptions.Value.AzureWebJobsScriptRoot));
             }
 
-            if (!string.IsNullOrEmpty(_startupOptions.Value.AzureWebJobsFeatureFlags))
+            if (!string.IsNullOrEmpty(_startupOptions.Value.EnableWorkerIndexing))
             {
-                if (_startupOptions.Value.AzureWebJobsFeatureFlags.Contains("EnableWorkerIndexing"))
+                if (string.Equals(_startupOptions.Value.EnableWorkerIndexing, "true", StringComparison.OrdinalIgnoreCase))
                 {
                     _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.AzureWebJobsScriptRoot);
                 }

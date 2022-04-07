@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 
+using System.Text.Json.Serialization;
+
 namespace Microsoft.Azure.Functions.Worker
 {
     internal class GrpcWorkerStartupOptions
@@ -18,6 +20,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         public string? AzureWebJobsScriptRoot { get; set; }
 
-        public string? AzureWebJobsFeatureFlags { get; set; }
+        public string? EnableWorkerIndexing { get; set; }
     }
 }

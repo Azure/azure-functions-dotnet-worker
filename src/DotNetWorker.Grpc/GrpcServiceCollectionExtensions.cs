@@ -78,6 +78,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 .Configure<IConfiguration>((arguments, config) =>
                 {
                     config.Bind(arguments);
+                    arguments.EnableWorkerIndexing = config["description:workerIndexing"];
                 });
 
             return services;

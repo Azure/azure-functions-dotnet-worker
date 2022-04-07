@@ -158,6 +158,8 @@ namespace Microsoft.Extensions.Hosting
                 {
                     configBuilder.AddEnvironmentVariables();
 
+                    configBuilder.AddJsonFile("worker.config.json", optional: true, reloadOnChange: false);
+
                     var cmdLine = Environment.GetCommandLineArgs();
                     RegisterCommandLine(configBuilder, cmdLine);
                 })

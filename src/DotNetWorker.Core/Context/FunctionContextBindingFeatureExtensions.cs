@@ -20,8 +20,8 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="context">The function context.</param>
         /// <param name="bindingMetadata">The BindingMetadata instance for which input data should bound to.</param>
-        /// <returns>An instance of T if binding was successful, else null</returns>
-        public static async ValueTask<T?> BindInputAsync<T>(this FunctionContext context, BindingMetadata bindingMetadata)
+        /// <returns>An instance of <see cref="InputBindingData{T}"/> which wraps the input binding operation result value.</returns>
+        public static async ValueTask<InputBindingData<T>> BindInputAsync<T>(this FunctionContext context, BindingMetadata bindingMetadata)
         {
             if (bindingMetadata == null)
             {
@@ -35,19 +35,14 @@ namespace Microsoft.Azure.Functions.Worker
             if (bindingCache!.TryGetValue(cacheKey, out var cachedResult))
             {
                 bindingResult = cachedResult;
-                return (T?)bindingResult.Value;
+                return new InputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
             }
 
             var requestedType = typeof(T);
             bindingResult = await GetConvertedValueFromInputConversionFeature(context, bindingMetadata, requestedType);
             bindingCache.TryAdd(cacheKey, bindingResult);
 
-            if (bindingResult.Status == ConversionStatus.Succeeded && bindingResult.Value != null)
-            {
-                return (T?)bindingResult.Value;
-            }
-
-            return default;
+            return new InputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
         }
 
         /// <summary>

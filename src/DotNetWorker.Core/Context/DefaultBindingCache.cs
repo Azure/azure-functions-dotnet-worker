@@ -9,10 +9,22 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// In memory cache for binding data (per invocation)
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The type of cache entry value.</typeparam>
     internal class DefaultBindingCache<T> : IBindingCache<T>
     {
         private readonly ConcurrentDictionary<string, T> _cache = new();
+
+        public T this[string key]
+        {
+            get
+            {
+                return _cache[key];
+            }
+            set
+            {
+                _cache[key] = value;
+            }
+        }
 
         public bool TryGetValue(string key, out T? value)
         {

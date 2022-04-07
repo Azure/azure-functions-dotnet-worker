@@ -24,7 +24,8 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (httpTriggerBinding != null)
             {
-                return await context.BindInputAsync<HttpRequestData>(httpTriggerBinding);
+                var bindingResult = await context.BindInputAsync<HttpRequestData>(httpTriggerBinding);
+                return bindingResult.Value;
             }
 
             return default;

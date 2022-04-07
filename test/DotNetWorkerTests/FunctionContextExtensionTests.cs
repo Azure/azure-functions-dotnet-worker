@@ -80,16 +80,22 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Act
             // bind to the second blob input binding(blob2).
             var blob2InputBinding = _defaultFunctionContext.FunctionDefinition.InputBindings.Values.First(a => a.Name == "blob2");
-            var book = await _defaultFunctionContext.BindInputAsync<Book>(blob2InputBinding);
+            var book = (await _defaultFunctionContext.BindInputAsync<Book>(blob2InputBinding)).Value;
 
             // Assert
             Assert.Equal("book 2", book.Id);
             book.Id = "updated Id value";
 
             // Make a second call,requesting the result as Object.
-            var bookAsObject = await _defaultFunctionContext.BindInputAsync<object>(blob2InputBinding);
-            var book2 = TestUtility.AssertIsTypeAndConvert<Book>(bookAsObject);
+            var bindingResult = await _defaultFunctionContext.BindInputAsync<object>(blob2InputBinding);
+            var book2 = TestUtility.AssertIsTypeAndConvert<Book>(bindingResult.Value);
             Assert.Equal("updated Id value", book2.Id);
+
+            // Replace the entire result of binding with a different object.
+            bindingResult.Value = new Book() {  Id ="book 3"};
+            var book3 = (await _defaultFunctionContext.BindInputAsync<Book>(blob2InputBinding)).Value;
+            Assert.NotSame(book3, book2);
+            Assert.Equal("book 3", book3.Id);
         }
 
         [Fact]

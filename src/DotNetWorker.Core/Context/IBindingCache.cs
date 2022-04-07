@@ -6,6 +6,13 @@ namespace Microsoft.Azure.Functions.Worker
     internal interface IBindingCache<T>
     {
         /// <summary>
+        /// Gets or sets the value associated with the specified key.
+        /// </summary>
+        /// <param name="key">The key of the value to get or set.</param>
+        /// <returns>The value at the specified index.</returns>
+        T this[string key] { get; set; }
+
+        /// <summary>
         /// Attempts to get the value associated with the specified key.
         /// </summary>
         /// <param name="key">The key of the value to get.</param>

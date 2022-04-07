@@ -35,14 +35,14 @@ namespace Microsoft.Azure.Functions.Worker
             if (bindingCache!.TryGetValue(cacheKey, out var cachedResult))
             {
                 bindingResult = cachedResult;
-                return new InputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
+                return new DefaultInputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
             }
 
             var requestedType = typeof(T);
             bindingResult = await GetConvertedValueFromInputConversionFeature(context, bindingMetadata, requestedType);
             bindingCache.TryAdd(cacheKey, bindingResult);
 
-            return new InputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
+            return new DefaultInputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
         }
 
         /// <summary>
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker
             var invocationResult = context.GetBindings().InvocationResult;
             if (invocationResult is T resultAsT)
             {
-                return new InvocationResult<T>(context, resultAsT);
+                return new DefaultInvocationResult<T>(context, resultAsT);
             }
 
             throw new InvalidOperationException($"Requested type({typeof(T)}) does not match the type of Invocation result({invocationResult!.GetType()})");
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var invocationResult = context.GetBindings().InvocationResult;
 
-            return new InvocationResult(context, invocationResult);
+            return new DefaultInvocationResult(context, invocationResult);
         }
 
         /// <summary>
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.Functions.Worker
                         bindingType = bindingData.Type;
                     }
 
-                    yield return new OutputBindingData<T>(context, data.Key, valueAsT, bindingType!);
+                    yield return new DefaultOutputBindingData<T>(context, data.Key, valueAsT, bindingType!);
                 }
             }
         }

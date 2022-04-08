@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Core
         /// Constructs a new instance of <see cref="WorkerExtensionStartupAttribute"/>.
         /// </summary>
         /// <param name="startupType">The type of the extension startup class implementation.</param>
-        /// <exception cref="InvalidOperationException">Throws when startupType is not an implementation of IWorkerExtensionStartup.</exception>
+        /// <exception cref="InvalidOperationException">Throws when startupType is not an implementation of WorkerExtensionStartup.</exception>
         /// <exception cref="ArgumentNullException">Throws when startupType is null.</exception>
 
         public WorkerExtensionStartupAttribute(Type startupType)
@@ -26,11 +26,18 @@ namespace Microsoft.Azure.Functions.Worker.Core
                 throw new ArgumentNullException(nameof(startupType));
             }
 
-            var interfaceType = typeof(IWorkerExtensionStartup);
-            if (!interfaceType.IsAssignableFrom(startupType))
+            var baseType = typeof(WorkerExtensionStartup);
+            if (!baseType.IsAssignableFrom(startupType))
             {
                 throw new InvalidOperationException(
-                    $"startupType value must be a type which implements {interfaceType.FullName}.");
+                    $"startupType value must be a type which implements {baseType.FullName}.");
+            }
+
+            var publicParameterLessConstructor = startupType.GetConstructor(Array.Empty<Type>());
+            if (publicParameterLessConstructor == null)
+            {
+                throw new InvalidOperationException(
+                    $"{startupType.Name} class must have a public parameterless constructor.");
             }
 
             StartupType = startupType;

@@ -29,9 +29,9 @@ using Microsoft.Azure.Functions.Worker.Core;
 [assembly: WorkerExtensionStartupCodeExecutorInfo(typeof(Microsoft.Azure.Functions.Worker.WorkerExtensionStartupCodeExecutor))]
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class WorkerExtensionStartupCodeExecutor : IWorkerExtensionStartup
+    internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
     {
-        public void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
+        public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
             try
             {

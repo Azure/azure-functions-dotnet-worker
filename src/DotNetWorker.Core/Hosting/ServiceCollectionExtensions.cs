@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Reflection;
 using System.Text.Json;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
@@ -81,7 +82,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             var builder = new FunctionsWorkerApplicationBuilder(services);
             // Execute startup code from worker extensions if present.
-            ExtensionStartupRunnner.RunExtensionStartupCode(builder);
+            RunExtensionStartupCode(builder);
 
             return builder;
         }
@@ -101,6 +102,31 @@ namespace Microsoft.Extensions.DependencyInjection
                 workerOption.InputConverters.Register<JsonPocoConverter>();
                 workerOption.InputConverters.Register<ArrayConverter>();
             });
+        }
+
+        /// <summary>
+        /// Run extension startup execution code.
+        /// Our source generator creates a class(WorkerExtensionStartupCodeExecutor)
+        /// which internally calls the "Configure" method on each of the participating 
+        /// extensions. Here we are calling the uber "Configure" method on the generated class.
+        /// </summary>
+        private static void RunExtensionStartupCode(IFunctionsWorkerApplicationBuilder builder)
+        {
+            var entryAssembly = Assembly.GetEntryAssembly()!;
+
+            // Find the assembly attribute which has information about the startup code executor class
+            var startupCodeExecutorInfoAttr = entryAssembly.GetCustomAttribute<WorkerExtensionStartupCodeExecutorInfoAttribute>();
+
+            // Our source generator will not create the WorkerExtensionStartupCodeExecutor class
+            // and will not add the above assembly attribute when no extension startup hooks are found.
+            if (startupCodeExecutorInfoAttr == null)
+            {
+                return;
+            }
+
+            var startupCodeExecutorInstance =
+                Activator.CreateInstance(startupCodeExecutorInfoAttr.StartupCodeExecutorType) as WorkerExtensionStartup;
+            startupCodeExecutorInstance!.Configure(builder);
         }
     }
 }

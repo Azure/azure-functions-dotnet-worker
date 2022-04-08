@@ -21,14 +21,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     /// calls each of the extension's implementations.
     /// </summary>
 
-    // Sample code generated (with one extensions particiapating in startup hook)
-    // There will be one try-catch block for each extension particiapating in startup hook.
-    
+    // Sample code generated (with one extensions participating in startup hook)
+    // There will be one try-catch block for each extension participating in startup hook.
+
     //[assembly: WorkerExtensionStartupCodeExecutorInfo(typeof(Microsoft.Azure.Functions.Worker.WorkerExtensionStartupCodeExecutor))]
     //
-    //internal class WorkerExtensionStartupCodeExecutor : IWorkerExtensionStartup
+    //internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
     //{
-    //    public void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
+    //    public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
     //    {
     //        try
     //        {
@@ -132,10 +132,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         private static void WriteStartupCodeExecutorClass(IndentedTextWriter textWriter, IEnumerable<string> typeNames)
         {
-            textWriter.WriteLine("internal class WorkerExtensionStartupCodeExecutor : IWorkerExtensionStartup");
+            textWriter.WriteLine("internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup");
             textWriter.WriteLine("{");
             textWriter.Indent++;
-            textWriter.WriteLine("public void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)");
+            textWriter.WriteLine("public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)");
             textWriter.WriteLine("{");
             textWriter.Indent++;
 

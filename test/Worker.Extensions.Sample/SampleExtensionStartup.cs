@@ -14,9 +14,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
 {
-    public class SampleExtensionStartup : IWorkerExtensionStartup
+    public class SampleExtensionStartup : WorkerExtensionStartup
     {
-        public void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
+        public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
             applicationBuilder.UseMiddleware<StampHttpHeadersMiddleware>();
             applicationBuilder.Services.AddSingleton<IMyFooService, MyFooService>();

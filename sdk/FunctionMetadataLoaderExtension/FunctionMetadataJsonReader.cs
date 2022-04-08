@@ -27,44 +27,42 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         {
             string metadataFile = Path.Combine(_options.Value.FunctionMetadataFileDrectory, FileName);
 
-            if (File.Exists(metadataFile))
+            if (!File.Exists(metadataFile))
             {
-                using (var fs = File.OpenText(metadataFile))
+                throw new FileNotFoundException($"Function metadata file not found. File path used:{metadataFile}");
+            }
+
+            using (var fs = File.OpenText(metadataFile))
+            {
+                using (var js = new JsonTextReader(fs))
                 {
-                    using (var js = new JsonTextReader(fs))
+                    JArray functionMetadataJson = (JArray)await JToken.ReadFromAsync(js);
+
+                    var functionList = new List<FunctionMetadata>();
+
+                    foreach (JObject function in functionMetadataJson)
                     {
-                        JArray functionMetadataJson = (JArray)await JToken.ReadFromAsync(js);
+                        FunctionMetadata metadata = function.ToObject<FunctionMetadata>();
 
-                        var functionList = new List<FunctionMetadata>();
+                        // We need to re-add these by going through the BindingMetadata factory
+                        metadata.Bindings.Clear();
 
-                        foreach (JObject function in functionMetadataJson)
+                        JArray bindingArray = (JArray)function["bindings"];
+                        if (bindingArray == null || bindingArray.Count == 0)
                         {
-                            FunctionMetadata metadata = function.ToObject<FunctionMetadata>();
-
-                            // We need to re-add these by going through the BindingMetadata factory
-                            metadata.Bindings.Clear();
-
-                            JArray bindingArray = (JArray)function["bindings"];
-                            if (bindingArray == null || bindingArray.Count == 0)
-                            {
-                                throw new FormatException("At least one binding must be declared.");
-                            }
-
-                            foreach (JObject binding in bindingArray)
-                            {
-                                metadata.Bindings.Add(BindingMetadata.Create(binding));
-                            }
-
-                            functionList.Add(metadata);
+                            throw new FormatException("At least one binding must be declared.");
                         }
 
-                        return functionList.ToImmutableArray();
+                        foreach (JObject binding in bindingArray)
+                        {
+                            metadata.Bindings.Add(BindingMetadata.Create(binding));
+                        }
+
+                        functionList.Add(metadata);
                     }
+
+                    return functionList.ToImmutableArray();
                 }
-            }
-            else
-            {
-                return ImmutableArray<FunctionMetadata>.Empty;
             }
         }
     }

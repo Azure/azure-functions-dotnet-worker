@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal(ConversionStatus.Succeeded, actual.Status);
 
             var value = TestUtility.AssertIsTypeAndConvert<DateTime>(actual.Value);
-            Assert.Equal("04/13/2022 12:00:00 AM", value.ToString());
+            Assert.Equal("04/13/2022", value.ToString("MM/dd/yyyy"));
         }
 
         [Fact]

@@ -48,6 +48,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [Fact]
+        public async Task Convert_Using_Default_Converters_DateTime()
+        {
+            var converterContext = CreateConverterContext(typeof(DateTime), "04-13-2022");
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+
+            var value = TestUtility.AssertIsTypeAndConvert<DateTime>(actual.Value);
+            Assert.Equal("04/13/2022 12:00:00 AM", value.ToString());
+        }
+
+        [Fact]
         public async Task Convert_Using_Default_Converters_Guid()
         {
             var converterContext = CreateConverterContext(typeof(Guid), "0c67c078-7213-4e91-ad41-f8747c865f3d");

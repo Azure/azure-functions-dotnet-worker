@@ -23,24 +23,25 @@ namespace Sdk.Generator.Tests
         public static Task RunTestAsync<TSourceGenerator>(
             IEnumerable<Assembly> extensionAssemblyReferences,
             string inputSource,
-            string expectedFileName,
-            string expectedOutputSource) where TSourceGenerator : ISourceGenerator, new()
+            string? expectedFileName,
+            string? expectedOutputSource) where TSourceGenerator : ISourceGenerator, new()
         {
             CSharpSourceGeneratorVerifier<TSourceGenerator>.Test test = new()
             {
                 TestState =
-            {
-                Sources = { inputSource },
-                GeneratedSources =
                 {
-                    (typeof(TSourceGenerator), expectedFileName, SourceText.From(expectedOutputSource, Encoding.UTF8)),
+                    Sources = { inputSource },
+                    AdditionalReferences =
+                    {
+                        typeof(WorkerExtensionStartupAttribute).Assembly,
+                    },
                 },
-                AdditionalReferences =
-                {
-                    typeof(WorkerExtensionStartupAttribute).Assembly,
-                },
-            },
             };
+
+            if (expectedOutputSource != null && expectedFileName != null)
+            {
+                test.TestState.GeneratedSources.Add((typeof(TSourceGenerator), expectedFileName, SourceText.From(expectedOutputSource, Encoding.UTF8)));
+            }
 
             foreach (var item in extensionAssemblyReferences)
             {

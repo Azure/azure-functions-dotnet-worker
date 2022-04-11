@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Tests.WorkerExtensionsSample
 {
-    public class SampleExtensionStartup : WorkerExtensionStartup
+    public sealed class SampleExtensionStartup : WorkerExtensionStartup
     {
         public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {

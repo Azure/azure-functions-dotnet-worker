@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Ex input: A Symbol for "Task" token
         /// Output: "System.Threading.Tasks.Task"
         /// </summary>
-        /// <param name="symbol"></param>
+        /// <param name="typeSymbol"></param>
         /// <returns></returns>
         internal static string GetFullName(this ITypeSymbol typeSymbol)
         {

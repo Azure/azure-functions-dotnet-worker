@@ -23,12 +23,8 @@ namespace Microsoft.Azure.Functions.Worker.Core
         /// <exception cref="ArgumentNullException">Throws when startupType is null.</exception>
         public WorkerExtensionStartupCodeExecutorInfoAttribute(Type extensionStartupCodeExecutorType)
         {
-            if (extensionStartupCodeExecutorType == null)
-            {
-                throw new ArgumentNullException(nameof(extensionStartupCodeExecutorType));
-            }
-
-            StartupCodeExecutorType = extensionStartupCodeExecutorType;
+            StartupCodeExecutorType = extensionStartupCodeExecutorType ??
+                                      throw new ArgumentNullException(nameof(extensionStartupCodeExecutorType));
         }
 
         /// <summary>

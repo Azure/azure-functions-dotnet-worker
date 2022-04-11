@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests.WorkerExtensionsSample;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
@@ -9,13 +10,13 @@ namespace Sdk.Generator.Tests
 {
     public class ExtensionStartupRunnerGeneratorTests
     {
-        [Fact]
-        public async Task StartupCodeGetsGenerated()
-        {
-            string inputCode = @"
+        const string InputCode = @"
 public class Foo
 {
 }";
+        [Fact]
+        public async Task StartupExecutorCodeGetsGenerated()
+        {
             // Source generation is based on referenced assembly.
             var referencedExtensionAssemblies = new[]
             {
@@ -44,11 +45,27 @@ namespace Microsoft.Azure.Functions.Worker
         }
     }
 }
-".Replace("'","\"");
+".Replace("'", "\"");
 
             await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
                 referencedExtensionAssemblies,
-                inputCode,
+                InputCode,
+                expectedGeneratedFileName,
+                expectedOutput);
+        }
+
+        [Fact]
+        public async Task StartupExecutorCodeDoesNotGetsGeneratedWheNoExtensionAssembliesAreReferenced()
+        {
+            // source gen will happen only when an assembly with worker startup type is defined.
+            var referencedExtensionAssemblies = Array.Empty<System.Reflection.Assembly>();
+
+            string? expectedGeneratedFileName = null;
+            string? expectedOutput = null;
+
+            await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
+                referencedExtensionAssemblies,
+                InputCode,
                 expectedGeneratedFileName,
                 expectedOutput);
         }

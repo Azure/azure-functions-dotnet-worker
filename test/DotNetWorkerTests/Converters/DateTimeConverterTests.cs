@@ -13,10 +13,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         private readonly DateTimeConverter _converter = new DateTimeConverter();
 
         [Theory]
-        [InlineData("4/11/2022", typeof(DateTime))]
-        [InlineData("4/11/2022", typeof(DateTime?))]
-        [InlineData("4-13-2022", typeof(DateTime))]
-        [InlineData("4-13-2022", typeof(DateTime?))]
+        [InlineData("04/11/2022", typeof(DateTime))]
+        [InlineData("04/11/2022", typeof(DateTime?))]
+        [InlineData("04-13-2022", typeof(DateTime))]
+        [InlineData("04-13-2022", typeof(DateTime?))]
         [InlineData("2022-08-15", typeof(DateTime))]
         [InlineData("2022-08-15", typeof(DateTime?))]
         [InlineData("2022-04-11T17:17:12.9326256Z", typeof(DateTime))]
@@ -51,10 +51,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Theory]
-        [InlineData("4/11/2022", typeof(DateOnly))]
-        [InlineData("4/11/2022", typeof(DateOnly?))]
-        [InlineData("4-11-2022", typeof(DateOnly))]
-        [InlineData("4-11-2022", typeof(DateOnly?))]
+        [InlineData("04/11/2022", typeof(DateOnly))]
+        [InlineData("04/11/2022", typeof(DateOnly?))]
+        [InlineData("04-11-2022", typeof(DateOnly))]
+        [InlineData("04-11-2022", typeof(DateOnly?))]
         [InlineData("2022-05-14", typeof(DateOnly))]
         [InlineData("2022-05-14", typeof(DateOnly?))]
         public async Task ConversionSuccessfulForValidSource_DateOnly(object source, Type parameterType)

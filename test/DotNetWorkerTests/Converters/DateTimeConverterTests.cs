@@ -33,6 +33,42 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Theory]
+        [InlineData("10:30 AM", typeof(TimeOnly))]
+        [InlineData("10:30 AM", typeof(TimeOnly?))]
+        [InlineData("10:30", typeof(TimeOnly))]
+        [InlineData("10:30", typeof(TimeOnly?))]
+        [InlineData("23:59:59", typeof(TimeOnly))]
+        [InlineData("23:59:59", typeof(TimeOnly?))]
+        public async Task ConversionSuccessfulForValidSource_TimeOnly(object source, Type parameterType)
+        {
+            var context = new TestConverterContext(parameterType, source);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            var convertedTimeOnly = TestUtility.AssertIsTypeAndConvert<TimeOnly>(conversionResult.Value);
+            Assert.Equal(TimeOnly.Parse(source.ToString()), convertedTimeOnly);
+        }
+
+        [Theory]
+        [InlineData("4/11/2022", typeof(DateOnly))]
+        [InlineData("4/11/2022", typeof(DateOnly?))]
+        [InlineData("4-11-2022", typeof(DateOnly))]
+        [InlineData("4-11-2022", typeof(DateOnly?))]
+        [InlineData("2022-05-14", typeof(DateOnly))]
+        [InlineData("2022-05-14", typeof(DateOnly?))]
+        public async Task ConversionSuccessfulForValidSource_DateOnly(object source, Type parameterType)
+        {
+            var context = new TestConverterContext(parameterType, source);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            var convertedDateOnly = TestUtility.AssertIsTypeAndConvert<DateOnly>(conversionResult.Value);
+            Assert.Equal(DateOnly.Parse(source.ToString()), convertedDateOnly);
+        }
+
+        [Theory]
         [InlineData(null)]
         [InlineData("")]
         [InlineData("foo")]

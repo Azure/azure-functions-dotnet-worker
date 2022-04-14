@@ -10,7 +10,29 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 {
     public class DateTimeConverterTests
     {
-        private readonly DateTimeConverter _converter = new DateTimeConverter();
+        private readonly DateTimeConverter _converter = new();
+
+        [Theory]
+        [InlineData("2022-05-16T08:16:53.1880572-03:00", typeof(DateTimeOffset), -3)]
+        [InlineData("2022-05-16T08:17:54.1880573-01:00", typeof(DateTimeOffset?), -1)]
+        [InlineData("2022-05-16T08:16:53", typeof(DateTimeOffset), null)]
+        [InlineData("2022-05-16T08:16:53", typeof(DateTimeOffset?), null)]
+        [InlineData("2022-05-16", typeof(DateTimeOffset), null)]
+        [InlineData("2022-05-16", typeof(DateTimeOffset?), null)]
+        public async Task ConversionSuccessfulForValidSourceDateTimeOffset(object source, Type parameterType, int? expectedOffsetHours)
+        {
+            var context = new TestConverterContext(parameterType, source);
+
+            var conversionResult = await _converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            var convertedDateTimeOffset = TestUtility.AssertIsTypeAndConvert<DateTimeOffset>(conversionResult.Value);
+            
+            // when no offset info is present in input value, offset of local timezone will be set as the offset of the DateTimeOffSet instance.
+            var expectedOffSetHours = expectedOffsetHours ?? TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).Hours;
+            Assert.Equal(expectedOffSetHours, convertedDateTimeOffset.Offset.Hours);
+            Assert.Equal(DateTimeOffset.Parse(source.ToString()), convertedDateTimeOffset);
+        }
 
         [Theory]
         [InlineData("04/11/2022", typeof(DateTime))]

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             var convertedDateTimeOffset = TestUtility.AssertIsTypeAndConvert<DateTimeOffset>(conversionResult.Value);
-            
+
             // when no offset info is present in input value, offset of local timezone will be set as the offset of the DateTimeOffSet instance.
             var expectedOffSetHours = expectedOffsetHours ?? TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).Hours;
             Assert.Equal(expectedOffSetHours, convertedDateTimeOffset.Offset.Hours);
@@ -52,42 +52,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             var convertedDate = TestUtility.AssertIsTypeAndConvert<DateTime>(conversionResult.Value);
             Assert.Equal(DateTime.Parse(source.ToString()), convertedDate);
-        }
-
-        [Theory]
-        [InlineData("10:30 AM", typeof(TimeOnly))]
-        [InlineData("10:30 AM", typeof(TimeOnly?))]
-        [InlineData("10:30", typeof(TimeOnly))]
-        [InlineData("10:30", typeof(TimeOnly?))]
-        [InlineData("23:59:59", typeof(TimeOnly))]
-        [InlineData("23:59:59", typeof(TimeOnly?))]
-        public async Task ConversionSuccessfulForValidSource_TimeOnly(object source, Type parameterType)
-        {
-            var context = new TestConverterContext(parameterType, source);
-
-            var conversionResult = await _converter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            var convertedTimeOnly = TestUtility.AssertIsTypeAndConvert<TimeOnly>(conversionResult.Value);
-            Assert.Equal(TimeOnly.Parse(source.ToString()), convertedTimeOnly);
-        }
-
-        [Theory]
-        [InlineData("04/11/2022", typeof(DateOnly))]
-        [InlineData("04/11/2022", typeof(DateOnly?))]
-        [InlineData("04-11-2022", typeof(DateOnly))]
-        [InlineData("04-11-2022", typeof(DateOnly?))]
-        [InlineData("2022-05-14", typeof(DateOnly))]
-        [InlineData("2022-05-14", typeof(DateOnly?))]
-        public async Task ConversionSuccessfulForValidSource_DateOnly(object source, Type parameterType)
-        {
-            var context = new TestConverterContext(parameterType, source);
-
-            var conversionResult = await _converter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            var convertedDateOnly = TestUtility.AssertIsTypeAndConvert<DateOnly>(conversionResult.Value);
-            Assert.Equal(DateOnly.Parse(source.ToString()), convertedDateOnly);
         }
 
         [Theory]

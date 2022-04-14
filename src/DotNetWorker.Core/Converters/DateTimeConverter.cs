@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
-    /// Converter to bind to DateTime/DateTimeOffset/DateOnly/TimeOnly types.
+    /// Converter to bind to DateTime/DateTimeOffset type.
     /// </summary>
     internal sealed class DateTimeConverter : IInputConverter
     {
@@ -23,46 +23,21 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDateTimeOffset));
             }
-#if NET6_0
-            if ((context.TargetType == typeof(DateOnly) || context.TargetType == typeof(DateOnly?))
-                && DateOnly.TryParse(source, out var parsedDateOnly))
-            {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDateOnly));
-            }
-
-            if ((context.TargetType == typeof(TimeOnly) || context.TargetType == typeof(TimeOnly?))
-                && TimeOnly.TryParse(source, out var parsedTimeOnly))
-            {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(parsedTimeOnly));
-            }
-#endif  
 
             if (DateTime.TryParse(source, out DateTime parsedDate))
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDate));
             }
-            
+
             return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
 
         private static bool IsValidTargetType(ConverterContext context)
         {
-            if (context.TargetType == typeof(DateTime)
-                || context.TargetType == typeof(DateTime?)
-                || context.TargetType == typeof(DateTimeOffset)
-                || context.TargetType == typeof(DateTimeOffset?)
-#if NET6_0
-                || context.TargetType == typeof(DateOnly)
-                || context.TargetType == typeof(DateOnly?)
-                || context.TargetType == typeof(TimeOnly)
-                || context.TargetType == typeof(TimeOnly?)
-#endif
-              )
-            {
-                return true;
-            }
-
-            return false;
+            return context.TargetType == typeof(DateTime)
+                   || context.TargetType == typeof(DateTime?)
+                   || context.TargetType == typeof(DateTimeOffset)
+                   || context.TargetType == typeof(DateTimeOffset?);
         }
     }
 }

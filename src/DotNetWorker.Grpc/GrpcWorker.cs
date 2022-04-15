@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (!string.IsNullOrEmpty(_startupOptions.Value.EnableWorkerIndexing))
             {
-                if (string.Equals(_startupOptions.Value.EnableWorkerIndexing, "true", StringComparison.OrdinalIgnoreCase))
+                if (_startupOptions.Value.EnableWorkerIndexing.Equals("true", StringComparison.OrdinalIgnoreCase))
                 {
                     _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.AzureWebJobsScriptRoot);
                 }

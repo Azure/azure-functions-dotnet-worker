@@ -4,6 +4,7 @@
     "extensions": [ ".dll" ],
     "defaultExecutablePath": "$functionExe$",
     "defaultWorkerPath": "$functionWorker$",
-    "workerIndexing":  "$enableWorkerIndexing$"
+    "workerIndexing": "$enableWorkerIndexing$",
+    "workerArguments": [ "%AZURE_FUNCTIONS_WORKER_INDEXING%"]
   }
 }

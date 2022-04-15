@@ -78,7 +78,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)')
+                                  .Replace('%AZURE_FUNCTIONS_WORKER_INDEXING%', ' --EnableWorkerIndexing $(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
     <WriteLinesToFile
@@ -87,7 +88,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)')
+                                  .Replace('%AZURE_FUNCTIONS_WORKER_INDEXING%', ' --EnableWorkerIndexing $(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
   </Target>
@@ -258,7 +260,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)')
+                                  .Replace('%AZURE_FUNCTIONS_WORKER_INDEXING%', ' --EnableWorkerIndexing $(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
     <WriteLinesToFile
@@ -267,7 +270,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)')
+                                  .Replace('%AZURE_FUNCTIONS_WORKER_INDEXING%', ' --EnableWorkerIndexing $(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
   </Target>

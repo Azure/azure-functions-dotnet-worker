@@ -5,6 +5,6 @@
     "defaultExecutablePath": "$functionExe$",
     "defaultWorkerPath": "$functionWorker$",
     "workerIndexing": "$enableWorkerIndexing$",
-    "workerArguments": [ "%AZURE_FUNCTIONS_WORKER_INDEXING%"]
+    "workerArguments": ["%AZURE_FUNCTIONS_WORKER_INDEXING%"]
   }
 }

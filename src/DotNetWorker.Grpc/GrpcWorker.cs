@@ -36,7 +36,6 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
-        private Task<FunctionMetadataResponse>? _functionMetadataResponseTask;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
@@ -69,14 +68,6 @@ namespace Microsoft.Azure.Functions.Worker
             if(_startupOptions.Value.AzureWebJobsScriptRoot is null)
             {
                 throw new ArgumentNullException(nameof(_startupOptions.Value.AzureWebJobsScriptRoot));
-            }
-
-            if (!string.IsNullOrEmpty(_startupOptions.Value.EnableWorkerIndexing))
-            {
-                if (_startupOptions.Value.EnableWorkerIndexing.Equals("true", StringComparison.OrdinalIgnoreCase))
-                {
-                    _functionMetadataResponseTask = GetFunctionMetadataAsync(_startupOptions.Value.AzureWebJobsScriptRoot);
-                }
             }
 
             await SendStartStreamMessageAsync(eventStream.RequestStream);
@@ -146,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
-                responseMessage.FunctionMetadataResponse = await _functionMetadataResponseTask!;
+                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(_startupOptions.Value.AzureWebJobsScriptRoot!);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {

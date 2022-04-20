@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             catch (Exception ex)
             {
-                Console.WriteLine('Error calling Configure on Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup instance.'+ex.ToString());
+                Console.Error.WriteLine('Error calling Configure on Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup instance.'+ex.ToString());
             }
         }
     }

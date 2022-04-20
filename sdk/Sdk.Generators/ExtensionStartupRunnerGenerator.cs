@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     //        }
     //        catch (Exception ex)
     //        {
-    //            Console.WriteLine("Error calling Configure on Microsoft.Azure.Functions.Worker.Extensions.Http.MyHttpExtensionStartup instance." + ex.ToString());
+    //            Console.Error.WriteLine("Error calling Configure on Microsoft.Azure.Functions.Worker.Extensions.Http.MyHttpExtensionStartup instance." + ex.ToString());
     //        }
     //    }
     //}
@@ -194,7 +194,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 textWriter.WriteLine("catch (Exception ex)");
                 textWriter.WriteLine("{");
                 textWriter.Indent++;
-                textWriter.WriteLine($"Console.WriteLine(\"Error calling Configure on {type.TypeName} instance.\"+ex.ToString());");
+                textWriter.WriteLine($"Console.Error.WriteLine(\"Error calling Configure on {type.TypeName} instance.\"+ex.ToString());");
                 textWriter.Indent--;
                 textWriter.WriteLine("}");
             }

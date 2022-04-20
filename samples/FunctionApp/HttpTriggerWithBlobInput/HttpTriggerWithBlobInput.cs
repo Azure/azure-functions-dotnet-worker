@@ -8,9 +8,9 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace FunctionApp
 {
-    public static class Function1
+    public static class HttpTriggerWithBlobInput
     {
-        [Function("Function1")]
+        [Function(nameof(HttpTriggerWithBlobInput))]
         public static MyOutputType Run(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionContext context)
@@ -28,7 +28,7 @@ namespace FunctionApp
                 Book = bookVal,
                 HttpResponse = response
             };
-        }        
+        }
 
         public class MyOutputType
         {

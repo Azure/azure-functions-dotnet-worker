@@ -126,7 +126,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void InlineMiddleware_RunsInExpectedOrder_With_UseWhen_Predicate_Returns_Value()
+        public void InlineMiddleware_RunsInExpectedOrder_With_UseWhen_Predicate_ReturnValue()
         {
             var services = new ServiceCollection();
             IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services);

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.CodeDom.Compiler;
@@ -47,17 +48,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// The attribute which extension authors will apply on an assembly which contains their startup type.
         /// </summary>
-        private string attributeTypeName = "WorkerExtensionStartupAttribute";
+        private const string AttributeTypeName = "WorkerExtensionStartupAttribute";
 
         /// <summary>
         /// Fully qualified name of the above "WorkerExtensionStartupAttribute" attribute.
         /// </summary>
-        private string attributeTypeFullName = "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartupAttribute";
+        private const string AttributeTypeFullName = "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartupAttribute";
 
         /// <summary>
         /// Fully qualified name of the base type which extension startup classes should implement.
         /// </summary>
-        private string startupBaseClassName = "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartup";
+        private const string StartupBaseClassName = "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartup";
 
         public void Execute(GeneratorExecutionContext context)
         {
@@ -105,9 +106,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
                 var extensionStartupAttribute = assembly.GetAttributes()
-                                                        .FirstOrDefault(a => a.AttributeClass?.Name == attributeTypeName &&
+                                                        .FirstOrDefault(a =>
+                                                            (a.AttributeClass?.Name.Equals(AttributeTypeName,
+                                                                StringComparison.Ordinal) ?? false) &&
                                                                         //Call GetFullName only if class name matches.
-                                                                        a.AttributeClass.GetFullName() == attributeTypeFullName);
+                                                                        a.AttributeClass.GetFullName()
+                                                                .Equals(AttributeTypeFullName,
+                                                                    StringComparison.Ordinal));
                 if (extensionStartupAttribute != null)
                 {
                     // WorkerExtensionStartupAttribute has a constructor with one param, the type of startup implementation class.
@@ -145,9 +150,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 // Check the extension startup class implements WorkerExtensionStartup abstract class.
-                if (!(namedTypeSymbol.BaseType!.GetFullName().Equals(startupBaseClassName)))
+                if (!namedTypeSymbol.BaseType!.GetFullName().Equals(StartupBaseClassName, StringComparison.Ordinal))
                 {
-                    return $"{typeSymbol.ToDisplayString()} must be a type which implements {startupBaseClassName}.";
+                    return $"{typeSymbol.ToDisplayString()} must derive from {StartupBaseClassName}.";
                 }
             }
 

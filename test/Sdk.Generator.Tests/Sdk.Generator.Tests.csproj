@@ -3,6 +3,10 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>latest</LangVersion>
+    <AssemblyName>Microsoft.Azure.Functions.SdkGeneratorTests</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.SdkGeneratorTests</RootNamespace>
+    <SignAssembly>true</SignAssembly>
+    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
@@ -28,6 +32,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk.Generators\Sdk.Generators.csproj" />
+    <ProjectReference Include="..\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj" />
     <ProjectReference Include="..\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
   </ItemGroup>
 

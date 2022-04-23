@@ -62,9 +62,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var startupTypes = GetExtensionStartupTypes(context);
+            var startupTypeNames = GetExtensionStartupTypes(context);
 
-            if (!startupTypes.Any())
+            if (!startupTypeNames.Any())
             {
                 return;
             }
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
-                WriteStartupCodeExecutorClass(indentedTextWriter, startupTypes);
+                WriteStartupCodeExecutorClass(indentedTextWriter, startupTypeNames);
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
 
@@ -97,9 +97,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Each entry in the return type collection includes full type name 
         /// & a potential error message if the startup type is not valid.
         /// </summary>
-        private IEnumerable<(string TypeName, string? Error)> GetExtensionStartupTypes(GeneratorExecutionContext context)
+        private IEnumerable<string> GetExtensionStartupTypes(GeneratorExecutionContext context)
         {
-            List<(string TypeName, string? Error)>? typeInfoList = null;
+            List<string>? typeNameList = null;
 
             // Extension authors should decorate their assembly with "WorkerExtensionStartup" attribute
             // if they want to participate in startup.
@@ -123,21 +123,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     var fullTypeName = typeSymbol.ToDisplayString();
-                    var errorMessage = GetErrorIfTypeIsNotValid(typeSymbol);
+                    var hasAnyError = ReportDiagnosticErrorsIfAny(context, typeSymbol);
 
-                    typeInfoList ??= new List<(string TypeName, string? Error)>();
-                    typeInfoList.Add((TypeName: fullTypeName, Error: errorMessage));
+                    if (!hasAnyError)
+                    {
+                        typeNameList ??= new List<string>();
+                        typeNameList.Add(fullTypeName);
+                    }
                 }
             }
 
-            return typeInfoList ?? Enumerable.Empty<(string TypeName, string? Error)>();
+            return typeNameList ?? Enumerable.Empty<string>();
         }
 
         /// <summary>
-        /// Check the type to see it is valid and return an error message of the first failure.
+        /// Check the startup type implementation is valid and report Diagnostic errors if it is not valid.
         /// </summary>
-        private string? GetErrorIfTypeIsNotValid(ITypeSymbol typeSymbol)
+        private bool ReportDiagnosticErrorsIfAny(GeneratorExecutionContext context, ITypeSymbol typeSymbol)
         {
+            var hasAnyError = false;
+            
             if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
             {
                 // Check public parameterless constructor exist for the type.
@@ -146,17 +151,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                                             c.DeclaredAccessibility == Accessibility.Public);
                 if (!constructorExist)
                 {
-                    return $"{typeSymbol.ToDisplayString()} class must have a public parameterless constructor.";
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorMissing, Location.None, typeSymbol.ToDisplayString()));
+                    hasAnyError = true;
                 }
 
                 // Check the extension startup class implements WorkerExtensionStartup abstract class.
                 if (!namedTypeSymbol.BaseType!.GetFullName().Equals(StartupBaseClassName, StringComparison.Ordinal))
                 {
-                    return $"{typeSymbol.ToDisplayString()} must derive from {StartupBaseClassName}.";
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.IncorrectBaseType, Location.None, typeSymbol.ToDisplayString(), StartupBaseClassName));
+                    hasAnyError = true;
                 }
             }
 
-            return null;
+            return hasAnyError;
         }
 
         /// <summary>
@@ -172,7 +179,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Writes a class with code which calls the Configure method on each implementation of participating extensions.
         /// We also have it implement the same "IWorkerExtensionStartup" interface which extension authors implement.
         /// </summary>
-        private static void WriteStartupCodeExecutorClass(IndentedTextWriter textWriter, IEnumerable<(string TypeName, string? Error)> types)
+        private static void WriteStartupCodeExecutorClass(IndentedTextWriter textWriter, IEnumerable<string> startupTypeNames)
         {
             textWriter.WriteLine("internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup");
             textWriter.WriteLine("{");
@@ -181,25 +188,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             textWriter.WriteLine("{");
             textWriter.Indent++;
 
-            foreach (var type in types)
+            foreach (var typeName in startupTypeNames)
             {
                 textWriter.WriteLine("try");
                 textWriter.WriteLine("{");
                 textWriter.Indent++;
-                if (type.Error != null)
-                {
-                    textWriter.WriteLine($"throw new InvalidOperationException(\"{type.Error}\");");
-                }
-                else
-                {
-                    textWriter.WriteLine($"new {type.TypeName}().Configure(applicationBuilder);");
-                }
+
+                textWriter.WriteLine($"new {typeName}().Configure(applicationBuilder);");
+
                 textWriter.Indent--;
                 textWriter.WriteLine("}");
                 textWriter.WriteLine("catch (Exception ex)");
                 textWriter.WriteLine("{");
                 textWriter.Indent++;
-                textWriter.WriteLine($"Console.Error.WriteLine(\"Error calling Configure on {type.TypeName} instance.\"+ex.ToString());");
+                textWriter.WriteLine($"Console.Error.WriteLine(\"Error calling Configure on {typeName} instance.\"+ex.ToString());");
                 textWriter.Indent--;
                 textWriter.WriteLine("}");
             }

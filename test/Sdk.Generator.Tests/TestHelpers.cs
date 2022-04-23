@@ -16,7 +16,7 @@ using Microsoft.Azure.Functions.Worker.Core;
 using System.Reflection;
 using System.Collections.Generic;
 
-namespace Sdk.Generator.Tests
+namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
     static class TestHelpers
     {
@@ -24,7 +24,8 @@ namespace Sdk.Generator.Tests
             IEnumerable<Assembly> extensionAssemblyReferences,
             string inputSource,
             string? expectedFileName,
-            string? expectedOutputSource) where TSourceGenerator : ISourceGenerator, new()
+            string? expectedOutputSource,
+            List<DiagnosticResult>? expectedDiagnosticResults = null) where TSourceGenerator : ISourceGenerator, new()
         {
             CSharpSourceGeneratorVerifier<TSourceGenerator>.Test test = new()
             {
@@ -46,6 +47,11 @@ namespace Sdk.Generator.Tests
             foreach (var item in extensionAssemblyReferences)
             {
                 test.TestState.AdditionalReferences.Add(item);
+            }
+
+            if (expectedDiagnosticResults != null)
+            {
+                test.TestState.ExpectedDiagnostics.AddRange(expectedDiagnosticResults);
             }
 
             return test.RunAsync();

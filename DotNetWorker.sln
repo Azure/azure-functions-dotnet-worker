@@ -101,11 +101,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage.B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Generators", "sdk\Sdk.Generators\Sdk.Generators.csproj", "{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdk.Generator.Tests", "test\Sdk.Generator.Tests\Sdk.Generator.Tests.csproj", "{18A09B24-8646-40A6-BD85-2773AF567453}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Generator.Tests", "test\Sdk.Generator.Tests\Sdk.Generator.Tests.csproj", "{18A09B24-8646-40A6-BD85-2773AF567453}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worker.Extensions.Sample", "test\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj", "{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Sample", "test\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj", "{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleExtensions", "SampleExtensions", "{922A387F-8595-4C74-ABF1-AEFF9530950C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worker.Extensions.Sample-IncorrectImplementation", "test\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj", "{22FCE0DF-65FE-4650-8202-765832C40E6D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -257,6 +259,10 @@ Global
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22FCE0DF-65FE-4650-8202-765832C40E6D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22FCE0DF-65FE-4650-8202-765832C40E6D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22FCE0DF-65FE-4650-8202-765832C40E6D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22FCE0DF-65FE-4650-8202-765832C40E6D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -302,6 +308,7 @@ Global
 		{18A09B24-8646-40A6-BD85-2773AF567453} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C} = {922A387F-8595-4C74-ABF1-AEFF9530950C}
 		{922A387F-8595-4C74-ABF1-AEFF9530950C} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
+		{22FCE0DF-65FE-4650-8202-765832C40E6D} = {922A387F-8595-4C74-ABF1-AEFF9530950C}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

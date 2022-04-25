@@ -62,9 +62,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
-            var startupTypeNames = GetExtensionStartupTypes(context);
+            var extensionStartupTypeNames = GetExtensionStartupTypes(context);
 
-            if (!startupTypeNames.Any())
+            if (!extensionStartupTypeNames.Any())
             {
                 return;
             }
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
-                WriteStartupCodeExecutorClass(indentedTextWriter, startupTypeNames);
+                WriteStartupCodeExecutorClass(indentedTextWriter, extensionStartupTypeNames);
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
 
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Check the startup type implementation is valid and report Diagnostic errors if it is not valid.
         /// </summary>
-        private bool ReportDiagnosticErrorsIfAny(GeneratorExecutionContext context, ITypeSymbol typeSymbol)
+        private static bool ReportDiagnosticErrorsIfAny(GeneratorExecutionContext context, ITypeSymbol typeSymbol)
         {
             var hasAnyError = false;
             
@@ -151,14 +151,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                                             c.DeclaredAccessibility == Accessibility.Public);
                 if (!constructorExist)
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorMissing, Location.None, typeSymbol.ToDisplayString()));
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorMissing, Location.None,
+                        typeSymbol.ToDisplayString()));
                     hasAnyError = true;
                 }
 
                 // Check the extension startup class implements WorkerExtensionStartup abstract class.
                 if (!namedTypeSymbol.BaseType!.GetFullName().Equals(StartupBaseClassName, StringComparison.Ordinal))
                 {
-                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.IncorrectBaseType, Location.None, typeSymbol.ToDisplayString(), StartupBaseClassName));
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.IncorrectBaseType, Location.None,
+                        typeSymbol.ToDisplayString(), StartupBaseClassName));
                     hasAnyError = true;
                 }
             }

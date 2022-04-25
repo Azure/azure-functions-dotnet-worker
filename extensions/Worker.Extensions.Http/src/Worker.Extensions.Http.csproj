@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http</RootNamespace>
+    <Description>HTTP extensions for .NET isolated functions</Description>
+
+    <!--Version information-->
+    <VersionPrefix>3.0.13</VersionPrefix>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

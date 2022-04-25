@@ -1,0 +1,114 @@
+parameters:
+- name: ExtensionDirectory
+  type: string
+  default: not-specified
+
+jobs:
+- job: "Build_And_Test_Windows"
+  pool:
+    name: '1ES-Hosted-AzFunc'
+    demands:
+      - ImageOverride -equals MMS2022TLS
+
+  variables:
+    - template: extensions-variables.yml
+
+  steps:
+  
+  - template: ../../install-dotnet.yml
+  - task: DotNetCoreCLI@2
+    displayName: 'Build projects'
+    inputs:
+      command: 'build'
+      arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+
+  #  Extensions test structure must be defined
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Run tests'
+  #   inputs:
+  #     command: 'test'
+  #     arguments: '--no-build -c Release'
+  #     projects: |
+  #       test/**/*Tests.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build packages'
+    inputs:
+      command: 'custom'
+      custom: 'pack'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'ESRP CodeSigning - Authenticode'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'extensions'
+      Pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolSign",
+            "Parameters": {
+              "OpusName": "Microsoft",
+              "OpusInfo": "http://www.microsoft.com",
+              "FileDigest": "/fd \"SHA256\"",
+              "PageHash": "/NPH",
+              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
+            },
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          },
+          {
+            "KeyCode": "CP-230012",
+            "OperationCode": "SigntoolVerify",
+            "Parameters": {},
+            "ToolName": "sign",
+            "ToolVersion": "1.0"
+          }
+        ]
+
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+    displayName: 'ESRP CodeSigning: Nupkg'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      ConnectedServiceName: 'ESRP Service'
+      FolderPath: 'packages'
+      Pattern: 'Microsoft.Azure.Functions.Worker*.nupkg'
+      signConfigType: inlineSignParams
+      inlineOperation: |
+        [
+            {
+              "KeyCode": "CP-401405",
+              "OperationCode": "NuGetSign",
+              "Parameters": {},
+              "ToolName": "sign",
+              "ToolVersion": "1.0"
+            },
+            {
+              "KeyCode": "CP-401405",
+              "OperationCode": "NuGetVerify",
+              "Parameters": {},
+              "ToolName": "sign",
+              "ToolVersion": "1.0"
+            }
+        ]
+
+  - task: DeleteFiles@1
+    displayName: 'Delete CodeSignSummary files'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      contents: '**\CodeSignSummary-*.md'
+
+  - task: ManifestGeneratorTask@0
+    displayName: 'SBOM Generation Task'
+    inputs:
+      BuildDropPath: '$(System.DefaultWorkingDirectory)/packages'
+      Verbosity: 'Information'
+      
+  - publish: $(System.DefaultWorkingDirectory)/packages
+    artifact: drop

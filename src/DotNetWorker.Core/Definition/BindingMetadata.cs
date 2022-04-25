@@ -9,12 +9,17 @@ namespace Microsoft.Azure.Functions.Worker
     public abstract class BindingMetadata
     {
         /// <summary>
-        /// The type of the binding. For example, "httpTrigger".
+        /// Gets the name of the binding metadata entry.
+        /// </summary>
+        public abstract string Name { get; }
+
+        /// <summary>
+        /// Gets the type of the binding. For example, "httpTrigger".
         /// </summary>
         public abstract string Type { get; }
 
         /// <summary>
-        /// The binding direction.
+        /// Gets the binding direction.
         /// </summary>
         public abstract BindingDirection Direction { get; }
     }

@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <LangVersion>preview</LangVersion>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <OutputType>Exe</OutputType>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
     <SignAssembly>true</SignAssembly>
@@ -19,9 +19,9 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
   <ItemGroup>

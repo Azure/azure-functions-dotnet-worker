@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ</RootNamespace>
+    <Description>RabbitMQ extensions for .NET isolated functions</Description>
+
+    <!--Version information-->
+    <VersionPrefix>1.1.0</VersionPrefix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

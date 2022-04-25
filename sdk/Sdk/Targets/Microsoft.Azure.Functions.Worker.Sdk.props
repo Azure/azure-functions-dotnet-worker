@@ -13,7 +13,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <PropertyGroup>
     <FunctionsExecutionModel>isolated</FunctionsExecutionModel>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
-    <_IsFunctionsSdkBuild>true</_IsFunctionsSdkBuild>
   </PropertyGroup>
 
   <!--Enable Azure Functions project capability to enable tools-->

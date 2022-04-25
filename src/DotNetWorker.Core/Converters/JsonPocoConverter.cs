@@ -57,17 +57,31 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         private async Task<ConversionResult> GetConversionResultFromDeserialization(byte[] bytes, Type type)
         {
+            Stream? stream = null;
+
             try
             {
-                await using (var stream = new MemoryStream(bytes))
-                {
-                    var deserializedObject = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
-                    return ConversionResult.Success(deserializedObject);
-                }
+                stream = new MemoryStream(bytes);
+
+                var deserializedObject = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
+                return ConversionResult.Success(deserializedObject);
+
             }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
+            }
+            finally
+            {
+                if (stream != null) 
+                {
+#if NET5_0_OR_GREATER
+
+                    await ((IAsyncDisposable)stream).DisposeAsync();
+#else
+                    ((IDisposable)stream).Dispose();
+#endif
+                }
             }
         }
     }

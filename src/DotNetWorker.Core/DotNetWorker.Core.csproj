@@ -1,22 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>net5.0</TargetFramework>
-    <PackageId>Microsoft.Azure.Functions.Worker.Core</PackageId>
-    <Description>This library provides the core functionality to build an Azure Functions .NET Worker, adding support for the isolated, out-of-process execution model.</Description>
-    <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>5</MinorProductVersion>
-    <VersionSuffix>-preview1</VersionSuffix>
-  </PropertyGroup>
+    <PropertyGroup>
+        <OutputType>Library</OutputType>
+        <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+        <PackageId>Microsoft.Azure.Functions.Worker.Core</PackageId>
+        <Description>This library provides the core functionality to build an Azure Functions .NET Worker, adding support for the isolated, out-of-process execution model.</Description>
+        <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
+        <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <MinorProductVersion>6</MinorProductVersion>
+        <VersionSuffix>-preview1</VersionSuffix>
+    </PropertyGroup>
 
-  <Import Project="..\..\build\Common.props" />
+    <Import Project="..\..\build\Common.props" />
 
-  <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.10.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-  </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+      <Compile Remove="StartupHook.cs" />
+    </ItemGroup>
+    
+    <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+      <Compile Remove="Context\Features\IDictionaryExtensions.cs" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Azure.Core" Version="1.10.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+        <PackageReference Include="System.Collections.Immutable" Version="6.0.0" />
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+        <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+        <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    </ItemGroup>
 </Project>

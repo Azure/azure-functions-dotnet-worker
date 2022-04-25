@@ -18,7 +18,15 @@ namespace Microsoft.Azure.Functions.Worker
 
         public static WorkerInformation Instance = new();
 
+#if NET5_0_OR_GREATER
         public int ProcessId => Environment.ProcessId;
+
+        public string RuntimeIdentifier => RuntimeInformation.RuntimeIdentifier;
+#else
+        public int ProcessId => Process.GetCurrentProcess().Id;
+
+        public string RuntimeIdentifier => "n/a"; // Resolve in netstandard
+#endif
 
         public string WorkerVersion => _thisAssembly.GetName().Version?.ToString()!;
 
@@ -31,7 +39,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         public Architecture OSArchitecture => RuntimeInformation.OSArchitecture;
 
-        public string RuntimeIdentifier => RuntimeInformation.RuntimeIdentifier;
 
         public string CommandLine => Environment.CommandLine;
     }

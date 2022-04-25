@@ -1,0 +1,22 @@
+trigger:
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - extensions/Worker.Extensions.Timer/
+
+pr:
+  branches:
+    include:
+    - main
+    - release/*
+  paths:
+    include:
+    - extensions/Worker.Extensions.Timer/
+
+extends:
+  template: ../../build/pipelines/templates/extensions-ci.yml
+  parameters:
+    ExtensionDirectory: extensions/Worker.Extensions.Timer

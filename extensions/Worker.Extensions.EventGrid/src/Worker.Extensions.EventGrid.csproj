@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.EventGrid</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.EventGrid</RootNamespace>
+    <Description>Azure Event Grid extensions for .NET isolated functions</Description>
+
+    <!--Version information-->
+    <VersionPrefix>3.0.1</VersionPrefix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

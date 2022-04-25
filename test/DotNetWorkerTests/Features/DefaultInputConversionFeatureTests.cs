@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 p => Assert.True(p.Id == "1" && p.Author == "a"),
                 p => Assert.True(p.Id == "2" && p.Author == "c"),
                 p => Assert.True(p.Id == "3" && p.Author == "e"));
-        }        
+        }
 
         [Fact]
         public async Task Convert_Using_Default_Converters_Guid()

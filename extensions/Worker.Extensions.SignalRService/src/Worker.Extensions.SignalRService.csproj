@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.SignalRService</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.SignalRService</RootNamespace>
+    <Description>Azure SignalR Service extensions for .NET isolated functions</Description>
+
+    <!--Version information-->
+    <VersionPrefix>1.7.0</VersionPrefix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.1" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+  </ItemGroup>
+
+</Project>

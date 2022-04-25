@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues</RootNamespace>
+    <Description>Azure Queue Storage extensions for .NET isolated functions</Description>
+    
+    <!--Version information-->
+    <VersionPrefix>5.0.0</VersionPrefix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>

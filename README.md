@@ -2,8 +2,8 @@
 
 |Branch|Status|
 |---|---|
-|main|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/Azure.azure-functions-dotnet-worker?branchName=main)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=main)|
-|release/1.x|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/Azure.azure-functions-dotnet-worker?branchName=release%2F1.x)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=release%2F1.x)|
+|main|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=main)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=main)|
+|release/1.x|[![Build Status](https://azfunc.visualstudio.com/Azure%20Functions/_apis/build/status/.NET%20Worker/.NET%20Worker?branchName=release%2F1.x)](https://azfunc.visualstudio.com/Azure%20Functions/_build/latest?definitionId=45&branchName=release%2F1.x)|
 
 
 # Azure Functions .NET Worker
@@ -32,9 +32,8 @@ You can find samples on how to use different features of the .NET Worker under `
 Download .NET 5.0 [from here](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ### Install the Azure Functions Core Tools
-Please make sure you have Azure Functions Core Tools >= `3.0.3388`.
 
-To download, please check out our docs at [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools)
+To download Core Tools, please check out our docs at [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools)
 
 ### Create a .NET Isolated project
 In an empty directory, run `func init` and select `dotnet (Isolated Process)`.
@@ -47,34 +46,11 @@ Run `func host start` in the sample app directory.
 
 **Note:** If you selected a trigger different from `HttpTrigger`, you may need to setup local connection strings or emulator for the trigger service.
 
-### Attaching the debugger
+### Debugging
 
 #### Visual Studio
 
->_Release candidate instructions. Requires RC packages_
-
-> NOTE: To debug your Worker, you must be using the Azure Functions Core Tools version 3.0.3381 or higher
-
-In your worker directory (or your worker's build output directory), run:
-```
-func host start --dotnet-isolated-debug
-```
-
-Core Tools will run targeting your worker and the process will stop with the following message:
-
-```
-Azure Functions .NET Worker (PID: <process id>) initialized in debug mode. Waiting for debugger to attach...
-```
-
-Where `<process id>` is the ID for your worker process. 
-
-At this point, your worker process wil be paused, waiting for the debugger to be attached. You can now use Visual Studio to manually attach to the process (to learn more, see [how to attach to a running process](https://docs.microsoft.com/en-us/visualstudio/debugger/attach-to-running-processes-with-the-visual-studio-debugger?view=vs-2019#BKMK_Attach_to_a_running_process))
-
-Once the debugger is attached, the process execution will resume and you will be able to debug.
-
-**YOU CANNOT DEBUG USING "Start Debugging" IN VISUAL STUDIO DIRECTLY.** You need to use the command line as mentioned in the [Run functions locally](#run-functions-locally) part of this readme.
-
-We're working with the Visual Studio team to provide an integrated debugging experience.
+Debugging for the Isolated model is supported in Visual Studio 2019 and 2022 with the Azure Development workloads support installed.
 
 #### JetBrains Rider
 
@@ -87,6 +63,21 @@ To start debugging, select the run configuration and start debugging. This will 
 Under the hood, Rider launches the Core Tools with the `--dotnet-isolated-debug` argument, and attached to the process ID for your worker process.
 
 You can place a breakpoint in any function, and inspect your code as it is running. Note that [debugging startup code may timeout (#434)](https://github.com/Azure/azure-functions-dotnet-worker/issues/434).
+
+## Running E2E Tests
+
+### Requirements
+
+- [Powershell 7](https://docs.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.2)
+- [CosmosDb Emulator](https://docs.microsoft.com/en-us/azure/cosmos-db/local-emulator?tabs=ssl-netstd21)
+- Azurite (the set up script will download this automatically)
+
+### Instructions
+
+1. Run `setup-e2e-tests.ps1`. Once the build succeeds and the emulators are started correctly, you are done with the setup.
+1. Run `run-e2e-tests.ps1` to run the tests or use the Test Explorer in VS.
+
+**Note:** Do **not** add the switch to skip the core-tools download when running `set-up-e2e-tests.ps1` as it will lead to an incomplete setup. 
 
 ## Deploying to Azure
 
@@ -110,15 +101,15 @@ You can place a breakpoint in any function, and inspect your code as it is runni
     az functionapp create --resource-group AzureFunctionsQuickstart-rg --consumption-plan-location westeurope --runtime dotnet-isolated --functions-version 3 --name <APP_NAME> --storage-account <STORAGE_NAME>
     ```
 
-
 ### Deploy the app
 
-1. Ensure you're in your functions project folder.
+1. Ensure you are in your functions project folder.
 2. Deploy the app.
 
     ```bash
     func azure functionapp publish <APP_NAME>
     ```
+
 ## Known issues
 
 * Optimizations are not all in place in the consumption plan and you may experience longer cold starts.

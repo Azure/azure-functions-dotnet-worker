@@ -10,12 +10,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\Worker.Extensions.Storage.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\Worker.Extensions.CosmosDB.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\Worker.Extensions.EventHubs.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\Worker.Extensions.Timer.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 

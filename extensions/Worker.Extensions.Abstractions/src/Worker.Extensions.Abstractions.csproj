@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Abstractions</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Abstractions</RootNamespace>
+    <Description>Abstractions for Azure Functions .NET Worker</Description>
+    <MinorProductVersion>1</MinorProductVersion>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Common.props" />
+
+</Project>

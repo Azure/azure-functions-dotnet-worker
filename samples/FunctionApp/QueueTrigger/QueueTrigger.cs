@@ -6,9 +6,9 @@ using Microsoft.Azure.Functions.Worker;
 
 namespace FunctionApp
 {
-    public static class Function2
+    public static class QueueTrigger
     {
-        [Function("Function2")]
+        [Function(nameof(QueueTrigger))]
         public static Book Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)
         {

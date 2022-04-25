@@ -65,11 +65,6 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var eventStream = _rpcClient.EventStream(cancellationToken: token);
 
-            if(_startupOptions.Value.AzureWebJobsScriptRoot is null)
-            {
-                throw new ArgumentNullException(nameof(_startupOptions.Value.AzureWebJobsScriptRoot));
-            }
-
             await SendStartStreamMessageAsync(eventStream.RequestStream);
 
             _ = StartWriterAsync(eventStream.RequestStream);
@@ -137,7 +132,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
-                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(_startupOptions.Value.AzureWebJobsScriptRoot!);
+                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {

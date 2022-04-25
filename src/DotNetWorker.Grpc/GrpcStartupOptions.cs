@@ -17,9 +17,5 @@ namespace Microsoft.Azure.Functions.Worker
         public string? RequestId { get; set; }
 
         public int GrpcMaxMessageLength { get; set; }
-
-        public string? AzureWebJobsScriptRoot { get; set; }
-
-        public string? EnableWorkerIndexing { get; set; }
     }
 }

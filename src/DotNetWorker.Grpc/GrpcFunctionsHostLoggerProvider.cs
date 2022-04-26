@@ -7,6 +7,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Logging;
 using Azure.Core.Serialization;
 using Microsoft.Extensions.Options;
+using System;
 
 namespace Microsoft.Azure.Functions.Worker.Diagnostics
 {
@@ -19,16 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         public GrpcFunctionsHostLoggerProvider(GrpcHostChannel outputChannel, IOptions<WorkerOptions> workerOptions)
         {
             _channelWriter = outputChannel.Channel.Writer;
-
-            if (workerOptions?.Value?.Serializer != null)
-            {
-                _serializer = workerOptions.Value.Serializer;
-            }
-            else
-            {
-                _serializer = new JsonObjectSerializer();
-            }
-
+            _serializer = workerOptions?.Value?.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
         }
 
         public ILogger CreateLogger(string categoryName) => new GrpcFunctionsHostLogger(categoryName, _channelWriter, _scopeProvider!, _serializer);

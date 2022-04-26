@@ -13,7 +13,7 @@ namespace Microsoft.Extensions.Logging
     public static class ILoggerExtensions
     {
         /// <summary>
-        /// Logs a metric value.
+        /// Logs a metric value. Log will be at an information level.
         /// </summary>
         /// <param name="logger">The ILogger.</param>
         /// <param name="name">The name of the metric.</param>

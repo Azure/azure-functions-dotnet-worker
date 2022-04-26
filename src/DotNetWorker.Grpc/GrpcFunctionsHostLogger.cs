@@ -88,40 +88,42 @@ namespace Microsoft.Azure.Functions.Worker.Logging
 
         private void LogMetric(IDictionary<string, object> state)
         {
-            if (state != null)
+            if (state == null)
             {
-                var response = new StreamingMessage();
-                var rpcMetric = new RpcLog
-                {
-                    LogCategory = RpcLogCategory.CustomMetric,
-                };
+                return;
+            }
 
-                foreach (var kvp in state)
-                {
-                    rpcMetric.PropertiesMap.Add(kvp.Key, kvp.Value.ToRpc(_serializer));
-                }
+            var response = new StreamingMessage();
+            var rpcMetric = new RpcLog
+            {
+                LogCategory = RpcLogCategory.CustomMetric,
+            };
 
-                // Grab the invocation id from the current scope, if present.
-                _scopeProvider.ForEachScope((scope, log) =>
+            foreach (var kvp in state)
+            {
+                rpcMetric.PropertiesMap.Add(kvp.Key, kvp.Value.ToRpc(_serializer));
+            }
+
+            // Grab the invocation id from the current scope, if present.
+            _scopeProvider.ForEachScope((scope, log) =>
+            {
+                if (scope is IEnumerable<KeyValuePair<string, object>> properties)
                 {
-                    if (scope is IEnumerable<KeyValuePair<string, object>> properties)
+                    foreach (var pair in properties)
                     {
-                        foreach (var pair in properties)
+                        if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
                         {
-                            if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
-                            {
-                                log.InvocationId = pair.Value?.ToString();
-                                break;
-                            }
+                            log.InvocationId = pair.Value?.ToString();
+                            break;
                         }
                     }
-                },
-                rpcMetric);
+                }
+            },
+            rpcMetric);
 
-                response.RpcLog = rpcMetric;
+            response.RpcLog = rpcMetric;
 
-                _channelWriter.TryWrite(response);
-            }
+            _channelWriter.TryWrite(response);
         }
 
         private static Level ToRpcLogLevel(LogLevel logLevel) =>

@@ -26,51 +26,52 @@ namespace Microsoft.Azure.Functions.Worker
         {
             string metadataFile = Path.Combine(directory, FileName);
 
-            if (File.Exists(metadataFile))
+            if (!File.Exists(metadataFile))
             {
-                using (var fs = File.OpenRead(metadataFile))
-                {
-                    // deserialize as json element to preserve raw bindings
-                    var jsonMetadataList = await JsonSerializer.DeserializeAsync<JsonElement>(fs);
-
-                    var functionMetadataResults= new List<RpcFunctionMetadata>(jsonMetadataList.GetArrayLength());
-
-                    foreach (var jsonMetadata in jsonMetadataList.EnumerateArray())
-                    {
-                        var functionMetadata = JsonSerializer.Deserialize<RpcFunctionMetadata>(jsonMetadata.GetRawText(), deserializationOptions);
-
-                        if (functionMetadata is null)
-                        {
-                            throw new NullReferenceException("Function metadata could not be found.");
-                        }
-
-                        // hard-coded values that are checked for when the host validates functions
-                        functionMetadata.IsProxy = false;
-                        functionMetadata.Language = "dotnet-isolated";
-                        functionMetadata.FunctionId = Guid.NewGuid().ToString();
-
-                        var rawBindings = GetRawBindings(jsonMetadata);
-
-                        foreach (var binding in rawBindings.EnumerateArray())
-                        {
-                            functionMetadata.RawBindings.Add(binding.GetRawText());
-
-                            BindingInfo bindingInfo = CreateBindingInfo(binding);
-
-                            binding.TryGetProperty("name", out JsonElement jsonName);
-
-                            functionMetadata.Bindings.Add(jsonName.ToString(), bindingInfo);
-                        }
-
-                        functionMetadataResults.Add(functionMetadata);
-                    }
-
-                    return functionMetadataResults.ToImmutableArray();
-                }
+                throw new FileNotFoundException($"Function metadata file not found. File path used:{metadataFile}");
             }
 
-            return ImmutableArray<RpcFunctionMetadata>.Empty;
+            using (var fs = File.OpenRead(metadataFile))
+            {
+                // deserialize as json element to preserve raw bindings
+                var jsonMetadataList = await JsonSerializer.DeserializeAsync<JsonElement>(fs);
+
+                var functionMetadataResults= new List<RpcFunctionMetadata>(jsonMetadataList.GetArrayLength());
+
+                foreach (var jsonMetadata in jsonMetadataList.EnumerateArray())
+                {
+                    var functionMetadata = JsonSerializer.Deserialize<RpcFunctionMetadata>(jsonMetadata.GetRawText(), deserializationOptions);
+
+                    if (functionMetadata is null)
+                    {
+                        throw new NullReferenceException("Function metadata could not be found.");
+                    }
+
+                    // hard-coded values that are checked for when the host validates functions
+                    functionMetadata.IsProxy = false;
+                    functionMetadata.Language = "dotnet-isolated";
+                    functionMetadata.FunctionId = Guid.NewGuid().ToString();
+
+                    var rawBindings = GetRawBindings(jsonMetadata);
+
+                    foreach (var binding in rawBindings.EnumerateArray())
+                    {
+                        functionMetadata.RawBindings.Add(binding.GetRawText());
+
+                        BindingInfo bindingInfo = CreateBindingInfo(binding);
+
+                        binding.TryGetProperty("name", out JsonElement jsonName);
+
+                        functionMetadata.Bindings.Add(jsonName.ToString(), bindingInfo);
+                    }
+
+                    functionMetadataResults.Add(functionMetadata);
+                }
+
+                return functionMetadataResults.ToImmutableArray();
+            }
         }
+
 
         internal static JsonElement GetRawBindings(JsonElement jsonMetadata)
         {

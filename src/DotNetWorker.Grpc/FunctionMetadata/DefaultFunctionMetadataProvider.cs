@@ -72,7 +72,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-
         internal static JsonElement GetRawBindings(JsonElement jsonMetadata)
         {
             jsonMetadata.TryGetProperty("bindings", out JsonElement bindingsJson);

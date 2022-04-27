@@ -30,8 +30,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
     <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
     <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
-
+    
     <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
+    
+    <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
   </PropertyGroup>
 
   <UsingTask TaskName="GenerateFunctionMetadata"
@@ -42,6 +44,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <UsingTask TaskName="ZipDeployTask"
             AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+
+  <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets" 
+         Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
       <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>

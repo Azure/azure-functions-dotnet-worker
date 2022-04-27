@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         public GrpcFunctionsHostLoggerProvider(GrpcHostChannel outputChannel, IOptions<WorkerOptions> workerOptions)
         {
             _channelWriter = outputChannel.Channel.Writer;
-            _serializer = workerOptions?.Value?.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
+            _serializer = workerOptions?.Value?.Serializer ?? throw new ArgumentNullException(nameof(workerOptions.Value.Serializer), "Serializer on WorkerOptions cannot be null");
         }
 
         public ILogger CreateLogger(string categoryName) => new GrpcFunctionsHostLogger(categoryName, _channelWriter, _scopeProvider!, _serializer);

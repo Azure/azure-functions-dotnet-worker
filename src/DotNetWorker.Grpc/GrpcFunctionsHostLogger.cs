@@ -64,21 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                 };
 
                 // Grab the invocation id from the current scope, if present.
-                _scopeProvider.ForEachScope((scope, log) =>
-                {
-                    if (scope is IEnumerable<KeyValuePair<string, object>> properties)
-                    {
-                        foreach (KeyValuePair<string, object> pair in properties)
-                        {
-                            if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
-                            {
-                                log.InvocationId = pair.Value?.ToString();
-                                break;
-                            }
-                        }
-                    }
-                },
-                rpcLog);
+                rpcLog = AppendInvocationIdToLog(rpcLog);
 
                 response.RpcLog = rpcLog;
 
@@ -105,7 +91,16 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             }
 
             // Grab the invocation id from the current scope, if present.
-            _scopeProvider.ForEachScope((scope, log) =>
+            rpcMetric = AppendInvocationIdToLog(rpcMetric);
+
+            response.RpcLog = rpcMetric;
+
+            _channelWriter.TryWrite(response);
+        }
+
+        private RpcLog AppendInvocationIdToLog(this RpcLog rpcLog)
+        {
+            _scopeProvider?.ForEachScope((scope, log) =>
             {
                 if (scope is IEnumerable<KeyValuePair<string, object>> properties)
                 {
@@ -119,11 +114,9 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                     }
                 }
             },
-            rpcMetric);
+            rpcLog);
 
-            response.RpcLog = rpcMetric;
-
-            _channelWriter.TryWrite(response);
+            return rpcLog;
         }
 
         private static Level ToRpcLogLevel(LogLevel logLevel) =>

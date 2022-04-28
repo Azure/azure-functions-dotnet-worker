@@ -106,7 +106,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
                 catch (Exception ex)
                 {
                     // The only way to log a system log.
-                    var log = WorkerMessage.Define<string>(LogLevel.Trace, new EventId(-1, "One"), "system log with {param}");
+                    var log = WorkerMessage.Define<string>(LogLevel.Trace, new EventId(1, "One"), "system log with {param}");
                     log(logger, "this", ex);
                     thrownException = ex;
                 }

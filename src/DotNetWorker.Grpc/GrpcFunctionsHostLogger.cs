@@ -98,7 +98,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             _channelWriter.TryWrite(response);
         }
 
-        private RpcLog AppendInvocationIdToLog(this RpcLog rpcLog)
+        private RpcLog AppendInvocationIdToLog(RpcLog rpcLog)
         {
             _scopeProvider?.ForEachScope((scope, log) =>
             {

@@ -14,8 +14,8 @@ namespace Microsoft.Azure.Functions.Worker
     public sealed class InputConverterCollection : IEnumerable<Type>
     {
         // Passing initial capacity as a tiny optimization since we know we will be registering
-        // at-least 7 built-in converters to this collection shortly while bootstrapping.
-        private readonly IList<Type> _converterTypes = new List<Type>(capacity: 7);
+        // at-least 8 built-in converters to this collection shortly while bootstrapping.
+        private readonly IList<Type> _converterTypes = new List<Type>(capacity: 8);
 
         /// <summary>
         /// Registers an input converter type.

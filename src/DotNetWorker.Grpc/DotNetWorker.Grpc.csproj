@@ -8,7 +8,7 @@
         <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
         <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
-        <MinorProductVersion>4</MinorProductVersion>
+        <MinorProductVersion>5</MinorProductVersion>
         <PatchProductVersion>1</PatchProductVersion>
         <VersionSuffix>-preview1</VersionSuffix>
     </PropertyGroup>

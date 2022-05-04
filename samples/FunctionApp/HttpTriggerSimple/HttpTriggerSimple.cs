@@ -29,8 +29,8 @@ namespace FunctionApp
 
             logger.LogMetric(@"funcExecutionTimeMs", sw.Elapsed.TotalMilliseconds,
                 new Dictionary<string, object> {
-                    { "foo", "bar"},
-                    { "baz", 42}
+                    { "foo", "bar" },
+                    { "baz", 42 }
                 }
             );
 

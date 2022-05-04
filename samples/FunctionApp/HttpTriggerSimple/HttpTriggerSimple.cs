@@ -18,16 +18,16 @@ namespace FunctionApp
             var sw = new Stopwatch();
             sw.Restart();
 
-            var logger = executionContext.GetLogger("FunctionApp.Function4");
+            var logger = executionContext.GetLogger("FunctionApp.HttpTriggerSimple");
             logger.LogInformation("Message logged");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
 
             response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             response.Headers.Add("Content-Type", "text/html; charset=utf-8");
-            response.WriteString("Welcome to .NET 5!!");
+            response.WriteString("Hello world!");
 
-            logger.LogMetric(@"net5exectimeMs", sw.Elapsed.TotalMilliseconds,
+            logger.LogMetric(@"funcExecutionTimeMs", sw.Elapsed.TotalMilliseconds,
                 new Dictionary<string, object> {
                     { "foo", "bar"},
                     { "baz", 42}
@@ -37,5 +37,4 @@ namespace FunctionApp
             return response;
         }
     }
-
 }

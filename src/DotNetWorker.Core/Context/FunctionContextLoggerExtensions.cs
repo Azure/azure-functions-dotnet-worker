@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Creates a new <see cref="ILogger"/> instance using the full name of the given type.
         /// </summary>
-        /// <param name="context">The context.</param>        
+        /// <param name="context">The context.</param>
         /// <returns>The <see cref="ILogger{T}"/>.</returns>
         public static ILogger<T> GetLogger<T>(this FunctionContext context)
         {
@@ -30,8 +30,8 @@ namespace Microsoft.Azure.Functions.Worker
         public static ILogger GetLogger(this FunctionContext context, string categoryName)
         {
             return context.InstanceServices
-                   .GetService<ILoggerFactory>()!
-                   .CreateLogger(categoryName);
+                    .GetService<ILoggerFactory>()!
+                    .CreateLogger(categoryName);
         }
     }
 }

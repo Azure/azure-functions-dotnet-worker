@@ -14,8 +14,12 @@ namespace CustomMiddleware
             var host = new HostBuilder()
                 .ConfigureFunctionsWorkerDefaults(workerApplication =>
                 {
-                    // Register our custom middleware with the worker
+                    // Register our custom middlewares with the worker
+
+                    workerApplication.UseMiddleware<ExceptionHandlingMiddleware>();
+
                     workerApplication.UseMiddleware<MyCustomMiddleware>();
+
 
                     workerApplication.UseWhen<StampHttpHeaderMiddleware>((context) =>
                     {

@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -7,6 +10,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CustomMiddleware
 {
+    /// <summary>
+    /// Middleware to handle exceptions during function invocation.
+    /// </summary>
     internal sealed class ExceptionHandlingMiddleware : IFunctionsWorkerMiddleware
     {
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;

@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs</RootNamespace>
-    <Description>Azure Blob Storage extensions for .NET isolated functions</Description>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables</RootNamespace>
+    <Description>Azure Table Storage extensions for .NET isolated functions</Description>
     
     <!--Version information-->
     <VersionPrefix>5.0.0</VersionPrefix>

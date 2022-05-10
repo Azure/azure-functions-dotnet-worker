@@ -182,9 +182,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     string actualMethodName = method.Name;
                     string declaringTypeName = declaringType.GetReflectionFullName();
-                    string assemblyName = declaringType.Module.Assembly.Name.Name;
+                    string assemblyFileName = Path.GetFileName(declaringType.Module.FileName);
 
-                    function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaringTypeName, assemblyName);
+                    function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaringTypeName, assemblyFileName);
 
                     return true;
                 }
@@ -193,12 +193,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyName)
+        private static SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyFileName)
         {
             var function = new SdkFunctionMetadata
             {
                 Name = functionName,
-                ScriptFile = $"{assemblyName}.dll",
+                ScriptFile = assemblyFileName,
                 EntryPoint = $"{declaringTypeName}.{actualMethodName}",
                 Language = "dotnet-isolated",
                 Properties =

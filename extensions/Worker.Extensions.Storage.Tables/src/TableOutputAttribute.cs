@@ -57,14 +57,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs
         }
 
         /// <summary>
-        /// Allow arbitrary table filter. RowKey should be null. 
-        /// </summary>
-        public string Filter
-        {
-            get; set;
-        }
-
-        /// <summary>
         /// Gets or sets the app setting name that contains the Azure Storage connection string.
         /// </summary>
         public string Connection { get; set; }

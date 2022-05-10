@@ -12,6 +12,7 @@ namespace CustomMiddleware
     /// <summary>
     /// Middleware to stamp a response header on the result of http trigger invocation.
     /// </summary>
+    //<docsnippet_middleware_example_stampheader>
     internal sealed class StampHttpHeaderMiddleware : IFunctionsWorkerMiddleware
     {
         public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
@@ -33,4 +34,5 @@ namespace CustomMiddleware
             context.GetHttpResponseData()?.Headers.Add("x-correlationId", correlationId);
         }
     }
+    //</docsnippet_middleware_example_stampheader>
 }

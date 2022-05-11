@@ -11,6 +11,7 @@
     * Fix a bug that group name is required when group action is "RemoveAll". (#347)
 - Bug fix: Handle = character in cookie value (#838)
 - Error handling for in-proc SDK usage inside isolated app. (#824)
+- Update ServiceBus, EventGrid, and EventHubs extensions to latest. (#875)
 - APIs for reading and updating input binding data, output binding data and invocation result.(#814)
 - Startup hook for extensions. (#830)
 - Throw build error when in-proc SDK is referenced in isolated function apps. (#841)

@@ -125,5 +125,48 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(new[] { "Middleware1", "Middleware2", "Middleware3" }, context.Items.Keys);
         }
 
+        [Fact]
+        public void InlineMiddleware_RunsInExpectedOrder_With_UseWhen_Predicate_ReturnValue()
+        {
+            var services = new ServiceCollection();
+            IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services);
+
+            builder.Use(next => context =>
+            {
+                context.Items.Add("Middleware1", null);
+                return next(context);
+            });
+
+            builder.UseWhen((context) =>
+            {
+                return false;
+
+            }, (context, next) =>
+            {
+                context.Items.Add("Middleware2", null);
+                return next();
+            });
+
+            builder.UseWhen((context) =>
+            {
+                return true;
+
+            }, (context, next) =>
+            {
+                context.Items.Add("Middleware3", null);
+                return next();
+            });
+
+            FunctionExecutionDelegate app = builder.Services
+                .BuildServiceProvider()
+                .GetService<FunctionExecutionDelegate>();
+
+            var context = _mockContext.Object;
+            context.Items = new Dictionary<object, object>();
+
+            app(context);
+
+            Assert.Equal(new[] { "Middleware1", "Middleware3" }, context.Items.Keys);
+        }
     }
 }

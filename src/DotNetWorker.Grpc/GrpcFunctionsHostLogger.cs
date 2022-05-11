@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Channels;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Logging;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.RpcLog.Types;
@@ -20,12 +22,14 @@ namespace Microsoft.Azure.Functions.Worker.Logging
         private readonly string _category;
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private readonly IExternalScopeProvider _scopeProvider;
+        private readonly ObjectSerializer _serializer;
 
-        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider)
+        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider, ObjectSerializer serializer)
         {
             _category = category ?? throw new ArgumentNullException(nameof(category));
             _channelWriter = channelWriter ?? throw new ArgumentNullException(nameof(channelWriter));
             _scopeProvider = scopeProvider ?? throw new ArgumentNullException(nameof(scopeProvider));
+            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -41,24 +45,66 @@ namespace Microsoft.Azure.Functions.Worker.Logging
 
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
         {
-            var response = new StreamingMessage();
-            string message = formatter(state, exception);
-            var rpcLog = new RpcLog
+            if (eventId.Name == LogConstants.MetricEventId.Name)
             {
-                EventId = eventId.ToString(),
-                Exception = exception.ToRpcException(),
-                Category = _category,
-                LogCategory = WorkerMessage.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
-                Level = ToRpcLogLevel(logLevel),
-                Message = message
+                LogMetric((IDictionary<string, object>)state!);
+            }
+            else
+            {
+                var response = new StreamingMessage();
+                string message = formatter(state, exception);
+                var rpcLog = new RpcLog
+                {
+                    EventId = eventId.ToString(),
+                    Exception = exception.ToRpcException(),
+                    Category = _category,
+                    LogCategory = WorkerMessage.IsSystemLog ? RpcLogCategory.System : RpcLogCategory.User,
+                    Level = ToRpcLogLevel(logLevel),
+                    Message = message
+                };
+
+                // Grab the invocation id from the current scope, if present.
+                rpcLog = AppendInvocationIdToLog(rpcLog);
+
+                response.RpcLog = rpcLog;
+
+                _channelWriter.TryWrite(response);
+            }
+        }
+
+        private void LogMetric(IDictionary<string, object> state)
+        {
+            if (state == null)
+            {
+                return;
+            }
+
+            var response = new StreamingMessage();
+            var rpcMetric = new RpcLog
+            {
+                LogCategory = RpcLogCategory.CustomMetric,
             };
 
+            foreach (var kvp in state)
+            {
+                rpcMetric.PropertiesMap.Add(kvp.Key, kvp.Value.ToRpc(_serializer));
+            }
+
             // Grab the invocation id from the current scope, if present.
-            _scopeProvider.ForEachScope((scope, log) =>
+            rpcMetric = AppendInvocationIdToLog(rpcMetric);
+
+            response.RpcLog = rpcMetric;
+
+            _channelWriter.TryWrite(response);
+        }
+
+        private RpcLog AppendInvocationIdToLog(RpcLog rpcLog)
+        {
+            _scopeProvider?.ForEachScope((scope, log) =>
             {
                 if (scope is IEnumerable<KeyValuePair<string, object>> properties)
                 {
-                    foreach (KeyValuePair<string, object> pair in properties)
+                    foreach (var pair in properties)
                     {
                         if (pair.Key == FunctionInvocationScope.FunctionInvocationIdKey)
                         {
@@ -70,14 +116,11 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             },
             rpcLog);
 
-            response.RpcLog = rpcLog;
-
-            _channelWriter.TryWrite(response);
+            return rpcLog;
         }
 
-        private static Level ToRpcLogLevel(LogLevel logLevel)
-        {
-            return logLevel switch
+        private static Level ToRpcLogLevel(LogLevel logLevel) =>
+            logLevel switch
             {
                 LogLevel.Trace => Level.Trace,
                 LogLevel.Debug => Level.Debug,
@@ -87,7 +130,6 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                 LogLevel.Critical => Level.Critical,
                 _ => Level.None,
             };
-        }
 
         private class EmptyDisposable : IDisposable
         {

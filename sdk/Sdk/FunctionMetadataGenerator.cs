@@ -44,11 +44,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath, IEnumerable<string> referencePaths)
         {
             string sourcePath = Path.GetDirectoryName(assemblyPath);
-            string[] targetAssemblies = Directory.GetFiles(sourcePath, "*.dll");
+
+            var targetAssemblies = new List<string>(Directory.GetFiles(sourcePath, "*.dll"));
+
+            if (!assemblyPath.EndsWith(".dll"))
+            {
+                targetAssemblies.Add(assemblyPath);
+            }
 
             var functions = new List<SdkFunctionMetadata>();
 
-            _logger.LogMessage($"Found { targetAssemblies.Length} assemblies to evaluate in '{sourcePath}':");
+            _logger.LogMessage($"Found { targetAssemblies.Count} assemblies to evaluate in '{sourcePath}':");
 
             foreach (var path in targetAssemblies)
             {
@@ -176,9 +182,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     string actualMethodName = method.Name;
                     string declaringTypeName = declaringType.GetReflectionFullName();
-                    string assemblyName = declaringType.Module.Assembly.Name.Name;
+                    string assemblyFileName = Path.GetFileName(declaringType.Module.FileName);
 
-                    function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaringTypeName, assemblyName);
+                    function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaringTypeName, assemblyFileName);
 
                     return true;
                 }
@@ -187,12 +193,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyName)
+        private static SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyFileName)
         {
             var function = new SdkFunctionMetadata
             {
                 Name = functionName,
-                ScriptFile = $"{assemblyName}.dll",
+                ScriptFile = assemblyFileName,
                 EntryPoint = $"{declaringTypeName}.{actualMethodName}",
                 Language = "dotnet-isolated",
                 Properties =

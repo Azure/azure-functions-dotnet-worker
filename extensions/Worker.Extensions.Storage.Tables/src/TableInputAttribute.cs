@@ -3,7 +3,7 @@
 
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs
+namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
 {
     public class TableInputAttribute : InputBindingAttribute
     {

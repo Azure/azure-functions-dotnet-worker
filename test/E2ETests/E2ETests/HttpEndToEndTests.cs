@@ -64,6 +64,16 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.Equal($"{{{Environment.NewLine}  \"Name\": \"Test\"{Environment.NewLine}}}", responseBody);
         }
 
+        [Fact]
+        public async Task HttpProxy()
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("proxytest", string.Empty, HttpStatusCode.OK, "application/json");
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal("Proxy response", responseBody);
+        }
+
         [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/133")]
         public async Task HttpTriggerWithCookieTests()
         {

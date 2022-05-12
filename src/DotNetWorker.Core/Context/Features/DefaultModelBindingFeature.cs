@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
@@ -35,39 +36,51 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             _inputBound = true;
 
             var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
+            var inputBindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
 
             if (inputConversionFeature == null)
             {
                 throw new InvalidOperationException("Input conversion feature is missing.");
             }
+            IFunctionBindingsFeature functionBindings = context.GetBindings();
 
             List<string>? errors = null;
             for (int i = 0; i < _parameterValues.Length; i++)
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
-                IFunctionBindingsFeature functionBindings = context.GetBindings();
+                var cacheKey = param.Name;
 
+                object? source;
                 // Check InputData first, then TriggerMetadata
-                if (!functionBindings.InputData.TryGetValue(param.Name, out object? source))
+                if (!functionBindings.InputData.TryGetValue(param.Name, out source))
                 {
                     functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }
 
-                IReadOnlyDictionary<string, object> properties = ImmutableDictionary<string, object>.Empty;
-
-                // Pass info about specific input converter type defined for this parameter, if present.
-                if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
+                ConversionResult bindingResult;
+                if (inputBindingCache!.TryGetValue(cacheKey, out var cachedResult))
                 {
-                    properties = new Dictionary<string, object>()
-                    {
-                        { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName }
-                    };
+                    bindingResult = cachedResult;
                 }
+                else
+                {
+                    IReadOnlyDictionary<string, object> properties = ImmutableDictionary<string, object>.Empty;
 
-                var converterContext = _converterContextFactory.Create(param.Type, source, context, properties);
-                
-                var bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
+                    // Pass info about specific input converter type defined for this parameter, if present.
+                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
+                    {
+                        properties = new Dictionary<string, object>()
+                        {
+                            { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName }
+                        };
+                    }
+
+                    var converterContext = _converterContextFactory.Create(param.Type, source, context, properties);
+
+                    bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
+                    inputBindingCache[cacheKey] = bindingResult;
+                }
 
                 if (bindingResult.Status == ConversionStatus.Succeeded)
                 {

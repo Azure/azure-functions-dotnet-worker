@@ -26,6 +26,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .GetService<DefaultInputConversionFeature>();
         }
 
+        public static DefaultModelBindingFeature GetDefaultModelBindingFeature(Action<WorkerOptions> configure = null)
+        {
+            return new ServiceCollection()
+                .AddSingleton<IInputConverterProvider, DefaultInputConverterProvider>()
+                .AddSingleton<IModelBindingFeature, DefaultModelBindingFeature>()
+                .Configure<WorkerOptions>(o => configure?.Invoke(o))
+                .AddSingleton<DefaultInputConversionFeature>()
+                .RegisterOutputChannel()
+                .AddDefaultInputConvertersToWorkerOptions()
+                .BuildServiceProvider()
+                .GetService<DefaultModelBindingFeature>();
+        }
+
         public static T AssertIsTypeAndConvert<T>(object target)
         {
             if (target is not T converted)

@@ -83,7 +83,7 @@ You can place a breakpoint in any function, and inspect your code as it is runni
 
 ### Create the Azure resources
 
-1. To deploy the app, first ensure that you've installed the Azure CLI. 
+1. To deploy the app, first ensure that you've installed the Azure CLI. You need to use Azure CLI 2.3.4 version or below to create function app on dotnet isolated runtime.
 
 2. Login to the CLI.
 

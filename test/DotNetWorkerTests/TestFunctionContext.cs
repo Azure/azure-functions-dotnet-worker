@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
         }
 
-        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, IInvocationFeatures features = null)
+        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, IInvocationFeatures features = null, IServiceProvider serviceProvider = null)
         {
             FunctionDefinition = functionDefinition;
             _invocation = invocation;
@@ -34,12 +34,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 Features = features;
             }
 
-            Features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature
+            if (Features.Get<IFunctionBindingsFeature>() == null)
             {
-                OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
-            });
+                Features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature
+                {
+                    OutputBindingsInfo = new DefaultOutputBindingsInfoProvider().GetBindingsInfo(FunctionDefinition)
+                });
+            }
 
-
+            InstanceServices = serviceProvider;
             BindingContext = new DefaultBindingContext(this);
         }
 

@@ -35,31 +35,29 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             _inputBound = true;
 
-            var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
+            IFunctionBindingsFeature functionBindings = context.GetBindings();
             var inputBindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
+            var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
 
             if (inputConversionFeature == null)
             {
                 throw new InvalidOperationException("Input conversion feature is missing.");
             }
-            IFunctionBindingsFeature functionBindings = context.GetBindings();
 
             List<string>? errors = null;
             for (int i = 0; i < _parameterValues.Length; i++)
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
-                var cacheKey = param.Name;
-
-                object? source;
                 // Check InputData first, then TriggerMetadata
-                if (!functionBindings.InputData.TryGetValue(param.Name, out source))
+                if (!functionBindings.InputData.TryGetValue(param.Name, out object? source))
                 {
                     functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }
 
                 ConversionResult bindingResult;
-                if (inputBindingCache!.TryGetValue(cacheKey, out var cachedResult))
+                var cacheKey = param.Name;
+                if (inputBindingCache!.TryGetValue(param.Name, out var cachedResult))
                 {
                     bindingResult = cachedResult;
                 }

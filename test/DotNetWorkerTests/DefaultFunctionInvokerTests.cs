@@ -41,8 +41,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var functionContext = new TestFunctionContext(new TestFunctionDefinition(), invocation: null);
             _mockConvertContextFactory
-                .Setup(m=> m.Create(It.IsAny<Type>(), It.IsAny<object>(), It.IsAny<FunctionContext>(),It.IsAny<IReadOnlyDictionary<string, object>>()))
-                .Returns(new DefaultConverterContext(typeof(string),"foo", functionContext, ImmutableDictionary<string, object>.Empty));
+                .Setup(m => m.Create(It.IsAny<Type>(), It.IsAny<object>(), It.IsAny<FunctionContext>(), It.IsAny<IReadOnlyDictionary<string, object>>()))
+                .Returns(new DefaultConverterContext(typeof(string), "foo", functionContext, ImmutableDictionary<string, object>.Empty));
 
             var functionActivator = new DefaultFunctionActivator();
             var methodInvokerFactory = new DefaultMethodInvokerFactory();
@@ -193,7 +193,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             definition = definition ?? new TestFunctionDefinition(parameters: parameters);
 
-            return new TestFunctionContext(definition, invocation);
+            var mockServiceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
+            mockServiceProvider.Setup(a => a.GetService(typeof(IBindingCache<ConversionResult>)))
+                               .Returns(new DefaultBindingCache<ConversionResult>());
+
+            return new TestFunctionContext(definition, invocation, serviceProvider: mockServiceProvider.Object);
         }
 
         private class Functions

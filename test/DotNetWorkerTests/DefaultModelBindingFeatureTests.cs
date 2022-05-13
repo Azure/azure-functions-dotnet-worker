@@ -19,13 +19,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _serviceProvider = TestUtility.GetServiceProviderWithInputBindingServices(o => o.Serializer = serializer);
             _modelBindingFeature = _serviceProvider.GetService<DefaultModelBindingFeature>();
         }
+        
+        /// <summary>
+        /// This UT simulates a case where the input binding entry is being updated (could be in a middleware) using the
+        /// BindInputAsync extension method result and that change is reflected when the ModelBindingFeature
+        /// returns the parameter values array for the function definition.
+        /// </summary>
         [Fact]
         public async void InputBindingData_Set_Value_Works()
         {
             // Arrange
             var parameters = new List<FunctionParameter>()
             {
-                new FunctionParameter("myQueueItem",typeof(Book))
+                new("myQueueItem",typeof(Book))
             };
             IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
             features.Set(_serviceProvider.GetService<IInputConversionFeature>());
@@ -45,16 +51,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Act
             // bind to the queue trigger input binding item.
-            BindingMetadata queueBindingMetaData = functionContext.FunctionDefinition
-                                                                  .InputBindings.Values
-                                                                  .FirstOrDefault(a => a.Type == "queueTrigger");
+            var queueBindingMetaData = functionContext.FunctionDefinition
+                                                      .InputBindings.Values
+                                                      .First(a => a.Type == "queueTrigger");
 
             var bookInputBindingData = await functionContext.BindInputAsync<Book>(queueBindingMetaData);
 
             // Assert
-            Assert.Equal("foo", bookInputBindingData.Value.Title);
+            Assert.Equal("foo", bookInputBindingData.Value!.Title);
 
             // Update this input binding entry value to a different object.
+            // This action is similar to the use case where we update an input binding entry value from a middleware.
             var otherBook = new Book { Title = "totally different book" };
             bookInputBindingData.Value = otherBook;
 

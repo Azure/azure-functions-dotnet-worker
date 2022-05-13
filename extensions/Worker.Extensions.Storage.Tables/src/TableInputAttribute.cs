@@ -7,15 +7,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
 {
     public class TableInputAttribute : InputBindingAttribute
     {
-        private readonly string _tableName;
-        private readonly string _partitionKey;
-        private readonly string _rowKey;
-
         /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
         /// <param name="tableName">The name of the table to which to bind.</param>
         public TableInputAttribute(string tableName)
         {
-            _tableName = tableName;
+            TableName = tableName;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
@@ -23,8 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
         /// <param name="partitionKey">The partition key of the entity.</param>
         public TableInputAttribute(string tableName, string partitionKey)
         {
-            _tableName = tableName;
-            _partitionKey = partitionKey;
+            TableName = tableName;
+            PartitionKey = partitionKey;
         }
 
         /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
@@ -33,31 +29,22 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
         /// <param name="rowKey">The row key of the entity.</param>
         public TableInputAttribute(string tableName, string partitionKey, string rowKey)
         {
-            _tableName = tableName;
-            _partitionKey = partitionKey;
-            _rowKey = rowKey;
+            TableName = tableName;
+            PartitionKey = partitionKey;
+            RowKey = rowKey;
         }
 
         /// <summary>Gets the name of the table to which to bind.</summary>
         /// <remarks>When binding to a table entity, gets the name of the table containing the entity.</remarks>
-        public string TableName
-        {
-            get { return _tableName; }
-        }
+        public string TableName { get; }
 
         /// <summary>When binding to a table entity, gets the partition key of the entity.</summary>
         /// <remarks>When binding to an entire table, returns <see langword="null"/>.</remarks>
-        public string PartitionKey
-        {
-            get { return _partitionKey; }
-        }
+        public string PartitionKey { get; }
 
         /// <summary>When binding to a table entity, gets the row key of the entity.</summary>
         /// <remarks>When binding to an entire table, returns <see langword="null"/>.</remarks>
-        public string RowKey
-        {
-            get { return _rowKey; }
-        }
+        public string RowKey { get; }
 
         /// <summary>
         /// Allow arbitrary table filter. RowKey should be null. 

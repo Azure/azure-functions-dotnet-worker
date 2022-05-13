@@ -8,8 +8,6 @@
     <!--Version information-->
     <VersionPrefix>1.0.0</VersionPrefix>
 
-    <!--Temporarily opting out of documentation. Pending documentation-->
-    <GenerateDocumentationFile>false</GenerateDocumentationFile>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Extensions.props" />

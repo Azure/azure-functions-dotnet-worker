@@ -460,7 +460,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.0.0-beta.6" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.1.0" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)

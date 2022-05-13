@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Azure.Core.Serialization;
@@ -19,14 +20,51 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _serviceProvider = TestUtility.GetServiceProviderWithInputBindingServices(o => o.Serializer = serializer);
             _modelBindingFeature = _serviceProvider.GetService<DefaultModelBindingFeature>();
         }
-        
+
+        [Fact]
+        public async void BindFunctionInputAsync_Populates_ParametersUsingConverters()
+        {
+            // Arrange
+            var parameters = new List<FunctionParameter>()
+            {
+                new("myQueueItem",typeof(Book)),
+                new ("myGuid", typeof(Guid))
+            };
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+            features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature()
+            {
+                InputData = new Dictionary<string, object>
+                {
+                    { "myQueueItem","{\"id\":\"foo\", \"title\":\"bar\"}" },
+                    { "myGuid","0ab4800e-1308-4e9f-be5f-4372717e68eb" }
+                }
+            });
+
+            var definition = new TestFunctionDefinition(parameters: parameters, inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) },
+                { "myGuid", new TestBindingMetadata("myGuid","queueTrigger",BindingDirection.In) }
+            });
+            var functionContext = new TestFunctionContext(definition, invocation: null, serviceProvider: _serviceProvider, features: features);
+
+            // Act
+            var parameterValuesArray = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+
+            // Assert
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(parameterValuesArray[0]);
+            Assert.Equal("foo", book.Id);
+            var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
+            Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
+        }
+
         /// <summary>
         /// This UT simulates a case where the input binding entry is being updated (could be in a middleware) using the
         /// BindInputAsync extension method result and that change is reflected when the ModelBindingFeature
         /// returns the parameter values array for the function definition.
         /// </summary>
         [Fact]
-        public async void InputBindingData_Set_Value_Works()
+        public async void BindFunctionInputAsync_Populates_ParametersUsingCachedData()
         {
             // Arrange
             var parameters = new List<FunctionParameter>()

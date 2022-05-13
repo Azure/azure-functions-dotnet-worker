@@ -49,17 +49,15 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
-                var cacheKey = param.Name;
-
-                object? source;
                 // Check InputData first, then TriggerMetadata
-                if (!functionBindings.InputData.TryGetValue(param.Name, out source))
+                if (!functionBindings.InputData.TryGetValue(param.Name, out var source))
                 {
                     functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
                 }
 
                 ConversionResult bindingResult;
-                if (inputBindingCache!.TryGetValue(cacheKey, out var cachedResult))
+                var cacheKey = param.Name;
+                if (inputBindingCache!.TryGetValue(param.Name, out var cachedResult))
                 {
                     bindingResult = cachedResult;
                 }

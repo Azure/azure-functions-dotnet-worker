@@ -17,10 +17,7 @@ namespace FunctionApp
             //<docsnippet_startup>
             var host = new HostBuilder()
                 //<docsnippet_configure_defaults>
-                .ConfigureFunctionsWorkerDefaults(b =>
-                {
-                    b.UseMiddleware<FooMiddleware>();
-                })
+                .ConfigureFunctionsWorkerDefaults()
                 //</docsnippet_configure_defaults>
                 //<docsnippet_dependency_injection>
                 .ConfigureServices(s =>

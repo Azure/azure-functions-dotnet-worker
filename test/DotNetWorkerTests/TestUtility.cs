@@ -35,7 +35,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .AddSingleton<IInputConversionFeature, DefaultInputConversionFeature>()
                 .Configure<WorkerOptions>(o => configure?.Invoke(o))
                 .AddSingleton<DefaultModelBindingFeature>()
-                .RegisterOutputChannel()
                 .AddDefaultInputConvertersToWorkerOptions()
                 .BuildServiceProvider();
         }

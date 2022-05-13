@@ -14,12 +14,9 @@
 
     <Import Project="..\..\build\Common.props" />
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-      <Compile Remove="StartupHook.cs" />
-    </ItemGroup>
-    
     <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
       <Compile Remove="Context\Features\IDictionaryExtensions.cs" />
+      <Compile Remove="FunctionsDebugger.cs" />
     </ItemGroup>
 
     <ItemGroup>

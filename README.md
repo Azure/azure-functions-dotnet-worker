@@ -83,7 +83,7 @@ You can place a breakpoint in any function, and inspect your code as it is runni
 
 ### Create the Azure resources
 
-1. To deploy the app, first ensure that you've installed the Azure CLI. You need to use Azure CLI 2.3.4 version or below to create function app on dotnet isolated runtime.
+1. To deploy the app, first ensure that you've installed the Azure CLI. You need to use Azure CLI 2.3.4 version or below to create a .NET 5 function app on dotnet isolated runtime. Support for other .NET versions on Azure CLI are being tracked by [this issue](https://github.com/Azure/azure-functions-dotnet-worker/issues/857).
 
 2. Login to the CLI.
 

@@ -10,7 +10,7 @@
         <GenerateDocumentationFile>true</GenerateDocumentationFile>
         <MinorProductVersion>4</MinorProductVersion>
         <PatchProductVersion>1</PatchProductVersion>
-        <VersionSuffix>-preview1</VersionSuffix>
+        <VersionSuffix>-preview3</VersionSuffix>
     </PropertyGroup>
 
     <Import Project="..\..\build\Common.props" />

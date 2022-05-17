@@ -29,7 +29,7 @@ namespace Microsoft.Extensions.Hosting
         /// </list>
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseDefaultWorkerMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             return builder.UseOutputBindingsMiddleware()
@@ -40,7 +40,7 @@ namespace Microsoft.Extensions.Hosting
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the default <see cref="FunctionExecutionMiddleware"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseFunctionExecutionMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (builder.Services.Any(d => d.ServiceType == typeof(FunctionExecutionMiddleware)))
@@ -67,7 +67,7 @@ namespace Microsoft.Extensions.Hosting
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the default <see cref="OutputBindingsMiddleware"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseOutputBindingsMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (builder.Services.Any(d => d.ServiceType == typeof(OutputBindingsMiddleware)))
@@ -92,7 +92,7 @@ namespace Microsoft.Extensions.Hosting
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the provided middleware type.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chanining.</returns>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder UseMiddleware<T>(this IFunctionsWorkerApplicationBuilder builder)
             where T : class, IFunctionsWorkerMiddleware
         {
@@ -105,6 +105,45 @@ namespace Microsoft.Extensions.Hosting
                     var middleware = context.InstanceServices.GetRequiredService<T>();
 
                     return middleware.Invoke(context, next);
+                };
+            });
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the provided middleware type, when the provided predicate expression returns true.
+        /// </summary>
+        /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
+        /// <param name="predicate">Predicate which gets invoked to determine if middleware should be executed during a function invocation.</param>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder UseWhen<T>(this IFunctionsWorkerApplicationBuilder builder, Func<FunctionContext, bool> predicate)
+            where T : class, IFunctionsWorkerMiddleware
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            builder.Services.AddSingleton<T>();
+
+            builder.Use(next =>
+            {
+                return context =>
+                {
+                    if (predicate(context))
+                    {
+                        var middleware = context.InstanceServices.GetRequiredService<T>();
+
+                        return middleware.Invoke(context, next);
+                    }
+
+                    return next.Invoke(context);
                 };
             });
 
@@ -125,6 +164,46 @@ namespace Microsoft.Extensions.Hosting
                 return context =>
                 {
                     return middleware(context, () => next.Invoke(context));
+                };
+            });
+
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the provided inline middleware delegate when the provided predicate expression returns true.
+        /// </summary>
+        /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
+        /// <param name="predicate">Predicate which gets invoked to determine if middleware should be executed during a function invocation.</param>
+        /// <param name="middleware">The middleware to add to the invocation pipeline.</param>
+        /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder UseWhen(this IFunctionsWorkerApplicationBuilder builder, Func<FunctionContext, bool> predicate, Func<FunctionContext, Func<Task>, Task> middleware)
+        {
+            if (builder == null)
+            {
+                throw new ArgumentNullException(nameof(builder));
+            }
+
+            if (predicate == null)
+            {
+                throw new ArgumentNullException(nameof(predicate));
+            }
+
+            if (middleware == null)
+            {
+                throw new ArgumentNullException(nameof(middleware));
+            }
+
+            builder.Use(next =>
+            {
+                return context =>
+                {
+                    if (predicate(context))
+                    {
+                        return middleware(context, () => next.Invoke(context));
+                    }
+
+                    return next.Invoke(context);
                 };
             });
 

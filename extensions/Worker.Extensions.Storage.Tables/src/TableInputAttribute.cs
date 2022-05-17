@@ -3,18 +3,18 @@
 
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
+namespace Microsoft.Azure.Functions.Worker
 {
     public class TableInputAttribute : InputBindingAttribute
     {
-        /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="TableInputAttribute"/> class.</summary>
         /// <param name="tableName">The name of the table to which to bind.</param>
         public TableInputAttribute(string tableName)
         {
             TableName = tableName;
         }
 
-        /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="TableInputAttribute"/> class.</summary>
         /// <param name="tableName">The name of the table containing the entity.</param>
         /// <param name="partitionKey">The partition key of the entity.</param>
         public TableInputAttribute(string tableName, string partitionKey)
@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
             PartitionKey = partitionKey;
         }
 
-        /// <summary>Initializes a new instance of the <see cref="TableAttribute"/> class.</summary>
+        /// <summary>Initializes a new instance of the <see cref="TableInputAttribute"/> class.</summary>
         /// <param name="tableName">The name of the table containing the entity.</param>
         /// <param name="partitionKey">The partition key of the entity.</param>
         /// <param name="rowKey">The row key of the entity.</param>
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
         /// <summary>
         /// Allow arbitrary table filter. RowKey should be null. 
         /// </summary>
-        public string Filter
+        public string? Filter
         {
             get; set;
         }
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
         /// <summary>
         /// Used with filter. RowKey should be null. 
         /// </summary>
-        public int Take
+        public int? Take
         {
             get; set;
         }
@@ -65,6 +65,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables
         /// <summary>
         /// Gets or sets the app setting name that contains the Azure Storage connection string.
         /// </summary>
-        public string Connection { get; set; }
+        public string? Connection { get; set; }
     }
 }

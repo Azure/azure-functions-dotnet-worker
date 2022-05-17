@@ -3,4 +3,4 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.EventGrid", "3.0.1")]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.EventGrid", "3.2.0")]

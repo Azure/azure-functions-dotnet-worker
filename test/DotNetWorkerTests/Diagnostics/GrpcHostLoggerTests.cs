@@ -1,13 +1,17 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Xunit;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.RpcLog.Types;
 
@@ -22,7 +26,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
         {
             _channel = Channel.CreateUnbounded<StreamingMessage>();
             var outputChannel = new GrpcHostChannel(_channel);
-            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel);
+            var workerOptions = Options.Create(new WorkerOptions { Serializer = new JsonObjectSerializer() });
+            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel, workerOptions);
             _provider.SetScopeProvider(new LoggerExternalScopeProvider());
         }
 
@@ -39,10 +44,48 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
             await foreach (var msg in _channel.Reader.ReadAllAsync())
             {
                 count++;
+                Assert.Equal(StreamingMessage.ContentOneofCase.RpcLog, msg.ContentCase);
+                Assert.NotNull(msg.RpcLog);
                 Assert.Equal("TestLogger", msg.RpcLog.Category);
                 Assert.Equal(RpcLog.Types.RpcLogCategory.User, msg.RpcLog.LogCategory);
                 Assert.Equal("user", msg.RpcLog.Message);
                 Assert.Equal("0", msg.RpcLog.EventId);
+            }
+
+            Assert.Equal(1, count);
+        }
+
+        [Fact]
+        public async Task CustomMetric()
+        {
+            var logger = _provider.CreateLogger("TestLogger");
+
+            logger.LogMetric("testMetric", 1d, new Dictionary<string, object>
+            {
+                {"foo", "bar" }
+            });
+
+            _channel.Writer.Complete();
+
+            int count = 0;
+            await foreach (var msg in _channel.Reader.ReadAllAsync())
+            {
+                count++;
+
+                Assert.Equal(StreamingMessage.ContentOneofCase.RpcLog, msg.ContentCase);
+                Assert.NotNull(msg.RpcLog);
+                Assert.Equal(RpcLogCategory.CustomMetric, msg.RpcLog.LogCategory);
+
+                var propertyBag = msg.RpcLog.PropertiesMap?.ToDictionary(i => i.Key, i => i.Value);
+                Assert.NotNull(propertyBag);
+                var metricName = propertyBag[LogConstants.NameKey];
+                Assert.Equal(TypedData.DataOneofCase.String, metricName.DataCase);
+                Assert.Equal("testMetric", metricName.String);
+                var metricValue = propertyBag[LogConstants.MetricValueKey];
+                Assert.Equal(TypedData.DataOneofCase.Double, metricValue.DataCase);
+                Assert.Equal(1d, metricValue.Double);
+
+                Assert.Equal("bar", propertyBag["foo"].String);
             }
 
             Assert.Equal(1, count);

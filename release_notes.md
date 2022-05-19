@@ -20,3 +20,4 @@
 - Adding DateTimeConverter which will handle binding of DateTime/DateTimeOffset type parameters. (#852)
 - Adding the Visual Studio Design time targets to the SDK. (#860)
 - Adding UseWhen extension methods for middleware registration. (#865)
+- Added Tables extension (#887)

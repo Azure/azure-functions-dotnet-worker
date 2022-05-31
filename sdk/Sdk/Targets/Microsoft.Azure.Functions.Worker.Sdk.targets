@@ -10,86 +10,113 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 -->
 <Project ToolsVersion="14.0"
          xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
-  <PropertyGroup>
-    <_ToolingSuffix></_ToolingSuffix>
-    <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
-    <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">v3</AzureFunctionsVersion>
-    <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
-    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
-    <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
-    <_FunctionsTaskFramework Condition=" '$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
-    <_FunctionsTaskFramework Condition=" '$(_FunctionsTaskFramework)' == ''">net472</_FunctionsTaskFramework>
-    <_FunctionsTasksDir Condition=" '$(_FunctionsTasksDir)'=='' ">$(MSBuildThisFileDirectory)..\tools\$(_FunctionsTaskFramework)\</_FunctionsTasksDir>
-    <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(_FunctionsTasksDir)\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
-
-    <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
-
-    <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
-    <_FunctionsExtensionsDirectory>.azurefunctions</_FunctionsExtensionsDirectory>
-    <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
-    <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
-    <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
-    
-    <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
-    
-    <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
-  </PropertyGroup>
-
-  <UsingTask TaskName="GenerateFunctionMetadata"
-           AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
-
-  <UsingTask TaskName="CreateZipFileTask"
-           AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
-
-  <UsingTask TaskName="ZipDeployTask"
-            AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
-
-  <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets" 
-         Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
-
-  <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
-      <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
-      <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
-      <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
-      <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version"/>
-      <Error Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp' Or ('$(TargetFrameworkVersion)' != 'v6.0' And '$(TargetFrameworkVersion)' != 'v5.0')" Text="TargetFramework is invalid. Change the TargetFramework to net5.0 or net6.0" />
-      <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set."/>
-      <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
-  </Target>
-
-  <Target Name="_FunctionsPostBuild" AfterTargets="AfterBuild">
-
     <PropertyGroup>
-      <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
-      <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
+        <_ToolingSuffix></_ToolingSuffix>
+        <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
+        <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">v3</AzureFunctionsVersion>
+        <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
+        <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
+        <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
+        <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
+        <_FunctionsTaskFramework Condition=" '$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
+        <_FunctionsTaskFramework Condition=" '$(_FunctionsTaskFramework)' == ''">net472</_FunctionsTaskFramework>
+        <_FunctionsTasksDir Condition=" '$(_FunctionsTasksDir)'=='' ">$(MSBuildThisFileDirectory)..\tools\$(_FunctionsTaskFramework)\</_FunctionsTasksDir>
+        <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(_FunctionsTasksDir)\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
+
+        <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
+
+        <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
+        <_FunctionsExtensionsDirectory>.azurefunctions</_FunctionsExtensionsDirectory>
+        <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
+        <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
+        <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
+        <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
+      
+        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
     </PropertyGroup>
 
-    <GenerateFunctionMetadata
-      AssemblyPath="$(TargetDir)$(AssemblyName).dll"
-      ReferencePaths="@(ReferencePath)"
-      ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
-      AzureFunctionsVersion="$(AzureFunctionsVersion)"
-      OutputPath="$(TargetDir)"/>
+    <UsingTask TaskName="GenerateFunctionMetadata"
+             AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
-    <Copy
-      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
-      OverwriteReadOnlyFiles="true" />
+    <UsingTask TaskName="CreateZipFileTask"
+             AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
-    <WriteLinesToFile
-        Condition="$(SelfContained)"
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+    <UsingTask TaskName="ZipDeployTask"
+              AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+
+    <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
+           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
+
+    <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
+        <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
+        <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
+        <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
+        <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version"/>
+        <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set."/>
+        <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
+    </Target>
+
+    <Target Name="_FunctionsPostBuild" AfterTargets="AfterBuild" DependsOnTargets="_FunctionsPostBuildNetFx;_FunctionsPostBuildNetApp"/>
+    <!--.NET Framework post build-->
+    <Target Name="_FunctionsPostBuildNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
+        <PropertyGroup>
+            <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
+            <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
+        </PropertyGroup>
+
+        <GenerateFunctionMetadata
+          AssemblyPath="$(TargetDir)$(AssemblyName).exe"
+          ReferencePaths="@(ReferencePath)"
+          ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
+          AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          OutputPath="$(TargetDir)"/>
+
+        <Copy
+          SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+          DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
+          OverwriteReadOnlyFiles="true" />
+
+        <WriteLinesToFile
+            File="$(OutputFile)"
+            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                  .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
+                                  .Replace('$functionWorker$', '$(TargetName).exe'))"
+            Overwrite="true" />
+    </Target>
+
+    <!--.NET/.NET Core post build-->
+    <Target Name="_FunctionsPostBuildNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
+        <PropertyGroup>
+            <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
+            <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
+        </PropertyGroup>
+
+        <GenerateFunctionMetadata
+          AssemblyPath="$(TargetDir)$(AssemblyName).dll"
+          ReferencePaths="@(ReferencePath)"
+          ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
+          AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          OutputPath="$(TargetDir)"/>
+
+        <Copy
+          SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+          DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
+          OverwriteReadOnlyFiles="true" />
+
+        <WriteLinesToFile
+            Condition="$(SelfContained)"
+            File="$(OutputFile)"
+            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
-    <WriteLinesToFile
-        Condition="!$(SelfContained)"
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+
+        <WriteLinesToFile
+            Condition="!$(SelfContained)"
+            File="$(OutputFile)"
+            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
@@ -97,130 +124,131 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   </Target>
 
-  <!--
+
+    <!--
   Build the webjobs extensions in ".azurefunctions"
   -->
-  <!--
+    <!--
   We need to copy all files from <build-out>/bin except for "runtimes" directory. The "runtimes" directory inside "bin" doesn't contain the binaries for all platforms.
   This is due to a bug in Functions SDK. Until that is fixed, we need to copy "runtimes" directly from build output, instead of copying from the "bin".
   -->
-  <Target Name ="_WorkerExtensionsBuildCopy" AfterTargets="_WorkerExtensionsBuild">
-    <ItemGroup>
-      <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\buildout\bin\**\*.*"
-                         Exclude="$(ExtensionsCsProjFilePath)\buildout\bin\runtimes\**\*.*" />
-      <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\buildout\runtimes\**\*.*" />
-    </ItemGroup>
+    <Target Name ="_WorkerExtensionsBuildCopy" AfterTargets="_WorkerExtensionsBuild">
+        <ItemGroup>
+            <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\buildout\bin\**\*.*"
+                               Exclude="$(ExtensionsCsProjFilePath)\buildout\bin\runtimes\**\*.*" />
+            <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\buildout\runtimes\**\*.*" />
+        </ItemGroup>
 
-    <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\%(RecursiveDir)" />
-    <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
-  </Target>
+        <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\%(RecursiveDir)" />
+        <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
+    </Target>
 
-  <Target Name ="_WorkerExtensionsBuild" AfterTargets="_WorkerExtensionsRestore">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" RemoveProperties="DeployOnBuild" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\buildout;CopyLocalLockFileAssemblies=true"/>
-  </Target>
+    <Target Name ="_WorkerExtensionsBuild" AfterTargets="_WorkerExtensionsRestore">
+        <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Build" RemoveProperties="DeployOnBuild" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjFilePath)\buildout;CopyLocalLockFileAssemblies=true"/>
+    </Target>
 
-  <Target Name="_WorkerExtensionsRestore" AfterTargets="_FunctionsPostBuild">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Restore" Properties="IsRestoring=true"/>
-  </Target>
+    <Target Name="_WorkerExtensionsRestore" AfterTargets="_FunctionsPostBuild">
+        <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Restore" Properties="IsRestoring=true"/>
+    </Target>
 
-  <!--
+    <!--
   Add HintPath to references in "extensions.json"
   -->
-  <UsingTask TaskName="EnhanceExtensionsMetadata"
-           AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
+    <UsingTask TaskName="EnhanceExtensionsMetadata"
+             AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
 
-  <Target Name="_EnhanceFunctionsExtensionsMetadataPostBuild"
-          AfterTargets="_WorkerExtensionsBuildCopy">
+    <Target Name="_EnhanceFunctionsExtensionsMetadataPostBuild"
+            AfterTargets="_WorkerExtensionsBuildCopy">
 
-    <EnhanceExtensionsMetadata
-      ExtensionsJsonPath="$(TargetDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"
-      OutputPath="$(TargetDir)\$(_FunctionsExtensionsJsonName)"/>
+        <EnhanceExtensionsMetadata
+          ExtensionsJsonPath="$(TargetDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"
+          OutputPath="$(TargetDir)\$(_FunctionsExtensionsJsonName)"/>
 
-  </Target>
+    </Target>
 
-  <!--
+    <!--
   ***********************************************************************************************
   Import the Publish target
   ***********************************************************************************************
  -->
-  <Import Project="$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets"
-          Condition="Exists('$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets')" />
+    <Import Project="$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets"
+            Condition="Exists('$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets')" />
 
-  <Target
-    Name="_CleanFunctions"
-    AfterTargets="Clean">
+    <Target
+      Name="_CleanFunctions"
+      AfterTargets="Clean">
 
-    <ItemGroup>
-      <_FilesInTargetDir Include="$(TargetDir)**\*" />
-    </ItemGroup>
+        <ItemGroup>
+            <_FilesInTargetDir Include="$(TargetDir)**\*" />
+        </ItemGroup>
 
-    <Delete Files="@(_FilesInTargetDir)"
-            ContinueOnError="true" />
+        <Delete Files="@(_FilesInTargetDir)"
+                ContinueOnError="true" />
 
-    <RemoveDir Directories="$(TargetDir)"
-               ContinueOnError="true" />
-  </Target>
+        <RemoveDir Directories="$(TargetDir)"
+                   ContinueOnError="true" />
+    </Target>
 
-  <!--
+    <!--
   Publish targets from Functions SDK
   -->
 
-  <Target Name="_InitializeDotNetPublishProperties"
-          BeforeTargets="PrepareForPublish"
-          Condition="'$(DeployOnBuild)' != 'true'">
+    <Target Name="_InitializeDotNetPublishProperties"
+            BeforeTargets="PrepareForPublish"
+            Condition="'$(DeployOnBuild)' != 'true'">
 
-    <ConvertToAbsolutePath Paths="$(PublishDir)">
-      <Output TaskParameter="AbsolutePaths"
-              PropertyName="FunctionsDir"/>
-    </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(PublishDir)">
+            <Output TaskParameter="AbsolutePaths"
+                    PropertyName="FunctionsDir"/>
+        </ConvertToAbsolutePath>
 
-    <PropertyGroup>
-      <PublishDir>$(FunctionsDir)</PublishDir>
-      <PublishDir Condition="!HasTrailingSlash('$(PublishDir)')">$(PublishDir)\</PublishDir>
-      <FunctionsTargetPath>$(PublishDir)bin\$(TargetFileName)</FunctionsTargetPath>
-      <FunctionsOutputPath>$(FunctionsDir)</FunctionsOutputPath>
-    </PropertyGroup>
+        <PropertyGroup>
+            <PublishDir>$(FunctionsDir)</PublishDir>
+            <PublishDir Condition="!HasTrailingSlash('$(PublishDir)')">$(PublishDir)\</PublishDir>
+            <FunctionsTargetPath>$(PublishDir)bin\$(TargetFileName)</FunctionsTargetPath>
+            <FunctionsOutputPath>$(FunctionsDir)</FunctionsOutputPath>
+        </PropertyGroup>
 
-  </Target>
+    </Target>
 
-  <Target Name="_InitializeDeployOnBuildProperties" >
+    <Target Name="_InitializeDeployOnBuildProperties" >
 
-    <ConvertToAbsolutePath Paths="$(PublishIntermediateOutputPath)">
-      <Output TaskParameter="AbsolutePaths"
-              PropertyName="PublishIntermediateOutputPath"/>
-    </ConvertToAbsolutePath>
+        <ConvertToAbsolutePath Paths="$(PublishIntermediateOutputPath)">
+            <Output TaskParameter="AbsolutePaths"
+                    PropertyName="PublishIntermediateOutputPath"/>
+        </ConvertToAbsolutePath>
 
-    <PropertyGroup>
-      <PublishDir>$(PublishIntermediateOutputPath)</PublishDir>
-      <PublishDir Condition="!HasTrailingSlash('$(PublishDir)')">$(PublishDir)\</PublishDir>
-      <FunctionsTargetPath>$(PublishDir)bin\$(TargetFileName)</FunctionsTargetPath>
-      <FunctionsOutputPath>$(PublishIntermediateOutputPath)</FunctionsOutputPath>
-    </PropertyGroup>
+        <PropertyGroup>
+            <PublishDir>$(PublishIntermediateOutputPath)</PublishDir>
+            <PublishDir Condition="!HasTrailingSlash('$(PublishDir)')">$(PublishDir)\</PublishDir>
+            <FunctionsTargetPath>$(PublishDir)bin\$(TargetFileName)</FunctionsTargetPath>
+            <FunctionsOutputPath>$(PublishIntermediateOutputPath)</FunctionsOutputPath>
+        </PropertyGroup>
 
-    <!-- Remove all the files from the temp directory first-->
-    <ItemGroup>
-      <_PublishTempFiles Include="$(PublishIntermediateOutputPath)**\*.*" />
-    </ItemGroup>
+        <!-- Remove all the files from the temp directory first-->
+        <ItemGroup>
+            <_PublishTempFiles Include="$(PublishIntermediateOutputPath)**\*.*" />
+        </ItemGroup>
 
-    <Delete Files="@(_PublishTempFiles)"
-            ContinueOnError="true" />
+        <Delete Files="@(_PublishTempFiles)"
+                ContinueOnError="true" />
 
-    <RemoveDir Directories="$(PublishIntermediateOutputPath)"
-               ContinueOnError="true"
-               Condition="Exists('$(PublishIntermediateOutputPath)')" />
+        <RemoveDir Directories="$(PublishIntermediateOutputPath)"
+                   ContinueOnError="true"
+                   Condition="Exists('$(PublishIntermediateOutputPath)')" />
 
-    <MakeDir Directories="$(PublishIntermediateOutputPath)"
-             Condition="!Exists('$(PublishIntermediateOutputPath)')"/>
+        <MakeDir Directories="$(PublishIntermediateOutputPath)"
+                 Condition="!Exists('$(PublishIntermediateOutputPath)')"/>
 
-  </Target>
+    </Target>
 
-  <Target Name="_FunctionsPostPublish"
-        AfterTargets="Publish"
-        DependsOnTargets="_GenerateFunctionsAndCopyContentFiles;_WorkerExtensionsPublish"
+    <Target Name="_FunctionsPostPublish"
+          AfterTargets="Publish"
+          DependsOnTargets="_GenerateFunctionsAndCopyContentFiles;_WorkerExtensionsPublish"
           >
-  </Target>
+    </Target>
 
-  <!--
+    <!--
     ============================================================
 
     This targets gets called when publish is invoked with DeployOnBuild
@@ -230,124 +258,153 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     ============================================================
     -->
 
-  <PropertyGroup>
-    <CorePublishDependsOn>
-      _InitializeDeployOnBuildProperties;
-      Publish;
-      $(_DotNetPublishFiles);
-    </CorePublishDependsOn>
-  </PropertyGroup>
-
-  <Target Name="_GenerateFunctionsAndCopyContentFiles">
-
     <PropertyGroup>
-      <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
-      <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
+        <CorePublishDependsOn>
+            _InitializeDeployOnBuildProperties;
+            Publish;
+            $(_DotNetPublishFiles);
+        </CorePublishDependsOn>
     </PropertyGroup>
 
-    <GenerateFunctionMetadata
-      AssemblyPath="$(PublishDir)\$(AssemblyName).dll"
-      ReferencePaths="@(ReferencePath)"
-      ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
-      AzureFunctionsVersion="$(AzureFunctionsVersion)"
-      OutputPath="$(PublishDir)"/>
+    <Target Name="_GenerateFunctionsAndCopyContentFiles" DependsOnTargets="_GenerateFunctionsAndCopyContentFilesNetApp;_GenerateFunctionsAndCopyContentFilesNetFx" />
 
-    <Copy
-      SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
-      DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
-      OverwriteReadOnlyFiles="true" />
+    <Target Name="_GenerateFunctionsAndCopyContentFilesNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
 
-    <WriteLinesToFile
-        Condition="$(SelfContained)"
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+        <PropertyGroup>
+            <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
+            <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
+        </PropertyGroup>
+
+        <GenerateFunctionMetadata
+          AssemblyPath="$(PublishDir)\$(AssemblyName).exe"
+          ReferencePaths="@(ReferencePath)"
+          ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
+          AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          OutputPath="$(PublishDir)"/>
+
+        <Copy
+          SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+          DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
+          OverwriteReadOnlyFiles="true" />
+
+        <WriteLinesToFile
+            File="$(OutputFile)"
+            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                  .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
+                                  .Replace('$functionWorker$', '$(TargetName).exe'))"
+            Overwrite="true" />
+    </Target>
+
+    <Target Name="_GenerateFunctionsAndCopyContentFilesNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
+
+        <PropertyGroup>
+            <OutputFile>$(PublishDir)\worker.config.json</OutputFile>
+            <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
+        </PropertyGroup>
+
+        <GenerateFunctionMetadata
+          AssemblyPath="$(PublishDir)\$(AssemblyName).dll"
+          ReferencePaths="@(ReferencePath)"
+          ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
+          AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          OutputPath="$(PublishDir)"/>
+
+        <Copy
+          SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
+          DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
+          OverwriteReadOnlyFiles="true" />
+
+        <WriteLinesToFile
+            Condition="$(SelfContained)"
+            File="$(OutputFile)"
+            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
-    <WriteLinesToFile
-        Condition="!$(SelfContained)"
-        File="$(OutputFile)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+        <WriteLinesToFile
+            Condition="!$(SelfContained)"
+            File="$(OutputFile)"
+            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
                                   .Replace('$functionWorker$', '$(TargetName).dll')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
-  </Target>
+    </Target>
 
-  <!--
+    <!--
   Publish the webjobs extensions in ".azurefunctions"
   -->
-  <!--
+    <!--
   We need to copy all files from <build-out>/bin except for "runtimes" directory. The "runtimes" directory inside "bin" doesn't contain the binaries for all platforms.
   This is due to a bug in Functions SDK. Until that is fixed, we need to copy "runtimes" directly from build output, instead of copying from the "bin".
   -->
-  <Target Name ="_WorkerExtensionsPublishCopy">
-    <ItemGroup>
-      <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\publishout\bin\**\*.*"
-                         Exclude="$(ExtensionsCsProjFilePath)\publishout\bin\runtimes\**\*.*"/>
-      <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\publishout\runtimes\**\*.*" />
-    </ItemGroup>
+    <Target Name ="_WorkerExtensionsPublishCopy">
+        <ItemGroup>
+            <ExtensionBinaries Include="$(ExtensionsCsProjFilePath)\publishout\bin\**\*.*"
+                               Exclude="$(ExtensionsCsProjFilePath)\publishout\bin\runtimes\**\*.*"/>
+            <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\publishout\runtimes\**\*.*" />
+        </ItemGroup>
 
-    <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\%(RecursiveDir)" />
-    <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
-  </Target>
+        <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\%(RecursiveDir)" />
+        <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(PublishDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
+    </Target>
 
-  <Target Name ="_WorkerExtensionsFullPublish">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" RemoveProperties="DeployOnBuild" Targets="Publish" Properties="Configuration=Release;PublishDir=$(ExtensionsCsProjFilePath)\publishout;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
-  </Target>
+    <Target Name ="_WorkerExtensionsFullPublish">
+        <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" RemoveProperties="DeployOnBuild" Targets="Publish" Properties="Configuration=Release;PublishDir=$(ExtensionsCsProjFilePath)\publishout;OutputPath=$(ExtensionsCsProjFilePath)\publishout;CopyLocalLockFileAssemblies=true"/>
+    </Target>
 
-  <Target Name="_WorkerExtensionsRestorePublish">
-    <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Restore" Properties="IsRestoring=true"/>
-  </Target>
+    <Target Name="_WorkerExtensionsRestorePublish">
+        <MSBuild Projects="$(ExtensionsCsProjFilePath)\WorkerExtensions.csproj" Targets="Restore" Properties="IsRestoring=true"/>
+    </Target>
 
-  <Target Name="_WorkerExtensionsPublish"
-        AfterTargets="_GenerateFunctionsAndCopyContentFiles"
-        DependsOnTargets="$(FunctionsWorkerExtensionsPublishDependsOn)">
-  </Target>
+    <Target Name="_WorkerExtensionsPublish"
+          AfterTargets="_GenerateFunctionsAndCopyContentFiles"
+          DependsOnTargets="$(FunctionsWorkerExtensionsPublishDependsOn)">
+    </Target>
 
-  <PropertyGroup>
-    <FunctionsWorkerExtensionsPublishDependsOn Condition="$(_FunctionsExtensionsFullPublish)">
-      _GenerateFunctionsAndCopyContentFiles;
-      _WorkerExtensionsRestorePublish;
-      _WorkerExtensionsFullPublish;
-      _WorkerExtensionsPublishCopy;
-      _EnhanceFunctionsExtensionsMetadataPostPublish
-    </FunctionsWorkerExtensionsPublishDependsOn>
-    <FunctionsWorkerExtensionsPublishDependsOn Condition="!$(_FunctionsExtensionsFullPublish)">
-      _GenerateFunctionsAndCopyContentFiles;
-      _WorkerExtensionsPublishCopyNoBuild
-    </FunctionsWorkerExtensionsPublishDependsOn>
-  </PropertyGroup>
+    <PropertyGroup>
+        <FunctionsWorkerExtensionsPublishDependsOn Condition="$(_FunctionsExtensionsFullPublish)">
+            _GenerateFunctionsAndCopyContentFiles;
+            _WorkerExtensionsRestorePublish;
+            _WorkerExtensionsFullPublish;
+            _WorkerExtensionsPublishCopy;
+            _EnhanceFunctionsExtensionsMetadataPostPublish
+        </FunctionsWorkerExtensionsPublishDependsOn>
+        <FunctionsWorkerExtensionsPublishDependsOn Condition="!$(_FunctionsExtensionsFullPublish)">
+            _GenerateFunctionsAndCopyContentFiles;
+            _WorkerExtensionsPublishCopyNoBuild
+        </FunctionsWorkerExtensionsPublishDependsOn>
+    </PropertyGroup>
 
-  <!--
+    <!--
   Add HintPath to references in "extensions.json"
   -->
-  <Target Name="_EnhanceFunctionsExtensionsMetadataPostPublish">
+    <Target Name="_EnhanceFunctionsExtensionsMetadataPostPublish">
 
-    <EnhanceExtensionsMetadata
-      ExtensionsJsonPath="$(PublishDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"
-      OutputPath="$(PublishDir)\$(_FunctionsExtensionsJsonName)" />
+        <EnhanceExtensionsMetadata
+          ExtensionsJsonPath="$(PublishDir)\$(_FunctionsExtensionsDirectory)\$(_FunctionsExtensionsJsonName)"
+          OutputPath="$(PublishDir)\$(_FunctionsExtensionsJsonName)" />
 
-  </Target>
+    </Target>
 
-  <!--
+    <!--
   Copies the assemblies from build directory ("bin\...\net5.0\") to the publish directory ("bin\...\net5.0\publish")
   This task is executed instead of full publish of WorkerExtensions when NoBuild property is set
   -->
-  <Target Name ="_WorkerExtensionsPublishCopyNoBuild">
-    <ItemGroup>
-      <ExtensionBinaries Include="$(OutDir)\$(_FunctionsExtensionsDirectory)\**\*.*"
-                         Exclude="$(OutDir)\$(_FunctionsExtensionsDirectory)\runtimes\**\*.*"/>
-      <ExtensionRuntimeBinaries Include="$(OutDir)\.azurefunctions\runtimes\**\*.*" />
-      <ExtensionsJson Include="$(OutDir)\$(_FunctionsExtensionsJsonName)" />
-    </ItemGroup>
+    <Target Name ="_WorkerExtensionsPublishCopyNoBuild">
+        <ItemGroup>
+            <ExtensionBinaries Include="$(OutDir)\$(_FunctionsExtensionsDirectory)\**\*.*"
+                               Exclude="$(OutDir)\$(_FunctionsExtensionsDirectory)\runtimes\**\*.*"/>
+            <ExtensionRuntimeBinaries Include="$(OutDir)\.azurefunctions\runtimes\**\*.*" />
+            <ExtensionsJson Include="$(OutDir)\$(_FunctionsExtensionsJsonName)" />
+        </ItemGroup>
 
-    <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(PublishDir)\$(_FunctionsExtensionsDirectory)\%(RecursiveDir)" />
-    <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(PublishDir)\$(_FunctionsExtensionsDirectory)\runtimes\%(RecursiveDir)" />
-    <Copy SourceFiles="@(ExtensionsJson)" DestinationFolder="$(PublishDir)\" />
-  </Target>
+        <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(PublishDir)\$(_FunctionsExtensionsDirectory)\%(RecursiveDir)" />
+        <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(PublishDir)\$(_FunctionsExtensionsDirectory)\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(ExtensionsJson)" DestinationFolder="$(PublishDir)\" />
+    </Target>
 
 </Project>

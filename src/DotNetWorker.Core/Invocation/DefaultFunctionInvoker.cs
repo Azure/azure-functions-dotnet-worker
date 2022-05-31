@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         public Task<object> InvokeAsync(object instance, object[] arguments)
         {
             return _methodInvoker.InvokeAsync((TInstance)instance, arguments)
-                .ContinueWith<object>(t => t.Result);
+                .ContinueWith<object>(t => t.Result, TaskContinuationOptions.ExecuteSynchronously);
         }
     }
 }

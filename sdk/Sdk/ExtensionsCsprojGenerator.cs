@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             string extensionReferences = GetExtensionReferences();
             string targetFramework = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? Constants.NetCoreApp31 : Constants.Net60;
-            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.0.13" : "4.0.1";
+            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.0" : "4.1.0";
 
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">

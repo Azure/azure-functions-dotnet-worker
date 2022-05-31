@@ -2,9 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Channels;
 using Grpc.Core;
-using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc;
@@ -14,6 +14,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
+
+#if NET5_0_OR_GREATER
+using Grpc.Net.Client;
+#endif
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -64,13 +68,25 @@ namespace Microsoft.Extensions.DependencyInjection
                     throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
                 }
 
+
+#if NET5_0_OR_GREATER
                 GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
                 {
                     MaxReceiveMessageSize = arguments.GrpcMaxMessageLength,
                     MaxSendMessageSize = arguments.GrpcMaxMessageLength,
                     Credentials = ChannelCredentials.Insecure
                 });
+#else
 
+                var options = new ChannelOption[]
+                {
+                    new ChannelOption(Grpc.Core.ChannelOptions.MaxReceiveMessageLength, arguments.GrpcMaxMessageLength),
+                    new ChannelOption(Grpc.Core.ChannelOptions.MaxSendMessageLength, arguments.GrpcMaxMessageLength)
+                };
+
+                Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure, options);
+
+#endif           
                 return new FunctionRpcClient(grpcChannel);
             });
 

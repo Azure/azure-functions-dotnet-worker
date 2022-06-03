@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -127,6 +128,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
             }
+            else if (request.ContentCase == MsgType.WorkerTerminate)
+            {
+                WorkerTerminateRequestHandler(request.WorkerTerminate);
+            }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
                 responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
@@ -235,8 +240,27 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
+            response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
 
             return response;
+        }
+
+        internal static void WorkerTerminateRequestHandler(WorkerTerminate request)
+        {
+            // ToDo:
+                // Add logs about receiving worker terminate message from Host with GracePeriod
+    
+            // Terminate the worker process
+            try
+            {
+                WorkerInformation workerInformation = WorkerInformation.Instance;
+                Process workerProcess = Process.GetProcessById(workerInformation.ProcessId);
+                workerProcess.Kill();
+            }
+            catch (Exception)
+            {
+                // Error in killing process
+            }
         }
 
         internal static FunctionLoadResponse FunctionLoadRequestHandler(FunctionLoadRequest request, IFunctionsApplication application, IMethodInfoLocator methodInfoLocator)

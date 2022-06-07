@@ -247,19 +247,16 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static void WorkerTerminateRequestHandler(WorkerTerminate request)
         {
-            // ToDo:
-                // Add logs about receiving worker terminate message from Host with GracePeriod
-    
             // Terminate the worker process
             try
             {
-                WorkerInformation workerInformation = WorkerInformation.Instance;
+                var workerInformation = WorkerInformation.Instance;
                 Process workerProcess = Process.GetProcessById(workerInformation.ProcessId);
                 workerProcess.Kill();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // Error in killing process
+                throw new InvalidOperationException("Error during terminating the worker process", ex);
             }
         }
 

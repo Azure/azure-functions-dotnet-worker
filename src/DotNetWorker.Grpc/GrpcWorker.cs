@@ -251,7 +251,7 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 var workerInformation = WorkerInformation.Instance;
-                Process workerProcess = Process.GetProcessById(workerInformation.ProcessId);
+                var workerProcess = Process.GetProcessById(workerInformation.ProcessId);
                 workerProcess.Kill();
             }
             catch (Exception ex)

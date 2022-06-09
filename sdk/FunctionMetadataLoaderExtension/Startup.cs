@@ -35,7 +35,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             string appRootPath = context.ApplicationRootPath;
 
             // We need to adjust the path to the worker exe based on the root, if WorkerRootToken is found.
-            // Both Configure methods uses this and require info from WebJobsBuilderContext, so each will either check if it already exists or create it using GetUpdatedWorkerDescription()
+            // Both Configure methods need the updated worker description and the following line will check if it already exists or call GetUpdatedWorkerDescription() to create it
             newWorkerDescription ??= GetUpdatedWorkerDescription(appRootPath);
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>

@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Threading.Tasks;
 using System.Text.Json;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker

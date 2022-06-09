@@ -15,6 +15,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
@@ -35,11 +36,13 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
+        private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
-            IInputConversionFeatureProvider inputConversionFeatureProvider)
+            IInputConversionFeatureProvider inputConversionFeatureProvider,
+            IHostApplicationLifetime hostApplicationLifetime)
         {
             if (outputChannel == null)
             {
@@ -48,6 +51,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             _outputReader = outputChannel.Channel.Reader;
             _outputWriter = outputChannel.Channel.Writer;
+            _hostApplicationLifetime = hostApplicationLifetime;
 
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
@@ -245,14 +249,11 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static void WorkerTerminateRequestHandler(WorkerTerminate request)
+        internal void WorkerTerminateRequestHandler(WorkerTerminate request)
         {
-            // Terminate the worker process
             try
             {
-                var workerInformation = WorkerInformation.Instance;
-                var workerProcess = Process.GetProcessById(workerInformation.ProcessId);
-                workerProcess.Kill();
+                _hostApplicationLifetime.StopApplication();
             }
             catch (Exception ex)
             {

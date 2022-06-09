@@ -10,7 +10,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 -->
 <Project ToolsVersion="14.0"
          xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-
     <PropertyGroup>
         <_ToolingSuffix></_ToolingSuffix>
         <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
@@ -32,6 +31,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
         <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
+      
+        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"
@@ -107,17 +108,22 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
-            Overwrite="true" />
+                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+        Overwrite="true" />
+
 
         <WriteLinesToFile
             Condition="!$(SelfContained)"
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
-                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
-            Overwrite="true" />
-    </Target>
+                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+        Overwrite="true" />
+
+  </Target>
+
 
     <!--
   Build the webjobs extensions in ".azurefunctions"
@@ -313,16 +319,18 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
-            Overwrite="true" />
+                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+        Overwrite="true" />
 
         <WriteLinesToFile
             Condition="!$(SelfContained)"
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
-                                  .Replace('$functionWorker$', '$(TargetName).dll'))"
-            Overwrite="true" />
+                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+        Overwrite="true" />
 
     </Target>
 

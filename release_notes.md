@@ -21,3 +21,6 @@
 - Adding the Visual Studio Design time targets to the SDK. (#860)
 - Adding UseWhen extension methods for middleware registration. (#865)
 - Added Tables extension (#887)
+- Added opt-in worker-driven function indexing. (#676)
+  - Add the MSBuild property `<FunctionsEnableWorkerIndexing>true<FunctionsEnableWorkerIndexing/>` to a Function App's `.csproj` file.
+  - In `local.settings.json` add the host feature flag (`"AzureWebJobsFeatureFlags": "EnableWorkerIndexing"`).

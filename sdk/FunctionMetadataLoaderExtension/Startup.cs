@@ -23,16 +23,20 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         private const string ExePathPropertyName = "defaultExecutablePath";
         private const string WorkerPathPropertyName = "defaultWorkerPath";
         private const string WorkerRootToken = "{WorkerRoot}";
+        private const string WorkerIndexingPropertyName = "workerIndexing";
 
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
         private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", ExePathPropertyName);
+
+        private WorkerConfigDescription? newWorkerDescription;
 
         public void Configure(WebJobsBuilderContext context, IWebJobsConfigurationBuilder builder)
         {
             string appRootPath = context.ApplicationRootPath;
 
             // We need to adjust the path to the worker exe based on the root, if WorkerRootToken is found.
-            WorkerConfigDescription newWorkerDescription = GetUpdatedWorkerDescription(appRootPath);
+            // Both Configure methods need the updated worker description and the following line will check if it already exists or call GetUpdatedWorkerDescription() to create it
+            newWorkerDescription ??= GetUpdatedWorkerDescription(appRootPath);
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
@@ -48,9 +52,15 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)
         {
             string appRootPath = context.ApplicationRootPath;
-            builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
-            builder.Services.AddSingleton<FunctionMetadataJsonReader>();
-            builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
+            newWorkerDescription ??= GetUpdatedWorkerDescription(appRootPath);
+            bool enableIndexing = newWorkerDescription.EnableWorkerIndexing ?? false;
+
+            if (!enableIndexing)
+            {
+                builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
+                builder.Services.AddSingleton<FunctionMetadataJsonReader>();
+                builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
+            }
         }
 
         public void Configure(IWebJobsBuilder builder)
@@ -151,6 +161,9 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             [JsonProperty(WorkerPathPropertyName)]
             public string? DefaultWorkerPath { get; set; }
+
+            [JsonProperty(WorkerIndexingPropertyName)]
+            public bool? EnableWorkerIndexing { get; set; }
         }
     }
 }

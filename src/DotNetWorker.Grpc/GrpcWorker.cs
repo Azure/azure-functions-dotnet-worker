@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -34,11 +35,12 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
+        private readonly IFunctionMetadataProvider _functionMetadataProvider;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
-            IInputConversionFeatureProvider inputConversionFeatureProvider)
+            IInputConversionFeatureProvider inputConversionFeatureProvider, IFunctionMetadataProvider functionMetadataProvider)
         {
             if (outputChannel == null)
             {
@@ -56,6 +58,7 @@ namespace Microsoft.Azure.Functions.Worker
             _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
+            _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
         }
 
         public async Task StartAsync(CancellationToken token)
@@ -126,6 +129,10 @@ namespace Microsoft.Azure.Functions.Worker
             else if (request.ContentCase == MsgType.WorkerInitRequest)
             {
                 responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
+            }
+            else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
+            {
+                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
@@ -235,6 +242,35 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
+
+            return response;
+        }
+
+        private async Task<FunctionMetadataResponse> GetFunctionMetadataAsync(string functionAppDirectory)
+        {
+            var response = new FunctionMetadataResponse
+            {
+                Result = StatusResult.Success,
+                UseDefaultMetadataIndexing = false
+            };
+
+            try
+            {
+                var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
+
+                foreach(var func in functionMetadataList)
+                {
+                    response.FunctionMetadataResults.Add(func);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.Result = new StatusResult
+                {
+                    Status = StatusResult.Types.Status.Failure,
+                    Exception = ex.ToRpcException()
+                };
+            }
 
             return response;
         }

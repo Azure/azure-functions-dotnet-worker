@@ -4,13 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestFunctionContext : FunctionContext, IDisposable
+    internal class TestFunctionContext : FunctionContext, IAsyncDisposable
     {
         private readonly FunctionInvocation _invocation;
      
@@ -66,9 +67,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override RetryContext RetryContext => Features.Get<IExecutionRetryFeature>()?.Context;
 
-        public void Dispose()
+        public ValueTask DisposeAsync()
         {
             IsDisposed = true;
+            return default;
         }
     }
 }

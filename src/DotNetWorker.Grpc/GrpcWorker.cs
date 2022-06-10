@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
+            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
             IInputConversionFeatureProvider inputConversionFeatureProvider, IFunctionMetadataProvider functionMetadataProvider)
         {
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, IFunctionsApplication application,
-            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer, 
+            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer,
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider functionInputConversionFeatureProvider)
         {
@@ -178,7 +178,7 @@ namespace Microsoft.Azure.Functions.Worker
                 invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, outputBindingsInfoProvider));
 
                 if (functionInputConversionFeatureProvider.TryCreate(typeof(DefaultInputConversionFeature), out var conversion))
-                {                                    
+                {
                     invocationFeatures.Set<IInputConversionFeature>(conversion!);
                 }
 
@@ -223,7 +223,10 @@ namespace Microsoft.Azure.Functions.Worker
             }
             finally
             {
-                (context as IDisposable)?.Dispose();
+                if (context is IAsyncDisposable asyncContext)
+                {
+                    await asyncContext.DisposeAsync();
+                }  
             }
 
             return response;

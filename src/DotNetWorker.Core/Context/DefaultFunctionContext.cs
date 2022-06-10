@@ -60,16 +60,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async ValueTask DisposeAsync()
         {
-            if (_instanceServicesScope != null)
+            if (_instanceServicesScope is IAsyncDisposable asyncServiceScope)
             {
-                if (_instanceServicesScope is IAsyncDisposable asyncServiceScope)
-                {
-                    await asyncServiceScope.DisposeAsync();
-                }
-                else
-                {
-                    _instanceServicesScope.Dispose();
-                }
+                await asyncServiceScope.DisposeAsync();
             }
 
             _instanceServicesScope = null;

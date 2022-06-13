@@ -246,6 +246,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
+            response.Capabilities.Add("WorkerStatus", bool.TrueString);
 
             return response;
         }

@@ -130,6 +130,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
             }
+            else if (request.ContentCase == MsgType.WorkerStatusRequest)
+            {
+                responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
+            }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
                 responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);

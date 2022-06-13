@@ -51,8 +51,8 @@ namespace Microsoft.Azure.Functions.Worker
 
             _outputReader = outputChannel.Channel.Reader;
             _outputWriter = outputChannel.Channel.Writer;
-            _hostApplicationLifetime = hostApplicationLifetime;
 
+            _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
@@ -251,14 +251,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal void WorkerTerminateRequestHandler(WorkerTerminate request)
         {
-            try
-            {
-                _hostApplicationLifetime.StopApplication();
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Error during terminating the worker process", ex);
-            }
+            _hostApplicationLifetime.StopApplication();
         }
 
         internal static FunctionLoadResponse FunctionLoadRequestHandler(FunctionLoadRequest request, IFunctionsApplication application, IMethodInfoLocator methodInfoLocator)

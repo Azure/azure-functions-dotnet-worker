@@ -24,3 +24,4 @@
 - Added opt-in worker-driven function indexing. (#676)
   - Add the MSBuild property `<FunctionsEnableWorkerIndexing>true<FunctionsEnableWorkerIndexing/>` to a Function App's `.csproj` file.
   - In `local.settings.json` add the host feature flag (`"AzureWebJobsFeatureFlags": "EnableWorkerIndexing"`).
+- Handling WorkerTerminate signal for graceful termination. (#918)

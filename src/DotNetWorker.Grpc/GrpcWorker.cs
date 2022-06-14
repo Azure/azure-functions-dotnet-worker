@@ -44,6 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
+            IFunctionMetadataProvider functionMetadataProvider,
             IHostApplicationLifetime hostApplicationLifetime)
         {
             if (outputChannel == null)

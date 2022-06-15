@@ -136,6 +136,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
             }
+            else if (request.ContentCase == MsgType.WorkerStatusRequest)
+            {
+                responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
+            }
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
                 responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
@@ -252,6 +256,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
+            response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
 
             return response;

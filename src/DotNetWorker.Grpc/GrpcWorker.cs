@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -15,6 +16,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
@@ -36,11 +38,14 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
-            IInputConversionFeatureProvider inputConversionFeatureProvider, IFunctionMetadataProvider functionMetadataProvider)
+            IInputConversionFeatureProvider inputConversionFeatureProvider,
+            IFunctionMetadataProvider functionMetadataProvider,
+            IHostApplicationLifetime hostApplicationLifetime)
         {
             if (outputChannel == null)
             {
@@ -50,6 +55,7 @@ namespace Microsoft.Azure.Functions.Worker
             _outputReader = outputChannel.Channel.Reader;
             _outputWriter = outputChannel.Channel.Writer;
 
+            _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
@@ -137,6 +143,10 @@ namespace Microsoft.Azure.Functions.Worker
             else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
             {
                 responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
+            }
+            else if (request.ContentCase == MsgType.WorkerTerminate)
+            {
+                WorkerTerminateRequestHandler(request.WorkerTerminate);
             }
             else if (request.ContentCase == MsgType.FunctionLoadRequest)
             {
@@ -247,6 +257,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
+            response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
 
             return response;
         }
@@ -278,6 +289,11 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
+        }
+
+        internal void WorkerTerminateRequestHandler(WorkerTerminate request)
+        {
+            _hostApplicationLifetime.StopApplication();
         }
 
         internal static FunctionLoadResponse FunctionLoadRequestHandler(FunctionLoadRequest request, IFunctionsApplication application, IMethodInfoLocator methodInfoLocator)

@@ -7,6 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Extensions.CosmosDB
 {
+    /// <summary>
+    /// Sample function app which has a azure storage queue trigger and CosmosDb input binding.
+    /// The CosmosDb input binding is using the values from the queue trigger payload
+    /// to query the cosmos db item.
+    /// </summary>
+
     //<docsnippet_qtrigger_with_cosmosdb_inputbinding>
     public class CosmosDbInputBindingFunction
     {
@@ -47,5 +53,5 @@ namespace Extensions.CosmosDB
         public string PartitionKey { get; set; }
         public string Description { get; set; }
     }
-    //<docsnippet_qtrigger_with_cosmosdb_inputbinding_todo_model>
+    //</docsnippet_qtrigger_with_cosmosdb_inputbinding_todo_model>
 }

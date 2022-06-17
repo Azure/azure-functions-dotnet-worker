@@ -14,6 +14,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
+using Microsoft.Azure.Functions.Worker.Grpc.Factory;
+using Microsoft.Azure.Functions.Worker.Grpc.Factory.Contracts;
 
 #if NET5_0_OR_GREATER
 using Grpc.Net.Client;
@@ -95,6 +97,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     config.Bind(arguments);
                 });
+
+            services.AddSingleton<IGrpcWorkerMessageFactory, GrpcWorkerMessageFactory>();
 
             return services;
         }

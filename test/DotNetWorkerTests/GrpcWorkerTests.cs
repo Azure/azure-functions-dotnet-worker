@@ -7,9 +7,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Grpc.Factory.Handlers;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -113,12 +115,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async Task Invoke_ReturnsSuccess()
         {
+            var handler = new InvocationRequestHandler(
+                _mockApplication.Object,
+                _mockFeaturesFactory.Object,
+                _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object,
+                Options.Create<WorkerOptions>(new WorkerOptions { Serializer = new JsonObjectSerializer() }));
+
+            var message = CreateStreamingMessage();
             var request = CreateInvocationRequest();
+            message.InvocationRequest = request;
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
-
-            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            var result = await handler.HandleMessageAsync(message);
+            Assert.Equal(StatusResult.Types.Status.Success, result.InvocationResponse.Result.Status);
             Assert.True(_context.IsDisposed);
         }
 
@@ -178,6 +187,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 {
                     ScriptFile = "DoesNotMatter.dll"
                 }
+            };
+        }
+
+        private static StreamingMessage CreateStreamingMessage()
+        {
+            return new StreamingMessage
+            {
+                RequestId = Guid.NewGuid().ToString(),
             };
         }
 

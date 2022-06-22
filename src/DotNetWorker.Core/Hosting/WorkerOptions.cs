@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Dynamic;
 using System.Text.Json;
 using Azure.Core.Serialization;
 
@@ -21,5 +22,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the collection of input converters.
         /// </summary>
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
+
+        /// <summary>
+        /// Gets and sets the flag for opting in to surfacing user-code-thrown
+        /// exceptions to app insights. 
+        /// </summary>
+        public bool EnableUserCodeException { get; set; } = false;
     }
 }

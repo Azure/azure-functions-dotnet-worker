@@ -36,6 +36,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
+        private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
@@ -64,6 +65,7 @@ namespace Microsoft.Azure.Functions.Worker
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
@@ -134,45 +136,41 @@ namespace Microsoft.Azure.Functions.Worker
 
             switch(request.ContentCase)
             {
-                case MsgType.InvocationRequest:
-                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
-                    break;
-
-                case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
-                    break;
-
-                case MsgType.WorkerStatusRequest:
-                    responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
-                    break;
-
-                case MsgType.FunctionsMetadataRequest:
-                    responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
-                    break;
-
-                case MsgType.WorkerTerminate:
-                    WorkerTerminateRequestHandler(request.WorkerTerminate);
-                    break;
-
-                case MsgType.FunctionLoadRequest:
-                    responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
-                    break;
-
-                case MsgType.FunctionEnvironmentReloadRequest:
-                    // No-op for now, but return a response.
-                    responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
-                    {
-                        Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                    };
-                    break;
-
-                case MsgType.InvocationCancel:
-                    InvocationCancelRequestHandler(request.InvocationCancel);
-                    break;
-
-                default:
-                    // TODO: Trace failure here.
-                    return;
+                responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
+                    _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider);
+            }
+            else if (request.ContentCase == MsgType.WorkerInitRequest)
+            {
+                responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions.Value.EnableUserCodeException);
+            }
+            else if (request.ContentCase == MsgType.WorkerStatusRequest)
+            {
+                responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
+            }
+            else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
+            {
+                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
+            }
+            else if (request.ContentCase == MsgType.WorkerTerminate)
+            {
+                WorkerTerminateRequestHandler(request.WorkerTerminate);
+            }
+            else if (request.ContentCase == MsgType.FunctionLoadRequest)
+            {
+                responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
+            }
+            else if (request.ContentCase == MsgType.FunctionEnvironmentReloadRequest)
+            {
+                // No-op for now, but return a response.
+                responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
+                {
+                    Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                };
+            }
+            else
+            {
+                // TODO: Trace failure here.
+                return;
             }
 
             await _outputWriter.WriteAsync(responseMessage);
@@ -183,12 +181,33 @@ namespace Microsoft.Azure.Functions.Worker
             return _invocationHandler.InvokeAsync(request);
         }
 
-        internal void InvocationCancelRequestHandler(InvocationCancel request)
-        {
-            _invocationHandler.TryCancel(request.InvocationId);
+                response.Result = new StatusResult
+                {
+                    Status = StatusResult.Types.Status.Success
+                };
+            }
+            catch (Exception ex)
+            {
+                response.Result = new StatusResult
+                {
+                    Exception = ex.ToUserRpcException(),
+                    Status = StatusResult.Types.Status.Failure
+                };
+            }
+            finally
+            {
+                if (context is IAsyncDisposable asyncContext)
+                {
+                    await asyncContext.DisposeAsync();
+                }
+
+                (context as IDisposable)?.Dispose();
+            }
+
+            return response;
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, bool enableUserCodeExceptionOption = false)
         {
             var response = new WorkerInitResponse
             {
@@ -212,8 +231,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
-            response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
-
+            response.Capabilities.Add("EnableUserCodeException", enableUserCodeExceptionOption.ToString());
             return response;
         }
 

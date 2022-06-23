@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights;
+using Microsoft.Azure.Functions.Worker.Logging;
 
 namespace Microsoft.Extensions.Logging
 {

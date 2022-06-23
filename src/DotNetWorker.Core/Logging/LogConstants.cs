@@ -3,7 +3,7 @@
 
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
+namespace Microsoft.Azure.Functions.Worker.Logging
 {
     /// <summary>
     /// Keys used by the <see cref="ILogger"/> infrastructure.
@@ -24,5 +24,20 @@ namespace Microsoft.Azure.Functions.Worker.Logging.ApplicationInsights
         /// Gets the name of the key used to store a metric sum.
         /// </summary>
         internal const string MetricValueKey = "Value";
+
+        /// <summary>
+        /// Gets the name of the key used to store the function invocation id.
+        /// </summary>
+        public const string InvocationIdKey = "InvocationId";
+
+        /// <summary>
+        /// Gets the name of the key used to store the category of the log message.
+        /// </summary>
+        public const string CategoryNameKey = "Category";
+
+        /// <summary>
+        ///  Get the name of the key to store the current process id.
+        /// </summary>
+        public const string ProcessIdKey = "ProcessId";
     }
 }

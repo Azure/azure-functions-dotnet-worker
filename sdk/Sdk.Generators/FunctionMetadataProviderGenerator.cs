@@ -32,15 +32,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using System;");
                 indentedTextWriter.WriteLine("using System.Collections.Generic;");
                 indentedTextWriter.WriteLine("using System.Collections.Immutable;");
+                indentedTextWriter.WriteLine("using System.Text.Json;");
                 indentedTextWriter.WriteLine("using System.Threading.Tasks;");
-                indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Worker.Grpc.Messages;");
-                indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker.Grpc");
+                indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
-                indentedTextWriter.WriteLine("internal class DefaultFunctionMetadataProvider : IFunctionMetadataProvider");
+                indentedTextWriter.WriteLine(" internal class SampleGenFunctionMetadtaJsonProvider : IFunctionMetadataJsonProvider");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
                 WriteGetFunctionsMetadataAsyncMethod(indentedTextWriter, receiver, compilation);
+                AddEnumTypes(indentedTextWriter);
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
                 indentedTextWriter.Indent--;
@@ -56,10 +57,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
         {
-            indentedTextWriter.WriteLine("public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync(string directory)");
+            indentedTextWriter.WriteLine("public Task<ImmutableArray<JsonElement>> GetFunctionMetadataJsonAsync(string directory)");
             indentedTextWriter.WriteLine("{");
             indentedTextWriter.Indent++;
-            indentedTextWriter.WriteLine("var metadataList = new List<RpcFunctionMetadata>();");
+            indentedTextWriter.WriteLine("var metadataList = new List<JsonElement>();");
             AddFunctionMetadataInfo(indentedTextWriter, receiver, compilation);
             indentedTextWriter.WriteLine("return Task.FromResult(metadataList.ToImmutableArray());");
             indentedTextWriter.Indent--;
@@ -78,14 +79,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var functionName = functionClass.Identifier.ValueText;
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
 
-                indentedTextWriter.WriteLine("var " + functionName + "= new RpcFunctionMetadata();");
-                indentedTextWriter.WriteLine(functionName + ".Name = \"" + functionName + "\";");
-                indentedTextWriter.WriteLine(functionName + ".ScriptFile = \"" + scriptFile + "\";");
-                indentedTextWriter.WriteLine(functionName + ".Language = \"dotnet-isolated\";");
-                indentedTextWriter.WriteLine(functionName + ".EntryPoint = \"" + entryPoint + "\";");
-                indentedTextWriter.WriteLine(functionName + ".IsProxy = false;");
-                indentedTextWriter.WriteLine(functionName + ".FunctionId = Guid.NewGuid().ToString();");
-                // do I need to add Properties { isCodeless: false} or no? Seems to be auto-generated in the loader.
+                indentedTextWriter.WriteLine("var " + functionName + " = new ");
+                indentedTextWriter.WriteLine("{");
+                indentedTextWriter.Indent++;
+                indentedTextWriter.WriteLine("name = " + "\"" + functionName + "\";");
+                indentedTextWriter.WriteLine("scriptFile = \"" + scriptFile + "\";");
+                indentedTextWriter.WriteLine("language = \"dotnet-isolated\";");
+                indentedTextWriter.WriteLine("entryPoint = \"" + entryPoint + "\";");
+                indentedTextWriter.WriteLine("isProxy = false;");
+                indentedTextWriter.WriteLine("bindings = new List<Object>()");
+                indentedTextWriter.Indent--;
+                indentedTextWriter.WriteLine("};");
                 AddBindingInfo(indentedTextWriter, method, compilation, functionName);
                 indentedTextWriter.WriteLine("metadataList.Add(" + functionName + ");");
             }
@@ -95,7 +99,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private static void AddBindingInfo(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, Compilation compilation, string functionName)
         {
             var model = compilation.GetSemanticModel(method.SyntaxTree);
-
+            var bindingCount = 0;
+            
             foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
             {
                 // If there's no attribute, we can assume that this parameter is not a binding
@@ -145,7 +150,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     authLevel = "Anonymous",
                     methods = new List<string> { "get", "post" }
                 };*/
-                indentedTextWriter.WriteLine("var " + bindingName + " = new {");
+                indentedTextWriter.WriteLine("var " + "binding" + bindingCount.ToString() + " = new {");
                 indentedTextWriter.Indent++;
                 indentedTextWriter.WriteLine("name = \"" + bindingName + "\",");
                 indentedTextWriter.WriteLine("type = \"" + bindingType + "\",");
@@ -171,15 +176,52 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("};");
 
-                indentedTextWriter.WriteLine(functionName + ".RawBindings.Add(JsonSerializer.Serialize(" + bindingName + "));");
+                indentedTextWriter.WriteLine(functionName + ".bindings.Add(" + "binding" + bindingCount.ToString() + ");");
 
-                // Create BindingInfo and add to function metadata
-                indentedTextWriter.WriteLine("var bindingInfo" + bindingName + " = new BindingInfo()");
-                indentedTextWriter.WriteLine("Enum.TryParse(" + bindingName + ".direction, out BindingInfo.Types.Direction direction);");
-                indentedTextWriter.WriteLine("bindingInfo" + bindingName + ".Direction = direction;");
-                indentedTextWriter.WriteLine("bindingInfo" + bindingName + ".Type = " + bindingName + ".type;");
-                indentedTextWriter.WriteLine(functionName + ".Bindings.Add(" + bindingName + ".name, bindingInfo" + bindingName + ");");
+                bindingCount++;
+
+                // auto-add a return type for http for now
+                if (string.Equals(bindingType, "httptrigger", StringComparison.OrdinalIgnoreCase))
+                {
+                    var totalBindings = method.ParameterList.Parameters.Count(param => param.AttributeLists.Count > 0);
+
+                    indentedTextWriter.WriteLine("var " + "binding" + bindingCount.ToString() + " = new {");
+                    indentedTextWriter.Indent++;
+
+                    // if there are only two bindings and an httptrigger, then we use "$return"
+                    if (totalBindings < 2)
+                    {
+                        indentedTextWriter.WriteLine("name = \"" + "$return" + "\",");
+                    }
+                    else
+                    {
+                        // is this for when there are more than 2 bindings or is this for more than 1 output bindings?
+                        // ex. 2 input bindings, 1 http return binding? is this valid? What is the return there.
+                        indentedTextWriter.WriteLine("name = \"" + "HttpResponse" + "\",");
+                    }
+
+                    indentedTextWriter.WriteLine("type = \"" + "http" + "\",");
+                    indentedTextWriter.WriteLine("direction = \"" + "Out" + "\",");
+                    indentedTextWriter.Indent--;
+                    indentedTextWriter.WriteLine("};");
+                    indentedTextWriter.WriteLine(functionName + ".bindings.Add(" + "binding" + bindingCount.ToString() + ");");
+                    bindingCount++;
+                }
             }
+        }
+
+        private static void AddEnumTypes(IndentedTextWriter indentedTextWriter)
+        {
+            indentedTextWriter.WriteLine("public enum AuthorizationLevel");
+            indentedTextWriter.WriteLine("{");
+            indentedTextWriter.Indent++;
+            indentedTextWriter.WriteLine("Anonymous,");
+            indentedTextWriter.WriteLine("User,");
+            indentedTextWriter.WriteLine("Function,");
+            indentedTextWriter.WriteLine("System,");
+            indentedTextWriter.WriteLine("Admin");
+            indentedTextWriter.Indent--;
+            indentedTextWriter.WriteLine("}");
         }
 
         public void Initialize(GeneratorInitializationContext context)
@@ -253,8 +295,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         break;
                     case TypedConstantKind.Primitive:
                     case TypedConstantKind.Enum:
-                        //Enum.GetName( , arg.Value);
-                        dict[argumentName] = arg.Value;
+                        // what enum types do we have? Is it just AuthorizationLevel?
+                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type.Name.ToString() + ")," + arg.Value + ")";
                         break;
                     case TypedConstantKind.Type:
                         break;
@@ -291,7 +333,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             string arrAsString;
 
-            arrAsString = "[";
+            arrAsString = "new List<string> { ";
 
             foreach (var o in enumerableValues)
             {
@@ -300,7 +342,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             arrAsString = arrAsString.TrimEnd(',', ' ');
-            arrAsString += "]";
+            arrAsString += " }";
 
             return arrAsString;
         }

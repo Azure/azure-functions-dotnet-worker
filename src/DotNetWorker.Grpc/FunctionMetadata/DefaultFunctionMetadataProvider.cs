@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -22,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker
             deserializationOptions.PropertyNameCaseInsensitive = true;
         }
 
-        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+        public virtual async Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
             string metadataFile = Path.Combine(directory, FileName);
 
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker
                 // deserialize as json element to preserve raw bindings
                 var jsonMetadataList = await JsonSerializer.DeserializeAsync<JsonElement>(fs);
 
-                var functionMetadataResults= new List<RpcFunctionMetadata>(jsonMetadataList.GetArrayLength());
+                var functionMetadataResults= new List<IFunctionMetadata>(jsonMetadataList.GetArrayLength());
 
                 foreach (var jsonMetadata in jsonMetadataList.EnumerateArray())
                 {

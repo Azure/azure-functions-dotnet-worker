@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
+using Microsoft.Azure.Functions.Worker.Grpc.Features;
+using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -38,9 +41,9 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly GrpcWorkerStartupOptions _startupOptions;
         private readonly WorkerOptions _workerOptions;
         private readonly ObjectSerializer _serializer;
-        private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IInvocationHandler _invocationHandler;
+        private readonly IFunctionMetadataProvider _functionMetadataProvider;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
@@ -238,7 +241,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 foreach (var func in functionMetadataList)
                 {
-                    response.FunctionMetadataResults.Add(func);
+                    response.FunctionMetadataResults.Add((RpcFunctionMetadata)func);
                 }
             }
             catch (Exception ex)

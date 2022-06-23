@@ -3,7 +3,7 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -14,6 +14,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets all function metadata that this provider knows about asynchronously
         /// </summary>
         /// <returns>A Task with IEnumerable of FunctionMetadata</returns>
-        Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync(string directory);
+        Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory);
     }
 }

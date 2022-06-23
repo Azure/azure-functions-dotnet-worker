@@ -75,23 +75,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-
-namespace Microsoft.Azure.Functions.Worker.Grpc
-{
-    internal class DefaultFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public virtual async Task<ImmutableArray<RpcFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<RpcFunctionMetadata>();
-            var HttpTriggerSimple = new RpcFunctionMetadata();
-            HttpTriggerSimple.Name = 'HttpTriggerSimple';
-            HttpTriggerSimple.ScriptFile = '....somepath';
-            HttpTriggerSimple.Language = 'dotnet-isolated';            
-            HttpTriggerSimple.EntryPoint = 'some-entry';
-            HttpTriggerSimple.IsProxy = false;
-            HttpTriggerSimple.FunctionId = Guid.NewGuid().ToString();
-    }
-}
 ".Replace("'", "\"");
 
             await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(

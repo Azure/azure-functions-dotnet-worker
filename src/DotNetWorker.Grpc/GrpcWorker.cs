@@ -226,7 +226,9 @@ namespace Microsoft.Azure.Functions.Worker
                 if (context is IAsyncDisposable asyncContext)
                 {
                     await asyncContext.DisposeAsync();
-                }  
+                }
+
+                (context as IDisposable)?.Dispose();
             }
 
             return response;
@@ -261,7 +263,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
 
-                foreach(var func in functionMetadataList)
+                foreach (var func in functionMetadataList)
                 {
                     response.FunctionMetadataResults.Add(func);
                 }

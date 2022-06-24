@@ -24,6 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IOutputBindingsInfoProvider> _mockOutputBindingsInfoProvider = new(MockBehavior.Strict);
         private readonly Mock<IMethodInfoLocator> _mockMethodInfoLocator = new(MockBehavior.Strict);
         private TestFunctionContext _context = new();
+        private TestAsyncFunctionContext _asyncContext = new();
 
         public GrpcWorkerTests()
         {
@@ -119,6 +120,28 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True(_context.IsDisposed);
+        }
+
+        [Fact]
+        public async Task Invoke_ReturnsSuccess_AsyncFunctionContext()
+        {
+            var request = CreateInvocationRequest();
+
+            // Mock IFunctionApplication.CreateContext to return TestAsyncFunctionContext instance.
+            _mockApplication
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>()))
+                .Returns<IInvocationFeatures>(f =>
+                {
+                    _context = new TestAsyncFunctionContext(f);
+                    return _context;
+                });
+
+            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
+                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True((_context as TestAsyncFunctionContext).IsAsyncDisposed);
             Assert.True(_context.IsDisposed);
         }
 

@@ -65,6 +65,8 @@ namespace Microsoft.Azure.Functions.Worker
                 await asyncServiceScope.DisposeAsync();
             }
 
+            _instanceServicesScope?.Dispose();
+
             _instanceServicesScope = null;
             _instanceServices = null;
         }

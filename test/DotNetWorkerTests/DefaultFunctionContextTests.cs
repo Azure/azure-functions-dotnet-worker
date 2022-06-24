@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Throws<ObjectDisposedException>(services.GetService<ScopedService>);
             Assert.True(scopedService.IsDisposed);
             Assert.True(transientService.IsDisposed);
-            Assert.True(asyncTransientService.IsDisposed);
+            Assert.True(asyncTransientService.IsAsyncDisposed);
             Assert.False(singletonService.IsDisposed);
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private class SingletonService : IDisposable
         {
             public SingletonService() { }
-            public bool IsDisposed { get; protected set; }
+            public bool IsDisposed { get; private set; }
             public void Dispose()
             {
                 IsDisposed = true;
@@ -79,9 +79,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         private class AsyncTransientService : TransientService, IAsyncDisposable
         {
+            public bool IsAsyncDisposed { get; private set; }
+
             public ValueTask DisposeAsync()
             {
-                IsDisposed = true;
+                IsAsyncDisposed = true;
                 return default;
             }
         }

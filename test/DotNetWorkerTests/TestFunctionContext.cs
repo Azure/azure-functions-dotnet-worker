@@ -11,10 +11,29 @@ using Microsoft.Azure.Functions.Worker.Tests.Features;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestFunctionContext : FunctionContext, IAsyncDisposable
+    internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
+    {
+        public TestAsyncFunctionContext()
+            : base(new TestFunctionDefinition(), new TestFunctionInvocation())
+        {
+        }
+        public TestAsyncFunctionContext(IInvocationFeatures features) : base(features)
+        {
+        }
+
+        public bool IsAsyncDisposed { get; private set; }
+
+        public ValueTask DisposeAsync()
+        {
+            IsAsyncDisposed = true;
+            return default;
+        }
+    }
+
+    internal class TestFunctionContext : FunctionContext, IDisposable
     {
         private readonly FunctionInvocation _invocation;
-     
+
         public TestFunctionContext()
             : this(new TestFunctionDefinition(), new TestFunctionInvocation())
         {
@@ -47,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             BindingContext = new DefaultBindingContext(this);
         }
 
-        public bool IsDisposed { get; private set; }
+        public bool IsDisposed { get; internal set; }
 
         public override IServiceProvider InstanceServices { get; set; }
 
@@ -67,10 +86,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override RetryContext RetryContext => Features.Get<IExecutionRetryFeature>()?.Context;
 
-        public ValueTask DisposeAsync()
+        public void Dispose()
         {
             IsDisposed = true;
-            return default;
         }
     }
 }

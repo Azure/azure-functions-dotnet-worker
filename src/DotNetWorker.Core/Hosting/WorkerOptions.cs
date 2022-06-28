@@ -3,6 +3,7 @@
 
 using System.Text.Json;
 using Azure.Core.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -21,5 +22,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the collection of input converters.
         /// </summary>
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
+
+        /// <summary>
+        /// Gets or sets a value indicating whether to send <see cref="ILogger"/> logs through the Functions host.
+        /// </summary>
+        public bool DisableHostLogger { get; set; } = false;
     }
 }

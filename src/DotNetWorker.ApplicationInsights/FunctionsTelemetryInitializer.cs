@@ -3,33 +3,54 @@
 
 using System;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 
 namespace Microsoft.Azure.WebJobs.Logging.ApplicationInsights
 {
     internal class FunctionsTelemetryInitializer : ITelemetryInitializer
     {
+        private const string NameKey = "Name";
+
         private readonly string _sdkVersion;
         private readonly string _roleInstanceName;
 
-        public FunctionsTelemetryInitializer(ISdkVersionProvider versionProvider, IRoleInstanceProvider roleInstanceProvider)
+        internal FunctionsTelemetryInitializer(string sdkVersion, string roleInstanceName)
         {
-            if (versionProvider == null)
+            _sdkVersion = sdkVersion;
+            _roleInstanceName = roleInstanceName;
+        }
+
+        public FunctionsTelemetryInitializer() :
+            this(GetSdkVersion(), GetRoleInstanceName())
+        {
+        }
+
+        private static string GetSdkVersion()
+        {
+            return "azurefunctions-netiso: " + typeof(FunctionsTelemetryInitializer).Assembly.GetCustomAttribute<AssemblyFileVersionAttribute>()!.Version;
+        }
+
+        private static string GetRoleInstanceName()
+        {
+            const string ComputerNameKey = "COMPUTERNAME";
+            const string WebSiteInstanceIdKey = "WEBSITE_INSTANCE_ID";
+            const string ContainerNameKey = "CONTAINER_NAME";
+
+            string? instanceName = Environment.GetEnvironmentVariable(WebSiteInstanceIdKey);
+            if (string.IsNullOrEmpty(instanceName))
             {
-                throw new ArgumentNullException(nameof(versionProvider));
+                instanceName = Environment.GetEnvironmentVariable(ComputerNameKey);
+                if (string.IsNullOrEmpty(instanceName))
+                {
+                    instanceName = Environment.GetEnvironmentVariable(ContainerNameKey);
+                }
             }
 
-            if (roleInstanceProvider == null)
-            {
-                throw new ArgumentNullException(nameof(roleInstanceProvider));
-            }
-
-            _sdkVersion = versionProvider.GetSdkVersion();
-            _roleInstanceName = roleInstanceProvider.GetRoleInstanceName();
+            return instanceName ?? "Unknown";
         }
 
         public void Initialize(ITelemetry telemetry)
@@ -48,7 +69,7 @@ namespace Microsoft.Azure.WebJobs.Logging.ApplicationInsights
                 {
                     switch (tag.Key)
                     {
-                        case LogConstants.NameKey:
+                        case NameKey:
                             telemetry.Context.Operation.Name = tag.Value;
                             continue;
                         default:

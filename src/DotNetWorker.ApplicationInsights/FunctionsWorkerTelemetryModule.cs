@@ -19,6 +19,7 @@ namespace DotNetWorker.ApplicationInsights
                 ShouldListenTo = source => source.Name.StartsWith("Microsoft.Azure.Functions.Worker"),
                 ActivityStarted = activity =>
                 {
+                    telemetryClient.StartOperation<DependencyTelemetry>(activity);
                     var dependency = new DependencyTelemetry("Azure.Functions", activity.OperationName, activity.OperationName, null);
                     activity.AddTag("_depTel", dependency);
                     dependency.Start();

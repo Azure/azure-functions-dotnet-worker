@@ -1,15 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Google.Protobuf.Collections;
+﻿using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
     internal sealed partial class RpcFunctionMetadata : IFunctionMetadata
     {
-        IEnumerable<string> IFunctionMetadata.RawBindings => RawBindings;
+        IList<string> IFunctionMetadata.RawBindings => RawBindings;
     }
 }

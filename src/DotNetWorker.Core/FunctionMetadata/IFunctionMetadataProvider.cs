@@ -5,9 +5,12 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Core
 {
-    internal interface IFunctionMetadataProvider
+    /// <summary>
+    /// Returns function metadata information from an app.
+    /// </summary>
+    public interface IFunctionMetadataProvider
     {
 
         /// <summary>

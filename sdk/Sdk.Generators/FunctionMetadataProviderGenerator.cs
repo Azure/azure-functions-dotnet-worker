@@ -34,10 +34,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using System.Collections.Immutable;");
                 indentedTextWriter.WriteLine("using System.Text.Json;");
                 indentedTextWriter.WriteLine("using System.Threading.Tasks;");
+                indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core;");
                 indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
-                indentedTextWriter.WriteLine(" internal class SampleGenFunctionMetadtaJsonProvider : IFunctionMetadataJsonProvider");
+                indentedTextWriter.WriteLine("public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
                 WriteGetFunctionsMetadataAsyncMethod(indentedTextWriter, receiver, compilation);
@@ -52,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             // Add the source code to the compilation
-            context.AddSource($"SourceGeneratedFunctionMetadataProvider.g.cs", sourceText);
+            context.AddSource("SourceGeneratedFunctionMetadataProvider.g.cs", sourceText);
         }
 
         private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
@@ -70,27 +71,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private static void AddFunctionMetadataInfo(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
         {
             var assemblyName = compilation.Assembly.Name;
-            var scriptFile = Path.Combine("bin/" + assemblyName + ".dll");
+            var scriptFile = Path.Combine(assemblyName + ".dll");
 
             foreach (MethodDeclarationSyntax method in receiver.CandidateMethods)
             {
-
                 var functionClass = (ClassDeclarationSyntax)method.Parent!;
                 var functionName = functionClass.Identifier.ValueText;
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
-
-                indentedTextWriter.WriteLine("var " + functionName + " = new ");
-                indentedTextWriter.WriteLine("{");
-                indentedTextWriter.Indent++;
-                indentedTextWriter.WriteLine("name = " + "\"" + functionName + "\";");
-                indentedTextWriter.WriteLine("scriptFile = \"" + scriptFile + "\";");
-                indentedTextWriter.WriteLine("language = \"dotnet-isolated\";");
-                indentedTextWriter.WriteLine("entryPoint = \"" + entryPoint + "\";");
-                indentedTextWriter.WriteLine("isProxy = false;");
-                indentedTextWriter.WriteLine("bindings = new List<Object>()");
-                indentedTextWriter.Indent--;
-                indentedTextWriter.WriteLine("};");
                 AddBindingInfo(indentedTextWriter, method, compilation, functionName);
+                indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), dotnet-isolated, " + functionName + ",  " + entryPoint + ", " +  functionName + "RawBindings" + ", " + scriptFile);
                 indentedTextWriter.WriteLine("metadataList.Add(" + functionName + ");");
             }
 
@@ -111,15 +100,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // Get the parameter symbol and grab the first attribute
                 // We are assuming that any function that has an attribute has only one (the input/output binding or trigger)
-                IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameter) as IParameterSymbol;
+                IParameterSymbol? parameterSymbol = model.GetDeclaredSymbol(parameter);
+
+                if (parameterSymbol is null)
+                {
+                    throw new InvalidOperationException($"The symbol for the parameter '{nameof(parameter)}' could not be found");
+                }
+
                 AttributeData attributeData = parameterSymbol.GetAttributes().First();
 
                 // Get the attribute syntax and treat the constructor as a method (IMethodSymbol)
                 AttributeSyntax attributeSyntax = parameter.AttributeLists.First().Attributes.First();
-                IMethodSymbol attribMethodSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
+                IMethodSymbol? attribMethodSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
 
                 // Check if the constructor has any parameters
-                if (attribMethodSymbol?.Parameters is null)
+                if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
                 {
                     throw new InvalidOperationException($"The constructor of attribute with syntax '{nameof(attributeSyntax)}' is invalid");
                 }
@@ -142,6 +137,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     bindingDirection = "Out";
                 }
 
+                var bindingsListName = functionName + "RawBindings";
+                indentedTextWriter.WriteLine("var " + bindingsListName + " = new List<string>();");
+
                 // Create raw binding anonymous type, example:
                 /*  var binding1 = new {
                     name = "req",
@@ -150,7 +148,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     authLevel = "Anonymous",
                     methods = new List<string> { "get", "post" }
                 };*/
-                indentedTextWriter.WriteLine("var " + "binding" + bindingCount.ToString() + " = new {");
+                indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName+binding+number
                 indentedTextWriter.Indent++;
                 indentedTextWriter.WriteLine("name = \"" + bindingName + "\",");
                 indentedTextWriter.WriteLine("type = \"" + bindingType + "\",");
@@ -163,7 +161,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (prop.Value.GetType().IsArray)
                     {
-                        string arr = FormatArray(prop.Value as IEnumerable);
+                        string arr = FormatArray((IEnumerable)prop.Value);
                         indentedTextWriter.WriteLine(propertyName + " = " + arr + ",");
                     }
                     else
@@ -175,8 +173,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("};");
-
-                indentedTextWriter.WriteLine(functionName + ".bindings.Add(" + "binding" + bindingCount.ToString() + ");");
+                indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + "JSONstring = JsonSerializer.Serialize(" + functionName + "Binding" + bindingCount.ToString() + ").ToString();");
+                indentedTextWriter.WriteLine(bindingsListName + ".Add(" + functionName + "Binding" + bindingCount.ToString() + "JSONstring);");
 
                 bindingCount++;
 
@@ -185,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     var totalBindings = method.ParameterList.Parameters.Count(param => param.AttributeLists.Count > 0);
 
-                    indentedTextWriter.WriteLine("var " + "binding" + bindingCount.ToString() + " = new {");
+                    indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {");
                     indentedTextWriter.Indent++;
 
                     // if there are only two bindings and an httptrigger, then we use "$return"
@@ -204,7 +202,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine("direction = \"" + "Out" + "\",");
                     indentedTextWriter.Indent--;
                     indentedTextWriter.WriteLine("};");
-                    indentedTextWriter.WriteLine(functionName + ".bindings.Add(" + "binding" + bindingCount.ToString() + ");");
+                    // example: var HttpTriggerSimplebinding1JsonString = JsonSerializer.Serialize(req).ToString();
+                    indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + "JSONstring = JsonSerializer.Serialize(" + functionName + "Binding" + bindingCount.ToString() + ").ToString();");
+                    indentedTextWriter.WriteLine(functionName + "RawBindings.Add(" + "Binding" + bindingCount.ToString() + "JSONstring);");
                     bindingCount++;
                 }
             }
@@ -294,14 +294,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     case TypedConstantKind.Error:
                         break;
                     case TypedConstantKind.Primitive:
+                        dict[argumentName] = arg.Value;
+                        break;
                     case TypedConstantKind.Enum:
                         // what enum types do we have? Is it just AuthorizationLevel?
-                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type.Name.ToString() + ")," + arg.Value + ")";
+                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + ")," + arg.Value + ")";
                         break;
                     case TypedConstantKind.Type:
                         break;
                     case TypedConstantKind.Array:
-                        var arrayValues = arg.Values.Select(a => a.Value.ToString()).ToArray();
+                        var arrayValues = arg.Values.Select(a => a.Value!.ToString()).ToArray();
                         dict[argumentName] = arrayValues;
                         break;
                     default:

@@ -1,8 +1,7 @@
 ﻿using System;
-using DotNetWorker.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WorkerService;
-using Microsoft.Azure.WebJobs.Logging.ApplicationInsights;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.ApplicationInsights;
@@ -20,8 +19,9 @@ namespace Microsoft.Azure.Functions.Worker
         public static IFunctionsWorkerApplicationBuilder AddApplicationInsights(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsServiceOptions>? configureOptions = null)
         {
             builder.Services.AddSingleton<ITelemetryInitializer, FunctionsTelemetryInitializer>();
-            builder.Services.AddSingleton<ITelemetryModule, FunctionsWorkerTelemetryModule>();
+            builder.Services.AddSingleton<ITelemetryModule, FunctionsTelemetryModule>();
 
+            configureOptions ??= o => { };
             builder.Services.AddApplicationInsightsTelemetryWorkerService(configureOptions);
 
             return builder;
@@ -39,6 +39,7 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.AddOptions<WorkerOptions>().Configure(options => options.DisableHostLogger = true);
             builder.Services.AddLogging(logging =>
             {
+                configureOptions ??= o => { };
                 logging.AddApplicationInsights(configureOptions);
             });
 

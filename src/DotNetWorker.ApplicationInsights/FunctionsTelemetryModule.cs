@@ -4,9 +4,9 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
-namespace DotNetWorker.ApplicationInsights
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 {
-    internal class FunctionsWorkerTelemetryModule : ITelemetryModule, IDisposable
+    internal class FunctionsTelemetryModule : ITelemetryModule, IDisposable
     {
         private ActivityListener? _listener;
 
@@ -21,12 +21,12 @@ namespace DotNetWorker.ApplicationInsights
                 {
                     telemetryClient.StartOperation<DependencyTelemetry>(activity);
                     var dependency = new DependencyTelemetry("Azure.Functions", activity.OperationName, activity.OperationName, null);
-                    activity.AddTag("_depTel", dependency);
+                    activity.SetCustomProperty("_depTel", dependency);
                     dependency.Start();
                 },
                 ActivityStopped = activity =>
                 {
-                    var dependency = activity.GetTagItem("_depTel") as DependencyTelemetry;
+                    var dependency = activity.GetCustomProperty("_depTel") as DependencyTelemetry;
                     dependency.Stop();
                     telemetryClient.TrackDependency(dependency);
                 },

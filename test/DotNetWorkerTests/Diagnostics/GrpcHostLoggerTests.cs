@@ -20,22 +20,29 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
 {
     public class GrpcHostLoggerTests
     {
-        private readonly GrpcFunctionsHostLoggerProvider _provider;
         private readonly Channel<StreamingMessage> _channel;
 
         public GrpcHostLoggerTests()
         {
             _channel = Channel.CreateUnbounded<StreamingMessage>();
-            var outputChannel = new GrpcHostChannel(_channel);
-            var workerOptions = Options.Create(new WorkerOptions { Serializer = new JsonObjectSerializer() });
-            _provider = new GrpcFunctionsHostLoggerProvider(outputChannel, workerOptions);
-            _provider.SetScopeProvider(new LoggerExternalScopeProvider());
         }
 
-        [Fact]
-        public async Task UserLog()
+        private GrpcFunctionsHostLoggerProvider GetProvider(bool disableHostLogger)
         {
-            var logger = _provider.CreateLogger("TestLogger");
+            var outputChannel = new GrpcHostChannel(_channel);
+            var workerOptions = Options.Create(new WorkerOptions { Serializer = new JsonObjectSerializer(), DisableHostLogger = disableHostLogger });
+            var provider = new GrpcFunctionsHostLoggerProvider(outputChannel, workerOptions);
+            provider.SetScopeProvider(new LoggerExternalScopeProvider());
+
+            return provider;
+        }
+
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task UserLog(bool disableHostLogger)
+        {
+            var logger = GetProvider(disableHostLogger).CreateLogger("TestLogger");
 
             logger.LogInformation("user");
 
@@ -53,13 +60,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
                 Assert.Equal("0", msg.RpcLog.EventId);
             }
 
-            Assert.Equal(1, count);
+            int expected = disableHostLogger ? 0 : 1;
+            Assert.Equal(expected, count);
         }
 
-        [Fact]
-        public async Task CustomMetric()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task CustomMetric(bool disableHostLogger)
         {
-            var logger = _provider.CreateLogger("TestLogger");
+            // CustomMetrics are written to the host whether host logging is disabled or not
+            var logger = GetProvider(disableHostLogger).CreateLogger("TestLogger");
 
             logger.LogMetric("testMetric", 1d, new Dictionary<string, object>
             {
@@ -92,10 +103,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
             Assert.Equal(1, count);
         }
 
-        [Fact]
-        public async Task SystemLog_WithException_AndScope()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task SystemLog_WithException_AndScope(bool disableHostLogger)
         {
-            var logger = _provider.CreateLogger("TestLogger");
+            var logger = GetProvider(disableHostLogger).CreateLogger("TestLogger");
             Exception thrownException = null;
 
             using (logger.BeginScope(new FunctionInvocationScope("MyFunction", "MyInvocationId")))
@@ -125,19 +138,23 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
                 msgs.Add(msg);
             }
 
-            Assert.Collection(msgs,
-                p =>
-                {
-                    Assert.Equal("TestLogger", p.RpcLog.Category);
-                    Assert.Equal(RpcLogCategory.System, p.RpcLog.LogCategory);
-                    Assert.Equal("system log with this", p.RpcLog.Message);
-                    Assert.Equal("One", p.RpcLog.EventId);
-                    Assert.Equal("MyInvocationId", p.RpcLog.InvocationId);
-                    Assert.Equal(thrownException.ToString(), p.RpcLog.Exception.Message);
-                    Assert.Equal("Microsoft.Azure.Functions.Worker.Tests", p.RpcLog.Exception.Source);
-                    Assert.Contains(nameof(SystemLog_WithException_AndScope), p.RpcLog.Exception.StackTrace);
-                },
-                p =>
+            List<Action<StreamingMessage>> expected = new();
+            expected.Add(p =>
+            {
+                Assert.Equal("TestLogger", p.RpcLog.Category);
+                Assert.Equal(RpcLogCategory.System, p.RpcLog.LogCategory);
+                Assert.Equal("system log with this", p.RpcLog.Message);
+                Assert.Equal("One", p.RpcLog.EventId);
+                Assert.Equal("MyInvocationId", p.RpcLog.InvocationId);
+                Assert.Equal(thrownException.ToString(), p.RpcLog.Exception.Message);
+                Assert.Equal("Microsoft.Azure.Functions.Worker.Tests", p.RpcLog.Exception.Source);
+                Assert.Contains(nameof(SystemLog_WithException_AndScope), p.RpcLog.Exception.StackTrace);
+            });
+
+            if (!disableHostLogger)
+            {
+                // User logs are ignored when host logger is disabled
+                expected.Add(p =>
                 {
                     Assert.Equal("TestLogger", p.RpcLog.Category);
                     Assert.Equal(RpcLogCategory.User, p.RpcLog.LogCategory);
@@ -146,6 +163,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
                     Assert.Equal("MyInvocationId", p.RpcLog.InvocationId);
                     Assert.Null(p.RpcLog.Exception);
                 });
+            }
+
+            Assert.Collection(msgs, expected.ToArray());
         }
     }
 }

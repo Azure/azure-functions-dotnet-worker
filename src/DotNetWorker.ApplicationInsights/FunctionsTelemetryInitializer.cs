@@ -9,7 +9,7 @@ using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 
-namespace Microsoft.Azure.WebJobs.Logging.ApplicationInsights
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 {
     internal class FunctionsTelemetryInitializer : ITelemetryInitializer
     {

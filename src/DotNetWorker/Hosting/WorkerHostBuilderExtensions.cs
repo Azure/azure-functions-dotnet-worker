@@ -2,10 +2,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
+using System.Linq;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Extensions.Hosting
 {
@@ -158,6 +162,8 @@ namespace Microsoft.Extensions.Hosting
                 {
                     configBuilder.AddEnvironmentVariables();
 
+                    configBuilder.AddHostJson();
+
                     var cmdLine = Environment.GetCommandLineArgs();
                     RegisterCommandLine(configBuilder, cmdLine);
                 })
@@ -170,6 +176,11 @@ namespace Microsoft.Extensions.Hosting
 
                     // Add default middleware
                     appBuilder.UseDefaultWorkerMiddleware();
+                })
+                .ConfigureLogging((context, loggingBuilder) =>
+                {
+                    var loggingPath = ConfigurationPath.Combine(HostJsonConfigurationProvider.SectionName, "logging");
+                    loggingBuilder.AddConfiguration(context.Configuration.GetSection(loggingPath));
                 });
 
             return builder;
@@ -198,6 +209,55 @@ namespace Microsoft.Extensions.Hosting
             }
 
             builder.AddCommandLine(cmdLine);
+        }
+    }
+
+    internal static class Extensions
+    {
+        internal static IConfigurationBuilder AddHostJson(this IConfigurationBuilder builder)
+        {
+            builder.Add<HostJsonConfigurationSource>(source =>
+            {
+                source.Path = "host.json";
+                source.Optional = true;
+                source.ReloadOnChange = false;
+                source.ResolveFileProvider();
+            });
+
+            return builder;
+        }
+    }
+
+    internal class HostJsonConfigurationSource : JsonConfigurationSource
+    {
+        public HostJsonConfigurationSource() : base()
+        {
+        }
+
+        public override IConfigurationProvider Build(IConfigurationBuilder builder)
+        {
+            base.EnsureDefaults(builder);
+            return new HostJsonConfigurationProvider(this);
+        }
+    }
+
+    internal class HostJsonConfigurationProvider : JsonConfigurationProvider
+    {
+        public const string SectionName = "AzureFunctionsHostJson";
+
+        public HostJsonConfigurationProvider(JsonConfigurationSource source) : base(source)
+        {
+        }
+
+        public override void Load(Stream stream)
+        {
+            base.Load(stream);
+
+            foreach (var entry in Data.ToArray())
+            {
+                Data[ConfigurationPath.Combine(SectionName, entry.Key)] = entry.Value;
+                Data.Remove(entry.Key);
+            }
         }
     }
 }

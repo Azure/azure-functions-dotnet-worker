@@ -23,13 +23,16 @@ namespace Microsoft.Azure.Functions.Worker.Logging
         private readonly ChannelWriter<StreamingMessage> _channelWriter;
         private readonly IExternalScopeProvider _scopeProvider;
         private readonly ObjectSerializer _serializer;
+        private readonly bool _disableHostLogger;
 
-        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider, ObjectSerializer serializer)
+        public GrpcFunctionsHostLogger(string category, ChannelWriter<StreamingMessage> channelWriter, IExternalScopeProvider scopeProvider,
+            ObjectSerializer serializer, bool disableHostLogger)
         {
             _category = category ?? throw new ArgumentNullException(nameof(category));
             _channelWriter = channelWriter ?? throw new ArgumentNullException(nameof(channelWriter));
             _scopeProvider = scopeProvider ?? throw new ArgumentNullException(nameof(scopeProvider));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            _disableHostLogger = disableHostLogger;
         }
 
         public IDisposable BeginScope<TState>(TState state)
@@ -51,6 +54,12 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             }
             else
             {
+                // disable user logs going to host
+                if (_disableHostLogger && !WorkerMessage.IsSystemLog)
+                {
+                    return;
+                }
+
                 var response = new StreamingMessage();
                 string message = formatter(state, exception);
                 var rpcLog = new RpcLog

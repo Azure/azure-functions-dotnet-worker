@@ -40,7 +40,8 @@ namespace CustomMiddleware
                 {
                     // Create an instance of HttpResponseData with 500 status code.
                     var newHttpResponse = httpReqData.CreateResponse(HttpStatusCode.InternalServerError);
-                    // You need to explicitly pass the status code in WriteAsJsonAsync method due to #776
+                    // You need to explicitly pass the status code in WriteAsJsonAsync method.
+                    // https://github.com/Azure/azure-functions-dotnet-worker/issues/776
                     await newHttpResponse.WriteAsJsonAsync(new { FooStatus = "Invocation failed!" }, newHttpResponse.StatusCode);
 
                     // Update invocation result.

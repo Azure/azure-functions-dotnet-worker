@@ -1,9 +1,10 @@
 ﻿using System.Diagnostics;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests;
+namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
 public class FunctionsTelemetryInitializerTests
 {

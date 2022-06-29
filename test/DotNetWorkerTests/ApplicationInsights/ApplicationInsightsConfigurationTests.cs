@@ -8,13 +8,14 @@ using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPuls
 using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.ApplicationInsights;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests;
+namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
 public class ApplicationInsightsConfigurationTests
 {

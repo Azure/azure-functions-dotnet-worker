@@ -8,18 +8,19 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 {
     internal class FunctionsTelemetryModule : ITelemetryModule, IDisposable
     {
+        private TelemetryClient _telemetryClient = default!;
         private ActivityListener? _listener;
 
         public void Initialize(TelemetryConfiguration configuration)
         {
-            var telemetryClient = new TelemetryClient(configuration);
+            _telemetryClient = new TelemetryClient(configuration);
 
             _listener = new ActivityListener
             {
                 ShouldListenTo = source => source.Name.StartsWith("Microsoft.Azure.Functions.Worker"),
                 ActivityStarted = activity =>
                 {
-                    telemetryClient.StartOperation<DependencyTelemetry>(activity);
+                    _telemetryClient.StartOperation<DependencyTelemetry>(activity);
                     var dependency = new DependencyTelemetry("Azure.Functions", activity.OperationName, activity.OperationName, null);
                     activity.SetCustomProperty("_depTel", dependency);
                     dependency.Start();
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                 {
                     var dependency = activity.GetCustomProperty("_depTel") as DependencyTelemetry;
                     dependency.Stop();
-                    telemetryClient.TrackDependency(dependency);
+                    _telemetryClient.TrackDependency(dependency);
                 },
                 Sample = (ref ActivityCreationOptions<ActivityContext> sampleActivity) => ActivitySamplingResult.AllData
             };
@@ -38,6 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 
         public void Dispose()
         {
+            _telemetryClient?.Flush();
             _listener?.Dispose();
         }
     }

@@ -6,21 +6,21 @@ namespace Extensions.SignalR
     public static class SignalRTriggerFunctions
     {
         [Function("OnConnected")]
-        public static void OnConnected([SignalRTrigger("chat", "connections", "connected")] SignalRInvocationContext invocationContext, FunctionContext functionContext)
+        public static void OnConnected([SignalRTrigger("chat", "connections", "connected", ConnectionStringSetting = "SignalRConnection")] SignalRInvocationContext invocationContext, FunctionContext functionContext)
         {
             var logger = functionContext.GetLogger("OnConnected");
             logger.LogInformation($"Connection {invocationContext.ConnectionId} is connected");
         }
 
         [Function("OnDisconnected")]
-        public static void OnDisconnected([SignalRTrigger("chat", "connections", "disconnected")] SignalRInvocationContext invocationContext, FunctionContext functionContext)
+        public static void OnDisconnected([SignalRTrigger("chat", "connections", "disconnected", ConnectionStringSetting = "SignalRConnection")] SignalRInvocationContext invocationContext, FunctionContext functionContext)
         {
             var logger = functionContext.GetLogger("OnDisconnected");
             logger.LogInformation($"Connection {invocationContext.ConnectionId} is disconnected. Error: {invocationContext.Error}");
         }
 
         [Function("OnClientMessage")]
-        public static void OnClientMessage([SignalRTrigger("Hub", "messages", "sendMessage", "content")] SignalRInvocationContext invocationContext, string content, FunctionContext functionContext)
+        public static void OnClientMessage([SignalRTrigger("Hub", "messages", "sendMessage", "content", ConnectionStringSetting = "SignalRConnection")] SignalRInvocationContext invocationContext, string content, FunctionContext functionContext)
         {
             var logger = functionContext.GetLogger("OnClientMessage");
             logger.LogInformation($"Connection {invocationContext.ConnectionId} sent a message. Message content: {content}");

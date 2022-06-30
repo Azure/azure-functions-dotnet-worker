@@ -58,10 +58,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
         {
-            indentedTextWriter.WriteLine("public Task<ImmutableArray<JsonElement>> GetFunctionMetadataJsonAsync(string directory)");
+            indentedTextWriter.WriteLine("public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)");
             indentedTextWriter.WriteLine("{");
             indentedTextWriter.Indent++;
-            indentedTextWriter.WriteLine("var metadataList = new List<JsonElement>();");
+            indentedTextWriter.WriteLine("var metadataList = new List<IFunctionMetadata>();");
             AddFunctionMetadataInfo(indentedTextWriter, receiver, compilation);
             indentedTextWriter.WriteLine("return Task.FromResult(metadataList.ToImmutableArray());");
             indentedTextWriter.Indent--;
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var functionName = functionClass.Identifier.ValueText;
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
                 AddBindingInfo(indentedTextWriter, method, compilation, functionName);
-                indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), dotnet-isolated, " + functionName + ",  " + entryPoint + ", " +  functionName + "RawBindings" + ", " + scriptFile);
+                indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"" + functionName + "\",  \"" + entryPoint + "\", " +  functionName + "RawBindings" + ", \"" + scriptFile + "\");");
                 indentedTextWriter.WriteLine("metadataList.Add(" + functionName + ");");
             }
 
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine("};");
                     // example: var HttpTriggerSimplebinding1JsonString = JsonSerializer.Serialize(req).ToString();
                     indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + "JSONstring = JsonSerializer.Serialize(" + functionName + "Binding" + bindingCount.ToString() + ").ToString();");
-                    indentedTextWriter.WriteLine(functionName + "RawBindings.Add(" + "Binding" + bindingCount.ToString() + "JSONstring);");
+                    indentedTextWriter.WriteLine(functionName + "RawBindings.Add(" + functionName + "Binding" + bindingCount.ToString() + "JSONstring);");
                     bindingCount++;
                 }
             }
@@ -316,7 +316,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             if (propValue != null)
             {
-                if (propValue.ToString().Contains("\""))
+                // catch values that are already strings or Enum parsing
+                if (propValue.ToString().Contains("\"") || propValue.ToString().Contains("Enum"))
                 {
                     return propValue.ToString();
                 }

@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             BindingContext = new DefaultBindingContext(this);
         }
 
-        public bool IsDisposed { get; internal set; }
+        public bool IsDisposed { get; private set; }
 
         public override IServiceProvider InstanceServices { get; set; }
 

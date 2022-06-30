@@ -73,9 +73,20 @@ public class ApplicationInsightsConfigurationTests
         Assert.Collection(loggerProviders,
             t => Assert.Equal(typeof(ApplicationInsightsLoggerProvider), t.ImplementationType));
 
+        var initializers = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
+        Assert.Collection(initializers,
+            t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType));
+
+        var modules = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryModule));
+        Assert.Collection(modules,
+            t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType));
+
         var serviceProvider = builder.Services.BuildServiceProvider();
         var workerOptions = serviceProvider.GetRequiredService<IOptions<WorkerOptions>>();
         Assert.True(workerOptions.Value.DisableHostLogger);
+
+        var appInsightsOptions = serviceProvider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
+        Assert.False(appInsightsOptions.Value.IncludeScopes);
     }
 
     [Fact]
@@ -95,6 +106,33 @@ public class ApplicationInsightsConfigurationTests
         Assert.NotNull(options.Value);
 
         Assert.True(called);
+    }
 
+    [Fact]
+    public void AddingServiceAndLogger_OnlyAddsServicesOnce()
+    {
+        var builder = new TestAppBuilder()
+            .AddApplicationInsights()
+            .AddApplicationInsightsLogger();
+
+        // Ensure that our Initializer and Module are added alongside the defaults
+        var initializers = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
+        Assert.Collection(initializers,
+            t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
+            t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
+            t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
+            t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
+            t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
+
+        var modules = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryModule));
+        Assert.Collection(modules,
+            t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
+            t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
+            t => Assert.Equal(typeof(AppServicesHeartbeatTelemetryModule), t.ImplementationType),
+            t => Assert.Equal(typeof(AzureInstanceMetadataTelemetryModule), t.ImplementationType),
+            t => Assert.Equal(typeof(PerformanceCollectorModule), t.ImplementationType),
+            t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
+            t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
+            t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
     }
 }

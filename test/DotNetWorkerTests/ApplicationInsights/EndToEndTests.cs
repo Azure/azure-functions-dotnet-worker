@@ -46,19 +46,15 @@ public class EndToEndTests
     }
 
     [Fact]
-    public async Task DoIt()
+    public async Task Logger_SendsTraceTelemetry()
     {
         var def = new AppInsightsFunctionDefinition();
         _application.LoadFunction(def);
-
         var invocation = new TestFunctionInvocation(functionId: def.Id);
-
         var features = _invocationFeatures.Create();
         features.Set<FunctionInvocation>(invocation);
-
         var inputConversionProvider = _host.Services.GetRequiredService<IInputConversionFeatureProvider>();
         inputConversionProvider.TryCreate(typeof(DefaultInputConversionFeature), out var inputConversion);
-
         features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature());
         features.Set<IInputConversionFeature>(inputConversion);
 
@@ -66,12 +62,16 @@ public class EndToEndTests
 
         await _application.InvokeFunctionAsync(context);
 
+        // Log written in test function should go to App Insights directly
         Assert.Collection(_channel.Telemetries,
             t =>
             {
                 var trace = (TraceTelemetry)t;
                 Assert.Equal("Test", trace.Message);
                 Assert.Equal(SeverityLevel.Warning, trace.SeverityLevel);
+
+                // This ensures we've disabled scopes by default
+                Assert.DoesNotContain("AzureFunctions_InvocationId", trace.Properties.Keys);
             });
     }
 

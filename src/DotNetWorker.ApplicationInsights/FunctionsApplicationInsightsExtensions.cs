@@ -21,8 +21,10 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.AddSingleton<ITelemetryInitializer, FunctionsTelemetryInitializer>();
             builder.Services.AddSingleton<ITelemetryModule, FunctionsTelemetryModule>();
 
-            configureOptions ??= o => { };
-            builder.Services.AddApplicationInsightsTelemetryWorkerService(configureOptions);
+            builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
+            {
+                configureOptions?.Invoke(options);
+            });
 
             return builder;
         }
@@ -39,8 +41,11 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.AddOptions<WorkerOptions>().Configure(options => options.DisableHostLogger = true);
             builder.Services.AddLogging(logging =>
             {
-                configureOptions ??= o => { };
-                logging.AddApplicationInsights(configureOptions);
+                logging.AddApplicationInsights(options =>
+                {
+                    options.IncludeScopes = false;
+                    configureOptions?.Invoke(options);
+                });
             });
 
             return builder;

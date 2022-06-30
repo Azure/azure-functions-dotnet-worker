@@ -81,7 +81,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
-                                  .Replace('$functionWorker$', '$(TargetName).exe'))"
+                                  .Replace('$functionWorker$', '$(TargetName).exe')
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
             Overwrite="true" />
     </Target>
 
@@ -292,7 +293,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
-                                  .Replace('$functionWorker$', '$(TargetName).exe'))"
+                                  .Replace('$functionWorker$', '$(TargetName).exe')
+                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
             Overwrite="true" />
     </Target>
 

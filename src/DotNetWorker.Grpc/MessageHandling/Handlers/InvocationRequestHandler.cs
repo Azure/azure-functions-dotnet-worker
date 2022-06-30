@@ -1,16 +1,17 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Threading.Tasks;
-using Azure.Core;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
-using Microsoft.Azure.Functions.Worker.Grpc.Factory.Contracts;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Options;
 
-namespace Microsoft.Azure.Functions.Worker.Grpc.Factory.Handlers;
+namespace Microsoft.Azure.Functions.Worker.Grpc;
 
 internal class InvocationRequestHandler : IGrpcWorkerMessageHandler
 {

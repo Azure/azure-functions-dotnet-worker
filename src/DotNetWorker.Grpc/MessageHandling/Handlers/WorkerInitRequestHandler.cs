@@ -1,8 +1,11 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Grpc.Factory.Contracts;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
-namespace Microsoft.Azure.Functions.Worker.Grpc.Factory.Handlers;
+namespace Microsoft.Azure.Functions.Worker.Grpc;
+
 internal class WorkerInitRequestHandler : IGrpcWorkerMessageHandler
 {
     public Task<StreamingMessage> HandleMessageAsync(StreamingMessage request)
@@ -27,6 +30,7 @@ internal class WorkerInitRequestHandler : IGrpcWorkerMessageHandler
         response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
 
         responseMessage.WorkerInitResponse = response;
+
         return Task.FromResult(responseMessage);
     }
 }

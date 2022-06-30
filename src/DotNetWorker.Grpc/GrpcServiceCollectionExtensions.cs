@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Channels;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker;
@@ -14,8 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
-using Microsoft.Azure.Functions.Worker.Grpc.Factory;
-using Microsoft.Azure.Functions.Worker.Grpc.Factory.Contracts;
 
 #if NET5_0_OR_GREATER
 using Grpc.Net.Client;

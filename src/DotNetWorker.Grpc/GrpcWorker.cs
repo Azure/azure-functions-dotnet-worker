@@ -9,7 +9,6 @@ using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.Factory.Contracts;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -110,18 +109,14 @@ namespace Microsoft.Azure.Functions.Worker
                 return;
             }
 
-            var response = await handler.HandleMessageAsync(request);
-            if (response == null)
-            {
-                // TODO: Trace failure here.
-                return;
-            }
-
-            await _outputWriter.WriteAsync(response);
+            await _outputWriter.WriteAsync(await handler.HandleMessageAsync(request));
         }
 
-        internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, IFunctionsApplication application,
-            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer, 
+        internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(
+            InvocationRequest request,
+            IFunctionsApplication application,
+            IInvocationFeaturesFactory invocationFeaturesFactory,
+            ObjectSerializer serializer, 
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider functionInputConversionFeatureProvider)
         {

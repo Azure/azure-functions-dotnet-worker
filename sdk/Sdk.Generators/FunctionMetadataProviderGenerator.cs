@@ -35,7 +35,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using System.Text.Json;");
                 indentedTextWriter.WriteLine("using System.Threading.Tasks;");
                 indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core;");
-                indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata");
+                indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core.FunctionMetadata;");
+                indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
                 indentedTextWriter.WriteLine("public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider");
@@ -72,15 +73,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var assemblyName = compilation.Assembly.Name;
             var scriptFile = Path.Combine(assemblyName + ".dll");
+            var count = 0;
 
             foreach (MethodDeclarationSyntax method in receiver.CandidateMethods)
             {
                 var functionClass = (ClassDeclarationSyntax)method.Parent!;
                 var functionName = functionClass.Identifier.ValueText;
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
+                var bindingsListName = functionName + "RawBindings";
+                indentedTextWriter.WriteLine("//Create Function " + count.ToString());
+                indentedTextWriter.WriteLine("var " + bindingsListName + " = new List<string>();");
                 AddBindingInfo(indentedTextWriter, method, compilation, functionName);
                 indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"" + functionName + "\",  \"" + entryPoint + "\", " +  functionName + "RawBindings" + ", \"" + scriptFile + "\");");
                 indentedTextWriter.WriteLine("metadataList.Add(" + functionName + ");");
+                count++;
             }
 
         }
@@ -89,7 +95,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var model = compilation.GetSemanticModel(method.SyntaxTree);
             var bindingCount = 0;
-            
+            var bindingsListName = functionName + "RawBindings";
+
             foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
             {
                 // If there's no attribute, we can assume that this parameter is not a binding
@@ -136,9 +143,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     bindingDirection = "Out";
                 }
-
-                var bindingsListName = functionName + "RawBindings";
-                indentedTextWriter.WriteLine("var " + bindingsListName + " = new List<string>();");
 
                 // Create raw binding anonymous type, example:
                 /*  var binding1 = new {
@@ -226,8 +230,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Initialize(GeneratorInitializationContext context)
         {
-            // Register a syntax receiver that will be created for each generation pass
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         /// <summary>

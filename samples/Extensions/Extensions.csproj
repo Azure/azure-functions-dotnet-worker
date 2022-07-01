@@ -22,7 +22,7 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Kafka" Version="3.2.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ" Version="1.0.0-beta" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="4.2.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.SignalRService" Version="1.2.2" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.SignalRService" Version="1.*" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="4.0.4" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Warmup" Version="4.0.2" />

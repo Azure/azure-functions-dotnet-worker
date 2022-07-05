@@ -1,14 +1,14 @@
-﻿using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using System;
+﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
 
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using System.Text.Json;");
                 indentedTextWriter.WriteLine("using System.Threading.Tasks;");
                 indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core;");
-                indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core.FunctionMetadata;");
+                indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;");
                 indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             // Add the source code to the compilation
-            context.AddSource("SourceGeneratedFunctionMetadataProvider.g.cs", sourceText);
+            context.AddSource($"SourceGeneratedFunctionMetadataProvider.g.cs", sourceText);
         }
 
         private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
@@ -73,7 +73,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var assemblyName = compilation.Assembly.Name;
             var scriptFile = Path.Combine(assemblyName + ".dll");
-            var count = 0;
 
             foreach (MethodDeclarationSyntax method in receiver.CandidateMethods)
             {
@@ -81,12 +80,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var functionName = functionClass.Identifier.ValueText;
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
                 var bindingsListName = functionName + "RawBindings";
-                indentedTextWriter.WriteLine("//Create Function " + count.ToString());
                 indentedTextWriter.WriteLine("var " + bindingsListName + " = new List<string>();");
                 AddBindingInfo(indentedTextWriter, method, compilation, functionName);
                 indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"" + functionName + "\",  \"" + entryPoint + "\", " +  functionName + "RawBindings" + ", \"" + scriptFile + "\");");
                 indentedTextWriter.WriteLine("metadataList.Add(" + functionName + ");");
-                count++;
             }
 
         }
@@ -230,6 +227,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Initialize(GeneratorInitializationContext context)
         {
+            // Register a factory that can create our custom syntax receiver
+            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 
         /// <summary>

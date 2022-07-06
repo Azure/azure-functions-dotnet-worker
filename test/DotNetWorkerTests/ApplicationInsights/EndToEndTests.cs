@@ -51,6 +51,7 @@ public class EndToEndTests
         var def = new AppInsightsFunctionDefinition();
         _application.LoadFunction(def);
         var invocation = new TestFunctionInvocation(functionId: def.Id);
+
         var features = _invocationFeatures.Create();
         features.Set<FunctionInvocation>(invocation);
         var inputConversionProvider = _host.Services.GetRequiredService<IInputConversionFeatureProvider>();
@@ -75,7 +76,6 @@ public class EndToEndTests
                 var dependency = (DependencyTelemetry)t;
 
                 Assert.Equal("TestName", dependency.Context.Operation.Name);
-                Assert.Equal(invocation.TraceContext.TraceParent, dependency.Context.Operation.Id);
 
                 ValidateProperties(dependency);
             },

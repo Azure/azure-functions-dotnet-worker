@@ -3,7 +3,7 @@
 
 using System;
 using System.Linq;
-using Microsoft.Azure.Functions.Worker.Context;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
@@ -21,6 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             IServiceCollection serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton<SingletonService>();
             serviceCollection.AddTransient<TransientService>();
+            serviceCollection.AddTransient<AsyncTransientService>();
             serviceCollection.AddScoped<ScopedService>();
             _serviceProvider = serviceCollection.BuildServiceProvider();
             _serviceScopeFactory = _serviceProvider.GetService<IServiceScopeFactory>();
@@ -36,24 +37,28 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void CreateAndDisposeInstanceServicesTest()
+        public async Task CreateAndDisposeInstanceServicesTestAsync()
         {
             var services = _defaultFunctionContext.InstanceServices;
             Assert.NotNull(services);
             var singletonService = services.GetService<SingletonService>();
+            var asyncTransientService = services.GetService<AsyncTransientService>();
             var transientService = services.GetService<TransientService>();
             var scopedService = services.GetService<ScopedService>();
             Assert.NotNull(scopedService);
             Assert.NotNull(transientService);
             Assert.NotNull(singletonService);
+            Assert.NotNull(asyncTransientService);
 
-            _defaultFunctionContext.Dispose();
+            await _defaultFunctionContext.DisposeAsync();
 
             Assert.Throws<ObjectDisposedException>(services.GetService<SingletonService>);
+            Assert.Throws<ObjectDisposedException>(services.GetService<AsyncTransientService>);
             Assert.Throws<ObjectDisposedException>(services.GetService<TransientService>);
             Assert.Throws<ObjectDisposedException>(services.GetService<ScopedService>);
             Assert.True(scopedService.IsDisposed);
             Assert.True(transientService.IsDisposed);
+            Assert.True(asyncTransientService.IsAsyncDisposed);
             Assert.False(singletonService.IsDisposed);
         }
 
@@ -71,5 +76,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private class TransientService : SingletonService { }
 
         private class ScopedService : SingletonService { }
+
+        private class AsyncTransientService : TransientService, IAsyncDisposable
+        {
+            public bool IsAsyncDisposed { get; private set; }
+
+            public ValueTask DisposeAsync()
+            {
+                IsAsyncDisposed = true;
+                return default;
+            }
+        }
     }
 }

@@ -4,16 +4,36 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
+    internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
+    {
+        public TestAsyncFunctionContext()
+            : base(new TestFunctionDefinition(), new TestFunctionInvocation())
+        {
+        }
+        public TestAsyncFunctionContext(IInvocationFeatures features) : base(features)
+        {
+        }
+
+        public bool IsAsyncDisposed { get; private set; }
+
+        public ValueTask DisposeAsync()
+        {
+            IsAsyncDisposed = true;
+            return default;
+        }
+    }
+
     internal class TestFunctionContext : FunctionContext, IDisposable
     {
         private readonly FunctionInvocation _invocation;
-     
+
         public TestFunctionContext()
             : this(new TestFunctionDefinition(), new TestFunctionInvocation())
         {

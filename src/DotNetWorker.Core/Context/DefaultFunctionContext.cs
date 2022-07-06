@@ -3,11 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal sealed class DefaultFunctionContext : FunctionContext, IDisposable
+    internal sealed class DefaultFunctionContext : FunctionContext, IAsyncDisposable
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly FunctionInvocation _invocation;
@@ -24,7 +25,6 @@ namespace Microsoft.Azure.Functions.Worker
             _invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The '{nameof(FunctionInvocation)}' feature is required.");
             FunctionDefinition = features.Get<FunctionDefinition>() ?? throw new InvalidOperationException($"The {nameof(Worker.FunctionDefinition)} feature is required.");
         }
-
 
         public override string InvocationId => _invocation.Id;
 
@@ -58,12 +58,14 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override RetryContext RetryContext => Features.GetRequired<IExecutionRetryFeature>().Context;
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            if (_instanceServicesScope != null)
+            if (_instanceServicesScope is IAsyncDisposable asyncServiceScope)
             {
-                _instanceServicesScope.Dispose();
+                await asyncServiceScope.DisposeAsync();
             }
+
+            _instanceServicesScope?.Dispose();
 
             _instanceServicesScope = null;
             _instanceServices = null;

@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator, 
+            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
             IFunctionMetadataProvider functionMetadataProvider,
@@ -170,7 +170,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, IFunctionsApplication application,
-            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer, 
+            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer,
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider functionInputConversionFeatureProvider)
         {
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.Functions.Worker
                 invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, outputBindingsInfoProvider));
 
                 if (functionInputConversionFeatureProvider.TryCreate(typeof(DefaultInputConversionFeature), out var conversion))
-                {                                    
+                {
                     invocationFeatures.Set<IInputConversionFeature>(conversion!);
                 }
 
@@ -237,6 +237,11 @@ namespace Microsoft.Azure.Functions.Worker
             }
             finally
             {
+                if (context is IAsyncDisposable asyncContext)
+                {
+                    await asyncContext.DisposeAsync();
+                }
+
                 (context as IDisposable)?.Dispose();
             }
 
@@ -274,7 +279,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
 
-                foreach(var func in functionMetadataList)
+                foreach (var func in functionMetadataList)
                 {
                     response.FunctionMetadataResults.Add(func);
                 }

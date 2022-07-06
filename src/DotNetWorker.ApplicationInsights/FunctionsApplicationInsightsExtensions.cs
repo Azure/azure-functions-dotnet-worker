@@ -2,6 +2,7 @@
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -11,6 +12,8 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public static class FunctionsApplicationInsightsExtensions
     {
+        private static bool _middlewareAdded = false;
+
         /// <summary>
         /// Adds Application Insights support by internally calling <see cref="ApplicationInsightsExtensions.AddApplicationInsightsTelemetryWorkerService(IServiceCollection)"/>.
         /// </summary>
@@ -19,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>The <see cref="IFunctionsWorkerApplicationBuilder"/></returns>
         public static IFunctionsWorkerApplicationBuilder AddApplicationInsights(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsServiceOptions>? configureOptions = null)
         {
-            builder.Services.AddCommonServices();
+            builder.AddCommonServices();
 
             builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
             {
@@ -37,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>The <see cref="IFunctionsWorkerApplicationBuilder"/></returns>
         public static IFunctionsWorkerApplicationBuilder AddApplicationInsightsLogger(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsLoggerOptions>? configureOptions = null)
         {
-            builder.Services.AddCommonServices();
+            builder.AddCommonServices();
 
             // Use the App Insights Logger directly
             builder.Services.AddOptions<WorkerOptions>().Configure(options => options.DisableHostLogger = true);
@@ -53,12 +56,30 @@ namespace Microsoft.Azure.Functions.Worker
             return builder;
         }
 
-        private static IServiceCollection AddCommonServices(this IServiceCollection services)
+        private static IFunctionsWorkerApplicationBuilder AddCommonServices(this IFunctionsWorkerApplicationBuilder builder)
         {
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryInitializer), typeof(FunctionsTelemetryInitializer), ServiceLifetime.Singleton));
-            services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryModule), typeof(FunctionsTelemetryModule), ServiceLifetime.Singleton));
+            builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryInitializer), typeof(FunctionsTelemetryInitializer), ServiceLifetime.Singleton));
+            builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryModule), typeof(FunctionsTelemetryModule), ServiceLifetime.Singleton));
 
-            return services;
+            // This middleware is temporary for the preview. Eventually this behavior will move into the
+            // core worker assembly.
+            if (!_middlewareAdded)
+            {
+                builder.Use(next =>
+                {
+                    return async context =>
+                    {
+                        using (FunctionActivitySource.StartInvoke(context))
+                        {
+                            await next.Invoke(context);
+                        }
+                    };
+                });
+
+                _middlewareAdded = true;
+            }
+
+            return builder;
         }
     }
 }

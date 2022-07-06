@@ -20,7 +20,6 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                 ShouldListenTo = source => source.Name.StartsWith("Microsoft.Azure.Functions.Worker"),
                 ActivityStarted = activity =>
                 {
-                    _telemetryClient.StartOperation<DependencyTelemetry>(activity);
                     var dependency = new DependencyTelemetry("Azure.Functions", activity.OperationName, activity.OperationName, null);
                     activity.SetCustomProperty("_depTel", dependency);
                     dependency.Start();
@@ -31,7 +30,8 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                     dependency.Stop();
                     _telemetryClient.TrackDependency(dependency);
                 },
-                Sample = (ref ActivityCreationOptions<ActivityContext> sampleActivity) => ActivitySamplingResult.AllData
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,
+                SampleUsingParentId = (ref ActivityCreationOptions<string> _) => ActivitySamplingResult.AllData
             };
 
             ActivitySource.AddActivityListener(_listener);

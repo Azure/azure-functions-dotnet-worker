@@ -62,8 +62,23 @@ public class EndToEndTests
 
         await _application.InvokeFunctionAsync(context);
 
+        void ValidateProperties(ISupportProperties props)
+        {
+            Assert.Equal(invocation.Id, props.Properties["InvocationId"]);
+            Assert.Contains("ProcessId", props.Properties.Keys);
+        }
+
         // Log written in test function should go to App Insights directly
         Assert.Collection(_channel.Telemetries,
+            t =>
+            {
+                var dependency = (DependencyTelemetry)t;
+
+                Assert.Equal("TestName", dependency.Context.Operation.Name);
+                Assert.Equal(invocation.TraceContext.TraceParent, dependency.Context.Operation.Id);
+
+                ValidateProperties(dependency);
+            },
             t =>
             {
                 var trace = (TraceTelemetry)t;
@@ -72,6 +87,10 @@ public class EndToEndTests
 
                 // This ensures we've disabled scopes by default
                 Assert.DoesNotContain("AzureFunctions_InvocationId", trace.Properties.Keys);
+
+                Assert.Equal("TestName", trace.Context.Operation.Name);
+
+                ValidateProperties(trace);
             });
     }
 

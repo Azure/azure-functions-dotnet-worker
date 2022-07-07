@@ -130,6 +130,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string attributeName = attributeData.AttributeClass!.Name; // TODO: Verify if we can ever have an attribute with no AttributeClass (it is null)
                 string bindingName = parameter.Identifier.ValueText; // correct?
                 string bindingType = attributeName.Replace("Attribute", "");
+                bindingType = bindingType.Replace("Input", "");
 
                 // Set binding direction
                 // TODO: InOut?

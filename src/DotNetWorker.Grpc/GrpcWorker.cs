@@ -3,10 +3,7 @@
 
 using System;
 using System.Linq;
-<<<<<<< HEAD
 using System.Runtime.InteropServices;
-=======
->>>>>>> 026c21b (resolve rebase errors)
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -15,12 +12,10 @@ using Grpc.Core;
 using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;

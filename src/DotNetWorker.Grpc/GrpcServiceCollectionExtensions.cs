@@ -10,10 +10,13 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
+<<<<<<< HEAD
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+=======
+>>>>>>> c9e10f9 (cleanup)
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Azure.Functions.Core;
 
@@ -53,8 +56,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
 
             // FunctionMetadataProvider for worker driven function-indexing
-            //services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
-            services.TryAddSingleton<IFunctionMetadataProvider, SampleFunctionMetadataProvider>();
+            services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
 
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();

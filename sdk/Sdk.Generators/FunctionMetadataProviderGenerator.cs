@@ -13,6 +13,11 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
+    /// <summary>
+    /// Generates a class that implements IFunctionMetadataProvider and the method GetFunctionsMetadataAsync() which returns a list of IFunctionMetadata. 
+    /// This source generator indexes a Function App and explicitly creates a list of DefaultFunctionMetadata (which implements IFunctionMetadata) from the functions defined
+    /// in the user's compilation. This allows the worker to index functions at build time, rather than waiting for the process to start.
+    /// </summary>
     [Generator]
     public class FunctionMetadataProviderGenerator : ISourceGenerator
     {
@@ -128,12 +133,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // Create binding metadata w/ info below and add to function metadata created above
                 string attributeName = attributeData.AttributeClass!.Name; // TODO: Verify if we can ever have an attribute with no AttributeClass (it is null)
-                string bindingName = parameter.Identifier.ValueText; // correct?
+                string bindingName = parameter.Identifier.ValueText;
+
+                // properly format binding types by removing "Attribute" and "Input" descriptors
                 string bindingType = attributeName.Replace("Attribute", "");
                 bindingType = bindingType.Replace("Input", "");
 
                 // Set binding direction
-                // TODO: InOut?
                 string bindingDirection = "In";
                 if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
                     parameterNamedType.IsGenericType &&
@@ -145,10 +151,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // Create raw binding anonymous type, example:
                 /*  var binding1 = new {
                     name = "req",
-                    type = "httpTrigger",
+                    type = "HttpTrigger",
                     direction = "In",
-                    authLevel = "Anonymous",
-                    methods = new List<string> { "get", "post" }
+                    authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
+                    methods = new List<string> { "get","post" },
                 };*/
                 indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName+binding+number
                 indentedTextWriter.Indent++;
@@ -156,7 +162,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("type = \"" + bindingType + "\",");
                 indentedTextWriter.WriteLine("direction = \"" + bindingDirection + "\",");
 
-                // Add any additional binding info to the anonymous type
+                // Add additional bindingInfo to the anonymous type (some functions have more properties than others)
                 foreach (var prop in attributeProperties)
                 {
                     var propertyName = prop.Key;
@@ -188,15 +194,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {");
                     indentedTextWriter.Indent++;
 
-                    // if there are only two bindings and an httptrigger, then we use "$return"
+                    // if there are only two bindings and an httptrigger, then we use "$return" for the binding name
                     if (totalBindings < 2)
                     {
                         indentedTextWriter.WriteLine("name = \"" + "$return" + "\",");
                     }
                     else
                     {
-                        // is this for when there are more than 2 bindings or is this for more than 1 output bindings?
-                        // ex. 2 input bindings, 1 http return binding? is this valid? What is the return there.
+                        // when there are more than 2 bindings and one is an HttpTrigger, we can assume that there is another output binding
+                        // we return HttpResponse instead of "$return" as the name/type when there is another output binding.
                         indentedTextWriter.WriteLine("name = \"" + "HttpResponse" + "\",");
                     }
 
@@ -204,7 +210,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine("direction = \"" + "Out" + "\",");
                     indentedTextWriter.Indent--;
                     indentedTextWriter.WriteLine("};");
-                    // example: var HttpTriggerSimplebinding1JsonString = JsonSerializer.Serialize(req).ToString();
                     indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + "JSONstring = JsonSerializer.Serialize(" + functionName + "Binding" + bindingCount.ToString() + ").ToString();");
                     indentedTextWriter.WriteLine(functionName + "RawBindings.Add(" + functionName + "Binding" + bindingCount.ToString() + "JSONstring);");
                     bindingCount++;
@@ -299,7 +304,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         dict[argumentName] = arg.Value;
                         break;
                     case TypedConstantKind.Enum:
-                        // what enum types do we have? Is it just AuthorizationLevel?
                         dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + ")," + arg.Value + ")";
                         break;
                     case TypedConstantKind.Type:
@@ -319,6 +323,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             if (propValue != null)
             {
                 // catch values that are already strings or Enum parsing
+                // we don't need to surround these cases with quotation marks
                 if (propValue.ToString().Contains("\"") || propValue.ToString().Contains("Enum"))
                 {
                     return propValue.ToString();
@@ -332,8 +337,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
         }
 
-        // TODO: verify what arrays show up in functions metadata
-        // is it just "methods" property for http triggers?
         private static string FormatArray(IEnumerable enumerableValues)
         {
             string arrAsString;

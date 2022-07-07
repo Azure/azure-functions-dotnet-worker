@@ -3,6 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Microsoft.Azure.Functions.Worker.ApplicationInsights</PackageId>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.ApplicationInsights</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.ApplicationInsights</RootNamespace>
     <MajorProductVersion>1</MajorProductVersion>
     <MinorProductVersion>0</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>

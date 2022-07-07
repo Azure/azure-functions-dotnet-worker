@@ -6,10 +6,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
 internal class TestAppBuilder : IFunctionsWorkerApplicationBuilder
 {
+    public int MiddlewareCount { get; private set; }
+
     public IServiceCollection Services { get; } = new ServiceCollection();
 
     public IFunctionsWorkerApplicationBuilder Use(Func<FunctionExecutionDelegate, FunctionExecutionDelegate> middleware)
     {
-        throw new NotImplementedException();
+        MiddlewareCount++;
+        return this;
     }
 }

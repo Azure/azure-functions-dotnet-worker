@@ -22,7 +22,8 @@ public class ApplicationInsightsConfigurationTests
     [Fact]
     public void AddApplicationInsights_AddsDefaults()
     {
-        var builder = new TestAppBuilder().AddApplicationInsights();
+        var builder = new TestAppBuilder();
+        builder.AddApplicationInsights();
 
         // Ensure that our Initializer and Module are added alongside the defaults
         var initializers = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
@@ -43,13 +44,16 @@ public class ApplicationInsightsConfigurationTests
             t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
+
+        Assert.Equal(1, builder.MiddlewareCount);
     }
 
     [Fact]
     public void AddApplicationInsights_CallsConfigure()
     {
         bool called = false;
-        var builder = new TestAppBuilder().AddApplicationInsights(o =>
+        var builder = new TestAppBuilder();
+        builder.AddApplicationInsights(o =>
         {
             Assert.NotNull(o);
             called = true;
@@ -62,12 +66,15 @@ public class ApplicationInsightsConfigurationTests
         Assert.NotNull(options.Value);
 
         Assert.True(called);
+
+        Assert.Equal(1, builder.MiddlewareCount);
     }
 
     [Fact]
     public void AddApplicationInsightsLogger_AddsDefaults()
     {
-        var builder = new TestAppBuilder().AddApplicationInsightsLogger();
+        var builder = new TestAppBuilder();
+        builder.AddApplicationInsightsLogger();
 
         var loggerProviders = builder.Services.Where(s => s.ServiceType == typeof(ILoggerProvider));
         Assert.Collection(loggerProviders,
@@ -87,13 +94,16 @@ public class ApplicationInsightsConfigurationTests
 
         var appInsightsOptions = serviceProvider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
         Assert.False(appInsightsOptions.Value.IncludeScopes);
+
+        Assert.Equal(1, builder.MiddlewareCount);
     }
 
     [Fact]
     public void AddApplicationInsightsLogger_CallsConfigure()
     {
         bool called = false;
-        var builder = new TestAppBuilder().AddApplicationInsightsLogger(o =>
+        var builder = new TestAppBuilder();
+        builder.AddApplicationInsightsLogger(o =>
         {
             Assert.NotNull(o);
             called = true;
@@ -106,12 +116,14 @@ public class ApplicationInsightsConfigurationTests
         Assert.NotNull(options.Value);
 
         Assert.True(called);
+        Assert.Equal(1, builder.MiddlewareCount);
     }
 
     [Fact]
     public void AddingServiceAndLogger_OnlyAddsServicesOnce()
     {
-        var builder = new TestAppBuilder()
+        var builder = new TestAppBuilder();
+        builder
             .AddApplicationInsights()
             .AddApplicationInsightsLogger();
 
@@ -134,5 +146,7 @@ public class ApplicationInsightsConfigurationTests
             t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
+
+        Assert.Equal(1, builder.MiddlewareCount);
     }
 }

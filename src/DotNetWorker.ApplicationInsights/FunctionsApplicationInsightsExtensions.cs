@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -12,8 +15,6 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public static class FunctionsApplicationInsightsExtensions
     {
-        private static bool _middlewareAdded = false;
-
         /// <summary>
         /// Adds Application Insights support by internally calling <see cref="ApplicationInsightsExtensions.AddApplicationInsightsTelemetryWorkerService(IServiceCollection)"/>.
         /// </summary>
@@ -63,23 +64,31 @@ namespace Microsoft.Azure.Functions.Worker
 
             // This middleware is temporary for the preview. Eventually this behavior will move into the
             // core worker assembly.
-            if (!_middlewareAdded)
+            if (!builder.Services.Any(p => p.ImplementationType == typeof(FunctionActivitySourceMiddleware)))
             {
+                builder.Services.AddSingleton<FunctionActivitySourceMiddleware>();
                 builder.Use(next =>
                 {
                     return async context =>
                     {
-                        using (FunctionActivitySource.StartInvoke(context))
-                        {
-                            await next.Invoke(context);
-                        }
+                        var middleware = context.InstanceServices.GetRequiredService<FunctionActivitySourceMiddleware>();
+                        await middleware.Invoke(context, next);
                     };
                 });
-
-                _middlewareAdded = true;
             }
 
             return builder;
+        }
+
+        private class FunctionActivitySourceMiddleware : IFunctionsWorkerMiddleware
+        {
+            public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
+            {
+                using (FunctionActivitySource.StartInvoke(context))
+                {
+                    await next.Invoke(context);
+                }
+            }
         }
     }
 }

@@ -47,7 +47,7 @@ public class EndToEndTests
     }
 
     [Fact]
-    public async Task Logger_SendsTraceTelemetry()
+    public async Task Logger_SendsTraceAndDependencyTelemetry()
     {
         var def = new AppInsightsFunctionDefinition();
         _application.LoadFunction(def);

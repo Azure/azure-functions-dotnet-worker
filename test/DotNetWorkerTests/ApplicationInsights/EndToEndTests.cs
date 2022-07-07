@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -69,6 +70,8 @@ public class EndToEndTests
             Assert.Contains("ProcessId", props.Properties.Keys);
         }
 
+        var activity = AppInsightsFunctionDefinition.LastActivity;
+
         // Log written in test function should go to App Insights directly
         Assert.Collection(_channel.Telemetries,
             t =>
@@ -76,6 +79,7 @@ public class EndToEndTests
                 var dependency = (DependencyTelemetry)t;
 
                 Assert.Equal("TestName", dependency.Context.Operation.Name);
+                Assert.Equal(activity.SpanId.ToString(), dependency.Context.Operation.ParentId);
 
                 ValidateProperties(dependency);
             },
@@ -89,6 +93,7 @@ public class EndToEndTests
                 Assert.DoesNotContain("AzureFunctions_InvocationId", trace.Properties.Keys);
 
                 Assert.Equal("TestName", trace.Context.Operation.Name);
+                Assert.Equal(activity.SpanId.ToString(), trace.Context.Operation.ParentId);
 
                 ValidateProperties(trace);
             });
@@ -120,8 +125,11 @@ public class EndToEndTests
 
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; } = ImmutableDictionary<string, BindingMetadata>.Empty;
 
+        public static Activity LastActivity;
+
         public void TestFunction(FunctionContext context)
         {
+            LastActivity = Activity.Current;
             var logger = context.GetLogger("TestFunction");
             logger.LogWarning("Test");
         }

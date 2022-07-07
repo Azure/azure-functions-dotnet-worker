@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
 {
@@ -13,7 +12,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
 
         private static readonly ActivitySource _activitySource = new("Microsoft.Azure.Functions.Worker");
         private static readonly string _processId = Process.GetCurrentProcess().Id.ToString();
-        private static readonly ConcurrentDictionary<string, string> _categoryCache = new ConcurrentDictionary<string, string>();
 
         public static Activity? StartInvoke(FunctionContext context)
         {

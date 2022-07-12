@@ -26,3 +26,4 @@
   - In `local.settings.json` add the host feature flag (`"AzureWebJobsFeatureFlags": "EnableWorkerIndexing"`).
 - Implemented WorkerStatus message and capability (#925)
 - Handling WorkerTerminate signal for graceful termination. (#918)
+- Update RabbitMQ extension to 2.0.0 (#961)

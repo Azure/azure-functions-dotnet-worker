@@ -11,7 +11,6 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <FunctionsGeneratorOutputPath>..\FunctionMetadataLoaderExtension\bin\$(Configuration)\netstandard2.0\</FunctionsGeneratorOutputPath>
     <NoWarn>$(NoWarn);NU5128</NoWarn>
-    <VersionSuffix>-preview2</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

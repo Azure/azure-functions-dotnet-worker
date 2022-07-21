@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var bindingsListName = functionName + "RawBindings";
                 indentedTextWriter.WriteLine("var " + bindingsListName + " = new List<string>();");
                 AddBindingInfo(indentedTextWriter, method, compilation, functionName);
-                indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"" + functionName + "\",  \"" + entryPoint + "\", " +  functionName + "RawBindings" + ", \"" + scriptFile + "\");");
+                indentedTextWriter.WriteLine("var " + functionName + " = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"" + functionName + "\", \"" + entryPoint + "\", " +  functionName + "RawBindings, \"" + scriptFile + "\");");
                 indentedTextWriter.WriteLine("metadataList.Add(" + functionName + ");");
             }
 
@@ -304,7 +304,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         dict[argumentName] = arg.Value;
                         break;
                     case TypedConstantKind.Enum:
-                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + ")," + arg.Value + ")";
+                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + "), " + arg.Value + ")";
                         break;
                     case TypedConstantKind.Type:
                         break;
@@ -318,7 +318,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
         }
 
-        private static string FormatObject(object propValue)
+        internal static string FormatObject(object propValue)
         {
             if (propValue != null)
             {
@@ -337,7 +337,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
         }
 
-        private static string FormatArray(IEnumerable enumerableValues)
+        internal static string FormatArray(IEnumerable enumerableValues)
         {
             string arrAsString;
 

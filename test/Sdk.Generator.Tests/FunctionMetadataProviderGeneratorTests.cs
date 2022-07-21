@@ -1,9 +1,14 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis;
+using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -14,7 +19,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
         public FunctionMetadataProviderGeneratorTests()
         {
-            // load all extensions used in tests (match E2E app? Or include ALL extensions?)
+            // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
             var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
             var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
             var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
@@ -23,6 +28,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
             var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
             var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
+            var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
 
             referencedExtensionAssemblies = new[]
             {
@@ -33,7 +39,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 timerExtension,
                 eventHubsExtension,
                 blobExtension,
-                queueExtension
+                queueExtension,
+                loggerExtension
             };
 
         }
@@ -41,6 +48,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
         [Fact]
         public async Task GenerateSimpleHttpTriggerMetadata()
         {
+            // test generating function metadata for a simple HttpTrigger
             string inputCode = @"
             using System;
             using System.Collections.Generic;
@@ -87,82 +95,48 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-".Replace("'", "\"");
-
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
-
-        /*[Fact]
-        public async Task GenerateQueueTriggerMetadata()
-        {
-            string inputCode = @"
-using System;
-using Microsoft.Azure.Functions.Worker;
-
-namespace FunctionApp
+using Microsoft.Azure.Functions.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+namespace Microsoft.Azure.Functions.Worker
 {
-    public static class QueueTrigger
+    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
     {
-        [Function(nameof(QueueTrigger))]
-        public static Book Run([QueueTrigger('functionstesting2', Connection = 'AzureWebJobsStorage')] Book myQueueItem,
-            [BlobInput('test-samples/sample1.txt', Connection = 'AzureWebJobsStorage')]
-        string myBlob)
+        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
-            Console.WriteLine(myBlob);
-            return myQueueItem;
+            var metadataList = new List<IFunctionMetadata>();
+            var HttpTriggerSimpleRawBindings = new List<string>();
+            var HttpTriggerSimpleBinding0 = new {
+                name = 'req',
+                type = 'HttpTrigger',
+                direction = 'In',
+                authLevel = Enum.GetName(typeof(AuthorizationLevel), 0),
+                methods = new List<string> { 'get','post' },
+            };
+            var HttpTriggerSimpleBinding0JSONstring = JsonSerializer.Serialize(HttpTriggerSimpleBinding0).ToString();
+            HttpTriggerSimpleRawBindings.Add(HttpTriggerSimpleBinding0JSONstring);
+            var HttpTriggerSimpleBinding1 = new {
+                name = '$return',
+                type = 'http',
+                direction = 'Out',
+            };
+            var HttpTriggerSimpleBinding1JSONstring = JsonSerializer.Serialize(HttpTriggerSimpleBinding1).ToString();
+            HttpTriggerSimpleRawBindings.Add(HttpTriggerSimpleBinding1JSONstring);
+            var HttpTriggerSimple = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), 'dotnet-isolated', 'HttpTriggerSimple', 'TestProject.HttpTriggerSimple.Run', HttpTriggerSimpleRawBindings, 'TestProject.dll');
+            metadataList.Add(HttpTriggerSimple);
+            return Task.FromResult(metadataList.ToImmutableArray());
         }
-}
-
-public class Book
-{
-    public string name { get; set; }
-    public string id { get; set; }
-}
-
- public static class HttpTriggerSimple
-    {
-        [Function(nameof(HttpTriggerSimple))]
-        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, 'get', 'post', Route = null)] HttpRequestData req, FunctionContext executionContext)
+        public enum AuthorizationLevel
         {
-                var sw = new Stopwatch();
-                sw.Restart();
-
-                var logger = executionContext.GetLogger('FunctionApp.HttpTriggerSimple');
-                logger.LogInformation('Message logged');
-
-                var response = req.CreateResponse(HttpStatusCode.OK);
-
-                response.Headers.Add('Date', 'Mon, 18 Jul 2016 16:06:00 GMT');
-                response.Headers.Add('Content-Type', 'text/html; charset=utf-8');
-                response.WriteString('Hello world!');
-
-                logger.LogMetric(@'funcExecutionTimeMs', sw.Elapsed.TotalMilliseconds,
-                    new Dictionary<string, object> {
-                    { 'foo', 'bar' },
-                    { 'baz', 42 }
-                    }
-                );
-
-                return response;
-            }
+            Anonymous,
+            User,
+            Function,
+            System,
+            Admin
         }
-
     }
-".Replace("'", "\"");
-
-            string expectedGeneratedFileName = $"SourceGeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+}
 ".Replace("'", "\"");
 
             await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
@@ -170,65 +144,65 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
                 inputCode,
                 expectedGeneratedFileName,
                 expectedOutput);
-        }*/
+        }
 
+        [Fact]
+        public void FormatStringObjectTest()
+        {
+            var stringObject = "\"get\"";
+            var result = FunctionMetadataProviderGenerator.FormatObject(stringObject);
+            // this method should not alter objects that are already strings
+            Assert.Equal(stringObject, result);
+        }
+
+        [Fact]
+        public void FormatEnumObjectTest()
+        {
+            var enumObjectString = "Enum.GetName(typeof(AuthorizationLevel), 0)";
+            var result = FunctionMetadataProviderGenerator.FormatObject(enumObjectString);
+            // this method shouldn't alter Enum parsing statements - we want them source generated as a method call, not as a string.
+            Assert.Equal(enumObjectString, result);
+        }
+
+        [Fact]
+        public void FormatNullObjectTest()
+        {
+            var result = FunctionMetadataProviderGenerator.FormatObject(null);
+            Assert.Equal("null", result);
+        }
+
+        [Fact]
+        public void FormatObjectToGeneratedStringTest()
+        {
+            var attributeObject = "HttpTrigger";
+            var expected = "\"HttpTrigger\"";
+            string result = FunctionMetadataProviderGenerator.FormatObject(attributeObject);
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public void FormatArrayTest()
+        {
+            var exampleEnumerable = new List<string> { "get", "post" };
+            var expected = "new List<string> { \"get\",\"post\" }";
+            var result = FunctionMetadataProviderGenerator.FormatArray(exampleEnumerable);
+            Assert.Equal(expected, result);
+        }
 
 /*        [Fact]
-        public async Task GenerateHttpTriggerWithBlobInputMetadata()
+        public void LoadConstructorArgumentsDifferentNumberOfArgsTest()
         {
-            string inputCode = @"
-        using System.Net;
-using System.Text.Json;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+// still wip for testing this method
+            var mockMethodSymbol = new Mock<IMethodSymbol>();
+            var mockAttrData = new Mock<AttributeData>();
+            var mockParamSymbol = new Mock<IParameterSymbol>();
 
-namespace FunctionApp
-    {
-        public static class HttpTriggerWithBlobInput
-        {
-            [Function(nameof(HttpTriggerWithBlobInput))]
-            public static MyOutputType Run(
-                [HttpTrigger(AuthorizationLevel.Anonymous, 'get', 'post', Route = null)] HttpRequestData req,
-        [BlobInput('test-samples/sample1.txt', Connection = 'AzureWebJobsStorage')] string myBlob, FunctionContext context)
-            {
-                var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
+            mockMethodSymbol.Setup(m => m.Parameters).Returns(new ImmutableArray<IParameterSymbol> { mockParamSymbol.Object });
+            mockAttrData.Setup(a => a.ConstructorArguments).Returns(new ImmutableArray<TypedConstant>());
 
-                var response = req.CreateResponse(HttpStatusCode.OK);
+            var emptyDict = new Dictionary<string, object>();
 
-                response.Headers.Add('Date', 'Mon, 18 Jul 2016 16:06:00 GMT');
-                response.Headers.Add('Content-Type', 'text/html; charset=utf-8');
-                response.WriteString('Book Sent to Queue!');
-
-                return new MyOutputType()
-                {
-                    Book = bookVal,
-                    HttpResponse = response
-                };
-            }
-
-            public class MyOutputType
-        {
-            [QueueOutput('functionstesting2', Connection = 'AzureWebJobsStorage')]
-            public Book Book { get; set; }
-
-            public HttpResponseData HttpResponse { get; set; }
-        }
-
-        public class Book
-        {
-            public string name { get; set; }
-            public string id { get; set; }
-        }
-    }
-}".Replace("'", "\"");
-            string expectedGeneratedFileName = $"SourceGeneratedFunctionMetadataProvider2.g.cs";
-            string expectedOutput = "something";
-
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
+            Assert.Throws<InvalidOperationException>( () => FunctionMetadataProviderGenerator.LoadConstructorArguments(mockMethodSymbol.Object, mockAttrData.Object, emptyDict));
         }*/
     }
 }

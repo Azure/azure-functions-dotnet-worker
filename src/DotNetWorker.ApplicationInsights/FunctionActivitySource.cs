@@ -1,4 +1,7 @@
-﻿using System.Diagnostics;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
 {
@@ -17,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
         {
             var activity = _activitySource.StartActivity("Invoke", ActivityKind.Internal, context.TraceContext.TraceParent);
 
-            if (activity != null)
+            if (activity is not null)
             {
                 activity.AddTag(InvocationIdKey, context.InvocationId);
                 activity.AddTag(NameKey, context.FunctionDefinition.Name);

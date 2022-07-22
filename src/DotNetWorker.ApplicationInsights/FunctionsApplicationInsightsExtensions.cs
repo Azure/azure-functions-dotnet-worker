@@ -1,11 +1,12 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
-using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
-using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Adds Application Insights support by internally calling <see cref="ApplicationInsightsExtensions.AddApplicationInsightsTelemetryWorkerService(IServiceCollection)"/>.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/></param>
-        /// <param name="configureOptions">ction to configure ApplicationInsights services.</param>
+        /// <param name="configureOptions">Action to configure ApplicationInsights services.</param>
         /// <returns>The <see cref="IFunctionsWorkerApplicationBuilder"/></returns>
         public static IFunctionsWorkerApplicationBuilder AddApplicationInsights(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsServiceOptions>? configureOptions = null)
         {
@@ -43,8 +44,6 @@ namespace Microsoft.Azure.Functions.Worker
         {
             builder.AddCommonServices();
 
-            // Use the App Insights Logger directly
-            builder.Services.AddOptions<WorkerOptions>().Configure(options => options.DisableHostLogger = true);
             builder.Services.AddLogging(logging =>
             {
                 logging.AddApplicationInsights(options =>
@@ -62,6 +61,9 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryInitializer), typeof(FunctionsTelemetryInitializer), ServiceLifetime.Singleton));
             builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryModule), typeof(FunctionsTelemetryModule), ServiceLifetime.Singleton));
 
+            // User logs will be written directly to Application Insights; this prevents duplicate logging.
+            builder.Services.AddSingleton<IUserLogWriter>(_ => NullUserLogWriter.Instance);
+
             // This middleware is temporary for the preview. Eventually this behavior will move into the
             // core worker assembly.
             if (!builder.Services.Any(p => p.ImplementationType == typeof(FunctionActivitySourceMiddleware)))
@@ -78,17 +80,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return builder;
-        }
-
-        private class FunctionActivitySourceMiddleware : IFunctionsWorkerMiddleware
-        {
-            public async Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
-            {
-                using (FunctionActivitySource.StartInvoke(context))
-                {
-                    await next.Invoke(context);
-                }
-            }
         }
     }
 }

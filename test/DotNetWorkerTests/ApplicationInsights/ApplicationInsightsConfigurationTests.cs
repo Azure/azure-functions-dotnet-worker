@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.EventCounterCollector;
@@ -9,7 +10,9 @@ using Microsoft.ApplicationInsights.WindowsServer;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.ApplicationInsights;
 using Microsoft.Extensions.Options;
@@ -22,11 +25,24 @@ public class ApplicationInsightsConfigurationTests
     [Fact]
     public void AddApplicationInsights_AddsDefaults()
     {
-        var builder = new TestAppBuilder();
-        builder.AddApplicationInsights();
+        var builder = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(worker =>
+            {
+                worker
+                    .AddApplicationInsights();
+            });
 
-        // Ensure that our Initializer and Module are added alongside the defaults
-        var initializers = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
+        IEnumerable<ServiceDescriptor> initializers = null;
+        IEnumerable<ServiceDescriptor> modules = null;
+
+        builder.ConfigureServices(services =>
+        {
+            initializers = services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
+            modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
+        });
+
+        var provider = builder.Build().Services;
+
         Assert.Collection(initializers,
             t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
             t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
@@ -34,7 +50,6 @@ public class ApplicationInsightsConfigurationTests
             t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
             t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
 
-        var modules = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryModule));
         Assert.Collection(modules,
             t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
@@ -45,90 +60,131 @@ public class ApplicationInsightsConfigurationTests
             t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
 
-        Assert.Equal(1, builder.MiddlewareCount);
+        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+        Assert.NotNull(middleware);
     }
 
     [Fact]
     public void AddApplicationInsights_CallsConfigure()
     {
         bool called = false;
-        var builder = new TestAppBuilder();
-        builder.AddApplicationInsights(o =>
-        {
-            Assert.NotNull(o);
-            called = true;
-        });
+        var builder = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(worker =>
+            {
+                worker.AddApplicationInsights(o =>
+                {
+                    Assert.NotNull(o);
+                    called = true;
+                });
+            });
 
         Assert.False(called);
 
-        var provider = builder.Services.BuildServiceProvider();
+        var provider = builder.Build().Services;
         var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>();
         Assert.NotNull(options.Value);
 
-        Assert.True(called);
+        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+        Assert.NotNull(middleware);
 
-        Assert.Equal(1, builder.MiddlewareCount);
+        Assert.True(called);
     }
 
     [Fact]
     public void AddApplicationInsightsLogger_AddsDefaults()
     {
-        var builder = new TestAppBuilder();
-        builder.AddApplicationInsightsLogger();
+        var builder = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(worker =>
+            {
+                worker.AddApplicationInsightsLogger();
+            });
 
-        var loggerProviders = builder.Services.Where(s => s.ServiceType == typeof(ILoggerProvider));
-        Assert.Collection(loggerProviders,
-            t => Assert.Equal(typeof(ApplicationInsightsLoggerProvider), t.ImplementationType));
+        bool called = false;
 
-        var initializers = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
-        Assert.Collection(initializers,
-            t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType));
+        builder.ConfigureServices(services =>
+        {
+            var loggerProviders = services.Where(s => s.ServiceType == typeof(ILoggerProvider));
+            Assert.Collection(loggerProviders,
+                t => Assert.Equal(typeof(WorkerLoggerProvider), t.ImplementationType),
+                t => Assert.Equal(typeof(ApplicationInsightsLoggerProvider), t.ImplementationType));
 
-        var modules = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryModule));
-        Assert.Collection(modules,
-            t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType));
+            var initializers = services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
+            Assert.Collection(initializers,
+                t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType));
 
-        var serviceProvider = builder.Services.BuildServiceProvider();
-        var workerOptions = serviceProvider.GetRequiredService<IOptions<WorkerOptions>>();
-        Assert.True(workerOptions.Value.DisableHostLogger);
+            var modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
+            Assert.Collection(modules,
+                t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType));
+
+            called = true;
+        });
+
+        var serviceProvider = builder.Build().Services;
 
         var appInsightsOptions = serviceProvider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
         Assert.False(appInsightsOptions.Value.IncludeScopes);
 
-        Assert.Equal(1, builder.MiddlewareCount);
+        var userWriter = serviceProvider.GetRequiredService<IUserLogWriter>();
+        Assert.IsType<NullUserLogWriter>(userWriter);
+
+        var systemWriter = serviceProvider.GetRequiredService<ISystemLogWriter>();
+        Assert.IsNotType<NullLogWriter>(systemWriter);
+
+        var middleware = serviceProvider.GetRequiredService<FunctionActivitySourceMiddleware>();
+        Assert.NotNull(middleware);
+
+        Assert.True(called);
     }
 
     [Fact]
     public void AddApplicationInsightsLogger_CallsConfigure()
     {
         bool called = false;
-        var builder = new TestAppBuilder();
-        builder.AddApplicationInsightsLogger(o =>
-        {
-            Assert.NotNull(o);
-            called = true;
-        });
+        var builder = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(worker =>
+            {
+                worker.AddApplicationInsightsLogger(o =>
+                {
+                    Assert.NotNull(o);
+                    called = true;
+                });
+            });
 
         Assert.False(called);
 
-        var provider = builder.Services.BuildServiceProvider();
+        var provider = builder.Build().Services;
         var options = provider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
         Assert.NotNull(options.Value);
 
+        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+        Assert.NotNull(middleware);
+
         Assert.True(called);
-        Assert.Equal(1, builder.MiddlewareCount);
     }
 
     [Fact]
     public void AddingServiceAndLogger_OnlyAddsServicesOnce()
     {
-        var builder = new TestAppBuilder();
-        builder
-            .AddApplicationInsights()
-            .AddApplicationInsightsLogger();
+        var builder = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(worker =>
+            {
+                worker
+                    .AddApplicationInsights()
+                    .AddApplicationInsightsLogger();
+            });
+
+        IEnumerable<ServiceDescriptor> initializers = null;
+        IEnumerable<ServiceDescriptor> modules = null;
+
+        builder.ConfigureServices(services =>
+        {
+            initializers = services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
+            modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
+        });
+
+        var provider = builder.Build().Services;
 
         // Ensure that our Initializer and Module are added alongside the defaults
-        var initializers = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryInitializer));
         Assert.Collection(initializers,
             t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
             t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
@@ -136,7 +192,6 @@ public class ApplicationInsightsConfigurationTests
             t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
             t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
 
-        var modules = builder.Services.Where(s => s.ServiceType == typeof(ITelemetryModule));
         Assert.Collection(modules,
             t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
@@ -147,6 +202,7 @@ public class ApplicationInsightsConfigurationTests
             t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
             t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
 
-        Assert.Equal(1, builder.MiddlewareCount);
+        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+        Assert.NotNull(middleware);
     }
 }

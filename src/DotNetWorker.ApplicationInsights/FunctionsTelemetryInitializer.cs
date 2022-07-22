@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                 }
             }
 
-            return instanceName ?? "Unknown";
+            return instanceName ?? Environment.MachineName;
         }
 
         public void Initialize(ITelemetry telemetry)
@@ -63,10 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
             telemetry.Context.Cloud.RoleInstance = _roleInstanceName;
             telemetry.Context.GetInternalContext().SdkVersion = _sdkVersion;
 
-            if (telemetry.Context.Location.Ip == null)
-            {
-                telemetry.Context.Location.Ip = "0.0.0.0";
-            }
+            telemetry.Context.Location.Ip ??= "0.0.0.0";
 
             if (Activity.Current is not null)
             {

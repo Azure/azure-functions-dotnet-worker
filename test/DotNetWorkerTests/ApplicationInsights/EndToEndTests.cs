@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -72,8 +73,12 @@ public class EndToEndTests
 
         var activity = AppInsightsFunctionDefinition.LastActivity;
 
-        // Log written in test function should go to App Insights directly
-        Assert.Collection(_channel.Telemetries,
+        // App Insights can potentially log this, which causes tests to be flaky. Explicitly ignore.
+        var aiTelemetry = _channel.Telemetries.Where(p => p is TraceTelemetry t && t.Message.Contains("AI: TelemetryChannel found a telemetry item"));
+        var telemetries = _channel.Telemetries.Except(aiTelemetry);
+
+        // Log written in test function should go to App Insights directly        
+        Assert.Collection(telemetries,
             t =>
             {
                 var dependency = (DependencyTelemetry)t;

@@ -41,6 +41,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using System.Threading.Tasks;");
                 indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core;");
                 indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;");
+                indentedTextWriter.WriteLine("using Microsoft.Extensions.DependencyInjection;");
+                indentedTextWriter.WriteLine("using Microsoft.Extensions.Hosting;");
                 indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
@@ -51,6 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 AddEnumTypes(indentedTextWriter);
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
+                AddRegistrationExtension(indentedTextWriter);
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
 
@@ -59,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             // Add the source code to the compilation
-            context.AddSource($"SourceGeneratedFunctionMetadataProvider.g.cs", sourceText);
+            context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", sourceText);
         }
 
         private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
@@ -227,6 +230,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("Function,");
             indentedTextWriter.WriteLine("System,");
             indentedTextWriter.WriteLine("Admin");
+            indentedTextWriter.Indent--;
+            indentedTextWriter.WriteLine("}");
+        }
+
+        // adds a generated registration extension that users can call to register the source-generated function metadata provider
+        private static void AddRegistrationExtension(IndentedTextWriter indentedTextWriter)
+        {
+            indentedTextWriter.WriteLine("public static class WorkerHostBuilderFunctionMetadataProviderExtension");
+            indentedTextWriter.WriteLine("{");
+            indentedTextWriter.Indent++;
+            indentedTextWriter.WriteLine("public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)");
+            indentedTextWriter.WriteLine("{");
+            indentedTextWriter.Indent++;
+            indentedTextWriter.WriteLine("builder.ConfigureServices(s => ");
+            indentedTextWriter.WriteLine("{");
+            indentedTextWriter.Indent++;
+            indentedTextWriter.WriteLine("s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();");
+            indentedTextWriter.Indent--;
+            indentedTextWriter.WriteLine("});");
+            indentedTextWriter.WriteLine("return builder;");
+            indentedTextWriter.Indent--;
+            indentedTextWriter.WriteLine("}");
             indentedTextWriter.Indent--;
             indentedTextWriter.WriteLine("}");
         }

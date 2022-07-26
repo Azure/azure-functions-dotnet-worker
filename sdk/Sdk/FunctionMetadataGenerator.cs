@@ -202,7 +202,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // if a retry attribute is defined, add it to the function.
             if (retryOptions != null)
             {
-                function.RetryOptions = retryOptions;   
+                function.Retry = retryOptions;   
             }
 
             return true;

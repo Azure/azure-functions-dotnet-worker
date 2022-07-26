@@ -24,6 +24,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         public Collection<ExpandoObject> Bindings { get; set; } = new Collection<ExpandoObject>();
 
-        public SdkRetryOptions? RetryOptions { get; set; }
+        public SdkRetryOptions? Retry { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -23,5 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 
         public Collection<ExpandoObject> Bindings { get; set; } = new Collection<ExpandoObject>();
+
+        public SdkRetryOptions? RetryOptions { get; set; }
     }
 }

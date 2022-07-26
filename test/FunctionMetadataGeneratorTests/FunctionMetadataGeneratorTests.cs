@@ -546,6 +546,69 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Empty(generator.Extensions);
         }
 
+        [Fact]
+        public void FunctionWithFixedDelayRetry()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(RetryFunctions));
+            
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            var funcName = "FixedDelayRetryFunction";
+            var fixedDelayFunction = functions.Single(p => p.Name == funcName);
+
+            ValidateFunction(fixedDelayFunction, funcName, GetEntryPoint(nameof(RetryFunctions), nameof(RetryFunctions.FixedDelayRetryFunction)),
+                b => ValidateTrigger(b));
+
+            void ValidateTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "req" },
+                    { "Type", "httpTrigger" },
+                    { "DataType", "String" },
+                    { "Direction", "In" },
+                    { "authLevel", "Admin" },
+                    { "methods", new[] { "get" } },
+                });
+            }
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+
+        }
+
+        [Fact]
+        public void FunctionWithExponentialBackoffRetry()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(RetryFunctions));
+
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            var funcName = "ExponentialBackoffRetryFunction";
+            var fixedDelayFunction = functions.Single(p => p.Name == funcName);
+
+            ValidateFunction(fixedDelayFunction, funcName, GetEntryPoint(nameof(RetryFunctions), nameof(RetryFunctions.ExponentialBackoffRetryFunction)),
+                b => ValidateTrigger(b));
+
+            void ValidateTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "req" },
+                    { "Type", "httpTrigger" },
+                    { "DataType", "String" },
+                    { "Direction", "In" },
+                    { "authLevel", "Admin" },
+                    { "methods", new[] { "get" } },
+                });
+            }
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
         private class EventHubNotBatched
         {
             [Function("EventHubTrigger")]
@@ -913,6 +976,23 @@ namespace Microsoft.Azure.Functions.SdkTests
         private class EnumerableTestClass : IEnumerable
         {
             public IEnumerator GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class RetryFunctions
+        {
+            [Function("FixedDelayRetryFunction")]
+            [FixedDelayRetry(5, "00:00:10")]
+            public void FixedDelayRetryFunction([HttpTrigger(AuthorizationLevel.Admin, "get")] string req)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("ExponentialBackoffRetryFunction")]
+            [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
+            public void ExponentialBackoffRetryFunction([HttpTrigger(AuthorizationLevel.Admin, "get")] string req)
             {
                 throw new NotImplementedException();
             }

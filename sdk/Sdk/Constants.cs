@@ -12,6 +12,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string ExtensionsInformationType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute";
         internal const string HttpResponseType = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
         internal const string DefaultValueAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.DefaultValueAttribute";
+        internal const string FixedDelayRetryAttributeType = "Microsoft.Azure.Functions.Worker.FixedDelayRetryAttribute";
+        internal const string ExponentialBackoffRetryAttributeType = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";

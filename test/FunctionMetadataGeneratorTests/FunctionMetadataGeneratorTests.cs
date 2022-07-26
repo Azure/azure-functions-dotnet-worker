@@ -547,6 +547,19 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void FunctionWithNoRetryHasNullRetryProperty()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(Storage));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            var queueToBlob = functions.Single(p => p.Name == "QueueToBlobFunction");
+
+            Assert.Null(queueToBlob.Retry);
+        }
+
+        [Fact]
         public void FunctionWithFixedDelayRetry()
         {
             var generator = new FunctionMetadataGenerator();
@@ -557,22 +570,13 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             var funcName = "FixedDelayRetryFunction";
             var fixedDelayFunction = functions.Single(p => p.Name == funcName);
+            var retry = fixedDelayFunction.Retry;
 
-            ValidateFunction(fixedDelayFunction, funcName, GetEntryPoint(nameof(RetryFunctions), nameof(RetryFunctions.FixedDelayRetryFunction)),
-                b => ValidateTrigger(b));
-
-            void ValidateTrigger(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "req" },
-                    { "Type", "httpTrigger" },
-                    { "DataType", "String" },
-                    { "Direction", "In" },
-                    { "authLevel", "Admin" },
-                    { "methods", new[] { "get" } },
-                });
-            }
+            Assert.Equal("fixedDelay", retry.Strategy);
+            Assert.Equal(5, retry.MaxRetryCount);
+            Assert.Equal("00:00:10", retry.DelayInterval);
+            Assert.Null(retry.MinimumInterval);
+            Assert.Null(retry.MaximumInterval);
 
             FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
 
@@ -589,22 +593,13 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             var funcName = "ExponentialBackoffRetryFunction";
             var fixedDelayFunction = functions.Single(p => p.Name == funcName);
+            var retry = fixedDelayFunction.Retry;
 
-            ValidateFunction(fixedDelayFunction, funcName, GetEntryPoint(nameof(RetryFunctions), nameof(RetryFunctions.ExponentialBackoffRetryFunction)),
-                b => ValidateTrigger(b));
-
-            void ValidateTrigger(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "req" },
-                    { "Type", "httpTrigger" },
-                    { "DataType", "String" },
-                    { "Direction", "In" },
-                    { "authLevel", "Admin" },
-                    { "methods", new[] { "get" } },
-                });
-            }
+            Assert.Equal("exponentialBackoff", retry.Strategy);
+            Assert.Equal(5, retry.MaxRetryCount);
+            Assert.Null(retry.DelayInterval);
+            Assert.Equal("00:00:04", retry.MinimumInterval);
+            Assert.Equal("00:15:00", retry.MaximumInterval);
 
             FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
         }
@@ -972,15 +967,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                 throw new NotImplementedException();
             }
         }
-
-        private class EnumerableTestClass : IEnumerable
-        {
-            public IEnumerator GetEnumerator()
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         private class RetryFunctions
         {
             [Function("FixedDelayRetryFunction")]
@@ -993,6 +979,14 @@ namespace Microsoft.Azure.Functions.SdkTests
             [Function("ExponentialBackoffRetryFunction")]
             [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
             public void ExponentialBackoffRetryFunction([HttpTrigger(AuthorizationLevel.Admin, "get")] string req)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class EnumerableTestClass : IEnumerable
+        {
+            public IEnumerator GetEnumerator()
             {
                 throw new NotImplementedException();
             }

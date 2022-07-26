@@ -40,6 +40,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private static Dictionary<string, CancellationTokenSource> _invocationCancelDictionary = new Dictionary<string, CancellationTokenSource>();
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
@@ -161,6 +162,10 @@ namespace Microsoft.Azure.Functions.Worker
                     Result = new StatusResult { Status = StatusResult.Types.Status.Success }
                 };
             }
+            else if (request.ContentCase == MsgType.InvocationCancel)
+            {
+                InvocationCancelRequestHandler(request.InvocationCancel);
+            }
             else
             {
                 // TODO: Trace failure here.
@@ -175,15 +180,19 @@ namespace Microsoft.Azure.Functions.Worker
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider functionInputConversionFeatureProvider)
         {
+            var cts = new CancellationTokenSource();
+            _invocationCancelDictionary.TryAdd(request.InvocationId, cts);
+
             FunctionContext? context = null;
             InvocationResponse response = new()
             {
-                InvocationId = request.InvocationId
+                InvocationId = request.InvocationId,
+                Result       = new StatusResult()
             };
 
             try
             {
-                var invocation = new GrpcFunctionInvocation(request);
+                var invocation = new GrpcFunctionInvocation(request, cts);
 
                 IInvocationFeatures invocationFeatures = invocationFeaturesFactory.Create();
                 invocationFeatures.Set<FunctionInvocation>(invocation);
@@ -223,10 +232,7 @@ namespace Microsoft.Azure.Functions.Worker
                     response.ReturnValue = returnVal;
                 }
 
-                response.Result = new StatusResult
-                {
-                    Status = StatusResult.Types.Status.Success
-                };
+                response.Result.Status = StatusResult.Types.Status.Success;
             }
             catch (Exception ex)
             {
@@ -235,6 +241,12 @@ namespace Microsoft.Azure.Functions.Worker
                     Exception = ex.ToRpcException(),
                     Status = StatusResult.Types.Status.Failure
                 };
+
+                if (ex.InnerException is TaskCanceledException)
+                {
+                    Console.WriteLine("TaskCanceledException withing handle invocation request");
+                    response.Result.Status = StatusResult.Types.Status.Cancelled;
+                }
             }
             finally
             {
@@ -247,6 +259,16 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
+        }
+
+        internal static void InvocationCancelRequestHandler(InvocationCancel request)
+        {
+            _invocationCancelDictionary.TryGetValue(request.InvocationId, out CancellationTokenSource? cts);
+            if (cts is not null)
+            {
+                cts.Cancel();
+                _invocationCancelDictionary.Remove(request.InvocationId);
+            }
         }
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)
@@ -273,6 +295,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
+            response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
 
             return response;
         }

@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Threading;
+
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
@@ -22,5 +24,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the distributed tracing context.
         /// </summary>
         public abstract TraceContext TraceContext { get; }
+
+        /// <summary>
+        /// Gets the <see cref="CancellationToken"/> that signals a function invocation is being cancelled.
+        /// </summary>
+        public virtual CancellationToken CancellationToken { get; }
     }
 }

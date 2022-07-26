@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -53,6 +54,8 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         public override TraceContext TraceContext => _invocation.TraceContext;
+
+        public override CancellationToken CancellationToken => _invocation.CancellationToken;
 
         public override BindingContext BindingContext => _bindingContext ??= new DefaultBindingContext(this);
 

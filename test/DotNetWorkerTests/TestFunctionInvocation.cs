@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.Azure.Functions.Worker.Context;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
@@ -26,5 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override string FunctionId { get; } = Guid.NewGuid().ToString();
 
         public override TraceContext TraceContext { get; } = new DefaultTraceContext(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+
+        public override CancellationToken CancellationToken => throw new NotImplementedException();
     }
 }

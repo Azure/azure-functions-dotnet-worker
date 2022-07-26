@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -85,6 +86,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override BindingContext BindingContext { get; }
 
         public override RetryContext RetryContext => Features.Get<IExecutionRetryFeature>()?.Context;
+
+        public override CancellationToken CancellationToken => throw new NotImplementedException();
 
         public void Dispose()
         {

@@ -12,6 +12,7 @@ namespace FunctionApp
 {
     public static class HttpTriggerSimple
     {
+        [FixedDelayRetry(5, "00:00:10")]
         [Function(nameof(HttpTriggerSimple))]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
         {

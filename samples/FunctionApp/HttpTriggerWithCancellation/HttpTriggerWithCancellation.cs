@@ -28,7 +28,7 @@ namespace FunctionApp
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 response.WriteString($"Hello world!");
 
-                await Task.Delay(10000, cancellationToken);
+                await Task.Delay(5000, cancellationToken);
 
                 return response;
             }

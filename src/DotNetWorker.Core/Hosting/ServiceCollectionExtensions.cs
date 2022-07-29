@@ -52,6 +52,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // Function Execution Contexts
             services.AddSingleton<IFunctionContextFactory, DefaultFunctionContextFactory>();
 
+            // Function Invocation Manager
+            services.AddSingleton<FunctionInvocationManager>();
+
             // Invocation Features
             services.TryAddSingleton<IInvocationFeaturesFactory, DefaultInvocationFeaturesFactory>();
             services.AddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();

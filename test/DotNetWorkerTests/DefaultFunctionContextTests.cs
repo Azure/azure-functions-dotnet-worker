@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
@@ -33,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             features.Set<FunctionDefinition>(definition);
             features.Set<FunctionInvocation>(invocation);
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, features, CancellationToken.None);
         }
 
         [Fact]

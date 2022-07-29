@@ -9,13 +9,11 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
     internal sealed class GrpcFunctionInvocation : FunctionInvocation, IExecutionRetryFeature
     {
         private readonly InvocationRequest _invocationRequest;
-        private readonly CancellationTokenSource _cancellationTokenSource;
         private RetryContext? _retryContext;
 
-        public GrpcFunctionInvocation(InvocationRequest invocationRequest, CancellationTokenSource cancellationTokenSource)
+        public GrpcFunctionInvocation(InvocationRequest invocationRequest)
         {
             _invocationRequest = invocationRequest;
-            _cancellationTokenSource = cancellationTokenSource;
             TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, _invocationRequest.TraceContext.TraceState);
         }
 
@@ -26,7 +24,5 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public override TraceContext TraceContext { get; }
 
         public RetryContext Context => _retryContext ??= new GrpcRetryContext(_invocationRequest.RetryContext);
-
-        public override CancellationToken CancellationToken => _cancellationTokenSource.Token;
     }
 }

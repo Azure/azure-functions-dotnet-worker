@@ -12,5 +12,9 @@ namespace Microsoft.Azure.Functions.Worker
         Task InvokeFunctionAsync(FunctionContext context);
 
         FunctionContext CreateContext(IInvocationFeatures features);
+
+        void CancelInvocation(string invocationId);
+
+        void RemoveInvocationRecord(string invocationId);
     }
 }

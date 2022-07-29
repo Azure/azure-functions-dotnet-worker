@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (request.ContentCase == MsgType.InvocationCancel)
             {
-                InvocationCancelRequestHandler(request.InvocationCancel);
+                InvocationCancelRequestHandler(request.InvocationCancel, _application);
             }
             else
             {
@@ -180,9 +180,6 @@ namespace Microsoft.Azure.Functions.Worker
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider functionInputConversionFeatureProvider)
         {
-            var cts = new CancellationTokenSource();
-            _invocationCancelDictionary.TryAdd(request.InvocationId, cts);
-
             FunctionContext? context = null;
             InvocationResponse response = new()
             {
@@ -192,7 +189,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var invocation = new GrpcFunctionInvocation(request, cts);
+                var invocation = new GrpcFunctionInvocation(request);
 
                 IInvocationFeatures invocationFeatures = invocationFeaturesFactory.Create();
                 invocationFeatures.Set<FunctionInvocation>(invocation);
@@ -244,12 +241,13 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (ex.InnerException is TaskCanceledException)
                 {
-                    Console.WriteLine("TaskCanceledException withing handle invocation request");
                     response.Result.Status = StatusResult.Types.Status.Cancelled;
                 }
             }
             finally
             {
+                application.RemoveInvocationRecord(request.InvocationId);
+
                 if (context is IAsyncDisposable asyncContext)
                 {
                     await asyncContext.DisposeAsync();
@@ -261,14 +259,9 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static void InvocationCancelRequestHandler(InvocationCancel request)
+        internal static void InvocationCancelRequestHandler(InvocationCancel request, IFunctionsApplication application)
         {
-            _invocationCancelDictionary.TryGetValue(request.InvocationId, out CancellationTokenSource? cts);
-            if (cts is not null)
-            {
-                cts.Cancel();
-                _invocationCancelDictionary.Remove(request.InvocationId);
-            }
+            application.CancelInvocation(request.InvocationId);
         }
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)

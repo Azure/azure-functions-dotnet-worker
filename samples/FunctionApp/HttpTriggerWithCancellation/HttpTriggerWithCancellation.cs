@@ -41,7 +41,6 @@ namespace FunctionApp
 
                 return response;
             }
-
         }
     }
 }

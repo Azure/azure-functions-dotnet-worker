@@ -27,7 +27,5 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override string FunctionId { get; } = Guid.NewGuid().ToString();
 
         public override TraceContext TraceContext { get; } = new DefaultTraceContext(Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
-
-        public override CancellationToken CancellationToken => throw new NotImplementedException();
     }
 }

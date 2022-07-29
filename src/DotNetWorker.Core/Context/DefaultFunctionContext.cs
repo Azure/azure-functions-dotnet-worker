@@ -13,13 +13,15 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly FunctionInvocation _invocation;
+        private readonly CancellationToken _cancellationToken;
 
         private IServiceScope? _instanceServicesScope;
         private IServiceProvider? _instanceServices;
         private BindingContext? _bindingContext;
 
-        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features)
+        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features, CancellationToken cancellationToken)
         {
+            _cancellationToken = cancellationToken;
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Features = features ?? throw new ArgumentNullException(nameof(features));
 
@@ -55,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override TraceContext TraceContext => _invocation.TraceContext;
 
-        public override CancellationToken CancellationToken => _invocation.CancellationToken;
+        public override CancellationToken CancellationToken => _cancellationToken;
 
         public override BindingContext BindingContext => _bindingContext ??= new DefaultBindingContext(this);
 

@@ -1,14 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
-using Microsoft.CodeAnalysis;
-using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -209,21 +205,5 @@ namespace Microsoft.Azure.Functions.Worker
             var result = FunctionMetadataProviderGenerator.FormatArray(exampleEnumerable);
             Assert.Equal(expected, result);
         }
-
-/*        [Fact]
-        public void LoadConstructorArgumentsDifferentNumberOfArgsTest()
-        {
-// still wip for testing this method
-            var mockMethodSymbol = new Mock<IMethodSymbol>();
-            var mockAttrData = new Mock<AttributeData>();
-            var mockParamSymbol = new Mock<IParameterSymbol>();
-
-            mockMethodSymbol.Setup(m => m.Parameters).Returns(new ImmutableArray<IParameterSymbol> { mockParamSymbol.Object });
-            mockAttrData.Setup(a => a.ConstructorArguments).Returns(new ImmutableArray<TypedConstant>());
-
-            var emptyDict = new Dictionary<string, object>();
-
-            Assert.Throws<InvalidOperationException>( () => FunctionMetadataProviderGenerator.LoadConstructorArguments(mockMethodSymbol.Object, mockAttrData.Object, emptyDict));
-        }*/
     }
 }

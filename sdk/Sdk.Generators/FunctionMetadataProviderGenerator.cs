@@ -110,8 +110,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     continue;
                 }
 
-                // Get the parameter symbol and grab the first attribute
-                // We are assuming that any function that has an attribute has only one (the input/output binding or trigger)
                 IParameterSymbol? parameterSymbol = model.GetDeclaredSymbol(parameter);
 
                 if (parameterSymbol is null)
@@ -119,9 +117,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     throw new InvalidOperationException($"The symbol for the parameter '{nameof(parameter)}' could not be found");
                 }
 
+                // Assumption: a parameter in a function method will have just one attribute (the trigger or input/output binding)
                 AttributeData attributeData = parameterSymbol.GetAttributes().First();
 
-                // Get the attribute syntax and treat the constructor as a method (IMethodSymbol)
+                // Get the attribute method symbol and treat the constructor as a method (IMethodSymbol)
                 AttributeSyntax attributeSyntax = parameter.AttributeLists.First().Attributes.First();
                 IMethodSymbol? attribMethodSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
 
@@ -134,8 +133,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // Get binding info as a dictionary with keys as the property name and value as the property value
                 IDictionary<string, object> attributeProperties = GetAttributeProperties(attribMethodSymbol, attributeData);
 
-                // Create binding metadata w/ info below and add to function metadata created above
-                string attributeName = attributeData.AttributeClass!.Name; // TODO: Verify if we can ever have an attribute with no AttributeClass (it is null)
+                string attributeName = attributeData.AttributeClass!.Name;
                 string bindingName = parameter.Identifier.ValueText;
 
                 // properly format binding types by removing "Attribute" and "Input" descriptors
@@ -159,13 +157,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
                     methods = new List<string> { "get","post" },
                 };*/
-                indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName+binding+number
+                indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName + "binding" + number
                 indentedTextWriter.Indent++;
                 indentedTextWriter.WriteLine("name = \"" + bindingName + "\",");
                 indentedTextWriter.WriteLine("type = \"" + bindingType + "\",");
                 indentedTextWriter.WriteLine("direction = \"" + bindingDirection + "\",");
 
-                // Add additional bindingInfo to the anonymous type (some functions have more properties than others)
+                // Add additional bindingInfo to the anonymous type because some functions have more properties than others
                 foreach (var prop in attributeProperties)
                 {
                     var propertyName = prop.Key;
@@ -197,7 +195,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine("var " + functionName + "Binding" + bindingCount.ToString() + " = new {");
                     indentedTextWriter.Indent++;
 
-                    // if there are only two bindings and an httptrigger, then we use "$return" for the binding name
+                    // if there are only two bindings and one is an httptrigger, then we use "$return" for the binding name
                     if (totalBindings < 2)
                     {
                         indentedTextWriter.WriteLine("name = \"" + "$return" + "\",");
@@ -205,7 +203,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     else
                     {
                         // when there are more than 2 bindings and one is an HttpTrigger, we can assume that there is another output binding
-                        // we return HttpResponse instead of "$return" as the name/type when there is another output binding.
+                        // we return HttpResponse instead of "$return"
                         indentedTextWriter.WriteLine("name = \"" + "HttpResponse" + "\",");
                     }
 
@@ -256,9 +254,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
         }
 
+        /// <summary>
+        /// Register a factory that can create our custom syntax receiver
+        /// </summary>
+        /// <param name="context"></param>
         public void Initialize(GeneratorInitializationContext context)
         {
-            // Register a factory that can create our custom syntax receiver
             context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
         }
 

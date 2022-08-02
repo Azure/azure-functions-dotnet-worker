@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -44,5 +45,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the output binding metadata.
         /// </summary>
         public abstract IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
+
+        /// <summary>
+        /// Gets if a the function is binding to a cancellation token.
+        /// </summary>
+        public abstract Lazy<bool> BindsToCancellationToken { get; }
     }
 }

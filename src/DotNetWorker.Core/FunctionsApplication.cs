@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker
             var functionDefinition = _functionMap[invocation.FunctionId];
             features.Set<FunctionDefinition>(functionDefinition);
 
-            if (functionDefinition.Parameters.Where(p => p.Type == typeof(CancellationToken)).Any())
+            if (functionDefinition.BindsToCancellationToken.Value)
             {
                 cancellationTokenSource = new CancellationTokenSource();
             }
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker
             var invocationDetails = new FunctionInvocationDetails()
                                         {
                                             FunctionContext = context,
-                                            CancellationTokenSource = cancellationTokenSource ?? null,
+                                            CancellationTokenSource = cancellationTokenSource,
                                         };
 
             _functionInvocationManager.TryAddInvocationDetails(context.InvocationId, invocationDetails);
@@ -97,7 +97,15 @@ namespace Microsoft.Azure.Functions.Worker
             var invocationDetails = _functionInvocationManager.TryGetInvocationDetails(invocationId);
             if (invocationDetails?.CancellationTokenSource is not null)
             {
-                invocationDetails.CancellationTokenSource.Cancel();
+                try
+                {
+                    invocationDetails.CancellationTokenSource.Cancel();
+                }
+                catch (Exception)
+                {
+                    // what should we do here?
+                }
+
             }
         }
 

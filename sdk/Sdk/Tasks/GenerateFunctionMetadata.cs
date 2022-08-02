@@ -30,6 +30,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
         [Required]
         public string? AzureFunctionsVersion { get; set; }
 
+        [Required]
+        public string? TargetFrameworkIdentifier { get; set; }
+
+        [Required]
+        public string? TargetFrameworkVersion { get; set; }
+
         public override bool Execute()
         {
             try
@@ -39,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
                 var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
 
                 var extensions = functionGenerator.Extensions;
-                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!);
+                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!, TargetFrameworkIdentifier!, TargetFrameworkVersion!);
 
                 extensionsCsProjGenerator.Generate();
 

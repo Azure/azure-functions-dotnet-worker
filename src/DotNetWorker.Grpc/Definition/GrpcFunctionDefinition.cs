@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
 
-            BindsToCancellationToken = new Lazy<bool>(ContainsCancellationTokenParameter);
+            BindsToCancellationToken = ParametersContainCancellationToken(Parameters);
         }
 
         public override string PathToAssembly { get; }
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
 
-        public override Lazy<bool> BindsToCancellationToken  { get; }
+        public override bool BindsToCancellationToken { get; }
 
         private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
         {
@@ -75,9 +75,9 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             return ImmutableDictionary<string, object>.Empty;
         }
 
-        private bool ContainsCancellationTokenParameter()
+        private bool ParametersContainCancellationToken(ImmutableArray<FunctionParameter> parameters)
         {
-            if (Parameters.Where(p => p.Type == typeof(CancellationToken)).Any())
+            if (parameters.Where(p => p.Type == typeof(CancellationToken)).Any())
             {
                 return true;
             }

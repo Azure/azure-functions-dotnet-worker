@@ -49,6 +49,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets if a the function is binding to a cancellation token.
         /// </summary>
-        public abstract Lazy<bool> BindsToCancellationToken { get; }
+        public abstract bool BindsToCancellationToken { get; }
     }
 }

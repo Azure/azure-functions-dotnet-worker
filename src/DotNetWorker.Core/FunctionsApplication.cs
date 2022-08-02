@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker
             var functionDefinition = _functionMap[invocation.FunctionId];
             features.Set<FunctionDefinition>(functionDefinition);
 
-            if (functionDefinition.BindsToCancellationToken.Value)
+            if (functionDefinition.BindsToCancellationToken)
             {
                 cancellationTokenSource = new CancellationTokenSource();
             }

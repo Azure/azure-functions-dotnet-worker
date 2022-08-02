@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Parameters = parameters == null ? ImmutableArray<FunctionParameter>.Empty : parameters.ToImmutableArray();
             InputBindings = inputBindings == null ? ImmutableDictionary<string, BindingMetadata>.Empty : inputBindings.ToImmutableDictionary();
             OutputBindings = outputBindings == null ? ImmutableDictionary<string, BindingMetadata>.Empty : outputBindings.ToImmutableDictionary();
-            BindsToCancellationToken = new Lazy<bool>(bindsToCancellationToken);
+            BindsToCancellationToken = bindsToCancellationToken;
         }
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
-        public override Lazy<bool> BindsToCancellationToken  { get; }
+        public override bool BindsToCancellationToken  { get; }
 
         /// <summary>
         /// Generates a pre-made <see cref="FunctionDefinition"/> for testing. Always includes a single trigger named "TestTrigger".

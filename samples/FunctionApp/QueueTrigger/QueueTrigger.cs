@@ -8,6 +8,7 @@ namespace FunctionApp
 {
     public static class QueueTrigger
     {
+        [FixedDelayRetry(5, "00:00:10")]
         [Function(nameof(QueueTrigger))]
         public static Book Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)

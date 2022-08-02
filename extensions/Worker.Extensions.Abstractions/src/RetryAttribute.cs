@@ -11,5 +11,7 @@ namespace Microsoft.Azure.Functions.Worker
         public RetryAttribute()
         {
         }
+
+        public int MaxRetryCount { get; set; }
     }
 }

@@ -1,18 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Attribute used to mark a function that has an ExpontentialBackoff retry policy.
+    /// Defines an exponential backoff retry strategy, where the delay between retries
+    /// will get progressively larger, limited by the max/min specified.    
     /// </summary>
     public class ExponentialBackoffRetryAttribute : RetryAttribute
     {
-        /// <summary>
-        /// The type of retry policy.
-        /// </summary>
-        public const string Strategy = "exponentialBackoff";
-
         /// <summary>
         /// Creates an instance of <see cref="ExponentialBackoffRetryAttribute"/>
         /// <param name="maxRetryCount">The maximum number of retries allowed per function execution</param>
@@ -21,15 +19,21 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         public ExponentialBackoffRetryAttribute(int maxRetryCount, string minimumInterval, string maximumInterval)
         {
+            if (!TimeSpan.TryParse(minimumInterval, out var parsedMinimumInterval))
+            {
+                throw new ArgumentOutOfRangeException(nameof(minimumInterval));
+            }
+            if (!TimeSpan.TryParse(maximumInterval, out var parsedMaximumInterval))
+            {
+                throw new ArgumentOutOfRangeException(nameof(maximumInterval));
+            }
+
+            ValidateIntervals(parsedMinimumInterval, parsedMaximumInterval);
+
             MaxRetryCount = maxRetryCount;
             MinimumInterval = minimumInterval;
             MaximumInterval = maximumInterval;
         }
-
-        /// <summary>
-        /// Gets the maximum number of retries allowed per function execution.
-        /// </summary>
-        public int MaxRetryCount { get; }
 
         /// <summary>
         /// Gets the minimum retry delay, a string with format HH:mm:ss.
@@ -40,5 +44,24 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the maximum retry delay, a string with format HH:mm:ss.
         /// </summary>
         public string MaximumInterval { get; }
+
+        private static void ValidateIntervals(TimeSpan minimumInterval, TimeSpan maximumInterval)
+        {
+            if (minimumInterval.Ticks < 0)
+            {
+                throw new ArgumentOutOfRangeException("minimumInterval", "The TimeSpan must not be negative.");
+            }
+
+            if (maximumInterval.Ticks < 0)
+            {
+                throw new ArgumentOutOfRangeException("maximumInterval", "The TimeSpan must not be negative.");
+            }
+
+            if (minimumInterval.Ticks > maximumInterval.Ticks)
+            {
+                throw new ArgumentException("The minimumInterval must not be greater than the maximumInterval.",
+                    "minimumInterval");
+            }
+        }
     }
 }

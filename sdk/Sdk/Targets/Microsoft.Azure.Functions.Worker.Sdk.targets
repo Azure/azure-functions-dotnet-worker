@@ -14,8 +14,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_ToolingSuffix></_ToolingSuffix>
         <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
         <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">v3</AzureFunctionsVersion>
-        <TargetFrameworkIdentifier>$(TargetFrameworkIdentifier)</TargetFrameworkIdentifier>
-        <TargetFrameworkVersion>$(TargetFrameworkVersion)</TargetFrameworkVersion>
         <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
         <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
         <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
@@ -34,7 +32,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
         <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
-      
+
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
     </PropertyGroup>
 
@@ -72,6 +70,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
 
         <Copy
@@ -126,7 +126,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
-  </Target>
+    </Target>
 
 
     <!--

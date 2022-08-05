@@ -70,6 +70,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
 
         <Copy
@@ -98,6 +100,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
 
         <Copy
@@ -282,6 +286,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(PublishDir)"/>
 
         <Copy
@@ -310,6 +316,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(PublishDir)"/>
 
         <Copy

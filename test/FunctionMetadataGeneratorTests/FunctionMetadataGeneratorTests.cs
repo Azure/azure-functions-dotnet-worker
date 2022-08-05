@@ -579,7 +579,6 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Null(retry.MaximumInterval);
 
             FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
-
         }
 
         [Fact]
@@ -602,6 +601,21 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Equal("00:15:00", retry.MaximumInterval);
 
             FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
+        [Fact]
+        public void FunctionWithRetryPolicyWithInvalidIntervals()
+        {
+            // negative intervals
+            Assert.Throws<ArgumentOutOfRangeException>(() => new FixedDelayRetryAttribute(5, "-00:00:10"));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ExponentialBackoffRetryAttribute(5, "-00:00:14", "00:15:00"));
+
+            // min interval greater than max interval
+            Assert.Throws<ArgumentException>(() => new ExponentialBackoffRetryAttribute(5, "00:15:00", "00:00:14"));
+
+            // invalid interval that can't be parsed
+            Assert.Throws<ArgumentOutOfRangeException>(() => new FixedDelayRetryAttribute(5, "something_bad"));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ExponentialBackoffRetryAttribute(5, "something_bad", "00:01:00"));
         }
 
         private class EventHubNotBatched
@@ -971,14 +985,14 @@ namespace Microsoft.Azure.Functions.SdkTests
         {
             [Function("FixedDelayRetryFunction")]
             [FixedDelayRetry(5, "00:00:10")]
-            public void FixedDelayRetryFunction([HttpTrigger(AuthorizationLevel.Admin, "get")] string req)
+            public void FixedDelayRetryFunction([QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
             {
                 throw new NotImplementedException();
             }
 
             [Function("ExponentialBackoffRetryFunction")]
             [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
-            public void ExponentialBackoffRetryFunction([HttpTrigger(AuthorizationLevel.Admin, "get")] string req)
+            public void ExponentialBackoffRetryFunction([QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
             {
                 throw new NotImplementedException();
             }

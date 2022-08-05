@@ -12,6 +12,9 @@ namespace Microsoft.Azure.Functions.Worker
         {
         }
 
+        /// <summary>
+        /// The maximum number of retries allowed per function execution
+        /// </summary>
         public int MaxRetryCount { get; set; }
     }
 }

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Defines a retry strategy where a fixed delay is used between retries.
     /// </summary>
-    public class FixedDelayRetryAttribute : RetryAttribute
+    public sealed class FixedDelayRetryAttribute : RetryAttribute
     {
         /// <summary>
         /// Creates an instance of <see cref="FixedDelayRetryAttribute"/>

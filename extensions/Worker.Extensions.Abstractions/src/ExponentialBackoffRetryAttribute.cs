@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// Defines an exponential backoff retry strategy, where the delay between retries
     /// will get progressively larger, limited by the max/min specified.    
     /// </summary>
-    public class ExponentialBackoffRetryAttribute : RetryAttribute
+    public sealed class ExponentialBackoffRetryAttribute : RetryAttribute
     {
         /// <summary>
         /// Creates an instance of <see cref="ExponentialBackoffRetryAttribute"/>

@@ -185,7 +185,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
 
             var functionBindings = new TestFunctionBindingsFeature();
-            functionBindings.OutputBindingData.Add("HttpResponse", new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK));
+            var grpcHttpResponse = new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK);
+            functionBindings.OutputBindingData.Add("HttpResponse", grpcHttpResponse);
             functionBindings.OutputBindingData.Add("Name", "some name");
             _features.Set<IFunctionBindingsFeature>(functionBindings);
 
@@ -195,7 +196,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Assert
             Assert.NotNull(httpOutputBinding.Value);
-            Assert.Same(new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK), httpOutputBinding.Value);
+            Assert.Same(grpcHttpResponse, httpOutputBinding.Value);
 
             // Also verify we can do other typical operations like adding a response header.
             httpOutputBinding.Value.Headers.Add("X-Foo-Id", "bar");

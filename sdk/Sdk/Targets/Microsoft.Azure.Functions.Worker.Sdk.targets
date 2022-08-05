@@ -32,7 +32,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_FunctionsExtensionsFullPublish Condition="$(NoBuild) == '' And $(_FunctionsExtensionsFullPublish) == ''">True</_FunctionsExtensionsFullPublish>
         <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
-
+      
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
     </PropertyGroup>
 
@@ -100,6 +100,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
 
         <Copy
@@ -126,7 +128,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
-    </Target>
+  </Target>
 
 
     <!--
@@ -284,6 +286,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(PublishDir)"/>
 
         <Copy
@@ -312,6 +316,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           ReferencePaths="@(ReferencePath)"
           ExtensionsCsProjFilePath="$(ExtensionsCsProjFilePath)"
           AzureFunctionsVersion="$(AzureFunctionsVersion)"
+          TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
+          TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(PublishDir)"/>
 
         <Copy

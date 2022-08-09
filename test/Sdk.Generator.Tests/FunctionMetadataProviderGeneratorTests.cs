@@ -120,14 +120,14 @@ namespace Microsoft.Azure.Functions.Worker
                 authLevel = Enum.GetName(typeof(AuthorizationLevel), 0),
                 methods = new List<string> { 'get','post' },
             };
-            var HttpTriggerSimpleBinding0JSONstring = JsonSerializer.Serialize(HttpTriggerSimpleBinding0).ToString();
+            var HttpTriggerSimpleBinding0JSONstring = JsonSerializer.Serialize(HttpTriggerSimpleBinding0);
             HttpTriggerSimpleRawBindings.Add(HttpTriggerSimpleBinding0JSONstring);
             var HttpTriggerSimpleBinding1 = new {
                 name = '$return',
                 type = 'http',
                 direction = 'Out',
             };
-            var HttpTriggerSimpleBinding1JSONstring = JsonSerializer.Serialize(HttpTriggerSimpleBinding1).ToString();
+            var HttpTriggerSimpleBinding1JSONstring = JsonSerializer.Serialize(HttpTriggerSimpleBinding1);
             HttpTriggerSimpleRawBindings.Add(HttpTriggerSimpleBinding1JSONstring);
             var HttpTriggerSimple = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), 'dotnet-isolated', 'HttpTriggerSimple', 'TestProject.HttpTriggerSimple.Run', HttpTriggerSimpleRawBindings, 'TestProject.dll');
             metadataList.Add(HttpTriggerSimple);

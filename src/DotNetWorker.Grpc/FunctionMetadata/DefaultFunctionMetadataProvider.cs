@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker
                 // deserialize as json element to preserve raw bindings
                 var jsonMetadataList = await JsonSerializer.DeserializeAsync<JsonElement>(fs);
 
-                var functionMetadataResults= new List<IFunctionMetadata>(jsonMetadataList.GetArrayLength());
+                var functionMetadataResults = new List<IFunctionMetadata>(jsonMetadataList.GetArrayLength());
 
                 foreach (var jsonMetadata in jsonMetadataList.EnumerateArray())
                 {

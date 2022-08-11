@@ -239,12 +239,12 @@ namespace Microsoft.Azure.Functions.Worker
                 var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
 
                 // depending on the FunctionMetadataProvider used, we may get RpcFunctionMetadata instead of a generated IFunctionMetadata object
-                if (functionMetadataList.First().GetType() == typeof(RpcFunctionMetadata))
+                if (functionMetadataList.First() is RpcFunctionMetadata funcAsRpcMetadata)
                 {
                     // simplified payload conversion since we already have the correct type
                     foreach (var func in functionMetadataList)
                     {
-                        RpcFunctionMetadata funcAsRpcMetadata = (RpcFunctionMetadata)func;
+                        funcAsRpcMetadata = (RpcFunctionMetadata)func;
                         response.FunctionMetadataResults.Add(funcAsRpcMetadata);
                     }
                 }

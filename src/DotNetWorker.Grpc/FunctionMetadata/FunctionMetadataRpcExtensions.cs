@@ -10,9 +10,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
     {
         internal static MapField<string, BindingInfo> GetBindingInfoList(this IFunctionMetadata funcMetadata)
         {
-            if (funcMetadata.GetType() == typeof(RpcFunctionMetadata))
+            if (funcMetadata is RpcFunctionMetadata rpcFuncMetadata)
             {
-                RpcFunctionMetadata rpcFuncMetadata = (RpcFunctionMetadata) funcMetadata;
                 return rpcFuncMetadata.Bindings;
             }
 

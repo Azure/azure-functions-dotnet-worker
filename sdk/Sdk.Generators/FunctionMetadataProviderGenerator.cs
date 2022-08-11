@@ -74,6 +74,167 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", sourceText);
         }
 
+        /// <summary>
+        /// Register a factory that can create our custom syntax receiver
+        /// </summary>
+        /// <param name="context"></param>
+        public void Initialize(GeneratorInitializationContext context)
+        {
+            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+        }
+
+        /// <summary>
+        /// This method populates a dictionary with argumentName (keys) and argumentValue (value) pairs given attribMethodSymbol, which
+        /// represents the attribute constructor as as an IMethodSymbol, and attributeData which stores constructor argument values.
+        /// </summary>
+        /// <param name="attribMethodSymbol">The attribute's constructor as an IMethodSymbol.</param>
+        /// <param name="attributeData">Contains constructor arguments for the constructor represented in attribMethodSymbol.</param>
+        /// <param name="dict">A dicitonary to be populated with constructor arguments.</param>
+        /// <exception cref="InvalidOperationException"></exception>
+        internal static void LoadConstructorArguments(IMethodSymbol attribMethodSymbol, AttributeData attributeData, IDictionary<string, object> dict)
+        {
+            if (attribMethodSymbol.Parameters.Length < attributeData.ConstructorArguments.Length)
+            {
+                throw new InvalidOperationException($"The constructor at '{nameof(attribMethodSymbol)}' has less total arguments than '{nameof(attributeData)}'.");
+            }
+
+            // It's fair to assume than constructor arguments appear before named arguments, and
+            // that the constructor names would match the property names
+            for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
+            {
+                var argumentName = attribMethodSymbol.Parameters[i].Name;
+
+                var arg = attributeData.ConstructorArguments[i];
+                switch (arg.Kind)
+                {
+                    case TypedConstantKind.Error:
+                        break;
+                    case TypedConstantKind.Primitive:
+                        dict[argumentName] = arg.Value;
+                        break;
+                    case TypedConstantKind.Enum:
+                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + "), " + arg.Value + ")";
+                        break;
+                    case TypedConstantKind.Type:
+                        break;
+                    case TypedConstantKind.Array:
+                        var arrayValues = arg.Values.Select(a => a.Value!.ToString()).ToArray();
+                        dict[argumentName] = arrayValues;
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Formats an object into a string value for the source-generated file. This can mean adding quotation marks around the string
+        /// representation of the object, or leaving it as is if the object is a string or Enum type.
+        /// </summary>
+        /// <param name="propValue">The property that needs to be formmated into a string.</param>
+        /// <returns></returns>
+        internal static string FormatObject(object propValue)
+        {
+            if (propValue != null)
+            {
+                // catch values that are already strings or Enum parsing
+                // we don't need to surround these cases with quotation marks
+                if (propValue.ToString().Contains("\"") || propValue.ToString().Contains("Enum"))
+                {
+                    return propValue.ToString();
+                }
+
+                return "\"" + propValue.ToString() + "\"";
+            }
+            else
+            {
+                return "null";
+            }
+        }
+
+        /// <summary>
+        /// Format an array into a string.
+        /// </summary>
+        /// <param name="enumerableValues">An array object to be formatted.</param>
+        /// <returns></returns>
+        internal static string FormatArray(IEnumerable enumerableValues)
+        {
+            string arrAsString;
+
+            arrAsString = "new List<string> { ";
+
+            foreach (var o in enumerableValues)
+            {
+                arrAsString += FormatObject(o);
+                arrAsString += ",";
+            }
+
+            arrAsString = arrAsString.TrimEnd(',', ' ');
+            arrAsString += " }";
+
+            return arrAsString;
+        }
+
+        /// <summary>
+        /// Colllect all of the properties associated with an attribute.
+        /// </summary>
+        /// <param name="attribMethodSymbol">The symbol that represents the attribute constructor method.</param>
+        /// <param name="attributeData">Contains the values associated with the attribute constructor method properties.</param>
+        /// <returns></returns>
+        internal static IDictionary<string, object> GetAttributeProperties(IMethodSymbol attribMethodSymbol, AttributeData attributeData)
+        {
+            Dictionary<string, object> argumentData = new();
+            if (attributeData.ConstructorArguments.Any())
+            {
+                LoadConstructorArguments(attribMethodSymbol, attributeData, argumentData);
+            }
+
+            foreach (var namedArgument in attributeData.NamedArguments)
+            {
+                if (namedArgument.Value.Value != null)
+                {
+                    argumentData[namedArgument.Key] = namedArgument.Value.Value;
+                }
+            }
+
+            return argumentData;
+        }
+
+        /// <summary>
+        /// Created on demand before each generation pass
+        /// </summary>
+        private class SyntaxReceiver : ISyntaxReceiver
+        {
+            public List<MethodDeclarationSyntax> CandidateMethods { get; } = new List<MethodDeclarationSyntax>();
+
+            /// <summary>
+            /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
+            /// </summary>
+            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
+            {
+                if (syntaxNode is MethodDeclarationSyntax methodSyntax)
+                {
+                    if (methodSyntax.AttributeLists.Count > 0)
+                    {
+                        foreach (var attrList in methodSyntax.AttributeLists)
+                        {
+                            if (attrList.Attributes.Count > 0)
+                            {
+                                foreach (var attr in attrList.Attributes)
+                                {
+                                    if (String.Equals(attr.Name.ToString(), "Function", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        CandidateMethods.Add(methodSyntax);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
         {
             indentedTextWriter.WriteLine("public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)");
@@ -165,6 +326,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     bindingDirection = "Out";
                 }
 
+                string? dataType = null;
+
+                // Check if parameter datatype is string or binary
+                // Is string parameter type
+                if (IsStringType(parameterSymbol.Type.MetadataName))
+                {
+                    dataType = "\"String\"";
+                }
+                // Is binary parameter type
+                else if (IsBinaryType(parameterSymbol.Type.MetadataName))
+                {
+                    dataType = "\"Binary\"";
+                }
+
                 // Create raw binding anonymous type, example:
                 /*  var binding1 = new {
                     name = "req",
@@ -173,39 +348,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
                     methods = new List<string> { "get","post" },
                 };*/
-                indentedTextWriter.WriteLine($"var {functionName}Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName + "binding" + number
-                indentedTextWriter.Indent++;
-                indentedTextWriter.WriteLine($"name = \"{ bindingName}\",");
-                indentedTextWriter.WriteLine($"type = \"{bindingType}\",");
-                indentedTextWriter.WriteLine($"direction = \"{bindingDirection}\",");
+                bindingCount = CreateBindingInfo(indentedTextWriter, functionName, bindingCount, bindingName, bindingType, bindingDirection, attributeProperties, dataType);
 
-                // Add additional bindingInfo to the anonymous type because some functions have more properties than others
-                foreach (var prop in attributeProperties)
-                {
-                    var propertyName = prop.Key;
-
-                    if (prop.Value.GetType().IsArray)
-                    {
-                        string arr = FormatArray((IEnumerable)prop.Value);
-                        indentedTextWriter.WriteLine($"{propertyName} = {arr},");
-                    }
-                    else
-                    {
-                        var propertyValue = FormatObject(prop.Value);
-                        indentedTextWriter.WriteLine($"{propertyName} = {propertyValue},");
-                    }
-                }
-
-                indentedTextWriter.Indent--;
-                indentedTextWriter.WriteLine("};");
-
-                // Take the anonymous type representing the binding and serialize it as a JSON string
-                indentedTextWriter.WriteLine($"var {functionName}Binding" + bindingCount.ToString() + $"JSONstring = JsonSerializer.Serialize({functionName}Binding" + bindingCount.ToString() + ");");
-                indentedTextWriter.WriteLine($"{bindingsListName}.Add({ functionName}Binding" + bindingCount.ToString() + "JSONstring);");
-
-                bindingCount++;
-
-                // auto-add a return type for http for now
+                // Auto-add a return type for http if HttpTrigger
                 if (string.Equals(bindingType, "httptrigger", StringComparison.OrdinalIgnoreCase))
                 {
                     var totalBindings = method.ParameterList.Parameters.Count(param => param.AttributeLists.Count > 0);
@@ -229,11 +374,151 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine("direction = \"Out\",");
                     indentedTextWriter.Indent--;
                     indentedTextWriter.WriteLine("};");
-                    indentedTextWriter.WriteLine($"var {functionName}Binding" + bindingCount.ToString() + $"JSONstring = JsonSerializer.Serialize({functionName}Binding" + bindingCount.ToString() + ");");
-                    indentedTextWriter.WriteLine($"{functionName}RawBindings.Add({functionName}Binding" + bindingCount.ToString() + "JSONstring);");
+
+                    SerializeAnonymousBindingAsJsonString(indentedTextWriter, functionName, bindingCount.ToString());
                     bindingCount++;
                 }
             }
+
+            // Check if there's any bindings defined in the return type class
+            TypeSyntax returnTypeSyntax = method.ReturnType;
+            ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
+
+            if (returnTypeSymbol != null)
+            {
+                var members = returnTypeSymbol.GetMembers();
+                foreach (var m in members)
+                {
+                    if (m.GetAttributes().Length > 0)
+                    {
+                        foreach (var attr in m.GetAttributes())
+                        {
+                            if (attr.AttributeClass != null &&
+                               attr.AttributeClass.BaseType != null &&
+                               attr.AttributeClass.BaseType.BaseType != null)
+                            {
+                                if (String.Equals(attr.AttributeClass.BaseType.BaseType.ToString(), "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingAttribute"))
+                                {
+                                    IMethodSymbol? attribMethodSymbol = attr.AttributeConstructor;
+
+                                    // Check if the attribute constructor has any parameters
+                                    if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
+                                    {
+                                        throw new InvalidOperationException($"The constructor of attribute '{nameof(attribMethodSymbol)}' is invalid");
+                                    }
+
+                                    string? dataType = null;
+
+                                    IPropertySymbol? propertySymbol = m as IPropertySymbol;
+
+                                    if (propertySymbol is null)
+                                    {
+                                        throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
+                                    }
+
+                                    var propertyType = propertySymbol.Type.MetadataName;
+
+                                    // Check if proprty datatype is string or binary
+                                    // Is string parameter type
+                                    if (IsStringType(propertyType))
+                                    {
+                                        dataType = "\"String\"";
+                                    }
+                                    // Is binary parameter type
+                                    else if (IsBinaryType(m.ContainingType.MetadataName))
+                                    {
+                                        dataType = "\"Binary\"";
+                                    }
+
+                                    CreateBindingInfoFromPropertyDeclaration(indentedTextWriter, functionName, bindingCount, m.Name, dataType, attr, attribMethodSymbol);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// In the case that a BindingAttribute is associated with a PropertyDeclarationSyntax object (rather than one of functions methods' parameter)
+        /// its binding info will be created here since the process is slightly different.
+        /// Example case is when user adds an output binding attribute to the property of custom return types.
+        /// </summary>
+        private static void CreateBindingInfoFromPropertyDeclaration(IndentedTextWriter indentedTextWriter, string functionName, int bindingCount, string bindingName, string? dataType, AttributeData attrData, IMethodSymbol attribMethodSymbol)
+        {
+            var namedTypeSymbol = attrData.AttributeClass;
+            string attributeName = namedTypeSymbol!.Name;
+            string bindingType = attributeName.Replace("Attribute", "");
+            bindingType = bindingType.Replace("Input", "");
+            bindingType = bindingType.Replace("Output","");
+
+            // Set binding direction 
+            // I think this would always have a binding direction of "Out" but will check anyways
+            string bindingDirection = "In";
+            if (String.Equals(namedTypeSymbol.BaseType!.ToString(), "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute"))
+            {
+                bindingDirection = "Out";
+            }
+
+            var attributeProperties = GetAttributeProperties(attribMethodSymbol, attrData);
+
+            CreateBindingInfo(indentedTextWriter, functionName, bindingCount, bindingName, bindingType, bindingDirection, attributeProperties, dataType);
+        }
+
+        private static int CreateBindingInfo(IndentedTextWriter indentedTextWriter, string functionName, int bindingCount, string bindingName, string bindingType, string bindingDirection, IDictionary<string, object> attributeProperties, string? dataType)
+        {
+            // Create raw binding anonymous type, example:
+            /*  var binding1 = new {
+                name = "req",
+                type = "HttpTrigger",
+                direction = "In",
+                authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
+                methods = new List<string> { "get","post" },
+            };*/
+            indentedTextWriter.WriteLine($"var {functionName}Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName + "binding" + number
+            indentedTextWriter.Indent++;
+            indentedTextWriter.WriteLine($"name = \"{bindingName}\",");
+            indentedTextWriter.WriteLine($"type = \"{bindingType}\",");
+            indentedTextWriter.WriteLine($"direction = \"{bindingDirection}\",");
+
+            // Add additional bindingInfo to the anonymous type because some functions have more properties than others
+            foreach (var prop in attributeProperties)
+            {
+                var propertyName = prop.Key;
+
+                if (prop.Value.GetType().IsArray)
+                {
+                    string arr = FormatArray((IEnumerable)prop.Value);
+                    indentedTextWriter.WriteLine($"{propertyName} = {arr},");
+                }
+                else
+                {
+                    var propertyValue = FormatObject(prop.Value);
+                    indentedTextWriter.WriteLine($"{propertyName} = {propertyValue},");
+                }
+            }
+
+            // add dataType property if it is passed through (value is not null)
+            if (dataType != null)
+            {
+                indentedTextWriter.WriteLine($"dataType = {dataType},");
+            }    
+
+
+            indentedTextWriter.Indent--;
+            indentedTextWriter.WriteLine("};");
+
+            // Take the anonymous type representing the binding and serialize it as a JSON string
+            SerializeAnonymousBindingAsJsonString(indentedTextWriter, functionName, bindingCount.ToString());
+            bindingCount++;
+
+            return bindingCount;
+        }
+
+        private static void SerializeAnonymousBindingAsJsonString(IndentedTextWriter indentedTextWriter, string functionName, string bindingCount)
+        {
+            indentedTextWriter.WriteLine($"var {functionName}Binding{bindingCount}JSONstring = JsonSerializer.Serialize({functionName}Binding{bindingCount});");
+            indentedTextWriter.WriteLine($"{functionName}RawBindings.Add({functionName}Binding" + bindingCount.ToString() + "JSONstring);");
         }
 
         private static void AddEnumTypes(IndentedTextWriter indentedTextWriter)
@@ -250,7 +535,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
         }
 
-        // adds a generated registration extension that users can call to register the source-generated function metadata provider
+        /// <summary>
+        /// Adds a generated registration extension that users can call to register the source-generated function metadata provider.
+        /// </summary>
         private static void AddRegistrationExtension(IndentedTextWriter indentedTextWriter)
         {
             indentedTextWriter.WriteLine("public static class WorkerHostBuilderFunctionMetadataProviderExtension");
@@ -272,131 +559,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
         }
 
-        /// <summary>
-        /// Register a factory that can create our custom syntax receiver
-        /// </summary>
-        /// <param name="context"></param>
-        public void Initialize(GeneratorInitializationContext context)
+        private static bool IsStringType(string fullName)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+            return string.Equals(fullName, "String", StringComparison.Ordinal);
         }
 
-        /// <summary>
-        /// Created on demand before each generation pass
-        /// </summary>
-        private class SyntaxReceiver : ISyntaxReceiver
+        // TODO: Test/Verify this
+        private static bool IsBinaryType(string fullName)
         {
-            public List<MethodDeclarationSyntax> CandidateMethods { get; } = new List<MethodDeclarationSyntax>();
-
-            /// <summary>
-            /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
-            /// </summary>
-            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-            {
-                if (syntaxNode is MethodDeclarationSyntax methodSyntax)
-                {
-                    foreach (var p in methodSyntax.ParameterList.Parameters)
-                    {
-                        if (p.AttributeLists.Count > 0)
-                        {
-                            CandidateMethods.Add(methodSyntax);
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        internal static IDictionary<string, object> GetAttributeProperties(IMethodSymbol attribMethodSymbol, AttributeData attributeData)
-        {
-            Dictionary<string, object> argumentData = new();
-            if (attributeData.ConstructorArguments.Any())
-            {
-                LoadConstructorArguments(attribMethodSymbol, attributeData, argumentData);
-            }
-
-            foreach (var namedArgument in attributeData.NamedArguments)
-            {
-                if (namedArgument.Value.Value != null)
-                {
-                    argumentData[namedArgument.Key] = namedArgument.Value.Value;
-                }
-            }
-
-            return argumentData;
-        }
-
-        internal static void LoadConstructorArguments(IMethodSymbol attribMethodSymbol, AttributeData attributeData, IDictionary<string, object> dict)
-        {
-            if (attribMethodSymbol.Parameters.Length < attributeData.ConstructorArguments.Length)
-            {
-                throw new InvalidOperationException($"The constructor at '{nameof(attribMethodSymbol)}' has less total arguments than '{nameof(attributeData)}'.");
-            }
-
-            // It's fair to assume than constructor arguments appear before named arguments, and
-            // that the constructor names would match the property names
-            for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
-            {
-                var argumentName = attribMethodSymbol.Parameters[i].Name;
-
-                var arg = attributeData.ConstructorArguments[i];
-                switch (arg.Kind)
-                {
-                    case TypedConstantKind.Error:
-                        break;
-                    case TypedConstantKind.Primitive:
-                        dict[argumentName] = arg.Value;
-                        break;
-                    case TypedConstantKind.Enum:
-                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + "), " + arg.Value + ")";
-                        break;
-                    case TypedConstantKind.Type:
-                        break;
-                    case TypedConstantKind.Array:
-                        var arrayValues = arg.Values.Select(a => a.Value!.ToString()).ToArray();
-                        dict[argumentName] = arrayValues;
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
-
-        internal static string FormatObject(object propValue)
-        {
-            if (propValue != null)
-            {
-                // catch values that are already strings or Enum parsing
-                // we don't need to surround these cases with quotation marks
-                if (propValue.ToString().Contains("\"") || propValue.ToString().Contains("Enum"))
-                {
-                    return propValue.ToString();
-                }
-
-                return "\"" + propValue.ToString() + "\"";
-            }
-            else
-            {
-                return "null";
-            }
-        }
-
-        internal static string FormatArray(IEnumerable enumerableValues)
-        {
-            string arrAsString;
-
-            arrAsString = "new List<string> { ";
-
-            foreach (var o in enumerableValues)
-            {
-                arrAsString += FormatObject(o);
-                arrAsString += ",";
-            }
-
-            arrAsString = arrAsString.TrimEnd(',', ' ');
-            arrAsString += " }";
-
-            return arrAsString;
+            return string.Equals(fullName, "System.Byte[]", StringComparison.Ordinal)
+                || string.Equals(fullName, "System.ReadOnlyMemory`1<System.Byte>", StringComparison.Ordinal);
         }
     }
 }

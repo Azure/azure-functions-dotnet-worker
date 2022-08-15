@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
-            var generator = new ExtensionsCsprojGenerator(extensions, "", "v3");
+            var generator = new ExtensionsCsprojGenerator(extensions, "", "v3", Constants.NetCoreApp, Constants.NetCoreVersion31);
 
             string actualCsproj = generator.GetCsProjContent().Replace("\r\n", "\n");
 
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
-            var generator = new ExtensionsCsprojGenerator(extensions, "", "v4");
+            var generator = new ExtensionsCsprojGenerator(extensions, "", "v4", Constants.NetCoreApp, Constants.NetCoreVersion6);
 
             string actualCsproj = generator.GetCsProjContent().Replace("\r\n", "\n");
 

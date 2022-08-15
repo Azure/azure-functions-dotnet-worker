@@ -4,7 +4,7 @@
 namespace Microsoft.Azure.Functions.Worker.Diagnostics
 {
     /// <summary>
-    /// Represents an interface for sending logs directly to the Fucctions host.
+    /// Represents an interface for sending logs directly to the Functions host.
     /// </summary>
     internal interface IWorkerDiagnostics
     {

@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.8.0" />
-    <PackageReference Include="Azure.Storage.Queues" Version="12.6.0" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.11.0" />
     <PackageReference Include="Microsoft.Azure.DocumentDB.Core" Version="2.13.1" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />

@@ -14,12 +14,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
+        private readonly string _targetFrameworkIdentifier;
+        private readonly string _targetFrameworkVersion;
         private readonly string _azureFunctionsVersion;
 
-        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath, string azureFunctionsVersion)
+        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath, string azureFunctionsVersion, string targetFrameworkIdentifier, string targetFrameworkVersion)
         {
             _extensions = extensions ?? throw new ArgumentNullException(nameof(extensions));
             _outputPath = outputPath ?? throw new ArgumentNullException(nameof(outputPath));
+            _targetFrameworkIdentifier = targetFrameworkIdentifier ?? throw new ArgumentNullException(nameof(targetFrameworkIdentifier));
+            _targetFrameworkVersion = targetFrameworkVersion ?? throw new ArgumentNullException(nameof(targetFrameworkVersion));
             _azureFunctionsVersion = azureFunctionsVersion ?? throw new ArgumentNullException(nameof(azureFunctionsVersion));
         }
 
@@ -52,7 +56,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
-            string targetFramework = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? Constants.NetCoreApp31 : Constants.Net60;
+            string targetFramework = Constants.Net60;
+
+            if (_targetFrameworkIdentifier.Equals(Constants.NetCoreApp, StringComparison.OrdinalIgnoreCase))
+            {
+                if (_azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) || _targetFrameworkVersion.Equals(Constants.NetCoreVersion31, StringComparison.OrdinalIgnoreCase))
+                {
+                    targetFramework = Constants.NetCoreApp31;
+                }
+
+                if (_targetFrameworkVersion.Equals(Constants.NetCoreVersion7, StringComparison.OrdinalIgnoreCase))
+                {
+                    targetFramework = Constants.Net70;
+                }
+            }
+
             string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.0" : "4.1.0";
 
             return $@"

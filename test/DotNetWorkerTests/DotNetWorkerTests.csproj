@@ -6,6 +6,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Tests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Tests</RootNamespace>
     <SignAssembly>true</SignAssembly>
+    <LangVersion>preview</LangVersion>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Nullable>disable</Nullable>
   </PropertyGroup>
@@ -13,7 +14,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Core.NewtonsoftJson" Version="1.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
-    <PackageReference Include="Moq" Version="4.16.1" />    
+    <PackageReference Include="Moq" Version="4.16.1" />
     <PackageReference Include="xunit" Version="2.4.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
       <PrivateAssets>all</PrivateAssets>
@@ -24,11 +25,8 @@
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Configuration\" />
   </ItemGroup>
 
 </Project>

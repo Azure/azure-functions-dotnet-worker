@@ -78,24 +78,23 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the output binding entries for the current function invocation.
         /// </summary>
         /// <param name="context">The function context instance.</param>
-        /// <returns>Collection of OutputBindingData instances of the requested type T.</returns>
+        /// <returns>Collection of OutputBindingData instances where the Value is converted to T type.</returns>
         public static IEnumerable<OutputBindingData<T>> GetOutputBindings<T>(this FunctionContext context)
         {
             var bindingsFeature = context.GetBindings();
 
-            foreach (var data in bindingsFeature.OutputBindingData)
+            foreach (var binding in context.FunctionDefinition.OutputBindings)
             {
-                if (data.Value is T valueAsT)
+                T? itemValue = default;
+                if (bindingsFeature.OutputBindingData.TryGetValue(binding.Key, out var val) && val is T valueAsT)
                 {
-                    // Gets binding type (ex: blob,queue) from function definition.
-                    string? bindingType = null;
-                    if (context.FunctionDefinition.OutputBindings.TryGetValue(data.Key, out var bindingData))
-                    {
-                        bindingType = bindingData.Type;
-                    }
-
-                    yield return new DefaultOutputBindingData<T>(context, data.Key, valueAsT, bindingType!);
+                    itemValue = valueAsT;
                 }
+
+                // Gets binding type (ex: blob,queue) from function definition.
+                string bindingType = binding.Value.Type;
+
+                yield return new DefaultOutputBindingData<T>(context, binding.Key, itemValue, bindingType);
             }
         }
 

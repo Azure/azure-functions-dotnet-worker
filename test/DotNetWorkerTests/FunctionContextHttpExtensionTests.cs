@@ -144,7 +144,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void GetHttpResponseData_Works_For_Http_Invocation_POCO_OutputBinding_Properties()
         {
             // Arrange
-            _features.Set<FunctionDefinition>(new TestFunctionDefinition());
+            _features.Set<FunctionDefinition>(new TestFunctionDefinition(
+            outputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "MyName", new TestBindingMetadata("MyName","queue",BindingDirection.Out) },
+                { "MyHttpResponse", new TestBindingMetadata("MyHttpResponse","http",BindingDirection.Out) }
+            }));
 
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
             var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);

@@ -291,21 +291,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 if (IsBindingAttribute(attribute))
                 {
-                    if (IsOutputBindingAttribute(attribute))
+                    if (foundOutputBinding)
                     {
-                        if (foundOutputBinding)
-                        {
-                            throw new FormatException($"Found multiple output attributes on method '{nameof(method)}'. Only one output binding attribute is is supported on a method.");
-                        }
-
-                        outputBinding = attribute;
-                        foundOutputBinding = true;
-                    }
-                    else
-                    {
-                        throw new FormatException($"Found an input binding on method '{nameof(method)}'. Input binding attributes need to be associated with a parameter, not a method.");
+                        throw new FormatException($"Found multiple output attributes on method '{nameof(method)}'. Only one output binding attribute is is supported on a method.");
                     }
 
+                    outputBinding = attribute;
+                    foundOutputBinding = true;
                 }
             }
 
@@ -344,36 +336,29 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (IsBindingAttribute(attribute))
                     {
-                        if(IsOutputBindingAttribute(attribute))
+                        if(IsHttpTrigger(attribute))
                         {
-                            throw new FormatException($"Found an output binding on a parameter in '{nameof(method)}'. Output binding attributes should decorate a method or properties on a return type.");
+                            hasHttpTrigger = true;
                         }
-                        else
+
+                        string? dataType = null;
+                        string parameterSymbolType = parameterSymbol.Type.GetFullName();
+
+                        // Check if parameter datatype is string or binary
+                        // Is string parameter type
+                        if (IsStringType(parameterSymbolType))
                         {
-                            if(IsHttpTrigger(attribute))
-                            {
-                                hasHttpTrigger = true;
-                            }
-
-                            string? dataType = null;
-                            string parameterSymbolType = parameterSymbol.Type.GetFullName();
-
-                            // Check if parameter datatype is string or binary
-                            // Is string parameter type
-                            if (IsStringType(parameterSymbolType))
-                            {
-                                dataType = "\"String\"";
-                            }
-                            // Is binary parameter type
-                            else if (IsBinaryType(parameterSymbolType))
-                            {
-                                dataType = "\"Binary\"";
-                            }
-
-                            string bindingName = parameter.Identifier.ValueText;
-
-                            WriteBindingToFile(indentedTextWriter, attribute, funcName, bindingName, dataType);
+                            dataType = "\"String\"";
                         }
+                        // Is binary parameter type
+                        else if (IsBinaryType(parameterSymbolType))
+                        {
+                            dataType = "\"Binary\"";
+                        }
+
+                        string bindingName = parameter.Identifier.ValueText;
+
+                        WriteBindingToFile(indentedTextWriter, attribute, funcName, bindingName, dataType);
                     }
                 }
             }
@@ -415,7 +400,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             foreach (var attr in m.GetAttributes())
                             {
-                                if (IsOutputBindingAttribute(attr))
+                                if (IsBindingAttribute(attr))
                                 {
                                     if (foundOutputAttr)
                                     {

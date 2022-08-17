@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
     {
         public TestAsyncFunctionContext()
-            : base(new TestFunctionDefinition(), new TestFunctionInvocation())
+            : base(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
         {
         }
         public TestAsyncFunctionContext(IInvocationFeatures features) : base(features)
@@ -34,21 +34,28 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     internal class TestFunctionContext : FunctionContext, IDisposable
     {
         private readonly FunctionInvocation _invocation;
+        private readonly CancellationToken _cancellationToken;
 
         public TestFunctionContext()
-            : this(new TestFunctionDefinition(), new TestFunctionInvocation())
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
         {
         }
 
         public TestFunctionContext(IInvocationFeatures features)
-            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), features)
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None, features)
         {
         }
 
-        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, IInvocationFeatures features = null, IServiceProvider serviceProvider = null)
+        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation)
+            : this(functionDefinition, invocation, CancellationToken.None)
+        {
+        }
+
+        public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, CancellationToken cancellationToken, IInvocationFeatures features = null, IServiceProvider serviceProvider = null)
         {
             FunctionDefinition = functionDefinition;
             _invocation = invocation;
+            _cancellationToken = cancellationToken;
 
             if (features != null)
             {
@@ -87,7 +94,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override RetryContext RetryContext => Features.Get<IExecutionRetryFeature>()?.Context;
 
-        public override CancellationToken CancellationToken => throw new NotImplementedException();
+        public override CancellationToken CancellationToken => _cancellationToken;
 
         public void Dispose()
         {

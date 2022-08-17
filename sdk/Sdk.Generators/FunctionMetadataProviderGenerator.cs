@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -69,7 +70,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.Flush();
                 sourceText = SourceText.From(stringWriter.ToString(), encoding: Encoding.UTF8);
             }
-
             // Add the source code to the compilation
             context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", sourceText);
         }
@@ -103,8 +103,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
             {
                 var argumentName = attribMethodSymbol.Parameters[i].Name;
-
                 var arg = attributeData.ConstructorArguments[i];
+
                 switch (arg.Kind)
                 {
                     case TypedConstantKind.Error:
@@ -113,7 +113,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         dict[argumentName] = arg.Value;
                         break;
                     case TypedConstantKind.Enum:
-                        dict[argumentName] = "Enum.GetName(typeof(" + arg.Type!.Name.ToString() + "), " + arg.Value + ")";
+                        dict[argumentName] = $"((AuthorizationLevel){arg.Value}).ToString();";
                         break;
                     case TypedConstantKind.Type:
                         break;
@@ -214,22 +214,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 if (syntaxNode is MethodDeclarationSyntax methodSyntax)
                 {
-                    if (methodSyntax.AttributeLists.Count > 0)
+                    if (methodSyntax.AttributeLists.Count > 0) // collect all methods with attributes - we will verify they are functions when we have access to symbols to get the full name
                     {
-                        foreach (var attrList in methodSyntax.AttributeLists)
-                        {
-                            if (attrList.Attributes.Count > 0)
-                            {
-                                foreach (var attr in attrList.Attributes)
-                                {
-                                    if (String.Equals(attr.Name.ToString(), "Function", StringComparison.OrdinalIgnoreCase))
-                                    {
-                                        CandidateMethods.Add(methodSyntax);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
+                        CandidateMethods.Add(methodSyntax); 
                     }
                 }
             }
@@ -250,14 +237,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
         }
 
+        /// <summary>
+        /// Checks that a candidate method has a Function attribute then proceeds to create a DefaultFunctionMetadata object.
+        /// </summary>
         private static void AddFunctionMetadataInfo(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
         {
             var assemblyName = compilation.Assembly.Name;
             var scriptFile = Path.Combine(assemblyName + ".dll");
 
-            // Loop through the candidate methods (these are mthods suspected to be Functions, stored in the SyntaxReceiver)
+            // Loop through the candidate methods (methods with any attribute associated with them)
             foreach (MethodDeclarationSyntax method in receiver.CandidateMethods)
             {
+                var model = compilation.GetSemanticModel(method.SyntaxTree);
+                
+                if(!IsMethodAFunction(model, method))
+                {
+                    continue;
+                }
+
                 var functionClass = (ClassDeclarationSyntax)method.Parent!;
                 var functionName = functionClass.Identifier.ValueText;
                 var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
@@ -265,19 +262,68 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // collect Bindings
                 indentedTextWriter.WriteLine($"var {bindingsListName} = new List<string>();");
-                AddBindingInfo(indentedTextWriter, method, compilation, functionName);
+                AddBindingInfo(indentedTextWriter, method, model, functionName);
                 indentedTextWriter.WriteLine($"var {functionName} = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"{functionName}\", \"{entryPoint}\", {functionName}RawBindings, \"{scriptFile}\");");
                 indentedTextWriter.WriteLine($"metadataList.Add({functionName});");
             }
         }
 
-        private static void AddBindingInfo(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, Compilation compilation, string functionName)
+        private static void AddBindingInfo(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string functionName)
         {
-            var model = compilation.GetSemanticModel(method.SyntaxTree);
-            var bindingCount = 0;
-            var bindingsListName = functionName + "RawBindings";
+            AddMethodOutputBinding(indentedTextWriter, method, model, functionName);
+            AddParameterInputAndTriggerBindings(indentedTextWriter, method, model, functionName, out bool hasHttpTrigger);
+            AddReturnTypeBindings(indentedTextWriter, method, model, functionName, hasHttpTrigger);
+        }
 
-            // Loop through the parameters in this Function to find the bindings
+        /// <summary>
+        /// Only an Output Binding can be an attribute on a Function method. This method will check if there is one and return it.
+        /// </summary>
+        /// <exception cref="FormatException">Throws if attributes are formatted or used incorrectly.</exception>
+        private static void AddMethodOutputBinding(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName)
+        {
+            var methodSymbol = model.GetDeclaredSymbol(method);
+            var attributes = methodSymbol!.GetAttributes(); // methodSymbol is not null here because it's checked in IsMethodAFunction which is called before bindings are collected/created
+
+            AttributeData? outputBinding = null;
+            var foundOutputBinding = false;
+
+            foreach (var attribute in attributes)
+            {
+                if (IsBindingAttribute(attribute))
+                {
+                    if (IsOutputBindingAttribute(attribute))
+                    {
+                        if (foundOutputBinding)
+                        {
+                            throw new FormatException($"Found multiple output attributes on method '{nameof(method)}'. Only one output binding attribute is is supported on a method.");
+                        }
+
+                        outputBinding = attribute;
+                        foundOutputBinding = true;
+                    }
+                    else
+                    {
+                        throw new FormatException($"Found an input binding on method '{nameof(method)}'. Input binding attributes need to be associated with a parameter, not a method.");
+                    }
+
+                }
+            }
+
+            if (outputBinding != null)
+            {
+                WriteBindingToFile(indentedTextWriter, outputBinding, funcName, Constants.ReturnBindingName, null);
+            }
+        }
+
+        /// <summary>
+        /// This method adds the input/trigger bindings found in the parameters of the Function
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
+        /// <exception cref="FormatException">Throws if the attributes were used and formatted incorrectly.</exception>
+        private static void AddParameterInputAndTriggerBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, out bool hasHttpTrigger)
+        {
+            hasHttpTrigger = false;
+
             foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
             {
                 // If there's no attribute, we can assume that this parameter is not a binding
@@ -293,146 +339,40 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     throw new InvalidOperationException($"The symbol for the parameter '{nameof(parameter)}' could not be found");
                 }
 
-                // Assumption: All parameters in a function method thathave an attribute will have just one (the trigger or input/output binding attribute)
-                AttributeData attributeData = parameterSymbol.GetAttributes().First();
-
-                // Get the attribute method symbol and treat the constructor as a method (IMethodSymbol)
-                AttributeSyntax attributeSyntax = parameter.AttributeLists.First().Attributes.First();
-                IMethodSymbol? attribMethodSymbol = model.GetSymbolInfo(attributeSyntax).Symbol as IMethodSymbol;
-
-                // Check if the attribute constructor has any parameters
-                if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
+                // Check to see if any of the attributes associated with this parameter is a BindingAttribute
+                foreach (var attribute in parameterSymbol.GetAttributes())
                 {
-                    throw new InvalidOperationException($"The constructor of attribute with syntax '{nameof(attributeSyntax)}' is invalid");
-                }
-
-                // Get binding info as a dictionary with keys as the property name and value as the property value
-                IDictionary<string, object> attributeProperties = GetAttributeProperties(attribMethodSymbol, attributeData);
-
-                // Grab some required binding info properties
-                string attributeName = attributeData.AttributeClass!.Name;
-                string bindingName = parameter.Identifier.ValueText;
-
-                // properly format binding types by removing "Attribute" and "Input" descriptors
-                string bindingType = attributeName.Replace("Attribute", "");
-                bindingType = bindingType.Replace("Input", "");
-
-                // Set binding direction
-                string bindingDirection = "In";
-                if (parameterSymbol.Type is INamedTypeSymbol parameterNamedType &&
-                    parameterNamedType.IsGenericType &&
-                    parameterNamedType.ConstructUnboundGenericType().ToString() == "Microsoft.Azure.Functions.DotNetWorker.OutputBinding<>")
-                {
-                    bindingDirection = "Out";
-                }
-
-                string? dataType = null;
-
-                // Check if parameter datatype is string or binary
-                // Is string parameter type
-                if (IsStringType(parameterSymbol.Type.MetadataName))
-                {
-                    dataType = "\"String\"";
-                }
-                // Is binary parameter type
-                else if (IsBinaryType(parameterSymbol.Type.MetadataName))
-                {
-                    dataType = "\"Binary\"";
-                }
-
-                // Create raw binding anonymous type, example:
-                /*  var binding1 = new {
-                    name = "req",
-                    type = "HttpTrigger",
-                    direction = "In",
-                    authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
-                    methods = new List<string> { "get","post" },
-                };*/
-                bindingCount = CreateBindingInfo(indentedTextWriter, functionName, bindingCount, bindingName, bindingType, bindingDirection, attributeProperties, dataType);
-
-                // Auto-add a return type for http if HttpTrigger
-                if (string.Equals(bindingType, "httptrigger", StringComparison.OrdinalIgnoreCase))
-                {
-                    var totalBindings = method.ParameterList.Parameters.Count(param => param.AttributeLists.Count > 0);
-
-                    indentedTextWriter.WriteLine($"var {functionName}Binding" + bindingCount.ToString() + " = new {");
-                    indentedTextWriter.Indent++;
-
-                    // if there are only two bindings and one is an httptrigger, then we use "$return" for the binding name
-                    if (totalBindings < 2)
+                    if (IsBindingAttribute(attribute))
                     {
-                        indentedTextWriter.WriteLine("name = \"$return\",");
-                    }
-                    else
-                    {
-                        // when there are more than 2 bindings and one is an HttpTrigger, we can assume that there is another output binding
-                        // we return HttpResponse instead of "$return"
-                        indentedTextWriter.WriteLine("name = \"HttpResponse\",");
-                    }
-
-                    indentedTextWriter.WriteLine("type = \"http\",");
-                    indentedTextWriter.WriteLine("direction = \"Out\",");
-                    indentedTextWriter.Indent--;
-                    indentedTextWriter.WriteLine("};");
-
-                    SerializeAnonymousBindingAsJsonString(indentedTextWriter, functionName, bindingCount.ToString());
-                    bindingCount++;
-                }
-            }
-
-            // Check if there's any bindings defined in the return type class
-            TypeSyntax returnTypeSyntax = method.ReturnType;
-            ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
-
-            if (returnTypeSymbol != null)
-            {
-                var members = returnTypeSymbol.GetMembers();
-                foreach (var m in members)
-                {
-                    if (m.GetAttributes().Length > 0)
-                    {
-                        foreach (var attr in m.GetAttributes())
+                        if(IsOutputBindingAttribute(attribute))
                         {
-                            if (attr.AttributeClass != null &&
-                               attr.AttributeClass.BaseType != null &&
-                               attr.AttributeClass.BaseType.BaseType != null)
+                            throw new FormatException($"Found an output binding on a parameter in '{nameof(method)}'. Output binding attributes should decorate a method or properties on a return type.");
+                        }
+                        else
+                        {
+                            if(IsHttpTrigger(attribute))
                             {
-                                if (String.Equals(attr.AttributeClass.BaseType.BaseType.ToString(), "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingAttribute"))
-                                {
-                                    IMethodSymbol? attribMethodSymbol = attr.AttributeConstructor;
-
-                                    // Check if the attribute constructor has any parameters
-                                    if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
-                                    {
-                                        throw new InvalidOperationException($"The constructor of attribute '{nameof(attribMethodSymbol)}' is invalid");
-                                    }
-
-                                    string? dataType = null;
-
-                                    IPropertySymbol? propertySymbol = m as IPropertySymbol;
-
-                                    if (propertySymbol is null)
-                                    {
-                                        throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
-                                    }
-
-                                    var propertyType = propertySymbol.Type.MetadataName;
-
-                                    // Check if proprty datatype is string or binary
-                                    // Is string parameter type
-                                    if (IsStringType(propertyType))
-                                    {
-                                        dataType = "\"String\"";
-                                    }
-                                    // Is binary parameter type
-                                    else if (IsBinaryType(m.ContainingType.MetadataName))
-                                    {
-                                        dataType = "\"Binary\"";
-                                    }
-
-                                    CreateBindingInfoFromPropertyDeclaration(indentedTextWriter, functionName, bindingCount, m.Name, dataType, attr, attribMethodSymbol);
-                                }
+                                hasHttpTrigger = true;
                             }
+
+                            string? dataType = null;
+                            string parameterSymbolType = parameterSymbol.Type.GetFullName();
+
+                            // Check if parameter datatype is string or binary
+                            // Is string parameter type
+                            if (IsStringType(parameterSymbolType))
+                            {
+                                dataType = "\"String\"";
+                            }
+                            // Is binary parameter type
+                            else if (IsBinaryType(parameterSymbolType))
+                            {
+                                dataType = "\"Binary\"";
+                            }
+
+                            string bindingName = parameter.Identifier.ValueText;
+
+                            WriteBindingToFile(indentedTextWriter, attribute, funcName, bindingName, dataType);
                         }
                     }
                 }
@@ -440,32 +380,172 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         }
 
         /// <summary>
-        /// In the case that a BindingAttribute is associated with a PropertyDeclarationSyntax object (rather than one of functions methods' parameter)
-        /// its binding info will be created here since the process is slightly different.
-        /// Example case is when user adds an output binding attribute to the property of custom return types.
+        /// Adds bindings found in the ReturnType class of the Function
         /// </summary>
-        private static void CreateBindingInfoFromPropertyDeclaration(IndentedTextWriter indentedTextWriter, string functionName, int bindingCount, string bindingName, string? dataType, AttributeData attrData, IMethodSymbol attribMethodSymbol)
+        /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
+        /// <exception cref="FormatException">Throws if the attributes were used and formatted incorrectly.</exception>
+        private static void AddReturnTypeBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, bool hasHttpTrigger)
         {
-            var namedTypeSymbol = attrData.AttributeClass;
-            string attributeName = namedTypeSymbol!.Name;
+            TypeSyntax returnTypeSyntax = method.ReturnType;
+            ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
+            var bindingsCount = 0;
+
+            if (returnTypeSymbol is null)
+            {
+                throw new InvalidOperationException($"The symbol for the return type '{nameof(returnTypeSymbol)}' for the method '{nameof(method)}' could not be found");
+            }
+
+            if (!String.Equals(returnTypeSymbol.GetFullName(), Constants.VoidType, StringComparison.Ordinal))
+            {
+                if (String.Equals(returnTypeSymbol.GetFullName(), Constants.HttpResponseType, StringComparison.Ordinal))
+                {
+                    AddHttpReturnBinding(indentedTextWriter, funcName, Constants.ReturnBindingName);
+                }
+                else
+                {
+                    // Check all the members(properties) of this return type class to see if any of them have a binding attribute associated
+                    var members = returnTypeSymbol.GetMembers();
+                    var foundHttpOutput = false;
+
+                    foreach (var m in members)
+                    {
+                        if (m.GetAttributes().Length > 0)
+                        {
+                            var foundOutputAttr = false;
+
+                            foreach (var attr in m.GetAttributes())
+                            {
+                                if (IsOutputBindingAttribute(attr))
+                                {
+                                    if (foundOutputAttr)
+                                    {
+                                        throw new FormatException($"Found multiple output attributes on property '{nameof(m)}' defined in the function return type '{nameof(returnTypeSymbol)}'. " +
+                                            $"Only one output binding attribute is is supported on a property.");
+                                    }
+
+                                    // Check if this attribute is an HttpResponseData type attribute
+                                    if (String.Equals(returnTypeSymbol.GetFullName(), Constants.HttpResponseType, StringComparison.Ordinal))
+                                    {
+                                        if (foundHttpOutput)
+                                        {
+                                            throw new FormatException($"Found multiple public properties with type '{Constants.HttpResponseType}' defined in output type '{nameof(returnTypeSymbol)}'. " +
+                                                $"Only one HTTP response binding type is supported in your return type definition.");
+                                        }
+
+                                        foundHttpOutput = true;
+                                        AddHttpReturnBinding(indentedTextWriter, funcName, m.Name);
+                                    }
+                                    else
+                                    {
+                                        IPropertySymbol? propertySymbol = m as IPropertySymbol;
+
+                                        if (propertySymbol is null)
+                                        {
+                                            throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
+                                        }
+
+                                        string? dataType = null;
+                                        var propertySymbolType = propertySymbol.Type.GetFullName();
+
+                                        if (IsStringType(propertySymbolType))
+                                        {
+                                            dataType = "\"String\"";
+                                        }
+                                        // Is binary parameter type
+                                        else if (IsBinaryType(propertySymbolType))
+                                        {
+                                            dataType = "\"Binary\"";
+                                        }
+
+                                        WriteBindingToFile(indentedTextWriter, attr, funcName, m.Name, dataType);
+                                    }
+
+                                    foundOutputAttr = true;
+                                }
+                            }
+
+                        }
+                    }
+
+                    // No output bindings found in the return type.
+                    if (bindingsCount == 0)
+                    {
+                        if (hasHttpTrigger)
+                        {
+                            AddHttpReturnBinding(indentedTextWriter, funcName, Constants.ReturnBindingName);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Adds HttpReturn binding.
+        /// </summary>
+        private static void AddHttpReturnBinding(IndentedTextWriter indentedTextWriter, string funcName, string bindingName)
+        {
+            indentedTextWriter.WriteLine($"var {funcName}{bindingName.Replace("$", "")}Binding = new {{");
+            indentedTextWriter.Indent++;
+            indentedTextWriter.WriteLine($"name = \"{bindingName}\",");
+            indentedTextWriter.WriteLine("type = \"http\",");
+            indentedTextWriter.WriteLine("direction = \"Out\",");
+            indentedTextWriter.Indent--;
+            indentedTextWriter.WriteLine("};");
+
+            SerializeAnonymousBindingAsJsonString(indentedTextWriter, funcName, bindingName.Replace("$", ""));
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="indentedTextWriter"></param>
+        /// <param name="bindingAttrData"></param>
+        /// <param name="funcName"></param>
+        /// <param name="bindingName"></param>
+        /// <param name="dataType"></param>
+        /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
+        private static void WriteBindingToFile(IndentedTextWriter indentedTextWriter, AttributeData bindingAttrData, string funcName, string bindingName, string? dataType)
+        {
+            IMethodSymbol? attribMethodSymbol = bindingAttrData.AttributeConstructor;
+
+            // Check if the attribute constructor has any parameters
+            if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
+            {
+                throw new InvalidOperationException($"The constructor of attribute with syntax '{nameof(attribMethodSymbol)}' is invalid");
+            }
+
+            // Get binding info as a dictionary with keys as the property name and value as the property value
+            IDictionary<string, object> attributeProperties = GetAttributeProperties(attribMethodSymbol, bindingAttrData);
+
+            // Grab some required binding info properties
+            string attributeName = bindingAttrData.AttributeClass!.Name;
+
+            // properly format binding types by removing "Attribute" and "Input" descriptors
             string bindingType = attributeName.Replace("Attribute", "");
             bindingType = bindingType.Replace("Input", "");
-            bindingType = bindingType.Replace("Output","");
 
-            // Set binding direction 
-            // I think this would always have a binding direction of "Out" but will check anyways
+            // Set binding direction
             string bindingDirection = "In";
-            if (String.Equals(namedTypeSymbol.BaseType!.ToString(), "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute"))
+            if (IsOutputBindingAttribute(bindingAttrData))
             {
                 bindingDirection = "Out";
             }
 
-            var attributeProperties = GetAttributeProperties(attribMethodSymbol, attrData);
-
-            CreateBindingInfo(indentedTextWriter, functionName, bindingCount, bindingName, bindingType, bindingDirection, attributeProperties, dataType);
+            // Create raw binding anonymous type, example:
+            /*  var binding1 = new {
+                name = "req",
+                type = "HttpTrigger",
+                direction = "In",
+                authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
+                methods = new List<string> { "get","post" },
+            };*/
+            CreateBindingInfo(indentedTextWriter, funcName, bindingName, bindingType, bindingDirection, attributeProperties, dataType);
         }
 
-        private static int CreateBindingInfo(IndentedTextWriter indentedTextWriter, string functionName, int bindingCount, string bindingName, string bindingType, string bindingDirection, IDictionary<string, object> attributeProperties, string? dataType)
+        /// <summary>
+        /// Writes binding info to the generated file. This method takes care of all bindings except for auto-added http return types.
+        /// </summary>
+        private static void CreateBindingInfo(IndentedTextWriter indentedTextWriter, string functionName, string bindingName, string bindingType, string bindingDirection, IDictionary<string, object> attributeProperties, string? dataType)
         {
             // Create raw binding anonymous type, example:
             /*  var binding1 = new {
@@ -475,13 +555,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
                 methods = new List<string> { "get","post" },
             };*/
-            indentedTextWriter.WriteLine($"var {functionName}Binding" + bindingCount.ToString() + " = new {"); // give each binding unique name of functionName + "binding" + number
+            indentedTextWriter.WriteLine($"var {functionName}{bindingName}Binding = new {{");
             indentedTextWriter.Indent++;
             indentedTextWriter.WriteLine($"name = \"{bindingName}\",");
             indentedTextWriter.WriteLine($"type = \"{bindingType}\",");
             indentedTextWriter.WriteLine($"direction = \"{bindingDirection}\",");
 
             // Add additional bindingInfo to the anonymous type because some functions have more properties than others
+            // TODO: See how to handle isBatched property here? This seems like the best place for it.
             foreach (var prop in attributeProperties)
             {
                 var propertyName = prop.Key;
@@ -504,23 +585,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine($"dataType = {dataType},");
             }    
 
-
             indentedTextWriter.Indent--;
             indentedTextWriter.WriteLine("};");
 
             // Take the anonymous type representing the binding and serialize it as a JSON string
-            SerializeAnonymousBindingAsJsonString(indentedTextWriter, functionName, bindingCount.ToString());
-            bindingCount++;
-
-            return bindingCount;
+            SerializeAnonymousBindingAsJsonString(indentedTextWriter, functionName, bindingName);
         }
 
-        private static void SerializeAnonymousBindingAsJsonString(IndentedTextWriter indentedTextWriter, string functionName, string bindingCount)
+        private static void SerializeAnonymousBindingAsJsonString(IndentedTextWriter indentedTextWriter, string functionName, string bindingName)
         {
-            indentedTextWriter.WriteLine($"var {functionName}Binding{bindingCount}JSONstring = JsonSerializer.Serialize({functionName}Binding{bindingCount});");
-            indentedTextWriter.WriteLine($"{functionName}RawBindings.Add({functionName}Binding" + bindingCount.ToString() + "JSONstring);");
+            indentedTextWriter.WriteLine($"var {functionName}{bindingName}BindingJSONstring = JsonSerializer.Serialize({functionName}{bindingName}Binding);");
+            indentedTextWriter.WriteLine($"{functionName}RawBindings.Add({functionName}{bindingName}BindingJSONstring);");
         }
 
+        /// <summary>
+        /// Auto-add an enum type used to parse enum values found in user code.
+        /// </summary>
+        /// <param name="indentedTextWriter"></param>
         private static void AddEnumTypes(IndentedTextWriter indentedTextWriter)
         {
             indentedTextWriter.WriteLine("public enum AuthorizationLevel");
@@ -559,16 +640,87 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
         }
 
-        private static bool IsStringType(string fullName)
+        /// <summary>
+        /// Checks if a method is a function by using its full name.
+        /// </summary>
+        private static bool IsMethodAFunction(SemanticModel model, MethodDeclarationSyntax method)
         {
-            return string.Equals(fullName, "String", StringComparison.Ordinal);
+            var methodSymbol = model.GetDeclaredSymbol(method);
+
+            if (methodSymbol is null)
+            {
+                throw new InvalidOperationException($"The symbol for the parameter '{nameof(method)}' could not be found");
+            }
+
+            foreach (var attr in methodSymbol.GetAttributes())
+            {
+                if (attr.AttributeClass != null &&
+                   String.Equals(attr.AttributeClass.GetFullName(), Constants.FunctionNameType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        // TODO: Test/Verify this
+        /// <summary>
+        /// Determines whether an attribute is a Function Binding or not. This method assumes that any Function Binding related attributes passed in are
+        /// of the highest level (specific bindings like QueueTrigger, Queue Input Binding, etc).
+        /// </summary>
+        /// <param name="attribute">The exact attribute decorating a method/parameter/property declaration.</param>
+        private static bool IsBindingAttribute(AttributeData attribute)
+        {
+            if (attribute.AttributeClass != null && // this class is the exact type of binding/trigger (QueueTrigger, Queue input binding, etc)
+                attribute.AttributeClass.BaseType != null && // this base type tells you if something is input or output binding
+                attribute.AttributeClass.BaseType.BaseType != null) // this base type is the binding attribute type
+            {
+                return String.Equals(attribute.AttributeClass.BaseType.BaseType.GetFullName(), Constants.BindingAttributeType);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether an attribute is a Function OutputBinding or not. This method assumes that any Function Binding related attributes passed in are
+        /// of the highest level (specific bindings like QueueTrigger, Queue Input Binding, etc).
+        /// </summary>
+        /// <param name="attribute">The exact attribute decorating a method/parameter/property declaration.</param>
+        private static bool IsOutputBindingAttribute(AttributeData attribute)
+        {
+            if (attribute.AttributeClass != null &&
+                attribute.AttributeClass.BaseType != null)
+            {
+                return String.Equals(attribute.AttributeClass.BaseType.GetFullName(), Constants.OutputBindingAttributeType);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Determines whether an attribute is an HttpTrigger or not. This method assumes that any Function Binding related attributes passed in are
+        /// of the highest level (specific bindings like QueueTrigger, Queue Input Binding, etc).
+        /// </summary>
+        /// <param name="attribute">The exact attribute decorating a method/parameter/property declaration.</param>
+        private static bool IsHttpTrigger(AttributeData attribute)
+        {
+            if (attribute.AttributeClass != null)
+            {
+                return String.Equals(attribute.AttributeClass.GetFullName(), Constants.HttpTriggerBindingType);
+            }
+
+            return false;
+        }
+
+        private static bool IsStringType(string fullName)
+        {
+            return String.Equals(fullName, Constants.StringType, StringComparison.Ordinal);
+        }
+
         private static bool IsBinaryType(string fullName)
         {
-            return string.Equals(fullName, "System.Byte[]", StringComparison.Ordinal)
-                || string.Equals(fullName, "System.ReadOnlyMemory`1<System.Byte>", StringComparison.Ordinal);
+            return String.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal)
+                || String.Equals(fullName, Constants.ReadOnlyMemoryOfBytes, StringComparison.Ordinal);
         }
     }
 }

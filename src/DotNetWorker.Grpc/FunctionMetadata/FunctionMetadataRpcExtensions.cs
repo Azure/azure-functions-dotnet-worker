@@ -18,6 +18,11 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
             MapField<string, BindingInfo> bindings = new MapField<string, BindingInfo>();
             var rawBindings = funcMetadata.RawBindings;
 
+            if(rawBindings.Count == 0)
+            {
+                throw new FormatException("At least one binding must be declared in a Function.");
+            }
+
             foreach (var bindingJson in rawBindings)
             {
                 var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
@@ -29,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
             return bindings;
         }
 
-        private static BindingInfo CreateBindingInfo(JsonElement binding)
+        internal static BindingInfo CreateBindingInfo(JsonElement binding)
         {
             var hasDirection = binding.TryGetProperty("direction", out JsonElement jsonDirection);
             var hasType = binding.TryGetProperty("type", out JsonElement jsonType);

@@ -18,52 +18,44 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         /// <param name="scriptFile">The path to the function app assembly</param>
         public DefaultFunctionMetadata(string functionId, string language, string name, string entryPoint, IList<string> rawBindings, string scriptFile)
         {
-            FunctionId = functionId;
-            Language = language;
-            Name = name;
-            EntryPoint = entryPoint;
-            RawBindings = rawBindings;
-            ScriptFile = scriptFile;
+            _functionId = functionId;
+            _language = language;
+            _name = name;
+            _entryPoint = entryPoint;
+            _rawBindings = rawBindings;
+            _scriptFile = scriptFile;
         }
 
-        /// <summary>
-        /// Unique ID associated with each function.
-        /// </summary>
-        public string FunctionId { get; set; }
+        private string _functionId;
+        /// <inheritdoc/>
+        public string FunctionId { get => _functionId; set => _functionId = value; }
 
-        /// <summary>
-        /// Notes whether a function is a proxy function (true) or not (false).
-        /// </summary>
-        public bool IsProxy { get; set; }
+        private bool _isProxy;
+        /// <inheritdoc/>
+        public bool IsProxy { get => _isProxy; set => _isProxy = value; }
 
-        /// <summary>
-        /// The language that the function is written in.
-        /// </summary>
-        public string Language { get; set; }
+        private string _language;
+        /// <inheritdoc/>
+        public string Language { get => throw new System.NotImplementedException(); set => throw new System.NotImplementedException(); }
 
-        /// <summary>
-        /// Notes whether managed depenedcy is enabled (true) or not (false).
-        /// </summary>
-        public bool ManagedDependencyEnabled { get; set; }
+        private bool managedDependencyEnabled;
+        /// <inheritdoc/>
+        public bool ManagedDependencyEnabled { get => managedDependencyEnabled; set => managedDependencyEnabled = value; }
 
-        /// <summary>
-        /// The name of the function.
-        /// </summary>
-        public string Name { get; set; }
+        private string _name;
+        /// <inheritdoc/>
+        public string Name { get => _name; set => _name = value; }
 
-        /// <summary>
-        /// The entry point of the function.
-        /// </summary>
-        public string EntryPoint { get; set; }
+        private string _entryPoint;
+        /// <inheritdoc/>
+        public string EntryPoint { get => _entryPoint; set => _entryPoint = value; }
 
-        /// <summary>
-        /// The bindings in this function represented as a list of json strings.
-        /// </summary>
-        public IList<string> RawBindings { get; }
+        private IList<string> _rawBindings;
+        /// <inheritdoc/>
+        public IList<string> RawBindings => _rawBindings;
 
-        /// <summary>
-        /// The path to the function app assembly.
-        /// </summary>
-        public string ScriptFile { get; set; }
+        private string _scriptFile;
+        /// <inheritdoc/>
+        public string ScriptFile { get => _scriptFile; set => _scriptFile = value; }
     }
 }

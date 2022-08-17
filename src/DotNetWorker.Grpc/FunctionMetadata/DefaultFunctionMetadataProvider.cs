@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -60,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker
                     {
                         functionMetadata.RawBindings.Add(binding.GetRawText());
 
-                        BindingInfo bindingInfo = CreateBindingInfo(binding);
+                        BindingInfo bindingInfo = FunctionMetadataRpcExtensions.CreateBindingInfo(binding);
 
                         binding.TryGetProperty("name", out JsonElement jsonName);
 
@@ -85,39 +86,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return bindingsJson;
-        }
-
-        internal static BindingInfo CreateBindingInfo(JsonElement binding)
-        {
-            var hasDirection = binding.TryGetProperty("direction", out JsonElement jsonDirection);
-            var hasType = binding.TryGetProperty("type", out JsonElement jsonType);
-
-            if (!hasDirection
-                || !hasType
-                || !Enum.TryParse(jsonDirection.ToString()!, out BindingInfo.Types.Direction direction))
-            {
-                throw new FormatException("Bindings must declare a direction and type.");
-            }
-
-            BindingInfo bindingInfo = new BindingInfo
-            {
-                Direction = direction,
-                Type = jsonType.ToString()
-            };
-
-            var hasDataType = binding.TryGetProperty("dataType", out JsonElement jsonDataType);
-
-            if (hasDataType)
-            {
-                if(!Enum.TryParse(jsonDataType.ToString()!, out BindingInfo.Types.DataType dataType))
-                {
-                    throw new FormatException("Invalid DataType for a binding.");
-                }
-
-                bindingInfo.DataType = dataType;
-            }
-
-            return bindingInfo;
         }
     }
 }

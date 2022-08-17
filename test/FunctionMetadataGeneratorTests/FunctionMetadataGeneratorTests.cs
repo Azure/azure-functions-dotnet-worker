@@ -546,6 +546,78 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Empty(generator.Extensions);
         }
 
+        [Fact]
+        public void FunctionWithNoRetryHasNullRetryProperty()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(Storage));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            var queueToBlob = functions.Single(p => p.Name == "QueueToBlobFunction");
+
+            Assert.Null(queueToBlob.Retry);
+        }
+
+        [Fact]
+        public void FunctionWithFixedDelayRetry()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(RetryFunctions));
+            
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            var funcName = "FixedDelayRetryFunction";
+            var fixedDelayFunction = functions.Single(p => p.Name == funcName);
+            var retry = fixedDelayFunction.Retry;
+
+            Assert.Equal("fixedDelay", retry.Strategy);
+            Assert.Equal(5, retry.MaxRetryCount);
+            Assert.Equal("00:00:10", retry.DelayInterval);
+            Assert.Null(retry.MinimumInterval);
+            Assert.Null(retry.MaximumInterval);
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
+        [Fact]
+        public void FunctionWithExponentialBackoffRetry()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(RetryFunctions));
+
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            var funcName = "ExponentialBackoffRetryFunction";
+            var fixedDelayFunction = functions.Single(p => p.Name == funcName);
+            var retry = fixedDelayFunction.Retry;
+
+            Assert.Equal("exponentialBackoff", retry.Strategy);
+            Assert.Equal(5, retry.MaxRetryCount);
+            Assert.Null(retry.DelayInterval);
+            Assert.Equal("00:00:04", retry.MinimumInterval);
+            Assert.Equal("00:15:00", retry.MaximumInterval);
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
+        [Fact]
+        public void FunctionWithRetryPolicyWithInvalidIntervals()
+        {
+            // negative intervals
+            Assert.Throws<ArgumentOutOfRangeException>(() => new FixedDelayRetryAttribute(5, "-00:00:10"));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ExponentialBackoffRetryAttribute(5, "-00:00:14", "00:15:00"));
+
+            // min interval greater than max interval
+            Assert.Throws<ArgumentException>(() => new ExponentialBackoffRetryAttribute(5, "00:15:00", "00:00:14"));
+
+            // invalid interval that can't be parsed
+            Assert.Throws<ArgumentOutOfRangeException>(() => new FixedDelayRetryAttribute(5, "something_bad"));
+            Assert.Throws<ArgumentOutOfRangeException>(() => new ExponentialBackoffRetryAttribute(5, "something_bad", "00:01:00"));
+        }
+
         private class EventHubNotBatched
         {
             [Function("EventHubTrigger")]
@@ -905,6 +977,22 @@ namespace Microsoft.Azure.Functions.SdkTests
             [Function("ListPocoInputFunction")]
             public static void ListPocoInputFunction<T>([EventHubTrigger("test", Connection = "EventHubConnectionAppSetting")] List<Poco> input,
                 FunctionContext context)
+            {
+                throw new NotImplementedException();
+            }
+        }
+        private class RetryFunctions
+        {
+            [Function("FixedDelayRetryFunction")]
+            [FixedDelayRetry(5, "00:00:10")]
+            public void FixedDelayRetryFunction([QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("ExponentialBackoffRetryFunction")]
+            [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
+            public void ExponentialBackoffRetryFunction([QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
             {
                 throw new NotImplementedException();
             }

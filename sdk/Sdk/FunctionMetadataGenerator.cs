@@ -166,6 +166,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private bool TryCreateFunctionMetadata(MethodDefinition method, out SdkFunctionMetadata? function)
         {
             function = null;
+            SdkRetryOptions? retryOptions = null;
 
             foreach (CustomAttribute attribute in method.CustomAttributes)
             {
@@ -185,12 +186,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     string assemblyFileName = Path.GetFileName(declaringType.Module.FileName);
 
                     function = CreateSdkFunctionMetadata(functionName, actualMethodName, declaringTypeName, assemblyFileName);
-
-                    return true;
+                }
+                else if (string.Equals(attribute.AttributeType.FullName, Constants.FixedDelayRetryAttributeType, StringComparison.Ordinal) ||
+                    string.Equals(attribute.AttributeType.FullName, Constants.ExponentialBackoffRetryAttributeType, StringComparison.Ordinal))
+                {
+                    retryOptions = CreateSdkRetryOptions(attribute);
                 }
             }
 
-            return false;
+            if (function is null)
+            {
+                return false;
+            }
+
+            // if a retry attribute is defined, add it to the function.
+            if (retryOptions != null)
+            {
+                function.Retry = retryOptions;   
+            }
+
+            return true;
         }
 
         private static SdkFunctionMetadata CreateSdkFunctionMetadata(string functionName, string actualMethodName, string declaringTypeName, string assemblyFileName)
@@ -209,6 +224,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
 
             return function;
+        }
+
+        private static SdkRetryOptions CreateSdkRetryOptions(CustomAttribute retryAttribute)
+        {
+            if (string.Equals(retryAttribute.AttributeType.FullName, Constants.FixedDelayRetryAttributeType, StringComparison.Ordinal))
+            {
+                var properties = retryAttribute.GetAllDefinedProperties();
+
+                return new SdkRetryOptions("fixedDelay", (int)properties["maxRetryCount"], (string)properties["delayInterval"], null, null);
+            }
+            else // else it is an exponential backoff retry attribute
+            {
+                var properties = retryAttribute.GetAllDefinedProperties();
+
+                return new SdkRetryOptions("exponentialBackoff", (int)properties["maxRetryCount"], null, (string)properties["minimumInterval"], (string)properties["maximumInterval"]);
+            }
         }
 
         private IEnumerable<ExpandoObject> CreateBindingMetadataAndAddExtensions(MethodDefinition method)

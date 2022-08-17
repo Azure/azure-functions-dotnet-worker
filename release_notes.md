@@ -4,3 +4,5 @@
 -->
 
 - Add Retry Policy Attributes (#977, #971)
+- Bug fix - GetOutputBindings returns incorrect data when OutputBindingData is not set (#983)
+

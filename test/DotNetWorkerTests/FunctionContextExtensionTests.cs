@@ -185,25 +185,74 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
 
             var functionBindings = new TestFunctionBindingsFeature();
-            functionBindings.OutputBindingData.Add("HttpResponse", new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK));
+            var grpcHttpResponse = new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK);
+            functionBindings.OutputBindingData.Add("HttpResponse", grpcHttpResponse);
             functionBindings.OutputBindingData.Add("Name", "some name");
             _features.Set<IFunctionBindingsFeature>(functionBindings);
 
             // Act
-            OutputBindingData<HttpResponseData> actual1 = _defaultFunctionContext.GetOutputBindings<HttpResponseData>()
-                .First(a => a.BindingType == "http");
+            var httpOutputBinding = _defaultFunctionContext.GetOutputBindings<HttpResponseData>().First(a => a.BindingType == "http");
+            var queueOutputBinding = _defaultFunctionContext.GetOutputBindings<object>().First(a => a.BindingType == "queue");
 
             // Assert
-            Assert.NotNull(actual1.Value);
-            Assert.Same(actual1.Value, actual1.Value);
+            Assert.NotNull(httpOutputBinding.Value);
+            Assert.Same(grpcHttpResponse, httpOutputBinding.Value);
 
             // Also verify we can do other typical operations like adding a response header.
-            actual1.Value.Headers.Add("X-Foo-Id", "bar");
+            httpOutputBinding.Value.Headers.Add("X-Foo-Id", "bar");
+
+            // overwrite the value of one of the outputbinding item
+            queueOutputBinding.Value = "foo";
 
             // Get again and verify previous changes(Adding header) are reflected.
             var actual2 = _defaultFunctionContext.GetOutputBindings<object>().First(a => a.BindingType == "http");
             var httpResponse = TestUtility.AssertIsTypeAndConvert<HttpResponseData>(actual2.Value);
             Assert.Equal("bar", httpResponse.Headers.First(a => a.Key == "X-Foo-Id").Value.First());
+
+            var queueOutputBinding2 = _defaultFunctionContext.GetOutputBindings<object>().First(a => a.BindingType == "queue");
+            Assert.Equal("foo", queueOutputBinding2.Value);
+        }
+
+        [Fact]
+        public void GetOutputBindingData_Works_When_OutputBindingData_Not_set()
+        {
+            // OutputBindingData won't be set when function fails to execute successfully.
+
+            // Arrange
+            var functionDefinition = new TestFunctionDefinition(
+            outputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "Name", new TestBindingMetadata("Name","queue",BindingDirection.Out) },
+                { "HttpResponse", new TestBindingMetadata("HttpResponse","http",BindingDirection.Out) }
+            });
+            _features.Set<FunctionDefinition>(functionDefinition);
+
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+
+            var functionBindings = new TestFunctionBindingsFeature();
+            // Not setting any values to functionBindings.OutputBindingData dictionary.
+
+            _features.Set<IFunctionBindingsFeature>(functionBindings);
+
+            // Act
+            var httpOutputBinding = _defaultFunctionContext.GetOutputBindings<HttpResponseData>().First(a => a.BindingType == "http");
+            var queueOutputBinding = _defaultFunctionContext.GetOutputBindings<object>().First(a => a.BindingType == "queue");
+
+            // Assert
+            Assert.Null(httpOutputBinding.Value);
+            Assert.Null(httpOutputBinding.Value);
+
+            // Overwrite the output binding entries with non null values.
+            httpOutputBinding.Value = new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.BadRequest);
+            queueOutputBinding.Value = "foo";
+
+            // Get again and verify previous changes made to the binding entries are reflected.
+            var httpOutputBinding2 = _defaultFunctionContext.GetOutputBindings<object>().First(a => a.BindingType == "http");
+            var httpResponse = TestUtility.AssertIsTypeAndConvert<HttpResponseData>(httpOutputBinding2.Value);
+            Assert.Equal(HttpStatusCode.BadRequest, httpResponse.StatusCode);
+
+            var queueOutputBinding2 = _defaultFunctionContext.GetOutputBindings<object>().First(a => a.BindingType == "queue");
+            Assert.Equal("foo", queueOutputBinding2.Value);
         }
     }
 }

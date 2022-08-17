@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
@@ -46,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) },
                 { "myGuid", new TestBindingMetadata("myGuid","queueTrigger",BindingDirection.In) }
             });
-            var functionContext = new TestFunctionContext(definition, invocation: null, serviceProvider: _serviceProvider, features: features);
+            var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
 
             // Act
             var parameterValuesArray = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
@@ -85,7 +86,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) }
             });
-            var functionContext = new TestFunctionContext(definition, invocation: null, serviceProvider: _serviceProvider, features: features);
+            var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
 
             // Act
             // bind to the queue trigger input binding item.

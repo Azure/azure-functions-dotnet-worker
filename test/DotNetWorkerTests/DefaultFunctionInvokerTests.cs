@@ -7,6 +7,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -197,7 +198,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             mockServiceProvider.Setup(a => a.GetService(typeof(IBindingCache<ConversionResult>)))
                                .Returns(new DefaultBindingCache<ConversionResult>());
 
-            return new TestFunctionContext(definition, invocation, serviceProvider: mockServiceProvider.Object);
+            return new TestFunctionContext(definition, invocation, CancellationToken.None, serviceProvider: mockServiceProvider.Object);
         }
 
         private class Functions

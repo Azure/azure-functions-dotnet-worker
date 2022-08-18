@@ -10,8 +10,14 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     /// </summary>
     internal class FunctionInvocationDetails
     {
+      /// <summary>
+      /// Encapsulates the information about a function execution
+      /// </summary>
       internal FunctionContext FunctionContext { get; set; }
 
+      /// <summary>
+      /// Source used to create and cancel a cancellation token; can be null.
+      /// </summary>
       internal CancellationTokenSource? CancellationTokenSource { get; set; }
     }
 }

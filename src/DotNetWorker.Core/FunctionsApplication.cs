@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
         private readonly IFunctionContextFactory _functionContextFactory;
-        private readonly FunctionInvocationManager _functionInvocationManager;
+        private readonly IFunctionInvocationManager _functionInvocationManager;
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly ILogger<FunctionsApplication> _logger;
         private readonly IWorkerDiagnostics _diagnostics;
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker
         public FunctionsApplication(
             FunctionExecutionDelegate functionExecutionDelegate,
             IFunctionContextFactory functionContextFactory,
-            FunctionInvocationManager functionInvocationManager,
+            IFunctionInvocationManager functionInvocationManager,
             IOptions<WorkerOptions> workerOptions,
             ILogger<FunctionsApplication> logger,
             IWorkerDiagnostics diagnostics)

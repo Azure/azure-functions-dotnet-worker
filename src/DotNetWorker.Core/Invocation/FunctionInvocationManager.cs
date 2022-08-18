@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    internal class FunctionInvocationManager
+    internal class FunctionInvocationManager : IFunctionInvocationManager
     {
         internal ConcurrentDictionary<string, FunctionInvocationDetails> _inflightInvocations;
 
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
           _inflightInvocations = new ConcurrentDictionary<string, FunctionInvocationDetails>();
         }
 
-        internal void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details)
+        public void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details)
         {
             if (string.IsNullOrEmpty(invocationId) || details is null)
             {
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             _inflightInvocations.TryAdd(invocationId, details);
         }
 
-        internal void TryRemoveInvocationDetails(string invocationId)
+        public void TryRemoveInvocationDetails(string invocationId)
         {
             if (string.IsNullOrEmpty(invocationId))
             {
@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             _inflightInvocations.TryRemove(invocationId, out FunctionInvocationDetails? details);
         }
 
-        internal FunctionInvocationDetails? TryGetInvocationDetails(string invocationId)
+        public FunctionInvocationDetails? TryGetInvocationDetails(string invocationId)
         {
             if (string.IsNullOrEmpty(invocationId))
             {

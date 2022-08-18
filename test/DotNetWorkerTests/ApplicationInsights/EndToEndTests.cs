@@ -130,6 +130,8 @@ public class EndToEndTests
 
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; } = ImmutableDictionary<string, BindingMetadata>.Empty;
 
+        public override bool BindsToCancellationToken  { get; }
+
         public static Activity LastActivity;
 
         public void TestFunction(FunctionContext context)

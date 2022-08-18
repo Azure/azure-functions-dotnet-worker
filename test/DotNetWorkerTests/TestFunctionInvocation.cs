@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Threading;
-using Microsoft.Azure.Functions.Worker.Context;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {

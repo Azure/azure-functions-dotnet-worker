@@ -228,7 +228,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
             _features.Set<FunctionDefinition>(functionDefinition);
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
 
             var functionBindings = new TestFunctionBindingsFeature();
             // Not setting any values to functionBindings.OutputBindingData dictionary.

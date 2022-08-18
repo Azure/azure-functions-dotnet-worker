@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void CreateContext_WithBindsToCancellationToken_CreatesExpectedCancellationToken(bool tokenBinding, bool tokenCancelable)
         {
             var functionId = "abc";
-            var invocationId = "test1";
+            var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
                             _mockFunctionContextFactory.Object, _functionInvocationManager,
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void CancelInvocation_CancelsTokenSource()
         {
-            var invocationId = "test2";
+            var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var invocation = new TestFunctionInvocation(invocationId);
             var cts = new CancellationTokenSource();
 
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void CancelInvocation_InvocationIdNotFound_NoAction()
         {
-            var invocationId = "test3";
+            var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var cts = new CancellationTokenSource();
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void CancelInvocation_CancellationTokenSourceIsNull_NoAction()
         {
-            var invocationId = "test4";
+            var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var invocation = new TestFunctionInvocation(invocationId);
 
             var invocationDetails = new FunctionInvocationDetails()
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void CancelInvocation_TokenSourceDisposed_Throws()
         {
-            var invocationId = "test5";
+            var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var invocation = new TestFunctionInvocation(invocationId);
             var cts = new CancellationTokenSource();
 

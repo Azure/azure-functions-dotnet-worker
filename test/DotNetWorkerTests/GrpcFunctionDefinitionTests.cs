@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Threading;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -70,9 +71,59 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
         }
 
+        [Fact]
+        public void BindsToCancellationToken_DefinitionContainsCancellationToken_ReturnsTrue()
+        {
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+            var fullPathToThisAssembly = GetType().Assembly.Location;
+
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyFunctionClassWithCancellation)}.{nameof(MyFunctionClassWithCancellation.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
+            Assert.True(definition.BindsToCancellationToken);
+        }
+
+        [Fact]
+        public void BindsToCancellationToken_DefinitionDoesNotCancellationToken_ReturnsFalse()
+        {
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+            var fullPathToThisAssembly = GetType().Assembly.Location;
+
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyFunctionClass)}.{nameof(MyFunctionClass.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
+            Assert.False(definition.BindsToCancellationToken);
+        }
+
         private class MyFunctionClass
         {
-            public HttpResponseData Run(HttpRequestData req)
+            public HttpResponseData Run(HttpRequestData req )
+            {
+                return req.CreateResponse();
+            }
+        }
+
+        private class MyFunctionClassWithCancellation
+        {
+            public HttpResponseData Run(HttpRequestData req, CancellationToken cancellationToken)
             {
                 return req.CreateResponse();
             }

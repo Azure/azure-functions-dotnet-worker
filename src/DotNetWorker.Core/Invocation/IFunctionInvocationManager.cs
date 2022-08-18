@@ -3,6 +3,9 @@
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
+    /// <summary>
+    /// Keeps track of inflight invocations.
+    /// </summary>
     interface IFunctionInvocationManager
     {
         /// <summary>
@@ -10,19 +13,19 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
         /// <param name="details"><see cref="FunctionInvocationDetails"/></param>
-        internal void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details);
+        void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details);
 
         /// <summary>
         /// Attempts to remove the specified key.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
-        internal void TryRemoveInvocationDetails(string invocationId);
+        void TryRemoveInvocationDetails(string invocationId);
 
         /// <summary>
         /// Attempts to get the value associated with the specified key.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
         /// <returns>The <see cref="FunctionInvocationDetails"/>.</returns>
-        internal FunctionInvocationDetails? TryGetInvocationDetails(string invocationId);
+        FunctionInvocationDetails? TryGetInvocationDetails(string invocationId);
     }
 }

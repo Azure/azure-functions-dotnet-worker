@@ -36,7 +36,7 @@ namespace FunctionApp
             {
                 logger.LogInformation("Function invocation cancelled");
 
-                var response = req.CreateResponse(HttpStatusCode.OK);
+                var response = req.CreateResponse(HttpStatusCode.ServiceUnavailable);
                 response.WriteString("Invocation cancelled");
 
                 return response;

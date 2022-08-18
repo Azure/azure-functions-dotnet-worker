@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -103,9 +102,9 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 catch (Exception)
                 {
-                    // what should we do here?
+                    // Do we need to do something other than log here?
+                    _logger.LogWarning($"Unable to cancel invocation {invocationId}, the token source may already be disposed.");
                 }
-
             }
         }
 

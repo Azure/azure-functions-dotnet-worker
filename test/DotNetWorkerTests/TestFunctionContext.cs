@@ -46,6 +46,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
         }
 
+        public TestFunctionContext(IInvocationFeatures features, CancellationToken token)
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), token, features)
+        {
+        }
+
         public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation)
             : this(functionDefinition, invocation, CancellationToken.None)
         {

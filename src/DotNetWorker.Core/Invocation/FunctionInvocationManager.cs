@@ -6,14 +6,14 @@ using System.Collections.Concurrent;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    internal sealed class FunctionInvocationManager
+    internal class FunctionInvocationManager
     {
-        private static readonly Lazy<FunctionInvocationManager> _functionInvocationManager =
-          new Lazy<FunctionInvocationManager>(() => new FunctionInvocationManager());
+        internal ConcurrentDictionary<string, FunctionInvocationDetails> _inflightInvocations;
 
-        private static ConcurrentDictionary<string, FunctionInvocationDetails> _inflightInvocations = new ConcurrentDictionary<string, FunctionInvocationDetails>();
-
-        public static FunctionInvocationManager Instance { get { return _functionInvocationManager.Value; } }
+        public FunctionInvocationManager()
+        {
+          _inflightInvocations = new ConcurrentDictionary<string, FunctionInvocationDetails>();
+        }
 
         internal void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details)
         {

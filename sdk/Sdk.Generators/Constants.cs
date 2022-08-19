@@ -15,11 +15,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string GenericIEnumerableArgumentName = "T";
         internal const string StringType = "System.String";
         internal const string ByteArrayType = "System.Byte[]";
+        internal const string TaskGenericType = "System.Threading.Tasks.Task`1";
         internal const string TaskType = "System.Threading.Tasks.Task";
         internal const string VoidType = "System.Void";
         internal const string ReadOnlyMemoryOfBytes = "System.ReadOnlyMemory`1<System.Byte>";
 
         internal const string ReturnBindingName = "$return";
+        internal const string HttpResponseBindingName = "HttpResponse";
         internal const string HttpTriggerBindingType = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
         internal const string IsBatchedKey = "IsBatched";
     }

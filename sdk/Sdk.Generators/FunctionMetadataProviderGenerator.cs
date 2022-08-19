@@ -193,8 +193,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 if (namedArgument.Value.Value != null)
                 {
-                    argumentData[namedArgument.Key] = namedArgument.Value.Value;
+                    if (String.Equals(namedArgument.Value, Constants.IsBatchedKey))
+                    {
+                        var argValue = namedArgument.Value.Value;
+
+                        if (String.Equals(argValue, "true"))
+                        {
+                            argumentData["Cardinality"] = "Many";
+                        }
+                        else
+                        {
+                            argumentData["Cardinality"] = "One";
+                        }
+                    }
+                    else
+                    {
+                        argumentData[namedArgument.Key] = namedArgument.Value.Value;
+                    }
                 }
+                
             }
 
             return argumentData;
@@ -270,34 +287,34 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         private static void AddBindingInfo(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string functionName)
         {
-            AddMethodOutputBinding(indentedTextWriter, method, model, functionName);
+            AddMethodOutputBinding(indentedTextWriter, method, model, functionName, out bool hasOutputBinding);
             AddParameterInputAndTriggerBindings(indentedTextWriter, method, model, functionName, out bool hasHttpTrigger);
-            AddReturnTypeBindings(indentedTextWriter, method, model, functionName, hasHttpTrigger);
+            AddReturnTypeBindings(indentedTextWriter, method, model, functionName, hasHttpTrigger, hasOutputBinding);
         }
 
         /// <summary>
         /// Only an Output Binding can be an attribute on a Function method. This method will check if there is one and return it.
         /// </summary>
         /// <exception cref="FormatException">Throws if attributes are formatted or used incorrectly.</exception>
-        private static void AddMethodOutputBinding(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName)
+        private static void AddMethodOutputBinding(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, out bool hasOutputBinding)
         {
             var methodSymbol = model.GetDeclaredSymbol(method);
             var attributes = methodSymbol!.GetAttributes(); // methodSymbol is not null here because it's checked in IsMethodAFunction which is called before bindings are collected/created
 
             AttributeData? outputBinding = null;
-            var foundOutputBinding = false;
+            hasOutputBinding = false;
 
             foreach (var attribute in attributes)
             {
                 if (IsBindingAttribute(attribute))
                 {
-                    if (foundOutputBinding)
+                    if (hasOutputBinding)
                     {
                         throw new FormatException($"Found multiple output attributes on method '{nameof(method)}'. Only one output binding attribute is is supported on a method.");
                     }
 
                     outputBinding = attribute;
-                    foundOutputBinding = true;
+                    hasOutputBinding = true;
                 }
             }
 
@@ -369,22 +386,35 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
         /// <exception cref="FormatException">Throws if the attributes were used and formatted incorrectly.</exception>
-        private static void AddReturnTypeBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, bool hasHttpTrigger)
+        private static void AddReturnTypeBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, bool hasHttpTrigger, bool hasOutputBinding)
         {
             TypeSyntax returnTypeSyntax = method.ReturnType;
             ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
-            var bindingsCount = 0;
 
             if (returnTypeSymbol is null)
             {
-                throw new InvalidOperationException($"The symbol for the return type '{nameof(returnTypeSymbol)}' for the method '{nameof(method)}' could not be found");
+                throw new FormatException("Symbol can't be found.");
             }
 
-            if (!String.Equals(returnTypeSymbol.GetFullName(), Constants.VoidType, StringComparison.Ordinal))
+            if (returnTypeSymbol != null &&
+                !String.Equals(returnTypeSymbol.GetFullName(), Constants.VoidType, StringComparison.Ordinal) &&
+                !String.Equals(returnTypeSymbol.GetFullName(), Constants.TaskType, StringComparison.Ordinal))
             {
-                if (String.Equals(returnTypeSymbol.GetFullName(), Constants.HttpResponseType, StringComparison.Ordinal))
+                if(String.Equals(returnTypeSymbol.GetFullName(), Constants.TaskGenericType, StringComparison.Ordinal)) // Check is we have a Task<T> return type and take out T, the inner type.
+                {
+                    GenericNameSyntax genericSyntax = (GenericNameSyntax) returnTypeSyntax;
+                    var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
+                    returnTypeSymbol = model.GetSymbolInfo(innerTypeSyntax).Symbol as ITypeSymbol;
+
+                    if (returnTypeSymbol is null)
+                    {
+                        throw new FormatException("Symbol can't be found.");
+                    }
+                }
+                if (String.Equals(returnTypeSymbol.GetFullName(), Constants.HttpResponseType, StringComparison.Ordinal)) // If return type is HttpResponseData
                 {
                     AddHttpReturnBinding(indentedTextWriter, funcName, Constants.ReturnBindingName);
+                    hasOutputBinding = true;
                 }
                 else
                 {
@@ -396,13 +426,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         if (m.GetAttributes().Length > 0)
                         {
-                            var foundOutputAttr = false;
+                            var foundPropertyOutputAttr = false;
 
                             foreach (var attr in m.GetAttributes())
                             {
                                 if (IsBindingAttribute(attr))
                                 {
-                                    if (foundOutputAttr)
+                                    if (foundPropertyOutputAttr)
                                     {
                                         throw new FormatException($"Found multiple output attributes on property '{nameof(m)}' defined in the function return type '{nameof(returnTypeSymbol)}'. " +
                                             $"Only one output binding attribute is is supported on a property.");
@@ -445,7 +475,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                         WriteBindingToFile(indentedTextWriter, attr, funcName, m.Name, dataType);
                                     }
 
-                                    foundOutputAttr = true;
+                                    hasOutputBinding = true;
+                                    foundPropertyOutputAttr = true;
                                 }
                             }
 
@@ -453,12 +484,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     // No output bindings found in the return type.
-                    if (bindingsCount == 0)
+                    if (hasHttpTrigger)
                     {
-                        if (hasHttpTrigger)
+                        if (!hasOutputBinding)
                         {
                             AddHttpReturnBinding(indentedTextWriter, funcName, Constants.ReturnBindingName);
                         }
+                        else
+                        {
+                            AddHttpReturnBinding(indentedTextWriter, funcName, Constants.HttpResponseBindingName);
+                        }    
                     }
                 }
             }
@@ -481,13 +516,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         }
 
         /// <summary>
-        /// 
+        /// This method parses attribute data and symbol info to collect information needed to construct a binding. It then calls a method that will write the binding to the file.
         /// </summary>
-        /// <param name="indentedTextWriter"></param>
-        /// <param name="bindingAttrData"></param>
-        /// <param name="funcName"></param>
-        /// <param name="bindingName"></param>
-        /// <param name="dataType"></param>
         /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
         private static void WriteBindingToFile(IndentedTextWriter indentedTextWriter, AttributeData bindingAttrData, string funcName, string bindingName, string? dataType)
         {

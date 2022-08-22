@@ -4,6 +4,7 @@
 #nullable disable
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
@@ -29,7 +30,27 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         public Task<object> InvokeAsync(object instance, object[] arguments)
         {
             return _methodInvoker.InvokeAsync((TInstance)instance, arguments)
-                .ContinueWith<object>(t => t.Result, TaskContinuationOptions.ExecuteSynchronously);
+                .ContinueWith<object>(t =>
+                {
+                    try
+                    {
+                        return t.Result;
+                    }
+                    catch(AggregateException ae)
+                    {
+                        if (ae.InnerException != null)
+                        {
+                            throw ae.InnerException;
+                        }
+                        
+                        if (ae.InnerExceptions.Any())
+                        {
+                            throw ae.InnerExceptions.First();
+                        }
+
+                        throw;
+                    }
+                }, TaskContinuationOptions.ExecuteSynchronously);
         }
     }
 }

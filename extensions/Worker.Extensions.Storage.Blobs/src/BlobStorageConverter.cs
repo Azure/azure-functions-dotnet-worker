@@ -3,7 +3,11 @@
 
 using System;
 using System.Threading;
+using System.Runtime;
 using System.Threading.Tasks;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
+using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -14,25 +18,33 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
+            BlobBaseClient? client = null;
             switch(context.TargetType)
             {
-                case BlobClient:
-                    // hydrate blob client
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(blobClient));
-                case BlobBaseClient:
-                    // hydrate blob client
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(blobBaseClient));
-                case AppendBlobClient:
-                    // hydrate blob client
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(appendBlobClient));
-                case BlockBlobClient:
-                    // hydrate blob client
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(blockBlobClient));
-                case PageBlobClient:
-                    // hydrate blob client
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(pageBlobClient));
-                default:
+                case Type _ when context.TargetType == typeof(BlobBaseClient):
+                    client = new BlobBaseClient("connection_string", "container_name", "blob_name");
                     break;
+
+                case Type _ when context.TargetType == typeof(BlobClient):
+                    client = new BlobClient("connection_string", "container_name", "blob_name");
+                    break;
+
+                case Type _ when context.TargetType == typeof(AppendBlobClient):
+                    client = new AppendBlobClient("connection_string", "container_name", "blob_name");
+                    break;
+
+                case Type _ when context.TargetType == typeof(BlockBlobClient):
+                    client= new BlockBlobClient("connection_string", "container_name", "blob_name");
+                    break;
+
+                case Type _ when context.TargetType == typeof(PageBlobClient):
+                    client = new PageBlobClient("connection_string", "container_name", "blob_name");
+                    break;
+            }
+
+            if (client is not null)
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Success(client));
             }
 
             return new ValueTask<ConversionResult>(ConversionResult.Unhandled());

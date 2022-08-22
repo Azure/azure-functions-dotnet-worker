@@ -21,6 +21,8 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             BlobBaseClient? client = null;
             switch(context.TargetType)
             {
+                // simplify creation using generics i.e.
+                // await GetBlobAsync(blobAttribute, cancellationToken, typeof(T)).ConfigureAwait(false);
                 case Type _ when context.TargetType == typeof(BlobBaseClient):
                     client = new BlobBaseClient("connection_string", "container_name", "blob_name");
                     break;

@@ -509,6 +509,7 @@ message BindingInfo {
       string = 1;
       binary = 2;
       stream = 3;
+      reference = 4;
     }
 
   // Type of binding (e.g. HttpTrigger)
@@ -646,4 +647,9 @@ message RpcHttp {
   map<string,NullableString> nullable_headers = 20;
   map<string,NullableString> nullable_params = 21;
   map<string,NullableString> nullable_query = 22;
+}
+
+message RichBindingReferenceType
+{
+    map<string,string> Properties = 1;
 }

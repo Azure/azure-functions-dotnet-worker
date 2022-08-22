@@ -8,6 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         Undefined,
         Binary,
         String,
-        Stream
+        Stream,
+        Reference
     }
 }

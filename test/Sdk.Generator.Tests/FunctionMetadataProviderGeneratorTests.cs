@@ -491,8 +491,15 @@ namespace Microsoft.Azure.Functions.Worker
             };
             var HttpTriggerWithBlobInputreturnBindingJSONstring = JsonSerializer.Serialize(HttpTriggerWithBlobInputreturnBinding);
             HttpTriggerWithBlobInputRawBindings.Add(HttpTriggerWithBlobInputreturnBindingJSONstring);
-            var HttpTriggerWithBlobInput = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), ""dotnet-isolated"", ""HttpTriggerWithBlobInput"", ""TestProject.HttpTriggerWithBlobInput.Run"", HttpTriggerWithBlobInputRawBindings, ""TestProject.dll"");
-            metadataList.Add(HttpTriggerWithBlobInput);
+            var HttpTriggerWithBlobInput = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = ""dotnet-isolated"",
+                Name = ""HttpTriggerWithBlobInput"",
+                EntryPoint = ""TestProject.HttpTriggerWithBlobInput.Run"",
+                RawBindings = HttpTriggerWithBlobInputRawBindings,
+                ScriptFile = ""TestProject.dll""
+            };            metadataList.Add(HttpTriggerWithBlobInput);
             return Task.FromResult(metadataList.ToImmutableArray());
         }
         public enum AuthorizationLevel
@@ -671,7 +678,15 @@ namespace Microsoft.Azure.Functions.Worker
             };
             var BasicHttpreturnBindingJSONstring = JsonSerializer.Serialize(BasicHttpreturnBinding);
             BasicHttpRawBindings.Add(BasicHttpreturnBindingJSONstring);
-            var BasicHttp = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), ""dotnet-isolated"", ""BasicHttp"", ""TestProject.BasicHttp.Http"", BasicHttpRawBindings, ""TestProject.dll"");
+            var BasicHttp = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'BasicHttp',
+                EntryPoint = 'TestProject.BasicHttp.Http',
+                RawBindings = BasicHttpRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
             metadataList.Add(BasicHttp);
             return Task.FromResult(metadataList.ToImmutableArray());
         }

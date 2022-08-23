@@ -11,6 +11,7 @@ using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -238,42 +239,27 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
 
-                // depending on the FunctionMetadataProvider used, we may get RpcFunctionMetadata instead of a generated IFunctionMetadata object
-                if (functionMetadataList.First() is RpcFunctionMetadata funcAsRpcMetadata)
+                foreach (var func in functionMetadataList)
                 {
-                    // simplified payload conversion since we already have the correct type
-                    foreach (var func in functionMetadataList)
+                    if (func.RawBindings is null)
                     {
-                        funcAsRpcMetadata = (RpcFunctionMetadata)func;
-                        response.FunctionMetadataResults.Add(funcAsRpcMetadata);
+                        throw new InvalidOperationException($"Functions must declare at least one binding. No bindings were found in the function ${nameof(func)}.");
                     }
-                }
-                else
-                {
-                    foreach (var func in functionMetadataList)
+
+                    if (func is null)
                     {
-                        // create RpcFunctionMetadata
-                        var rpcFuncMetadata = new RpcFunctionMetadata
-                        {
-                            Name = func.Name,
-                            EntryPoint = func.EntryPoint,
-                            FunctionId = func.FunctionId,
-                            IsProxy = false,
-                            Language = func.Language,
-                            ScriptFile = func.ScriptFile,
-                        };
-
-                        // Add raw bindings
-                        foreach (var rawBinding in func.RawBindings)
-                        {
-                            rpcFuncMetadata.RawBindings.Add(rawBinding);
-                        }
-
-                        // add BindingInfo
-                        rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
-
-                        response.FunctionMetadataResults.Add(rpcFuncMetadata);
+                        continue;
                     }
+                    var rpcFuncMetadata = func switch
+                    {
+                        RpcFunctionMetadata rpc => rpc,
+                        _ => BuildRpc(func),
+                    };
+
+                    // add BindingInfo
+                    rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
+
+                    response.FunctionMetadataResults.Add(rpcFuncMetadata);
                 }
 
             }
@@ -289,7 +275,29 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal void WorkerTerminateRequestHandler(WorkerTerminate request)
+        private static RpcFunctionMetadata BuildRpc(IFunctionMetadata func)
+        {
+            // create RpcFunctionMetadata
+            var rpcFuncMetadata = new RpcFunctionMetadata
+            {
+                Name = func.Name,
+                EntryPoint = func.EntryPoint,
+                FunctionId = func.FunctionId,
+                IsProxy = false,
+                Language = func.Language,
+                ScriptFile = func.ScriptFile,
+            };
+
+            // Add raw bindings
+            foreach (var rawBinding in func.RawBindings!)
+            {
+                rpcFuncMetadata.RawBindings.Add(rawBinding);
+            }
+
+            return rpcFuncMetadata;
+        }
+
+    internal void WorkerTerminateRequestHandler(WorkerTerminate request)
         {
             _hostApplicationLifetime.StopApplication();
         }

@@ -10,41 +10,41 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         /// <summary>
         /// Unique function id.
         /// </summary>
-        string FunctionId { get; set; }
+        string? FunctionId { get; }
 
         /// <summary>
         /// If function is a proxy function return true, else return false.
         /// </summary>
-        bool IsProxy { get; set; }
+        bool IsProxy { get; }
 
         /// <summary>
         /// Language that the function is written in.
         /// </summary>
-        string Language { get; set; }
+        string? Language { get; }
 
         /// <summary>
         /// If managed dependency is enabled return true, else return false.
         /// </summary>
-        bool ManagedDependencyEnabled { get; set; }
+        bool ManagedDependencyEnabled { get; }
 
         /// <summary>
         /// Name of function.
         /// </summary>
-        string Name { get; set; }
+        string? Name { get; }
 
         /// <summary>
         /// Function entrypoint (ex. HttpTrigger.Run).
         /// </summary>
-        string EntryPoint { get; set; }
+        string? EntryPoint { get; }
 
         /// <summary>
         /// List of function's bindings in json string format.
         /// </summary>
-        IList<string> RawBindings { get; }
+        IList<string>? RawBindings { get; }
         
         /// <summary>
         /// The function app assembly (ex. FunctionApp.dll).
         /// </summary>
-        string ScriptFile { get; set; }
+        string? ScriptFile { get; }
     }
 }

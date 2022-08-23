@@ -199,7 +199,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         if (String.Equals(argValue, "true"))
                         {
-                            argumentData["Cardinality"] = "Many";
+                            if(IsIterableCollection(out string dataType))
+                            {
+                                argumentData["Cardinality"] = "Many";
+                                argumentData["dataType"] = dataType;
+                            }
+                            else
+                            {
+                                throw new FormatException("something");
+                            }
                         }
                         else
                         {
@@ -280,7 +288,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // collect Bindings
                 indentedTextWriter.WriteLine($"var {bindingsListName} = new List<string>();");
                 AddBindingInfo(indentedTextWriter, method, model, functionName);
-                indentedTextWriter.WriteLine($"var {functionName} = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), \"dotnet-isolated\", \"{functionName}\", \"{entryPoint}\", {functionName}RawBindings, \"{scriptFile}\");");
+                indentedTextWriter.WriteLine($"var {functionName} = new DefaultFunctionMetadata");
+                indentedTextWriter.WriteLine("{");
+                indentedTextWriter.Indent++;
+                indentedTextWriter.WriteLine("FunctionId = Guid.NewGuid().ToString(),");
+                indentedTextWriter.WriteLine("Language = \"dotnet-isolated\",");
+                indentedTextWriter.WriteLine($"Name = \"{functionName}\",");
+                indentedTextWriter.WriteLine($"EntryPoint = \"{entryPoint}\",");
+                indentedTextWriter.WriteLine($"RawBindings = {functionName}RawBindings,");
+                indentedTextWriter.WriteLine($"ScriptFile = \"{scriptFile}\""); 
+                indentedTextWriter.Indent--;
+                indentedTextWriter.WriteLine("};");
                 indentedTextWriter.WriteLine($"metadataList.Add({functionName});");
             }
         }
@@ -532,6 +550,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             // Get binding info as a dictionary with keys as the property name and value as the property value
             IDictionary<string, object> attributeProperties = GetAttributeProperties(attribMethodSymbol, bindingAttrData);
 
+            if(dataType != null && !attributeProperties.ContainsKey("dataType")) // in some cases, dataType can be added from GetAttributeProperties so make sure dataType hasn't been added yet
+            {
+                attributeProperties.Add("dataType", dataType); // add data type from the parameter passed into this method
+            }
+
             // Grab some required binding info properties
             string attributeName = bindingAttrData.AttributeClass!.Name;
 
@@ -554,13 +577,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
                 methods = new List<string> { "get","post" },
             };*/
-            CreateBindingInfo(indentedTextWriter, funcName, bindingName, bindingType, bindingDirection, attributeProperties, dataType);
+            CreateBindingInfo(indentedTextWriter, funcName, bindingName, bindingType, bindingDirection, attributeProperties);
         }
 
         /// <summary>
         /// Writes binding info to the generated file. This method takes care of all bindings except for auto-added http return types.
         /// </summary>
-        private static void CreateBindingInfo(IndentedTextWriter indentedTextWriter, string functionName, string bindingName, string bindingType, string bindingDirection, IDictionary<string, object> attributeProperties, string? dataType)
+        private static void CreateBindingInfo(IndentedTextWriter indentedTextWriter, string functionName, string bindingName, string bindingType, string bindingDirection, IDictionary<string, object> attributeProperties)
         {
             // Create raw binding anonymous type, example:
             /*  var binding1 = new {
@@ -593,12 +616,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine($"{propertyName} = {propertyValue},");
                 }
             }
-
-            // add dataType property if it is passed through (value is not null)
-            if (dataType != null)
-            {
-                indentedTextWriter.WriteLine($"dataType = {dataType},");
-            }    
 
             indentedTextWriter.Indent--;
             indentedTextWriter.WriteLine("};");
@@ -653,6 +670,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
             indentedTextWriter.Indent--;
             indentedTextWriter.WriteLine("}");
+        }
+
+        private static bool IsIterableCollection(out string dataType)
+        {
+            dataType = "String";
+
+            return true;
         }
 
         /// <summary>

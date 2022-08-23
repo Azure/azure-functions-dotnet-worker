@@ -231,14 +231,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             if (string.Equals(retryAttribute.AttributeType.FullName, Constants.FixedDelayRetryAttributeType, StringComparison.Ordinal))
             {
                 var properties = retryAttribute.GetAllDefinedProperties();
-
-                return new SdkRetryOptions("fixedDelay", (int)properties["maxRetryCount"], (string)properties["delayInterval"], null, null);
+                var retryOptions = new SdkRetryOptions
+                {
+                    Strategy = "fixedDelay",
+                    MaxRetryCount = (int)properties["maxRetryCount"],
+                    DelayInterval = (string)properties["delayInterval"]
+                };
+                return retryOptions;
             }
             else // else it is an exponential backoff retry attribute
             {
                 var properties = retryAttribute.GetAllDefinedProperties();
-
-                return new SdkRetryOptions("exponentialBackoff", (int)properties["maxRetryCount"], null, (string)properties["minimumInterval"], (string)properties["maximumInterval"]);
+                var retryOptions = new SdkRetryOptions
+                {
+                    Strategy = "exponentialBackoff",
+                    MaxRetryCount = (int)properties["maxRetryCount"],
+                    MinimumInterval = (string)properties["minimumInterval"],
+                    MaximumInterval = (string)properties["maximumInterval"]
+                };
+                return retryOptions;
             }
         }
 

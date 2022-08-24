@@ -438,6 +438,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 bindingDict["DataType"] = "Binary";
             }
+            else if (string.Equals(attribute.AttributeType.FullName, Constants.ReferenceType, StringComparison.Ordinal))
+            {
+                bindingDict["DataType"] = "Reference";
+            }
 
             foreach (var property in attribute.GetAllDefinedProperties())
             {

@@ -193,21 +193,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 if (namedArgument.Value.Value != null)
                 {
-                    if (String.Equals(namedArgument.Value, Constants.IsBatchedKey))
+                    if (String.Equals(namedArgument.Key, Constants.IsBatchedKey))
                     {
-                        var argValue = namedArgument.Value.Value;
+                        var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in bools and the generator will parse it as a bool so we can type cast this to use in the next line
 
-                        if (String.Equals(argValue, "true"))
+                        if (argValue)
                         {
-                            if(IsIterableCollection(out string dataType))
-                            {
-                                argumentData["Cardinality"] = "Many";
-                                argumentData["dataType"] = dataType;
-                            }
-                            else
-                            {
-                                throw new FormatException("something");
-                            }
+                            argumentData["Cardinality"] = "Many";
                         }
                         else
                         {
@@ -219,7 +211,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         argumentData[namedArgument.Key] = namedArgument.Value.Value;
                     }
                 }
-                
             }
 
             return argumentData;
@@ -371,24 +362,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (IsBindingAttribute(attribute))
                     {
-                        if(IsHttpTrigger(attribute))
-                        {
-                            hasHttpTrigger = true;
-                        }
-
                         string? dataType = null;
                         string parameterSymbolType = parameterSymbol.Type.GetFullName();
 
-                        // Check if parameter datatype is string or binary
-                        // Is string parameter type
-                        if (IsStringType(parameterSymbolType))
+                        if (IsHttpTrigger(attribute))
                         {
-                            dataType = "\"String\"";
+                            hasHttpTrigger = true;
                         }
-                        // Is binary parameter type
-                        else if (IsBinaryType(parameterSymbolType))
+                        else if (IsEventHubsTrigger(attribute))
                         {
-                            dataType = "\"Binary\"";
+                            if (!IsEventHubsTriggerValid(parameterSymbol, attribute, out dataType)) // we need the parameterSymbol to validate the EventHubs trigger, so we'll validate it at this step
+                            {
+                                // report diagnostic error
+                            }
+                        }
+
+                        if (dataType is null)
+                        {
+                            dataType = GetDataTypeFromType(parameterSymbolType);
                         }
 
                         string bindingName = parameter.Identifier.ValueText;
@@ -398,6 +389,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
             }
         }
+
 
         /// <summary>
         /// Adds bindings found in the ReturnType class of the Function
@@ -477,19 +469,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                             throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
                                         }
 
-                                        string? dataType = null;
-                                        var propertySymbolType = propertySymbol.Type.GetFullName();
-
-                                        if (IsStringType(propertySymbolType))
-                                        {
-                                            dataType = "\"String\"";
-                                        }
-                                        // Is binary parameter type
-                                        else if (IsBinaryType(propertySymbolType))
-                                        {
-                                            dataType = "\"Binary\"";
-                                        }
-
+                                        string? dataType = GetDataTypeFromType(propertySymbol.Type.GetFullName());
                                         WriteBindingToFile(indentedTextWriter, attr, funcName, m.Name, dataType);
                                     }
 
@@ -672,11 +652,81 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine("}");
         }
 
-        private static bool IsIterableCollection(out string dataType)
+        /// <summary>
+        /// This method verifies that an EventHubsTrigger matches our expectations on cardinality (isBatched property). If isBatched is set to true, the parameter with the
+        /// attriute must be an enumerabletype.
+        /// </summary>
+        private static bool IsEventHubsTriggerValid(IParameterSymbol parameterSymbol, AttributeData attribute, out string? dataType)
         {
-            dataType = "String";
+            dataType = null;
 
+            foreach (var arg in attribute.NamedArguments)
+            {
+                if(String.Equals(arg.Key, Constants.IsBatchedKey) &&
+                    arg.Value.Value != null)
+                {
+                    var isBatched = (bool)arg.Value.Value;
+                    
+                    if (isBatched) // if isBatched is true, then we need to check that this parameter is an iterable collection
+                    {
+                        var parameterSymbolFullName = parameterSymbol.Type.GetFullName();
+                        bool isArray = parameterSymbol.Type is IArrayTypeSymbol;
+
+                        if (isArray && !string.Equals(parameterSymbolFullName, Constants.ByteArrayType, StringComparison.Ordinal))
+                        {
+                                dataType = GetDataTypeFromType(parameterSymbolFullName);
+                                return true;
+                        }
+
+                        bool isMappingEnumerable = IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableOfKeyValuePair)
+                            || IsOrDerivedFrom(parameterSymbol, Constants.LookupGenericType)
+                            || IsOrDerivedFrom(parameterSymbol, Constants.DictionaryGenericType);
+                        if (isMappingEnumerable)
+                        {
+                            return false;
+                        }
+
+                        // IEnumerable and not string or dictionary
+                        bool isEnumerableCollection =
+                            !IsStringType(parameterSymbolFullName)
+                            && (IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableType)
+                                || IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableGenericType));
+                        if (isEnumerableCollection)
+                        {
+                            if (IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableOfStringType))
+                            {
+                                dataType = "\"String\"";
+                            }
+                            else if (IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableOfBinaryType))
+                            {
+                                dataType = "\"Binary\"";
+                            }
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+            }
+
+            // no isBatched property was found so return true
             return true;
+        }
+
+        private static bool IsOrDerivedFrom(IParameterSymbol parameterSymbol, string typeFullName)
+        {
+            var baseType = parameterSymbol.Type;
+
+            while (baseType != null)
+            {
+                if(String.Equals(baseType.GetFullName(), typeFullName, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+                baseType = baseType.BaseType;
+            }
+
+            return false;
         }
 
         /// <summary>
@@ -749,6 +799,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             return false;
+        }
+
+        private static bool IsEventHubsTrigger(AttributeData attribute)
+        {
+            if (attribute.AttributeClass != null)
+            {
+                return String.Equals(attribute.AttributeClass.GetFullName(), Constants.EventHubsTriggerType);
+            }
+
+            return false;
+        }
+        private static string? GetDataTypeFromType(string typeFullName)
+        {
+            string? dataType = null;
+
+            if (IsStringType(typeFullName))
+            {
+                dataType = "\"String\"";
+            }
+            // Is binary parameter type
+            else if (IsBinaryType(typeFullName))
+            {
+                dataType = "\"Binary\"";
+            }
+
+            return dataType;
         }
 
         private static bool IsStringType(string fullName)

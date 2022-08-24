@@ -132,7 +132,15 @@ namespace Microsoft.Azure.Functions.Worker
             };
             var HttpTriggerSimplereturnBindingJSONstring = JsonSerializer.Serialize(HttpTriggerSimplereturnBinding);
             HttpTriggerSimpleRawBindings.Add(HttpTriggerSimplereturnBindingJSONstring);
-            var HttpTriggerSimple = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), 'dotnet-isolated', 'HttpTriggerSimple', 'TestProject.HttpTriggerSimple.Run', HttpTriggerSimpleRawBindings, 'TestProject.dll');
+            var HttpTriggerSimple = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'HttpTriggerSimple',
+                EntryPoint = 'TestProject.HttpTriggerSimple.Run',
+                RawBindings = HttpTriggerSimpleRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
             metadataList.Add(HttpTriggerSimple);
             return Task.FromResult(metadataList.ToImmutableArray());
         }
@@ -249,7 +257,15 @@ namespace Microsoft.Azure.Functions.Worker
             };
             var HttpTriggerWithMultipleOutputBindingsHttpResponseBindingJSONstring = JsonSerializer.Serialize(HttpTriggerWithMultipleOutputBindingsHttpResponseBinding);
             HttpTriggerWithMultipleOutputBindingsRawBindings.Add(HttpTriggerWithMultipleOutputBindingsHttpResponseBindingJSONstring);
-            var HttpTriggerWithMultipleOutputBindings = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), ""dotnet-isolated"", ""HttpTriggerWithMultipleOutputBindings"", ""TestProject.HttpTriggerWithMultipleOutputBindings.Run"", HttpTriggerWithMultipleOutputBindingsRawBindings, ""TestProject.dll"");
+            var HttpTriggerWithMultipleOutputBindings = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'HttpTriggerWithMultipleOutputBindings',
+                EntryPoint = 'TestProject.HttpTriggerWithMultipleOutputBindings.Run',
+                RawBindings = HttpTriggerWithMultipleOutputBindingsRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
             metadataList.Add(HttpTriggerWithMultipleOutputBindings);
             return Task.FromResult(metadataList.ToImmutableArray());
         }
@@ -386,7 +402,15 @@ namespace Microsoft.Azure.Functions.Worker
             };
             var HttpTriggerWithBlobInputHttpResponseBindingJSONstring = JsonSerializer.Serialize(HttpTriggerWithBlobInputHttpResponseBinding);
             HttpTriggerWithBlobInputRawBindings.Add(HttpTriggerWithBlobInputHttpResponseBindingJSONstring);
-            var HttpTriggerWithBlobInput = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), 'dotnet-isolated', 'HttpTriggerWithBlobInput', 'TestProject.HttpTriggerWithBlobInput.Run', HttpTriggerWithBlobInputRawBindings, 'TestProject.dll');
+            var HttpTriggerWithBlobInput = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'HttpTriggerWithBlobInput',
+                EntryPoint = 'TestProject.HttpTriggerWithBlobInput.Run',
+                RawBindings = HttpTriggerWithBlobInputRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
             metadataList.Add(HttpTriggerWithBlobInput);
             return Task.FromResult(metadataList.ToImmutableArray());
         }
@@ -494,12 +518,13 @@ namespace Microsoft.Azure.Functions.Worker
             var HttpTriggerWithBlobInput = new DefaultFunctionMetadata
             {
                 FunctionId = Guid.NewGuid().ToString(),
-                Language = ""dotnet-isolated"",
-                Name = ""HttpTriggerWithBlobInput"",
-                EntryPoint = ""TestProject.HttpTriggerWithBlobInput.Run"",
+                Language = 'dotnet-isolated',
+                Name = 'HttpTriggerWithBlobInput',
+                EntryPoint = 'TestProject.HttpTriggerWithBlobInput.Run',
                 RawBindings = HttpTriggerWithBlobInputRawBindings,
-                ScriptFile = ""TestProject.dll""
-            };            metadataList.Add(HttpTriggerWithBlobInput);
+                ScriptFile = 'TestProject.dll'
+            };
+            metadataList.Add(HttpTriggerWithBlobInput);
             return Task.FromResult(metadataList.ToImmutableArray());
         }
         public enum AuthorizationLevel
@@ -584,7 +609,15 @@ namespace Microsoft.Azure.Functions.Worker
             };
             var TimertimerBindingJSONstring = JsonSerializer.Serialize(TimertimerBinding);
             TimerRawBindings.Add(TimertimerBindingJSONstring);
-            var Timer = new DefaultFunctionMetadata(Guid.NewGuid().ToString(), ""dotnet-isolated"", ""Timer"", ""TestProject.Timer.RunTimer"", TimerRawBindings, ""TestProject.dll"");
+            var Timer = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'Timer',
+                EntryPoint = 'TestProject.Timer.RunTimer',
+                RawBindings = TimerRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
             metadataList.Add(Timer);
             return Task.FromResult(metadataList.ToImmutableArray());
         }
@@ -689,6 +722,273 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(BasicHttp);
             return Task.FromResult(metadataList.ToImmutableArray());
+        }
+        public enum AuthorizationLevel
+        {
+            Anonymous,
+            User,
+            Function,
+            System,
+            Admin
+        }
+    }
+    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+    {
+        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+        {
+            builder.ConfigureServices(s => 
+            {
+                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+            });
+            return builder;
+        }
+    }
+}
+".Replace("'", "\"");
+
+            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                referencedExtensionAssemblies,
+                inputCode,
+                expectedGeneratedFileName,
+                expectedOutput);
+        }
+
+        [Fact]
+        public async void FunctionWithIsBatchedFalse()
+        {
+            string inputCode = @"
+                using System;
+                using System.Net;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class EventHubStringInput
+                    {
+                        [Function('StringInputFunction')]
+                        public static void StringInputFunction([EventHubTrigger('test', Connection = 'EventHubConnectionAppSetting', IsBatched = false)] string input,
+                        FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                ".Replace("'", "\"");
+
+            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+            string expectedOutput = @"// <auto-generated/>
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+namespace Microsoft.Azure.Functions.Worker
+{
+    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+    {
+        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+        {
+            var metadataList = new List<IFunctionMetadata>();
+            var EventHubStringInputRawBindings = new List<string>();
+            var EventHubStringInputinputBinding = new {
+                name = 'input',
+                type = 'EventHubTrigger',
+                direction = 'In',
+                eventHubName = 'test',
+                Connection = 'EventHubConnectionAppSetting',
+                Cardinality = 'One',
+                dataType = 'String',
+            };
+            var EventHubStringInputinputBindingJSONstring = JsonSerializer.Serialize(EventHubStringInputinputBinding);
+            EventHubStringInputRawBindings.Add(EventHubStringInputinputBindingJSONstring);
+            var EventHubStringInput = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'EventHubStringInput',
+                EntryPoint = 'TestProject.EventHubStringInput.StringInputFunction',
+                RawBindings = EventHubStringInputRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
+            metadataList.Add(EventHubStringInput);
+            return Task.FromResult(metadataList.ToImmutableArray());
+        }
+        public enum AuthorizationLevel
+        {
+            Anonymous,
+            User,
+            Function,
+            System,
+            Admin
+        }
+    }
+    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+    {
+        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+        {
+            builder.ConfigureServices(s => 
+            {
+                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+            });
+            return builder;
+        }
+    }
+}
+".Replace("'", "\"");
+
+            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                referencedExtensionAssemblies,
+                inputCode,
+                expectedGeneratedFileName,
+                expectedOutput);
+        }
+
+        [Fact]
+        public async void ValidFunctionWithIsBatchedTrue()
+        {
+            string inputCode = @"
+                using System;
+                using System.Net;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class EventHubStringInput
+                    {
+                        [Function('StringInputFunction')]
+                        public static void StringInputFunction([EventHubTrigger('test', Connection = 'EventHubConnectionAppSetting', IsBatched = true)] string[] input,
+                        FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                ".Replace("'", "\"");
+
+            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+            string expectedOutput = @"// <auto-generated/>
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+namespace Microsoft.Azure.Functions.Worker
+{
+    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+    {
+        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+        {
+            var metadataList = new List<IFunctionMetadata>();
+            var EventHubStringInputRawBindings = new List<string>();
+            var EventHubStringInputinputBinding = new {
+                name = 'input',
+                type = 'EventHubTrigger',
+                direction = 'In',
+                eventHubName = 'test',
+                Connection = 'EventHubConnectionAppSetting',
+                Cardinality = 'Many',
+            };
+            var EventHubStringInputinputBindingJSONstring = JsonSerializer.Serialize(EventHubStringInputinputBinding);
+            EventHubStringInputRawBindings.Add(EventHubStringInputinputBindingJSONstring);
+            var EventHubStringInput = new DefaultFunctionMetadata
+            {
+                FunctionId = Guid.NewGuid().ToString(),
+                Language = 'dotnet-isolated',
+                Name = 'EventHubStringInput',
+                EntryPoint = 'TestProject.EventHubStringInput.StringInputFunction',
+                RawBindings = EventHubStringInputRawBindings,
+                ScriptFile = 'TestProject.dll'
+            };
+            metadataList.Add(EventHubStringInput);
+            return Task.FromResult(metadataList.ToImmutableArray());
+        }
+        public enum AuthorizationLevel
+        {
+            Anonymous,
+            User,
+            Function,
+            System,
+            Admin
+        }
+    }
+    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+    {
+        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+        {
+            builder.ConfigureServices(s => 
+            {
+                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+            });
+            return builder;
+        }
+    }
+}
+".Replace("'", "\"");
+
+            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                referencedExtensionAssemblies,
+                inputCode,
+                expectedGeneratedFileName,
+                expectedOutput);
+        }
+
+        [Fact(Skip = "TODO: Find best practices for testing failing source generation and check that diagnostic errors are reported")]
+        public async void InvalidFunctionWithIsBatchedTrue()
+        {
+            string inputCode = @"
+                using System;
+                using System.Net;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class EventHubStringInput
+                    {
+                        [Function('StringInputFunction')]
+                        public static void StringInputFunction([EventHubTrigger('test', Connection = 'EventHubConnectionAppSetting', IsBatched = true)] string input,
+                        FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                ".Replace("'", "\"");
+
+            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+            string expectedOutput = @"// <auto-generated/>
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Text.Json;
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+namespace Microsoft.Azure.Functions.Worker
+{
+    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+    {
+        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+        {
+            
         }
         public enum AuthorizationLevel
         {

@@ -25,13 +25,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             var sb = new StringBuilder(symbol.MetadataName);
-            symbol = symbol.ContainingSymbol;
 
-            while (!IsRootNamespace(symbol))
+            if (symbol is IArrayTypeSymbol arraySymbol) // arrays need to be handled differently b/c the properties used to get the full name for other symbols are null for IArrayTypeSymbols
             {
-                sb.Insert(0, '.');
-                sb.Insert(0, symbol.MetadataName);
+                sb.Append(arraySymbol.ElementType.GetFullName()); // ex: for string[], the ElementType is System.String and that is the full name returned at this step.
+                sb.Append("[]"); // System.Byte[], System.String[] are the full names for array types of element type Byte, String and we auto-add the brackets here.
+            }
+            else
+            {
                 symbol = symbol.ContainingSymbol;
+
+                while (!IsRootNamespace(symbol))
+                {
+                    sb.Insert(0, '.');
+                    sb.Insert(0, symbol.MetadataName);
+                    symbol = symbol.ContainingSymbol;
+                }
             }
 
             return sb.ToString();

@@ -14,6 +14,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 
         public bool EnableImplicitRegistration { get; }
 
+        public bool SupportsReferenceType { get; }
+
+
         public ExtensionInformationAttribute(string extensionPackage, string extensionVersion)
             : this(extensionPackage, extensionVersion, false)
         {
@@ -24,6 +27,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
             ExtensionPackage = extensionPackage;
             ExtensionVersion = extensionVersion;
             EnableImplicitRegistration = enableImplicitRegistration;
+        }
+
+        public ExtensionInformationAttribute(string extensionPackage, string extensionVersion, bool enableImplicitRegistration, bool supportsReferenceType)
+        {
+            ExtensionPackage = extensionPackage;
+            ExtensionVersion = extensionVersion;
+            EnableImplicitRegistration = enableImplicitRegistration;
+            SupportsReferenceType = supportsReferenceType;
         }
     }
 }

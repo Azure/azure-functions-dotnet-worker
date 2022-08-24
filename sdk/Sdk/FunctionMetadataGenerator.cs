@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 functions.AddRange(functionsResult);
             }
 
-            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
+            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, out bool supportsReferenceType, usedByFunction: false))
             {
                 _logger.LogMessage($"Implicitly registered {module.FileName} as an extension.");
             }
@@ -337,7 +337,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     foundOutputAttribute = true;
 
                     AddOutputBindingMetadata(bindingMetadata, propertyAttribute, property.PropertyType, property.Name);
-                    AddExtensionInfo(_extensions, propertyAttribute);
+                    AddExtensionInfo(_extensions, propertyAttribute, out bool supportsReferenceType);
                 }
             }
         }
@@ -357,7 +357,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     }
 
                     AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, Constants.ReturnBindingName);
-                    AddExtensionInfo(_extensions, methodAttribute);
+                    AddExtensionInfo(_extensions, methodAttribute, out bool supportsReferenceType);
 
                     foundBinding = true;
                 }
@@ -374,8 +374,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (IsFunctionBindingType(parameterAttribute))
                     {
-                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
-                        AddExtensionInfo(_extensions, parameterAttribute);
+                        AddExtensionInfo(_extensions, parameterAttribute, out bool supportsReferenceType);
+                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name, supportsReferenceType);
                     }
                 }
             }
@@ -406,15 +406,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             AddBindingMetadata(bindingMetadata, attribute, parameterType, parameterName: name);
         }
 
-        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName)
+        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName, bool supportsReferenceType = false)
         {
             string bindingType = GetBindingType(attribute);
 
-            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName);
+            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName, supportsReferenceType);
             bindingMetadata.Add(binding);
         }
 
-        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
+        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName, bool supportsReferenceType)
         {
             ExpandoObject binding = new ExpandoObject();
 
@@ -438,7 +438,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 bindingDict["DataType"] = "Binary";
             }
-            else if (string.Equals(attribute.AttributeType.FullName, Constants.ReferenceType, StringComparison.Ordinal))
+            else if (supportsReferenceType)
             {
                 bindingDict["DataType"] = "Reference";
             }
@@ -677,14 +677,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bindingMetadata.Add((ExpandoObject)returnBinding);
         }
 
-        private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute)
+        private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute, out bool supportsReferenceType)
         {
             AssemblyDefinition extensionAssemblyDefinition = attribute.AttributeType.Resolve().Module.Assembly;
-            TryAddExtensionInfo(extensions, extensionAssemblyDefinition);
+            TryAddExtensionInfo(extensions, extensionAssemblyDefinition, out supportsReferenceType);
         }
 
-        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, bool usedByFunction = true)
+        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, out bool supportsReferenceType, bool usedByFunction = true)
         {
+            supportsReferenceType = false;
+
             foreach (var assemblyAttribute in extensionAssemblyDefinition.CustomAttributes)
             {
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
@@ -703,6 +705,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     {
                         extensions[extensionName] = extensionVersion;
                     }
+
+                    if (assemblyAttribute.ConstructorArguments.Count == 4)
+                    {
+                        supportsReferenceType = (bool)assemblyAttribute.ConstructorArguments[3].Value;
+                    }
+
+                    /*
+                    if (string.Equals(attribute.AttributeType.FullName, Constants.ReferenceType, StringComparison.Ordinal))
+                    {
+                        supportsReferenceType = true;
+                    }
+                    */
 
                     // Only 1 extension per library
                     return true;

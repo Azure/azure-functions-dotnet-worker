@@ -21,10 +21,7 @@ namespace SampleApp
             }
 
             var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults(b =>
-                {
-                    b.InputConverters.RegisterAt<BlobStorageConverter>(0);
-                })
+                .ConfigureFunctionsWorkerDefaults()
                 .Build();
 
             host.Run();

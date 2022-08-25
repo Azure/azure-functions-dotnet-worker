@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public static readonly string DefaultId = "TestId";
         public static readonly string DefaultName = "TestName";
 
-        public TestFunctionDefinition(string functionId = null, IDictionary<string, BindingMetadata> inputBindings = null, IDictionary<string, BindingMetadata> outputBindings = null, IEnumerable<FunctionParameter> parameters = null, bool bindsToCancellationToken = false)
+        public TestFunctionDefinition(string functionId = null, IDictionary<string, BindingMetadata> inputBindings = null, IDictionary<string, BindingMetadata> outputBindings = null, IEnumerable<FunctionParameter> parameters = null, bool isCancellable = false)
         {
             if (functionId is not null)
             {
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Parameters = parameters == null ? ImmutableArray<FunctionParameter>.Empty : parameters.ToImmutableArray();
             InputBindings = inputBindings == null ? ImmutableDictionary<string, BindingMetadata>.Empty : inputBindings.ToImmutableDictionary();
             OutputBindings = outputBindings == null ? ImmutableDictionary<string, BindingMetadata>.Empty : outputBindings.ToImmutableDictionary();
-            BindsToCancellationToken = bindsToCancellationToken;
+            IsCancellable = isCancellable;
         }
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
-        public override bool BindsToCancellationToken  { get; }
+        public override bool IsCancellable  { get; }
 
         /// <summary>
         /// Generates a pre-made <see cref="FunctionDefinition"/> for testing. Always includes a single trigger named "TestTrigger".

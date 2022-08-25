@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IFunctionContextFactory> _mockFunctionContextFactory = new(MockBehavior.Strict);
         private readonly Mock<IOptions<WorkerOptions>> _mockWorkerOptions = new(MockBehavior.Strict);
         private readonly Mock<IWorkerDiagnostics> _mockWorkerDiagnostics = new(MockBehavior.Strict);
-        private readonly FunctionInvocationManager _functionInvocationManager = new();
+        private readonly FunctionInvocationDictionary _functionInvocationDictionary = new();
         private readonly TestLoggerProvider _testLoggerProvider = new();
         private readonly ILogger<FunctionsApplication> _testLogger;
 
@@ -41,16 +41,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData(true, true)]
         [InlineData(false, false)]
-        public void CreateContext_WithBindsToCancellationToken_CreatesExpectedCancellationToken(bool tokenBinding, bool tokenCancelable)
+        public void CreateContext_WithIsCancellationSet_CreatesExpectedCancellationToken(bool tokenBinding, bool tokenCancelable)
         {
             var functionId = "abc";
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
-                            _mockFunctionContextFactory.Object, _functionInvocationManager,
+                            _mockFunctionContextFactory.Object, _functionInvocationDictionary,
                             _mockWorkerOptions.Object, _testLogger, _mockWorkerDiagnostics.Object);
 
-            var definition = new TestFunctionDefinition(functionId, bindsToCancellationToken: tokenBinding);
+            var definition = new TestFunctionDefinition(functionId, isCancellable: tokenBinding);
             application.LoadFunction(definition);
 
             var features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
@@ -77,10 +77,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         CancellationTokenSource = cts,
                                     };
 
-            _functionInvocationManager.TryAddInvocationDetails(invocationId, invocationDetails);
+            _functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
-                _mockFunctionContextFactory.Object, _functionInvocationManager,
+                _mockFunctionContextFactory.Object, _functionInvocationDictionary,
                 _mockWorkerOptions.Object, _testLogger, _mockWorkerDiagnostics.Object);
 
             application.CancelInvocation(invocationId);
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var cts = new CancellationTokenSource();
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
-                _mockFunctionContextFactory.Object, _functionInvocationManager,
+                _mockFunctionContextFactory.Object, _functionInvocationDictionary,
                 _mockWorkerOptions.Object, _testLogger, _mockWorkerDiagnostics.Object);
 
             application.CancelInvocation(invocationId);
@@ -117,10 +117,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         CancellationTokenSource = null,
                                     };
 
-            _functionInvocationManager.TryAddInvocationDetails(invocationId, invocationDetails);
+            _functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
-                _mockFunctionContextFactory.Object, _functionInvocationManager,
+                _mockFunctionContextFactory.Object, _functionInvocationDictionary,
                 _mockWorkerOptions.Object, _testLogger, _mockWorkerDiagnostics.Object);
 
             application.CancelInvocation(invocationId);
@@ -139,10 +139,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         CancellationTokenSource = cts,
                                     };
 
-            _functionInvocationManager.TryAddInvocationDetails(invocationId, invocationDetails);
+            _functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
 
             var application = new FunctionsApplication(_mockFunctionExecutionDelegate.Object,
-                _mockFunctionContextFactory.Object, _functionInvocationManager,
+                _mockFunctionContextFactory.Object, _functionInvocationDictionary,
                 _mockWorkerOptions.Object, _testLogger, _mockWorkerDiagnostics.Object);
 
             cts.Dispose();

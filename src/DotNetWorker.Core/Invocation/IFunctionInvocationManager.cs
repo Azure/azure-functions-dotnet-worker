@@ -6,20 +6,22 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     /// <summary>
     /// Keeps track of inflight invocations.
     /// </summary>
-    interface IFunctionInvocationManager
+    internal interface IFunctionInvocationDictionary
     {
         /// <summary>
         /// Attempts to store the specified key and value, where 'invocationId' is the key.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
         /// <param name="details"><see cref="FunctionInvocationDetails"/></param>
-        void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details);
+        /// <returns><see cref="bool"/> representing operation success</returns>
+        bool TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details);
 
         /// <summary>
         /// Attempts to remove the specified key.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
-        void TryRemoveInvocationDetails(string invocationId);
+        /// <returns><see cref="bool"/> representing operation success</returns>
+        bool TryRemoveInvocationDetails(string invocationId);
 
         /// <summary>
         /// Attempts to get the value associated with the specified key.

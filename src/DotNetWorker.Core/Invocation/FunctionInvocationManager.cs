@@ -5,33 +5,33 @@ using System.Collections.Concurrent;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    internal class FunctionInvocationManager : IFunctionInvocationManager
+    internal class FunctionInvocationDictionary : IFunctionInvocationDictionary
     {
-        internal ConcurrentDictionary<string, FunctionInvocationDetails> _inflightInvocations;
+        private ConcurrentDictionary<string, FunctionInvocationDetails> _inflightInvocations;
 
-        public FunctionInvocationManager()
+        public FunctionInvocationDictionary()
         {
           _inflightInvocations = new ConcurrentDictionary<string, FunctionInvocationDetails>();
         }
 
-        public void TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details)
+        public bool TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details)
         {
             if (string.IsNullOrEmpty(invocationId) || details is null)
             {
-              return;
+              return false;
             }
 
-            _inflightInvocations.TryAdd(invocationId, details);
+            return _inflightInvocations.TryAdd(invocationId, details);
         }
 
-        public void TryRemoveInvocationDetails(string invocationId)
+        public bool TryRemoveInvocationDetails(string invocationId)
         {
             if (string.IsNullOrEmpty(invocationId))
             {
-              return;
+              return false;
             }
 
-            _inflightInvocations.TryRemove(invocationId, out FunctionInvocationDetails? details);
+            return _inflightInvocations.TryRemove(invocationId, out FunctionInvocationDetails? details);
         }
 
         public FunctionInvocationDetails? TryGetInvocationDetails(string invocationId)

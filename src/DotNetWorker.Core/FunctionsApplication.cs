@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ConcurrentDictionary<string, FunctionDefinition> _functionMap = new ConcurrentDictionary<string, FunctionDefinition>();
         private readonly FunctionExecutionDelegate _functionExecutionDelegate;
         private readonly IFunctionContextFactory _functionContextFactory;
-        private readonly IFunctionInvocationManager _functionInvocationManager;
+        private readonly IFunctionInvocationDictionary _functionInvocationDictionary;
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly ILogger<FunctionsApplication> _logger;
         private readonly IWorkerDiagnostics _diagnostics;
@@ -27,14 +27,14 @@ namespace Microsoft.Azure.Functions.Worker
         public FunctionsApplication(
             FunctionExecutionDelegate functionExecutionDelegate,
             IFunctionContextFactory functionContextFactory,
-            IFunctionInvocationManager functionInvocationManager,
+            IFunctionInvocationDictionary functionInvocationDictionary,
             IOptions<WorkerOptions> workerOptions,
             ILogger<FunctionsApplication> logger,
             IWorkerDiagnostics diagnostics)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
-            _functionInvocationManager = functionInvocationManager ?? throw new ArgumentNullException(nameof(functionInvocationManager));
+            _functionInvocationDictionary = functionInvocationDictionary ?? throw new ArgumentNullException(nameof(functionInvocationDictionary));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker
             var functionDefinition = _functionMap[invocation.FunctionId];
             features.Set<FunctionDefinition>(functionDefinition);
 
-            if (functionDefinition.BindsToCancellationToken)
+            if (functionDefinition.IsCancellable)
             {
                 cancellationTokenSource = new CancellationTokenSource();
             }
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker
                                             CancellationTokenSource = cancellationTokenSource,
                                         };
 
-            _functionInvocationManager.TryAddInvocationDetails(context.InvocationId, invocationDetails);
+            _functionInvocationDictionary.TryAddInvocationDetails(context.InvocationId, invocationDetails);
 
             return context;
         }
@@ -93,24 +93,23 @@ namespace Microsoft.Azure.Functions.Worker
 
         public void CancelInvocation(string invocationId)
         {
-            var invocationDetails = _functionInvocationManager.TryGetInvocationDetails(invocationId);
+            var invocationDetails = _functionInvocationDictionary.TryGetInvocationDetails(invocationId);
             if (invocationDetails?.CancellationTokenSource is not null)
             {
                 try
                 {
                     invocationDetails.CancellationTokenSource.Cancel();
                 }
-                catch (Exception)
+                catch (Exception ex)
                 {
-                    // Do we need to do something other than log here?
-                    _logger.LogWarning($"Unable to cancel invocation {invocationId}, the token source may already be disposed.");
+                    _logger.LogWarning($"Unable to cancel invocation {invocationId}.", ex);
                 }
             }
         }
 
         public void RemoveInvocationRecord(string invocationId)
         {
-            _functionInvocationManager.TryRemoveInvocationDetails(invocationId);
+            _functionInvocationDictionary.TryRemoveInvocationDetails(invocationId);
         }
     }
 }

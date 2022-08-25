@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
 
-            BindsToCancellationToken = ParametersContainCancellationToken(Parameters);
+            IsCancellable = ParametersContainCancellationToken(Parameters);
         }
 
         public override string PathToAssembly { get; }
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
 
-        public override bool BindsToCancellationToken { get; }
+        public override bool IsCancellable { get; }
 
         private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
         {
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         private bool ParametersContainCancellationToken(ImmutableArray<FunctionParameter> parameters)
         {
-            if (parameters.Where(p => p.Type == typeof(CancellationToken)).Any())
+            if (parameters.Any(p => p.Type == typeof(CancellationToken) || p.Type == typeof(CancellationToken?)))
             {
                 return true;
             }

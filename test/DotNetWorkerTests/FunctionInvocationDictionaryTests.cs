@@ -7,10 +7,10 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    public class FunctionInvocationManagerTests
+    public class FunctionInvocationDictionaryTests
     {
         [Fact]
-        public void TryAddInvocationDetails_ValidData_AddsInfoToInflightDict()
+        public void TryAddInvocationDetails_ValidData_ReturnsTrue()
         {
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var invocationDetails = new FunctionInvocationDetails()
@@ -19,15 +19,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         CancellationTokenSource = new CancellationTokenSource(),
                                     };
 
-            var functionInvocationManager = new FunctionInvocationManager();
-            functionInvocationManager.TryAddInvocationDetails(invocationId, invocationDetails);
+            var functionInvocationDictionary = new FunctionInvocationDictionary();
+            var result = functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
 
-            functionInvocationManager._inflightInvocations.TryGetValue(invocationId, out var result);
-            Assert.Equal(invocationDetails, result);
+            Assert.True(result);
         }
 
         [Fact]
-        public void TryAddInvocationDetails_InvocationIdNull_NoAction()
+        public void TryAddInvocationDetails_InvocationIdNull_ReturnsFalse()
         {
             var invocationDetails = new FunctionInvocationDetails()
                                     {
@@ -35,22 +34,21 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         CancellationTokenSource = new CancellationTokenSource(),
                                     };
 
-            var functionInvocationManager = new FunctionInvocationManager();
-            functionInvocationManager.TryAddInvocationDetails(null, invocationDetails);
+            var functionInvocationDictionary = new FunctionInvocationDictionary();
+            var result = functionInvocationDictionary.TryAddInvocationDetails(null, invocationDetails);
 
-            Assert.Empty(functionInvocationManager._inflightInvocations);
+            Assert.False(result);
         }
 
         [Fact]
-        public void TryAddInvocationDetails_InvocationDetailsNull_InflightDictNotUpdated()
+        public void TryAddInvocationDetails_InvocationDetailsNull_ReturnsFalse()
         {
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
 
-            var functionInvocationManager = new FunctionInvocationManager();
-            functionInvocationManager.TryAddInvocationDetails(invocationId, null);
+            var functionInvocationDictionary = new FunctionInvocationDictionary();
+            var result = functionInvocationDictionary.TryAddInvocationDetails(invocationId, null);
 
-            functionInvocationManager._inflightInvocations.TryGetValue(invocationId, out var result);
-            Assert.Null(result);
+            Assert.False(result);
         }
 
         [Fact]
@@ -63,12 +61,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         CancellationTokenSource = new CancellationTokenSource(),
                                     };
 
-            var functionInvocationManager = new FunctionInvocationManager();
-            functionInvocationManager._inflightInvocations.TryAdd(invocationId, invocationDetails);
+            var functionInvocationDictionary = new FunctionInvocationDictionary();
+            functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
+            functionInvocationDictionary.TryRemoveInvocationDetails(invocationId);
+            var result = functionInvocationDictionary.TryGetInvocationDetails(invocationId);
 
-            functionInvocationManager.TryRemoveInvocationDetails(invocationId);
-
-            functionInvocationManager._inflightInvocations.TryGetValue(invocationId, out var result);
             Assert.Null(result);
         }
 
@@ -81,24 +78,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         FunctionContext = new TestFunctionContext(),
                                         CancellationTokenSource = new CancellationTokenSource(),
                                     };
-            var functionInvocationManager = new FunctionInvocationManager();
-            functionInvocationManager._inflightInvocations.TryAdd(invocationId, invocationDetails);
-
-            var result = functionInvocationManager.TryGetInvocationDetails(invocationId);
+            var functionInvocationDictionary = new FunctionInvocationDictionary();
+            functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
+            var result = functionInvocationDictionary.TryGetInvocationDetails(invocationId);
 
             Assert.Equal(invocationDetails.FunctionContext, result.FunctionContext);
-        }
-
-        [Fact]
-        public void TryGetInvocationDetails_FunctionInvocationDetailsNull_ReturnsNull()
-        {
-            var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
-            var functionInvocationManager = new FunctionInvocationManager();
-            functionInvocationManager._inflightInvocations.TryAdd(invocationId, null);
-
-            var result = functionInvocationManager.TryGetInvocationDetails(invocationId);
-
-            Assert.Null(result);
         }
     }
 }

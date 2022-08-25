@@ -47,8 +47,8 @@ namespace Microsoft.Azure.Functions.Worker
         public abstract IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
         /// <summary>
-        /// Gets if a the function is binding to a cancellation token.
+        /// Returns true if a function is binding to a cancellation token, and false if not.
         /// </summary>
-        public abstract bool BindsToCancellationToken { get; }
+        public abstract bool IsCancellable { get; }
     }
 }

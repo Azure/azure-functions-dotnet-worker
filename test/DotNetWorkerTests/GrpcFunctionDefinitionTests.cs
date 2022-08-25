@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void BindsToCancellationToken_DefinitionContainsCancellationToken_ReturnsTrue()
+        public void CancellationToken_DefinitionContainsCancellationToken_ReturnsTrue()
         {
             var methodInfoLocator = new DefaultMethodInfoLocator();
             var fullPathToThisAssembly = GetType().Assembly.Location;
@@ -89,11 +89,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
 
             FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
-            Assert.True(definition.BindsToCancellationToken);
+            Assert.True(definition.IsCancellable);
         }
 
         [Fact]
-        public void BindsToCancellationToken_DefinitionDoesNotCancellationToken_ReturnsFalse()
+        public void CancellationToken_DefinitionDoesNotCancellationToken_ReturnsFalse()
         {
             var methodInfoLocator = new DefaultMethodInfoLocator();
             var fullPathToThisAssembly = GetType().Assembly.Location;
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
 
             FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
-            Assert.False(definition.BindsToCancellationToken);
+            Assert.False(definition.IsCancellable);
         }
 
         private class MyFunctionClass

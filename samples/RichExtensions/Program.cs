@@ -4,6 +4,7 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -20,7 +21,10 @@ namespace SampleApp
             }
 
             var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults()
+                .ConfigureFunctionsWorkerDefaults(b =>
+                {
+                    b.InputConverters.RegisterAt<BlobStorageConverter>(0);
+                })
                 .Build();
 
             host.Run();

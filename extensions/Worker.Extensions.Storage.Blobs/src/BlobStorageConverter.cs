@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     /// <summary>
     /// Converter to bind Blob Storage type parameters.
     /// </summary>
-    internal class BlobStorageConverter : IInputConverter
+    public class BlobStorageConverter : IInputConverter
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {

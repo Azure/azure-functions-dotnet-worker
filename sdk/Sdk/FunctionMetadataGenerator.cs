@@ -145,9 +145,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 try
                 {
-
                     var allBindings = CreateBindingMetadataAndAddExtensions(method);
-
 
                     foreach (var binding in allBindings)
                     {
@@ -158,7 +156,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
                 catch (FunctionsMetadataGenerationException ex)
                 {
-                    throw new FunctionsMetadataGenerationException($"Failed to generate medata for function '{metadata.Name}' (method '{method.FullName}'): {ex.Message}");
+                    throw new FunctionsMetadataGenerationException($"Failed to generate metadata for function '{metadata.Name}' (method '{method.FullName}'): {ex.Message}");
                 }
             }
         }
@@ -202,7 +200,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // if a retry attribute is defined, add it to the function.
             if (retryOptions != null)
             {
-                function.Retry = retryOptions;   
+                function.Retry = retryOptions;
             }
 
             return true;
@@ -277,8 +275,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     bool hasOutputModel = TryAddOutputBindingsFromProperties(bindingMetadata, returnDefinition);
 
-                    // Special handling for HTTP results using POCOs/Types other 
-                    // than HttpResponseData. We should improve this to expand this 
+                    // Special handling for HTTP results using POCOs/Types other
+                    // than HttpResponseData. We should improve this to expand this
                     // support to other triggers without special handling
                     if (!hasOutputModel && bindingMetadata.Any(d => IsHttpTrigger(d)))
                     {
@@ -438,6 +436,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 bindingDict["DataType"] = "Binary";
             }
+            // Is sdk parameter type
             else if (supportsReferenceType)
             {
                 bindingDict["DataType"] = "Reference";
@@ -452,12 +451,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // the presence of "IsBatched." This is a property that is from the
             // attributes that implement the ISupportCardinality interface.
             //
-            // Note that we are directly looking for "IsBatched" today while we 
+            // Note that we are directly looking for "IsBatched" today while we
             // are not actually instantiating the Attribute type and instead relying
             // on type inspection via Mono.Cecil.
             // TODO: Do not hard-code "IsBatched" as the property to set cardinality.
             // We should rely on the interface
-            // 
+            //
             // Conversion rule
             //     "IsBatched": true => "Cardinality": "Many"
             //     "IsBatched": false => "Cardinality": "One"
@@ -470,7 +469,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     bindingDict["Cardinality"] = "Many";
                     // Throw if parameter type is *definitely* not a collection type.
                     // Note that this logic doesn't dictate what we can/can't do, and
-                    // we can be more restrictive in the future because today some 
+                    // we can be more restrictive in the future because today some
                     // scenarios result in runtime failures.
                     if (IsIterableCollection(parameterType, out DataType dataType))
                     {
@@ -503,7 +502,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
-            // Array and not byte array 
+            // Array and not byte array
             bool isArray = type.IsArray && !string.Equals(type.FullName, Constants.ByteArrayType, StringComparison.Ordinal);
             if (isArray)
             {
@@ -585,7 +584,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static string? ResolveIEnumerableOfTType(TypeReference type, Dictionary<string, string> foundMapping)
         {
-            // Base case: 
+            // Base case:
             // We are at IEnumerable<T> and want to return the most recent resolution of T
             // (Most recent is relative to IEnumerable<T>)
             if (string.Equals(type.FullName, Constants.IEnumerableOfT, StringComparison.Ordinal))
@@ -701,22 +700,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         implicitlyRegister = (bool)assemblyAttribute.ConstructorArguments[2].Value;
                     }
 
+                    if (assemblyAttribute.ConstructorArguments.Count == 4)
+                    {
+                        // SupportsBindingReferenceType
+                        supportsReferenceType = (bool)assemblyAttribute.ConstructorArguments[3].Value;
+                    }
+
                     if (usedByFunction || implicitlyRegister)
                     {
                         extensions[extensionName] = extensionVersion;
                     }
-
-                    if (assemblyAttribute.ConstructorArguments.Count == 4)
-                    {
-                        supportsReferenceType = (bool)assemblyAttribute.ConstructorArguments[3].Value;
-                    }
-
-                    /*
-                    if (string.Equals(attribute.AttributeType.FullName, Constants.ReferenceType, StringComparison.Ordinal))
-                    {
-                        supportsReferenceType = true;
-                    }
-                    */
 
                     // Only 1 extension per library
                     return true;

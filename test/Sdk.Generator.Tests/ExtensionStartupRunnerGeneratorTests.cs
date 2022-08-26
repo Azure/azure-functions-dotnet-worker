@@ -118,10 +118,10 @@ namespace Microsoft.Azure.Functions.Worker
         private async Task RunTestAsync(IEnumerable<Assembly> assemblyReferences,
             string inputSource,
             string? expectedOutput,
-            IReadOnlyList<(DiagnosticDescriptor Descriptor, string Message)> expectedDiagnostics = null)
+            IReadOnlyList<(DiagnosticDescriptor Descriptor, string Message)>? expectedDiagnostics = null)
         {
             var (diagnosticEntries, generatedSourceEntries) = await RoslynTestUtils.RunGenerator(
-                new ExtensionStartupRunnerGeneratorV2(),
+                new ExtensionStartupRunnerGenerator(),
                 assemblyReferences,
                 new[] { inputSource }).ConfigureAwait(false);
 
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         private void ValidateDiagnostics(
-            IReadOnlyList<(DiagnosticDescriptor Descriptor, string Message)> expectedDiagnostics,
+            IReadOnlyList<(DiagnosticDescriptor Descriptor, string Message)>? expectedDiagnostics,
             ImmutableArray<Diagnostic> actualDiagnostics)
         {
             if (expectedDiagnostics is not null)

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -43,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     //}
 
     [Generator]
-    public class ExtensionStartupRunnerGenerator : ISourceGenerator
+    public class ExtensionStartupRunnerGeneratorV2 : IIncrementalGenerator
     {
         /// <summary>
         /// The attribute which extension authors will apply on an assembly which contains their startup type.
@@ -60,10 +61,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         private const string StartupBaseClassName = "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartup";
 
-        public void Execute(GeneratorExecutionContext context)
+        public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            var extensionStartupTypeNames = GetExtensionStartupTypes(context);
+            var assembliesValueProvider = context.CompilationProvider
+                .SelectMany((compilation, token) =>
+                                    compilation.SourceModule.ReferencedAssemblySymbols
+                                        .Where(IsAssemblyWithExtensionStartupAttribute));
 
+            // Assemblies with "WorkerExtensionStartup" assembly level attribute.
+            var assemblySymbols = assembliesValueProvider.Collect();
+
+            context.RegisterSourceOutput(assemblySymbols, RunValidationsAndProduceCode);
+        }
+
+        private void RunValidationsAndProduceCode(SourceProductionContext context, ImmutableArray<IAssemblySymbol> assemblySymbols)
+        {
+            var extensionStartupTypeNames = GetExtensionStartupTypes(context, assemblySymbols);
             if (!extensionStartupTypeNames.Any())
             {
                 return;
@@ -92,27 +105,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             context.AddSource($"WorkerExtensionStartupCodeExecutor.g.cs", sourceText);
         }
 
-        /// <summary>
-        /// Gets the extension startup implementation type info from each of the participating extensions.
-        /// Each entry in the return type collection includes full type name 
-        /// & a potential error message if the startup type is not valid.
-        /// </summary>
-        private IEnumerable<string> GetExtensionStartupTypes(GeneratorExecutionContext context)
+        private IEnumerable<string> GetExtensionStartupTypes(SourceProductionContext context, ImmutableArray<IAssemblySymbol> assemblySymbols)
         {
             List<string>? typeNameList = null;
-
-            // Extension authors should decorate their assembly with "WorkerExtensionStartup" attribute
-            // if they want to participate in startup.
-            foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
+            foreach (var assemblySymbol in assemblySymbols)
             {
-                var extensionStartupAttribute = assembly.GetAttributes()
-                                                        .FirstOrDefault(a =>
-                                                            (a.AttributeClass?.Name.Equals(AttributeTypeName,
-                                                                StringComparison.Ordinal) ?? false) &&
-                                                                        //Call GetFullName only if class name matches.
-                                                                        a.AttributeClass.GetFullName()
-                                                                .Equals(AttributeTypeFullName,
-                                                                    StringComparison.Ordinal));
+                var extensionStartupAttribute = GetStartupAttributeData(assemblySymbol);
                 if (extensionStartupAttribute != null)
                 {
                     // WorkerExtensionStartupAttribute has a constructor with one param, the type of startup implementation class.
@@ -136,19 +134,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return typeNameList ?? Enumerable.Empty<string>();
         }
 
-        /// <summary>
-        /// Check the startup type implementation is valid and report Diagnostic errors if it is not valid.
-        /// </summary>
-        private static bool ReportDiagnosticErrorsIfAny(GeneratorExecutionContext context, ITypeSymbol typeSymbol)
+        private static bool ReportDiagnosticErrorsIfAny(SourceProductionContext context, ITypeSymbol typeSymbol)
         {
             var hasAnyError = false;
-            
+
             if (typeSymbol is INamedTypeSymbol namedTypeSymbol)
             {
                 // Check public parameterless constructor exist for the type.
                 var constructorExist = namedTypeSymbol.InstanceConstructors
-                                                  .Any(c => c.Parameters.Length == 0 &&
-                                                            c.DeclaredAccessibility == Accessibility.Public);
+                    .Any(c => c.Parameters.Length == 0 &&
+                              c.DeclaredAccessibility == Accessibility.Public);
                 if (!constructorExist)
                 {
                     context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ConstructorMissing, Location.None,
@@ -176,11 +171,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             textWriter.WriteLine(
                 "[assembly: WorkerExtensionStartupCodeExecutorInfo(typeof(Microsoft.Azure.Functions.Worker.WorkerExtensionStartupCodeExecutor))]");
         }
-
-        /// <summary>
-        /// Writes a class with code which calls the Configure method on each implementation of participating extensions.
-        /// We also have it implement the same "IWorkerExtensionStartup" interface which extension authors implement.
-        /// </summary>
         private static void WriteStartupCodeExecutorClass(IndentedTextWriter textWriter, IEnumerable<string> startupTypeNames)
         {
             textWriter.WriteLine("internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup");
@@ -214,8 +204,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             textWriter.WriteLine("}");
         }
 
-        public void Initialize(GeneratorInitializationContext context)
+        private bool IsAssemblyWithExtensionStartupAttribute(IAssemblySymbol arg)
         {
+            var extensionStartupAttribute = GetStartupAttributeData(arg);
+
+            return extensionStartupAttribute != null;
+        }
+
+        private AttributeData? GetStartupAttributeData(IAssemblySymbol assemblySymbol)
+        {
+            var extensionStartupAttribute = assemblySymbol.GetAttributes()
+                .FirstOrDefault(a =>
+                    (a.AttributeClass?.Name.Equals(AttributeTypeName,
+                        StringComparison.Ordinal) ?? false) &&
+                    //Call GetFullName only if class name matches.
+                    a.AttributeClass.GetFullName()
+                        .Equals(AttributeTypeFullName, StringComparison.Ordinal)
+                );
+
+            return extensionStartupAttribute;
         }
     }
 }

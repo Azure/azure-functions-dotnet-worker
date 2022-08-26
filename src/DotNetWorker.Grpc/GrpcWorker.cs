@@ -125,47 +125,48 @@ namespace Microsoft.Azure.Functions.Worker
                 RequestId = request.RequestId
             };
 
-            if (request.ContentCase == MsgType.InvocationRequest)
+            switch(request.ContentCase)
             {
-                responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
-                    _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider);
-            }
-            else if (request.ContentCase == MsgType.WorkerInitRequest)
-            {
-                responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
-            }
-            else if (request.ContentCase == MsgType.WorkerStatusRequest)
-            {
-                responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
-            }
-            else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
-            {
-                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
-            }
-            else if (request.ContentCase == MsgType.WorkerTerminate)
-            {
-                WorkerTerminateRequestHandler(request.WorkerTerminate);
-            }
-            else if (request.ContentCase == MsgType.FunctionLoadRequest)
-            {
-                responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
-            }
-            else if (request.ContentCase == MsgType.FunctionEnvironmentReloadRequest)
-            {
-                // No-op for now, but return a response.
-                responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
-                {
-                    Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                };
-            }
-            else if (request.ContentCase == MsgType.InvocationCancel)
-            {
-                InvocationCancelRequestHandler(request.InvocationCancel, _application);
-            }
-            else
-            {
-                // TODO: Trace failure here.
-                return;
+                case MsgType.InvocationRequest:
+                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
+                        _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider);
+                    break;
+
+                case MsgType.WorkerInitRequest:
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
+                    break;
+
+                case MsgType.WorkerStatusRequest:
+                    responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
+                    break;
+
+                case MsgType.FunctionsMetadataRequest:
+                    responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
+                    break;
+
+                case MsgType.WorkerTerminate:
+                    WorkerTerminateRequestHandler(request.WorkerTerminate);
+                    break;
+
+                case MsgType.FunctionLoadRequest:
+                    responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
+                    break;
+
+                case MsgType.FunctionEnvironmentReloadRequest:
+                    // No-op for now, but return a response.
+                    responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
+                    {
+                        Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                    };
+                    break;
+
+                case MsgType.InvocationCancel:
+                    InvocationCancelRequestHandler(request.InvocationCancel, _application);
+                    break;
+
+                default:
+                    // TODO: Trace failure here.
+                    return;
             }
 
             await _outputWriter.WriteAsync(responseMessage);

@@ -11,7 +11,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs
     {
         public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
-            applicationBuilder.Services.AddSingleton<BlobStorageConverter>();
+            applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
+            {
+                workerOption.InputConverters.RegisterAt<BlobStorageConverter>(0);
+            });
         }
     }
 }

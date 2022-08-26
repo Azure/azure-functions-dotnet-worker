@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var functionInvocationDictionary = new FunctionInvocationDictionary();
             functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
             functionInvocationDictionary.TryRemoveInvocationDetails(invocationId);
-            var result = functionInvocationDictionary.TryGetInvocationDetails(invocationId);
+            functionInvocationDictionary.TryGetInvocationDetails(invocationId, out var result);
 
             Assert.Null(result);
         }
@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                     };
             var functionInvocationDictionary = new FunctionInvocationDictionary();
             functionInvocationDictionary.TryAddInvocationDetails(invocationId, invocationDetails);
-            var result = functionInvocationDictionary.TryGetInvocationDetails(invocationId);
+            functionInvocationDictionary.TryGetInvocationDetails(invocationId, out var result);
 
             Assert.Equal(invocationDetails.FunctionContext, result.FunctionContext);
         }

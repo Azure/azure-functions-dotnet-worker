@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker
         void CancelInvocation(string invocationId);
 
         /// <summary>
-        /// Removes a given invocation from the <see cref="FunctionInvocationManager"/>.
+        /// Removes a given invocation from the <see cref="FunctionInvocationDictionary"/>.
         /// Should be called on completed invocations.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>

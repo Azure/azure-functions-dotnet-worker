@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
         private IServiceProvider? _instanceServices;
         private BindingContext? _bindingContext;
 
-        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features, CancellationToken cancellationToken)
+        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features, CancellationToken cancellationToken = default)
         {
             _cancellationToken = cancellationToken;
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));

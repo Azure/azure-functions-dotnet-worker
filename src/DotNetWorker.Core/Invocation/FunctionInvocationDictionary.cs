@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
@@ -11,14 +12,14 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
         public FunctionInvocationDictionary()
         {
-          _inflightInvocations = new ConcurrentDictionary<string, FunctionInvocationDetails>();
+            _inflightInvocations = new ConcurrentDictionary<string, FunctionInvocationDetails>();
         }
 
         public bool TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details)
         {
-            if (string.IsNullOrEmpty(invocationId) || details is null)
+            if (string.IsNullOrEmpty(invocationId))
             {
-              return false;
+                throw new ArgumentNullException(nameof(invocationId));
             }
 
             return _inflightInvocations.TryAdd(invocationId, details);
@@ -28,21 +29,20 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         {
             if (string.IsNullOrEmpty(invocationId))
             {
-              return false;
+                throw new ArgumentNullException(nameof(invocationId));
             }
 
-            return _inflightInvocations.TryRemove(invocationId, out FunctionInvocationDetails? details);
+            return _inflightInvocations.TryRemove(invocationId, out var details);
         }
 
-        public FunctionInvocationDetails? TryGetInvocationDetails(string invocationId)
+        public bool TryGetInvocationDetails(string invocationId, out FunctionInvocationDetails details)
         {
             if (string.IsNullOrEmpty(invocationId))
             {
-              return null;
+                throw new ArgumentNullException(nameof(invocationId));
             }
 
-            _inflightInvocations.TryGetValue(invocationId, out FunctionInvocationDetails? details);
-            return details;
+            return _inflightInvocations.TryGetValue(invocationId, out details);
         }
     }
 }

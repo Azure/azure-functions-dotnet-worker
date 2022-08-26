@@ -27,7 +27,9 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         /// Attempts to get the value associated with the specified key.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
+        /// <param name="details">Out parameter for <see cref="FunctionInvocationDetails"/></param>
         /// <returns>The <see cref="FunctionInvocationDetails"/>.</returns>
-        FunctionInvocationDetails? TryGetInvocationDetails(string invocationId);
+        /// <returns><see cref="bool"/> representing operation success</returns>
+        bool TryGetInvocationDetails(string invocationId, out FunctionInvocationDetails details);
     }
 }

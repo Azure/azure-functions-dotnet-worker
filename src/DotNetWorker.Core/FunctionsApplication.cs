@@ -62,7 +62,12 @@ namespace Microsoft.Azure.Functions.Worker
                                             CancellationTokenSource = cancellationTokenSource,
                                         };
 
-            _functionInvocationDictionary.TryAddInvocationDetails(context.InvocationId, invocationDetails);
+            var invocationDetailsAdded = _functionInvocationDictionary.TryAddInvocationDetails(context.InvocationId, invocationDetails);
+            if (!invocationDetailsAdded)
+            {
+                // Dispose the cts if we cannot keep track of it
+                cancellationTokenSource?.Dispose();
+            }
 
             return context;
         }
@@ -93,16 +98,20 @@ namespace Microsoft.Azure.Functions.Worker
 
         public void CancelInvocation(string invocationId)
         {
-            var invocationDetails = _functionInvocationDictionary.TryGetInvocationDetails(invocationId);
-            if (invocationDetails?.CancellationTokenSource is not null)
+            _functionInvocationDictionary.TryGetInvocationDetails(invocationId, out var invocationDetails);
+            if (invocationDetails?.CancellationTokenSource is CancellationTokenSource cts)
             {
                 try
                 {
-                    invocationDetails.CancellationTokenSource.Cancel();
+                    cts.Cancel();
                 }
                 catch (Exception ex)
                 {
                     _logger.LogWarning($"Unable to cancel invocation {invocationId}.", ex);
+                }
+                finally
+                {
+                    cts.Dispose();
                 }
             }
         }

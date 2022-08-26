@@ -77,11 +77,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         private bool ParametersContainCancellationToken(ImmutableArray<FunctionParameter> parameters)
         {
-            if (parameters.Any(p => p.Type == typeof(CancellationToken) || p.Type == typeof(CancellationToken?)))
-            {
-                return true;
-            }
-            return false;
+            return parameters.Any(p => p.Type == typeof(CancellationToken) || p.Type == typeof(CancellationToken?));
         }
     }
 }

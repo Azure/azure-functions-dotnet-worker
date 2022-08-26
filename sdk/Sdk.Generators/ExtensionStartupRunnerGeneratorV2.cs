@@ -1,15 +1,48 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
+    /// <summary>
+    /// Generates a class with a method which has code to call the "Configure" method
+    /// of each of the participating extension's "WorkerExtensionStartup" implementations.
+    /// Also adds the assembly attribute "WorkerExtensionStartupCodeExecutorInfo"
+    /// and pass the information(the type) about the class we generated.
+    /// We are also inheriting the generated class from the WorkerExtensionStartup class.
+    /// (This is the same abstract class extension authors will implement for their extension specific startup code)
+    /// We need the same signature as the extension's implementation as our class is an uber class which internally
+    /// calls each of the extension's implementations.
+    /// </summary>
+
+    // Sample code generated (with one extensions participating in startup hook)
+    // There will be one try-catch block for each extension participating in startup hook.
+
+    //[assembly: WorkerExtensionStartupCodeExecutorInfo(typeof(Microsoft.Azure.Functions.Worker.WorkerExtensionStartupCodeExecutor))]
+    //
+    //internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
+    //{
+    //    public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
+    //    {
+    //        try
+    //        {
+    //            new Microsoft.Azure.Functions.Worker.Extensions.Http.MyHttpExtensionStartup().Configure(applicationBuilder);
+    //        }
+    //        catch (Exception ex)
+    //        {
+    //            Console.Error.WriteLine("Error calling Configure on Microsoft.Azure.Functions.Worker.Extensions.Http.MyHttpExtensionStartup instance." + ex.ToString());
+    //        }
+    //    }
+    //}
+
     [Generator]
     public class ExtensionStartupRunnerGeneratorV2 : IIncrementalGenerator
     {
@@ -21,8 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Fully qualified name of the above "WorkerExtensionStartupAttribute" attribute.
         /// </summary>
-        private const string AttributeTypeFullName =
-            "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartupAttribute";
+        private const string AttributeTypeFullName = "Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartupAttribute";
 
         /// <summary>
         /// Fully qualified name of the base type which extension startup classes should implement.
@@ -31,40 +63,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Initialize(IncrementalGeneratorInitializationContext context)
         {
-            //var sd = context.CompilationProvider.SelectMany
+            var assembliesValueProvider = context.CompilationProvider
+                .SelectMany((compilation, token) =>
+                                    compilation.SourceModule.ReferencedAssemblySymbols
+                                        .Where(IsAssemblyWithExtensionStartupAttribute));
 
-            var assemblies = context.CompilationProvider
-    .SelectMany((compilation, token) =>
-        compilation.SourceModule.ReferencedAssemblySymbols.Where(IsAssemblyWithStarupAttribute));
+            // Assemblies with "WorkerExtensionStartup" assembly level attribute.
+            var assemblySymbols = assembliesValueProvider.Collect();
 
-            var source = assemblies.Collect();
-
-            //context.RegisterSourceOutput(source, Execute3);
-            context.RegisterSourceOutput(source, (c, d) => RunValidationsAndProduceCode(c, d));
-
+            context.RegisterSourceOutput(assemblySymbols, RunValidationsAndProduceCode);
         }
-
-        private bool IsAssemblyWithStarupAttribute(IAssemblySymbol arg)
-        {
-            var extensionStartupAttribute = GetStartupAttributeData(arg);
-
-            return extensionStartupAttribute != null;
-        }
-
-        private AttributeData? GetStartupAttributeData(IAssemblySymbol arg)
-        {
-            var extensionStartupAttribute = arg.GetAttributes()
-                .FirstOrDefault(a =>
-                        (a.AttributeClass?.Name.Equals(AttributeTypeName,
-                            StringComparison.Ordinal) ?? false) &&
-                                                                //Call GetFullName only if class name matches.
-                                                                 a.AttributeClass.GetFullName()
-                                                                  .Equals(AttributeTypeFullName,StringComparison.Ordinal)
-                );
-
-            return extensionStartupAttribute;
-        }
-
+        
         private void RunValidationsAndProduceCode(SourceProductionContext context, ImmutableArray<IAssemblySymbol> assemblySymbols)
         {
             var extensionStartupTypeNames = GetExtensionStartupTypes(context, assemblySymbols);
@@ -193,6 +202,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             textWriter.WriteLine("}");
             textWriter.Indent--;
             textWriter.WriteLine("}");
+        }
+        
+        private bool IsAssemblyWithExtensionStartupAttribute(IAssemblySymbol arg)
+        {
+            var extensionStartupAttribute = GetStartupAttributeData(arg);
+
+            return extensionStartupAttribute != null;
+        }
+
+        private AttributeData? GetStartupAttributeData(IAssemblySymbol assemblySymbol)
+        {
+            var extensionStartupAttribute = assemblySymbol.GetAttributes()
+                .FirstOrDefault(a =>
+                    (a.AttributeClass?.Name.Equals(AttributeTypeName,
+                        StringComparison.Ordinal) ?? false) &&
+                    //Call GetFullName only if class name matches.
+                    a.AttributeClass.GetFullName()
+                        .Equals(AttributeTypeFullName,StringComparison.Ordinal)
+                );
+
+            return extensionStartupAttribute;
         }
     }
 }

@@ -25,8 +25,8 @@ public class Foo
         [Fact]
         public async Task StartupExecutorCodeGetsGenerated()
         {
-             // Source generation is based on referenced assembly.
-             var referencedExtensionAssemblies = new[]
+            // Source generation is based on referenced assembly.
+            var referencedExtensionAssemblies = new[]
             {
                 typeof(SampleExtensionStartup).Assembly,
                 typeof(WorkerExtensionStartupAttribute).Assembly,

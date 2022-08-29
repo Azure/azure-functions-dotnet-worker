@@ -230,11 +230,8 @@ namespace Microsoft.Azure.Functions.Worker
             }
             catch (Exception ex)
             {
-                response.Result = new StatusResult
-                {
-                    Exception = ex.ToRpcException(),
-                    Status = StatusResult.Types.Status.Failure
-                };
+                response.Result.Exception = ex.ToRpcException();
+                response.Result.Status = StatusResult.Types.Status.Failure;
 
                 if (ex.InnerException is TaskCanceledException)
                 {

@@ -64,6 +64,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets the <see cref="CancellationToken"/> that signals a function invocation is being cancelled.
         /// </summary>
-        public virtual CancellationToken CancellationToken { get; }
+        public virtual CancellationToken CancellationToken { get; } = CancellationToken.None;
     }
 }

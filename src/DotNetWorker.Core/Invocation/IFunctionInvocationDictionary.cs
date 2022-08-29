@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         bool TryAddInvocationDetails(string invocationId, FunctionInvocationDetails details);
 
         /// <summary>
-        /// Attempts to remove the specified key.
+        /// Attempts to remove the value associated with specified key.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
         /// <returns><see cref="bool"/> representing operation success</returns>

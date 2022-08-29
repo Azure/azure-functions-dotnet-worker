@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
                 cancellationTokenSource = new CancellationTokenSource();
             }
 
-            var token = cancellationTokenSource is null ? CancellationToken.None : cancellationTokenSource.Token;
+            var token = cancellationTokenSource?.Token ?? CancellationToken.None;
             var context = _functionContextFactory.Create(features, token);
 
             var invocationDetails = new FunctionInvocationDetails()

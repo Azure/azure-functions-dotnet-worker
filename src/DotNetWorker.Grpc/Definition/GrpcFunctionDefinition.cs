@@ -10,7 +10,6 @@ using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Converters;
-using System.Threading;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -39,8 +38,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 .Where(p => p.Name != null)
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
-
-            IsCancellable = ParametersContainCancellationToken(Parameters);
         }
 
         public override string PathToAssembly { get; }
@@ -57,8 +54,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
 
-        public override bool IsCancellable { get; }
-
         private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
         {
             // Get the input converter attribute information, if present on the parameter.
@@ -73,11 +68,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             }
 
             return ImmutableDictionary<string, object>.Empty;
-        }
-
-        private bool ParametersContainCancellationToken(ImmutableArray<FunctionParameter> parameters)
-        {
-            return parameters.Any(p => p.Type == typeof(CancellationToken) || p.Type == typeof(CancellationToken?));
         }
     }
 }

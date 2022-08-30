@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
-{ 
+{
     internal class DefaultFunctionMetadataProvider : IFunctionMetadataProvider
     {
         private const string FileName = "functions.metadata";
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 throw new FormatException("Bindings must declare a direction and type.");
             }
-            
+
             BindingInfo bindingInfo = new BindingInfo
             {
                 Direction = direction,

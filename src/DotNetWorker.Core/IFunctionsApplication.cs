@@ -13,19 +13,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         Task InvokeFunctionAsync(FunctionContext context);
 
-        FunctionContext CreateContext(IInvocationFeatures features);
-
-        /// <summary>
-        /// Cancels an invocations associated <see cref="CancellationTokenSource"/>.
-        /// </summary>
-        /// <param name="invocationId">Invocation ID</param>
-        void CancelInvocation(string invocationId);
-
-        /// <summary>
-        /// Removes a given invocation from the <see cref="FunctionInvocationDictionary"/>.
-        /// Should be called on completed invocations.
-        /// </summary>
-        /// <param name="invocationId">Invocation ID</param>
-        void RemoveInvocationRecord(string invocationId);
+        FunctionContext CreateContext(IInvocationFeatures features, CancellationToken token = default);
     }
 }

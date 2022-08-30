@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
-using Microsoft.Azure.Functions.Worker.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
@@ -37,13 +37,15 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private readonly IInvocationHandler _invocationHandler;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
             IFunctionMetadataProvider functionMetadataProvider,
-            IHostApplicationLifetime hostApplicationLifetime)
+            IHostApplicationLifetime hostApplicationLifetime,
+            WorkerLoggerProvider loggerProvider)
         {
             if (outputChannel == null)
             {
@@ -63,6 +65,9 @@ namespace Microsoft.Azure.Functions.Worker
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
+
+            // Handlers (todo: dependency inject handlers instead of creating here)
+            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, loggerProvider);
         }
 
         public async Task StartAsync(CancellationToken token)
@@ -128,8 +133,7 @@ namespace Microsoft.Azure.Functions.Worker
             switch(request.ContentCase)
             {
                 case MsgType.InvocationRequest:
-                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
-                        _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider);
+                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
                     break;
 
                 case MsgType.WorkerInitRequest:
@@ -161,7 +165,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.InvocationCancel:
-                    InvocationCancelRequestHandler(request.InvocationCancel, _application);
+                    InvocationCancelRequestHandler(request.InvocationCancel);
                     break;
 
                 default:
@@ -172,90 +176,14 @@ namespace Microsoft.Azure.Functions.Worker
             await _outputWriter.WriteAsync(responseMessage);
         }
 
-        internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, IFunctionsApplication application,
-            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider,
-            IInputConversionFeatureProvider functionInputConversionFeatureProvider)
+        internal async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            FunctionContext? context = null;
-            InvocationResponse response = new()
-            {
-                InvocationId = request.InvocationId,
-                Result       = new StatusResult()
-            };
-
-            try
-            {
-                var invocation = new GrpcFunctionInvocation(request);
-
-                IInvocationFeatures invocationFeatures = invocationFeaturesFactory.Create();
-                invocationFeatures.Set<FunctionInvocation>(invocation);
-                invocationFeatures.Set<IExecutionRetryFeature>(invocation);
-
-                context = application.CreateContext(invocationFeatures);
-                invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, outputBindingsInfoProvider));
-
-                if (functionInputConversionFeatureProvider.TryCreate(typeof(DefaultInputConversionFeature), out var conversion))
-                {
-                    invocationFeatures.Set<IInputConversionFeature>(conversion!);
-                }
-
-                await application.InvokeFunctionAsync(context);
-
-                var functionBindings = context.GetBindings();
-
-                foreach (var binding in functionBindings.OutputBindingData)
-                {
-                    var parameterBinding = new ParameterBinding
-                    {
-                        Name = binding.Key
-                    };
-
-                    if (binding.Value is not null)
-                    {
-                        parameterBinding.Data = await binding.Value.ToRpcAsync(serializer);
-                    }
-
-                    response.OutputData.Add(parameterBinding);
-                }
-
-                if (functionBindings.InvocationResult != null)
-                {
-                    TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(serializer);
-
-                    response.ReturnValue = returnVal;
-                }
-
-                response.Result.Status = StatusResult.Types.Status.Success;
-            }
-            catch (Exception ex)
-            {
-                response.Result.Exception = ex.ToRpcException();
-                response.Result.Status = StatusResult.Types.Status.Failure;
-
-                if (ex.InnerException is TaskCanceledException)
-                {
-                    response.Result.Status = StatusResult.Types.Status.Cancelled;
-                }
-            }
-            finally
-            {
-                application.RemoveInvocationRecord(request.InvocationId);
-
-                if (context is IAsyncDisposable asyncContext)
-                {
-                    await asyncContext.DisposeAsync();
-                }
-
-                (context as IDisposable)?.Dispose();
-            }
-
-            return response;
+            return await _invocationHandler.InvokeAsync(request);
         }
 
-        internal static void InvocationCancelRequestHandler(InvocationCancel request, IFunctionsApplication application)
+        internal void InvocationCancelRequestHandler(InvocationCancel request)
         {
-            application.CancelInvocation(request.InvocationId);
+            _invocationHandler.Cancel(request.InvocationId);
         }
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)

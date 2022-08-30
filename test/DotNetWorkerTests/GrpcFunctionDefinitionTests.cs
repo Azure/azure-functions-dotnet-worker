@@ -71,48 +71,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
         }
 
-        [Fact]
-        public void CancellationToken_DefinitionContainsCancellationToken_ReturnsTrue()
-        {
-            var methodInfoLocator = new DefaultMethodInfoLocator();
-            var fullPathToThisAssembly = GetType().Assembly.Location;
-
-            var functionLoadRequest = new FunctionLoadRequest
-            {
-                FunctionId = "abc",
-                Metadata = new RpcFunctionMetadata
-                {
-                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyFunctionClassWithCancellation)}.{nameof(MyFunctionClassWithCancellation.Run)}",
-                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
-                    Name = "myfunction"
-                }
-            };
-
-            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
-            Assert.True(definition.IsCancellable);
-        }
-
-        [Fact]
-        public void CancellationToken_DefinitionDoesNotCancellationToken_ReturnsFalse()
-        {
-            var methodInfoLocator = new DefaultMethodInfoLocator();
-            var fullPathToThisAssembly = GetType().Assembly.Location;
-
-            var functionLoadRequest = new FunctionLoadRequest
-            {
-                FunctionId = "abc",
-                Metadata = new RpcFunctionMetadata
-                {
-                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyFunctionClass)}.{nameof(MyFunctionClass.Run)}",
-                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
-                    Name = "myfunction"
-                }
-            };
-
-            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
-            Assert.False(definition.IsCancellable);
-        }
-
         private class MyFunctionClass
         {
             public HttpResponseData Run(HttpRequestData req )

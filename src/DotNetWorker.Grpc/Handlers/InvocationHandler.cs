@@ -46,6 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
         public async Task<InvocationResponse> InvokeAsync(InvocationRequest request)
         {
+            using CancellationTokenSource cancellationTokenSource = new();
             FunctionContext? context = null;
             InvocationResponse response = new()
             {
@@ -53,22 +54,23 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 Result       = new StatusResult()
             };
 
+            var token = cancellationTokenSource.Token;
+            if (!_inflightInvocations.TryAdd(request.InvocationId, cancellationTokenSource))
+            {
+                // What do we want to do if we cannot keep track of a cancellation token source?
+                token = CancellationToken.None;
+                cancellationTokenSource.Dispose();
+                _logger.LogInformation("Unable to store cancellation token source, providing an empty cancellation token");
+            }
+
             try
             {
                 var invocation = new GrpcFunctionInvocation(request);
-                var cancellationTokenSource = new CancellationTokenSource();
-
-                if (!_inflightInvocations.TryAdd(request.InvocationId, cancellationTokenSource))
-                {
-                    // Dispose the CancellationTokenSource if we cannot keep track of it
-                    cancellationTokenSource?.Dispose();
-                }
 
                 IInvocationFeatures invocationFeatures = _invocationFeaturesFactory.Create();
                 invocationFeatures.Set<FunctionInvocation>(invocation);
                 invocationFeatures.Set<IExecutionRetryFeature>(invocation);
 
-                var token = cancellationTokenSource?.Token ?? CancellationToken.None;
                 context = _application.CreateContext(invocationFeatures, token);
                 invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, _outputBindingsInfoProvider));
 
@@ -96,7 +98,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                     response.OutputData.Add(parameterBinding);
                 }
 
-                if (functionBindings.InvocationResult != null)
+                if (functionBindings.InvocationResult is not null)
                 {
                     TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(_serializer);
                     response.ReturnValue = returnVal;
@@ -109,7 +111,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 response.Result.Exception = ex.ToRpcException();
                 response.Result.Status = StatusResult.Types.Status.Failure;
 
-                if (ex.InnerException is TaskCanceledException)
+                if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {
                     response.Result.Status = StatusResult.Types.Status.Cancelled;
                 }
@@ -141,13 +143,13 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             {
                 cancellationTokenSource?.Cancel();
             }
+            catch (ObjectDisposedException)
+            {
+                // Do nothing, normal behavior
+            }
             catch (Exception ex)
             {
                 _logger.LogWarning($"Unable to cancel invocation {invocationId}.", ex);
-            }
-            finally
-            {
-                cancellationTokenSource?.Dispose();
             }
         }
     }

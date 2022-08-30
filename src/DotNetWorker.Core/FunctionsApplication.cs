@@ -44,8 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
             var functionDefinition = _functionMap[invocation.FunctionId];
             features.Set<FunctionDefinition>(functionDefinition);
 
-            var context = _functionContextFactory.Create(features, token);
-            return context;
+            return _functionContextFactory.Create(features, token);
         }
 
         public void LoadFunction(FunctionDefinition definition)

@@ -3,7 +3,6 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Invocation;
 
 namespace Microsoft.Azure.Functions.Worker
 {

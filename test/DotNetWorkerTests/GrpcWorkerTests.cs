@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Moq;
@@ -24,6 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
         private readonly Mock<IOutputBindingsInfoProvider> _mockOutputBindingsInfoProvider = new(MockBehavior.Strict);
         private readonly Mock<IMethodInfoLocator> _mockMethodInfoLocator = new(MockBehavior.Strict);
+        private readonly TestLoggerProvider _testLoggerProvider = new();
         private TestFunctionContext _context = new();
         private TestAsyncFunctionContext _asyncContext = new();
 
@@ -33,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Setup(m => m.LoadFunction(It.IsAny<FunctionDefinition>()));
 
             _mockApplication
-                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>()))
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), default))
                 .Returns<IInvocationFeatures>(f =>
                 {
                     _context = new TestFunctionContext(f);
@@ -43,9 +45,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Returns(Task.CompletedTask);
-
-            _mockApplication
-                .Setup(m => m.RemoveInvocationRecord(It.IsAny<string>()));
 
             _mockFeaturesFactory
                 .Setup(m => m.Create())
@@ -135,8 +134,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var request = CreateInvocationRequest();
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
@@ -149,15 +151,18 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Mock IFunctionApplication.CreateContext to return TestAsyncFunctionContext instance.
             _mockApplication
-                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>()))
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), default))
                 .Returns<IInvocationFeatures>(f =>
                 {
                     _context = new TestAsyncFunctionContext(f);
                     return _context;
                 });
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True((_context as TestAsyncFunctionContext).IsAsyncDisposed);
@@ -169,8 +174,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var request = CreateInvocationRequest();
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
@@ -182,13 +190,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task Invoke_CreateContext_WithCancellationTokenParameter_CreatesCancellationSource()
         {
             _mockApplication
-                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>()))
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), default))
                 .Throws(new InvalidOperationException("whoops"));
 
             var request = CreateInvocationRequest();
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
@@ -199,13 +210,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task Invoke_CreateContextThrows_ReturnsFailure()
         {
             _mockApplication
-                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>()))
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), default))
                 .Throws(new InvalidOperationException("whoops"));
 
             var request = CreateInvocationRequest();
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
@@ -213,20 +227,22 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async Task Invoke_InvokeAsyncThrows_ReturnsFailure()
+        public async Task Invoke_CreatesCancellationToken()
         {
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
-                .Throws(new InvalidOperationException("whoops"));
+                .Throws(new AggregateException(new Exception[] { new TaskCanceledException() }));
 
             var request = CreateInvocationRequest();
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
 
-            Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
-            Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
-            Assert.Contains("InvokeFunctionAsync", response.Result.Exception.Message);
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Cancelled, response.Result.Status);
+            Assert.Contains("TaskCanceledException", response.Result.Exception.Message);
         }
 
         [Fact]
@@ -238,8 +254,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var request = CreateInvocationRequest();
 
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Cancelled, response.Result.Status);
             Assert.Contains("TaskCanceledException", response.Result.Exception.Message);

@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             // see output binding entries have a property of type HttpResponseData;
-            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().First(a => a.BindingType == HttpBindingType);
+            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault(a => a.BindingType == HttpBindingType);
 
             return httpOutputBinding?.Value;
         }

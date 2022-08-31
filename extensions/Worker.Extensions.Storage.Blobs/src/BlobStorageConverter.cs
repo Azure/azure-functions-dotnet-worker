@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            BlobBaseClient? client = null;
+            object? client = null;
 
             var referenceData = JObject.Parse(context?.Source?.ToString());
             var blob = referenceData?["Properties"]["blob_name"].ToString();
@@ -59,6 +59,13 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
                 case Type _ when context.TargetType == typeof(PageBlobClient):
                     client = new PageBlobClient(connectionString, container, blob);
+                    break;
+
+                case Type _ when context.TargetType == typeof(System.IO.Stream):
+                    BlobClient blobClient = new BlobClient(connectionString, container, blob);
+                    var result = blobClient.DownloadStreaming();
+                    var content = result.Value.Content;
+                    client = content;
                     break;
             }
 

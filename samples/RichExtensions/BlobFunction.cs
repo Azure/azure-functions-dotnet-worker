@@ -12,7 +12,7 @@ namespace SampleApp
     {
         [Function(nameof(BlobFunction))]
         public static async Task Run(
-            [BlobTrigger("test-trigger/{name}")] BlobClient client,
+            [BlobTrigger("test-trigger/{name}", Connection = "AzureWebJobsStorage")] BlobClient client,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobFunction));

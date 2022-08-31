@@ -28,11 +28,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
 
             BlobBaseClient? client = null;
-            var connectionString = Environment.GetEnvironmentVariable("AzureWebJobsStorage");
 
             var referenceData = JObject.Parse(context?.Source?.ToString());
             var container = referenceData?["Properties"]["blob_container"].ToString();
             var blob = referenceData?["Properties"]["blob_name"].ToString();
+            var connectionString = Environment.GetEnvironmentVariable(referenceData?["Properties"]["connection_string"].ToString());
 
             switch (context.TargetType)
             {

@@ -134,9 +134,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
         public bool TryCancel(string invocationId)
         {
-            _inflightInvocations.TryGetValue(invocationId, out var cancellationTokenSource);
-
-            if (cancellationTokenSource is CancellationTokenSource)
+            if (_inflightInvocations.TryGetValue(invocationId, out var cancellationTokenSource))
             {
                 try
                 {
@@ -149,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"Unable to cancel invocation {invocationId}.", ex);
+                    _logger.LogWarning(ex, "Unable to cancel invocation {invocationId}.", invocationId);
                 }
             }
 

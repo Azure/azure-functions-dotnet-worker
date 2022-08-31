@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
         }
 
-        public FunctionContext Create(IInvocationFeatures invocationFeatures, CancellationToken token)
+        public FunctionContext Create(IInvocationFeatures invocationFeatures, CancellationToken token = default)
         {
             return new DefaultFunctionContext(_serviceScopeFactory, invocationFeatures, token);
         }

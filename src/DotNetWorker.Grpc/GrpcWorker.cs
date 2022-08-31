@@ -176,9 +176,9 @@ namespace Microsoft.Azure.Functions.Worker
             await _outputWriter.WriteAsync(responseMessage);
         }
 
-        internal async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
+        internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            return await _invocationHandler.InvokeAsync(request);
+            return _invocationHandler.InvokeAsync(request);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)

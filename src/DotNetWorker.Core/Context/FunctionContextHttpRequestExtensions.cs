@@ -12,6 +12,8 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     public static class FunctionContextHttpRequestExtensions
     {
+        private const string HttpBindingType = "http";
+
         /// <summary>
         /// Gets the <see cref="HttpRequestData"/> instance if the invocation is for an http trigger.
         /// </summary>
@@ -45,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             // see output binding entries have a property of type HttpResponseData;
-            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault();
+            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault(a => a.BindingType == HttpBindingType);
 
             return httpOutputBinding?.Value;
         }

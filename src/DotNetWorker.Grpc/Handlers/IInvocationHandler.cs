@@ -1,9 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -24,6 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         /// Cancels an invocation's associated <see cref="CancellationTokenSource"/>.
         /// </summary>
         /// <param name="invocationId">Invocation ID</param>
-        void Cancel(string invocationId);
+        /// <returns>Returns bool indicating success or failure</returns>
+        bool TryCancel(string invocationId);
     }
 }

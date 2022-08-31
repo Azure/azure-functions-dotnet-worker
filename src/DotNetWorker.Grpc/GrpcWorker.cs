@@ -183,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)
         {
-            _invocationHandler.Cancel(request.InvocationId);
+            _invocationHandler.TryCancel(request.InvocationId);
         }
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)

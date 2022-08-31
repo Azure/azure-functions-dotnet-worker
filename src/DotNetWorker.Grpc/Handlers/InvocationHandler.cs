@@ -10,7 +10,6 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Logging;
@@ -26,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         private readonly ObjectSerializer _serializer;
         private readonly ILogger _logger;
 
-        private ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations => new();
+        private ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
 
         public InvocationHandler(
             IFunctionsApplication application,
@@ -42,6 +41,8 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _logger = loggerProvider.CreateLogger(nameof(InvocationHandler));
+
+            _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
 
         public async Task<InvocationResponse> InvokeAsync(InvocationRequest request)
@@ -131,26 +132,28 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             return response;
         }
 
-        public void Cancel(string invocationId)
+        public bool TryCancel(string invocationId)
         {
             _inflightInvocations.TryGetValue(invocationId, out var cancellationTokenSource);
-            if (cancellationTokenSource is not CancellationTokenSource)
+
+            if (cancellationTokenSource is CancellationTokenSource)
             {
-                return;
+                try
+                {
+                    cancellationTokenSource?.Cancel();
+                    return true;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Do nothing, normal behavior
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Unable to cancel invocation {invocationId}.", ex);
+                }
             }
 
-            try
-            {
-                cancellationTokenSource?.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-                // Do nothing, normal behavior
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning($"Unable to cancel invocation {invocationId}.", ex);
-            }
+            return false;
         }
     }
 }

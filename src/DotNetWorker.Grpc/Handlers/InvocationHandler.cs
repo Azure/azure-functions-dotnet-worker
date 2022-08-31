@@ -55,13 +55,13 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 Result       = new StatusResult()
             };
 
-            var token = cancellationTokenSource.Token;
             if (!_inflightInvocations.TryAdd(request.InvocationId, cancellationTokenSource))
             {
-                // What do we want to do if we cannot keep track of a cancellation token source?
-                token = CancellationToken.None;
-                cancellationTokenSource.Dispose();
-                _logger.LogInformation("Unable to store cancellation token source, providing an empty cancellation token");
+                // Is this the correct way to handle this? Different exception to use? Or is using CancellationToken.None sufficient?
+                var exception = new InvalidOperationException("Unable to track CancellationTokenSource");
+                response.Result.Status = StatusResult.Types.Status.Failure;
+                response.Result.Exception = exception.ToRpcException();
+                return response;
             }
 
             try
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 invocationFeatures.Set<FunctionInvocation>(invocation);
                 invocationFeatures.Set<IExecutionRetryFeature>(invocation);
 
-                context = _application.CreateContext(invocationFeatures, token);
+                context = _application.CreateContext(invocationFeatures, cancellationTokenSource.Token);
                 invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, _outputBindingsInfoProvider));
 
                 if (_inputConversionFeatureProvider.TryCreate(typeof(DefaultInputConversionFeature), out var conversion))

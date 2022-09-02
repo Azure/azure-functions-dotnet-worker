@@ -24,7 +24,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             // TODO: check for reference type instead
-            if (context.TargetType != typeof(BlobClient) && context.TargetType != typeof(Stream))
+            if (context.TargetType != typeof(BlobClient) 
+            && context.TargetType != typeof(Stream)
+            && context.TargetType != typeof(String)
+            && context.TargetType != typeof(BinaryData)
+            )
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
@@ -34,23 +38,29 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             var referenceData = JObject.Parse(context.Source?.ToString());
             var blob = referenceData?["Properties"]["blob_name"].ToString();
             var container = referenceData?["Properties"]["blob_container"].ToString();
-            var connection = referenceData?["Properties"]["connection_string"].ToString(); // TODO: rename to connection_name
-
-            if(string.IsNullOrEmpty(connection))
-            {
-                connection = "AzureWebJobsStorage";
-            }
+            var connection = referenceData?["Properties"]["connection_name"].ToString();
 
             var connectionString = Environment.GetEnvironmentVariable(connection);
 
             switch (context.TargetType)
             {
-                // TODO: Add string & binary cases
-
                 case Type _ when context.TargetType == typeof(Stream):
                     BlobClient blobClient = new BlobClient(connectionString, container, blob);
                     var downloadResult = blobClient.DownloadStreaming();
                     result = downloadResult.Value.Content;
+                    break;
+                
+                case Type _ when context.TargetType == typeof(BinaryData):
+                    blobClient = new BlobClient(connectionString, container, blob);
+                    var stream = new MemoryStream();
+                    blobClient.DownloadTo(stream);
+                    result = stream.ToArray();
+                    break;
+
+                case Type _ when context.TargetType == typeof(String):
+                    blobClient = new BlobClient(connectionString, container, blob);
+                    var downloadResultInString = blobClient.DownloadContent();
+                    result = downloadResultInString.Value.Content.ToString();
                     break;
 
                 // TODO: simplify creation using generics i.e.

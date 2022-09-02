@@ -16,6 +16,8 @@ namespace Microsoft.Azure.Functions.Worker
         private static readonly Assembly _thisAssembly = typeof(WorkerInformation).Assembly;
         private static readonly FileVersionInfo _fileVersionInfo = FileVersionInfo.GetVersionInfo(_thisAssembly.Location);
 
+        private string? _workerVersion;
+
         public static WorkerInformation Instance = new();
 
 #if NET5_0_OR_GREATER
@@ -28,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
         public string RuntimeIdentifier => "n/a"; // Resolve in netstandard
 #endif
 
-        public string WorkerVersion => _thisAssembly.GetName().Version?.ToString()!;
+        public string WorkerVersion => _workerVersion ??= _thisAssembly.GetName().Version?.ToString()!;
 
 
         public string? ProductVersion => _fileVersionInfo.ProductVersion;

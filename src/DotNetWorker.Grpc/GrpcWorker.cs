@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -253,8 +254,17 @@ namespace Microsoft.Azure.Functions.Worker
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
-                WorkerVersion = WorkerInformation.Instance.WorkerVersion
+                WorkerVersion = WorkerInformation.Instance.WorkerVersion,
+                WorkerMetadata = new WorkerMetadata
+                {
+                    RuntimeName = RuntimeInformation.FrameworkDescription,
+                    RuntimeVersion = Environment.Version.ToString(),
+                    WorkerVersion = WorkerInformation.Instance.WorkerVersion,
+                    WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
+                }
             };
+
+            response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
 
             response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
             response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);

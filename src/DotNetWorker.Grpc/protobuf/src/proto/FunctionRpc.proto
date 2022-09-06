@@ -649,7 +649,7 @@ message RpcHttp {
   map<string,NullableString> nullable_query = 22;
 }
 
-message ParamterBindingData
+message BindingData
 {
     map<string,string> Properties = 1;
 }

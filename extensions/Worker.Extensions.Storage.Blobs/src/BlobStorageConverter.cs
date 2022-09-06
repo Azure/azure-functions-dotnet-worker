@@ -13,6 +13,7 @@ using System.Net.Mime;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Microsoft.Azure.Functions.Worker.Core;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -23,22 +24,16 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            // TODO: check for reference type instead
-            if (context.TargetType != typeof(BlobClient) 
-            && context.TargetType != typeof(Stream)
-            && context.TargetType != typeof(String)
-            && context.TargetType != typeof(BinaryData)
-            )
+            object? result = null;
+
+            if (context.Source is not IBindingData bindingData)
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            object? result = null;
-
-            var referenceData = JObject.Parse(context.Source?.ToString());
-            var blob = referenceData?["Properties"]["blob_name"].ToString();
-            var container = referenceData?["Properties"]["blob_container"].ToString();
-            var connection = referenceData?["Properties"]["connection_name"].ToString();
+            var blob = bindingData.Properties["blob_name"];
+            var container = bindingData.Properties["blob_container"];
+            var connection = bindingData.Properties["connection_name"];
 
             var connectionString = Environment.GetEnvironmentVariable(connection);
 

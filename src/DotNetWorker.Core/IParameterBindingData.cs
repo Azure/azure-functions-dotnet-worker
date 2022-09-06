@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Core
 {
-    internal interface IRichBindingReferenceType
+    internal interface IParameterBindingData
     {
     }
 }

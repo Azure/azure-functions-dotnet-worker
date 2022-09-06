@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
@@ -109,6 +110,21 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
             Assert.Contains("GetMethod", response.Result.Exception.Message);
+        }
+
+        [Fact]
+        public void InitRequest_ReturnsExpectedMetadata()
+        {
+            var response = GrpcWorker.WorkerInitRequestHandler(new());
+
+            string grpcWorkerVersion = typeof(GrpcWorker).Assembly.GetName().Version?.ToString();
+            Assert.Equal(RuntimeInformation.FrameworkDescription, response.WorkerMetadata.RuntimeName);
+            Assert.Equal(Environment.Version.ToString(), response.WorkerMetadata.RuntimeVersion);
+            Assert.Equal(WorkerInformation.Instance.WorkerVersion, response.WorkerMetadata.WorkerVersion);
+            Assert.Equal(RuntimeInformation.ProcessArchitecture.ToString(), response.WorkerMetadata.WorkerBitness);
+            Assert.Contains(response.WorkerMetadata.CustomProperties,
+                kvp => string.Equals(kvp.Key, "Worker.Grpc.Version", StringComparison.OrdinalIgnoreCase)
+                && string.Equals(kvp.Value, grpcWorkerVersion, StringComparison.OrdinalIgnoreCase));
         }
 
         [Fact]

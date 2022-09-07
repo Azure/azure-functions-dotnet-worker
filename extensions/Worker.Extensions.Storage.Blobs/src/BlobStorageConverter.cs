@@ -24,58 +24,17 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            object? result = null;
-
             if (context.Source is not IBindingData bindingData)
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            var blob = bindingData.Properties["blob_name"];
-            var container = bindingData.Properties["blob_container"];
-            var connection = bindingData.Properties["connection_name"];
+            var blobName = bindingData.Properties["blob_name"];
+            var containerName = bindingData.Properties["blob_container"];
+            var connectionName = bindingData.Properties["connection_name"];
+            var connectionString = Environment.GetEnvironmentVariable(connectionName);
 
-            var connectionString = Environment.GetEnvironmentVariable(connection);
-
-            switch (context.TargetType)
-            {
-                case Type _ when context.TargetType == typeof(Stream):
-                    BlobClient blobClient = new BlobClient(connectionString, container, blob);
-                    var downloadResult = blobClient.DownloadStreaming();
-                    result = downloadResult.Value.Content;
-                    break;
-                
-                case Type _ when context.TargetType == typeof(BinaryData):
-                    blobClient = new BlobClient(connectionString, container, blob);
-                    var stream = new MemoryStream();
-                    blobClient.DownloadTo(stream);
-                    result = stream.ToArray();
-                    break;
-
-                case Type _ when context.TargetType == typeof(String):
-                    blobClient = new BlobClient(connectionString, container, blob);
-                    var downloadResultInString = blobClient.DownloadContent();
-                    result = downloadResultInString.Value.Content.ToString();
-                    break;
-
-                // TODO: simplify creation using generics i.e.
-                // await GetBlobAsync(blobAttribute, cancellationToken, typeof(T)).ConfigureAwait(false);
-                case Type _ when context.TargetType == typeof(BlobClient):
-                    result = new BlobClient(connectionString, container, blob);
-                    break;
-
-                case Type _ when context.TargetType == typeof(AppendBlobClient):
-                    result = new AppendBlobClient(connectionString, container, blob);
-                    break;
-
-                case Type _ when context.TargetType == typeof(BlockBlobClient):
-                    result = new BlockBlobClient(connectionString, container, blob);
-                    break;
-
-                case Type _ when context.TargetType == typeof(PageBlobClient):
-                    result = new PageBlobClient(connectionString, container, blob);
-                    break;
-            }
+            object result = ToTargetType(context.TargetType, connectionString, connectionName, blobName);
 
             if (result is not null)
             {
@@ -83,6 +42,57 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
 
             return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+        }
+
+        private object? ToTargetType(Type targetType, string connectionString, string containerName, string blobName) => targetType switch
+        {
+            Type _ when targetType == typeof(String)            => GetBlobString(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(Stream)            => GetBlobStream(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(BinaryData)        => GetBlobBinaryData(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(BlobClient)        => CreateBlobReference<BlobClient>(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(BlockBlobClient)   => CreateBlobReference<BlockBlobClient>(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(PageBlobClient)    => CreateBlobReference<PageBlobClient>(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(AppendBlobClient)  => CreateBlobReference<AppendBlobClient>(connectionString, containerName, blobName),
+            _ => null
+        };
+
+        private string GetBlobString(string connectionString, string containerName, string blobName)
+        {
+            var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName);
+            var download = client.DownloadContent();
+            return download.Value.Content.ToString();
+        }
+
+        private byte[] GetBlobBinaryData(string connectionString, string containerName, string blobName)
+        {
+            var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName);
+            var stream = new MemoryStream();
+            client.DownloadTo(stream);
+            return stream.ToArray();
+        }
+
+        private Stream GetBlobStream(string connectionString, string containerName, string blobName)
+        {
+            var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName);
+            var download = client.DownloadStreaming();
+            return download.Value.Content;
+        }
+
+        private T CreateBlobReference<T>(string connectionString, string containerName, string blobName) where T : BlobBaseClient
+        {
+            BlobBaseClient blob;
+            BlobContainerClient container = new(connectionString, containerName);
+            Type targetType = typeof(T);
+
+            blob = targetType switch {
+                Type _ when targetType == typeof(BlobClient)        => container.GetBlobClient(blobName),
+                Type _ when targetType == typeof(BlockBlobClient)   => container.GetBlockBlobClient(blobName),
+                Type _ when targetType == typeof(PageBlobClient)    => container.GetPageBlobClient(blobName),
+                Type _ when targetType == typeof(AppendBlobClient)  => container.GetAppendBlobClient(blobName),
+                _ => new(connectionString, containerName, blobName)
+            };
+
+            return (T)blob;
         }
     }
 }

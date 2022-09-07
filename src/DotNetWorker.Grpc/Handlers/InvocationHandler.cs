@@ -57,7 +57,6 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
             if (!_inflightInvocations.TryAdd(request.InvocationId, cancellationTokenSource))
             {
-                // Is this the correct way to handle this? Different exception to use? Or is using CancellationToken.None sufficient?
                 var exception = new InvalidOperationException("Unable to track CancellationTokenSource");
                 response.Result.Status = StatusResult.Types.Status.Failure;
                 response.Result.Exception = exception.ToRpcException();

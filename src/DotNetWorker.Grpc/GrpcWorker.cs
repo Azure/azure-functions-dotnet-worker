@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -16,6 +17,7 @@ using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
@@ -45,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             IInputConversionFeatureProvider inputConversionFeatureProvider,
             IFunctionMetadataProvider functionMetadataProvider,
             IHostApplicationLifetime hostApplicationLifetime,
-            WorkerLoggerProvider loggerProvider)
+            ILogger logger)
         {
             if (outputChannel == null)
             {
@@ -66,8 +68,8 @@ namespace Microsoft.Azure.Functions.Worker
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
 
-            // Handlers (todo: dependency inject handlers instead of creating here)
-            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, loggerProvider);
+            // Handlers (TODO: dependency inject handlers instead of creating here)
+            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
         }
 
         public async Task StartAsync(CancellationToken token)

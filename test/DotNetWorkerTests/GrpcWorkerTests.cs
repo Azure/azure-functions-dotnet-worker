@@ -13,6 +13,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -26,9 +27,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
         private readonly Mock<IOutputBindingsInfoProvider> _mockOutputBindingsInfoProvider = new(MockBehavior.Strict);
         private readonly Mock<IMethodInfoLocator> _mockMethodInfoLocator = new(MockBehavior.Strict);
-        private readonly TestLoggerProvider _testLoggerProvider = new();
         private TestFunctionContext _context = new();
         private TestAsyncFunctionContext _asyncContext = new();
+        private ILogger _testLogger;
 
         public GrpcWorkerTests()
         {
@@ -58,6 +59,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _mockInputConversionFeatureProvider
                 .Setup(m => m.TryCreate(typeof(DefaultInputConversionFeature), out conversionFeature))
                 .Returns(true);
+
+            TestLoggerProvider testLoggerProvider = new();
+            _testLogger = testLoggerProvider.CreateLogger("GrpcWorkerTests");
         }
 
         [Fact]
@@ -136,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
                 _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+                _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request);
 
@@ -160,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
                 _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+                _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request);
 
@@ -176,7 +180,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
                 _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+                _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request);
 
@@ -197,7 +201,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
                 _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLoggerProvider);
+                _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request);
 

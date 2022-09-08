@@ -33,14 +33,14 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             ObjectSerializer serializer,
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
-            ILoggerProvider loggerProvider)
+            ILogger logger)
         {
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
-            _logger = loggerProvider.CreateLogger(nameof(InvocationHandler));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
@@ -138,6 +138,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 try
                 {
                     cancellationTokenSource?.Cancel();
+                    _logger.LogWarning("Unable to cancel invocation {invocationId}.", invocationId);
                     return true;
                 }
                 catch (ObjectDisposedException)

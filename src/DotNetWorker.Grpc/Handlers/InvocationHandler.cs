@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly ObjectSerializer _serializer;
-        private readonly ILogger<InvocationHandler> _logger;
+        private readonly ILogger _logger;
 
         private ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
 
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             ObjectSerializer serializer,
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
-            ILogger<InvocationHandler> logger)
+            ILogger logger)
         {
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));

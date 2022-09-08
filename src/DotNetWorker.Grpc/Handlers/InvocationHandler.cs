@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 catch (Exception ex)
                 {
                     _logger.LogWarning(ex, "Unable to cancel invocation {invocationId}.", invocationId);
-                    throw ex;
+                    throw;
                 }
             }
 

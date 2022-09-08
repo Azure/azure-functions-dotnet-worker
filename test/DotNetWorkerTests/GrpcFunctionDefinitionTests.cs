@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Threading;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -73,6 +74,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private class MyFunctionClass
         {
             public HttpResponseData Run(HttpRequestData req)
+            {
+                return req.CreateResponse();
+            }
+        }
+
+        private class MyFunctionClassWithCancellation
+        {
+            public HttpResponseData Run(HttpRequestData req, CancellationToken cancellationToken)
             {
                 return req.CreateResponse();
             }

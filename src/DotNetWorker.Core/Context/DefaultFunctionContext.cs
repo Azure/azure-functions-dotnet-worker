@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,15 +13,15 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly FunctionInvocation _invocation;
-
         private IServiceScope? _instanceServicesScope;
         private IServiceProvider? _instanceServices;
         private BindingContext? _bindingContext;
 
-        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features)
+        public DefaultFunctionContext(IServiceScopeFactory serviceScopeFactory, IInvocationFeatures features, CancellationToken cancellationToken = default)
         {
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
             Features = features ?? throw new ArgumentNullException(nameof(features));
+            CancellationToken = cancellationToken;
 
             _invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The '{nameof(FunctionInvocation)}' feature is required.");
             FunctionDefinition = features.Get<FunctionDefinition>() ?? throw new InvalidOperationException($"The {nameof(Worker.FunctionDefinition)} feature is required.");
@@ -35,6 +36,8 @@ namespace Microsoft.Azure.Functions.Worker
         public override IDictionary<object, object> Items { get; set; } = new Dictionary<object, object>();
 
         public override IInvocationFeatures Features { get; }
+
+        public override CancellationToken CancellationToken { get; }
 
         public override IServiceProvider InstanceServices
         {

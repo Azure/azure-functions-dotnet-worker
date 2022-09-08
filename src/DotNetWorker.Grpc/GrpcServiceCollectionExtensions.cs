@@ -85,7 +85,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure, options);
 
-#endif           
+#endif
                 return new FunctionRpcClient(grpcChannel);
             });
 

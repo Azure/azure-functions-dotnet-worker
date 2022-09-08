@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -59,5 +60,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets a collection containing the features supported by this context.
         /// </summary>
         public abstract IInvocationFeatures Features { get; }
+
+        /// <summary>
+        /// Gets the <see cref="CancellationToken"/> that signals a function invocation is being cancelled.
+        /// </summary>
+        public virtual CancellationToken CancellationToken { get; } = CancellationToken.None;
     }
 }

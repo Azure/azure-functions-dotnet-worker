@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -55,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
             _features.Set<FunctionDefinition>(qTriggerFunctionDefinition);
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
             var functionBindings = new TestFunctionBindingsFeature
             {
                 InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "myQueueItem", "foo" } })
@@ -83,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
             _features.Set<FunctionDefinition>(httpFunctionDefinition);
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
             var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {
@@ -91,7 +92,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
             _features.Set<IFunctionBindingsFeature>(functionBindings);
 
-            // Mock input conversion feature to return a successfully converted HttpRequestData value.           
+            // Mock input conversion feature to return a successfully converted HttpRequestData value.
             _mockConversionFeature.Setup(a => a.ConvertAsync(It.IsAny<ConverterContext>()))
                                   .ReturnsAsync(ConversionResult.Success(grpcHttpReq));
             _features.Set<IInputConversionFeature>(_mockConversionFeature.Object);
@@ -116,7 +117,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Arrange
             _features.Set<FunctionDefinition>(new TestFunctionDefinition());
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
             var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {
@@ -151,7 +152,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 { "MyHttpResponse", new TestBindingMetadata("MyHttpResponse","http",BindingDirection.Out) }
             }));
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
             var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {

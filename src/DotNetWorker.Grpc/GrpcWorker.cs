@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
@@ -12,16 +10,17 @@ using Azure.Core.Serialization;
 using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
-
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -40,13 +39,15 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private readonly IInvocationHandler _invocationHandler;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
             IFunctionMetadataProvider functionMetadataProvider,
-            IHostApplicationLifetime hostApplicationLifetime)
+            IHostApplicationLifetime hostApplicationLifetime,
+            ILogger<GrpcWorker> logger)
         {
             if (outputChannel == null)
             {
@@ -66,6 +67,9 @@ namespace Microsoft.Azure.Functions.Worker
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
+
+            // Handlers (TODO: dependency inject handlers instead of creating here)
+            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
         }
 
         public async Task StartAsync(CancellationToken token)
@@ -128,125 +132,60 @@ namespace Microsoft.Azure.Functions.Worker
                 RequestId = request.RequestId
             };
 
-            if (request.ContentCase == MsgType.InvocationRequest)
+            switch(request.ContentCase)
             {
-                responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _application,
-                    _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider);
-            }
-            else if (request.ContentCase == MsgType.WorkerInitRequest)
-            {
-                responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
-            }
-            else if (request.ContentCase == MsgType.WorkerStatusRequest)
-            {
-                responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
-            }
-            else if (request.ContentCase == MsgType.FunctionsMetadataRequest)
-            {
-                responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
-            }
-            else if (request.ContentCase == MsgType.WorkerTerminate)
-            {
-                WorkerTerminateRequestHandler(request.WorkerTerminate);
-            }
-            else if (request.ContentCase == MsgType.FunctionLoadRequest)
-            {
-                responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
-            }
-            else if (request.ContentCase == MsgType.FunctionEnvironmentReloadRequest)
-            {
-                // No-op for now, but return a response.
-                responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
-                {
-                    Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                };
-            }
-            else
-            {
-                // TODO: Trace failure here.
-                return;
+                case MsgType.InvocationRequest:
+                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
+                    break;
+
+                case MsgType.WorkerInitRequest:
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
+                    break;
+
+                case MsgType.WorkerStatusRequest:
+                    responseMessage.WorkerStatusResponse = new WorkerStatusResponse();
+                    break;
+
+                case MsgType.FunctionsMetadataRequest:
+                    responseMessage.FunctionMetadataResponse = await GetFunctionMetadataAsync(request.FunctionsMetadataRequest.FunctionAppDirectory);
+                    break;
+
+                case MsgType.WorkerTerminate:
+                    WorkerTerminateRequestHandler(request.WorkerTerminate);
+                    break;
+
+                case MsgType.FunctionLoadRequest:
+                    responseMessage.FunctionLoadResponse = FunctionLoadRequestHandler(request.FunctionLoadRequest, _application, _methodInfoLocator);
+                    break;
+
+                case MsgType.FunctionEnvironmentReloadRequest:
+                    // No-op for now, but return a response.
+                    responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
+                    {
+                        Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                    };
+                    break;
+
+                case MsgType.InvocationCancel:
+                    InvocationCancelRequestHandler(request.InvocationCancel);
+                    break;
+
+                default:
+                    // TODO: Trace failure here.
+                    return;
             }
 
             await _outputWriter.WriteAsync(responseMessage);
         }
 
-        internal static async Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, IFunctionsApplication application,
-            IInvocationFeaturesFactory invocationFeaturesFactory, ObjectSerializer serializer,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider,
-            IInputConversionFeatureProvider functionInputConversionFeatureProvider)
+        internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            FunctionContext? context = null;
-            InvocationResponse response = new()
-            {
-                InvocationId = request.InvocationId
-            };
+            return _invocationHandler.InvokeAsync(request);
+        }
 
-            try
-            {
-                var invocation = new GrpcFunctionInvocation(request);
-
-                IInvocationFeatures invocationFeatures = invocationFeaturesFactory.Create();
-                invocationFeatures.Set<FunctionInvocation>(invocation);
-                invocationFeatures.Set<IExecutionRetryFeature>(invocation);
-
-                context = application.CreateContext(invocationFeatures);
-                invocationFeatures.Set<IFunctionBindingsFeature>(new GrpcFunctionBindingsFeature(context, request, outputBindingsInfoProvider));
-
-                if (functionInputConversionFeatureProvider.TryCreate(typeof(DefaultInputConversionFeature), out var conversion))
-                {
-                    invocationFeatures.Set<IInputConversionFeature>(conversion!);
-                }
-
-                await application.InvokeFunctionAsync(context);
-
-                var functionBindings = context.GetBindings();
-
-                foreach (var binding in functionBindings.OutputBindingData)
-                {
-                    var parameterBinding = new ParameterBinding
-                    {
-                        Name = binding.Key
-                    };
-
-                    if (binding.Value is not null)
-                    {
-                        parameterBinding.Data = await binding.Value.ToRpcAsync(serializer);
-                    }
-
-                    response.OutputData.Add(parameterBinding);
-                }
-
-                if (functionBindings.InvocationResult != null)
-                {
-                    TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(serializer);
-
-                    response.ReturnValue = returnVal;
-                }
-
-                response.Result = new StatusResult
-                {
-                    Status = StatusResult.Types.Status.Success
-                };
-            }
-            catch (Exception ex)
-            {
-                response.Result = new StatusResult
-                {
-                    Exception = ex.ToRpcException(),
-                    Status = StatusResult.Types.Status.Failure
-                };
-            }
-            finally
-            {
-                if (context is IAsyncDisposable asyncContext)
-                {
-                    await asyncContext.DisposeAsync();
-                }
-
-                (context as IDisposable)?.Dispose();
-            }
-
-            return response;
+        internal void InvocationCancelRequestHandler(InvocationCancel request)
+        {
+            _invocationHandler.TryCancel(request.InvocationId);
         }
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)
@@ -273,6 +212,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
+            response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
 
             return response;
         }

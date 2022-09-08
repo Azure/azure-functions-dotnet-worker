@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
 
             // Handlers (TODO: dependency inject handlers instead of creating here)
-            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
+            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, (ILogger<InvocationHandler>)logger);
         }
 
         public async Task StartAsync(CancellationToken token)

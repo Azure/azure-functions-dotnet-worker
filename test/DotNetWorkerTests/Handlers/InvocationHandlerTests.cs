@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IInputConversionFeatureProvider> _mockInputConversionFeatureProvider = new(MockBehavior.Strict);
         private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
         private TestFunctionContext _context = new();
-        private ILogger _testLogger;
+        private ILogger<InvocationHandler> _testLogger;
 
         public InvocationHandlerTests()
         {
@@ -48,8 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Setup(m => m.TryCreate(typeof(DefaultInputConversionFeature), out conversionFeature))
                 .Returns(true);
 
-            TestLoggerProvider testLoggerProvider = new();
-            _testLogger = testLoggerProvider.CreateLogger("GrpcWorkerTests");
+            _testLogger = TestLoggerProvider.Factory.CreateLogger<InvocationHandler>();
         }
 
         [Fact]

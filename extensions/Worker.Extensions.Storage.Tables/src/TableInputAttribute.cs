@@ -5,6 +5,9 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Attribute used to configure a parameter as the input target for the Azure Storage Tables binding.
+    /// </summary>
     public class TableInputAttribute : InputBindingAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="TableInputAttribute"/> class.</summary>
@@ -40,11 +43,11 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>When binding to a table entity, gets the partition key of the entity.</summary>
         /// <remarks>When binding to an entire table, returns <see langword="null"/>.</remarks>
-        public string PartitionKey { get; }
+        public string? PartitionKey { get; }
 
         /// <summary>When binding to a table entity, gets the row key of the entity.</summary>
         /// <remarks>When binding to an entire table, returns <see langword="null"/>.</remarks>
-        public string RowKey { get; }
+        public string? RowKey { get; }
 
         /// <summary>
         /// Allow arbitrary table filter. RowKey should be null. 

@@ -2,6 +2,9 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Attribute used to configure the source of the Azure Storage Tables output binding.
+    /// </summary>
     public class TableOutputAttribute : OutputBindingAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="TableOutputAttribute"/> class.</summary>
@@ -37,11 +40,11 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>When binding to a table entity, gets the partition key of the entity.</summary>
         /// <remarks>When binding to an entire table, returns <see langword="null"/>.</remarks>
-        public string PartitionKey { get; }
+        public string? PartitionKey { get; }
 
         /// <summary>When binding to a table entity, gets the row key of the entity.</summary>
         /// <remarks>When binding to an entire table, returns <see langword="null"/>.</remarks>
-        public string RowKey { get; }
+        public string? RowKey { get; }
 
         /// <summary>
         /// Gets or sets the app setting name that contains the Azure Storage connection string.

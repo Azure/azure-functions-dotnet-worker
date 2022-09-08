@@ -54,8 +54,6 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
         private static IFunctionInvoker CreateGeneric<TReflected, TReturnValue>(MethodInfo method, IMethodInvokerFactory methodInvokerFactory, IFunctionActivator functionActivator)
         {
-            List<string?> parameterNames = method.GetParameters().Select(p => p.Name).ToList();
-
             IMethodInvoker<TReflected, TReturnValue> methodInvoker = methodInvokerFactory.Create<TReflected, TReturnValue>(method);
 
             return new DefaultFunctionInvoker<TReflected, TReturnValue>(methodInvoker, functionActivator);

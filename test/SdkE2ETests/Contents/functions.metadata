@@ -73,6 +73,32 @@
     }
   },
   {
+    "name": "HttpTriggerWithCancellation",
+    "scriptFile": "FunctionApp.dll",
+    "entryPoint": "FunctionApp.HttpTriggerWithCancellation.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "type": "httpTrigger",
+        "direction": "In",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ]
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "HttpTriggerWithDependencyInjection",
     "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.HttpTriggerWithDependencyInjection.Run",

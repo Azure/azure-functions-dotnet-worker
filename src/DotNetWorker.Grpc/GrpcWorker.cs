@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             IInputConversionFeatureProvider inputConversionFeatureProvider,
             IFunctionMetadataProvider functionMetadataProvider,
             IHostApplicationLifetime hostApplicationLifetime,
-            ILogger logger)
+            ILogger<GrpcWorker> logger)
         {
             if (outputChannel == null)
             {

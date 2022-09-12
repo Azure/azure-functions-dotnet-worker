@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.Equal($"{{{Environment.NewLine}  \"Name\": \"Test\"{Environment.NewLine}}}", responseBody);
         }
 
-        [Fact]
+        [Fact(Skip = "Proxies not currently supported in V4 but will be coming back.")]
         public async Task HttpProxy()
         {
             HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("proxytest", string.Empty, HttpStatusCode.OK, "application/json");

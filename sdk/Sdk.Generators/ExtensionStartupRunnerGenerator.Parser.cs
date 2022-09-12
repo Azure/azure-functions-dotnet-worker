@@ -111,7 +111,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// A type to represent the data about the extension startup types we want to generate code for.
         /// </summary>
-        internal struct StartupTypeInfo
+        internal readonly struct StartupTypeInfo
         {
             internal StartupTypeInfo(string startupTypeName, ImmutableArray<Diagnostic> diagnostics) 
             {

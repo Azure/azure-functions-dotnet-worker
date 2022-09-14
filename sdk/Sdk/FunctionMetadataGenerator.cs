@@ -507,7 +507,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             return binding;
         }
-
+        
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
             // Array and not byte array 

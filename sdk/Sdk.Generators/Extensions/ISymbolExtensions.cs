@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -54,6 +55,36 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             return false;
+        }
+
+        internal static string? GetDataTypeFromType(this ITypeSymbol symbol)
+        {
+            string? dataType = null;
+
+            if (symbol.IsStringType())
+            {
+                dataType = "\"String\"";
+            }
+            // Is binary parameter type
+            else if (symbol.IsBinaryType())
+            {
+                dataType = "\"Binary\"";
+            }
+
+            return dataType;
+        }
+
+        internal static bool IsStringType(this ITypeSymbol symbol)
+        {
+            var fullName = symbol.GetFullName();
+            return String.Equals(fullName, Constants.StringType, StringComparison.Ordinal);
+        }
+
+        internal static bool IsBinaryType(this ITypeSymbol symbol)
+        {
+            var fullName = symbol.GetFullName();
+            return String.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal)
+                || String.Equals(fullName, Constants.ReadOnlyMemoryOfBytes, StringComparison.Ordinal);
         }
     }
 }

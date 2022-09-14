@@ -1,12 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Xunit;
 
@@ -120,7 +117,7 @@ namespace Microsoft.Azure.Functions.Worker
                 name = 'req',
                 type = 'HttpTrigger',
                 direction = 'In',
-                authLevel = '((AuthorizationLevel)0).ToString();',
+                authLevel = (AuthorizationLevel)0,
                 methods = new List<string> { 'get','post' },
             };
             var HttpTriggerSimplereqBindingJSONstring = JsonSerializer.Serialize(HttpTriggerSimplereqBinding);
@@ -235,14 +232,14 @@ namespace Microsoft.Azure.Functions.Worker
                 name = 'req',
                 type = 'HttpTrigger',
                 direction = 'In',
-                authLevel = '((AuthorizationLevel)0).ToString();',
+                authLevel = (AuthorizationLevel)0,
                 methods = new List<string> { 'get','post' },
             };
             var HttpTriggerWithMultipleOutputBindingsreqBindingJSONstring = JsonSerializer.Serialize(HttpTriggerWithMultipleOutputBindingsreqBinding);
             HttpTriggerWithMultipleOutputBindingsRawBindings.Add(HttpTriggerWithMultipleOutputBindingsreqBindingJSONstring);
             var HttpTriggerWithMultipleOutputBindingsNameBinding = new {
                 name = 'Name',
-                type = 'QueueOutput',
+                type = 'Queue',
                 direction = 'Out',
                 queueName = 'functionstesting2',
                 Connection = 'AzureWebJobsStorage',
@@ -371,7 +368,7 @@ namespace Microsoft.Azure.Functions.Worker
                 name = 'req',
                 type = 'HttpTrigger',
                 direction = 'In',
-                authLevel = '((AuthorizationLevel)0).ToString();',
+                authLevel = (AuthorizationLevel)0,
                 methods = new List<string> { 'get','post' },
             };
             var HttpTriggerWithBlobInputreqBindingJSONstring = JsonSerializer.Serialize(HttpTriggerWithBlobInputreqBinding);
@@ -388,7 +385,7 @@ namespace Microsoft.Azure.Functions.Worker
             HttpTriggerWithBlobInputRawBindings.Add(HttpTriggerWithBlobInputmyBlobBindingJSONstring);
             var HttpTriggerWithBlobInputBookBinding = new {
                 name = 'Book',
-                type = 'QueueOutput',
+                type = 'Queue',
                 direction = 'Out',
                 queueName = 'functionstesting2',
                 Connection = 'AzureWebJobsStorage',
@@ -503,7 +500,7 @@ namespace Microsoft.Azure.Functions.Worker
                 name = 'req',
                 type = 'HttpTrigger',
                 direction = 'In',
-                authLevel = '((AuthorizationLevel)0).ToString();',
+                authLevel = (AuthorizationLevel)0,
                 methods = new List<string> { 'get' },
             };
             var HttpTriggerWithBlobInputreqBindingJSONstring = JsonSerializer.Serialize(HttpTriggerWithBlobInputreqBinding);
@@ -698,7 +695,7 @@ namespace Microsoft.Azure.Functions.Worker
                 name = 'myReq',
                 type = 'HttpTrigger',
                 direction = 'In',
-                authLevel = '((AuthorizationLevel)4).ToString();',
+                authLevel = (AuthorizationLevel)4,
                 methods = new List<string> { 'get','Post' },
                 Route = '/api2',
             };

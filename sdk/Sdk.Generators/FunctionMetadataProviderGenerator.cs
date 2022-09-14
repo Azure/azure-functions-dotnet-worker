@@ -4,8 +4,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text;
+using Microsoft.Azure.Functions.Worker.Sdk.Generators.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public void Execute(GeneratorExecutionContext context)
         {
             // retreive the populated receiver 
-            if (!(context.SyntaxReceiver is SyntaxReceiver receiver))
+            if (context.SyntaxReceiver is not SyntaxReceiver receiver)
                 return;
 
             Compilation compilation = context.Compilation;
@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
 
-                WriteGetFunctionsMetadataAsyncMethod(indentedTextWriter, receiver, compilation);
+                WriteGetFunctionsMetadataAsyncMethod(indentedTextWriter, receiver, compilation, context);
                 AddEnumTypes(indentedTextWriter);
 
                 indentedTextWriter.Indent--;
@@ -91,11 +91,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <param name="attributeData">Contains constructor arguments for the constructor represented in attribMethodSymbol.</param>
         /// <param name="dict">A dicitonary to be populated with constructor arguments.</param>
         /// <exception cref="InvalidOperationException"></exception>
-        internal static void LoadConstructorArguments(IMethodSymbol attribMethodSymbol, AttributeData attributeData, IDictionary<string, object> dict)
+        private static void LoadConstructorArguments(IMethodSymbol attribMethodSymbol, AttributeData attributeData, GeneratorExecutionContext context, IDictionary<string, object> dict)
         {
-            if (attribMethodSymbol.Parameters.Length < attributeData.ConstructorArguments.Length)
+            if (attribMethodSymbol.Parameters.Length != attributeData.ConstructorArguments.Length)
             {
-                throw new InvalidOperationException($"The constructor at '{nameof(attribMethodSymbol)}' has less total arguments than '{nameof(attributeData)}'.");
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ArgumentCountMismatch, Location.None, new object[] { nameof(attribMethodSymbol) , nameof(attributeData) }));
+                return;
             }
 
             // It's fair to assume than constructor arguments appear before named arguments, and
@@ -113,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         dict[argumentName] = arg.Value;
                         break;
                     case TypedConstantKind.Enum:
-                        dict[argumentName] = $"((AuthorizationLevel){arg.Value}).ToString();";
+                        dict[argumentName] = $"(AuthorizationLevel){arg.Value}"; // the only enum type we have in function metadata is authlevel
                         break;
                     case TypedConstantKind.Type:
                         break;
@@ -139,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 // catch values that are already strings or Enum parsing
                 // we don't need to surround these cases with quotation marks
-                if (propValue.ToString().Contains("\"") || propValue.ToString().Contains("Enum"))
+                if (propValue.ToString().Contains("\"") || propValue.ToString().Contains("AuthorizationLevel"))
                 {
                     return propValue.ToString();
                 }
@@ -181,12 +182,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <param name="attribMethodSymbol">The symbol that represents the attribute constructor method.</param>
         /// <param name="attributeData">Contains the values associated with the attribute constructor method properties.</param>
         /// <returns></returns>
-        internal static IDictionary<string, object> GetAttributeProperties(IMethodSymbol attribMethodSymbol, AttributeData attributeData)
+        private static IDictionary<string, object> GetAttributeProperties(IMethodSymbol attribMethodSymbol, AttributeData attributeData, GeneratorExecutionContext context)
         {
             Dictionary<string, object> argumentData = new();
             if (attributeData.ConstructorArguments.Any())
             {
-                LoadConstructorArguments(attribMethodSymbol, attributeData, argumentData);
+                LoadConstructorArguments(attribMethodSymbol, attributeData, context, argumentData);
             }
 
             foreach (var namedArgument in attributeData.NamedArguments)
@@ -195,7 +196,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (String.Equals(namedArgument.Key, Constants.IsBatchedKey))
                     {
-                        var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in bools and the generator will parse it as a bool so we can type cast this to use in the next line
+                        var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
                         if (argValue)
                         {
@@ -238,7 +239,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
         }
 
-        private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
+        private static void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation, GeneratorExecutionContext context)
         {
             indentedTextWriter.WriteLine("public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)");
             indentedTextWriter.WriteLine("{");
@@ -246,7 +247,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             // create list of IFunctionMetadata and populate it
             indentedTextWriter.WriteLine("var metadataList = new List<IFunctionMetadata>();");
-            AddFunctionMetadataInfo(indentedTextWriter, receiver, compilation);
+            AddFunctionMetadataInfo(indentedTextWriter, receiver, compilation, context);
             indentedTextWriter.WriteLine("return Task.FromResult(metadataList.ToImmutableArray());");
 
             indentedTextWriter.Indent--;
@@ -256,7 +257,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Checks that a candidate method has a Function attribute then proceeds to create a DefaultFunctionMetadata object.
         /// </summary>
-        private static void AddFunctionMetadataInfo(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation)
+        private static void AddFunctionMetadataInfo(IndentedTextWriter indentedTextWriter, SyntaxReceiver receiver, Compilation compilation, GeneratorExecutionContext context)
         {
             var assemblyName = compilation.Assembly.Name;
             var scriptFile = Path.Combine(assemblyName + ".dll");
@@ -266,7 +267,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var model = compilation.GetSemanticModel(method.SyntaxTree);
                 
-                if(!IsMethodAFunction(model, method))
+                if(!IsMethodAzureFunction(model, method, context))
                 {
                     continue;
                 }
@@ -278,7 +279,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // collect Bindings
                 indentedTextWriter.WriteLine($"var {bindingsListName} = new List<string>();");
-                AddBindingInfo(indentedTextWriter, method, model, functionName);
+                AddBindingInfo(indentedTextWriter, method, model, functionName, context);
                 indentedTextWriter.WriteLine($"var {functionName} = new DefaultFunctionMetadata");
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
@@ -294,18 +295,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
         }
 
-        private static void AddBindingInfo(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string functionName)
+        private static void AddBindingInfo(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string functionName, GeneratorExecutionContext context)
         {
-            AddMethodOutputBinding(indentedTextWriter, method, model, functionName, out bool hasOutputBinding);
-            AddParameterInputAndTriggerBindings(indentedTextWriter, method, model, functionName, out bool hasHttpTrigger);
-            AddReturnTypeBindings(indentedTextWriter, method, model, functionName, hasHttpTrigger, hasOutputBinding);
+            AddMethodOutputBinding(indentedTextWriter, method, model, functionName, context, out bool hasOutputBinding);
+            AddParameterInputAndTriggerBindings(indentedTextWriter, method, model, functionName, context, out bool hasHttpTrigger);
+            AddReturnTypeBindings(indentedTextWriter, method, model, functionName, context, hasHttpTrigger, hasOutputBinding);
         }
 
         /// <summary>
         /// Only an Output Binding can be an attribute on a Function method. This method will check if there is one and return it.
         /// </summary>
         /// <exception cref="FormatException">Throws if attributes are formatted or used incorrectly.</exception>
-        private static void AddMethodOutputBinding(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, out bool hasOutputBinding)
+        private static void AddMethodOutputBinding(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, GeneratorExecutionContext context, out bool hasOutputBinding)
         {
             var methodSymbol = model.GetDeclaredSymbol(method);
             var attributes = methodSymbol!.GetAttributes(); // methodSymbol is not null here because it's checked in IsMethodAFunction which is called before bindings are collected/created
@@ -319,7 +320,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (hasOutputBinding)
                     {
-                        throw new FormatException($"Found multiple output attributes on method '{nameof(method)}'. Only one output binding attribute is is supported on a method.");
+                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnAttribute, Location.None, method.ToString()));
+                        return;
                     }
 
                     outputBinding = attribute;
@@ -329,7 +331,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             if (outputBinding != null)
             {
-                WriteBindingToFile(indentedTextWriter, outputBinding, funcName, Constants.ReturnBindingName, null);
+                WriteBindingToFile(indentedTextWriter, outputBinding, funcName, context, Constants.ReturnBindingName, null);
             }
         }
 
@@ -338,7 +340,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
         /// <exception cref="FormatException">Throws if the attributes were used and formatted incorrectly.</exception>
-        private static void AddParameterInputAndTriggerBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, out bool hasHttpTrigger)
+        private static void AddParameterInputAndTriggerBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, GeneratorExecutionContext context, out bool hasHttpTrigger)
         {
             hasHttpTrigger = false;
 
@@ -354,7 +356,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (parameterSymbol is null)
                 {
-                    throw new InvalidOperationException($"The symbol for the parameter '{nameof(parameter)}' could not be found");
+                    context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(parameterSymbol)));
+                    return;
                 }
 
                 // Check to see if any of the attributes associated with this parameter is a BindingAttribute
@@ -363,7 +366,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (IsBindingAttribute(attribute))
                     {
                         string? dataType = null;
-                        string parameterSymbolType = parameterSymbol.Type.GetFullName();
 
                         if (IsHttpTrigger(attribute))
                         {
@@ -379,12 +381,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         if (dataType is null)
                         {
-                            dataType = GetDataTypeFromType(parameterSymbolType);
+                            dataType = parameterSymbol.Type.GetDataTypeFromType();
                         }
 
                         string bindingName = parameter.Identifier.ValueText;
 
-                        WriteBindingToFile(indentedTextWriter, attribute, funcName, bindingName, dataType);
+                        WriteBindingToFile(indentedTextWriter, attribute, funcName, context, bindingName, dataType);
                     }
                 }
             }
@@ -394,23 +396,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Adds bindings found in the ReturnType class of the Function
         /// </summary>
-        /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
-        /// <exception cref="FormatException">Throws if the attributes were used and formatted incorrectly.</exception>
-        private static void AddReturnTypeBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, bool hasHttpTrigger, bool hasOutputBinding)
+        private static void AddReturnTypeBindings(IndentedTextWriter indentedTextWriter, MethodDeclarationSyntax method, SemanticModel model, string funcName, GeneratorExecutionContext context, bool hasHttpTrigger, bool hasOutputBinding)
         {
             TypeSyntax returnTypeSyntax = method.ReturnType;
             ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
 
             if (returnTypeSymbol is null)
             {
-                throw new FormatException("Symbol can't be found.");
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(returnTypeSymbol)));
+                return;
             }
 
             if (returnTypeSymbol != null &&
                 !String.Equals(returnTypeSymbol.GetFullName(), Constants.VoidType, StringComparison.Ordinal) &&
                 !String.Equals(returnTypeSymbol.GetFullName(), Constants.TaskType, StringComparison.Ordinal))
             {
-                if(String.Equals(returnTypeSymbol.GetFullName(), Constants.TaskGenericType, StringComparison.Ordinal)) // Check is we have a Task<T> return type and take out T, the inner type.
+                if(String.Equals(returnTypeSymbol.GetFullName(), Constants.TaskGenericType, StringComparison.Ordinal)) // If there is a Task<T> return type, inspect T, the inner type.
                 {
                     GenericNameSyntax genericSyntax = (GenericNameSyntax) returnTypeSyntax;
                     var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
@@ -444,8 +445,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 {
                                     if (foundPropertyOutputAttr)
                                     {
-                                        throw new FormatException($"Found multiple output attributes on property '{nameof(m)}' defined in the function return type '{nameof(returnTypeSymbol)}'. " +
-                                            $"Only one output binding attribute is is supported on a property.");
+                                        context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnProperty, Location.None, new object[] { nameof(m), nameof(returnTypeSymbol) }));
+                                        return;
                                     }
 
                                     // Check if this attribute is an HttpResponseData type attribute
@@ -453,8 +454,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     {
                                         if (foundHttpOutput)
                                         {
-                                            throw new FormatException($"Found multiple public properties with type '{Constants.HttpResponseType}' defined in output type '{nameof(returnTypeSymbol)}'. " +
-                                                $"Only one HTTP response binding type is supported in your return type definition.");
+                                            context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, Location.None, new object[] { Constants.HttpResponseType, nameof(returnTypeSymbol) }));
+                                            return;
                                         }
 
                                         foundHttpOutput = true;
@@ -469,8 +470,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                             throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
                                         }
 
-                                        string? dataType = GetDataTypeFromType(propertySymbol.Type.GetFullName());
-                                        WriteBindingToFile(indentedTextWriter, attr, funcName, m.Name, dataType);
+                                        string? dataType = propertySymbol.Type.GetDataTypeFromType();
+                                        WriteBindingToFile(indentedTextWriter, attr, funcName, context, m.Name, dataType);
                                     }
 
                                     hasOutputBinding = true;
@@ -516,19 +517,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// This method parses attribute data and symbol info to collect information needed to construct a binding. It then calls a method that will write the binding to the file.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Throws when a symbol cannot be found.</exception>
-        private static void WriteBindingToFile(IndentedTextWriter indentedTextWriter, AttributeData bindingAttrData, string funcName, string bindingName, string? dataType)
+        private static void WriteBindingToFile(IndentedTextWriter indentedTextWriter, AttributeData bindingAttrData, string funcName, GeneratorExecutionContext context, string bindingName, string? dataType)
         {
             IMethodSymbol? attribMethodSymbol = bindingAttrData.AttributeConstructor;
 
             // Check if the attribute constructor has any parameters
             if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
             {
-                throw new InvalidOperationException($"The constructor of attribute with syntax '{nameof(attribMethodSymbol)}' is invalid");
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(attribMethodSymbol)));
+                return;
             }
 
             // Get binding info as a dictionary with keys as the property name and value as the property value
-            IDictionary<string, object> attributeProperties = GetAttributeProperties(attribMethodSymbol, bindingAttrData);
+            IDictionary<string, object> attributeProperties = GetAttributeProperties(attribMethodSymbol, bindingAttrData, context);
 
             if(dataType != null && !attributeProperties.ContainsKey("dataType")) // in some cases, dataType can be added from GetAttributeProperties so make sure dataType hasn't been added yet
             {
@@ -539,24 +540,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             string attributeName = bindingAttrData.AttributeClass!.Name;
 
             // properly format binding types by removing "Attribute" and "Input" descriptors
-            string bindingType = attributeName.Replace("Attribute", "");
-            bindingType = bindingType.Replace("Input", "");
+            string bindingType = attributeName.TrimStringsFromEnd(new string[] { "Attribute", "Input", "Output"});
 
             // Set binding direction
-            string bindingDirection = "In";
-            if (IsOutputBindingAttribute(bindingAttrData))
-            {
-                bindingDirection = "Out";
-            }
+            string bindingDirection = IsOutputBindingAttribute(bindingAttrData) ? "Out" : "In";
 
-            // Create raw binding anonymous type, example:
-            /*  var binding1 = new {
-                name = "req",
-                type = "HttpTrigger",
-                direction = "In",
-                authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
-                methods = new List<string> { "get","post" },
-            };*/
             CreateBindingInfo(indentedTextWriter, funcName, bindingName, bindingType, bindingDirection, attributeProperties);
         }
 
@@ -580,7 +568,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.WriteLine($"direction = \"{bindingDirection}\",");
 
             // Add additional bindingInfo to the anonymous type because some functions have more properties than others
-            // TODO: See how to handle isBatched property here? This seems like the best place for it.
             foreach (var prop in attributeProperties)
             {
                 var propertyName = prop.Key;
@@ -665,41 +652,47 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 if(String.Equals(arg.Key, Constants.IsBatchedKey) &&
                     arg.Value.Value != null)
                 {
-                    var isBatched = (bool)arg.Value.Value;
+                    var isBatched = (bool)arg.Value.Value; // isBatched takes in booleans so we can just type cast it here to use
                     
                     if (isBatched) // if isBatched is true, then we need to check that this parameter is an iterable collection
                     {
                         var parameterSymbolFullName = parameterSymbol.Type.GetFullName();
                         bool isArray = parameterSymbol.Type is IArrayTypeSymbol;
 
-                        if (isArray && !string.Equals(parameterSymbolFullName, Constants.ByteArrayType, StringComparison.Ordinal))
+                        if (isArray && !string.Equals(parameterSymbolFullName, Constants.ByteArrayType, StringComparison.Ordinal)) // we exclude ByteArrayType (byte[]) which is treated as a single object, not an iterable collection
                         {
-                                dataType = GetDataTypeFromType(parameterSymbolFullName);
-                                return true;
+                            dataType = parameterSymbol.Type.GetDataTypeFromType();
+                            return true;
                         }
 
-                        bool isMappingEnumerable = IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableOfKeyValuePair)
-                            || IsOrDerivedFrom(parameterSymbol, Constants.LookupGenericType)
-                            || IsOrDerivedFrom(parameterSymbol, Constants.DictionaryGenericType);
+                        bool isMappingEnumerable = parameterSymbol.IsOrDerivedFrom(Constants.IEnumerableOfKeyValuePair)
+                            || parameterSymbol.IsOrDerivedFrom(Constants.LookupGenericType)
+                            || parameterSymbol.IsOrDerivedFrom(Constants.DictionaryGenericType);
                         if (isMappingEnumerable)
                         {
                             return false;
                         }
 
                         // IEnumerable and not string or dictionary
-                        bool isEnumerableCollection =
-                            !IsStringType(parameterSymbolFullName)
-                            && (IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableType)
-                                || IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableGenericType));
+                        bool isEnumerableOfT = parameterSymbol.IsOrDerivedFrom(Constants.IEnumerableOfT);
+                        bool isEnumerableCollection = !parameterSymbol.Type.IsStringType()
+                            && (parameterSymbol.IsOrDerivedFrom(Constants.IEnumerableType)
+                            || parameterSymbol.IsOrDerivedFrom(Constants.IEnumerableGenericType)
+                            || isEnumerableOfT);
                         if (isEnumerableCollection)
                         {
-                            if (IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableOfStringType))
+                            if (parameterSymbol.IsOrDerivedFrom(Constants.IEnumerableOfStringType))
                             {
                                 dataType = "\"String\"";
                             }
-                            else if (IsOrDerivedFrom(parameterSymbol, Constants.IEnumerableOfBinaryType))
+                            else if (parameterSymbol.IsOrDerivedFrom(Constants.IEnumerableOfBinaryType))
                             {
                                 dataType = "\"Binary\"";
+                            }
+                            else if (isEnumerableOfT)
+                            {
+                                dataType = ResolveIEnumerableOfT(parameterSymbol);
+                                return true;
                             }
                             return true;
                         }
@@ -713,32 +706,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return true;
         }
 
-        private static bool IsOrDerivedFrom(IParameterSymbol parameterSymbol, string typeFullName)
+        private static string ResolveIEnumerableOfT(IParameterSymbol parameterSymbol)
         {
-            var baseType = parameterSymbol.Type;
-
-            while (baseType != null)
-            {
-                if(String.Equals(baseType.GetFullName(), typeFullName, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-                baseType = baseType.BaseType;
-            }
-
-            return false;
+            throw new NotImplementedException();
         }
 
         /// <summary>
         /// Checks if a method is a function by using its full name.
         /// </summary>
-        private static bool IsMethodAFunction(SemanticModel model, MethodDeclarationSyntax method)
+        private static bool IsMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, GeneratorExecutionContext context)
         {
             var methodSymbol = model.GetDeclaredSymbol(method);
 
             if (methodSymbol is null)
             {
-                throw new InvalidOperationException($"The symbol for the parameter '{nameof(method)}' could not be found");
+                context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(methodSymbol)));
+                return false;
             }
 
             foreach (var attr in methodSymbol.GetAttributes())
@@ -760,9 +743,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <param name="attribute">The exact attribute decorating a method/parameter/property declaration.</param>
         private static bool IsBindingAttribute(AttributeData attribute)
         {
-            if (attribute.AttributeClass != null && // this class is the exact type of binding/trigger (QueueTrigger, Queue input binding, etc)
-                attribute.AttributeClass.BaseType != null && // this base type tells you if something is input or output binding
-                attribute.AttributeClass.BaseType.BaseType != null) // this base type is the binding attribute type
+            if (attribute.AttributeClass?.BaseType?.BaseType is not null)
             {
                 return String.Equals(attribute.AttributeClass.BaseType.BaseType.GetFullName(), Constants.BindingAttributeType);
             }
@@ -777,8 +758,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <param name="attribute">The exact attribute decorating a method/parameter/property declaration.</param>
         private static bool IsOutputBindingAttribute(AttributeData attribute)
         {
-            if (attribute.AttributeClass != null &&
-                attribute.AttributeClass.BaseType != null)
+            if (attribute.AttributeClass?.BaseType != null)
             {
                 return String.Equals(attribute.AttributeClass.BaseType.GetFullName(), Constants.OutputBindingAttributeType);
             }
@@ -809,33 +789,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             return false;
-        }
-        private static string? GetDataTypeFromType(string typeFullName)
-        {
-            string? dataType = null;
-
-            if (IsStringType(typeFullName))
-            {
-                dataType = "\"String\"";
-            }
-            // Is binary parameter type
-            else if (IsBinaryType(typeFullName))
-            {
-                dataType = "\"Binary\"";
-            }
-
-            return dataType;
-        }
-
-        private static bool IsStringType(string fullName)
-        {
-            return String.Equals(fullName, Constants.StringType, StringComparison.Ordinal);
-        }
-
-        private static bool IsBinaryType(string fullName)
-        {
-            return String.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal)
-                || String.Equals(fullName, Constants.ReadOnlyMemoryOfBytes, StringComparison.Ordinal);
         }
     }
 }

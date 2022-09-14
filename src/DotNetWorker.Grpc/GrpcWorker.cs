@@ -241,15 +241,16 @@ namespace Microsoft.Azure.Functions.Worker
 
                 foreach (var func in functionMetadataList)
                 {
-                    if (func.RawBindings is null)
-                    {
-                        throw new InvalidOperationException($"Functions must declare at least one binding. No bindings were found in the function ${nameof(func)}.");
-                    }
-
                     if (func is null)
                     {
                         continue;
                     }
+
+                    if (func.RawBindings is null || func.RawBindings?.Any() != true)
+                    {
+                        throw new InvalidOperationException($"Functions must declare at least one binding. No bindings were found in the function ${nameof(func)}.");
+                    }
+
                     var rpcFuncMetadata = func switch
                     {
                         RpcFunctionMetadata rpc => rpc,

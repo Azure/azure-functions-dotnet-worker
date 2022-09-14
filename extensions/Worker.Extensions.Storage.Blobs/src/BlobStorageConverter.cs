@@ -29,12 +29,12 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            var blobName = bindingData.Properties["blob_name"];
-            var containerName = bindingData.Properties["blob_container"];
-            var connectionName = bindingData.Properties["connection_name"];
+            bindingData.Properties.TryGetValue("blob_name", out var blobName);
+            bindingData.Properties.TryGetValue("container_name", out var containerName);
+            bindingData.Properties.TryGetValue("connection_name", out var connectionName);
             var connectionString = Environment.GetEnvironmentVariable(connectionName);
 
-            object result = ToTargetType(context.TargetType, connectionString, connectionName, blobName);
+            object result = ToTargetType(context.TargetType, connectionString, containerName, blobName);
 
             if (result is not null)
             {
@@ -80,11 +80,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
         private T CreateBlobReference<T>(string connectionString, string containerName, string blobName) where T : BlobBaseClient
         {
-            BlobBaseClient blob;
-            BlobContainerClient container = new(connectionString, containerName);
             Type targetType = typeof(T);
+            BlobContainerClient container = new(connectionString, containerName);
 
-            blob = targetType switch {
+            BlobBaseClient blob = targetType switch {
                 Type _ when targetType == typeof(BlobClient)        => container.GetBlobClient(blobName),
                 Type _ when targetType == typeof(BlockBlobClient)   => container.GetBlockBlobClient(blobName),
                 Type _ when targetType == typeof(PageBlobClient)    => container.GetPageBlobClient(blobName),

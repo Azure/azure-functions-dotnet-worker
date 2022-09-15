@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -267,14 +268,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var model = compilation.GetSemanticModel(method.SyntaxTree);
                 
-                if(!IsMethodAzureFunction(model, method, context))
+                if(!IsMethodAzureFunction(model, method, context, out string functionName))
                 {
                     continue;
                 }
 
                 var functionClass = (ClassDeclarationSyntax)method.Parent!;
-                var functionName = functionClass.Identifier.ValueText;
-                var entryPoint = assemblyName + "." + functionName + "." + method.Identifier.ValueText;
+                var functionClassName = functionClass.Identifier.ValueText;
+                var entryPoint = assemblyName + "." + functionClassName + "." + method.Identifier.ValueText;
                 var bindingsListName = functionName + "RawBindings";
 
                 // collect Bindings
@@ -503,7 +504,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         private static void AddHttpReturnBinding(IndentedTextWriter indentedTextWriter, string funcName, string bindingName)
         {
-            indentedTextWriter.WriteLine($"var {funcName}{bindingName.Replace("$", "")}Binding = new {{");
+            indentedTextWriter.WriteLine($"var {funcName}{Regex.Replace(bindingName, "[^a-zA-Z]", "")}Binding = new {{");
             indentedTextWriter.Indent++;
             indentedTextWriter.WriteLine($"name = \"{bindingName}\",");
             indentedTextWriter.WriteLine("type = \"http\",");
@@ -511,7 +512,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             indentedTextWriter.Indent--;
             indentedTextWriter.WriteLine("};");
 
-            SerializeAnonymousBindingAsJsonString(indentedTextWriter, funcName, bindingName.Replace("$", ""));
+            SerializeAnonymousBindingAsJsonString(indentedTextWriter, funcName, bindingName);
         }
 
         /// <summary>
@@ -561,7 +562,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 authLevel = Enum.GetName(typeof(AuthorizationLevel),0),
                 methods = new List<string> { "get","post" },
             };*/
-            indentedTextWriter.WriteLine($"var {functionName}{bindingName}Binding = new {{");
+            indentedTextWriter.WriteLine($"var {functionName}{Regex.Replace(bindingName, "[^a-zA-Z]", "")}Binding = new {{");
             indentedTextWriter.Indent++;
             indentedTextWriter.WriteLine($"name = \"{bindingName}\",");
             indentedTextWriter.WriteLine($"type = \"{bindingType}\",");
@@ -593,8 +594,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         private static void SerializeAnonymousBindingAsJsonString(IndentedTextWriter indentedTextWriter, string functionName, string bindingName)
         {
-            indentedTextWriter.WriteLine($"var {functionName}{bindingName}BindingJSONstring = JsonSerializer.Serialize({functionName}{bindingName}Binding);");
-            indentedTextWriter.WriteLine($"{functionName}RawBindings.Add({functionName}{bindingName}BindingJSONstring);");
+            var bindingNameParsed = Regex.Replace(bindingName, "[^a-zA-Z]", "");
+            indentedTextWriter.WriteLine($"var {functionName}{bindingNameParsed}BindingJSONstring = JsonSerializer.Serialize({functionName}{bindingNameParsed}Binding);");
+            indentedTextWriter.WriteLine($"{functionName}RawBindings.Add({functionName}{bindingNameParsed}BindingJSONstring);");
         }
 
         /// <summary>
@@ -714,8 +716,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Checks if a method is a function by using its full name.
         /// </summary>
-        private static bool IsMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, GeneratorExecutionContext context)
+        private static bool IsMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, GeneratorExecutionContext context, out string functionName)
         {
+            functionName = String.Empty;
             var methodSymbol = model.GetDeclaredSymbol(method);
 
             if (methodSymbol is null)
@@ -729,6 +732,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 if (attr.AttributeClass != null &&
                    String.Equals(attr.AttributeClass.GetFullName(), Constants.FunctionNameType))
                 {
+                    functionName = (string) attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
                     return true;
                 }
             }

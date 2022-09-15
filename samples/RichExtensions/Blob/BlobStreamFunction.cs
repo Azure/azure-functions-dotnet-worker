@@ -3,7 +3,6 @@
 
 using System.IO;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 

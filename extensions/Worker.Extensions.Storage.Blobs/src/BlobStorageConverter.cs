@@ -3,16 +3,9 @@
 
 using System;
 using System.IO;
-using System.Threading;
-using System.Runtime;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
-using Microsoft.Azure.Functions.Worker.Converters;
-using System.Net.Mime;
-using System.Text.Json.Serialization;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Microsoft.Azure.Functions.Worker.Core;
 
 namespace Microsoft.Azure.Functions.Worker.Converters

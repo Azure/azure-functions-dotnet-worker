@@ -9,147 +9,52 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
-    public class FunctionMetadataProviderGeneratorTests
+    public partial class FunctionMetadataProviderGeneratorTests
     {
-        private Assembly[] referencedExtensionAssemblies;
-
-        public FunctionMetadataProviderGeneratorTests()
+        public class IntegratedTriggersAndBindingsTests
         {
-            // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
-            var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
-            var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-            var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
-            var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
-            var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
-            var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
-            var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
-            var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
-            var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
-            var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
-            var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
-            var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
-            var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
+            private Assembly[] referencedExtensionAssemblies;
 
-            referencedExtensionAssemblies = new[]
+            public IntegratedTriggersAndBindingsTests()
             {
-                abstractionsExtension,
-                httpExtension,
-                storageExtension,
-                cosmosDBExtension,
-                timerExtension,
-                eventHubsExtension,
-                blobExtension,
-                queueExtension,
-                loggerExtension,
-                hostingExtension,
-                hostingAbExtension,
-                diExtension,
-                diAbExtension
-            };
+                // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
+                var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
+                var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
+                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
+                var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
+                var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
+                var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
+                var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
+                var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
+                var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
+                var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
+                var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
+                var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
+                var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
 
-        }
-
-        [Fact]
-        public async Task GenerateSimpleHttpTriggerMetadataTest()
-        {
-            // test generating function metadata for a simple HttpTrigger
-            string inputCode = @"
-            using System;
-            using System.Collections.Generic;
-            using System.Diagnostics;
-            using System.Net;
-            using Microsoft.Azure.Functions.Worker;
-            using Microsoft.Azure.Functions.Worker.Http;
-            using Microsoft.Extensions.Logging;
-
-            namespace FunctionApp
-            {
-                public static class HttpTriggerSimple
+                referencedExtensionAssemblies = new[]
                 {
-                    [Function(nameof(HttpTriggerSimple))]
-                    public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, 'get', 'post', Route = null)] HttpRequestData req, FunctionContext executionContext)
-                    {
-                        throw new NotImplementedException();
-                    }
-                }
-            }".Replace("'", "\"");
+                    abstractionsExtension,
+                    httpExtension,
+                    storageExtension,
+                    cosmosDBExtension,
+                    timerExtension,
+                    eventHubsExtension,
+                    blobExtension,
+                    queueExtension,
+                    loggerExtension,
+                    hostingExtension,
+                    hostingAbExtension,
+                    diExtension,
+                    diAbExtension
+                };
+            }
 
-  
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Http;
-namespace Microsoft.Azure.Functions.Worker
-{
-    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)0,
-                methods = new List<string> { 'get','post' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                name = '$return',
-                type = 'http',
-                direction = 'Out',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0 = new DefaultFunctionMetadata
+            [Fact]
+            public async Task GenerateFunctionWhereOutputBindingIsInTheReturnTypeTest()
             {
-                FunctionId = Guid.NewGuid().ToString(),
-                Language = 'dotnet-isolated',
-                Name = 'HttpTriggerSimple',
-                EntryPoint = 'TestProject.HttpTriggerSimple.Run',
-                RawBindings = Function0RawBindings,
-                ScriptFile = 'TestProject.dll'
-            };
-            metadataList.Add(Function0);
-            return Task.FromResult(metadataList.ToImmutableArray());
-        }
-    }
-    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-    {
-        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-        {
-            builder.ConfigureServices(s => 
-            {
-                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-            });
-            return builder;
-        }
-    }
-}
-".Replace("'", "\"");
-
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
-
-        [Fact]
-        public async Task GenerateFunctionWhereOutputBindingIsInTheReturnTypeTest()
-        {
-            // test generating function metadata for a simple HttpTrigger
-            string inputCode = @"
+                // test generating function metadata for a simple HttpTrigger
+                string inputCode = @"
             using System;
             using System.Net;
             using Microsoft.Azure.Functions.Worker;
@@ -177,8 +82,8 @@ namespace Microsoft.Azure.Functions.Worker
             }".Replace("'", "\"");
 
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -249,17 +154,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async Task FunctionWithStringDataTypeInputBindingTest()
-        {
-            string inputCode = @"
+            [Fact]
+            public async Task FunctionWithStringDataTypeInputBindingTest()
+            {
+                string inputCode = @"
             using System.Net;
             using System.Text.Json;
             using Microsoft.Azure.Functions.Worker;
@@ -305,8 +210,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -387,17 +292,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async Task FunctionWithNonFunctionsRelatedAttributeTest()
-        {
-            string inputCode = @"
+            [Fact]
+            public async Task FunctionWithNonFunctionsRelatedAttributeTest()
+            {
+                string inputCode = @"
             using System;
             using System.Net;
             using System.Text.Json;
@@ -430,8 +335,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -493,17 +398,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void FunctionWithTaskReturnTypeTest()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void FunctionWithTaskReturnTypeTest()
+            {
+                string inputCode = @"
                 using System;
                 using System.Net;
                 using System.Text.Json;
@@ -524,8 +429,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 ".Replace("'", "\"");
 
-         string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-        string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -579,17 +484,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-        await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-            referencedExtensionAssemblies,
-            inputCode,
-            expectedGeneratedFileName,
-            expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void FunctionWithGenericTaskReturnTypeTest()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void FunctionWithGenericTaskReturnTypeTest()
+            {
+                string inputCode = @"
                 using System;
                 using System.Net;
                 using System.Text.Json;
@@ -610,8 +515,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 ".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -674,17 +579,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void FunctionWithIsBatchedFalse()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void FunctionWithIsBatchedFalse()
+            {
+                string inputCode = @"
                 using System;
                 using System.Net;
                 using System.Text.Json;
@@ -706,8 +611,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 ".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -763,17 +668,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void ValidFunctionWithIsBatchedTrue()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void ValidFunctionWithIsBatchedTrue()
+            {
+                string inputCode = @"
                 using System;
                 using System.Net;
                 using System.Text.Json;
@@ -795,8 +700,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 ".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -852,17 +757,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void TestQueueWithFunctionsReturnType()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void TestQueueWithFunctionsReturnType()
+            {
+                string inputCode = @"
                 using System.Collections.Generic;
                 using System.Linq;
                 using System.Net;
@@ -883,8 +788,8 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -946,17 +851,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void FunctionWithEventHubsGenericEnumerableOfByteArray()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void FunctionWithEventHubsGenericEnumerableOfByteArray()
+            {
+                string inputCode = @"
                 using System;
                 using System.Net;
                 using System.Collections.Generic;
@@ -979,8 +884,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 ".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1036,17 +941,17 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
-        }
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
 
-        [Fact]
-        public async void FunctionWithEventHubsGenericEnumerableOfT()
-        {
-            string inputCode = @"
+            [Fact]
+            public async void FunctionWithEventHubsGenericEnumerableOfT()
+            {
+                string inputCode = @"
                 using System;
                 using System.Net;
                 using System.Collections.Generic;
@@ -1069,8 +974,8 @@ namespace Microsoft.Azure.Functions.Worker
                 }
                 ".Replace("'", "\"");
 
-            string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-            string expectedOutput = @"// <auto-generated/>
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = @"// <auto-generated/>
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -1125,11 +1030,13 @@ namespace Microsoft.Azure.Functions.Worker
 }
 ".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                referencedExtensionAssemblies,
-                inputCode,
-                expectedGeneratedFileName,
-                expectedOutput);
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
         }
+       
     }
 }

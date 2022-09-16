@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators.Enums;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators.Extensions;
 using Microsoft.CodeAnalysis;

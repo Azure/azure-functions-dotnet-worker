@@ -62,5 +62,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     messageFormat: "Found multiple public properties with type '{0}' defined in output type '{1}'.Only one HTTP response binding type is supported in your return type definition.",
                     category: "FunctionMetdataGeneration",
                     severity: DiagnosticSeverity.Error);
+        public static DiagnosticDescriptor InvalidEventHubsTrigger { get; }
+                  = Create(id: "AZFW0010",
+                    title: "EventHub Trigger invalid.",
+                    messageFormat: "The EventHub trigger on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
+                    category: "FunctionMetdataGeneration",
+                    severity: DiagnosticSeverity.Error);
     }
 }

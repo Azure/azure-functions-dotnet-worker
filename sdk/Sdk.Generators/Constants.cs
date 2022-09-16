@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string OutputBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";
         internal const string FunctionNameType = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
         internal const string HttpResponseType = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
-        internal const string EventHubsTriggerType = "Microsoft.Azure.Functions.Worker.Extensions.EventHubs.EventHubTriggerAttribute";
+        internal const string EventHubsTriggerType = "Microsoft.Azure.Functions.Worker.EventHubTriggerAttribute";
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";
@@ -22,6 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string GenericIEnumerableArgumentName = "T";
         internal const string StringType = "System.String";
         internal const string ByteArrayType = "System.Byte[]";
+        internal const string ByteStructType = "System.Byte";
         internal const string TaskGenericType = "System.Threading.Tasks.Task`1";
         internal const string TaskType = "System.Threading.Tasks.Task";
         internal const string VoidType = "System.Void";
@@ -33,5 +34,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string HttpResponseBindingName = "HttpResponse";
         internal const string HttpTriggerBindingType = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
         internal const string IsBatchedKey = "IsBatched";
+
+        // Enum conversion constants
+        internal const string CardinalityManyString = "Many";
+        internal const string CardinalityOneString = "One";
+        internal const string StringDataType = "String";
+        internal const string BinaryDataType = "Binary";
     }
 }

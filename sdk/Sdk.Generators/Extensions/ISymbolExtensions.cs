@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 
@@ -57,34 +59,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return false;
         }
 
-        internal static string? GetDataTypeFromType(this ITypeSymbol symbol)
+        internal static bool IsOrDerivedFrom(this ITypeSymbol symbol, ITypeSymbol? other)
         {
-            string? dataType = null;
-
-            if (symbol.IsStringType())
+            if (other is null)
             {
-                dataType = "\"String\"";
-            }
-            // Is binary parameter type
-            else if (symbol.IsBinaryType())
-            {
-                dataType = "\"Binary\"";
+                return false;
             }
 
-            return dataType;
-        }
+            var current = symbol;
 
-        internal static bool IsStringType(this ITypeSymbol symbol)
-        {
-            var fullName = symbol.GetFullName();
-            return String.Equals(fullName, Constants.StringType, StringComparison.Ordinal);
-        }
+            while (current != null)
+            {
+                if(SymbolEqualityComparer.Default.Equals(current, other) || SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, other))
+                {
+                    return true;
+                }
+                current = current.BaseType;
+            }
 
-        internal static bool IsBinaryType(this ITypeSymbol symbol)
-        {
-            var fullName = symbol.GetFullName();
-            return String.Equals(fullName, Constants.ByteArrayType, StringComparison.Ordinal)
-                || String.Equals(fullName, Constants.ReadOnlyMemoryOfBytes, StringComparison.Ordinal);
+            return false;
         }
     }
 }

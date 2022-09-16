@@ -25,7 +25,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
   </ItemGroup>
 
@@ -35,7 +35,7 @@
   </ItemGroup>
 
   <!--For applications using the .NET Standard 2.0 target/.NET Framework apps
-    we use the legacy Grpc.Core package instead, due to limitations with the current 
+    we use the legacy Grpc.Core package instead, due to limitations with the current
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Grpc.Core" Version="2.45.0" />

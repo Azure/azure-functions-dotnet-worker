@@ -74,10 +74,41 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     return true;
                 }
+
                 current = current.BaseType;
             }
 
             return false;
+        }
+
+        internal static bool IsOrImplements(this ITypeSymbol symbol, ITypeSymbol? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            var current = symbol;
+
+            while (current != null)
+            {
+                foreach (var member in current.Interfaces)
+                {
+                    if (member.IsOrDerivedFrom(other))
+                    {
+                        return true;
+                    }
+                }
+
+                current = current.BaseType;
+            }
+
+            return false;
+        }
+
+        internal static bool IsOrImplementsOrDerivesFrom(this ITypeSymbol symbol, ITypeSymbol? other)
+        {
+            return symbol.IsOrImplements(other) || symbol.IsOrDerivedFrom(other);
         }
     }
 }

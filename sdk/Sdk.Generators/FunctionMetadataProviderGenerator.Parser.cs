@@ -602,63 +602,49 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-                bool isArray = parameterSymbol.Type is IArrayTypeSymbol;
+                bool isArray = parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, _compilation.GetTypeByMetadataName(Constants.ByteArrayType));
 
-                if (isArray && !SymbolEqualityComparer.Default.Equals(parameterSymbol, _compilation.GetTypeByMetadataName(Constants.TaskType))) // we exclude ByteArrayType (byte[]) which is treated as a single object, not an iterable collection
+                if (isArray && !SymbolEqualityComparer.Default.Equals(parameterSymbol, _compilation.GetTypeByMetadataName(Constants.TaskType)))
                 {
                     dataType = GetDataType(parameterSymbol.Type);
                     cardinality = Cardinality.Many;
                     return true;
                 }
 
-                var isGenericEnumerable = parameterSymbol.Type.IsOrDerivedFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType));
+                // we check if it's a generic of IEnumerable, IList, or HashSet
+                // Roslyn symbols will give us inheritance (Object -> HashSet) but won't recognize that HashSet implements IEnumerable so we have to check
+                // for it specifically.
+                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType));
+
+                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableType));
 
                 // Check if mapping type
-                if (parameterSymbol.Type.IsOrDerivedFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableOfKeyValuePair))
-                    || parameterSymbol.Type.IsOrDerivedFrom(_compilation.GetTypeByMetadataName(Constants.LookupGenericType))
-                    || parameterSymbol.Type.IsOrDerivedFrom(_compilation.GetTypeByMetadataName(Constants.DictionaryGenericType)))
+                if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableOfKeyValuePair))
+                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_compilation.GetTypeByMetadataName(Constants.LookupGenericType))
+                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_compilation.GetTypeByMetadataName(Constants.DictionaryGenericType)))
                 {
                     return false;
                 }
 
                 // IEnumerable and not string or dictionary
-                if (!IsStringType(parameterSymbol.Type) && isGenericEnumerable)
+                if (!IsStringType(parameterSymbol.Type) && (isGenericEnumerable || isEnumerable))
                 {
-                    if(parameterTypeSyntax is null)
-                    {
-                        return false;
-                    }
-
-                    GenericNameSyntax genericSyntax = (GenericNameSyntax) parameterTypeSyntax;
-                    var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.FirstOrDefault();
-
-                    if (innerTypeSyntax is null)
-                    {
-                        return false;
-                    }
-
-                    var innerTypeSymbol = model.GetSymbolInfo(innerTypeSyntax).Symbol as ITypeSymbol;
-
-                    if (innerTypeSymbol is null)
-                    {
-                        return false;
-                    }
-                    
-                    if (IsStringType(innerTypeSymbol))
+                    cardinality = Cardinality.Many;
+                    if (IsStringType(parameterSymbol.Type))
                     {
                         dataType = DataType.String;
-                        cardinality = Cardinality.Many;
-                        return true;
                     }
-                    else if (IsBinaryType(innerTypeSymbol))
+                    else if (IsBinaryType(parameterSymbol.Type))
                     {
                         dataType = DataType.Binary;
-                        cardinality = Cardinality.Many;
-                        return true;
                     }
-                    else // if this is a generic enumerable but wasn't caught by the previous two cases, we assume it is some IEnumerable<T>
+                    else if (isGenericEnumerable) // if this is a generic enumerable but wasn't caught by the previous two cases, we assume it is some IEnumerable<T>
                     {
-                        cardinality = Cardinality.Many;
+                        if(parameterTypeSyntax is null)
+                        {
+                            return false;
+                        }
+
                         dataType = ResolveIEnumerableOfT(parameterSymbol, parameterTypeSyntax, model, out bool hasError);
 
                         if(hasError)
@@ -668,6 +654,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         return true;
                     }
+                    return true;
                 }
                 
                 // trigger input type doesn't match any of the valid cases so return false
@@ -680,27 +667,44 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var currentSyntax = parameterSyntax;
                 hasError = false;
 
-                while(currentSyntax is GenericNameSyntax genericSyntax)
+                var currSymbol = parameterSymbol.Type;
+                INamedTypeSymbol? finalSymbol = null;
+
+                while(currSymbol != null)
                 {
-                    var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.FirstOrDefault(); // at this point we've passed the check for mapping types - should only have one inner type
-                    currentSyntax = innerTypeSyntax;
+                    INamedTypeSymbol? genericInterfaceSymbol = null;
+
+                    if (currSymbol.IsOrDerivedFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType)) && currSymbol is INamedTypeSymbol currNamedSymbol)
+                    {
+                        finalSymbol = currNamedSymbol;
+                        break;
+                    }
+
+                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(_compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType))).FirstOrDefault();
+                    if(genericInterfaceSymbol != null)
+                    {
+                        finalSymbol = genericInterfaceSymbol;
+                        break;
+                    }
+
+                    currSymbol = currSymbol.BaseType;
                 }
 
-                if(currentSyntax is null)
+                if (finalSymbol is null)
                 {
                     hasError = true;
                     return result;
                 }
 
-                var innerTypeSymbol = model.GetSymbolInfo(currentSyntax).Symbol as ITypeSymbol;
+                var argument = finalSymbol.TypeArguments.FirstOrDefault(); // we've already checked and discarded mapping types by this point - should be a single argument
 
-                if (innerTypeSymbol is null)
+                if(argument is null)
                 {
-                    hasError = false;
+                    hasError = true;
                     return result;
                 }
 
-                return GetDataType(innerTypeSymbol);
+                return GetDataType(argument);
             }
 
             private DataType GetDataType(ITypeSymbol symbol)
@@ -726,9 +730,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool IsBinaryType(ITypeSymbol symbol)
             {
-                return SymbolEqualityComparer.Default.Equals(symbol, _compilation.GetTypeByMetadataName(Constants.ByteArrayType))
-                    || SymbolEqualityComparer.Default.Equals(symbol, _compilation.GetTypeByMetadataName(Constants.ReadOnlyMemoryOfBytes))
+                var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, _compilation.GetTypeByMetadataName(Constants.ByteArrayType))
                     || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, _compilation.GetTypeByMetadataName(Constants.ByteStructType)));
+                var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, _compilation.GetTypeByMetadataName(Constants.ReadOnlyMemoryOfBytes));
+                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray && 
+                    outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, _compilation.GetTypeByMetadataName(Constants.ByteStructType));
+
+
+                return isByteArray || isReadOnlyMemoryOfBytes || isArrayOfByteArrays;
             }
         }
     }

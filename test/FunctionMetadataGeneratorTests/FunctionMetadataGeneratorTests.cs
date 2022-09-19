@@ -215,6 +215,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "queueName", "queue2" },
                 });
             }
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
         }
 
         [Fact]

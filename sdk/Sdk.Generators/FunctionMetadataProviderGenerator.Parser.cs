@@ -353,7 +353,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         foreach (var m in members)
                         {
-                            if (m.GetAttributes().Length > 0)
+                            // Check if this attribute is an HttpResponseData type attribute
+                            if (m is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, _compilation.GetTypeByMetadataName(Constants.HttpResponseType)))
+                            {
+                                if (foundHttpOutput)
+                                {
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnProperty, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
+                                    return new List<IDictionary<string, string>>();
+                                }
+
+                                foundHttpOutput = true;
+                                result.Add(GetHttpReturnBinding(m.Name));
+                            }
+                            else if (m.GetAttributes().Length > 0)
                             {
                                 var foundPropertyOutputAttr = false;
 
@@ -367,44 +379,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                             return new List<IDictionary<string, string>>();
                                         }
 
-                                        // Check if this attribute is an HttpResponseData type attribute
-                                        if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _compilation.GetTypeByMetadataName(Constants.HttpResponseType)))
+                                        IPropertySymbol? propertySymbol = m as IPropertySymbol;
+
+                                        if (propertySymbol is null)
                                         {
-                                            if (foundHttpOutput)
-                                            {
-                                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnProperty, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
-                                                return new List<IDictionary<string, string>>();
-                                            }
-
-                                            foundHttpOutput = true;
-                                            result.Add(GetHttpReturnBinding(Constants.ReturnBindingName));
+                                            throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
                                         }
-                                        else
+
+                                        var location = m.Locations.FirstOrDefault();
+                                        if (location is null)
                                         {
-                                            IPropertySymbol? propertySymbol = m as IPropertySymbol;
-
-                                            if (propertySymbol is null)
-                                            {
-                                                throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
-                                            }
-
-                                            var location = m.Locations.FirstOrDefault();
-                                            if (location is null)
-                                            {
-                                                location = Location.None;
-                                            }
-
-                                            var binding = CreateBindingDict(attr, m.Name, location, out bool creationError);
-
-                                            if (creationError)
-                                            {
-                                                hasError = true;
-                                                return new List<IDictionary<string, string>>();
-                                            }
-
-                                            result.Add(binding);
-
+                                            location = Location.None;
                                         }
+
+                                        var binding = CreateBindingDict(attr, m.Name, location, out bool creationError);
+
+                                        if (creationError)
+                                        {
+                                            hasError = true;
+                                            return new List<IDictionary<string, string>>();
+                                        }
+
+                                        result.Add(binding);
 
                                         hasOutputBinding = true;
                                         foundPropertyOutputAttr = true;
@@ -415,7 +411,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
 
                         // No output bindings found in the return type.
-                        if (hasHttpTrigger)
+                        if (hasHttpTrigger && !foundHttpOutput)
                         {
                             if (!hasOutputBinding)
                             {

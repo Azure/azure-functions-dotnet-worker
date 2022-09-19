@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Reflection;
@@ -830,6 +831,41 @@ namespace Microsoft.Azure.Functions.Worker
 ".Replace("'", "\"");
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
+
+            [Fact]
+            public async void CardinalityManyWithNonIterableInputFails()
+            {
+                var inputCode = @"using System;
+                using System.Net;
+                using System.Collections;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                namespace FunctionApp
+                {
+                    public class EventHubsInput
+                    {
+                        [Function(""InvalidEventHubsTrigger"")]
+                        public static void InvalidEventHubsTrigger([EventHubTrigger(""test"", Connection = ""EventHubConnectionAppSetting"")] string input,
+                            FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
                     referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,

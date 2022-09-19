@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async Task GenerateFunctionWhereOutputBindingIsInTheReturnTypeTest()
+            public async Task FunctionWhereOutputBindingIsInTheReturnType()
             {
                 // test generating function metadata for a simple HttpTrigger
                 string inputCode = @"
@@ -161,7 +161,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             [Fact]
-            public async Task FunctionWithStringDataTypeInputBindingTest()
+            public async Task FunctionWithStringDataTypeInputBinding()
             {
                 string inputCode = @"
             using System.Net;
@@ -299,7 +299,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             [Fact]
-            public async Task FunctionWithNonFunctionsRelatedAttributeTest()
+            public async Task FunctionWithNonFunctionsRelatedAttribute()
             {
                 string inputCode = @"
             using System;
@@ -405,7 +405,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             [Fact]
-            public async void FunctionWithTaskReturnTypeTest()
+            public async void FunctionWithTaskReturnType()
             {
                 string inputCode = @"
                 using System;
@@ -491,7 +491,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             [Fact]
-            public async void FunctionWithGenericTaskReturnTypeTest()
+            public async void FunctionWithGenericTaskReturnType()
             {
                 string inputCode = @"
                 using System;
@@ -545,7 +545,7 @@ namespace Microsoft.Azure.Functions.Worker
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
-                name = '$return',
+                name = 'Result',
                 type = 'http',
                 direction = 'Out',
             };
@@ -579,6 +579,43 @@ namespace Microsoft.Azure.Functions.Worker
 ".Replace("'", "\"");
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
+
+            [Fact]
+            public async void MultipleOutputOnMethodFails()
+            {
+                var inputCode = @"using System;
+                using System.Net;
+                using System.Collections;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                namespace FunctionApp
+                {
+                    public class EventHubsInput
+                    {
+                        [Function(""QueueToBlobFunction"")]
+                        [BlobOutput(""container1/hello.txt"", Connection = ""MyOtherConnection"")]
+                        [QueueOutput(""queue2"")]
+                        public string QueueToBlob(
+                            [QueueTrigger(""queueName"", Connection = ""MyConnection"")] string queuePayload)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
                     referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,

@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators.Enums;
-using Microsoft.Azure.Functions.Worker.Sdk.Generators.Extensions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
@@ -193,7 +192,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var attribute in attributes)
                 {
-                    if (attribute.IsBindingAttribute())
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, _compilation.GetTypeByMetadataName(Constants.BindingAttributeType)))
                     {
                         if (hasOutputBinding)
                         {
@@ -249,17 +248,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     // Check to see if any of the attributes associated with this parameter is a BindingAttribute
                     foreach (var attribute in parameterSymbol.GetAttributes())
                     {
-                        if (attribute.IsBindingAttribute())
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, _compilation.GetTypeByMetadataName(Constants.BindingAttributeType)))
                         {
                             var validEventHubs = false;
                             var cardinality = Cardinality.Undefined;
                             var dataType = GetDataType(parameterSymbol.Type);
 
-                            if (attribute.IsHttpTrigger())
+                            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _compilation.GetTypeByMetadataName(Constants.HttpTriggerBindingType)))
                             {
                                 hasHttpTrigger = true;
                             }
-                            else if (attribute.IsEventHubsTrigger())
+                            else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _compilation.GetTypeByMetadataName(Constants.EventHubsTriggerType)))
                             {
                                 validEventHubs = IsEventHubsTriggerValid(parameterSymbol, parameter.Type, model, attribute, out dataType, out cardinality);
                                 if (!validEventHubs) // we need the parameterSymbol to validate the EventHubs trigger, so we'll validate it at this step
@@ -371,7 +370,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                                 foreach (var attr in m.GetAttributes())
                                 {
-                                    if (attr.IsBindingAttribute())
+                                    if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType?.BaseType, _compilation.GetTypeByMetadataName(Constants.BindingAttributeType)))
                                     {
                                         if (foundPropertyOutputAttr)
                                         {
@@ -467,7 +466,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string bindingType = attributeName.TrimStringsFromEnd(new string[] { "Attribute", "Input", "Output" });
 
                 // Set binding direction
-                string bindingDirection = bindingAttrData.IsOutputBindingAttribute() ? "Out" : "In";
+                string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, _compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)) ? "Out" : "In";
 
                 var bindingDict = new Dictionary<string, string>();
                 bindingDict.Add("name", FormatObject(bindingName));

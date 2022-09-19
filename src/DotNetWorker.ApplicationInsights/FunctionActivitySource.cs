@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
@@ -18,16 +19,17 @@ namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
 
         public static Activity? StartInvoke(FunctionContext context)
         {
-            var activity = _activitySource.StartActivity("Invoke", ActivityKind.Internal, context.TraceContext.TraceParent);
-
-            if (activity is not null)
-            {
-                activity.AddTag(InvocationIdKey, context.InvocationId);
-                activity.AddTag(NameKey, context.FunctionDefinition.Name);
-                activity.AddTag(ProcessIdKey, _processId);
-            }
+            var activity = _activitySource.StartActivity("Invoke", ActivityKind.Internal, context.TraceContext.TraceParent,
+                tags: GetTags(context));
 
             return activity;
+        }
+
+        private static IEnumerable<KeyValuePair<string, object?>> GetTags(FunctionContext context)
+        {
+            yield return new KeyValuePair<string, object?>(InvocationIdKey, context.InvocationId);
+            yield return new KeyValuePair<string, object?>(NameKey, context.FunctionDefinition.Name);
+            yield return new KeyValuePair<string, object?>(ProcessIdKey, _processId);
         }
     }
 }

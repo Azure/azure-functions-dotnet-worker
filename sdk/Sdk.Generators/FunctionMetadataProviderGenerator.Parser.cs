@@ -207,7 +207,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
                         if (hasOutputBinding)
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnAttribute, bindingLocation, method.ToString()));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, bindingLocation, method.ToString()));
                             hasError = true;
                             return new List<IDictionary<string, string>>();
                         }
@@ -377,7 +377,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 if (foundHttpOutput)
                                 {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnProperty, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
                                     return new List<IDictionary<string, string>>();
                                 }
 
@@ -395,7 +395,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                         // validate that there's only one binding attribute per proeprty
                                         if (foundPropertyOutputAttr)
                                         {
-                                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsOnProperty, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
+                                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
                                             return new List<IDictionary<string, string>>();
                                         }
 

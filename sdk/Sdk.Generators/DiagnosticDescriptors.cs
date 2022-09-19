@@ -28,10 +28,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     category: "Startup",
                     severity: DiagnosticSeverity.Error);
 
-        public static DiagnosticDescriptor MultipleBindingsOnAttribute { get; }
+        public static DiagnosticDescriptor MultipleBindingsGroupedTogether { get; }
                 = Create(id: "AZFW0005",
-                    title: "Method has multiple bindings associated with it.",
-                    messageFormat: "'{0}' method must have only one binding attribute.",
+                    title: "Multiple bindings are grouped together on one property, method, or parameter syntax.",
+                    messageFormat: "'{0}' must have only one binding attribute.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
@@ -49,21 +49,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     category: "FunctionMetdataGeneration",
                     severity: DiagnosticSeverity.Error);
 
-        public static DiagnosticDescriptor MultipleBindingsOnProperty { get; }
-                 = Create(id: "AZFW0008",
-                    title: "Property has multiple bindings associated with it.",
-                    messageFormat: "Found multiple output attributes on property '{0}' defined in the function return type '{1}'. Only one output binding attribute is is supported on a property.",
-                    category: "FunctionMetdataGeneration",
-                    severity: DiagnosticSeverity.Error);
-
         public static DiagnosticDescriptor MultipleHttpResponseTypes { get; }
-                  = Create(id: "AZFW0009",
+                  = Create(id: "AZFW0008",
                     title: "Symbol could not be found in user compilation.",
                     messageFormat: "Found multiple public properties with type '{0}' defined in output type '{1}'.Only one HTTP response binding type is supported in your return type definition.",
                     category: "FunctionMetdataGeneration",
                     severity: DiagnosticSeverity.Error);
+
         public static DiagnosticDescriptor InvalidEventHubsTrigger { get; }
-                  = Create(id: "AZFW0010",
+                  = Create(id: "AZFW0009",
                     title: "EventHub Trigger invalid.",
                     messageFormat: "The EventHub trigger on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
                     category: "FunctionMetdataGeneration",

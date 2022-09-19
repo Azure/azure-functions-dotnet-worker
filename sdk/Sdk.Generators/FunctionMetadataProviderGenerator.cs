@@ -24,9 +24,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
+            // attempt to parse user compilation
             var p = new Parser(context);
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
 
+            // Proceed to generate the file if function metadata info was sucessfully returned
             if (functionMetadataInfo.Count > 0)
             {
                 var e = new Emitter();

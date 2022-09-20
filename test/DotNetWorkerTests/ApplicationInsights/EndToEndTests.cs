@@ -36,7 +36,10 @@ public class EndToEndTests : IDisposable
                     .AddApplicationInsights(appInsightsOptions =>
                     {
                         appInsightsOptions.InstrumentationKey = "abc";
+
+                        // keep things more deterministic for tests
                         appInsightsOptions.EnableAdaptiveSampling = false;
+                        appInsightsOptions.EnableDependencyTrackingTelemetryModule = false;
                     })
                     .AddApplicationInsightsLogger();
 

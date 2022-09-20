@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ApplicationInsights.DependencyCollector;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -21,7 +20,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
-public class ApplicationInsightsConfigurationTests : IDisposable
+public class ApplicationInsightsConfigurationTests
 {
     [Fact]
     public void AddApplicationInsights_AddsDefaults()
@@ -220,10 +219,5 @@ public class ApplicationInsightsConfigurationTests : IDisposable
             var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
             Assert.NotNull(middleware);
         }
-    }
-
-    public void Dispose()
-    {
-        TelemetryConfiguration.Active.Dispose();
     }
 }

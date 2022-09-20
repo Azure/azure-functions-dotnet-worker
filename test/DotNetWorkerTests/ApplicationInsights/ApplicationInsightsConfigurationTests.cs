@@ -200,11 +200,11 @@ public class ApplicationInsightsConfigurationTests
 
             // Ensure that our Initializer and Module are added alongside the defaults
             Assert.Collection(initializers,
-            t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
+                t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
 
             Assert.Collection(modules,
                 t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),

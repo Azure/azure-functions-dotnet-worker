@@ -9,9 +9,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         public static string TrimStringFromEnd(this string str, string end)
         {
-            if(end is null)
+            if (end is null)
             {
-                throw new ArgumentNullException($"{nameof(str)} is null.");
+                throw new ArgumentNullException(nameof(str));
             }
 
             return str.EndsWith(end) ? str.Substring(0, str.Length - end.Length) : str;
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var result = str;
 
-            foreach(string s in strings)
+            foreach (string s in strings)
             {
                 result = result.TrimStringFromEnd(s);
             }

@@ -16,8 +16,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Ex input: A Symbol for "Task" token
         /// Output: "System.Threading.Tasks.Task"
         /// </summary>
-        /// <param name="typeSymbol"></param>
-        /// <returns></returns>
         internal static string GetFullName(this ITypeSymbol typeSymbol)
         {
             var symbol = typeSymbol as ISymbol;

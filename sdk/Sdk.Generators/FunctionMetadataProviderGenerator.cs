@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             if (functionMetadataInfo.Count > 0)
             {
                 var e = new Emitter();
-                string result = e.Emit(functionMetadataInfo);
+                string result = e.Emit(functionMetadataInfo, context.CancellationToken);
 
                 context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", SourceText.From(result, Encoding.UTF8));
             }

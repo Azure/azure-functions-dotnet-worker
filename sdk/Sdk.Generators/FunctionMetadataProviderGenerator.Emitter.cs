@@ -5,7 +5,9 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -13,37 +15,40 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         internal sealed class Emitter
         {
-            public string Emit(IReadOnlyList<GeneratorFunctionMetadata> funcMetadata)
+
+            public string Emit(IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, CancellationToken cancellationToken)
             {
-                var stringWriter = new StringWriter();
-                var indentedTextWriter = new IndentedTextWriter(stringWriter);
+                using var stringWriter = new StringWriter();
+                using (var indentedTextWriter = new IndentedTextWriter(stringWriter))
+                {
+                    var hasHttpTrigger = funcMetadata.Any(funcMetadata => funcMetadata.IsHttpTrigger);
 
-                var hasHttpTrigger = funcMetadata.Any(funcMetadata => funcMetadata.IsHttpTrigger);
+                    SetUpUsings(indentedTextWriter, hasHttpTrigger);
 
-                SetUpUsings(indentedTextWriter, hasHttpTrigger);
+                    // create namespace
+                    indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
+                    indentedTextWriter.WriteLine("{");
+                    indentedTextWriter.Indent++;
 
-                // create namespace
-                indentedTextWriter.WriteLine("namespace Microsoft.Azure.Functions.Worker");
-                indentedTextWriter.WriteLine("{");
-                indentedTextWriter.Indent++;
+                    // create class that implements IFunctionMetadataProvider
+                    indentedTextWriter.WriteLine("public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider");
+                    indentedTextWriter.WriteLine("{");
+                    indentedTextWriter.Indent++;
 
-                // create class that implements IFunctionMetadataProvider
-                indentedTextWriter.WriteLine("public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider");
-                indentedTextWriter.WriteLine("{");
-                indentedTextWriter.Indent++;
+                    WriteGetFunctionsMetadataAsyncMethod(indentedTextWriter, funcMetadata, cancellationToken);
 
-                WriteGetFunctionsMetadataAsyncMethod(indentedTextWriter, funcMetadata);
+                    indentedTextWriter.Indent--;
+                    indentedTextWriter.WriteLine("}");
 
-                indentedTextWriter.Indent--;
-                indentedTextWriter.WriteLine("}");
+                    // add method that users can call in startup to register the source-generated file
+                    AddRegistrationExtension(indentedTextWriter);
 
-                // add method that users can call in startup to register the source-generated file
-                AddRegistrationExtension(indentedTextWriter);
+                    indentedTextWriter.Indent--;
+                    indentedTextWriter.WriteLine("}");
 
-                indentedTextWriter.Indent--;
-                indentedTextWriter.WriteLine("}");
+                    indentedTextWriter.Flush();
+                }
 
-                indentedTextWriter.Flush();
                 return stringWriter.ToString();
             }
 
@@ -60,12 +65,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using Microsoft.Extensions.DependencyInjection;");
                 indentedTextWriter.WriteLine("using Microsoft.Extensions.Hosting;");
 
-                if(hasHttpTrigger)
+                if (hasHttpTrigger)
                 {
                     indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Worker.Http;");
                 }
             }
-            private void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, IReadOnlyList<GeneratorFunctionMetadata> functionMetadata)
+
+            private void WriteGetFunctionsMetadataAsyncMethod(IndentedTextWriter indentedTextWriter, IReadOnlyList<GeneratorFunctionMetadata> functionMetadata, CancellationToken cancellationToken)
             {
                 indentedTextWriter.WriteLine("public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)");
                 indentedTextWriter.WriteLine("{");
@@ -73,19 +79,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // create list of IFunctionMetadata and populate it
                 indentedTextWriter.WriteLine("var metadataList = new List<IFunctionMetadata>();");
-                AddFunctionMetadataInfo(indentedTextWriter, functionMetadata);
+                AddFunctionMetadataInfo(indentedTextWriter, functionMetadata, cancellationToken);
                 indentedTextWriter.WriteLine("return Task.FromResult(metadataList.ToImmutableArray());");
 
                 indentedTextWriter.Indent--;
                 indentedTextWriter.WriteLine("}");
             }
 
-            private void AddFunctionMetadataInfo(IndentedTextWriter indentedTextWriter, IReadOnlyList<GeneratorFunctionMetadata> functionMetadata)
+            private void AddFunctionMetadataInfo(IndentedTextWriter indentedTextWriter, IReadOnlyList<GeneratorFunctionMetadata> functionMetadata, CancellationToken cancellationToken)
             {
                 var functionCount = 0;
 
-                foreach(var function in functionMetadata)
+                foreach (var function in functionMetadata)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
+
                     // we're going to base variable names on Function[Num] because some function names have characters we can't use for a dotnet variable
                     var functionVariableName = "Function" + functionCount.ToString();
                     var functionBindingsListVarName = functionVariableName + "RawBindings";
@@ -113,13 +121,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var bindingCount = 0;
 
-                foreach(var binding in bindings)
+                foreach (var binding in bindings)
                 {
                     var bindingVarName = functionVarName + "binding" + bindingCount.ToString();
                     indentedTextWriter.WriteLine($"var {bindingVarName} = new {{");
                     indentedTextWriter.Indent++;
                     
-                    foreach(var key in binding.Keys)
+                    foreach (var key in binding.Keys)
                     {
                         indentedTextWriter.WriteLine($"{key} = {binding[key]},");
                     }

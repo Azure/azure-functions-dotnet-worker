@@ -62,12 +62,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ScriptFile = scriptFile
                     };
 
-                    if(!TryGetBindings(method, model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger) || bindings is null)
+                    if (!TryGetBindings(method, model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger) || bindings is null)
                     {
                         continue;
                     }
 
-                    if(hasHttpTrigger)
+                    if (hasHttpTrigger)
                     {
                         newFunction.IsHttpTrigger = true;
                     }
@@ -288,9 +288,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
 
                             // special handling for EventHubsTrigger - we need to define a property called "Cardinality"
-                            if(validEventHubs)
+                            if (validEventHubs)
                             {
-                                if(!bindingDict.Keys.Contains("Cardinality"))
+                                if (!bindingDict.Keys.Contains("Cardinality"))
                                 {
                                     bindingDict["Cardinality"] = cardinality is Cardinality.Many ? FormatObject("Many") : FormatObject("One");
                                 }
@@ -393,7 +393,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                             location = Location.None;
                                         }
 
-                                        if(!TryCreateBindingDict(attr, m.Name, location, out IDictionary<string, string>? bindingDict) || bindingDict is null)
+                                        if (!TryCreateBindingDict(attr, m.Name, location, out IDictionary<string, string>? bindingDict) || bindingDict is null)
                                         {
                                             bindingsList = null;
                                             return false;
@@ -450,7 +450,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 // Get binding info as a dictionary with keys as the property name and value as the property value
-                if(!TryGetAttributeProperties(attribMethodSymbol, bindingAttrData, bindingLocation, out IDictionary<string, object>? attributeProperties))
+                if (!TryGetAttributeProperties(attribMethodSymbol, bindingAttrData, bindingLocation, out IDictionary<string, object>? attributeProperties))
                 {
                     bindings = null;
                     return false;
@@ -484,7 +484,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         var isEnum = false;
                         
-                        if(string.Equals(prop.Key.ToString(), "authLevel", StringComparison.OrdinalIgnoreCase)) // prop keys come from Azure Functions defined attributes so we can check directly for authLevel
+                        if (string.Equals(prop.Key.ToString(), "authLevel", StringComparison.OrdinalIgnoreCase)) // prop keys come from Azure Functions defined attributes so we can check directly for authLevel
                         {
                             isEnum = true;
                         }
@@ -503,7 +503,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (attributeData.ConstructorArguments.Any())
                 {
-                    if(!TryLoadConstructorArguments(attribMethodSymbol, attributeData, attrProperties, attribLocation))
+                    if (!TryLoadConstructorArguments(attribMethodSymbol, attributeData, attrProperties, attribLocation))
                     {
                         attrProperties = null;
                         return false;
@@ -627,14 +627,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else if (isGenericEnumerable)
                     {
-                        if(parameterTypeSyntax is null)
+                        if (parameterTypeSyntax is null)
                         {
                             return false;
                         }
 
                         dataType = ResolveIEnumerableOfT(parameterSymbol, parameterTypeSyntax, model, out bool hasError);
 
-                        if(hasError)
+                        if (hasError)
                         {
                             return false;
                         }
@@ -672,7 +672,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType))).FirstOrDefault();
-                    if(genericInterfaceSymbol != null)
+                    if (genericInterfaceSymbol != null)
                     {
                         finalSymbol = genericInterfaceSymbol;
                         break;
@@ -689,7 +689,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 var argument = finalSymbol.TypeArguments.FirstOrDefault(); // we've already checked and discarded mapping types by this point - should be a single argument
 
-                if(argument is null)
+                if (argument is null)
                 {
                     hasError = true;
                     return result;

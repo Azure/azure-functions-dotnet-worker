@@ -1,10 +1,8 @@
 ﻿//// Copyright (c) .NET Foundation. All rights reserved.
 //// Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using Microsoft.ApplicationInsights.Channel;
-using Microsoft.ApplicationInsights.DataContracts;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
@@ -26,10 +24,6 @@ internal class TestTelemetryChannel : ITelemetryChannel
 
     public void Send(ITelemetry item)
     {
-        if (item is TraceTelemetry trace)
-        {
-            Console.WriteLine($"--{trace.Message}");
-        }
         Telemetries.Add(item);
     }
 }

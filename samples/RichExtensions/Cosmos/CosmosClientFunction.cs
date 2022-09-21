@@ -12,10 +12,10 @@ namespace SampleApp
     {
         [Function(nameof(CosmosClientFunction))]
         public static async Task Run(
-            [CosmosDBTrigger("testdb", "testcontainer", Connection = "CosmosDBConnection")] CosmosClient client,
+            [CosmosDBTrigger("testdb", "testcontainer", Connection = "CosmosDBConnection", CreateLeaseContainerIfNotExists = true)] CosmosClient client,
             FunctionContext context)
         {
-            var logger = context.GetLogger(nameof(BlobClientFunction));
+            var logger = context.GetLogger(nameof(CosmosClientFunction));
             var downloadResult = client.Endpoint.AbsoluteUri;
             logger.LogInformation("Cosmos endpoint: {uri}", downloadResult);
         }

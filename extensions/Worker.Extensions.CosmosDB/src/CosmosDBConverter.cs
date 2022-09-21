@@ -20,12 +20,19 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            bindingData.Properties.TryGetValue("database_id", out var databaseId);
-            bindingData.Properties.TryGetValue("container_id", out var containerId);
             bindingData.Properties.TryGetValue("connection_name", out var connectionName);
-            var connectionString = Environment.GetEnvironmentVariable(connectionName);
+            bindingData.Properties.TryGetValue("database_name", out var databaseName);
+            bindingData.Properties.TryGetValue("container_name", out var containerName);
 
-            object result = ToTargetType(context.TargetType, connectionString, databaseId, containerId);
+            if (string.IsNullOrEmpty(connectionName)
+                || string.IsNullOrEmpty(databaseName)
+                || string.IsNullOrEmpty(containerName))
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            }
+
+            var connectionString = Environment.GetEnvironmentVariable(connectionName);
+            object result = ToTargetType(context.TargetType, connectionString, databaseName, containerName);
 
             if (result is not null)
             {
@@ -35,22 +42,22 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
 
-        private object? ToTargetType(Type targetType, string connectionString, string databaseId, string containerId) => targetType switch
+        private object? ToTargetType(Type targetType, string connectionString, string databaseName, string containerName) => targetType switch
         {
-            Type _ when targetType == typeof(CosmosClient)      => CreateCosmosReference<CosmosClient>(connectionString, databaseId, containerId),
-            Type _ when targetType == typeof(CosmosDatabase)    => CreateCosmosReference<CosmosDatabase>(connectionString, databaseId, containerId),
-            Type _ when targetType == typeof(CosmosContainer)   => CreateCosmosReference<CosmosContainer>(connectionString, databaseId, containerId),
+            Type _ when targetType == typeof(CosmosClient)      => CreateCosmosReference<CosmosClient>(connectionString, databaseName, containerName),
+            Type _ when targetType == typeof(CosmosDatabase)    => CreateCosmosReference<CosmosDatabase>(connectionString, databaseName, containerName),
+            Type _ when targetType == typeof(CosmosContainer)   => CreateCosmosReference<CosmosContainer>(connectionString, databaseName, containerName),
             _ => null
         };
 
-        private object CreateCosmosReference<T>(string connectionString, string databaseId, string containerId)
+        private object CreateCosmosReference<T>(string connectionString, string databaseName, string containerName)
         {
             Type targetType = typeof(T);
             CosmosClient cosmosClient = new (connectionString);
 
             object cosmosReference = targetType switch {
-                Type _ when targetType == typeof(CosmosDatabase)    => cosmosClient.GetDatabase(databaseId),
-                Type _ when targetType == typeof(CosmosContainer)   => cosmosClient.GetContainer(databaseId, containerId),
+                Type _ when targetType == typeof(CosmosDatabase)    => cosmosClient.GetDatabase(databaseName),
+                Type _ when targetType == typeof(CosmosContainer)   => cosmosClient.GetContainer(databaseName, containerName),
                 _ => cosmosClient
             };
 
@@ -58,21 +65,3 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         }
     }
 }
-
-// Example bindings from cosmos v3 + inproc
-// [CosmosDBTrigger(
-// databaseName: "databaseName",
-// containerId: "containerId",
-// Connection = "CosmosDBConnectionSetting",
-// LeasecontainerId = "leases",
-// CreateLeaseContainerIfNotExists = true)]
-
-// [CosmosDB(
-// databaseName: "ToDoItems",
-// collectionName: "Items",
-// ConnectionStringSetting = "CosmosDBConnection")] DocumentClient client
-
-// [CosmosDB(
-// databaseName: "ToDoItems",
-// containerId: "Items",
-// Connection = "CosmosDBConnection")] CosmosClient client

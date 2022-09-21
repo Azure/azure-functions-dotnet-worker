@@ -22,11 +22,18 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
+            bindingData.Properties.TryGetValue("connection_name", out var connectionName);
             bindingData.Properties.TryGetValue("blob_name", out var blobName);
             bindingData.Properties.TryGetValue("container_name", out var containerName);
-            bindingData.Properties.TryGetValue("connection_name", out var connectionName);
-            var connectionString = Environment.GetEnvironmentVariable(connectionName);
 
+            if (string.IsNullOrEmpty(connectionName)
+                || string.IsNullOrEmpty(blobName)
+                || string.IsNullOrEmpty(containerName))
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            }
+
+            var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
             object result = ToTargetType(context.TargetType, connectionString, containerName, blobName);
 
             if (result is not null)

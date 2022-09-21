@@ -16,10 +16,6 @@ namespace SampleApp
         {
             Console.WriteLine($"Azure Functions .NET Worker (PID: { Environment.ProcessId }) initialized in debug mode. Waiting for debugger to attach...");
 
-            while (!Debugger.IsAttached){
-                Thread.Sleep(500);
-            }
-
             var host = new HostBuilder()
                 .ConfigureFunctionsWorkerDefaults()
                 .Build();

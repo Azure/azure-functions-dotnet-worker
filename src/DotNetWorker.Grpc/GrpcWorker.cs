@@ -246,7 +246,7 @@ namespace Microsoft.Azure.Functions.Worker
                         continue;
                     }
 
-                    if (func.RawBindings is null || func.RawBindings?.Any() != true)
+                    if (func.RawBindings?.Any() != true)
                     {
                         throw new InvalidOperationException($"Functions must declare at least one binding. No bindings were found in the function ${nameof(func)}.");
                     }

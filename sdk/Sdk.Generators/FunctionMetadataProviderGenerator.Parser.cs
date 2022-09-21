@@ -18,14 +18,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         internal sealed class Parser
         {
-            private Compilation Compilation => _context.Compilation;
             private readonly GeneratorExecutionContext _context;
-            private CancellationToken CancellationToken => _context.CancellationToken;
 
             public Parser(GeneratorExecutionContext context)
             {
                 _context = context;
             }
+
+            private Compilation Compilation => _context.Compilation;
+
+            private CancellationToken CancellationToken => _context.CancellationToken;
 
             /// <summary>
             /// Takes in candidate methods from the user compilation and parses them to return function metadata info as GeneratorFunctionMetadata.
@@ -62,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ScriptFile = scriptFile
                     };
 
-                    if (!TryGetBindings(method, model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger) || bindings is null)
+                    if (!TryGetBindings(method, model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger))
                     {
                         continue;
                     }
@@ -72,7 +74,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         newFunction.IsHttpTrigger = true;
                     }
 
-                    newFunction.RawBindings = bindings;
+                    newFunction.RawBindings = bindings!; // won't be null b/c TryGetBindings would've failed and this line wouldn't be reached
 
                     result.Add(newFunction);
                 }
@@ -156,13 +158,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger)
             {
                 var result = new List<IDictionary<string, string>>();
+                hasHttpTrigger = false;
 
-                var outputSucceed = TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, string>>? methodOutputBindings);
-                var inputSucceed = TryGetParameterInputAndTriggerBindings(method, model, out hasHttpTrigger, out IList<IDictionary<string, string>>? parameterInputAndTriggerBindings);
-                var returnSucceed = TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, string>>? returnTypeBindings);
-                
-                // if there was an error with any of the binding retrieval methods, return an empty list
-                if (!outputSucceed || !inputSucceed || !returnSucceed)
+                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, string>>? methodOutputBindings)
+                    || !TryGetParameterInputAndTriggerBindings(method, model, out hasHttpTrigger, out IList<IDictionary<string, string>>? parameterInputAndTriggerBindings)
+                    || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, string>>? returnTypeBindings))
                 {
                     bindings = null;
                     return false;
@@ -208,14 +208,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBinding != null)
                 {
-                    if (!TryCreateBindingDict(outputBinding, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, string>? bindingDict) || bindingDict is null)
+                    if (!TryCreateBindingDict(outputBinding, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, string>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
                     }
 
                     bindingsList = new List<IDictionary<string, string>>();
-                    bindingsList.Add(bindingDict);
+                    bindingsList.Add(bindingDict!);
                     return true;
                 }
 
@@ -276,7 +276,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Identifier.ValueText;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, string>? bindingDict) || bindingDict is null)
+                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, string>? bindingDict))
                             {
                                 bindingsList = null;
                                 return false;
@@ -284,19 +284,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             
                             if (dataType is not DataType.Undefined)
                             {
-                                bindingDict.Add("dataType", FormatObject(Enum.GetName(typeof(DataType), dataType)));
+                                bindingDict!.Add("dataType", FormatObject(Enum.GetName(typeof(DataType), dataType)));
                             }
 
                             // special handling for EventHubsTrigger - we need to define a property called "Cardinality"
                             if (validEventHubs)
                             {
-                                if (!bindingDict.Keys.Contains("Cardinality"))
+                                if (!bindingDict!.Keys.Contains("Cardinality"))
                                 {
                                     bindingDict["Cardinality"] = cardinality is Cardinality.Many ? FormatObject("Many") : FormatObject("One");
                                 }
                             }
 
-                            bindingsList.Add(bindingDict);
+                            bindingsList.Add(bindingDict!);
                         }
                     }
                 }
@@ -393,13 +393,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                             location = Location.None;
                                         }
 
-                                        if (!TryCreateBindingDict(attr, m.Name, location, out IDictionary<string, string>? bindingDict) || bindingDict is null)
+                                        if (!TryCreateBindingDict(attr, m.Name, location, out IDictionary<string, string>? bindingDict))
                                         {
                                             bindingsList = null;
                                             return false;
                                         }
 
-                                        bindingsList.Add(bindingDict);
+                                        bindingsList.Add(bindingDict!);
 
                                         hasOutputBinding = true;
                                         foundPropertyOutputAttr = true;

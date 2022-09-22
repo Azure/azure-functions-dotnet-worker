@@ -39,28 +39,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 = Create(id: "AZFW0006",
                     title: "Symbol could not be found in user compilation.",
                     messageFormat: "The symbol '{0}' could not be found.",
-                    category: "FunctionMetdataGeneration",
+                    category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
         public static DiagnosticDescriptor ArgumentCountMismatch { get; }
                 = Create(id: "AZFW0007",
                     title: "Symbol could not be found in user compilation.",
                     messageFormat: "The constructor at '{0}' does not have the same number of arguments as '{1}",
-                    category: "FunctionMetdataGeneration",
+                    category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
         public static DiagnosticDescriptor MultipleHttpResponseTypes { get; }
                   = Create(id: "AZFW0008",
                     title: "Symbol could not be found in user compilation.",
                     messageFormat: "Found multiple public properties with type '{0}' defined in output type '{1}'.Only one HTTP response binding type is supported in your return type definition.",
-                    category: "FunctionMetdataGeneration",
+                    category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
         public static DiagnosticDescriptor InvalidEventHubsTrigger { get; }
                   = Create(id: "AZFW0009",
                     title: "EventHub Trigger invalid.",
                     messageFormat: "The EventHub trigger on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
-                    category: "FunctionMetdataGeneration",
+                    category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
     }
 }

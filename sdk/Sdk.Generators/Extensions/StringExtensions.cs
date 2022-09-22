@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -11,13 +12,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             if (end is null)
             {
-                throw new ArgumentNullException(nameof(str));
+                throw new ArgumentNullException(nameof(end));
             }
 
             return str.EndsWith(end) ? str.Substring(0, str.Length - end.Length) : str;
         }
 
-        public static string TrimStringsFromEnd(this string str, string[] strings)
+        public static string TrimStringsFromEnd(this string str, IReadOnlyList<string> strings)
         {
             var result = str;
 

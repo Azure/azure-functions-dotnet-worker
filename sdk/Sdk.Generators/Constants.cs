@@ -19,7 +19,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string IEnumerableOfBinaryType = "System.Collections.Generic.IEnumerable`1<System.Byte[]>";
         internal const string IEnumerableOfT = "System.Collections.Generic.IEnumerable`1<T>";
         internal const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
-        internal const string GenericIEnumerableArgumentName = "T";
         internal const string StringType = "System.String";
         internal const string ByteArrayType = "System.Byte[]";
         internal const string ByteStructType = "System.Byte";
@@ -34,11 +33,5 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string HttpResponseBindingName = "HttpResponse";
         internal const string HttpTriggerBindingType = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
         internal const string IsBatchedKey = "IsBatched";
-
-        // Enum conversion constants
-        internal const string CardinalityManyString = "Many";
-        internal const string CardinalityOneString = "One";
-        internal const string StringDataType = "String";
-        internal const string BinaryDataType = "Binary";
     }
 }

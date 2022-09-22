@@ -33,7 +33,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// Takes in candidate methods from the user compilation and parses them to return function metadata info as GeneratorFunctionMetadata.
             /// </summary>
             /// <param name="methods">List of candidate methods from the syntax receiver.</param>
-            /// <returns></returns>
             public IReadOnlyList<GeneratorFunctionMetadata> GetFunctionMetadataInfo(List<MethodDeclarationSyntax> methods)
             {
                 var result = ImmutableArray.CreateBuilder<GeneratorFunctionMetadata>();
@@ -86,9 +85,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// Formats an object into a string value for the source-generated file. This can mean adding quotation marks around the string
             /// representation of the object, or leaving it as is if the object is a string or Enum type.
             /// </summary>
-            /// <param name="propValue">The property that needs to be formmated into a string.</param>
-            /// <returns></returns>
-            private string FormatObject(object propValue, bool isEnum = false)
+            /// <param name="propValue">The property that needs to be formmatted into a string.</param>
+            private string FormatObject(object? propValue, bool isEnum = false)
             {
                 if (propValue is null)
                 {
@@ -108,8 +106,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Format an array into a string.
             /// </summary>
-            /// <param name="enumerableValues">An array object to be formatted.</param>
-            /// <returns></returns>
+            /// <param name="enumerableValues">A collection of values to be formatted?</param>
             private string FormatArray(IEnumerable enumerableValues)
             {
                 string arrAsString;

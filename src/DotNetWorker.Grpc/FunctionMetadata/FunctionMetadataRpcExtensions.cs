@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
             MapField<string, BindingInfo> bindings = new MapField<string, BindingInfo>();
             var rawBindings = funcMetadata.RawBindings;
 
-            if(rawBindings.Count == 0)
+            if(rawBindings is null || rawBindings.Count == 0)
             {
                 throw new FormatException("At least one binding must be declared in a Function.");
             }

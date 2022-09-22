@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Linq.Expressions;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -14,13 +13,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public string? FunctionId { get; set; }
 
-        public bool IsProxy { get; set; } = false;
+        public bool IsProxy { get; set; }
 
         public string? EntryPoint { get; set; }
 
         public string? Language { get; set; }
 
-        public bool IsHttpTrigger { get; set; } = false;
+        public bool IsHttpTrigger { get; set; }
 
         public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 

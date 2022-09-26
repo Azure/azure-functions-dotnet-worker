@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
     /// <summary>
     /// An abstraction for writing system logs.
     /// </summary>
-    public interface ISystemLogWriter
+    internal interface ISystemLogWriter
     {
         /// <summary>
         /// Writes a system log entry.

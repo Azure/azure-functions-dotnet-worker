@@ -20,6 +20,7 @@
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage.Blobs\src\Worker.Extensions.Storage.Blobs.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />

@@ -8,16 +8,21 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
+    public class ToDoItem
+    {
+        public string Id { get; set; }
+        public string Description { get; set; }
+    }
+
     public static class CosmosClientFunction
     {
         [Function(nameof(CosmosClientFunction))]
         public static async Task Run(
-            [CosmosDBTrigger("testdb", "testcontainer", Connection = "CosmosDBConnection", CreateLeaseContainerIfNotExists = true)] CosmosClient client,
+            [CosmosDBTrigger("testdb", "testcontainer", Connection = "CosmosDBConnection", CreateLeaseContainerIfNotExists = true)] ToDoItem input,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(CosmosClientFunction));
-            var downloadResult = client.Endpoint.AbsoluteUri;
-            logger.LogInformation("Cosmos endpoint: {uri}", downloadResult);
+            logger.LogInformation("Cosmos trigger ID: {id}", input.Id);
         }
     }
 }

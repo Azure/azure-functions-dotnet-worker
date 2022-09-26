@@ -20,9 +20,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            bindingData.Properties.TryGetValue("connection_name", out var connectionName);
-            bindingData.Properties.TryGetValue("database_name", out var databaseName);
-            bindingData.Properties.TryGetValue("container_name", out var containerName);
+            bindingData.Properties.TryGetValue("Connection", out var connectionName);
+            bindingData.Properties.TryGetValue("DatabaseName", out var databaseName);
+            bindingData.Properties.TryGetValue("ContainerName", out var containerName);
 
             if (string.IsNullOrEmpty(connectionName)
                 || string.IsNullOrEmpty(databaseName)

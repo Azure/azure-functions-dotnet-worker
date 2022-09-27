@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -108,8 +108,11 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                response.Result.Exception = ex.ToRpcException();
-                response.Result.Status = StatusResult.Types.Status.Failure;
+                response.Result = new StatusResult
+                {
+                    Exception = ex.ToUserRpcException(),
+                    Status = StatusResult.Types.Status.Failure
+                };
 
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {

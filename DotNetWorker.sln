@@ -91,7 +91,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Extensions", "samples\Exten
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CustomMiddleware", "samples\CustomMiddleware\CustomMiddleware.csproj", "{2A72383A-9C00-41FB-9D29-909EE5E6BFB9}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "net-5-entity-framework", "samples\EntityFramework\net-5-entity-framework.csproj", "{C4C0CE7E-6A34-473E-A8FB-7D8FBA765779}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "EntityFramework", "samples\EntityFramework\EntityFramework.csproj", "{C4C0CE7E-6A34-473E-A8FB-7D8FBA765779}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Configuration", "samples\Configuration\Configuration.csproj", "{035AAD56-5F51-476C-8556-0F6CFD6EF1BF}"
 EndProject

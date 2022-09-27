@@ -15,21 +15,16 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context.Source is not IBindingData bindingData)
+            if (context.Source is not IBindingData bindingData
+                || bindingData?.ContentType is not "cosmos")
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            bindingData.Properties.TryGetValue("Connection", out var connectionName);
-            bindingData.Properties.TryGetValue("DatabaseName", out var databaseName);
-            bindingData.Properties.TryGetValue("ContainerName", out var containerName);
-
-            if (string.IsNullOrEmpty(connectionName)
-                || string.IsNullOrEmpty(databaseName)
-                || string.IsNullOrEmpty(containerName))
-            {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
-            }
+            var testContent = bindingData?.Content;
+            var connectionName = "";
+            var databaseName = "";
+            var containerName = "";
 
             var connectionString = Environment.GetEnvironmentVariable(connectionName);
             object result = ToTargetType(context.TargetType, connectionString, databaseName, containerName);

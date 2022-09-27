@@ -10,6 +10,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
     internal sealed partial class BindingData : IBindingData
     {
-        IDictionary<string, string> IBindingData.Properties => Properties;
+        public string Version => Version;
+
+        public string ContentType => ContentType;
+
+        public object Content => Content;
     }
 }

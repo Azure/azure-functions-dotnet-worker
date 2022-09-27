@@ -115,7 +115,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NetFxWorker", "samples\NetF
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.ApplicationInsights", "src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj", "{65DE66B6-568F-46AC-8F0D-C79A02F48214}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RichExtensions", "samples\RichExtensions\RichExtensions.csproj", "{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SdkTypeExtensions", "samples\SdkTypeExtensions\SdkTypeExtensions.csproj", "{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

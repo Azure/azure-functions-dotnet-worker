@@ -11,17 +11,23 @@ using Microsoft.Extensions.Logging;
 
 namespace FunctionApp
 {
-    public static class HttpTriggerWithCancellation
+    public class HttpTriggerWithCancellation
     {
+        private readonly ILogger _logger;
+
+        public HttpTriggerWithCancellation(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<HttpTriggerWithCancellation>();
+        }
+
         [Function(nameof(HttpTriggerWithCancellation))]
-        public static async Task<HttpResponseData> Run(
+        public async Task<HttpResponseData> Run(
             [HttpTrigger(AuthorizationLevel.Anonymous,"get", "post", Route = null)]
             HttpRequestData req,
             FunctionContext executionContext,
             CancellationToken cancellationToken)
         {
-            var logger = executionContext.GetLogger("FunctionApp.HttpTriggerWithCancellation");
-            logger.LogInformation("HttpTriggerWithCancellation function triggered");
+            _logger.LogInformation("HttpTriggerWithCancellation function triggered");
 
             try
             {
@@ -34,7 +40,7 @@ namespace FunctionApp
             }
             catch (OperationCanceledException)
             {
-                logger.LogInformation("Function invocation cancelled");
+                _logger.LogInformation("Function invocation cancelled");
 
                 var response = req.CreateResponse(HttpStatusCode.ServiceUnavailable);
                 response.WriteString("Invocation cancelled");

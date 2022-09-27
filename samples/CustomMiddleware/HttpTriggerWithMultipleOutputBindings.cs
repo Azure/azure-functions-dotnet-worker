@@ -28,6 +28,7 @@ namespace CustomMiddleware
             };
         }
     }
+
     public class MyOutputType
     {
         [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]

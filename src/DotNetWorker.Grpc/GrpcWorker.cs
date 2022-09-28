@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker
             switch (request.ContentCase)
             {
                 case MsgType.InvocationRequest:
-                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
+                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _workerOptions.Value.EnableUserCodeException);
                     break;
 
                 case MsgType.WorkerInitRequest:
@@ -180,9 +180,9 @@ namespace Microsoft.Azure.Functions.Worker
             await _outputWriter.WriteAsync(responseMessage);
         }
 
-        internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
+        internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, bool enableUserCodeExceptionOption = false)
         {
-            return _invocationHandler.InvokeAsync(request);
+            return _invocationHandler.InvokeAsync(request, enableUserCodeExceptionOption);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)

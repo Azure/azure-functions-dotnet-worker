@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading;
@@ -15,8 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         /// an associated cancellation token source for the invocation.
         /// </summary>
         /// <param name="request">Function invocation request</param>
+        /// <param name="enableUserException">flag to enable unwrapping user exception</param>
         /// <returns><see cref="InvocationResponse"/></returns>
-        Task<InvocationResponse> InvokeAsync(InvocationRequest request);
+        Task<InvocationResponse> InvokeAsync(InvocationRequest request, bool enableUserException = false);
 
         /// <summary>
         /// Cancels an invocation's associated <see cref="CancellationTokenSource"/>.

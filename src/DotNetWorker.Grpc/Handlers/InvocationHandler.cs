@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, bool enableUserException = false)
         {
             using CancellationTokenSource cancellationTokenSource = new();
             FunctionContext? context = null;
@@ -108,7 +108,14 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                response.Result.Exception = ex.ToUserRpcException();
+                if (enableUserException)
+                {
+                    response.Result.Exception = ex.ToUserRpcException();
+                }
+                else
+                {
+                    response.Result.Exception = ex.ToRpcException();
+                }
                 response.Result.Status = StatusResult.Types.Status.Failure;
 
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)

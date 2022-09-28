@@ -24,8 +24,8 @@ namespace Microsoft.Azure.Functions.Worker
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
 
         /// <summary>
-        /// Gets and sets the flag for opting in to surfacing user-code-thrown
-        /// exceptions to app insights. 
+        /// Gets and sets the flag for opting in to unwrapping user-code-thrown
+        /// exceptions when they are surfaced to the Host. 
         /// </summary>
         public bool EnableUserCodeException { get; set; } = false;
     }

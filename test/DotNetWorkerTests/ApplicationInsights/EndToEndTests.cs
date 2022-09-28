@@ -1,4 +1,6 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,7 +17,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
-public class EndToEndTests
+public class EndToEndTests : IDisposable
 {
     private readonly TestTelemetryChannel _channel;
     private readonly IHost _host;
@@ -31,7 +33,14 @@ public class EndToEndTests
             {
                 var functionsBuilder = services.AddFunctionsWorkerCore();
                 functionsBuilder
-                    .AddApplicationInsights(appInsightsOptions => appInsightsOptions.InstrumentationKey = "abc")
+                    .AddApplicationInsights(appInsightsOptions =>
+                    {
+                        appInsightsOptions.InstrumentationKey = "abc";
+
+                        // keep things more deterministic for tests
+                        appInsightsOptions.EnableAdaptiveSampling = false;
+                        appInsightsOptions.EnableDependencyTrackingTelemetryModule = false;
+                    })
                     .AddApplicationInsightsLogger();
 
                 functionsBuilder.UseDefaultWorkerMiddleware();
@@ -72,10 +81,16 @@ public class EndToEndTests
         }
 
         var activity = AppInsightsFunctionDefinition.LastActivity;
+        IEnumerable<ITelemetry> telemetries = null;
 
-        // App Insights can potentially log this, which causes tests to be flaky. Explicitly ignore.
-        var aiTelemetry = _channel.Telemetries.Where(p => p is TraceTelemetry t && t.Message.Contains("AI: TelemetryChannel found a telemetry item"));
-        var telemetries = _channel.Telemetries.Except(aiTelemetry);
+        // There can be a race while telemetry is flushed. Explicitly wait for what we're looking for.
+        await Functions.Tests.TestUtility.RetryAsync(() =>
+        {
+            // App Insights can potentially log this, which causes tests to be flaky. Explicitly ignore.
+            var aiTelemetry = _channel.Telemetries.Where(p => p is TraceTelemetry t && t.Message.Contains("AI: TelemetryChannel found a telemetry item"));
+            telemetries = _channel.Telemetries.Except(aiTelemetry);
+            return Task.FromResult(telemetries.Count() == 2);
+        }, timeout: 5000, pollingInterval: 500, userMessageCallback: () => $"Expected 2 telemetries. Found [{string.Join(", ", telemetries.Select(t => t.GetType().Name))}].");
 
         // Log written in test function should go to App Insights directly        
         Assert.Collection(telemetries,
@@ -84,7 +99,7 @@ public class EndToEndTests
                 var dependency = (DependencyTelemetry)t;
 
                 Assert.Equal("TestName", dependency.Context.Operation.Name);
-                Assert.Equal(activity.SpanId.ToString(), dependency.Context.Operation.ParentId);
+                Assert.Equal(activity.RootId, dependency.Context.Operation.Id);
 
                 ValidateProperties(dependency);
             },
@@ -98,10 +113,15 @@ public class EndToEndTests
                 Assert.DoesNotContain("AzureFunctions_InvocationId", trace.Properties.Keys);
 
                 Assert.Equal("TestName", trace.Context.Operation.Name);
-                Assert.Equal(activity.SpanId.ToString(), trace.Context.Operation.ParentId);
+                Assert.Equal(activity.RootId, trace.Context.Operation.Id);
 
                 ValidateProperties(trace);
             });
+    }
+
+    public void Dispose()
+    {
+        _host?.Dispose();
     }
 
     internal class AppInsightsFunctionDefinition : FunctionDefinition

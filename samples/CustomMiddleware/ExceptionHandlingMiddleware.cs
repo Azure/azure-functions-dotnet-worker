@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
@@ -44,10 +45,28 @@ namespace CustomMiddleware
                     // https://github.com/Azure/azure-functions-dotnet-worker/issues/776
                     await newHttpResponse.WriteAsJsonAsync(new { FooStatus = "Invocation failed!" }, newHttpResponse.StatusCode);
 
-                    // Update invocation result.
-                    context.GetInvocationResult().Value = newHttpResponse;
+                    var invocationResult = context.GetInvocationResult();
+
+                    var httpOutputBindingFromMultipleOutputBindings = GetHttpOutputBindingFromMultipleOutputBinding(context);
+                    if (httpOutputBindingFromMultipleOutputBindings is not null)
+                    {
+                        httpOutputBindingFromMultipleOutputBindings.Value = newHttpResponse;
+                    }
+                    else
+                    {
+                        invocationResult.Value = newHttpResponse;
+                    }
                 }
             }
+        }
+
+        private OutputBindingData<HttpResponseData> GetHttpOutputBindingFromMultipleOutputBinding(FunctionContext context)
+        {
+            // The output binding entry name will be "$return" only when the function return type is HttpResponseData
+            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>()
+                .FirstOrDefault(b => b.BindingType == "http" && b.Name != "$return");
+
+            return httpOutputBinding;
         }
     }
 }

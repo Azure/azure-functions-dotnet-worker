@@ -12,9 +12,7 @@ namespace SampleApp
         //<docsnippet_queue_trigger>
         [Function("QueueFunction")]
         [QueueOutput("output-queue")]
-        public static string[] Run([QueueTrigger("input-queue")] Book myQueueItem,
-
-            FunctionContext context)
+        public static string[] Run([QueueTrigger("input-queue")] Book myQueueItem, FunctionContext context)
         //</docsnippet_queue_trigger>
         {
             // Use a string array to return more than one message.

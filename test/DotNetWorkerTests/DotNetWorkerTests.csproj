@@ -27,6 +27,7 @@
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 
 </Project>

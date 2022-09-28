@@ -12,8 +12,7 @@ namespace SampleApp
     {
         [Function("BroadcastToAll")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction BroadcastToAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction BroadcastToAll([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -25,8 +24,7 @@ namespace SampleApp
 
         [Function("SendToConnection")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction SendToConnection(
-    [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction SendToConnection([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -38,8 +36,7 @@ namespace SampleApp
 
         [Function("SendToUser")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction SendToUser(
-[HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction SendToUser([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -51,8 +48,7 @@ namespace SampleApp
 
         [Function("SendToGroup")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction SendToGroup(
-[HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction SendToGroup([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -65,7 +61,8 @@ namespace SampleApp
         [Function("SendToEndpoint")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToEndpoint(
-[HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req, [SignalREndpointsInput("chat", ConnectionStringSetting = "SignalRConnection")] SignalREndpoint[] endpoints)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
+            [SignalREndpointsInput("chat", ConnectionStringSetting = "SignalRConnection")] SignalREndpoint[] endpoints)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")

@@ -108,21 +108,17 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                response.Result.Exception = ex.ToRpcException();
-                response.Result.Status = StatusResult.Types.Status.Failure;
+                response.Result = new StatusResult
+                {
+                    Exception = ex.ToUserRpcException(),
+                    Status = StatusResult.Types.Status.Failure
+                };
 
+                // If worker received a cancellation request from the host, change the response.  
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {
                     response.Result.Status = StatusResult.Types.Status.Cancelled;
-                }
-                else
-                {
-                    // If this isn't a task canceled exception, it was thrown by user's code. 
-                    response.Result = new StatusResult
-                    {
-                        Exception = ex.ToUserRpcException(),
-                        Status = StatusResult.Types.Status.Failure
-                    };
+                    response.Result.Exception = ex.ToRpcException();
                 }
             }
             finally

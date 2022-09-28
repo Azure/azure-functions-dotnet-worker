@@ -107,8 +107,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 response.Result.Status = StatusResult.Types.Status.Success;
             }
             catch (Exception ex)
-            {   
-                // If this isn't a task canceled exception, it was thrown by user's code. 
+            {
+                response.Result.Exception = ex.ToRpcException();
+                response.Result.Status = StatusResult.Types.Status.Failure;
 
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {
@@ -116,6 +117,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 }
                 else
                 {
+                    // If this isn't a task canceled exception, it was thrown by user's code. 
                     response.Result = new StatusResult
                     {
                         Exception = ex.ToUserRpcException(),

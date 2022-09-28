@@ -11,8 +11,9 @@ namespace SampleApp
     {
         [Function("TableFunction")]
         [TableOutput("OutputTable", Connection = "AzureWebJobsStorage")]
-        public static MyTableData Run([QueueTrigger("table-items")] string input,
-            [TableInput("MyTable", "MyPartition", "{queueTrigger}")] MyTableData tableInput,
+        public static MyTableData Run(
+            [QueueTrigger("table-items")] string input,
+            [TableInput("MyTable", "<PartitionKey>", "{queueTrigger}")] MyTableData tableInput,
             FunctionContext context)
         {
             var logger = context.GetLogger("TableFunction");

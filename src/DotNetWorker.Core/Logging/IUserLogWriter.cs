@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
     /// <summary>
     /// An abstraction for writing user logs.
     /// </summary>
-    public interface IUserLogWriter
+    internal interface IUserLogWriter
     {
         /// <summary>
         /// Writes a user log entry.

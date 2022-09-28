@@ -123,7 +123,7 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// <returns>An RpcException</returns>
         internal static RpcException? ToRpcException(this Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return null;
             }
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// <returns>An RpcException with IsUserException set to true.</returns>
         internal static RpcException? ToUserRpcException(this Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return null;
             }

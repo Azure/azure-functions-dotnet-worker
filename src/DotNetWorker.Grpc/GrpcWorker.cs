@@ -214,7 +214,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
-            response.Capabilities.Add("EnableUserCodeException", bool.TrueString);  //enableUserCodeExceptionOption.ToString());
+            response.Capabilities.Add("EnableUserCodeException", enableUserCodeExceptionOption.ToString());
             return response;
         }
 

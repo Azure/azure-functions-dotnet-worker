@@ -19,10 +19,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal sealed class Parser
         {
             private readonly GeneratorExecutionContext _context;
+            private readonly ImmutableArray<string> _functionsStringNamesToRemove;
 
             public Parser(GeneratorExecutionContext context)
             {
                 _context = context;
+                _functionsStringNamesToRemove = ImmutableArray.Create("Attribute", "Input", "Output");
             }
 
             private Compilation Compilation => _context.Compilation;
@@ -47,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                    if (!IsValidMethodAzureFunction(model, method, out string functionName))
+                    if (!IsValidMethodAzureFunction(model, method, out string? functionName))
                     {
                         continue;
                     }
@@ -128,9 +130,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks if a candidate method has a Function attribute on it.
             /// </summary>
-            private bool IsValidMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, out string functionName)
+            private bool IsValidMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, out string? functionName)
             {
-                functionName = string.Empty;
+                functionName = null;
                 var methodSymbol = model.GetDeclaredSymbol(method);
 
                 if (methodSymbol is null)
@@ -154,7 +156,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger)
             {
-                var result = new List<IDictionary<string, string>>();
                 hasHttpTrigger = false;
 
                 if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, string>>? methodOutputBindings)
@@ -164,6 +165,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     bindings = null;
                     return false;
                 }
+
+                var listSize = methodOutputBindings!.Count + parameterInputAndTriggerBindings!.Count + returnTypeBindings!.Count;
+                var result = new List<IDictionary<string, string>>(listSize);
 
                 result.AddRange(methodOutputBindings);
                 result.AddRange(parameterInputAndTriggerBindings);
@@ -181,14 +185,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var bindingLocation = method.Identifier.GetLocation();
 
                 var methodSymbol = model.GetDeclaredSymbol(method);
-                var attributes = methodSymbol!.GetAttributes(); // methodSymbol is not null here because it's checked in IsMethodAFunction which is called before bindings are collected/created
+                var attributes = methodSymbol!.GetAttributes(); // methodSymbol is not null here because it's checked in IsValidAzureFunction which is called before bindings are collected/created
 
-                AttributeData? outputBinding = null;
+                AttributeData? outputBindingAttribute = null;
                 hasOutputBinding = false;
 
                 foreach (var attribute in attributes)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, Compilation.GetTypeByMetadataName(Constants.BindingAttributeType)))
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)))
                     {
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
                         if (hasOutputBinding)
@@ -198,20 +202,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             return false;
                         }
 
-                        outputBinding = attribute;
+                        outputBindingAttribute = attribute;
                         hasOutputBinding = true;
                     }
                 }
 
-                if (outputBinding != null)
+                if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBinding, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, string>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, string>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
                     }
 
-                    bindingsList = new List<IDictionary<string, string>>();
+                    bindingsList = new List<IDictionary<string, string>>(capacity: 1);
                     bindingsList.Add(bindingDict!);
                     return true;
                 }
@@ -317,8 +321,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     return false;
                 }
 
-                if (returnTypeSymbol != null &&
-                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.VoidType)) &&
+                if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.VoidType)) &&
                     !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.TaskType)))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
@@ -328,7 +331,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
                         returnTypeSymbol = model.GetSymbolInfo(innerTypeSyntax).Symbol as ITypeSymbol;
 
-                        if (returnTypeSymbol is null)
+                        if (returnTypeSymbol is null) // need this check here b/c return type symbol takes on a new value from the inner argument type above
                         {
                             _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, genericSyntax.Identifier.GetLocation(), nameof(returnTypeSymbol)));
                             bindingsList = null;
@@ -339,84 +342,88 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.HttpResponseType))) // If return type is HttpResponseData
                     {
                         bindingsList.Add(GetHttpReturnBinding(Constants.ReturnBindingName));
-                        hasOutputBinding = true;
                     }
                     else
                     {
-                        var members = returnTypeSymbol.GetMembers();
-                        var foundHttpOutput = false;
-
-                        foreach (var m in members)
+                        if(!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, returnTypeSyntax.GetLocation(), out bindingsList))
                         {
-                            // Check if this attribute is an HttpResponseData type attribute
-                            if (m is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, Compilation.GetTypeByMetadataName(Constants.HttpResponseType)))
+                            bindingsList = null;
+                            return false;
+                        }
+                    }
+                }
+
+                return true;
+            }
+
+            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasOutputBinding, Location returnTypeLocation, out IList<IDictionary<string, string>>? bindingsList)
+            {
+                var members = returnTypeSymbol.GetMembers();
+                var foundHttpOutput = false;
+                bindingsList = new List<IDictionary<string, string>>(); // initialize this without size, because it will be difficult to predict how many bindings we can find here in the user code.
+
+                foreach (var prop in returnTypeSymbol.GetMembers().Where(a => a is IPropertySymbol))
+                {
+                    if (prop is null)
+                    {
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(prop)));
+                        bindingsList = null;
+                        return false;
+                    }
+
+                    // Check if this attribute is an HttpResponseData type attribute
+                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, Compilation.GetTypeByMetadataName(Constants.HttpResponseType)))
+                    {
+                        if (foundHttpOutput)
+                        {
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, returnTypeLocation, new object[] { nameof(prop), nameof(returnTypeSymbol) }));
+                            bindingsList = null;
+                            return false;
+                        }
+
+                        foundHttpOutput = true;
+                        bindingsList.Add(GetHttpReturnBinding(prop.Name));
+                    }
+                    else if (prop.GetAttributes().Length > 0) // check if this property has any attributes
+                    {
+                        var foundPropertyOutputAttr = false;
+
+                        foreach (var attr in prop.GetAttributes()) // now loop through and check if any of the attributes are Binding attributes
+                        {
+                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)))
                             {
-                                if (foundHttpOutput)
+                                // validate that there's only one binding attribute per property
+                                if (foundPropertyOutputAttr)
                                 {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, prop.Locations.FirstOrDefault(), new object[] { nameof(prop), nameof(returnTypeSymbol) }));
                                     bindingsList = null;
                                     return false;
                                 }
 
-                                foundHttpOutput = true;
-                                bindingsList.Add(GetHttpReturnBinding(m.Name));
-                            }
-                            else if (m.GetAttributes().Length > 0) // check if this property has any attributes
-                            {
-                                var foundPropertyOutputAttr = false;
-
-                                foreach (var attr in m.GetAttributes()) // now loop through and check if any of the attributes are Binding attributes
+                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, string>? bindingDict))
                                 {
-                                    if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType?.BaseType, Compilation.GetTypeByMetadataName(Constants.BindingAttributeType)))
-                                    {
-                                        // validate that there's only one binding attribute per proeprty
-                                        if (foundPropertyOutputAttr)
-                                        {
-                                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, m.Locations.FirstOrDefault(), new object[] { nameof(m), nameof(returnTypeSymbol) }));
-                                            bindingsList = null;
-                                            return false;
-                                        }
-
-                                        IPropertySymbol? propertySymbol = m as IPropertySymbol;
-
-                                        if (propertySymbol is null)
-                                        {
-                                            throw new InvalidOperationException($"The property '{nameof(propertySymbol)}' is invalid.");
-                                        }
-
-                                        var location = m.Locations.FirstOrDefault();
-                                        if (location is null)
-                                        {
-                                            location = Location.None;
-                                        }
-
-                                        if (!TryCreateBindingDict(attr, m.Name, location, out IDictionary<string, string>? bindingDict))
-                                        {
-                                            bindingsList = null;
-                                            return false;
-                                        }
-
-                                        bindingsList.Add(bindingDict!);
-
-                                        hasOutputBinding = true;
-                                        foundPropertyOutputAttr = true;
-                                    }
+                                    bindingsList = null;
+                                    return false;
                                 }
 
-                            }
-                        }
+                                bindingsList.Add(bindingDict!);
 
-                        if (hasHttpTrigger && !foundHttpOutput)
-                        {
-                            if (!hasOutputBinding)
-                            {
-                                bindingsList.Add(GetHttpReturnBinding(Constants.ReturnBindingName));
-                            }
-                            else
-                            {
-                                bindingsList.Add(GetHttpReturnBinding(Constants.HttpResponseBindingName));
+                                hasOutputBinding = true;
+                                foundPropertyOutputAttr = true;
                             }
                         }
+                    }
+                }
+
+                if (hasHttpTrigger && !foundHttpOutput)
+                {
+                    if (!hasOutputBinding)
+                    {
+                        bindingsList.Add(GetHttpReturnBinding(Constants.ReturnBindingName));
+                    }
+                    else
+                    {
+                        bindingsList.Add(GetHttpReturnBinding(Constants.HttpResponseBindingName));
                     }
                 }
 
@@ -436,18 +443,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location bindingLocation, out IDictionary<string, string>? bindings)
             {
-                IMethodSymbol? attribMethodSymbol = bindingAttrData.AttributeConstructor;
-
-                // Check if the attribute constructor has any parameters
-                if (attribMethodSymbol is null || attribMethodSymbol?.Parameters is null)
-                {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, bindingLocation, nameof(attribMethodSymbol)));
-                    bindings = null;
-                    return false;
-                }
-
                 // Get binding info as a dictionary with keys as the property name and value as the property value
-                if (!TryGetAttributeProperties(attribMethodSymbol, bindingAttrData, bindingLocation, out IDictionary<string, object>? attributeProperties))
+                if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object>? attributeProperties))
                 {
                     bindings = null;
                     return false;
@@ -457,12 +454,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string attributeName = bindingAttrData.AttributeClass!.Name;
 
                 // properly format binding types by removing "Attribute" and "Input" descriptors
-                string bindingType = attributeName.TrimStringsFromEnd(new string[] { "Attribute", "Input", "Output" });
+                string bindingType = attributeName.TrimStringsFromEnd(_functionsStringNamesToRemove);
 
                 // Set binding direction
                 string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)) ? "Out" : "In";
 
-                bindings = new Dictionary<string, string>();
+                var bindingCount = attributeProperties!.Count + 3;
+                bindings = new Dictionary<string, string>(capacity: bindingCount);
                 bindings.Add("name", FormatObject(bindingName));
                 bindings.Add("type", FormatObject(bindingType));
                 bindings.Add("direction", FormatObject(bindingDirection));
@@ -479,12 +477,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        var isEnum = false;
-                        
-                        if (string.Equals(prop.Key.ToString(), "authLevel", StringComparison.OrdinalIgnoreCase)) // prop keys come from Azure Functions defined attributes so we can check directly for authLevel
-                        {
-                            isEnum = true;
-                        }
+                        bool isEnum = string.Equals(prop.Key, "authLevel", StringComparison.OrdinalIgnoreCase); // prop keys come from Azure Functions defined attributes so we can check directly for authLevel
 
                         var propertyValue = FormatObject(prop.Value, isEnum);
                         bindings[propertyName] = propertyValue;
@@ -494,13 +487,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetAttributeProperties(IMethodSymbol attribMethodSymbol, AttributeData attributeData, Location attribLocation, out IDictionary<string, object>? attrProperties)
+            private bool TryGetAttributeProperties(AttributeData attributeData, Location attribLocation, out IDictionary<string, object>? attrProperties)
             {
                 attrProperties = new Dictionary<string, object>();
 
                 if (attributeData.ConstructorArguments.Any())
                 {
-                    if (!TryLoadConstructorArguments(attribMethodSymbol, attributeData, attrProperties, attribLocation))
+                    if (!TryLoadConstructorArguments(attributeData, attrProperties, attribLocation))
                     {
                         attrProperties = null;
                         return false;
@@ -527,11 +520,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryLoadConstructorArguments(IMethodSymbol attribMethodSymbol, AttributeData attributeData, IDictionary<string, object> dict, Location attribLocation)
+            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object> dict, Location attribLocation)
             {
-                if (attribMethodSymbol.Parameters.Length != attributeData.ConstructorArguments.Length)
+                IMethodSymbol? attribMethodSymbol = attributeData.AttributeConstructor;
+
+                // Check if the attribute constructor has any parameters
+                if (attribMethodSymbol is null)
                 {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.ArgumentCountMismatch, attribLocation, new object[] { nameof(attribMethodSymbol), nameof(attributeData) }));
+                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, attribLocation, nameof(attribMethodSymbol)));
                     return false;
                 }
 
@@ -555,19 +551,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         case TypedConstantKind.Type:
                             break;
                         case TypedConstantKind.Array:
-                            var arrayValues = arg.Values.Select(a => a.Value!.ToString()).ToArray();
+                            var arrayValues = arg.Values.Select(a => a.Value?.ToString()).ToArray();
                             dict[argumentName] = arrayValues;
                             break;
                         default:
                             break;
                     }
                 }
+
                 return true;
             }
 
             /// <summary>
             /// This method verifies that an EventHubsTrigger matches our expectations on cardinality (isBatched property). If isBatched is set to true, the parameter with the
-            /// attriute must be an enumerabletype.
+            /// attribute must be an enumerable type.
             /// </summary>
             private bool IsEventHubsTriggerValid(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, AttributeData attribute, out DataType dataType, out Cardinality cardinality)
             {
@@ -603,7 +600,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType));
                 var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableType));
 
-                // Check if mapping type
+                // Check if mapping type - mapping enumerables are not valid types for EventHubParameters
                 if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableOfKeyValuePair))
                     || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.LookupGenericType))
                     || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.DictionaryGenericType)))

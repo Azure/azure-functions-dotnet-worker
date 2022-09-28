@@ -25,6 +25,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData("HttpTriggerAttribute", "HttpTrigger")]
             [InlineData("QueueOutput", "Queue")]
             [InlineData("QueueInput", "Queue")]
+            [InlineData("Foo", "Foo")]
             public void TrimStringsFromEndWorks(string input, string expectedOutput)
             {
                 var toTrim = new string[] { "Attribute", "Input", "Output" };
@@ -32,7 +33,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 Assert.Equal(expectedOutput, actual);
             }
-
         }
     }
 }

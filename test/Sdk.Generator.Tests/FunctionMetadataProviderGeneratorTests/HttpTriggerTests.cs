@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Reflection;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Xunit;
 
@@ -111,6 +109,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -198,6 +200,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -296,6 +302,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 

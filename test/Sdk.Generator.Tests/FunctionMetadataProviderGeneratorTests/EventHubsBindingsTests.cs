@@ -16,6 +16,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
         public class EventHubsBindingsTests
         {
             private Assembly[] referencedExtensionAssemblies;
+            private readonly string _usingStringsForInput;
 
             public EventHubsBindingsTests()
             {
@@ -37,6 +38,17 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     diExtension,
                     diAbExtension
                 };
+
+                _usingStringsForInput = @"using System;
+                using System.Net;
+                using System.Linq;
+                using System.Text.Json;
+                using System.Collections;
+                using System.Collections.Concurrent;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;";
             }
 
             [Theory]
@@ -48,17 +60,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             public async void FunctionsWithIsBatchedFalse(string functionName, string parameterType, string dataType)
             {
                 StringBuilder inputCodeBuilder = new StringBuilder();
-                inputCodeBuilder.Append(@"using System;
-                using System.Net;
-                using System.Linq;
-                using System.Text.Json;
-                using System.Collections;
-                using System.Collections.Concurrent;
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
-
+                inputCodeBuilder.Append(_usingStringsForInput);
+                inputCodeBuilder.Append(@"
                 namespace FunctionApp
                 {
                     public class EventHubsInput
@@ -126,6 +129,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -162,17 +169,8 @@ namespace Microsoft.Azure.Functions.Worker
             public async void FunctionsWithCardinalityMany(string functionName, string parameterType, string dataType)
             {
                 StringBuilder inputCodeBuilder = new StringBuilder();
-                inputCodeBuilder.Append(@"using System;
-                using System.Net;
-                using System.Linq;
-                using System.Text.Json;
-                using System.Collections;
-                using System.Collections.Concurrent;
-                using System.Collections.Generic;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
-
+                inputCodeBuilder.Append(_usingStringsForInput);
+                inputCodeBuilder.Append(@"
                 namespace FunctionApp
                 {
                     public class EventHubsInput
@@ -262,6 +260,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -351,6 +353,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -559,6 +565,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -696,6 +706,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 
@@ -818,6 +832,10 @@ namespace Microsoft.Azure.Functions.Worker
     }
     public static class WorkerHostBuilderFunctionMetadataProviderExtension
     {
+        ///<summary>
+        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
             builder.ConfigureServices(s => 

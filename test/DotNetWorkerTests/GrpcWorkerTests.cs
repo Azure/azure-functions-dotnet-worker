@@ -155,7 +155,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Mock IFunctionApplication.CreateContext to return TestAsyncFunctionContext instance.
             _mockApplication
                 .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Returns<IInvocationFeatures, CancellationToken>((f,ct) =>
+                .Returns<IInvocationFeatures, CancellationToken>((f, ct) =>
                 {
                     _context = new TestAsyncFunctionContext(f);
                     return _context;
@@ -205,25 +205,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
-            Assert.Contains("whoops", response.Result.Exception.Message);
-            Assert.Contains("CreateContext", response.Result.Exception.StackTrace);
-        }
-
-        [Fact]
-        public async Task Invoke_InvokeAsyncThrows_ReturnsFailure()
-        {
-            _mockApplication
-                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
-                .Throws(new InvalidOperationException("whoops"));
-
-            var request = CreateInvocationRequest();
-
-            var response = await GrpcWorker.InvocationRequestHandlerAsync(request, _mockApplication.Object, _mockFeaturesFactory.Object,
-                new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object, _mockInputConversionFeatureProvider.Object);
-
-            Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
-            Assert.Contains("whoops", response.Result.Exception.Message);
-            Assert.Contains("InvokeFunctionAsync", response.Result.Exception.StackTrace);
+            Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
+            Assert.Contains("CreateContext", response.Result.Exception.Message);
         }
 
         private static FunctionLoadRequest CreateFunctionLoadRequest()

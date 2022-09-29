@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {
                     response.Result.Status = StatusResult.Types.Status.Cancelled;
-                }               
+                }
             }
             finally
             {

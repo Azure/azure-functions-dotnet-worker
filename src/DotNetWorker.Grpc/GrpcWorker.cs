@@ -137,11 +137,11 @@ namespace Microsoft.Azure.Functions.Worker
             switch (request.ContentCase)
             {
                 case MsgType.InvocationRequest:
-                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest, _workerOptions.Value.EnableUserCodeException);
+                    responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions.Value.EnableUserCodeException);
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -180,9 +180,9 @@ namespace Microsoft.Azure.Functions.Worker
             await _outputWriter.WriteAsync(responseMessage);
         }
 
-        internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request, bool enableUserCodeExceptionOption = false)
+        internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            return _invocationHandler.InvokeAsync(request, enableUserCodeExceptionOption);
+            return _invocationHandler.InvokeAsync(request, _workerOptions);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)
@@ -190,8 +190,9 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, bool enableUserCodeExceptionOption = false)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, IOptions<WorkerOptions>? workerOptions = null)
         {
+            var enableUserCodeException = workerOptions is not null && workerOptions.Value.EnableUserCodeException;
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
@@ -214,7 +215,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("TypedDataCollection", bool.TrueString);
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
-            response.Capabilities.Add("EnableUserCodeException", enableUserCodeExceptionOption.ToString());
+            response.Capabilities.Add("EnableUserCodeException", enableUserCodeException.ToString());
             return response;
         }
 

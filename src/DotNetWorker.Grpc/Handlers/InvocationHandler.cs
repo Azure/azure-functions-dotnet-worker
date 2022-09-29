@@ -13,6 +13,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Handlers
 {
@@ -45,8 +46,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, bool enableUserException = false)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, IOptions<WorkerOptions>? workerOptions = null)
         {
+            bool enableUserCodeException = workerOptions is not null && workerOptions.Value.EnableUserCodeException;
             using CancellationTokenSource cancellationTokenSource = new();
             FunctionContext? context = null;
             InvocationResponse response = new()
@@ -108,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                if (enableUserException)
+                if (enableUserCodeException)
                 {
                     response.Result.Exception = ex.ToUserRpcException();
                 }

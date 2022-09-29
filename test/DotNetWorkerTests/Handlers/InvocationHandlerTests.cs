@@ -11,6 +11,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -142,6 +143,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_UserCodeThrowsException_OptionEnabled()
         {
             var exceptionMessage = "user code exception";
+            var mockOptions = Options.Create(new WorkerOptions()
+            {
+                EnableUserCodeException = true
+            });
 
             _mockApplication
                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
@@ -152,7 +157,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
-            var response = await invocationHandler.InvokeAsync(request, true);
+            var response = await invocationHandler.InvokeAsync(request, mockOptions);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Equal("System.Exception", response.Result.Exception.Type.ToString());
@@ -167,6 +172,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_UserCodeThrowsException_OptionDisabled()
         {
             var exceptionMessage = "user code exception";
+            var mockOptions = Options.Create(new WorkerOptions()
+            {
+                EnableUserCodeException = false
+            });
 
             _mockApplication
                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
@@ -177,7 +186,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
-            var response = await invocationHandler.InvokeAsync(request, false);
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.NotEqual("System.Exception", response.Result.Exception.Type.ToString());

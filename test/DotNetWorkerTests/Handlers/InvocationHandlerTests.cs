@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -30,7 +30,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             _mockApplication
                 .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Returns((IInvocationFeatures f, CancellationToken ct) => {
+                .Returns((IInvocationFeatures f, CancellationToken ct) =>
+                {
                     _context = new TestFunctionContext(f, ct);
                     return _context;
                 });
@@ -106,7 +107,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Returns(Task.CompletedTask);
 
             // Don't wait for InvokeAsync so we can cancel whilst it's in progress
-            _ = Task.Run(async () => {
+            _ = Task.Run(async () =>
+            {
                 await handler.InvokeAsync(request);
             });
 
@@ -131,6 +133,56 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var result = handler.TryCancel(invocationId);
             Assert.False(result);
+        }
+
+        /// <summary>
+        /// Test unwrapping user code exception functionality. 
+        /// </summary>
+        [Fact]
+        public async Task InvokeAsync_UserCodeThrowsException_OptionEnabled()
+        {
+            var exceptionMessage = "user code exception";
+
+            _mockApplication
+               .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
+                .Throws(new Exception(exceptionMessage));
+            var request = TestUtility.CreateInvocationRequest("abc");
+
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLogger);
+
+            var response = await invocationHandler.InvokeAsync(request, true);
+
+            Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
+            Assert.Equal("System.Exception", response.Result.Exception.Type.ToString());
+            Assert.Equal(exceptionMessage, response.Result.Exception.Message);
+            Assert.True(response.Result.Exception.IsUserException);
+        }
+
+        /// <summary>
+        /// Test keeping user code exception wrapped as RpcException. 
+        /// </summary>
+        [Fact]
+        public async Task InvokeAsync_UserCodeThrowsException_OptionDisabled()
+        {
+            var exceptionMessage = "user code exception";
+
+            _mockApplication
+               .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
+                .Throws(new Exception(exceptionMessage));
+            var request = TestUtility.CreateInvocationRequest("abc");
+
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLogger);
+
+            var response = await invocationHandler.InvokeAsync(request, false);
+
+            Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
+            Assert.NotEqual("System.Exception", response.Result.Exception.Type.ToString());
+            Assert.NotEqual(exceptionMessage, response.Result.Exception.Message);
+            Assert.False(response.Result.Exception.IsUserException);
         }
     }
 }

@@ -110,14 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                if (enableUserCodeException)
-                {
-                    response.Result.Exception = ex.ToUserRpcException();
-                }
-                else
-                {
-                    response.Result.Exception = ex.ToRpcException();
-                }
+                response.Result.Exception = enableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
                 response.Result.Status = StatusResult.Types.Status.Failure;
 
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)

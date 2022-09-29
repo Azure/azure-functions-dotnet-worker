@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Google.Protobuf;
@@ -120,7 +121,8 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// <summary>
         /// Returns an RpcException for system exception scenarios.
         /// </summary>
-        /// <returns>An RpcException</returns>
+        /// <returns>An RpcException</returns> 
+        [return: NotNullIfNotNull("exception")]
         internal static RpcException? ToRpcException(this Exception exception)
         {
             if (exception is null)
@@ -140,6 +142,7 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// Returns an RpcException for when an exception is thrown by user's code. 
         /// </summary>
         /// <returns>An RpcException with IsUserException set to true.</returns>
+        [return: NotNullIfNotNull("exception")]
         internal static RpcException? ToUserRpcException(this Exception exception)
         {
             if (exception is null)

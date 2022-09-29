@@ -20,7 +20,6 @@
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.10.0" />
     <PackageReference Include="Google.Protobuf" Version="3.21.7" />
-    <PackageReference Include="Grpc.Core" Version="2.46.5" />
     <PackageReference Include="Grpc.Tools" Version="2.49.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

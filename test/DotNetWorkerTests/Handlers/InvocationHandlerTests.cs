@@ -149,7 +149,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
 
             _mockApplication
-               .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
+                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Throws(new Exception(exceptionMessage));
             var request = TestUtility.CreateInvocationRequest("abc");
 
@@ -178,7 +178,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
 
             _mockApplication
-               .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
+                .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Throws(new Exception(exceptionMessage));
             var request = TestUtility.CreateInvocationRequest("abc");
 

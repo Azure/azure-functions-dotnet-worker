@@ -431,7 +431,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         /// <remarks>
         /// Example output generated from BlobTriggerAttribute.
         ///     {
-        ///         "BlobPath" : "path"
+        ///         "path" : "samples-workitems/{name}"
         ///     }
         /// 
         /// In BlobTriggerAttribute type, the "BlobPath" property is decorated with "MetadataBindingPropertyName" attribute

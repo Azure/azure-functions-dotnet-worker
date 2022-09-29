@@ -446,14 +446,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         /// <returns>A dictionary containing the mapping.</returns>
         private static IDictionary<string, string> GetPropertyNameAliasMapping(CustomAttribute attribute)
         {
-            TypeReference paramAttributeType = attribute.AttributeType;
-            var typeDefinition = paramAttributeType.Resolve();
-            IDictionary<string, string> bindingNameAliasMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            var bindingNameAliasMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            TypeDefinition typeDefinition = attribute.AttributeType.Resolve();
+            
             foreach (var prop in typeDefinition.Properties)
             {
                 var bindingPropAttr = prop.CustomAttributes.FirstOrDefault(a =>
-                    a.AttributeType.FullName.Equals(Constants.MetadataBindingPropertyNameType));
+                                                    a.AttributeType.FullName.Equals(Constants.MetadataBindingPropertyNameType));
 
+                // The "MetadataBindingPropertyName" attribute has only one constructor which takes the name to be used.
                 var firstArgument = bindingPropAttr?.ConstructorArguments.First();
                 if (firstArgument?.Value != null)
                 {

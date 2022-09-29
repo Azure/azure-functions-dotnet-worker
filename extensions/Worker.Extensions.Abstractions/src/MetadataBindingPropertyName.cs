@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         /// <summary>
         /// Initializes a new instance of <see cref="MetadataBindingPropertyName"/> with the specified property name.
         /// </summary>
-        /// <param name="bindingPropertyName">The name of the property.</param>
+        /// <param name="bindingPropertyName">The name of the property to be used when generating function metadata.</param>
         /// <exception cref="ArgumentNullException">Throws when bindingPropertyName is null.</exception>
         public MetadataBindingPropertyName(string bindingPropertyName)
         {

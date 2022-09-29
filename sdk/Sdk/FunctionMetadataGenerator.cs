@@ -425,6 +425,45 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bindingMetadata.Add(binding);
         }
 
+        /// <summary>
+        /// Creates a map of property name and it's binding property name, if specified from the attribute passed in.
+        /// </summary>
+        /// <remarks>
+        /// Example output generated from BlobTriggerAttribute.
+        ///     {
+        ///         "BlobPath" : "path"
+        ///     }
+        /// 
+        /// In BlobTriggerAttribute type, the "BlobPath" property is decorated with "MetadataBindingPropertyName" attribute
+        /// where "path" is provided as the value to be used when generating metadata binding data, as shown below.
+        ///
+        ///     [MetadataBindingPropertyName("path")]
+        ///     public string BlobPath { set;get;}
+        /// 
+        /// </remarks>
+        /// <param name="attribute">The CustomAttribute instance to use for building the map. This will be a binding attribute
+        /// used to decorate the function parameter. Ex: BlobTrigger</param>
+        /// <returns>A dictionary containing the mapping.</returns>
+        private static IDictionary<string, string> GetPropertyNameAliasMapping(CustomAttribute attribute)
+        {
+            TypeReference paramAttributeType = attribute.AttributeType;
+            var typeDefinition = paramAttributeType.Resolve();
+            IDictionary<string, string> bindingNameAliasMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var prop in typeDefinition.Properties)
+            {
+                var bindingPropAttr = prop.CustomAttributes.FirstOrDefault(a =>
+                    a.AttributeType.FullName.Equals(Constants.MetadataBindingPropertyNameType));
+
+                var firstArgument = bindingPropAttr?.ConstructorArguments.First();
+                if (firstArgument?.Value != null)
+                {
+                    bindingNameAliasMap[prop.Name] = (string)firstArgument.Value.Value;
+                }
+            }
+
+            return bindingNameAliasMap;
+        }
+
         private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
         {
             ExpandoObject binding = new ExpandoObject();
@@ -450,9 +489,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 bindingDict["DataType"] = "Binary";
             }
 
+            var bindingNameAliasDict = GetPropertyNameAliasMapping(attribute);
+
             foreach (var property in attribute.GetAllDefinedProperties())
             {
-                bindingDict.Add(property.Key, property.Value);
+                var propertyName = bindingNameAliasDict.TryGetValue(property.Key, out var overriddenPropertyName)
+                    ? overriddenPropertyName
+                    : property.Key;
+
+                bindingDict.Add(propertyName, property.Value);
             }
 
             // Determine if we should set the "Cardinality" property based on

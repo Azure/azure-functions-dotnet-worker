@@ -14,6 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string DefaultValueAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.DefaultValueAttribute";
         internal const string FixedDelayRetryAttributeType = "Microsoft.Azure.Functions.Worker.FixedDelayRetryAttribute";
         internal const string ExponentialBackoffRetryAttributeType = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
+        internal const string MetadataBindingPropertyNameType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.MetadataBindingPropertyName";
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";

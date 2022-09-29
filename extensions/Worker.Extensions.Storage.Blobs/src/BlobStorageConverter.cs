@@ -2,11 +2,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Core;
+using Newtonsoft.Json;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -17,16 +19,28 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context.Source is not IBindingData bindingData
-                || bindingData?.ContentType is not "blob")
+            if (context.Source is not IBindingData bindingData)
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            var testContent = bindingData?.Content;
-            var connectionName = "";
-            var blobName = "";
-            var containerName = "";
+            if (bindingData.Source is not "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs")
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            }
+
+            var content = JsonConvert.DeserializeObject<Dictionary<string, string>>(bindingData.Content);
+
+            content.TryGetValue("Connection", out var connectionName);
+            content.TryGetValue("BlobName", out var blobName);
+            content.TryGetValue("ContainerName", out var containerName);
+
+            if (string.IsNullOrEmpty(connectionName)
+                || string.IsNullOrEmpty(blobName)
+                || string.IsNullOrEmpty(containerName))
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            }
 
             var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
             object result = ToTargetType(context.TargetType, connectionString, containerName, blobName);

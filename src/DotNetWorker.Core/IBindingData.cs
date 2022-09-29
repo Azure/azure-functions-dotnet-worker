@@ -1,12 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     /// <summary>
@@ -20,14 +14,19 @@ namespace Microsoft.Azure.Functions.Worker.Core
         string Version { get; }
 
         /// <summary>
-        /// Content type
+        /// Indicates the original media type of the resource i.e. text/plain or application/json
         /// </summary>
         string ContentType { get; }
 
         /// <summary>
-        /// An object containing any required information to hydrate
+        /// Extension source i.e CosmosDB, BlobStorage
+        /// </summary>
+        string Source { get; }
+
+        /// <summary>
+        /// A string containing any required information to hydrate
         /// an SDK-type object in the out-of-process worker
         /// </summary>
-        object Content { get; }
+        string Content { get; }
     }
 }

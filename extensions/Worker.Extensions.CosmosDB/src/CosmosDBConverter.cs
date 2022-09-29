@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Core;
 using Azure.Cosmos;
+using Newtonsoft.Json;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -15,26 +16,39 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context.Source is not IBindingData bindingData
-                || bindingData?.ContentType is not "cosmos")
+            if (context.Source is not IBindingData bindingData)
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            var testContent = bindingData?.Content;
-            var connectionName = "";
-            var databaseName = "";
-            var containerName = "";
-
-            var connectionString = Environment.GetEnvironmentVariable(connectionName);
-            object result = ToTargetType(context.TargetType, connectionString, databaseName, containerName);
-
-            if (result is not null)
+            if (bindingData.Source is not "Microsoft.Azure.WebJobs.Extensions.CosmosDB")
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(result));
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            try
+            {
+                var content = JsonConvert.DeserializeObject<CosmosDBInputAttribute>(bindingData.Content);
+
+                if (content is null)
+                {
+                    return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                }
+
+                var connectionString = Environment.GetEnvironmentVariable(content.Connection);
+                object result = ToTargetType(context.TargetType, connectionString, content.DatabaseName, content.DatabaseName);
+
+                if (result is not null)
+                {
+                    return new ValueTask<ConversionResult>(ConversionResult.Success(result));
+                }
+
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            }
+            catch (Exception ex)
+            {
+                // TODO: DeserializeObject could throw
+            }
         }
 
         private object? ToTargetType(Type targetType, string connectionString, string databaseName, string containerName) => targetType switch

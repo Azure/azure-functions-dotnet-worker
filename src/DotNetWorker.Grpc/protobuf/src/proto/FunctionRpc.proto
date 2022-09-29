@@ -9,7 +9,6 @@ option go_package ="github.com/Azure/azure-functions-go-worker/internal/rpc";
 
 package AzureFunctionsRpcMessages;
 
-import "google/protobuf/any.proto";
 import "google/protobuf/duration.proto";
 import "identity/ClaimsIdentityRpc.proto";
 import "shared/NullableTypes.proto";
@@ -655,5 +654,6 @@ message BindingData
 {
     string Version = 1;
     string ContentType = 2;
-    google.protobuf.Any Content = 3;
+    string Source = 3;
+    string Content = 4;
 }

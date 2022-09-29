@@ -122,7 +122,6 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// Returns an RpcException for system exception scenarios.
         /// </summary>
         /// <returns>An RpcException</returns> 
-        [return: NotNullIfNotNull("exception")]
         internal static RpcException? ToRpcException(this Exception exception)
         {
             if (exception is null)
@@ -142,7 +141,6 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// Returns an RpcException for when an exception is thrown by user's code. 
         /// </summary>
         /// <returns>An RpcException with IsUserException set to true.</returns>
-        [return: NotNullIfNotNull("exception")]
         internal static RpcException? ToUserRpcException(this Exception exception)
         {
             if (exception is null)

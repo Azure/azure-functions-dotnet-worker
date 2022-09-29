@@ -186,7 +186,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
-            var response = await invocationHandler.InvokeAsync(request);
+            var response = await invocationHandler.InvokeAsync(request, mockOptions);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.NotEqual("System.Exception", response.Result.Exception.Type.ToString());

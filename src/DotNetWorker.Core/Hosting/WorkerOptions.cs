@@ -27,5 +27,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// exceptions when they are surfaced to the Host. 
         /// </summary>
         public bool EnableUserCodeException { get; set; } = false;
+        
+        /// <summary>
+        /// Gets or sets a value that determines if empty entries should be included in the function trigger message payload.
+        /// </summary>
+        public bool IncludeEmptyEntriesInMessagePayload { get; set; }
     }
 }

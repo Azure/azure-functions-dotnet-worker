@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         /// <param name="request">Function invocation request</param>
         /// <param name="workerOptions"></param>
         /// <returns><see cref="InvocationResponse"/></returns>
-        Task<InvocationResponse> InvokeAsync(InvocationRequest request, IOptions<WorkerOptions>? workerOptions = null);
+        Task<InvocationResponse> InvokeAsync(InvocationRequest request, WorkerOptions? workerOptions = null);
 
         /// <summary>
         /// Cancels an invocation's associated <see cref="CancellationTokenSource"/>.

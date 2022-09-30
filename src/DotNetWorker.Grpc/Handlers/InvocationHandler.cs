@@ -46,9 +46,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, IOptions<WorkerOptions>? workerOptions = null)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, WorkerOptions? workerOptions = null)
         {
-            bool enableUserCodeException = workerOptions is not null && workerOptions.Value.EnableUserCodeException;
+            bool enableUserCodeException = workerOptions is not null && workerOptions.EnableUserCodeException;
             using CancellationTokenSource cancellationTokenSource = new();
             FunctionContext? context = null;
             InvocationResponse response = new()

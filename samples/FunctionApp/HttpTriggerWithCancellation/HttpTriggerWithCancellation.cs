@@ -31,20 +31,20 @@ namespace FunctionApp
 
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 response.WriteString($"Hello world!");
-
-                await Task.Delay(5000, cancellationToken);
-
                 return response;
             }
             catch (OperationCanceledException)
             {
-                _logger.LogInformation("Function invocation cancelled");
+                _logger.LogInformation("A cancellation token was received. Taking precautionary actions.");
+
+                // Take precautions like noting how far along you are with processing the batch
 
                 var response = req.CreateResponse(HttpStatusCode.ServiceUnavailable);
                 response.WriteString("Invocation cancelled");
-
                 return response;
             }
         }

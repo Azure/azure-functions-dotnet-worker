@@ -4,7 +4,6 @@
 using System;
 using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -21,7 +20,7 @@ namespace FunctionApp
         }
 
         [Function(nameof(HttpTriggerWithCancellation))]
-        public async Task<HttpResponseData> Run(
+        public HttpResponseData Run(
             [HttpTrigger(AuthorizationLevel.Anonymous,"get", "post", Route = null)]
             HttpRequestData req,
             FunctionContext executionContext,

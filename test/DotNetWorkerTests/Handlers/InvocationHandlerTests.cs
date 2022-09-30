@@ -143,10 +143,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_UserCodeThrowsException_OptionEnabled()
         {
             var exceptionMessage = "user code exception";
-            var mockOptions = Options.Create(new WorkerOptions()
+            var mockOptions = new WorkerOptions()
             {
                 EnableUserCodeException = true
-            });
+            };
 
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
@@ -172,10 +172,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_UserCodeThrowsException_OptionDisabled()
         {
             var exceptionMessage = "user code exception";
-            var mockOptions = Options.Create(new WorkerOptions()
+            var mockOptions = new WorkerOptions()
             {
                 EnableUserCodeException = false
-            });
+            };
 
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))

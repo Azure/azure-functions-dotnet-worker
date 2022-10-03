@@ -4,41 +4,46 @@
 using System;
 using System.Net;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace FunctionApp
 {
-    public static class HttpTriggerWithCancellation
+    public class HttpTriggerWithCancellation
     {
+        private readonly ILogger _logger;
+
+        public HttpTriggerWithCancellation(ILoggerFactory loggerFactory)
+        {
+            _logger = loggerFactory.CreateLogger<HttpTriggerWithCancellation>();
+        }
+
         [Function(nameof(HttpTriggerWithCancellation))]
-        public static async Task<HttpResponseData> Run(
+        public HttpResponseData Run(
             [HttpTrigger(AuthorizationLevel.Anonymous,"get", "post", Route = null)]
             HttpRequestData req,
             FunctionContext executionContext,
             CancellationToken cancellationToken)
         {
-            var logger = executionContext.GetLogger("FunctionApp.HttpTriggerWithCancellation");
-            logger.LogInformation("HttpTriggerWithCancellation function triggered");
+            _logger.LogInformation("HttpTriggerWithCancellation function triggered");
 
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
+
                 var response = req.CreateResponse(HttpStatusCode.OK);
                 response.WriteString($"Hello world!");
-
-                await Task.Delay(5000, cancellationToken);
-
                 return response;
             }
             catch (OperationCanceledException)
             {
-                logger.LogInformation("Function invocation cancelled");
+                _logger.LogInformation("A cancellation token was received. Taking precautionary actions.");
+
+                // Take precautions like noting how far along you are with processing the batch
 
                 var response = req.CreateResponse(HttpStatusCode.ServiceUnavailable);
                 response.WriteString("Invocation cancelled");
-
                 return response;
             }
         }

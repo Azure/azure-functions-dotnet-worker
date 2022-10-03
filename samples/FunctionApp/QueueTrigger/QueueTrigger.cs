@@ -10,7 +10,8 @@ namespace FunctionApp
     {
         [FixedDelayRetry(5, "00:00:10")]
         [Function(nameof(QueueTrigger))]
-        public static Book Run([QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
+        public static Book Run(
+            [QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)
         {
             Console.WriteLine(myBlob);
@@ -23,5 +24,4 @@ namespace FunctionApp
         public string name { get; set; }
         public string id { get; set; }
     }
-
 }

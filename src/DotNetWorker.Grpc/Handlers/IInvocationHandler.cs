@@ -1,9 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Handlers
 {
@@ -15,8 +16,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         /// an associated cancellation token source for the invocation.
         /// </summary>
         /// <param name="request">Function invocation request</param>
+        /// <param name="workerOptions"></param>
         /// <returns><see cref="InvocationResponse"/></returns>
-        Task<InvocationResponse> InvokeAsync(InvocationRequest request);
+        Task<InvocationResponse> InvokeAsync(InvocationRequest request, WorkerOptions? workerOptions = null);
 
         /// <summary>
         /// Cancels an invocation's associated <see cref="CancellationTokenSource"/>.

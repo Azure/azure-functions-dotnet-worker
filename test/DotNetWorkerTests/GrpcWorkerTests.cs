@@ -155,7 +155,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Mock IFunctionApplication.CreateContext to return TestAsyncFunctionContext instance.
             _mockApplication
                 .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Returns<IInvocationFeatures, CancellationToken>((f,ct) =>
+                .Returns<IInvocationFeatures, CancellationToken>((f, ct) =>
                 {
                     _context = new TestAsyncFunctionContext(f);
                     return _context;

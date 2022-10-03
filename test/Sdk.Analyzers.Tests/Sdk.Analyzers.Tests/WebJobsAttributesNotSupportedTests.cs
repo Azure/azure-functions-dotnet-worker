@@ -116,10 +116,10 @@ namespace FunctionApp
                 TestCode = testCode
             };
 
-            // Diagnostics from functions parameter
+            // Diagnostic entry for functions parameter
             test.ExpectedDiagnostics.Add(Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                 .WithSpan(13, 35, 13, 92).WithArguments("BlobAttribute"));
-            // Diagnostics from functions return type
+            // Diagnostic entry for functions return type
             test.ExpectedDiagnostics.Add(Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                 .WithSpan(11, 18, 11, 57).WithArguments("QueueAttribute"));
 

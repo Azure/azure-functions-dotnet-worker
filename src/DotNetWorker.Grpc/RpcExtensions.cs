@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Google.Protobuf;
@@ -117,9 +118,13 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
             return new GrpcFunctionDefinition(loadRequest, methodInfoLocator);
         }
 
+        /// <summary>
+        /// Returns an RpcException for system exception scenarios.
+        /// </summary>
+        /// <returns>An RpcException</returns>
         internal static RpcException? ToRpcException(this Exception exception)
         {
-            if (exception == null)
+            if (exception is null)
             {
                 return null;
             }
@@ -129,6 +134,27 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
                 Message = exception.ToString(),
                 Source = exception.Source ?? string.Empty,
                 StackTrace = exception.StackTrace ?? string.Empty
+            };
+        }
+
+        /// <summary>
+        /// Returns an RpcException for when an exception is thrown by user's code. 
+        /// </summary>
+        /// <returns>An RpcException with IsUserException set to true.</returns>
+        internal static RpcException? ToUserRpcException(this Exception exception)
+        {
+            if (exception is null)
+            {
+                return null;
+            }
+
+            return new RpcException
+            {
+                Message = exception.Message,
+                Source = exception.Source ?? string.Empty,
+                StackTrace = exception.StackTrace ?? string.Empty,
+                Type = exception.GetType().FullName ?? string.Empty,
+                IsUserException = true
             };
         }
     }

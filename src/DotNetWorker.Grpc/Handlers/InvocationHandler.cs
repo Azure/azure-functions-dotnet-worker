@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -13,6 +13,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Handlers
 {
@@ -45,8 +46,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, WorkerOptions? workerOptions = null)
         {
+            bool enableUserCodeException = workerOptions is not null && workerOptions.EnableUserCodeException;
             using CancellationTokenSource cancellationTokenSource = new();
             FunctionContext? context = null;
             InvocationResponse response = new()
@@ -108,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                response.Result.Exception = ex.ToRpcException();
+                response.Result.Exception = enableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
                 response.Result.Status = StatusResult.Types.Status.Failure;
 
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)

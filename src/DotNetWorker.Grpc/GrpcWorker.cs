@@ -35,7 +35,8 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
-        private readonly IOptions<GrpcWorkerStartupOptions> _startupOptions;
+        private readonly GrpcWorkerStartupOptions _startupOptions;
+        private readonly WorkerOptions _workerOptions;
         private readonly ObjectSerializer _serializer;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
@@ -63,7 +64,8 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-            _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
+            _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions));
+            _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
@@ -91,7 +93,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             StartStream str = new StartStream()
             {
-                WorkerId = _startupOptions.Value.WorkerId
+                WorkerId = _startupOptions.WorkerId
             };
 
             StreamingMessage startStream = new StreamingMessage()
@@ -132,14 +134,14 @@ namespace Microsoft.Azure.Functions.Worker
                 RequestId = request.RequestId
             };
 
-            switch(request.ContentCase)
+            switch (request.ContentCase)
             {
                 case MsgType.InvocationRequest:
                     responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest);
+                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -180,7 +182,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            return _invocationHandler.InvokeAsync(request);
+            return _invocationHandler.InvokeAsync(request, _workerOptions);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)
@@ -188,7 +190,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions? workerOptions = null)
         {
             var response = new WorkerInitResponse
             {
@@ -213,6 +215,11 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("WorkerStatus", bool.TrueString);
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
             response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
+
+            if (workerOptions is not null && workerOptions.EnableUserCodeException)
+            {
+                response.Capabilities.Add("EnableUserCodeException", bool.TrueString);
+            }
 
             return response;
         }

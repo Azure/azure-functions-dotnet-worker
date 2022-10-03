@@ -28,7 +28,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         private static readonly string _dotnetIsolatedWorkerConfigPath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", "workerDirectory");
         private static readonly string _dotnetIsolatedWorkerExePath = ConfigurationPath.Combine("languageWorkers", "dotnet-isolated", ExePathPropertyName);
 
-        private WorkerConfigDescription? newWorkerDescription;
+        private WorkerConfigDescription? _newWorkerDescription;
 
         public void Configure(WebJobsBuilderContext context, IWebJobsConfigurationBuilder builder)
         {
@@ -36,12 +36,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             // We need to adjust the path to the worker exe based on the root, if WorkerRootToken is found.
             // Both Configure methods need the updated worker description and the following line will check if it already exists or call GetUpdatedWorkerDescription() to create it
-            newWorkerDescription ??= GetUpdatedWorkerDescription(appRootPath);
+            _newWorkerDescription ??= GetWorkerConfigDescription(appRootPath);
 
             builder.ConfigurationBuilder.AddInMemoryCollection(new Dictionary<string, string>
             {
                 { _dotnetIsolatedWorkerConfigPath, appRootPath },
-                { _dotnetIsolatedWorkerExePath, newWorkerDescription.DefaultExecutablePath! }
+                { _dotnetIsolatedWorkerExePath, _newWorkerDescription.DefaultExecutablePath! }
             });
 
             Environment.SetEnvironmentVariable("DOTNET_NOLOGO", "true");
@@ -52,8 +52,8 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
         public void Configure(WebJobsBuilderContext context, IWebJobsBuilder builder)
         {
             string appRootPath = context.ApplicationRootPath;
-            newWorkerDescription ??= GetUpdatedWorkerDescription(appRootPath);
-            bool enableIndexing = newWorkerDescription.EnableWorkerIndexing ?? false;
+            _newWorkerDescription ??= GetWorkerConfigDescription(appRootPath);
+            bool enableIndexing = _newWorkerDescription.EnableWorkerIndexing ?? false;
 
             if (!enableIndexing)
             {
@@ -68,10 +68,10 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
             // This will not be called.
         }
 
-        private static WorkerConfigDescription GetUpdatedWorkerDescription(string appRootPath)
+        private static WorkerConfigDescription GetWorkerConfigDescription(string appRootPath)
         {
             string fullPathToWorkerConfig = Path.Combine(appRootPath, WorkerConfigFile);
-            WorkerConfigDescription workerDescription = GetWorkerConfigDescription(fullPathToWorkerConfig);
+            WorkerConfigDescription workerDescription = ReadWorkerConfigDescription(fullPathToWorkerConfig);
 
             if (string.IsNullOrEmpty(workerDescription.DefaultExecutablePath))
             {
@@ -97,11 +97,21 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
                     throw new FileNotFoundException($"The file '{exePath}' was not found.");
                 }
             }
+            else
+            {
+                // If the .NET path was provided by the environment (or tool) and the executable target
+                // was the default `dotnet`, override that with the environment value
+                string dotNetPath = Environment.GetEnvironmentVariable("DOTNET_ISOLATED_PATH");
+                if (dotNetPath is not null && string.Equals("dotnet", exePath, StringComparison.OrdinalIgnoreCase))
+                {
+                    exePath = dotNetPath;
+                }
+            }
 
             workerDescription.DefaultExecutablePath = exePath;
         }
 
-        private static WorkerConfigDescription GetWorkerConfigDescription(string workerConfigPath)
+        private static WorkerConfigDescription ReadWorkerConfigDescription(string workerConfigPath)
         {
             if (!File.Exists(workerConfigPath))
             {

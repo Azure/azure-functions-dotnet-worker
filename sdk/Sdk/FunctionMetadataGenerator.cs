@@ -426,19 +426,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         }
 
         /// <summary>
-        /// Creates a map of property name and it's binding property name, if specified from the attribute passed in.
+        /// Creates a map of property names and its binding property names, if specified from the attribute passed in.
         /// </summary>
         /// <remarks>
         /// Example output generated from BlobTriggerAttribute.
         ///     {
-        ///         "path" : "samples-workitems/{name}"
+        ///         "BlobPath" : "path"
         ///     }
         /// 
         /// In BlobTriggerAttribute type, the "BlobPath" property is decorated with "MetadataBindingPropertyName" attribute
         /// where "path" is provided as the value to be used when generating metadata binding data, as shown below.
         ///
         ///     [MetadataBindingPropertyName("path")]
-        ///     public string BlobPath { set;get;}
+        ///     public string BlobPath { get; set; }
         /// 
         /// </remarks>
         /// <param name="attribute">The CustomAttribute instance to use for building the map. This will be a binding attribute
@@ -456,7 +456,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 // The "MetadataBindingPropertyName" attribute has only one constructor which takes the name to be used.
                 var firstArgument = bindingPropAttr?.ConstructorArguments.First();
-                if (firstArgument?.Value != null)
+                if (firstArgument?.Value is not null)
                 {
                     bindingNameAliasMap[prop.Name] = (string)firstArgument.Value.Value;
                 }

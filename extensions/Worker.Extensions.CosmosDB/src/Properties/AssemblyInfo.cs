@@ -4,4 +4,4 @@
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 // [assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.CosmosDB", "4.0.0-preview2")]
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.CosmosDB", "4.0.0-dev638000804273639880", false, true)]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.CosmosDB", "4.0.0-dev638005013386719280", false, true)]

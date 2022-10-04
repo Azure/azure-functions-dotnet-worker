@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Core;
 using Azure.Cosmos;
 using Newtonsoft.Json;
+using System.Reflection;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -28,45 +29,54 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             try
             {
-                var content = JsonConvert.DeserializeObject<CosmosDBInputAttribute>(bindingData.Content);
-
-                if (content is null)
-                {
-                    return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
-                }
-
-                var connectionString = Environment.GetEnvironmentVariable(content.Connection);
-                object result = ToTargetType(context.TargetType, connectionString, content.DatabaseName, content.DatabaseName);
+                object result = ToTargetType(context.TargetType, bindingData.Content);
 
                 if (result is not null)
                 {
                     return new ValueTask<ConversionResult>(ConversionResult.Success(result));
                 }
-
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
             catch (Exception ex)
             {
                 // TODO: DeserializeObject could throw
+                Console.WriteLine(ex);
             }
+
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
         }
 
-        private object? ToTargetType(Type targetType, string connectionString, string databaseName, string containerName) => targetType switch
+        private object? ToTargetType(Type targetType, string content) => targetType switch
         {
-            Type _ when targetType == typeof(CosmosClient)      => CreateCosmosReference<CosmosClient>(connectionString, databaseName, containerName),
-            Type _ when targetType == typeof(CosmosDatabase)    => CreateCosmosReference<CosmosDatabase>(connectionString, databaseName, containerName),
-            Type _ when targetType == typeof(CosmosContainer)   => CreateCosmosReference<CosmosContainer>(connectionString, databaseName, containerName),
-            _ => null
+            Type _ when targetType == typeof(CosmosClient)              => CreateCosmosReference<CosmosClient>(content),
+            Type _ when targetType == typeof(CosmosDatabase)            => CreateCosmosReference<CosmosDatabase>(content),
+            Type _ when targetType == typeof(CosmosContainer)           => CreateCosmosReference<CosmosContainer>(content),
+            _ => CreateTargetObject(targetType, content)
         };
 
-        private object CreateCosmosReference<T>(string connectionString, string databaseName, string containerName)
+        private object CreateTargetObject(Type targetType, string content)
         {
+            MethodInfo deserializeObjectMethod = GetType()
+                                                .GetMethod("DeserializeTargetObject", BindingFlags.Instance | BindingFlags.NonPublic)
+                                                .MakeGenericMethod(new Type[] { targetType });
+            return deserializeObjectMethod.Invoke(this, new object[] { content });
+        }
+
+        private object? DeserializeTargetObject<T>(string content)
+        {
+            return JsonConvert.DeserializeObject<T>(content);
+        }
+
+        private object CreateCosmosReference<T>(string content)
+        {
+            var cosmosAttribute = JsonConvert.DeserializeObject<CosmosDBInputAttribute>(content);
+            var connectionString = Environment.GetEnvironmentVariable(cosmosAttribute?.Connection);
+
             Type targetType = typeof(T);
             CosmosClient cosmosClient = new (connectionString);
 
             object cosmosReference = targetType switch {
-                Type _ when targetType == typeof(CosmosDatabase)    => cosmosClient.GetDatabase(databaseName),
-                Type _ when targetType == typeof(CosmosContainer)   => cosmosClient.GetContainer(databaseName, containerName),
+                Type _ when targetType == typeof(CosmosDatabase)    => cosmosClient.GetDatabase(cosmosAttribute?.DatabaseName),
+                Type _ when targetType == typeof(CosmosContainer)   => cosmosClient.GetContainer(cosmosAttribute?.DatabaseName, cosmosAttribute?.ContainerName),
                 _ => cosmosClient
             };
 

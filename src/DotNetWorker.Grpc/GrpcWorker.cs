@@ -2,18 +2,21 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Grpc.Core;
+using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
+using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
@@ -38,9 +41,9 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly GrpcWorkerStartupOptions _startupOptions;
         private readonly WorkerOptions _workerOptions;
         private readonly ObjectSerializer _serializer;
-        private readonly IFunctionMetadataProvider _functionMetadataProvider;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IInvocationHandler _invocationHandler;
+        private readonly IFunctionMetadataProvider _functionMetadataProvider;
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
@@ -238,8 +241,28 @@ namespace Microsoft.Azure.Functions.Worker
 
                 foreach (var func in functionMetadataList)
                 {
-                    response.FunctionMetadataResults.Add(func);
+                    if (func is null)
+                    {
+                        continue;
+                    }
+
+                    if (func.RawBindings?.Any() != true)
+                    {
+                        throw new InvalidOperationException($"Functions must declare at least one binding. No bindings were found in the function ${nameof(func)}.");
+                    }
+
+                    var rpcFuncMetadata = func switch
+                    {
+                        RpcFunctionMetadata rpc => rpc,
+                        _ => BuildRpc(func),
+                    };
+
+                    // add BindingInfo
+                    rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
+
+                    response.FunctionMetadataResults.Add(rpcFuncMetadata);
                 }
+
             }
             catch (Exception ex)
             {
@@ -253,7 +276,29 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal void WorkerTerminateRequestHandler(WorkerTerminate request)
+        private static RpcFunctionMetadata BuildRpc(IFunctionMetadata func)
+        {
+            // create RpcFunctionMetadata
+            var rpcFuncMetadata = new RpcFunctionMetadata
+            {
+                Name = func.Name,
+                EntryPoint = func.EntryPoint,
+                FunctionId = func.FunctionId,
+                IsProxy = false,
+                Language = func.Language,
+                ScriptFile = func.ScriptFile,
+            };
+
+            // Add raw bindings
+            foreach (var rawBinding in func.RawBindings!)
+            {
+                rpcFuncMetadata.RawBindings.Add(rawBinding);
+            }
+
+            return rpcFuncMetadata;
+        }
+
+    internal void WorkerTerminateRequestHandler(WorkerTerminate request)
         {
             _hostApplicationLifetime.StopApplication();
         }

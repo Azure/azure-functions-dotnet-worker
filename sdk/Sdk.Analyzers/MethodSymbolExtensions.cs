@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static IEnumerable<AttributeData> GetWebJobsAttributes(this IMethodSymbol symbol)
         {
             var webJobsAttributesFromParams = symbol.Parameters.Select(p => p.GetWebJobsAttribute()).Where(a => a is not null);
-            var webJobsAttributesFromReturnType = symbol.GetReturnTypeAttributes().Where(a=>a.IsWebJobAttribute());
+            var webJobsAttributesFromReturnType = symbol.GetReturnTypeAttributes().Where(a => a.IsWebJobAttribute());
 
             return webJobsAttributesFromParams.Concat(webJobsAttributesFromReturnType);
         }

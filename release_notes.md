@@ -3,7 +3,7 @@
 - My change description (#PR/#issue)
 -->
 
-- Source-generated function metadata preview - implementation change to improve cold-start performance (#956)
+- Source-generated function metadata: implementation change to improve cold-start performance (#956)
 
 Steps for opting into the preview:
 

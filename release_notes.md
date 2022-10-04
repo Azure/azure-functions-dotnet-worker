@@ -3,6 +3,7 @@
 - My change description (#PR/#issue)
 -->
 
+- Added support for surfacing user-thrown exception to App Insights (#939)
 - Source-generated function metadata: implementation change to improve cold-start performance (#956)
 
 Steps for opting into the preview:

@@ -448,7 +448,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var bindingNameAliasMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
             TypeDefinition typeDefinition = attribute.AttributeType.Resolve();
-            
+
             foreach (var prop in typeDefinition.Properties)
             {
                 var bindingPropAttr = prop.CustomAttributes.FirstOrDefault(a =>
@@ -472,7 +472,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             return bindingNameAliasMap;
         }
-        
+
         private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
         {
             ExpandoObject binding = new ExpandoObject();

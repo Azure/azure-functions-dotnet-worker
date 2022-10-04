@@ -8,15 +8,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
     /// <summary>
     /// Specifies the binding property name that is used when generating function metadata.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Property, AllowMultiple = false)]
-    public sealed class MetadataBindingPropertyName : Attribute
+    [AttributeUsage(AttributeTargets.Property)]
+    public sealed class BindingPropertyNameAttribute : Attribute
     {
         /// <summary>
-        /// Initializes a new instance of <see cref="MetadataBindingPropertyName"/> with the specified property name.
+        /// Initializes a new instance of <see cref="BindingPropertyNameAttribute"/> with the specified property name.
         /// </summary>
         /// <param name="bindingPropertyName">The name of the property to be used when generating function metadata.</param>
         /// <exception cref="ArgumentNullException">Throws when bindingPropertyName is null.</exception>
-        public MetadataBindingPropertyName(string bindingPropertyName)
+        public BindingPropertyNameAttribute(string bindingPropertyName)
         {
             BindingPropertyName = bindingPropertyName ?? throw new ArgumentNullException(nameof(bindingPropertyName));
         }

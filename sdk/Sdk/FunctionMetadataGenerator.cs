@@ -452,19 +452,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             foreach (var prop in typeDefinition.Properties)
             {
                 var bindingPropAttr = prop.CustomAttributes.FirstOrDefault(a =>
-                                                    a.AttributeType.FullName.Equals(Constants.MetadataBindingPropertyNameType));
+                                                    a.AttributeType.FullName.Equals(Constants.BindingPropertyNameAttributeType));
 
                 // The "MetadataBindingPropertyName" attribute has only one constructor which takes the name to be used.
-                var firstArgument = bindingPropAttr?.ConstructorArguments.First();
-                if (firstArgument?.Value is not null)
+                var firstArgument = bindingPropAttr?.ConstructorArguments.Single();
+                if (firstArgument?.Value is null)
                 {
-                    bindingNameAliasMap[prop.Name] = (string)firstArgument.Value.Value;
+                    continue;
                 }
+
+                if (firstArgument.Value.Value is not string bindingNameArgumentValue)
+                {
+                    throw new ArgumentException(
+                        $"The type {Constants.BindingPropertyNameAttributeType} is expected to have a single constructor with a parameter of type {nameof(String)}");
+                }
+
+                bindingNameAliasMap[prop.Name] = bindingNameArgumentValue;
             }
 
             return bindingNameAliasMap;
         }
-
+        
         private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
         {
             ExpandoObject binding = new ExpandoObject();
@@ -494,6 +502,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (var property in attribute.GetAllDefinedProperties())
             {
+                var propName = property.Key;
+
+
                 var propertyName = bindingNameAliasDict.TryGetValue(property.Key, out var overriddenPropertyName)
                     ? overriddenPropertyName
                     : property.Key;

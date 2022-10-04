@@ -3,6 +3,25 @@
 - My change description (#PR/#issue)
 -->
 
-- Added support for surfacing user-thrown exception to App Insights (#939)
-- Add new analyzer rules for the source-generated function metadata preview (#1048)
-- Bump gRPC dependencies to latest version (#1085)
+- Source-generated function metadata preview - implementation change to improve cold-start performance (#956)
+
+Steps for opting into the preview:
+
+1. Add MSBuild property `<FunctionsEnableWorkerIndexing>true</FunctionsEnableWorkerIndexing>` app's `.csproj` file.
+2. In `local.settings.json` add the property `"AzureWebJobsFeatureFlags": "EnableWorkerIndexing"` to configure the Azure Functions host to use worker-indexing.
+3. Call the `IHostBuilder` extension, `ConfigureGeneratedFunctionMetadataProvider` in `Program.cs`:
+
+```
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            var host = new HostBuilder()
+                .ConfigureFunctionsWorkerDefaults()
+                .ConfigureGeneratedFunctionMetadataProvider()
+                .Build();
+
+            await host.RunAsync();
+        }
+    }
+```

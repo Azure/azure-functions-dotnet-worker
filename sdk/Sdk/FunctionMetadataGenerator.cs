@@ -426,8 +426,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bindingDict["Type"] = bindingType;
             bindingDict["Direction"] = GetBindingDirection(attribute);
 
+            // Is sdk parameter type
+            if (supportsReferenceType)
+            {
+                bindingDict["DataType"] = "Reference";
+            }
             // Is string parameter type
-            if (IsStringType(parameterType.FullName))
+            else if (IsStringType(parameterType.FullName))
             {
                 bindingDict["DataType"] = "String";
             }
@@ -435,11 +440,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             else if (IsBinaryType(parameterType.FullName))
             {
                 bindingDict["DataType"] = "Binary";
-            }
-            // Is sdk parameter type
-            else if (supportsReferenceType)
-            {
-                bindingDict["DataType"] = "Reference";
             }
 
             foreach (var property in attribute.GetAllDefinedProperties())

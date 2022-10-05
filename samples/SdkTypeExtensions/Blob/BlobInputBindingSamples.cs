@@ -11,7 +11,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-// This scenario does not currently work - reference object not used
+
 namespace SampleApp
 {
     public class BlobInputBindingSamples

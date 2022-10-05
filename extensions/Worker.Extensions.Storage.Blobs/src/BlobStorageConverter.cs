@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             Type _ when targetType == typeof(String)            => GetBlobString(connectionString, containerName, blobName),
             Type _ when targetType == typeof(Stream)            => GetBlobStream(connectionString, containerName, blobName),
-            Type _ when targetType == typeof(BinaryData)        => GetBlobBinaryData(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(Byte[])        => GetBlobBinaryData(connectionString, containerName, blobName),
             Type _ when targetType == typeof(BlobClient)        => CreateBlobReference<BlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(BlockBlobClient)   => CreateBlobReference<BlockBlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(PageBlobClient)    => CreateBlobReference<PageBlobClient>(connectionString, containerName, blobName),
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             return download.Value.Content.ToString();
         }
 
-        private byte[] GetBlobBinaryData(string connectionString, string containerName, string blobName)
+        private Byte[] GetBlobBinaryData(string connectionString, string containerName, string blobName)
         {
             var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName);
             var stream = new MemoryStream();

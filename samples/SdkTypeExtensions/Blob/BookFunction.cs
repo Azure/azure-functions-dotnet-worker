@@ -1,18 +1,18 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
+// This scenario does not currently work
 namespace SampleApp
 {
     public static class BlobBookFunction
     {
         [Function(nameof(BlobBookFunction))]
-        public static async Task Run(
+        public static void Run(
             [BlobTrigger("book-trigger", Connection = "AzureWebJobsStorage")] Book book,
-            [BlobInput("book-input/{id}.txt", Connection = "AzureWebJobsStorage")] string myBlob,
+            [BlobInput("input-container/{id}.txt", Connection = "AzureWebJobsStorage")] string myBlob,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobBookFunction));

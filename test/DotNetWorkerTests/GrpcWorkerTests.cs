@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData("IncludeEmptyEntriesInMessagePayload", true, "IncludeEmptyEntriesInMessagePayload", true, "True")]
         [InlineData("IncludeEmptyEntriesInMessagePayload", false, "IncludeEmptyEntriesInMessagePayload", false)]
-        public void InitRequest_ReturnsExpectedCapabilitiesBasedOnWorkerOptions(
+        public void InitRequest_ReturnsExpectedCapabilities_BasedOnWorkerOptions(
             string booleanPropertyName, 
             bool booleanPropertyValue, 
             string capabilityName, 

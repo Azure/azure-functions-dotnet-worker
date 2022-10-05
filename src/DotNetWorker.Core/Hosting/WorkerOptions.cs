@@ -30,6 +30,10 @@ namespace Microsoft.Azure.Functions.Worker
         
         /// <summary>
         /// Gets or sets a value that determines if empty entries should be included in the function trigger message payload.
+        /// For example, if a set of entries were sent to a messaging service such as Service Bus or Event Hub and your function
+        /// app has a Service bus trigger or Event hub trigger, only the non-empty entries from the payload will be sent to the
+        /// function code as trigger data when this setting value is <see langword="false"/>. When it is <see langword="true"/>,
+        /// All entries will be sent to the function code as it is. Default value for this setting is <see langword="false"/>.
         /// </summary>
         public bool IncludeEmptyEntriesInMessagePayload { get; set; }
     }

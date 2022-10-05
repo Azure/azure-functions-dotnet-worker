@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.Indent++;
                 indentedTextWriter.WriteLine(@"///<summary>");
                 indentedTextWriter.WriteLine(@"/// Adds the GeneratedFunctionMetadataProvider to the service collection.");
-                indentedTextWriter.WriteLine(@"/// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.");
+                indentedTextWriter.WriteLine(@"/// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.");
                 indentedTextWriter.WriteLine(@"///</summary>");
                 indentedTextWriter.WriteLine("public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)");
                 indentedTextWriter.WriteLine("{");

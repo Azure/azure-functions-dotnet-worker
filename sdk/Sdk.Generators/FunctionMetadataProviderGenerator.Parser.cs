@@ -441,10 +441,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return httpBinding;
             }
 
-            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location bindingLocation, out IDictionary<string, string>? bindings)
+            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, string>? bindings)
             {
                 // Get binding info as a dictionary with keys as the property name and value as the property value
-                if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object>? attributeProperties))
+                if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object?>? attributeProperties))
                 {
                     bindings = null;
                     return false;
@@ -470,7 +470,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     var propertyName = prop.Key;
 
-                    if (prop.Value.GetType().IsArray)
+                    if (prop.Value?.GetType().IsArray ?? false)
                     {
                         string arr = FormatArray((IEnumerable)prop.Value);
                         bindings[propertyName] = arr;
@@ -487,9 +487,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetAttributeProperties(AttributeData attributeData, Location attribLocation, out IDictionary<string, object>? attrProperties)
+            private bool TryGetAttributeProperties(AttributeData attributeData, Location? attribLocation, out IDictionary<string, object?>? attrProperties)
             {
-                attrProperties = new Dictionary<string, object>();
+                attrProperties = new Dictionary<string, object?>();
 
                 if (attributeData.ConstructorArguments.Any())
                 {
@@ -520,7 +520,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object> dict, Location attribLocation)
+            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> dict, Location? attribLocation)
             {
                 IMethodSymbol? attribMethodSymbol = attributeData.AttributeConstructor;
 

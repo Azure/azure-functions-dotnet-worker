@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -262,7 +262,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -355,7 +355,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -567,7 +567,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -708,7 +708,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -834,7 +834,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {

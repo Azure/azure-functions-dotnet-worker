@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             var functions = new List<SdkFunctionMetadata>();
 
-            _logger.LogMessage($"Found { targetAssemblies.Count} assemblies to evaluate in '{sourcePath}':");
+            _logger.LogMessage($"Found {targetAssemblies.Count} assemblies to evaluate in '{sourcePath}':");
 
             foreach (var path in targetAssemblies)
             {
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // if a retry attribute is defined, add it to the function.
             if (retryOptions != null)
             {
-                function.Retry = retryOptions;   
+                function.Retry = retryOptions;
             }
 
             return true;
@@ -550,7 +550,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     else
                     {
                         throw new FunctionsMetadataGenerationException("Function is configured to process events in batches but parameter type is not iterable. " +
-                            $"Change parameter named '{ parameterName }' to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
+                            $"Change parameter named '{parameterName}' to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
                     }
                 }
                 // Batching set to false

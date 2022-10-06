@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
@@ -57,13 +58,28 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             Type _ when targetType == typeof(String)            => GetBlobString(connectionString, containerName, blobName),
             Type _ when targetType == typeof(Stream)            => GetBlobStream(connectionString, containerName, blobName),
-            Type _ when targetType == typeof(Byte[])        => GetBlobBinaryData(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(Byte[])            => GetBlobBinaryData(connectionString, containerName, blobName),
             Type _ when targetType == typeof(BlobClient)        => CreateBlobReference<BlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(BlockBlobClient)   => CreateBlobReference<BlockBlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(PageBlobClient)    => CreateBlobReference<PageBlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(AppendBlobClient)  => CreateBlobReference<AppendBlobClient>(connectionString, containerName, blobName),
-            _ => null
+            _ => CreateTargetObject(targetType, connectionString, containerName, blobName)
         };
+
+        private object CreateTargetObject(Type targetType, string connectionString, string containerName, string blobName)
+        {
+            var content = GetBlobString(connectionString, containerName, blobName);
+            MethodInfo deserializeObjectMethod = GetType()
+                                                .GetMethod(nameof(DeserializeTargetObject), BindingFlags.Instance | BindingFlags.NonPublic)
+                                                .MakeGenericMethod(new Type[] { targetType });
+
+            return deserializeObjectMethod.Invoke(this, new object[] { content });
+        }
+
+        private object? DeserializeTargetObject<T>(string content)
+        {
+            return JsonConvert.DeserializeObject<T>(content);
+        }
 
         private string GetBlobString(string connectionString, string containerName, string blobName)
         {

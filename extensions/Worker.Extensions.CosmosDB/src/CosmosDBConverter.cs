@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         private object CreateTargetObject(Type targetType, string content)
         {
             MethodInfo deserializeObjectMethod = GetType()
-                                                .GetMethod("DeserializeTargetObject", BindingFlags.Instance | BindingFlags.NonPublic)
+                                                .GetMethod(nameof(DeserializeTargetObject), BindingFlags.Instance | BindingFlags.NonPublic)
                                                 .MakeGenericMethod(new Type[] { targetType });
             return deserializeObjectMethod.Invoke(this, new object[] { content });
         }

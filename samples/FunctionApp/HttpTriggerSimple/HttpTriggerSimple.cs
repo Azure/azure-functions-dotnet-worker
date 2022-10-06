@@ -4,6 +4,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -12,14 +14,18 @@ namespace FunctionApp
 {
     public static class HttpTriggerSimple
     {
+        private static HttpClient _client = new HttpClient();
+
         [Function(nameof(HttpTriggerSimple))]
-        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
+        public static async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
         {
             var sw = new Stopwatch();
             sw.Restart();
 
             var logger = executionContext.GetLogger("FunctionApp.HttpTriggerSimple");
             logger.LogInformation("Message logged");
+
+            await _client.GetAsync("http://www.microsoft.com");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
 

@@ -3,11 +3,14 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     internal interface IFunctionsApplication
     {
+        void RaiseHostTelemetryEvent(HostTelemetryEvent telemetry);
+
         void LoadFunction(FunctionDefinition definition);
 
         Task InvokeFunctionAsync(FunctionContext context);

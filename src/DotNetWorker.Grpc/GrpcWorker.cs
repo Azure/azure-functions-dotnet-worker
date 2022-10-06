@@ -13,7 +13,6 @@ using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
@@ -132,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
                 RequestId = request.RequestId
             };
 
-            switch(request.ContentCase)
+            switch (request.ContentCase)
             {
                 case MsgType.InvocationRequest:
                     responseMessage.InvocationResponse = await InvocationRequestHandlerAsync(request.InvocationRequest);
@@ -168,6 +167,18 @@ namespace Microsoft.Azure.Functions.Worker
 
                 case MsgType.InvocationCancel:
                     InvocationCancelRequestHandler(request.InvocationCancel);
+                    break;
+
+                case MsgType.HostTelemetryEventRequest:
+                    var telemetry = new Core.Diagnostics.HostTelemetryEvent(request.HostTelemetryEventRequest.Payload)
+                    {
+                        Id = request.HostTelemetryEventRequest.Id,
+                        FunctionName = request.HostTelemetryEventRequest.FunctionName,
+                        InvocationId = request.HostTelemetryEventRequest.InvocationId,
+                        EventName = request.HostTelemetryEventRequest.EventName
+                    };
+                    _application.RaiseHostTelemetryEvent(telemetry);
+                    responseMessage.HostTelemetryEventResponse = new HostTelemetryEventResponse { Id = request.HostTelemetryEventRequest.Id };
                     break;
 
                 default:

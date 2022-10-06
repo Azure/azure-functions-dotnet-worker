@@ -51,6 +51,17 @@ namespace Microsoft.Azure.Functions.Worker
                     options.IncludeScopes = false;
                     configureOptions?.Invoke(options);
                 });
+
+                // removing the logging filter auto-added by App Insights
+                // https://github.com/microsoft/ApplicationInsights-dotnet/blob/f4389840e435290fadf7fb7555661e8759070682/NETCORE/src/Shared/Extensions/ApplicationInsightsExtensions.cs#L421-L428
+                logging.Services.Configure<LoggerFilterOptions>(options =>
+                    {
+                        var rule = options.Rules.FirstOrDefault(r => r.ProviderName == "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider");
+                        if (rule is not null)
+                        {
+                            options.Rules.Remove(rule);
+                        }
+                    });
             });
 
             return builder;
@@ -63,21 +74,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             // User logs will be written directly to Application Insights; this prevents duplicate logging.
             builder.Services.AddSingleton<IUserLogWriter>(_ => NullUserLogWriter.Instance);
-
-            // This middleware is temporary for the preview. Eventually this behavior will move into the
-            // core worker assembly.
-            if (!builder.Services.Any(p => p.ImplementationType == typeof(FunctionActivitySourceMiddleware)))
-            {
-                builder.Services.AddSingleton<FunctionActivitySourceMiddleware>();
-                builder.Use(next =>
-                {
-                    return async context =>
-                    {
-                        var middleware = context.InstanceServices.GetRequiredService<FunctionActivitySourceMiddleware>();
-                        await middleware.Invoke(context, next);
-                    };
-                });
-            }
 
             return builder;
         }

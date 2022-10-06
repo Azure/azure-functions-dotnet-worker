@@ -61,9 +61,6 @@ public class ApplicationInsightsConfigurationTests
                 t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
         }
     }
 
@@ -88,9 +85,6 @@ public class ApplicationInsightsConfigurationTests
             var provider = host.Services;
             var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>();
             Assert.NotNull(options.Value);
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
 
             Assert.True(called);
         }
@@ -138,9 +132,6 @@ public class ApplicationInsightsConfigurationTests
             var systemWriter = serviceProvider.GetRequiredService<ISystemLogWriter>();
             Assert.IsNotType<NullLogWriter>(systemWriter);
 
-            var middleware = serviceProvider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
-
             Assert.True(called);
         }
     }
@@ -166,9 +157,6 @@ public class ApplicationInsightsConfigurationTests
             var provider = host.Services;
             var options = provider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
             Assert.NotNull(options.Value);
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
 
             Assert.True(called);
         }
@@ -215,9 +203,6 @@ public class ApplicationInsightsConfigurationTests
                 t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
         }
     }
 }

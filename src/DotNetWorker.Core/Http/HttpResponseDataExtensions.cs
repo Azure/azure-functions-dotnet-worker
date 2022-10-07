@@ -132,7 +132,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Asynchronously write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
+        /// Asynchronously writes the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>

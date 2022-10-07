@@ -6,7 +6,6 @@ using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core;
 using Azure.Core.Serialization;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
@@ -43,13 +42,26 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Writes the provided string to the response body using the specified encoding.
+        /// Asynchronously writes the provided string to the response body using the specified encoding.
         /// </summary>
         /// <param name="response">The response to write the string to.</param>
         /// <param name="value">The string content to write to the request body.</param>
         /// <param name="encoding">The encoding to use when writing the string. Defaults to UTF-8</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public static Task WriteStringAsync(this HttpResponseData response, string value, Encoding? encoding = null)
+        {
+            return WriteStringAsync(response, value, default, encoding);
+        }
+
+        /// <summary>
+        /// Asynchronously writes the provided string to the response body using the specified encoding, and monitors cancellation requests.
+        /// </summary>
+        /// <param name="response">The response to write the string to.</param>
+        /// <param name="value">The string content to write to the request body.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <param name="encoding">The encoding to use when writing the string. Defaults to UTF-8</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public static Task WriteStringAsync(this HttpResponseData response, string value, CancellationToken cancellationToken, Encoding? encoding = null)
         {
             if (response is null)
             {
@@ -64,11 +76,11 @@ namespace Microsoft.Azure.Functions.Worker.Http
             encoding ??= Encoding.UTF8;
 
             byte[] bytes = encoding.GetBytes(value);
-            return response.Body.WriteAsync(bytes, 0, bytes.Length);
+            return response.Body.WriteAsync(bytes, 0, bytes.Length, cancellationToken);
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
+        /// Asynchronously writes the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to 200.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -82,7 +94,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
+        /// Asynchronously writes the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -98,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
+        /// Asynchronously writes the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to 200.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -120,7 +132,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
+        /// Asynchronously write the specified value as JSON to the response body using the default <see cref="ObjectSerializer"/> configured for this worker.
         /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -145,7 +157,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
 
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
+        /// Asynchronously writes the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
         /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to 200.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -160,7 +172,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
+        /// Asynchronously writes the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
         /// The response content-type will be set to <code>application/json; charset=utf-8</code> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -177,7 +189,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
+        /// Asynchronously writes the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
         /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to 200.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -195,7 +207,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Write the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
+        /// Asynchronously writes the specified value as JSON to the response body using the provided <see cref="ObjectSerializer"/>.
         /// The response content-type will be set to the provided <paramref name="contentType"/> and the status code set to the provided <paramref name="statusCode"/>.
         /// </summary>
         /// <typeparam name="T">The type of object to write.</typeparam>
@@ -250,12 +262,24 @@ namespace Microsoft.Azure.Functions.Worker.Http
         }
 
         /// <summary>
-        /// Writes the provided bytes to the response body.
+        /// Asynchronously writes the provided bytes to the response body.
         /// </summary>
         /// <param name="response">The response to write the string to.</param>
         /// <param name="value">The byte content to write to the request body.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public static Task WriteBytesAsync(this HttpResponseData response, byte[] value)
+        {
+            return WriteBytesAsync(response, value, default);
+        }
+
+        /// <summary>
+        /// Asynchronously writes the provided bytes to the response body, and monitors cancellation requests.
+        /// </summary>
+        /// <param name="response">The response to write the string to.</param>
+        /// <param name="value">The byte content to write to the request body.</param>
+        /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public static Task WriteBytesAsync(this HttpResponseData response, byte[] value, CancellationToken cancellationToken)
         {
             if (response is null)
             {
@@ -267,7 +291,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 throw new ArgumentNullException(nameof(value));
             }
 
-            return response.Body.WriteAsync(value, 0, value.Length);
+            return response.Body.WriteAsync(value, 0, value.Length, cancellationToken);
         }
 
         private static ObjectSerializer GetObjectSerializer(HttpResponseData response)

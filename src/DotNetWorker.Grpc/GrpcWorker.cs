@@ -190,7 +190,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions? workerOptions = null)
+        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
         {
             var response = new WorkerInitResponse
             {
@@ -216,9 +216,13 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
             response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
 
-            if (workerOptions is not null && workerOptions.EnableUserCodeException)
+            if (workerOptions.EnableUserCodeException)
             {
                 response.Capabilities.Add("EnableUserCodeException", bool.TrueString);
+            }
+            if (workerOptions.IncludeEmptyEntriesInMessagePayload)
+            {
+                response.Capabilities.Add("IncludeEmptyEntriesInMessagePayload", bool.TrueString);
             }
 
             return response;

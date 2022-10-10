@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -28,6 +27,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// The blob portion of the path can contain tokens in curly braces to indicate a pattern to match. The matched
         /// name can be used in other binding attributes to define the output name of a Job function.
         /// </remarks>
+        [BindingPropertyName("path")]
         public string BlobPath
         {
             get { return _blobPath; }

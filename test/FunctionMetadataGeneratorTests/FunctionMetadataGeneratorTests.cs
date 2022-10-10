@@ -200,7 +200,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "blob" },
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
-                    { "blobPath", "container2/%file%" },
+                    { "path", "container2/%file%" },
                     { "DataType", "String" }
                 });
             }

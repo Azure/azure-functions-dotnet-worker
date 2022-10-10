@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -120,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void InitRequest_ReturnsExpectedMetadata()
         {
-            var response = GrpcWorker.WorkerInitRequestHandler(new());
+            var response = GrpcWorker.WorkerInitRequestHandler(new(),new WorkerOptions());
 
             string grpcWorkerVersion = typeof(GrpcWorker).Assembly.GetName().Version?.ToString();
             Assert.Equal(RuntimeInformation.FrameworkDescription, response.WorkerMetadata.RuntimeName);
@@ -130,6 +131,44 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Contains(response.WorkerMetadata.CustomProperties,
                 kvp => string.Equals(kvp.Key, "Worker.Grpc.Version", StringComparison.OrdinalIgnoreCase)
                 && string.Equals(kvp.Value, grpcWorkerVersion, StringComparison.OrdinalIgnoreCase));
+            
+        }
+        
+        [Theory]
+        [InlineData("IncludeEmptyEntriesInMessagePayload", true, "IncludeEmptyEntriesInMessagePayload", true, "True")]
+        [InlineData("IncludeEmptyEntriesInMessagePayload", false, "IncludeEmptyEntriesInMessagePayload", false)]
+        public void InitRequest_ReturnsExpectedCapabilities_BasedOnWorkerOptions(
+            string booleanPropertyName, 
+            bool booleanPropertyValue, 
+            string capabilityName, 
+            bool shouldCapabilityPresent,
+            string expectedCapabilityValue = null)
+        {
+            var workerOptions = new WorkerOptions();
+            // Update boolean property values of workerOption based on test input parameters.
+            workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
+            
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions);
+
+            IDictionary<string, string> capabilitiesDict = response.Capabilities;
+            Assert.Same(bool.TrueString, capabilitiesDict["RpcHttpBodyOnly"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["RawHttpBodyBytes"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["RpcHttpTriggerMetadataRemoved"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["UseNullableValueDictionaryForHttp"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["TypedDataCollection"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["WorkerStatus"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["HandlesWorkerTerminateMessage"]);
+            Assert.Same(bool.TrueString, capabilitiesDict["HandlesInvocationCancelMessage"]);
+
+            if (shouldCapabilityPresent)
+            {
+                Assert.Contains(capabilityName, capabilitiesDict);
+                Assert.Equal(expectedCapabilityValue, capabilitiesDict[capabilityName]);
+            }
+            else
+            {
+                Assert.DoesNotContain(capabilityName, capabilitiesDict);
+            }
         }
 
         [Fact]

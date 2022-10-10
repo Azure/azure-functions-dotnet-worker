@@ -144,11 +144,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             bool shouldCapabilityPresent,
             string expectedCapabilityValue = null)
         {
-            var workerOption = new WorkerOptions();
+            var workerOptions = new WorkerOptions();
             // Update boolean property values of workerOption based on test input parameters.
-            workerOption.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOption, booleanPropertyValue);
+            workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
             
-            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOption);
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions);
 
             IDictionary<string, string> capabilitiesDict = response.Capabilities;
             Assert.Same(bool.TrueString, capabilitiesDict["RpcHttpBodyOnly"]);

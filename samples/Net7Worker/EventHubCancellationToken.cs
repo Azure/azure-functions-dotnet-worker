@@ -17,19 +17,19 @@ namespace Net7Worker
 
         // Sample showing how to handle a cancellation token being received
         // In this example, the function invocation status will be "Cancelled"
-        [Function(nameof(EventHubCancellationToken))]
+        [Function(nameof(ThrowOnCancellation))]
         public async Task ThrowOnCancellation(
             [EventHubTrigger("sample-workitem-1", Connection = "EventHubConnection")] string[] messages,
             FunctionContext context,
             CancellationToken cancellationToken)
         {
-            _logger.LogInformation("C# EventHub ThrowOnCancellation trigger function processing a request.");
+            _logger.LogInformation("C# EventHub {functionName} trigger function processing a request.", nameof(ThrowOnCancellation));
 
             foreach (var message in messages)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 await Task.Delay(6000); // task delay to simulate message processing
-                _logger.LogInformation($"Message: {message} was processed.");
+                _logger.LogInformation("Message '{msg}' was processed.", message);
             }
         }
 
@@ -41,20 +41,20 @@ namespace Net7Worker
             FunctionContext context,
             CancellationToken cancellationToken)
         {
-            _logger.LogInformation("C# EventHub HandleCancellationCleanup trigger function processing a request.");
+            _logger.LogInformation("C# EventHub {functionName} trigger function processing a request.", nameof(HandleCancellationCleanup));
 
             foreach (var message in messages)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogInformation("A cancellation token was received. Taking precautionary actions.");
+                    _logger.LogInformation("A cancellation token was received, taking precautionary actions.");
                     // Take precautions like noting how far along you are with processing the batch
-                    _logger.LogInformation("Precautionary activities --complete--.");
+                    _logger.LogInformation("Precautionary activities complete.");
                     break;
                 }
 
                 await Task.Delay(6000); // task delay to simulate message processing
-                _logger.LogInformation($"Message: {message} was processed.");
+                _logger.LogInformation("Message '{msg}' was processed.", message);
             }
         }
     }

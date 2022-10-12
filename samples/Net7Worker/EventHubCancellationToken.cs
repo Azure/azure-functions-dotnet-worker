@@ -17,7 +17,7 @@ namespace Net7Worker
 
         [Function(nameof(EventHubCancellationToken))]
         public void Run(
-            [EventHubTrigger("src", Connection = "EventHubConnection")] string[] messages,
+            [EventHubTrigger("sample-workitems", Connection = "EventHubConnection")] string[] messages,
             FunctionContext context,
             CancellationToken cancellationToken)
         {
@@ -27,23 +27,13 @@ namespace Net7Worker
             {
                 foreach (var message in messages)
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                    {
-                        _logger.LogInformation("A cancellation token was received. Taking precautionary actions.");
-                        // Take precautions like noting how far along you are with processing the batch
-                        _logger.LogInformation("Precautionary activities --complete--.");
-                        break;
-                    }
-                    else
-                    {
-                        // Business logic as usual
-                        _logger.LogInformation($"Message: {message} was processed.");
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    _logger.LogInformation($"Message: {message} was processed.");
                 }
             }
-            catch (Exception ex)
+            catch (OperationCanceledException)
             {
-                _logger.LogInformation($"Something unexpected happened: {ex.Message}");
+                _logger.LogInformation("A cancellation token was received - invocation cancelled.");
             }
         }
     }

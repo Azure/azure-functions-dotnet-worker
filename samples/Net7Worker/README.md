@@ -22,7 +22,7 @@ EventHub trigger sample where we are processing multiple messages.
 
 Cancellation tokens are signalled by the platform, the use cases supported today are:
 
-1. Host shutdown
-2. Function timeout
+1. Sudden host shutdown or host restart
+2. Function timeout (where function execution has exceeded the timeout limit)
    1. You can try this out by setting function timeout to 5 seconds in
       the host.json file: `"functionTimeout": "00:00:05"`

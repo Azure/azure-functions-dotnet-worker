@@ -535,7 +535,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // that the constructor names would match the property names
                 for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
                 {
-                    var argumentName = attribMethodSymbol.Parameters[i].Name;
+                    string argumentName = attribMethodSymbol.Parameters[i].Name;// going to have to do something here to get the attribute on the parameter?
+
+                    if (TryOverrideBindingName(attributeData.AttributeClass, argumentName, out string? newName))
+                    {
+                        argumentName = newName!; // Won't be null here since newName has a valid value when TryOverrideBindingName returns true
+                    }
+
                     var arg = attributeData.ConstructorArguments[i];
 
                     switch (arg.Kind)
@@ -560,6 +566,35 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private bool TryOverrideBindingName(INamedTypeSymbol? attributeClass, string argumentName, out string? newName)
+            {
+                newName = null;
+
+                if (attributeClass is null)
+                {
+                    return false;
+                }
+
+                foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
+                {
+                    if (String.Equals(prop.Name, argumentName, StringComparison.OrdinalIgnoreCase)) // relies on JSON serialization convention where constructor parameter names match the property their value will be assigned to
+                    {
+                        var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.BindingPropertyNameAttributeType)));
+
+                        if (bindingNameAttrList.Count() > 0)
+                        {
+                            var bindingNameAttr = bindingNameAttrList.FirstOrDefault(); // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
+                            newName = bindingNameAttr.ConstructorArguments.First().ToString(); // there is only one constructor argument for this binding attribute (the binding name override)
+                            return true;
+                        }
+
+                        return false;
+                    }
+                }
+
+                return false;
             }
 
             /// <summary>

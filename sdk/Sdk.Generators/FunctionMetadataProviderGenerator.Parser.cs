@@ -534,7 +534,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-                    return true;
+                return true;
             }
 
             private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> dict, Location? attribLocation)

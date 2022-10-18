@@ -60,7 +60,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         Name = functionName,
                         EntryPoint = assemblyName + "." + functionClassName + "." + method.Identifier.ValueText,
-                        FunctionId = Guid.NewGuid().ToString(),
                         Language = "dotnet-isolated",
                         ScriptFile = scriptFile
                     };

@@ -35,7 +35,9 @@ public class EndToEndTests : IDisposable
                 functionsBuilder
                     .AddApplicationInsights(appInsightsOptions =>
                     {
+#pragma warning disable CS0618 // Obsolete member. Test case, this is fine to use.
                         appInsightsOptions.InstrumentationKey = "abc";
+#pragma warning restore CS0618 // Obsolete member. Test case, this is fine to use.
 
                         // keep things more deterministic for tests
                         appInsightsOptions.EnableAdaptiveSampling = false;

@@ -104,7 +104,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'QueueTriggerFunction',
                 EntryPoint = 'TestProject.QueueTriggerAndOutput.QueueTriggerAndOutputFunction',
@@ -215,7 +214,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'QueueToBlobFunction',
                 EntryPoint = 'TestProject.QueueTriggerAndOutput.QueueToBlob',
@@ -243,7 +241,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function1RawBindings.Add(Function1binding1JSON);
             var Function1 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'BlobToQueueFunction',
                 EntryPoint = 'TestProject.QueueTriggerAndOutput.BlobToQueue',

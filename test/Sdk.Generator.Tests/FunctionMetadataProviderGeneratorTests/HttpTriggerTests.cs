@@ -96,7 +96,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'HttpTriggerSimple',
                 EntryPoint = 'TestProject.HttpTriggerSimple.Run',
@@ -187,7 +186,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'HttpTrigger',
                 EntryPoint = 'TestProject.HttpTriggerSimple.HttpTrigger',
@@ -289,7 +287,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'JustHtt',
                 EntryPoint = 'TestProject.HttpTriggerSimple.Justhtt',

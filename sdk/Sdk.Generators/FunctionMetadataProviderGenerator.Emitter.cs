@@ -103,7 +103,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     indentedTextWriter.WriteLine($"var {functionVariableName} = new DefaultFunctionMetadata");
                     indentedTextWriter.WriteLine("{");
                     indentedTextWriter.Indent++;
-                    indentedTextWriter.WriteLine($"FunctionId = \"{function.FunctionId}\",");
                     indentedTextWriter.WriteLine("Language = \"dotnet-isolated\",");
                     indentedTextWriter.WriteLine($"Name = \"{function.Name}\",");
                     indentedTextWriter.WriteLine($"EntryPoint = \"{function.EntryPoint}\",");

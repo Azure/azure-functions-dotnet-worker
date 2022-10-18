@@ -11,8 +11,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public string? ScriptFile { get; set; }
 
-        public string? FunctionId { get; set; }
-
         public bool IsProxy { get; set; }
 
         public string? EntryPoint { get; set; }

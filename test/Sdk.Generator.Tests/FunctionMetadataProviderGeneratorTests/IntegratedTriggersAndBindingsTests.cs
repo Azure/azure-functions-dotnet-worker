@@ -128,7 +128,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding2JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'HttpTriggerWithMultipleOutputBindings',
                 EntryPoint = 'TestProject.HttpTriggerWithMultipleOutputBindings.Run',
@@ -270,7 +269,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding3JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'HttpTriggerWithBlobInput',
                 EntryPoint = 'TestProject.HttpTriggerWithBlobInput.Run',
@@ -380,7 +378,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'Products',
                 EntryPoint = 'TestProject.HttpTriggerWithBlobInput.Run',
@@ -470,7 +467,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'TimerFunction',
                 EntryPoint = 'TestProject.Timer.RunTimer',
@@ -569,7 +565,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'FunctionName',
                 EntryPoint = 'TestProject.BasicHttp.Http',

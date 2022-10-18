@@ -535,7 +535,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // that the constructor names would match the property names
                 for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
                 {
-                    string argumentName = attribMethodSymbol.Parameters[i].Name;// going to have to do something here to get the attribute on the parameter?
+                    string argumentName = attribMethodSymbol.Parameters[i].Name;
 
                     if (TryOverrideBindingName(attributeData.AttributeClass, argumentName, out string? newName))
                     {

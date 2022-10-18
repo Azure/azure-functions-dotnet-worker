@@ -49,7 +49,8 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
 
         private static string? HashFunctionId(DefaultFunctionMetadata function)
         {
-            // we use uint to avoid the '-' sign when we .ToString() the result.
+            // We use uint to avoid the '-' sign when we .ToString() the result.
+            // This function is adapted from https://github.com/Azure/azure-functions-host/blob/71ecbb2c303214f96d7e17310681fd717180bdbb/src/WebJobs.Script/Utility.cs#L847-L863
             static uint GetStableHash(string value)
             {
                 unchecked

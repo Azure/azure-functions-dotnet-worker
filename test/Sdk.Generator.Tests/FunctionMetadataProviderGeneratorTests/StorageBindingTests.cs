@@ -198,7 +198,7 @@ namespace Microsoft.Azure.Functions.Worker
                 name = '$return',
                 type = 'Blob',
                 direction = 'Out',
-                path = 'container1/hello.txt',
+                blobPath = 'container1/hello.txt',
                 Connection = 'MyOtherConnection',
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);

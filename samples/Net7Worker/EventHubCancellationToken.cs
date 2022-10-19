@@ -17,6 +17,7 @@ namespace Net7Worker
 
         // Sample showing how to handle a cancellation token being received
         // In this example, the function invocation status will be "Cancelled"
+        //<docsnippet_cancellation_token_throw>
         [Function(nameof(ThrowOnCancellation))]
         public async Task ThrowOnCancellation(
             [EventHubTrigger("sample-workitem-1", Connection = "EventHubConnection")] string[] messages,
@@ -32,9 +33,11 @@ namespace Net7Worker
                 _logger.LogInformation("Message '{msg}' was processed.", message);
             }
         }
+        //</docsnippet_cancellation_token_throw>
 
         // Sample showing how to take precautionary/clean up actions if a cancellation token is received
         // In this example, the function invocation status will be "Successful"
+        //<docsnippet_cancellation_token_cleanup>
         [Function(nameof(HandleCancellationCleanup))]
         public async Task HandleCancellationCleanup(
             [EventHubTrigger("sample-workitem-2", Connection = "EventHubConnection")] string[] messages,
@@ -57,5 +60,6 @@ namespace Net7Worker
                 _logger.LogInformation("Message '{msg}' was processed.", message);
             }
         }
+        //</docsnippet_cancellation_token_cleanup>
     }
 }

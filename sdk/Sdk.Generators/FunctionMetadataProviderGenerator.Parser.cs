@@ -536,11 +536,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
                 {
                     string argumentName = attribMethodSymbol.Parameters[i].Name;
-
-                    if (TryOverrideBindingName(attributeData.AttributeClass, argumentName, out string? newName))
-                    {
-                        argumentName = newName!; // Won't be null here since newName has a valid value when TryOverrideBindingName returns true
-                    }
+                    OverrideBindingName(attributeData.AttributeClass!, ref argumentName); // either argumentName will remain unchanged OR be updated to the overridden name at the end of this.
 
                     var arg = attributeData.ConstructorArguments[i];
 
@@ -568,33 +564,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryOverrideBindingName(INamedTypeSymbol? attributeClass, string argumentName, out string? newName)
+            private void OverrideBindingName(INamedTypeSymbol attributeClass, ref string argumentName)
             {
-                newName = null;
-
-                if (attributeClass is null)
-                {
-                    return false;
-                }
+                var bindingPropertyNameSymbol = Compilation.GetTypeByMetadataName(Constants.BindingPropertyNameAttributeType);
 
                 foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
                 {
-                    if (String.Equals(prop.Name, argumentName, StringComparison.OrdinalIgnoreCase)) // relies on JSON serialization convention where constructor parameter names match the property their value will be assigned to
+                    if (String.Equals(prop.Name, argumentName, StringComparison.OrdinalIgnoreCase)) // relies on convention where constructor parameter names match the property their value will be assigned to (JSON serialization is a precedence for this convention)
                     {
-                        var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.BindingPropertyNameAttributeType)));
+                        var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, bindingPropertyNameSymbol));
 
-                        if (bindingNameAttrList.Count() > 0)
+                        if (bindingNameAttrList.SingleOrDefault() is { } bindingNameAttr)
                         {
-                            var bindingNameAttr = bindingNameAttrList.FirstOrDefault(); // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
-                            newName = bindingNameAttr.ConstructorArguments.First().Value!.ToString(); // there is only one constructor argument for this binding attribute (the binding name override)
-                            return true;
+                            bindingNameAttr = bindingNameAttrList.FirstOrDefault(); // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
+                            argumentName = bindingNameAttr.ConstructorArguments.First().Value!.ToString(); // there is only one constructor argument for this binding attribute (the binding name override)
                         }
-
-                        return false;
                     }
                 }
-
-                return false;
             }
 
             /// <summary>

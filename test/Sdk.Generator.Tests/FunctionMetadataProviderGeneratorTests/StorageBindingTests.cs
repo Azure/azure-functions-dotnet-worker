@@ -236,7 +236,7 @@ namespace Microsoft.Azure.Functions.Worker
                 name = 'blob',
                 type = 'BlobTrigger',
                 direction = 'In',
-                blobPath = 'container2/%file%',
+                path = 'container2/%file%',
                 dataType = 'String',
             };
             var Function1binding1JSON = JsonSerializer.Serialize(Function1binding1);

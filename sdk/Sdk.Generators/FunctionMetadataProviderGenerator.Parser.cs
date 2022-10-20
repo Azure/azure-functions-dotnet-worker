@@ -535,7 +535,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // that the constructor names would match the property names
                 for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
                 {
-                    var argumentName = attribMethodSymbol.Parameters[i].Name;
+                    string argumentName = attribMethodSymbol.Parameters[i].Name;
+                    OverrideBindingName(attributeData.AttributeClass!, ref argumentName); // either argumentName will remain unchanged OR be updated to the overridden name at the end of this.
+
                     var arg = attributeData.ConstructorArguments[i];
 
                     switch (arg.Kind)
@@ -560,6 +562,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private void OverrideBindingName(INamedTypeSymbol attributeClass, ref string argumentName)
+            {
+                var bindingPropertyNameSymbol = Compilation.GetTypeByMetadataName(Constants.BindingPropertyNameAttributeType);
+
+                foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
+                {
+                    if (String.Equals(prop.Name, argumentName, StringComparison.OrdinalIgnoreCase)) // relies on convention where constructor parameter names match the property their value will be assigned to (JSON serialization is a precedence for this convention)
+                    {
+                        var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, bindingPropertyNameSymbol));
+
+                        if (bindingNameAttrList.SingleOrDefault() is { } bindingNameAttr) // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
+                        {
+                            argumentName = bindingNameAttr.ConstructorArguments.First().Value!.ToString(); // there is only one constructor argument for this binding attribute (the binding name override)
+                        }
+                    }
+                }
             }
 
             /// <summary>

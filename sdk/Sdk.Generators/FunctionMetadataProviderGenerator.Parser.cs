@@ -574,9 +574,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, bindingPropertyNameSymbol));
 
-                        if (bindingNameAttrList.SingleOrDefault() is { } bindingNameAttr)
+                        if (bindingNameAttrList.SingleOrDefault() is { } bindingNameAttr) // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
                         {
-                            bindingNameAttr = bindingNameAttrList.FirstOrDefault(); // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
                             argumentName = bindingNameAttr.ConstructorArguments.First().Value!.ToString(); // there is only one constructor argument for this binding attribute (the binding name override)
                         }
                     }

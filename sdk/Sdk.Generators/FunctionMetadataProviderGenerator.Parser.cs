@@ -516,7 +516,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-                return true;
+                // some properties have default values, so if these properties were not already defined in constructor or named arguments, we will auto-add them here
+                foreach (var member in attributeData.AttributeClass!.GetMembers().Where(a => a is IPropertySymbol))
+                {
+                    var defaultValAttrList = member.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType)));
+
+                    if (defaultValAttrList.Count() > 0)
+                    {
+                        // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
+                        // only one constructor argument in DefaultValue attribute
+                        var defaultVal = defaultValAttrList.FirstOrDefault().ConstructorArguments.FirstOrDefault();
+
+                        if (!attrProperties.Keys.Any(a => string.Equals(a, default, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
+                        {
+                            attrProperties[member.Name.ToString()] = defaultVal; // add property with default value to func metadata, using binding property as the arg name
+                        }
+                    }
+                }
+
+                    return true;
             }
 
             private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> dict, Location? attribLocation)

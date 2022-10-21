@@ -523,10 +523,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (defaultValAttrList.SingleOrDefault() is { } defaultValAttr) // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                     {
-                        // only one constructor argument in DefaultValue attribute
                         if (!attrProperties.Keys.Any(a => string.Equals(a, default, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
                         {
-                            attrProperties[member.Name.ToString()] = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // add property with default value to func metadata, using binding property as the arg name
+                            attrProperties[member.Name.ToString()] = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // only one constructor arg in DefaultValue attribute (the default value)
                         }
                     }
                 }
@@ -622,7 +621,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-                // Check the default value of IsBatched, if it is by default false, we find the data type and return
+                // Check the default value of IsBatched
                 var eventHubsAttr = attribute.AttributeClass;
                 var isBatchedProp = eventHubsAttr!.GetMembers().Where(m => string.Equals(m.Name, Constants.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
                 AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType))).SingleOrDefault();

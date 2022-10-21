@@ -11,8 +11,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal const string FunctionNameType = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
         internal const string HttpResponseType = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
         internal const string EventHubsTriggerType = "Microsoft.Azure.Functions.Worker.EventHubTriggerAttribute";
+<<<<<<< HEAD
         internal const string BindingPropertyNameAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingPropertyNameAttribute";
         internal const string DefaultValueType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions";
+=======
+        internal const string DefaultValueType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.DefaultValueAttribute";
+>>>>>>> 8d65547 (resolve comment, add event hubs check)
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";

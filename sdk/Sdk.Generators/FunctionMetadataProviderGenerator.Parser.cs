@@ -521,15 +521,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     var defaultValAttrList = member.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType)));
 
-                    if (defaultValAttrList.Count() > 0)
+                    if (defaultValAttrList.SingleOrDefault() is { } defaultValAttr) // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                     {
-                        // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                         // only one constructor argument in DefaultValue attribute
-                        var defaultVal = defaultValAttrList.FirstOrDefault().ConstructorArguments.FirstOrDefault();
-
                         if (!attrProperties.Keys.Any(a => string.Equals(a, default, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
                         {
-                            attrProperties[member.Name.ToString()] = defaultVal; // add property with default value to func metadata, using binding property as the arg name
+                            attrProperties[member.Name.ToString()] = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // add property with default value to func metadata, using binding property as the arg name
                         }
                     }
                 }
@@ -608,7 +605,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 dataType = DataType.Undefined;
                 cardinality = Cardinality.Undefined;
 
-                // Check if IsBatched is false (by default it is true and does not appear in the attribute constructor)
+                // check if IsBatched is defined in the NamedArguments
                 foreach (var arg in attribute.NamedArguments)
                 {
                     if (String.Equals(arg.Key, Constants.IsBatchedKey) &&
@@ -623,6 +620,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             return true;
                         }
                     }
+                }
+
+                // Check the default value of IsBatched, if it is by default false, we find the data type and return
+                var eventHubsAttr = attribute.AttributeClass;
+                var isBatchedProp = eventHubsAttr!.GetMembers().Where(m => string.Equals(m.Name, Constants.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+                AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType))).SingleOrDefault();
+                var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg, the default value
+                if (string.Equals(defaultVal, "false", StringComparison.OrdinalIgnoreCase))
+                {
+                    dataType = GetDataType(parameterSymbol.Type);
+                    cardinality = Cardinality.One;
+                    return true;
                 }
 
                 // we check if the param is an array type

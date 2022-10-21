@@ -503,7 +503,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (namedArgument.Value.Value != null)
                     {
-                        if (String.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.Keys.Contains("Cardinality"))
+                        if (string.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.Keys.Any(k => string.Equals(k, "Cardinality", StringComparison.OrdinalIgnoreCase)))
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
@@ -523,9 +523,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (defaultValAttrList.SingleOrDefault() is { } defaultValAttr) // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                     {
-                        if (!attrProperties.Keys.Any(a => string.Equals(a, default, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
+                        var argName = member.Name;
+                        var argDefaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // only one constructor arg in DefaultValue attribute (the default value)
+                        
+                        if (string.Equals(argName, Constants.IsBatchedKey))
                         {
-                            attrProperties[member.Name.ToString()] = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // only one constructor arg in DefaultValue attribute (the default value)
+                            if (!attrProperties.Keys.Contains("Cardinality"))
+                            {
+                                attrProperties["Cardinality"] = string.Equals(argDefaultVal, "true", StringComparison.OrdinalIgnoreCase) ? "Many" : "One";
+                            }
+                        }
+                        else
+                        {
+                            if (!attrProperties.Keys.Any(a => string.Equals(a, default, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
+                            {
+                                attrProperties[argName] = argDefaultVal; 
+                            }
                         }
                     }
                 }

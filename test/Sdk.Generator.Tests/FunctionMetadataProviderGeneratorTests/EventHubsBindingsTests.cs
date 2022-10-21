@@ -230,7 +230,8 @@ namespace Microsoft.Azure.Functions.Worker
                 type = ""EventHubTrigger"",
                 direction = ""In"",
                 eventHubName = ""test"",
-                Connection = ""EventHubConnectionAppSetting"","
+                Connection = ""EventHubConnectionAppSetting"",
+                Cardinality = ""Many"","
                 );
 
                 if (!string.Equals(dataType, ""))
@@ -240,7 +241,6 @@ namespace Microsoft.Azure.Functions.Worker
                 }
 
                 expectedOutputBuilder.Append(@"
-                Cardinality = ""Many"",
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
@@ -476,8 +476,8 @@ namespace Microsoft.Azure.Functions.Worker
                 direction = 'In',
                 eventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                dataType = 'String',
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
@@ -497,8 +497,8 @@ namespace Microsoft.Azure.Functions.Worker
                 direction = 'In',
                 eventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                dataType = 'String',
             };
             var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
             Function1RawBindings.Add(Function1binding0JSON);
@@ -518,8 +518,8 @@ namespace Microsoft.Azure.Functions.Worker
                 direction = 'In',
                 eventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                dataType = 'String',
             };
             var Function2binding0JSON = JsonSerializer.Serialize(Function2binding0);
             Function2RawBindings.Add(Function2binding0JSON);
@@ -539,8 +539,8 @@ namespace Microsoft.Azure.Functions.Worker
                 direction = 'In',
                 eventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                dataType = 'String',
             };
             var Function3binding0JSON = JsonSerializer.Serialize(Function3binding0);
             Function3RawBindings.Add(Function3binding0JSON);
@@ -657,8 +657,8 @@ namespace Microsoft.Azure.Functions.Worker
                 direction = 'In',
                 eventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'Binary',
                 Cardinality = 'Many',
+                dataType = 'Binary',
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
@@ -678,8 +678,8 @@ namespace Microsoft.Azure.Functions.Worker
                 direction = 'In',
                 eventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'Binary',
                 Cardinality = 'Many',
+                dataType = 'Binary',
             };
             var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
             Function1RawBindings.Add(Function1binding0JSON);

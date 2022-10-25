@@ -503,7 +503,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (namedArgument.Value.Value != null)
                     {
-                        if (string.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.Keys.Any(k => string.Equals(k, "Cardinality", StringComparison.OrdinalIgnoreCase)))
+                        if (String.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.Keys.Contains("Cardinality"))
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
@@ -524,21 +524,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (defaultValAttrList.SingleOrDefault() is { } defaultValAttr) // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                     {
                         var argName = member.Name;
-                        var argDefaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // only one constructor arg in DefaultValue attribute (the default value)
-                        
-                        if (string.Equals(argName, Constants.IsBatchedKey))
+                        object arg = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!; // only one constructor arg in DefaultValue attribute (the default value)
+                        if ( arg is bool b && string.Equals(argName, Constants.IsBatchedKey))
                         {
                             if (!attrProperties.Keys.Contains("Cardinality"))
                             {
-                                attrProperties["Cardinality"] = string.Equals(argDefaultVal, "true", StringComparison.OrdinalIgnoreCase) ? "Many" : "One";
+                                attrProperties["Cardinality"] = b ? "Many" : "One";
                             }
                         }
-                        else
+                        else if (!attrProperties.Keys.Any(a => string.Equals(a, argName, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
                         {
-                            if (!attrProperties.Keys.Any(a => string.Equals(a, default, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
-                            {
-                                attrProperties[argName] = argDefaultVal; 
-                            }
+                            attrProperties[argName] = arg;
                         }
                     }
                 }
@@ -639,7 +635,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isBatchedProp = eventHubsAttr!.GetMembers().Where(m => string.Equals(m.Name, Constants.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
                 AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType))).SingleOrDefault();
                 var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg, the default value
-                if (string.Equals(defaultVal, "false", StringComparison.OrdinalIgnoreCase))
+                if (!bool.Parse(defaultVal))
                 {
                     dataType = GetDataType(parameterSymbol.Type);
                     cardinality = Cardinality.One;

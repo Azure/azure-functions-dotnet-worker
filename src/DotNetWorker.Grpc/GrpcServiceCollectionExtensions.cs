@@ -3,22 +3,16 @@
 
 using System;
 using System.Threading.Channels;
-using Grpc.Core;
+using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-
-#if NET5_0_OR_GREATER
-using Grpc.Net.Client;
-#endif
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -56,40 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();
-            services.AddSingleton<FunctionRpcClient>(p =>
-            {
-                IOptions<GrpcWorkerStartupOptions> argumentsOptions = p.GetService<IOptions<GrpcWorkerStartupOptions>>()
-                    ?? throw new InvalidOperationException("gRPC Services are not correctly registered.");
-
-                GrpcWorkerStartupOptions arguments = argumentsOptions.Value;
-
-                string uriString = $"http://{arguments.Host}:{arguments.Port}";
-                if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
-                {
-                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
-                }
-
-
-#if NET5_0_OR_GREATER
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
-                {
-                    MaxReceiveMessageSize = arguments.GrpcMaxMessageLength,
-                    MaxSendMessageSize = arguments.GrpcMaxMessageLength,
-                    Credentials = ChannelCredentials.Insecure
-                });
-#else
-
-                var options = new ChannelOption[]
-                {
-                    new ChannelOption(Grpc.Core.ChannelOptions.MaxReceiveMessageLength, arguments.GrpcMaxMessageLength),
-                    new ChannelOption(Grpc.Core.ChannelOptions.MaxSendMessageLength, arguments.GrpcMaxMessageLength)
-                };
-
-                Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure, options);
-
-#endif
-                return new FunctionRpcClient(grpcChannel);
-            });
+            services.AddSingleton<IWorkerClientFactory, GrpcWorkerClientFactory>();
 
             services.AddOptions<GrpcWorkerStartupOptions>()
                 .Configure<IConfiguration>((arguments, config) =>

@@ -10,6 +10,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MinorProductVersion>7</MinorProductVersion>
     <VersionSuffix>-preview2</VersionSuffix>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -39,6 +40,7 @@
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Grpc.Core" Version="2.45.0" />
+    <Compile Remove="NativeHostIntegration/./*.*" />
   </ItemGroup>
 
   <ItemGroup>

@@ -36,6 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             NativeMethods.RegisterCallbacks(_application, &HandleRequest, (IntPtr)_gcHandle);
 
             _ = ProcessInbound();
+            _ = ProcessOutbound();
         }
 
         private async Task ProcessInbound()

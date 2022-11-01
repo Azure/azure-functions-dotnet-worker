@@ -104,7 +104,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'QueueTriggerFunction',
                 EntryPoint = 'TestProject.QueueTriggerAndOutput.QueueTriggerAndOutputFunction',
@@ -119,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -215,7 +214,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'QueueToBlobFunction',
                 EntryPoint = 'TestProject.QueueTriggerAndOutput.QueueToBlob',
@@ -243,7 +241,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function1RawBindings.Add(Function1binding1JSON);
             var Function1 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'BlobToQueueFunction',
                 EntryPoint = 'TestProject.QueueTriggerAndOutput.BlobToQueue',
@@ -258,7 +255,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {

@@ -116,7 +116,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = ""dotnet-isolated"",
                 Name = """ + functionName + @""",
                 EntryPoint = ""TestProject.EventHubsInput." + functionName + @""",
@@ -131,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -247,7 +246,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = ""dotnet-isolated"",
                 Name = """ + functionName + @""",
                 EntryPoint = ""TestProject.EventHubsInput." + functionName + @""",
@@ -262,7 +260,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -340,7 +338,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableBinaryInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableBinaryInputFunction',
@@ -355,7 +352,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -486,7 +483,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableStringClassInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableStringClassInputFunction',
@@ -508,7 +504,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableNestedStringClassInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableNestedStringClassInputFunction',
@@ -530,7 +525,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function2RawBindings.Add(Function2binding0JSON);
             var Function2 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableNestedStringGenericClassInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableNestedStringGenericClassInputFunction',
@@ -552,7 +546,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function3RawBindings.Add(Function3binding0JSON);
             var Function3 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableNestedStringGenericClass2InputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableNestedStringGenericClass2InputFunction',
@@ -567,7 +560,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -671,7 +664,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableBinaryClassInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableBinaryClassInputFunction',
@@ -693,7 +685,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerableNestedBinaryClassInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerableNestedBinaryClassInputFunction',
@@ -708,7 +699,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {
@@ -798,7 +789,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'EnumerablePocoInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.EnumerablePocoInputFunction',
@@ -819,7 +809,6 @@ namespace Microsoft.Azure.Functions.Worker
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1 = new DefaultFunctionMetadata
             {
-                FunctionId = Guid.NewGuid().ToString(),
                 Language = 'dotnet-isolated',
                 Name = 'ListPocoInputFunction',
                 EntryPoint = 'TestProject.EventHubsInput.ListPocoInputFunction',
@@ -834,7 +823,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         ///<summary>
         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
+        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
         ///</summary>
         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
         {

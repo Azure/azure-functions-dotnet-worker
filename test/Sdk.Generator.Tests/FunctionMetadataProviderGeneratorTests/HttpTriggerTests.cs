@@ -79,18 +79,18 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)0,
-                methods = new List<string> { 'get','post' },
+                Name = 'req',
+                Type = 'HttpTrigger',
+                Direction = 'In',
+                AuthLevel = (AuthorizationLevel)0,
+                Methods = new List<string> { 'get','post' },
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
-                name = '$return',
-                type = 'http',
-                direction = 'Out',
+                Name = '$return',
+                Type = 'http',
+                Direction = 'Out',
             };
             var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
             Function0RawBindings.Add(Function0binding1JSON);
@@ -175,11 +175,11 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)4,
-                methods = new List<string> { 'get','post' },
+                Name = 'req',
+                Type = 'HttpTrigger',
+                Direction = 'In',
+                AuthLevel = (AuthorizationLevel)4,
+                Methods = new List<string> { 'get','post' },
                 Route = ""/api2"",
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
@@ -270,18 +270,18 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                methods = new List<string> { 'get' },
-                dataType = 'String',
+                Name = 'req',
+                Type = 'HttpTrigger',
+                Direction = 'In',
+                Methods = new List<string> { 'get' },
+                DataType = 'String',
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
-                name = ""httpResponseProp"",
-                type = ""http"",
-                direction = ""Out"",
+                Name = ""httpResponseProp"",
+                Type = ""http"",
+                Direction = ""Out"",
             };
             var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
             Function0RawBindings.Add(Function0binding1JSON);

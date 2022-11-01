@@ -284,7 +284,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             
                             if (dataType is not DataType.Undefined)
                             {
-                                bindingDict!.Add("dataType", FormatObject(Enum.GetName(typeof(DataType), dataType)));
+                                bindingDict!.Add("DataType", FormatObject(Enum.GetName(typeof(DataType), dataType)));
                             }
 
                             // special handling for EventHubsTrigger - we need to define a property called "Cardinality"
@@ -433,9 +433,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var httpBinding = new Dictionary<string, string>();
 
-                httpBinding.Add("name", FormatObject(returnBindingName));
-                httpBinding.Add("type", FormatObject("http"));
-                httpBinding.Add("direction", FormatObject("Out"));
+                httpBinding.Add("Name", FormatObject(returnBindingName));
+                httpBinding.Add("Type", FormatObject("http"));
+                httpBinding.Add("Direction", FormatObject("Out"));
 
                 return httpBinding;
             }
@@ -460,9 +460,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 var bindingCount = attributeProperties!.Count + 3;
                 bindings = new Dictionary<string, string>(capacity: bindingCount);
-                bindings.Add("name", FormatObject(bindingName));
-                bindings.Add("type", FormatObject(bindingType));
-                bindings.Add("direction", FormatObject(bindingDirection));
+                bindings.Add("Name", FormatObject(bindingName));
+                bindings.Add("Type", FormatObject(bindingType));
+                bindings.Add("Direction", FormatObject(bindingDirection));
 
                 // Add additional bindingInfo to the anonymous type because some functions have more properties than others
                 foreach (var prop in attributeProperties!) // attributeProperties won't be null here b/c we would've exited this method earlier if it was during TryGetAttributeProperties check
@@ -472,14 +472,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (prop.Value?.GetType().IsArray ?? false)
                     {
                         string arr = FormatArray((IEnumerable)prop.Value);
-                        bindings[propertyName] = arr;
+                        bindings[propertyName.UppercaseFirst()] = arr; // Uppercase first to use PascalCase in generated file's anonymous type
                     }
                     else
                     {
                         bool isEnum = string.Equals(prop.Key, "authLevel", StringComparison.OrdinalIgnoreCase); // prop keys come from Azure Functions defined attributes so we can check directly for authLevel
 
                         var propertyValue = FormatObject(prop.Value, isEnum);
-                        bindings[propertyName] = propertyValue;
+                        bindings[propertyName.UppercaseFirst()] = propertyValue;
                     }
                 }
 
@@ -511,7 +511,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else
                         {
-                            attrProperties[namedArgument.Key] = namedArgument.Value.Value;
+                            attrProperties[namedArgument.Key.UppercaseFirst()] = namedArgument.Value.Value;
                         }
                     }
                 }
@@ -534,7 +534,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else if (!attrProperties.Keys.Any(a => string.Equals(a, argName, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
                         {
-                            attrProperties[argName] = arg;
+                            attrProperties[argName.UppercaseFirst()] = arg;
                         }
                     }
                 }

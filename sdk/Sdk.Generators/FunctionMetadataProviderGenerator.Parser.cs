@@ -290,7 +290,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             // special handling for EventHubsTrigger - we need to define a property called "Cardinality"
                             if (validEventHubs)
                             {
-                                if (!bindingDict!.Keys.Contains("Cardinality"))
+                                if (!bindingDict!.ContainsKey("Cardinality"))
                                 {
                                     bindingDict["Cardinality"] = cardinality is Cardinality.Many ? FormatObject("Many") : FormatObject("One");
                                 }
@@ -503,7 +503,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (namedArgument.Value.Value != null)
                     {
-                        if (String.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.Keys.Contains("Cardinality"))
+                        if (string.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.ContainsKey("Cardinality"))
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
@@ -525,7 +525,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         var argName = member.Name;
                         object arg = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!; // only one constructor arg in DefaultValue attribute (the default value)
-                        if ( arg is bool b && string.Equals(argName, Constants.IsBatchedKey))
+                        if (arg is bool b && string.Equals(argName, Constants.IsBatchedKey))
                         {
                             if (!attrProperties.Keys.Contains("Cardinality"))
                             {
@@ -635,7 +635,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isBatchedProp = eventHubsAttr!.GetMembers().Where(m => string.Equals(m.Name, Constants.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
                 AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType))).SingleOrDefault();
                 var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg, the default value
-                if (!bool.Parse(defaultVal))
+                if (!bool.TryParse(defaultVal, out bool b) || !b)
                 {
                     dataType = GetDataType(parameterSymbol.Type);
                     cardinality = Cardinality.One;

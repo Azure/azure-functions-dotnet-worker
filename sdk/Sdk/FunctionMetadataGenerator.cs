@@ -7,7 +7,9 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Mono.Cecil;
+using Mono.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -54,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             var functions = new List<SdkFunctionMetadata>();
 
-            _logger.LogMessage($"Found { targetAssemblies.Count} assemblies to evaluate in '{sourcePath}':");
+            _logger.LogMessage($"Found {targetAssemblies.Count} assemblies to evaluate in '{sourcePath}':");
 
             foreach (var path in targetAssemblies)
             {
@@ -118,7 +120,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 functions.AddRange(functionsResult);
             }
 
-            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
+            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, out bool supportsDeferredBinding, usedByFunction: false))
             {
                 _logger.LogMessage($"Implicitly registered {module.FileName} as an extension.");
             }
@@ -145,9 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 try
                 {
-
                     var allBindings = CreateBindingMetadataAndAddExtensions(method);
-
 
                     foreach (var binding in allBindings)
                     {
@@ -158,7 +158,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
                 catch (FunctionsMetadataGenerationException ex)
                 {
-                    throw new FunctionsMetadataGenerationException($"Failed to generate medata for function '{metadata.Name}' (method '{method.FullName}'): {ex.Message}");
+                    throw new FunctionsMetadataGenerationException($"Failed to generate metadata for function '{metadata.Name}' (method '{method.FullName}'): {ex.Message}");
                 }
             }
         }
@@ -202,7 +202,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // if a retry attribute is defined, add it to the function.
             if (retryOptions != null)
             {
-                function.Retry = retryOptions;   
+                function.Retry = retryOptions;
             }
 
             return true;
@@ -221,7 +221,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     ["IsCodeless"] = false
                 }
             };
-
 
             return function;
         }
@@ -277,8 +276,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     bool hasOutputModel = TryAddOutputBindingsFromProperties(bindingMetadata, returnDefinition);
 
-                    // Special handling for HTTP results using POCOs/Types other 
-                    // than HttpResponseData. We should improve this to expand this 
+                    // Special handling for HTTP results using POCOs/Types other
+                    // than HttpResponseData. We should improve this to expand this
                     // support to other triggers without special handling
                     if (!hasOutputModel && bindingMetadata.Any(d => IsHttpTrigger(d)))
                     {
@@ -337,7 +336,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     foundOutputAttribute = true;
 
                     AddOutputBindingMetadata(bindingMetadata, propertyAttribute, property.PropertyType, property.Name);
-                    AddExtensionInfo(_extensions, propertyAttribute);
+                    AddExtensionInfo(_extensions, propertyAttribute, out bool supportsDeferredBinding);
                 }
             }
         }
@@ -357,7 +356,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     }
 
                     AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, Constants.ReturnBindingName);
-                    AddExtensionInfo(_extensions, methodAttribute);
+                    AddExtensionInfo(_extensions, methodAttribute, out bool supportsDeferredBinding);
 
                     foundBinding = true;
                 }
@@ -374,8 +373,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (IsFunctionBindingType(parameterAttribute))
                     {
-                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
-                        AddExtensionInfo(_extensions, parameterAttribute);
+                        AddExtensionInfo(_extensions, parameterAttribute, out bool supportsDeferredBinding);
+                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name, supportsDeferredBinding);
                     }
                 }
             }
@@ -406,37 +405,47 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             AddBindingMetadata(bindingMetadata, attribute, parameterType, parameterName: name);
         }
 
-        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName)
+        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName, bool supportsReferenceType = false)
         {
             string bindingType = GetBindingType(attribute);
-
-            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName);
+            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName, supportsReferenceType);
             bindingMetadata.Add(binding);
         }
 
-        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
+        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName, bool supportsDeferredBinding)
         {
             ExpandoObject binding = new ExpandoObject();
 
             var bindingDict = (IDictionary<string, object>)binding;
+            var bindingProperties = new Dictionary<string, object>();
 
             if (!string.IsNullOrEmpty(parameterName))
             {
                 bindingDict["Name"] = parameterName!;
             }
 
+            var direction = GetBindingDirection(attribute);
+            bindingDict["Direction"] = direction;
             bindingDict["Type"] = bindingType;
-            bindingDict["Direction"] = GetBindingDirection(attribute);
 
-            // Is string parameter type
-            if (IsStringType(parameterType.FullName))
+            // For extensions that support deferred binding, set the supportsDeferredBinding property so parameters are bound by the worker
+            // Only use deferred binding for input and trigger bindings, output is out not currently supported
+            if (supportsDeferredBinding && direction != Constants.OutputBindingDirection)
             {
-                bindingDict["DataType"] = "String";
+                bindingProperties.Add(Constants.SupportsDeferredBindingProperty, Boolean.TrueString);
             }
-            // Is binary parameter type
-            else if (IsBinaryType(parameterType.FullName))
+            else
             {
-                bindingDict["DataType"] = "Binary";
+                // Is string parameter type
+                if (IsStringType(parameterType.FullName))
+                {
+                    bindingDict["DataType"] = nameof(DataType.String);
+                }
+                // Is binary parameter type
+                else if (IsBinaryType(parameterType.FullName))
+                {
+                    bindingDict["DataType"] = nameof(DataType.Binary);
+                }
             }
 
             foreach (var property in attribute.GetAllDefinedProperties())
@@ -448,12 +457,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // the presence of "IsBatched." This is a property that is from the
             // attributes that implement the ISupportCardinality interface.
             //
-            // Note that we are directly looking for "IsBatched" today while we 
+            // Note that we are directly looking for "IsBatched" today while we
             // are not actually instantiating the Attribute type and instead relying
             // on type inspection via Mono.Cecil.
             // TODO: Do not hard-code "IsBatched" as the property to set cardinality.
             // We should rely on the interface
-            // 
+            //
             // Conversion rule
             //     "IsBatched": true => "Cardinality": "Many"
             //     "IsBatched": false => "Cardinality": "One"
@@ -466,23 +475,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     bindingDict["Cardinality"] = "Many";
                     // Throw if parameter type is *definitely* not a collection type.
                     // Note that this logic doesn't dictate what we can/can't do, and
-                    // we can be more restrictive in the future because today some 
+                    // we can be more restrictive in the future because today some
                     // scenarios result in runtime failures.
                     if (IsIterableCollection(parameterType, out DataType dataType))
                     {
                         if (dataType.Equals(DataType.String))
                         {
-                            bindingDict["DataType"] = "String";
+                            bindingDict["DataType"] = nameof(DataType.String);
                         }
                         else if (dataType.Equals(DataType.Binary))
                         {
-                            bindingDict["DataType"] = "Binary";
+                            bindingDict["DataType"] = nameof(DataType.Binary);
                         }
                     }
                     else
                     {
                         throw new FunctionsMetadataGenerationException("Function is configured to process events in batches but parameter type is not iterable. " +
-                            $"Change parameter named '{ parameterName }' to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
+                            $"Change parameter named '{parameterName}' to be an IEnumerable type or set 'IsBatched' to false on your '{attribute.AttributeType.Name.Replace("Attribute", "")}' attribute.");
                     }
                 }
                 // Batching set to false
@@ -494,12 +503,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 bindingDict.Remove(Constants.IsBatchedKey);
             }
 
+            bindingDict["Properties"] = bindingProperties;
+
             return binding;
         }
 
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
-            // Array and not byte array 
+            // Array and not byte array
             bool isArray = type.IsArray && !string.Equals(type.FullName, Constants.ByteArrayType, StringComparison.Ordinal);
             if (isArray)
             {
@@ -581,7 +592,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static string? ResolveIEnumerableOfTType(TypeReference type, Dictionary<string, string> foundMapping)
         {
-            // Base case: 
+            // Base case:
             // We are at IEnumerable<T> and want to return the most recent resolution of T
             // (Most recent is relative to IEnumerable<T>)
             if (string.Equals(type.FullName, Constants.IEnumerableOfT, StringComparison.Ordinal))
@@ -616,9 +627,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return definition.Interfaces
-                       .Select(i => ResolveIEnumerableOfTType(i.InterfaceType, foundMapping))
-                       .FirstOrDefault(name => name is not null)
-                   ?? ResolveIEnumerableOfTType(definition.BaseType, foundMapping);
+                        .Select(i => ResolveIEnumerableOfTType(i.InterfaceType, foundMapping))
+                        .FirstOrDefault(name => name is not null)
+                    ?? ResolveIEnumerableOfTType(definition.BaseType, foundMapping);
         }
 
         private static DataType GetDataTypeFromType(string fullName)
@@ -668,19 +679,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             IDictionary<string, object> returnBinding = new ExpandoObject();
             returnBinding["Name"] = name;
             returnBinding["Type"] = "http";
-            returnBinding["Direction"] = "Out";
+            returnBinding["Direction"] = Constants.OutputBindingDirection;
 
             bindingMetadata.Add((ExpandoObject)returnBinding);
         }
 
-        private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute)
+        private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute, out bool supportsDeferredBinding)
         {
             AssemblyDefinition extensionAssemblyDefinition = attribute.AttributeType.Resolve().Module.Assembly;
-            TryAddExtensionInfo(extensions, extensionAssemblyDefinition);
+            TryAddExtensionInfo(extensions, extensionAssemblyDefinition, out supportsDeferredBinding);
         }
 
-        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, bool usedByFunction = true)
+        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, out bool supportsDeferredBinding, bool usedByFunction = true)
         {
+            supportsDeferredBinding = false;
+
             foreach (var assemblyAttribute in extensionAssemblyDefinition.CustomAttributes)
             {
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
@@ -693,6 +706,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     {
                         // EnableImplicitRegistration
                         implicitlyRegister = (bool)assemblyAttribute.ConstructorArguments[2].Value;
+                    }
+
+                    if (assemblyAttribute.ConstructorArguments.Count == 4)
+                    {
+                        supportsDeferredBinding = (bool)assemblyAttribute.ConstructorArguments[3].Value;
                     }
 
                     if (usedByFunction || implicitlyRegister)
@@ -712,10 +730,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             if (IsOutputBindingType(attribute))
             {
-                return "Out";
+                return Constants.OutputBindingDirection;
             }
 
-            return "In";
+            return Constants.InputBindingDirection;
         }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)

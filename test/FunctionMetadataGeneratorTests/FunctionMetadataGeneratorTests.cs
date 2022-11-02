@@ -48,7 +48,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "authLevel", "Admin" },
                     { "methods", new[] { "get", "Post" } },
-                    { "Route", "/api2" }
+                    { "Route", "/api2" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -90,7 +91,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "authLevel", "Admin" },
                     { "methods", new[] { "get", "Post" } },
-                    { "Route", "/api2" }
+                    { "Route", "/api2" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -123,7 +125,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "authLevel", "Admin" },
                     { "methods", new[] { "get", "Post" } },
-                    { "Route", "/api2" }
+                    { "Route", "/api2" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -173,7 +176,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "Connection", "MyConnection" },
                     { "queueName", "queueName" },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -185,7 +189,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blob" },
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" }
+                    { "Connection", "MyOtherConnection" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -201,7 +206,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
                     { "path", "container2/%file%" },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -213,6 +219,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
         }
@@ -239,7 +246,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "timerTrigger" },
                     { "Direction", "In" },
                     { "schedule", "0 0 0 * * *" },
-                    { "RunOnStartup", false }
+                    { "RunOnStartup", false },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
         }
@@ -277,7 +285,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "Connection", "MyConnection" },
                     { "queueName", "queueName" },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -290,7 +299,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
                     { "Connection", "MyOtherConnection" },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -302,7 +312,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
         }
@@ -338,7 +349,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "methods", new[] { "get" } },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -360,7 +372,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
         }
@@ -392,7 +405,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "methods", new[] { "get" } },
-                    { "DataType", "String" }
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
                 });
             }
 
@@ -471,7 +485,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "eventHubTrigger" },
                     { "Direction", "In" },
                     { "eventHubName", "test" },
-                    { "Connection", "EventHubConnectionAppSetting" }
+                    { "Connection", "EventHubConnectionAppSetting" },
+                    { "Properties", new Dictionary<String, Object>() }
                 };
 
                 if (many)

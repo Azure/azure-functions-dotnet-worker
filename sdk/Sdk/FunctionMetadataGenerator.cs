@@ -775,8 +775,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         // EnableImplicitRegistration
                         implicitlyRegister = (bool)assemblyAttribute.ConstructorArguments[2].Value;
                     }
-
-                    if (assemblyAttribute.ConstructorArguments.Count == 4)
+                    
+                    if (assemblyAttribute.ConstructorArguments.Count >= 4)
                     {
                         supportsDeferredBinding = (bool)assemblyAttribute.ConstructorArguments[3].Value;
                     }

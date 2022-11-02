@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (delayInterval.Ticks < 0)
             {
-                throw new ArgumentOutOfRangeException("delayInterval", "The TimeSpan must not be negative.");
+                throw new ArgumentOutOfRangeException(nameof(delayInterval), "The TimeSpan must not be negative.");
             }
         }
     }

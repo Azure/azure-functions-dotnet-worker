@@ -41,27 +41,30 @@ public class ApplicationInsightsConfigurationTests
             modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
         });
 
-        var provider = builder.Build().Services;
+        using (var host = builder.Build())
+        {
+            var provider = host.Services;
 
-        Assert.Collection(initializers,
-            t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
+            Assert.Collection(initializers,
+                t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
 
-        Assert.Collection(modules,
-            t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(AppServicesHeartbeatTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(AzureInstanceMetadataTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(PerformanceCollectorModule), t.ImplementationType),
-            t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
+            Assert.Collection(modules,
+                t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(AppServicesHeartbeatTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(AzureInstanceMetadataTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(PerformanceCollectorModule), t.ImplementationType),
+                t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
 
-        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-        Assert.NotNull(middleware);
+            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+            Assert.NotNull(middleware);
+        }
     }
 
     [Fact]
@@ -80,14 +83,17 @@ public class ApplicationInsightsConfigurationTests
 
         Assert.False(called);
 
-        var provider = builder.Build().Services;
-        var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>();
-        Assert.NotNull(options.Value);
+        using (var host = builder.Build())
+        {
+            var provider = host.Services;
+            var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>();
+            Assert.NotNull(options.Value);
 
-        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-        Assert.NotNull(middleware);
+            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+            Assert.NotNull(middleware);
 
-        Assert.True(called);
+            Assert.True(called);
+        }
     }
 
     [Fact]
@@ -119,21 +125,24 @@ public class ApplicationInsightsConfigurationTests
             called = true;
         });
 
-        var serviceProvider = builder.Build().Services;
+        using (var host = builder.Build())
+        {
+            var serviceProvider = host.Services;
 
-        var appInsightsOptions = serviceProvider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
-        Assert.False(appInsightsOptions.Value.IncludeScopes);
+            var appInsightsOptions = serviceProvider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
+            Assert.False(appInsightsOptions.Value.IncludeScopes);
 
-        var userWriter = serviceProvider.GetRequiredService<IUserLogWriter>();
-        Assert.IsType<NullUserLogWriter>(userWriter);
+            var userWriter = serviceProvider.GetRequiredService<IUserLogWriter>();
+            Assert.IsType<NullUserLogWriter>(userWriter);
 
-        var systemWriter = serviceProvider.GetRequiredService<ISystemLogWriter>();
-        Assert.IsNotType<NullLogWriter>(systemWriter);
+            var systemWriter = serviceProvider.GetRequiredService<ISystemLogWriter>();
+            Assert.IsNotType<NullLogWriter>(systemWriter);
 
-        var middleware = serviceProvider.GetRequiredService<FunctionActivitySourceMiddleware>();
-        Assert.NotNull(middleware);
+            var middleware = serviceProvider.GetRequiredService<FunctionActivitySourceMiddleware>();
+            Assert.NotNull(middleware);
 
-        Assert.True(called);
+            Assert.True(called);
+        }
     }
 
     [Fact]
@@ -152,14 +161,17 @@ public class ApplicationInsightsConfigurationTests
 
         Assert.False(called);
 
-        var provider = builder.Build().Services;
-        var options = provider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
-        Assert.NotNull(options.Value);
+        using (var host = builder.Build())
+        {
+            var provider = host.Services;
+            var options = provider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
+            Assert.NotNull(options.Value);
 
-        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-        Assert.NotNull(middleware);
+            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+            Assert.NotNull(middleware);
 
-        Assert.True(called);
+            Assert.True(called);
+        }
     }
 
     [Fact]
@@ -182,27 +194,30 @@ public class ApplicationInsightsConfigurationTests
             modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
         });
 
-        var provider = builder.Build().Services;
+        using (var host = builder.Build())
+        {
+            var provider = host.Services;
 
-        // Ensure that our Initializer and Module are added alongside the defaults
-        Assert.Collection(initializers,
-            t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
-            t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
+            // Ensure that our Initializer and Module are added alongside the defaults
+            Assert.Collection(initializers,
+                t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(AzureWebAppRoleEnvironmentTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(Microsoft.ApplicationInsights.WorkerService.TelemetryInitializers.DomainNameRoleInstanceTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(HttpDependenciesParsingTelemetryInitializer), t.ImplementationType),
+                t => Assert.Equal(typeof(ComponentVersionTelemetryInitializer), t.ImplementationType));
 
-        Assert.Collection(modules,
-            t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(AppServicesHeartbeatTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(AzureInstanceMetadataTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(PerformanceCollectorModule), t.ImplementationType),
-            t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
-            t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
+            Assert.Collection(modules,
+                t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(DiagnosticsTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(AppServicesHeartbeatTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(AzureInstanceMetadataTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(PerformanceCollectorModule), t.ImplementationType),
+                t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
+                t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
 
-        var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-        Assert.NotNull(middleware);
+            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
+            Assert.NotNull(middleware);
+        }
     }
 }

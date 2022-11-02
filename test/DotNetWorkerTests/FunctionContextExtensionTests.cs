@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -57,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         { "blob2", new TestBindingMetadata("blob2","blob",BindingDirection.In) }
                                     });
             _features.Set<FunctionDefinition>(qTriggerFunctionDefinition);
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
 
             var functionBindings = new TestFunctionBindingsFeature
             {
@@ -111,7 +112,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) }
             });
             _features.Set<FunctionDefinition>(qTriggerFunctionDefinition);
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
 
             var functionBindings = new TestFunctionBindingsFeature
             {
@@ -154,7 +155,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) }
             });
             _features.Set<FunctionDefinition>(qTriggerFunctionDefinition);
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
 
             var functionBindings = new TestFunctionBindingsFeature
             {
@@ -182,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
             _features.Set<FunctionDefinition>(functionDefinition);
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
 
             var functionBindings = new TestFunctionBindingsFeature();
             var grpcHttpResponse = new GrpcHttpResponseData(_defaultFunctionContext, HttpStatusCode.OK);
@@ -227,7 +228,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
             _features.Set<FunctionDefinition>(functionDefinition);
 
-            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features);
+            _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
 
             var functionBindings = new TestFunctionBindingsFeature();
             // Not setting any values to functionBindings.OutputBindingData dictionary.

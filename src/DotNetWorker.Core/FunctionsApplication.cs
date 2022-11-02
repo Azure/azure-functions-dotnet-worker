@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Middleware;
@@ -21,8 +22,12 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly ILogger<FunctionsApplication> _logger;
         private readonly IWorkerDiagnostics _diagnostics;
 
-        public FunctionsApplication(FunctionExecutionDelegate functionExecutionDelegate, IFunctionContextFactory functionContextFactory,
-             IOptions<WorkerOptions> workerOptions, ILogger<FunctionsApplication> logger, IWorkerDiagnostics diagnostics)
+        public FunctionsApplication(
+            FunctionExecutionDelegate functionExecutionDelegate,
+            IFunctionContextFactory functionContextFactory,
+            IOptions<WorkerOptions> workerOptions,
+            ILogger<FunctionsApplication> logger,
+            IWorkerDiagnostics diagnostics)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
@@ -31,14 +36,14 @@ namespace Microsoft.Azure.Functions.Worker
             _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
         }
 
-        public FunctionContext CreateContext(IInvocationFeatures features)
+        public FunctionContext CreateContext(IInvocationFeatures features, CancellationToken token = default)
         {
             var invocation = features.Get<FunctionInvocation>() ?? throw new InvalidOperationException($"The {nameof(FunctionInvocation)} feature is required.");
 
             var functionDefinition = _functionMap[invocation.FunctionId];
             features.Set<FunctionDefinition>(functionDefinition);
 
-            return _functionContextFactory.Create(features);
+            return _functionContextFactory.Create(features, token);
         }
 
         public void LoadFunction(FunctionDefinition definition)

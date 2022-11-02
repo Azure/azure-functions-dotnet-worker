@@ -14,7 +14,7 @@ namespace SampleApp
         public static void UsingContext([EventHubTrigger("src-context", Connection = "EventHubConnectionAppSetting")] string[] messages, FunctionContext context)
         {
             // Properties for messages are passed as binding data, which is accessible via the FunctionContext.
-            // However, this requires converting manually into the correct types.            
+            // However, this requires converting manually into the correct types.
             var enqueuedTimeUtc = context.BindingContext.BindingData["enqueuedTimeUtcArray"];
             var sequenceNumberArray = context.BindingContext.BindingData["sequenceNumberArray"];
             var offsetArray = context.BindingContext.BindingData["offsetArray"];
@@ -40,7 +40,7 @@ namespace SampleApp
 
                 // Note: The values in these dictionaries are sent to the worker as JSON. By default, System.Text.Json will not automatically infer primitive values
                 //       if you attempt to deserialize to 'object'. See https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-migrate-from-newtonsoft-how-to?pivots=dotnet-5-0#deserialization-of-object-properties       
-                //       
+                //
                 //       If you want to use Dictionary<string, object> and have the values automatically inferred, you can use the sample JsonConverter specified
                 //       here: https://docs.microsoft.com/en-us/dotnet/standard/serialization/system-text-json-converters-how-to?pivots=dotnet-5-0#deserialize-inferred-types-to-object-properties
                 //

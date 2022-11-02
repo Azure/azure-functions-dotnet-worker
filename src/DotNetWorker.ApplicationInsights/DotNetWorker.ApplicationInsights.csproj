@@ -8,13 +8,13 @@
     <MajorProductVersion>1</MajorProductVersion>
     <MinorProductVersion>0</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionSuffix>-preview3</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.20.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.21.0" />
   </ItemGroup>
 
   <ItemGroup>

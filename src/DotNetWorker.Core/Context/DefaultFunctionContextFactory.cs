@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Pipeline
@@ -15,9 +16,9 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
             _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
         }
 
-        public FunctionContext Create(IInvocationFeatures invocationFeatures)
+        public FunctionContext Create(IInvocationFeatures invocationFeatures, CancellationToken token = default)
         {
-            return new DefaultFunctionContext(_serviceScopeFactory, invocationFeatures);
+            return new DefaultFunctionContext(_serviceScopeFactory, invocationFeatures, token);
         }
     }
 }

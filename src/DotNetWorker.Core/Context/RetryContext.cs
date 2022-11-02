@@ -4,7 +4,7 @@
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Exposes information about retry acvitity for the event that triggered
+    /// Exposes information about retry activity for the event that triggered
     /// the current function invocation.
     /// </summary>
     public abstract class RetryContext
@@ -19,6 +19,5 @@ namespace Microsoft.Azure.Functions.Worker
         /// before the event is considered undeliverable.
         /// </summary>
         public abstract int MaxRetryCount { get; }
-
     }
 }

@@ -1,0 +1,9 @@
+{
+  "profiles": {
+    "Net7Worker": {
+      "commandName": "Project",
+      "commandLineArgs": "--port 7199",
+      "launchBrowser": false
+    }
+  }
+}

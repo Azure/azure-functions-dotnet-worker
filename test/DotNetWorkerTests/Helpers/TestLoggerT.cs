@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         public static TestLogger<T> Create()
         {
-            // We want to use the logic for category naming which is internal to LoggerFactory. 
+            // We want to use the logic for category naming which is internal to LoggerFactory.
             // So we'll create a TestLogger via the LoggerFactory and grab it's category.
             TestLoggerProvider testLoggerProvider = new TestLoggerProvider();
             LoggerFactory _testLoggerFactory = new LoggerFactory(new[] { testLoggerProvider });

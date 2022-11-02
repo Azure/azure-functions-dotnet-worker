@@ -8,8 +8,8 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>4</MinorProductVersion>
-    <PatchProductVersion>1</PatchProductVersion>
+    <MinorProductVersion>7</MinorProductVersion>
+    <VersionSuffix>-preview2</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -20,8 +20,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.10.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.15.8" />
-    <PackageReference Include="Grpc.Tools" Version="2.37.0">
+    <PackageReference Include="Google.Protobuf" Version="3.21.7" />
+    <PackageReference Include="Grpc.Tools" Version="2.49.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -30,8 +30,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <PackageReference Include="Grpc.Net.Client" Version="2.37.0" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.37.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.49.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.49.0" />
   </ItemGroup>
 
   <!--For applications using the .NET Standard 2.0 target/.NET Framework apps

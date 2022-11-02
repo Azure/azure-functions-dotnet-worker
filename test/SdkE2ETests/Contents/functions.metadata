@@ -64,6 +64,38 @@
         "type": "http",
         "direction": "Out"
       }
+    ],
+    "retry": {
+      "strategy": "exponentialBackoff",
+      "maxRetryCount": 5,
+      "minimumInterval": "00:00:04",
+      "maximumInterval": "00:15:00"
+    }
+  },
+  {
+    "name": "HttpTriggerWithCancellation",
+    "scriptFile": "FunctionApp.dll",
+    "entryPoint": "FunctionApp.HttpTriggerWithCancellation.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "type": "httpTrigger",
+        "direction": "In",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ]
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
     ]
   },
   {
@@ -150,6 +182,11 @@
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage"
       }
-    ]
+    ],
+    "retry": {
+      "strategy": "fixedDelay",
+      "maxRetryCount": 5,
+      "delayInterval": "00:00:10"
+    }
   }
 ]

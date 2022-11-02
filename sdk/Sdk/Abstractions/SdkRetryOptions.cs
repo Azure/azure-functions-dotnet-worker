@@ -5,23 +5,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class SdkRetryOptions
     {
-        public SdkRetryOptions(string strategy, int maxRetryCount, string? delayInterval, string? minimumInterval, string? maximumInterval)
-        {
-            Strategy = strategy;
-            MaxRetryCount = maxRetryCount;
-            DelayInterval = delayInterval;
-            MinimumInterval = minimumInterval;
-            MaximumInterval = maximumInterval;
-        }
+        public string? Strategy { get; set; }
 
-        public string Strategy { get; }
+        public int MaxRetryCount { get; set; }
 
-        public int MaxRetryCount { get; }
+        public string? DelayInterval { get; set; }
 
-        public string? DelayInterval { get; }
+        public string? MinimumInterval { get; set; }
 
-        public string? MinimumInterval { get; }
-
-        public string? MaximumInterval { get; }
+        public string? MaximumInterval { get; set; }
     }
 }

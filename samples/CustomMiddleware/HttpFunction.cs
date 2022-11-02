@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Net;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,10 +11,15 @@ namespace CustomMiddleware
 {
     public class HttpFunction
     {
-        [Function("HttpFunction")]
+        [Function(nameof(HttpFunction))]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)
         {
+            if (req.Url.Query.Contains("throw-exception"))
+            {
+                throw new Exception("App code failed");
+            }
+
             var logger = context.GetLogger<HttpFunction>();
 
             // Get the item set by the middleware

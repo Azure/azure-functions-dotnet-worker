@@ -4,15 +4,17 @@
 using System;
 using System.Threading.Channels;
 using Grpc.Core;
+using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 #if NET5_0_OR_GREATER
 using Grpc.Net.Client;
@@ -50,7 +52,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
 
             // FunctionMetadataProvider for worker driven function-indexing
-            services.AddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
+            services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
 
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();
@@ -85,7 +87,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure, options);
 
-#endif           
+#endif
                 return new FunctionRpcClient(grpcChannel);
             });
 

@@ -4,6 +4,7 @@
 using System;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Xunit.Sdk;
@@ -53,6 +54,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             options ??= new TOptions();
             return new OptionsWrapper<TOptions>(options);
+        }
+
+        public static InvocationRequest CreateInvocationRequest(string invocationId = "")
+        {
+            return new InvocationRequest
+            {
+                InvocationId = invocationId,
+                TraceContext = new RpcTraceContext
+                {
+                    TraceParent = Guid.NewGuid().ToString(),
+                    TraceState = Guid.NewGuid().ToString()
+                },
+                RetryContext = new Grpc.Messages.RetryContext
+                {
+                    MaxRetryCount = 3,
+                    RetryCount = 2
+                }
+            };
         }
     }
 }

@@ -113,13 +113,14 @@ namespace Microsoft.Extensions.DependencyInjection
                 workerOption.InputConverters.Register<StringToByteConverter>();
                 workerOption.InputConverters.Register<JsonPocoConverter>();
                 workerOption.InputConverters.Register<ArrayConverter>();
+                workerOption.InputConverters.Register<CancellationTokenConverter>();
             });
         }
 
         /// <summary>
         /// Run extension startup execution code.
         /// Our source generator creates a class(WorkerExtensionStartupCodeExecutor)
-        /// which internally calls the "Configure" method on each of the participating 
+        /// which internally calls the "Configure" method on each of the participating
         /// extensions. Here we are calling the uber "Configure" method on the generated class.
         /// </summary>
         private static void RunExtensionStartupCode(IFunctionsWorkerApplicationBuilder builder)

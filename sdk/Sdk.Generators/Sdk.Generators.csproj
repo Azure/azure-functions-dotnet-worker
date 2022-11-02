@@ -9,7 +9,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionSuffix>-preview2</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (maximumInterval.Ticks < 0)
             {
-                throw new ArgumentOutOfRangeException("maximumInterval", "The TimeSpan must not be negative.");
+                throw new ArgumentOutOfRangeException(nameof(maximumInterval), "The TimeSpan must not be negative.");
             }
 
             if (minimumInterval.Ticks > maximumInterval.Ticks)

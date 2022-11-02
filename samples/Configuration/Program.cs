@@ -17,7 +17,7 @@ namespace Configuration
         public static void Main()
         {
             var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults(workerApplication =>
+                .ConfigureFunctionsWorkerDefaults((IFunctionsWorkerApplicationBuilder workerApplication) =>
                 {
                     // Use any of the extension methods in WorkerConfigurationExtensions.
                 })

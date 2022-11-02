@@ -97,7 +97,7 @@ if (Test-Path $output)
   Remove-Item $output -Recurse -Force -ErrorAction Ignore
 }
 
-.\tools\devpack.ps1 -E2E -AdditionalPackArgs @("-c","Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion")
+.\tools\devpack.ps1 -E2E -AdditionalPackArgs @("-c","Release")
 
 if ($SkipStorageEmulator -And $SkipCosmosDBEmulator)
 {

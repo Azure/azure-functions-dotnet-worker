@@ -53,7 +53,6 @@ jobs:
       }
       ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools
-                            -SkipCosmosDBEmulator
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2

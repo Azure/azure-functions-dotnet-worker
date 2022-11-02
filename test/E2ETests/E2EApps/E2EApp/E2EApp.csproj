@@ -1,7 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
+  <PropertyGroup Condition="$(FunctionsRuntimeVersion) != '3'">
     <TargetFramework>net6.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+  </PropertyGroup>
+    
+  <PropertyGroup Condition="$(FunctionsRuntimeVersion) == '3'">
+    <TargetFramework>net5.0</TargetFramework>
+    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+  </PropertyGroup>
+    
+  <PropertyGroup>
     <OutputType>Exe</OutputType>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
     <AssemblyName>Microsoft.Azure.Functions.Worker.E2EApp</AssemblyName>
@@ -34,8 +42,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.3.0" />
-    <PackageReference Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.10.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.7.0" />
+  
+    <PackageReference Condition="$(FunctionsRuntimeVersion) != '3'" Include="System.Text.Json" Version="6.0.5" />
+    <PackageReference Condition="$(FunctionsRuntimeVersion) == '3'" Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 </Project>

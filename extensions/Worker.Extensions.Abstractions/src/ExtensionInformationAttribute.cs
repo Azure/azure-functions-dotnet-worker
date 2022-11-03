@@ -14,16 +14,24 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 
         public bool EnableImplicitRegistration { get; }
 
+        public bool SupportsDeferredBinding { get; }
+
         public ExtensionInformationAttribute(string extensionPackage, string extensionVersion)
-            : this(extensionPackage, extensionVersion, false)
+            : this(extensionPackage, extensionVersion, false, false)
         {
         }
 
         public ExtensionInformationAttribute(string extensionPackage, string extensionVersion, bool enableImplicitRegistration)
+            : this(extensionPackage, extensionVersion, enableImplicitRegistration, false)
+        {
+        }
+
+        public ExtensionInformationAttribute(string extensionPackage, string extensionVersion, bool enableImplicitRegistration, bool supportsDeferredBinding)
         {
             ExtensionPackage = extensionPackage;
             ExtensionVersion = extensionVersion;
             EnableImplicitRegistration = enableImplicitRegistration;
+            SupportsDeferredBinding = supportsDeferredBinding;
         }
     }
 }

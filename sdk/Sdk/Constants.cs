@@ -47,5 +47,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string NetCoreVersion6 = "v6.0";
         internal const string NetCoreVersion31 = "v3.1";
         internal const string AzureFunctionsVersion3 = "v3";
+
+        // Binding directions
+        internal const string OutputBindingDirection = "Out";
+        internal const string InputBindingDirection = "In";
+
+        // Binding properties
+        internal const string SupportsDeferredBindingProperty = "SupportsDeferredBinding";
     }
 }

@@ -110,24 +110,22 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Features
             return new ReadOnlyDictionary<string, object?>(Enumerable.ToDictionary(map, p => p.Name, p => ConvertTypedData(p.Data, context), StringComparer.OrdinalIgnoreCase));
         }
 
-        private static object? ConvertTypedData(TypedData typedData, FunctionContext context)
+        private static object? ConvertTypedData(TypedData typedData, FunctionContext context) => typedData.DataCase switch
         {
-            return typedData.DataCase switch
-            {
-                TypedData.DataOneofCase.None => null,
-                TypedData.DataOneofCase.Http => new GrpcHttpRequestData(typedData.Http, context),
-                TypedData.DataOneofCase.String => typedData.String,
-                // This is guaranteed to be Json here -- we can use that.
-                TypedData.DataOneofCase.Json => typedData.Json,
-                TypedData.DataOneofCase.Bytes => typedData.Bytes.Memory,
-                TypedData.DataOneofCase.CollectionBytes => typedData.CollectionBytes.Bytes.Select(element => {
-                    return element.Memory;
-                }),
-                TypedData.DataOneofCase.CollectionString => typedData.CollectionString.String,
-                TypedData.DataOneofCase.CollectionDouble => typedData.CollectionDouble.Double,
-                TypedData.DataOneofCase.CollectionSint64 => typedData.CollectionSint64.Sint64,
-                _ => throw new NotSupportedException($"{typedData.DataCase} is not supported."),
-            };
-        }
+            TypedData.DataOneofCase.None => null,
+            TypedData.DataOneofCase.Http => new GrpcHttpRequestData(typedData.Http, context),
+            TypedData.DataOneofCase.String => typedData.String,
+            // This is guaranteed to be Json here -- we can use that.
+            TypedData.DataOneofCase.Json => typedData.Json,
+            TypedData.DataOneofCase.Bytes => typedData.Bytes.Memory,
+            TypedData.DataOneofCase.CollectionBytes => typedData.CollectionBytes.Bytes.Select(element => {
+                return element.Memory;
+            }),
+            TypedData.DataOneofCase.CollectionString => typedData.CollectionString.String,
+            TypedData.DataOneofCase.CollectionDouble => typedData.CollectionDouble.Double,
+            TypedData.DataOneofCase.CollectionSint64 => typedData.CollectionSint64.Sint64,
+            TypedData.DataOneofCase.ModelBindingData => typedData.ModelBindingData,
+            _ => throw new NotSupportedException($"{typedData.DataCase} is not supported."),
+        };
     }
 }

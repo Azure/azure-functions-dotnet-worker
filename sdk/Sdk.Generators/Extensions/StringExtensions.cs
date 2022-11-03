@@ -38,8 +38,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return string.Empty;
             }
 
-            // Return char and concat substring.
-            return char.ToUpper(str[0]) + str.Substring(1);
+            if (!char.IsUpper(str[0]))
+            {
+                // Return char and concat substring.
+                return char.ToUpper(str[0]) + str.Substring(1);
+            }
+            else
+            {
+                return str;
+            }
+
         }
     }
 }

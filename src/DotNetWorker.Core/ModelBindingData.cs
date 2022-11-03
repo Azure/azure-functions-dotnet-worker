@@ -8,26 +8,26 @@ namespace Microsoft.Azure.Functions.Worker.Core
     /// <summary>
     /// A representation of a Microsoft.Azure.WebJobs.ParameterBindingData
     /// </summary>
-    public interface IModelBindingData
+    public abstract class ModelBindingData
     {
         /// <summary>
-        /// The version of the binding data content
+        /// Gets the version of the binding data content
         /// </summary>
-        string Version { get; }
+        public abstract string Version { get; }
 
         /// <summary>
-        /// The extension source of the binding data i.e CosmosDB, AzureStorageBlobs
+        /// Gets the extension source of the binding data i.e CosmosDB, AzureStorageBlobs
         /// </summary>
-        string Source { get; }
+        public abstract string Source { get; }
 
         /// <summary>
-        /// The binding data content
+        /// Gets the binding data content
         /// </summary>
-        BinaryData Content { get; }
+        public abstract BinaryData Content { get; }
 
         /// <summary>
-        /// The content type of the binding data content i.e. "application/json"
+        /// Gets the content type of the binding data content i.e. "application/json"
         /// </summary>
-        string ContentType { get; }
+        public abstract string ContentType { get; }
     }
 }

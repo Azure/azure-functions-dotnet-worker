@@ -124,7 +124,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Features
             TypedData.DataOneofCase.CollectionString => typedData.CollectionString.String,
             TypedData.DataOneofCase.CollectionDouble => typedData.CollectionDouble.Double,
             TypedData.DataOneofCase.CollectionSint64 => typedData.CollectionSint64.Sint64,
-            TypedData.DataOneofCase.ModelBindingData => typedData.ModelBindingData,
+            TypedData.DataOneofCase.ModelBindingData => new GrpcModelBindingData(typedData.ModelBindingData),
             _ => throw new NotSupportedException($"{typedData.DataCase} is not supported."),
         };
     }

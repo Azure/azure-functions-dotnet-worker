@@ -3,4 +3,4 @@
 
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.Kafka", "3.5.0")]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.Kafka", "3.6.0")]

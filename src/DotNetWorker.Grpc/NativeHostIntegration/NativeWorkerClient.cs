@@ -59,7 +59,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         {
             return _outputChannelWriter.WriteAsync(message);
         }
-        
+
         [UnmanagedCallersOnly]
         private static unsafe IntPtr HandleRequest(byte** nativeMessage, int nativeMessageSize, IntPtr grpcHandler)
         {

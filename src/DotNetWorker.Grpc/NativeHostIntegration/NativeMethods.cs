@@ -10,11 +10,11 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
 {
     internal static unsafe partial class NativeMethods
     {
-        internal const string NativeWorkerDll = "NativeWorker.exe";
+        internal const string NativeWorkerDll = "FunctionsNetHost.exe";
 
         public static NativeHost GetNativeHostData()
         {
-            _ = http_get_application_properties(out var hostData);
+            _ = get_application_properties(out var hostData);
             return hostData;
         }
 
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         }
 
         [DllImport(NativeWorkerDll)]
-        private static extern int http_get_application_properties(out NativeHost hostData);
+        private static extern int get_application_properties(out NativeHost hostData);
 
         [DllImport(NativeWorkerDll)]
         private static extern int send_streaming_message(NativeSafeHandle pInProcessApplication, byte[] streamingMessage, int streamingMessageSize);

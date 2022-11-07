@@ -20,21 +20,21 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     internal class BlobStorageConverter : IInputConverter
     {
-        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (context.Source is not ModelBindingData bindingData)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return ConversionResult.Unhandled();
             }
 
             if (bindingData.Source is not Constants.BlobExtensionName)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return ConversionResult.Unhandled();
             }
 
             if (!TryGetBindingDataContent(bindingData, out IDictionary<string, string> content))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return ConversionResult.Unhandled();
             }
 
             content.TryGetValue(Constants.Connection, out var connectionName);
@@ -43,18 +43,18 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (string.IsNullOrEmpty(connectionName) || string.IsNullOrEmpty(containerName))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return ConversionResult.Unhandled();
             }
 
             var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
-            var result = ToTargetType(context.TargetType, connectionString, containerName, blobName).GetAwaiter().GetResult();
+            var result = await ToTargetType(context.TargetType, connectionString, containerName, blobName);
 
             if (result is not null)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(result));
+                return ConversionResult.Success(result);
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return ConversionResult.Unhandled();
         }
 
         private bool TryGetBindingDataContent(ModelBindingData bindingData, out IDictionary<string, string> bindingDataContent)

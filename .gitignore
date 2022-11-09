@@ -361,4 +361,3 @@ MigrationBackup/
 # Entity framework sample
 Migrations/
 local.settings.json
-/samples/FunctionApp/Properties/ServiceDependencies/TestRpc - Zip Deploy/profile.arm.json

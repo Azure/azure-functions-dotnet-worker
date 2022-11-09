@@ -29,5 +29,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             return result; 
         }
+
+        public static string UppercaseFirst(this string str)
+        {
+            // Check for empty string.
+            if (string.IsNullOrEmpty(str))
+            {
+                return string.Empty;
+            }
+
+            if (!char.IsUpper(str[0]))
+            {
+                // Return char and concat substring.
+                return char.ToUpper(str[0]) + str.Substring(1);
+            }
+            else
+            {
+                return str;
+            }
+
+        }
     }
 }

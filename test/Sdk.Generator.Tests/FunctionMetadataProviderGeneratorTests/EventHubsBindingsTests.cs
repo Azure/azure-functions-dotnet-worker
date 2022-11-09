@@ -97,17 +97,17 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = ""input"",
-                type = ""EventHubTrigger"",
-                direction = ""In"",
-                eventHubName = ""test"",
+                Name = ""input"",
+                Type = ""EventHubTrigger"",
+                Direction = ""In"",
+                EventHubName = ""test"",
                 Connection = ""EventHubConnectionAppSetting"",
                 Cardinality = ""One"",");
              
                 if(!string.Equals(dataType, ""))
                 {
                     expectedOutputBuilder.Append(@"
-                dataType = """ + dataType + "\",");
+                DataType = """ + dataType + "\",");
                 }
 
                 expectedOutputBuilder.Append(@"
@@ -226,21 +226,21 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = ""input"",
-                type = ""EventHubTrigger"",
-                direction = ""In"",
-                eventHubName = ""test"",
-                Connection = ""EventHubConnectionAppSetting"","
+                Name = ""input"",
+                Type = ""EventHubTrigger"",
+                Direction = ""In"",
+                EventHubName = ""test"",
+                Connection = ""EventHubConnectionAppSetting"",
+                Cardinality = ""Many"","
                 );
 
                 if (!string.Equals(dataType, ""))
                 {
                     expectedOutputBuilder.Append(@"
-                dataType = """ + dataType + "\",");
+                DataType = """ + dataType + "\",");
                 }
 
                 expectedOutputBuilder.Append(@"
-                Cardinality = ""Many"",
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
@@ -327,10 +327,10 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
                 Cardinality = 'Many',
             };
@@ -471,13 +471,13 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                DataType = 'String',
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
@@ -492,13 +492,13 @@ namespace Microsoft.Azure.Functions.Worker
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
             var Function1binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                DataType = 'String',
             };
             var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
             Function1RawBindings.Add(Function1binding0JSON);
@@ -513,13 +513,13 @@ namespace Microsoft.Azure.Functions.Worker
             metadataList.Add(Function1);
             var Function2RawBindings = new List<string>();
             var Function2binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                DataType = 'String',
             };
             var Function2binding0JSON = JsonSerializer.Serialize(Function2binding0);
             Function2RawBindings.Add(Function2binding0JSON);
@@ -534,13 +534,13 @@ namespace Microsoft.Azure.Functions.Worker
             metadataList.Add(Function2);
             var Function3RawBindings = new List<string>();
             var Function3binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'String',
                 Cardinality = 'Many',
+                DataType = 'String',
             };
             var Function3binding0JSON = JsonSerializer.Serialize(Function3binding0);
             Function3RawBindings.Add(Function3binding0JSON);
@@ -652,13 +652,13 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'Binary',
                 Cardinality = 'Many',
+                DataType = 'Binary',
             };
             var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
             Function0RawBindings.Add(Function0binding0JSON);
@@ -673,13 +673,13 @@ namespace Microsoft.Azure.Functions.Worker
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
             var Function1binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
-                dataType = 'Binary',
                 Cardinality = 'Many',
+                DataType = 'Binary',
             };
             var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
             Function1RawBindings.Add(Function1binding0JSON);
@@ -778,10 +778,10 @@ namespace Microsoft.Azure.Functions.Worker
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
                 Cardinality = 'Many',
             };
@@ -798,10 +798,10 @@ namespace Microsoft.Azure.Functions.Worker
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
             var Function1binding0 = new {
-                name = 'input',
-                type = 'EventHubTrigger',
-                direction = 'In',
-                eventHubName = 'test',
+                Name = 'input',
+                Type = 'EventHubTrigger',
+                Direction = 'In',
+                EventHubName = 'test',
                 Connection = 'EventHubConnectionAppSetting',
                 Cardinality = 'Many',
             };

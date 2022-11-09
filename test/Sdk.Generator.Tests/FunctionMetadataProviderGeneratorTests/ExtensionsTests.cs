@@ -33,6 +33,15 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 Assert.Equal(expectedOutput, actual);
             }
+
+            [Theory]
+            [InlineData("isBatched", "IsBatched")]
+            [InlineData("MyProperty", "MyProperty")]
+            [InlineData("myproperty", "Myproperty")]
+            public void UpperCaseFirstLetter(string input, string expectedOutput)
+            {
+                Assert.Equal(input.UppercaseFirst(), expectedOutput);
+            }
         }
     }
 }

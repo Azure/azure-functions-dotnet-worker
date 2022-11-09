@@ -5,7 +5,7 @@ trigger:
     - release/*
   paths:
     include:
-    - extensions/Worker.Extensions.Storage.Tables/
+    - extensions/Worker.Extensions.Tables/
 
 pr:
   branches:
@@ -14,9 +14,9 @@ pr:
     - release/*
   paths:
     include:
-    - extensions/Worker.Extensions.Storage.Tables/
+    - extensions/Worker.Extensions.Tables/
 
 extends:
   template: ../../build/pipelines/templates/extensions-ci.yml
   parameters:
-    ExtensionDirectory: extensions/Worker.Extensions.Storage.Tables
+    ExtensionDirectory: extensions/Worker.Extensions.Tables

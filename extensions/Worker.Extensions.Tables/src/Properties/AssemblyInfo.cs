@@ -3,4 +3,4 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.Storage.Tables", "1.0.0")]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.Tables", "1.0.0")]

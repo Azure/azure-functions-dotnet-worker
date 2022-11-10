@@ -4,4 +4,3 @@
 -->
 
 - Bump protobuf version to v1.5.9-protofile (#1148)
-- Publishing Worker.Extensions.Tables package v1.0.0 (#1173)

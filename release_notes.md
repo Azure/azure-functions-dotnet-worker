@@ -4,3 +4,4 @@
 -->
 
 - Bump protobuf version to v1.5.9-protofile (#1148)
+- Remove preview suffix for Worker.Extensions.Tables package (#1173)

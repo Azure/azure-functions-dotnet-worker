@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -58,6 +59,81 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
             Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
         }
+
+        [Fact]
+        public async void BindFunctionInputAsync_Populates_ModelBindingData()
+        {
+            // Arrange
+            var parameters = new List<FunctionParameter>()
+            {
+                new("myBlob",typeof(ModelBindingData)),
+                new ("myGuid", typeof(Guid))
+            };
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+            features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature()
+            {
+                InputData = new Dictionary<string, object>
+                {
+                    { "myBlob",new ModelBindingData() { Version = "1.1.1", Source= "blob" }},
+                    { "myGuid","0ab4800e-1308-4e9f-be5f-4372717e68eb" }
+                }
+            });
+
+            var definition = new TestFunctionDefinition(parameters: parameters, inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "myBlob", new TestBindingMetadata("myBlob","blobTrigger",BindingDirection.In) },
+                { "myGuid", new TestBindingMetadata("myGuid","blobTrigger",BindingDirection.In) }
+            });
+            var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
+
+            // Act
+            var parameterValuesArray = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+
+            // Assert
+            var book = TestUtility.AssertIsTypeAndConvert<ModelBindingData>(parameterValuesArray[0]);
+            Assert.Equal("1.1.1", book.Version);
+            var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
+            Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
+        }
+
+        [Fact]
+        public async void BindTriggerAsync_Populates_ModelBindingData()
+        {
+            // Arrange
+            var parameters = new List<FunctionParameter>()
+            {
+                new("myBlob",typeof(ModelBindingData)),
+                new ("myGuid", typeof(Guid))
+            };
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+            features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature()
+            {
+                TriggerMetadata = new Dictionary<string, object>
+                {
+                    { "myBlob",new ModelBindingData() { Version = "1.1.1", Source= "blob" }},
+                    { "myGuid","0ab4800e-1308-4e9f-be5f-4372717e68eb" }
+                }
+            });
+
+            var definition = new TestFunctionDefinition(parameters: parameters, inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "myBlob", new TestBindingMetadata("myBlob","blobTrigger",BindingDirection.In) },
+                { "myGuid", new TestBindingMetadata("myGuid","blobTrigger",BindingDirection.In) }
+            });
+            var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
+
+            // Act
+            var parameterValuesArray = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+
+            // Assert
+            var book = TestUtility.AssertIsTypeAndConvert<ModelBindingData>(parameterValuesArray[0]);
+            Assert.Equal("1.1.1", book.Version);
+            var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
+            Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
+        }
+
 
         /// <summary>
         /// This UT simulates a case where the input binding entry is being updated (could be in a middleware) using the

@@ -43,8 +43,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void BindFunctionInputAsync1_Populates_ParametersUsingConverters()
+        public void BindFunctionTriggerAsync_Populates_ModelBindingData()
         {
+            // Arrange
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var request = TestUtility.CreateInvocationRequest(invocationId);
             request.TriggerMetadata.Add("myBlob", new TypedData() { ModelBindingData = new ModelBindingData() { 
@@ -53,20 +54,26 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 Content = ByteString.CopyFromUtf8("stringText")} });
 
             IInvocationFeatures invocationFeatures = _mockInvocationFeaturesFactory.Object.Create();
-
             var context = _mockApplication.Object.CreateContext(invocationFeatures, new CancellationTokenSource().Token);
-            var a = new GrpcFunctionBindingsFeature(context, request, _mockOutputBindingsInfoProvider.Object);
-            Assert.True(a.TriggerMetadata.Count() == 1);
-            a.TriggerMetadata.TryGetValue("myBlob", out object b);
-            Assert.True(b.GetType() == typeof(GrpcModelBindingData));
-            var c = (GrpcModelBindingData)b;
-            Assert.True(c.Version == "1.1.1");
-            Assert.True(c.Content.GetType() == typeof(BinaryData));
+
+            // Act
+            var functionBindingsFeature = new GrpcFunctionBindingsFeature(context, request, _mockOutputBindingsInfoProvider.Object);
+
+            // Assert
+            Assert.Single(functionBindingsFeature.TriggerMetadata);
+            
+            functionBindingsFeature.TriggerMetadata.TryGetValue("myBlob", out object bindingData);
+            Assert.True(bindingData.GetType() == typeof(GrpcModelBindingData));
+            var grpcModelBindingData = (GrpcModelBindingData)bindingData;
+
+            Assert.True(grpcModelBindingData.Version == "1.1.1");
+            Assert.True(grpcModelBindingData.Content.GetType() == typeof(BinaryData));
         }
 
         [Fact]
-        public void BindFunctionInputAsync2_Populates_ParametersUsingConverters()
+        public void BindFunctionInputAsync_Populates_ModelBindingData()
         {
+            // Arrange
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var request = TestUtility.CreateInvocationRequest(invocationId);
             request.InputData.Insert(0, new ParameterBinding()
@@ -84,15 +91,20 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
 
             IInvocationFeatures invocationFeatures = _mockInvocationFeaturesFactory.Object.Create();
-
             var context = _mockApplication.Object.CreateContext(invocationFeatures, new CancellationTokenSource().Token);
-            var a = new GrpcFunctionBindingsFeature(context, request, _mockOutputBindingsInfoProvider.Object);
-            Assert.True(a.InputData.Count() == 1);
-            a.InputData.TryGetValue("myBlob", out object b);
-            Assert.True(b.GetType() == typeof(GrpcModelBindingData));
-            var c = (GrpcModelBindingData)b;
-            Assert.True(c.Version == "1.1.1");
-            Assert.True(c.Content.GetType() == typeof(BinaryData));
+
+            // Act
+            var functionBindingsFeature = new GrpcFunctionBindingsFeature(context, request, _mockOutputBindingsInfoProvider.Object);
+
+            // Assert
+            Assert.Single(functionBindingsFeature.InputData);
+
+            functionBindingsFeature.InputData.TryGetValue("myBlob", out object bindingData);
+            Assert.True(bindingData.GetType() == typeof(GrpcModelBindingData));
+            var grpcModelBindingData = (GrpcModelBindingData)bindingData;
+            
+            Assert.True(grpcModelBindingData.Version == "1.1.1");
+            Assert.True(grpcModelBindingData.Content.GetType() == typeof(BinaryData));
         }
     }
 }

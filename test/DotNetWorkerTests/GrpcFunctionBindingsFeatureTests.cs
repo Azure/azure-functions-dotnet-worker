@@ -1,22 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
-using Azure.Core.Serialization;
-using Castle.DynamicProxy;
 using Google.Protobuf;
-using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Azure.Functions.Worker.Pipeline;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
-using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {

@@ -5,7 +5,6 @@ using System.Text.Json;
 using System.Threading;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;

@@ -60,12 +60,6 @@ namespace Microsoft.Azure.Functions.Worker
                     foreach (var binding in rawBindings.EnumerateArray())
                     {
                         functionMetadata.RawBindings.Add(binding.GetRawText());
-
-                        BindingInfo bindingInfo = FunctionMetadataRpcExtensions.CreateBindingInfo(binding);
-
-                        binding.TryGetProperty("name", out JsonElement jsonName);
-
-                        functionMetadata.Bindings.Add(jsonName.ToString(), bindingInfo);
                     }
 
                     functionMetadataResults.Add(functionMetadata);

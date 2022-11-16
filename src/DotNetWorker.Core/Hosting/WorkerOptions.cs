@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
 
@@ -23,11 +24,16 @@ namespace Microsoft.Azure.Functions.Worker
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
 
         /// <summary>
+        /// Gets the worker capabilities.
+        /// </summary>
+        public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>();
+
+        /// <summary>
         /// Gets and sets the flag for opting in to unwrapping user-code-thrown
         /// exceptions when they are surfaced to the Host. 
         /// </summary>
         public bool EnableUserCodeException { get; set; } = false;
-        
+
         /// <summary>
         /// Gets or sets a value that determines if empty entries should be included in the function trigger message payload.
         /// For example, if a set of entries were sent to a messaging service such as Service Bus or Event Hub and your function

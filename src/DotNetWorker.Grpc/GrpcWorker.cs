@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -212,22 +213,9 @@ namespace Microsoft.Azure.Functions.Worker
 
             response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
 
-            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
-            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
-            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
-            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
-            response.Capabilities.Add("TypedDataCollection", bool.TrueString);
-            response.Capabilities.Add("WorkerStatus", bool.TrueString);
-            response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
-            response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
-
-            if (workerOptions.EnableUserCodeException)
+            foreach (KeyValuePair<string, string> entry in workerOptions.Capabilities)
             {
-                response.Capabilities.Add("EnableUserCodeException", bool.TrueString);
-            }
-            if (workerOptions.IncludeEmptyEntriesInMessagePayload)
-            {
-                response.Capabilities.Add("IncludeEmptyEntriesInMessagePayload", bool.TrueString);
+                response.Capabilities.Add(entry.Key, entry.Value);
             }
 
             return response;

@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,11 +18,10 @@ namespace FunctionApp
             //<docsnippet_startup>
             var host = new HostBuilder()
                 //<docsnippet_configure_defaults>
-                .ConfigureFunctionsWorkerDefaults(builder =>
+                .ConfigureFunctionsWorkerDefaults((WorkerOptions options) =>
                 {
-                    builder
-                        .AddApplicationInsights()
-                        .AddApplicationInsightsLogger();
+                    // example (will remove before merge)
+                    options.Capabilities.Remove("HandlesWorkerTerminateMessage");
                 })
                 //</docsnippet_configure_defaults>
                 //<docsnippet_dependency_injection>

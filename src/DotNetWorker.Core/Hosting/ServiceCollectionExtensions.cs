@@ -117,6 +117,32 @@ namespace Microsoft.Extensions.DependencyInjection
             });
         }
 
+        internal static IServiceCollection AddDefaultCapabilitiesToWorkerOptions(this IServiceCollection services)
+        {
+            return services.Configure<WorkerOptions>((workerOptions) =>
+            {
+                workerOptions.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+                workerOptions.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+                workerOptions.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
+                workerOptions.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+                workerOptions.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+                workerOptions.Capabilities["TypedDataCollection"] = bool.TrueString;
+                workerOptions.Capabilities["WorkerStatus"] = bool.TrueString;
+                workerOptions.Capabilities["HandlesWorkerTerminateMessage"] = bool.TrueString;
+                workerOptions.Capabilities["HandlesInvocationCancelMessage"] = bool.TrueString;
+
+                if (workerOptions.EnableUserCodeException)
+                {
+                    workerOptions.Capabilities["EnableUserCodeException"] = bool.TrueString;
+                }
+
+                if (workerOptions.IncludeEmptyEntriesInMessagePayload)
+                {
+                    workerOptions.Capabilities["IncludeEmptyEntriesInMessagePayload"] = bool.TrueString;
+                }
+            });
+        }
+
         /// <summary>
         /// Run extension startup execution code.
         /// Our source generator creates a class(WorkerExtensionStartupCodeExecutor)

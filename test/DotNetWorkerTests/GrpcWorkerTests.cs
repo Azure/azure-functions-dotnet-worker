@@ -15,6 +15,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -40,7 +41,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             _mockApplication
                 .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Returns((IInvocationFeatures f, CancellationToken ct) => {
+                .Returns((IInvocationFeatures f, CancellationToken ct) =>
+                {
                     _context = new TestFunctionContext(f, ct);
                     return _context;
                 });
@@ -176,6 +178,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             string expectedCapabilityValue = null)
         {
             var workerOptions = new WorkerOptions();
+
             // Update boolean property values of workerOption based on test input parameters.
             workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
 

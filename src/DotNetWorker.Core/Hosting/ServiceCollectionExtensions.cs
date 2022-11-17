@@ -121,26 +121,31 @@ namespace Microsoft.Extensions.DependencyInjection
         {
             return services.Configure<WorkerOptions>((workerOptions) =>
             {
-                workerOptions.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
-                workerOptions.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
-                workerOptions.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
-                workerOptions.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
-                workerOptions.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
-                workerOptions.Capabilities["TypedDataCollection"] = bool.TrueString;
-                workerOptions.Capabilities["WorkerStatus"] = bool.TrueString;
-                workerOptions.Capabilities["HandlesWorkerTerminateMessage"] = bool.TrueString;
-                workerOptions.Capabilities["HandlesInvocationCancelMessage"] = bool.TrueString;
-
-                if (workerOptions.EnableUserCodeException)
-                {
-                    workerOptions.Capabilities["EnableUserCodeException"] = bool.TrueString;
-                }
-
-                if (workerOptions.IncludeEmptyEntriesInMessagePayload)
-                {
-                    workerOptions.Capabilities["IncludeEmptyEntriesInMessagePayload"] = bool.TrueString;
-                }
+                workerOptions.AddDefaultCapabilities();
             });
+        }
+
+        internal static void AddDefaultCapabilities(this WorkerOptions workerOptions)
+        {
+            workerOptions.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            workerOptions.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            workerOptions.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            workerOptions.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            workerOptions.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            workerOptions.Capabilities["TypedDataCollection"] = bool.TrueString;
+            workerOptions.Capabilities["WorkerStatus"] = bool.TrueString;
+            workerOptions.Capabilities["HandlesWorkerTerminateMessage"] = bool.TrueString;
+            workerOptions.Capabilities["HandlesInvocationCancelMessage"] = bool.TrueString;
+
+            if (workerOptions.EnableUserCodeException)
+            {
+                workerOptions.Capabilities["EnableUserCodeException"] = bool.TrueString;
+            }
+
+            if (workerOptions.IncludeEmptyEntriesInMessagePayload)
+            {
+                workerOptions.Capabilities["IncludeEmptyEntriesInMessagePayload"] = bool.TrueString;
+            }
         }
 
         /// <summary>

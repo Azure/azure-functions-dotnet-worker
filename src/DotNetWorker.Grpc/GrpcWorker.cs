@@ -261,7 +261,8 @@ namespace Microsoft.Azure.Functions.Worker
                         _ => BuildRpc(func),
                     };
 
-                    // add BindingInfo
+                    // add BindingInfo here instead of in the providers  
+                    // because we need access to gRPC types in proto-file and source-gen won't have access
                     rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
 
                     response.FunctionMetadataResults.Add(rpcFuncMetadata);

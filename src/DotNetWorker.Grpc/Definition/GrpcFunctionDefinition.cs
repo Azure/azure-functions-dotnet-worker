@@ -22,6 +22,15 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             Id = loadRequest.FunctionId;
 
             string? scriptRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot")!;
+            if (string.IsNullOrWhiteSpace(scriptRoot))
+            {
+                throw new ArgumentException("AzureWebJobsScriptRoot env variable value is null or empty");
+            }
+            if (string.IsNullOrWhiteSpace(loadRequest.Metadata.ScriptFile))
+            {
+                throw new ArgumentException("loadRequest.Metadata.ScriptFile value is null or empty");
+            }
+
             string scriptFile = Path.Combine(scriptRoot, loadRequest.Metadata.ScriptFile);
             PathToAssembly = Path.GetFullPath(scriptFile);
 

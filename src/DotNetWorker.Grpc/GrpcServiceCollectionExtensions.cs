@@ -4,8 +4,8 @@
 using System;
 using System.Threading.Channels;
 using Grpc.Core;
-using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using Microsoft.Azure.Functions.Worker.Logging;

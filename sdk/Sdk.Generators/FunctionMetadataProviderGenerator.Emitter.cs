@@ -60,7 +60,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("using System.Collections.Immutable;");
                 indentedTextWriter.WriteLine("using System.Text.Json;");
                 indentedTextWriter.WriteLine("using System.Threading.Tasks;");
-                indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Core;");
                 indentedTextWriter.WriteLine("using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;");
                 indentedTextWriter.WriteLine("using Microsoft.Extensions.DependencyInjection;");
                 indentedTextWriter.WriteLine("using Microsoft.Extensions.Hosting;");

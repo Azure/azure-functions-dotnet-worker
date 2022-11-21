@@ -99,6 +99,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -108,7 +112,7 @@ namespace Microsoft.Azure.Functions.Worker
                 AuthLevel = (AuthorizationLevel)0,
                 Methods = new List<string> { 'get','post' },
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
                 Name = 'Name',
@@ -117,14 +121,14 @@ namespace Microsoft.Azure.Functions.Worker
                 QueueName = 'functionstesting2',
                 Connection = 'AzureWebJobsStorage',
             };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
+            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1, jsonOptions);
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0binding2 = new {
                 Name = 'HttpResponse',
                 Type = 'http',
                 Direction = 'Out',
             };
-            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2);
+            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2, jsonOptions);
             Function0RawBindings.Add(Function0binding2JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -230,6 +234,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -239,7 +247,7 @@ namespace Microsoft.Azure.Functions.Worker
                 AuthLevel = (AuthorizationLevel)0,
                 Methods = new List<string> { 'get','post' },
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
                 Name = 'myBlob',
@@ -249,7 +257,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Connection = 'AzureWebJobsStorage',
                 DataType = 'String',
             };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
+            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1, jsonOptions);
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0binding2 = new {
                 Name = 'Book',
@@ -258,14 +266,14 @@ namespace Microsoft.Azure.Functions.Worker
                 QueueName = 'functionstesting2',
                 Connection = 'AzureWebJobsStorage',
             };
-            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2);
+            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2, jsonOptions);
             Function0RawBindings.Add(Function0binding2JSON);
             var Function0binding3 = new {
                 Name = 'HttpResponse',
                 Type = 'http',
                 Direction = 'Out',
             };
-            var Function0binding3JSON = JsonSerializer.Serialize(Function0binding3);
+            var Function0binding3JSON = JsonSerializer.Serialize(Function0binding3, jsonOptions);
             Function0RawBindings.Add(Function0binding3JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -358,6 +366,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -367,14 +379,14 @@ namespace Microsoft.Azure.Functions.Worker
                 AuthLevel = (AuthorizationLevel)0,
                 Methods = new List<string> { 'get' },
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
                 Name = '$return',
                 Type = 'http',
                 Direction = 'Out',
             };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
+            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1, jsonOptions);
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -454,6 +466,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -463,7 +479,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Schedule = '0 0 0 * * *',
                 RunOnStartup = 'False',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -544,6 +560,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -554,14 +574,14 @@ namespace Microsoft.Azure.Functions.Worker
                 Methods = new List<string> { 'get','Post' },
                 Route = '/api2',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
                 Name = 'Result',
                 Type = 'http',
                 Direction = 'Out',
             };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
+            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1, jsonOptions);
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {

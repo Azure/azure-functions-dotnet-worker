@@ -83,6 +83,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -91,7 +95,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Direction = 'Out',
                 QueueName = 'test-output-dotnet-isolated',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
                 Name = 'message',
@@ -100,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker
                 QueueName = 'test-input-dotnet-isolated',
                 DataType = 'String',
             };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
+            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1, jsonOptions);
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -191,6 +195,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -200,7 +208,7 @@ namespace Microsoft.Azure.Functions.Worker
                 BlobPath = 'container1/hello.txt',
                 Connection = 'MyOtherConnection',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0binding1 = new {
                 Name = 'queuePayload',
@@ -210,7 +218,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Connection = 'MyConnection',
                 DataType = 'String',
             };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
+            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1, jsonOptions);
             Function0RawBindings.Add(Function0binding1JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -228,7 +236,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Direction = 'Out',
                 QueueName = 'queue2',
             };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
+            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0, jsonOptions);
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1binding1 = new {
                 Name = 'blob',
@@ -237,7 +245,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Path = 'container2/%file%',
                 DataType = 'String',
             };
-            var Function1binding1JSON = JsonSerializer.Serialize(Function1binding1);
+            var Function1binding1JSON = JsonSerializer.Serialize(Function1binding1, jsonOptions);
             Function1RawBindings.Add(Function1binding1JSON);
             var Function1 = new DefaultFunctionMetadata
             {

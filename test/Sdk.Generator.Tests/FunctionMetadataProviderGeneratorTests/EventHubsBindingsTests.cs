@@ -94,6 +94,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -112,7 +116,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 expectedOutputBuilder.Append(@"
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -223,6 +227,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -242,7 +250,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 expectedOutputBuilder.Append(@"
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -324,6 +332,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -334,7 +346,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Connection = 'EventHubConnectionAppSetting',
                 Cardinality = 'Many',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -468,6 +480,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -479,7 +495,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Cardinality = 'Many',
                 DataType = 'String',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -500,7 +516,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Cardinality = 'Many',
                 DataType = 'String',
             };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
+            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0, jsonOptions);
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1 = new DefaultFunctionMetadata
             {
@@ -521,7 +537,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Cardinality = 'Many',
                 DataType = 'String',
             };
-            var Function2binding0JSON = JsonSerializer.Serialize(Function2binding0);
+            var Function2binding0JSON = JsonSerializer.Serialize(Function2binding0, jsonOptions);
             Function2RawBindings.Add(Function2binding0JSON);
             var Function2 = new DefaultFunctionMetadata
             {
@@ -542,7 +558,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Cardinality = 'Many',
                 DataType = 'String',
             };
-            var Function3binding0JSON = JsonSerializer.Serialize(Function3binding0);
+            var Function3binding0JSON = JsonSerializer.Serialize(Function3binding0, jsonOptions);
             Function3RawBindings.Add(Function3binding0JSON);
             var Function3 = new DefaultFunctionMetadata
             {
@@ -649,6 +665,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -660,7 +680,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Cardinality = 'Many',
                 DataType = 'Binary',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -681,7 +701,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Cardinality = 'Many',
                 DataType = 'Binary',
             };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
+            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0, jsonOptions);
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1 = new DefaultFunctionMetadata
             {
@@ -775,6 +795,10 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            };
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
             var Function0binding0 = new {
@@ -785,7 +809,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Connection = 'EventHubConnectionAppSetting',
                 Cardinality = 'Many',
             };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
+            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0, jsonOptions);
             Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
@@ -805,7 +829,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Connection = 'EventHubConnectionAppSetting',
                 Cardinality = 'Many',
             };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
+            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0, jsonOptions);
             Function1RawBindings.Add(Function1binding0JSON);
             var Function1 = new DefaultFunctionMetadata
             {

@@ -77,6 +77,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 indentedTextWriter.WriteLine("{");
                 indentedTextWriter.Indent++;
 
+                // add JsonSerializer Options
+                indentedTextWriter.WriteLine("var jsonOptions = new JsonSerializerOptions");
+                indentedTextWriter.WriteLine("{");
+                indentedTextWriter.Indent++;
+                indentedTextWriter.WriteLine("PropertyNamingPolicy = JsonNamingPolicy.CamelCase");
+                indentedTextWriter.Indent--;
+                indentedTextWriter.WriteLine("};");
+
                 // create list of IFunctionMetadata and populate it
                 indentedTextWriter.WriteLine("var metadataList = new List<IFunctionMetadata>();");
                 AddFunctionMetadataInfo(indentedTextWriter, functionMetadata, cancellationToken);
@@ -133,7 +141,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     indentedTextWriter.Indent--;
                     indentedTextWriter.WriteLine("};");
-                    indentedTextWriter.WriteLine($"var {bindingVarName}JSON = JsonSerializer.Serialize({bindingVarName});");
+                    indentedTextWriter.WriteLine($"var {bindingVarName}JSON = JsonSerializer.Serialize({bindingVarName}, jsonOptions);");
                     indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add({bindingVarName}JSON);");
 
                     bindingCount++;

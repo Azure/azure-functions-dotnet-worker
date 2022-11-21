@@ -5,6 +5,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
@@ -122,18 +123,31 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 foreach (var binding in bindings)
                 {
                     var bindingVarName = functionVarName + "binding" + bindingCount.ToString();
-                    indentedTextWriter.WriteLine($"var {bindingVarName} = new {{");
-                    indentedTextWriter.Indent++;
-                    
-                    foreach (var key in binding.Keys)
+                    StringBuilder jsonStr = new StringBuilder("$\"{{");
+
+                    if (binding.Keys.Any(k => string.Equals(k, "AuthLevel", System.StringComparison.Ordinal)))
                     {
-                        indentedTextWriter.WriteLine($"{key} = {binding[key]},");
+                        indentedTextWriter.WriteLine("var " + functionVarName + $"authLevelValue = {binding["AuthLevel"]};");
+                        indentedTextWriter.WriteLine("var " + functionVarName + "authLevelValueString = " + functionVarName + "authLevelValue.ToString();");
                     }
 
-                    indentedTextWriter.Indent--;
-                    indentedTextWriter.WriteLine("};");
-                    indentedTextWriter.WriteLine($"var {bindingVarName}JSON = JsonSerializer.Serialize({bindingVarName});");
-                    indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add({bindingVarName}JSON);");
+                    foreach (var key in binding.Keys)
+                    {
+                        if (!string.Equals(key, "AuthLevel", System.StringComparison.Ordinal))
+                        {
+                            jsonStr.Append($"'{key.LowercaseFirst()}': {binding[key]},");
+                        }
+                        else
+                        {
+                            jsonStr.Append($"'{key.LowercaseFirst()}': '{{" + functionVarName + "authLevelValueString}',");
+                        }
+                    }
+
+                    jsonStr.Length--;
+                    jsonStr.AppendLine("}}\"");
+
+                    indentedTextWriter.WriteLine($"var {bindingVarName} = {jsonStr}.Replace(\"'\", \"\\\"\");");
+                    indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add({bindingVarName});");
 
                     bindingCount++;
                 }

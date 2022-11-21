@@ -96,12 +96,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // catch values that are already strings or Enum parsing
                 // we don't need to surround these cases with quotation marks
-                if (propValue.ToString().Contains("\"") || isEnum)
+                if (isEnum)
                 {
                     return propValue.ToString();
                 }
+                else if (propValue.ToString().Contains("\""))
+                {
+                    return propValue.ToString().Replace("\"", "'");
+                }
 
-                return "\"" + propValue.ToString() + "\"";
+                return "'" + propValue.ToString() + "'";
             }
 
             /// <summary>
@@ -112,7 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 string arrAsString;
 
-                arrAsString = "new List<string> { ";
+                arrAsString = "[";
 
                 foreach (var o in enumerableValues)
                 {
@@ -121,7 +125,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 arrAsString = arrAsString.TrimEnd(',', ' ');
-                arrAsString += " }";
+                arrAsString += "]";
 
                 return arrAsString;
             }

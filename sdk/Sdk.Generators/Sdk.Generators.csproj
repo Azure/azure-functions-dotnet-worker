@@ -10,6 +10,7 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <VersionSuffix>-preview2</VersionSuffix>
+    <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -20,6 +21,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" />
   </ItemGroup>
 
   <ItemGroup>

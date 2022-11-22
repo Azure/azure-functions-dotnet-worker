@@ -34,4 +34,10 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+    <ItemGroup>
+        <ProjectReference
+            Include="..\..\sdk\Sdk.Generators\Sdk.Generators.csproj"
+            OutputItemType="Analyzer"
+            ReferenceOutputAssembly="false"/>
+    </ItemGroup>
 </Project>

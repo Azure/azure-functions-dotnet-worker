@@ -26,15 +26,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             // attempt to parse user compilation
             var p = new Parser(context);
-            IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
 
-            // Proceed to generate the file if function metadata info was successfully returned
-            if (functionMetadataInfo.Count > 0)
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue("build_property.FunctionsDisableFuncMetadataSourceGen", out var sourceGenSwitch);
+
+            bool.TryParse(sourceGenSwitch, out bool disableSourceGen);
+
+            if (!disableSourceGen)
             {
-                var e = new Emitter();
-                string result = e.Emit(functionMetadataInfo, context.CancellationToken);
+                IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
 
-                context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", SourceText.From(result, Encoding.UTF8));
+                // Proceed to generate the file if function metadata info was successfully returned
+                if (functionMetadataInfo.Count > 0)
+                {
+                    var e = new Emitter();
+                    string result = e.Emit(functionMetadataInfo, context.CancellationToken);
+
+                    context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", SourceText.From(result, Encoding.UTF8));
+                }
             }
         }
 

@@ -34,6 +34,18 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        [Function(nameof(BlobInputClientFunctionValidateConnection))]
+        public async Task<HttpResponseData> BlobInputClientFunctionValidateConnection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [BlobInput("input-container/sample1.txt", Connection = "Storage")] BlobClient client)
+        {
+            var downloadResult = await client.DownloadContentAsync();
+            var content = downloadResult.Value.Content.ToString();
+            _logger.LogInformation("Blob content: {content}", content);
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
         [Function(nameof(BlobInputStreamFunction))]
         public HttpResponseData BlobInputStreamFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,

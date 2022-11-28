@@ -94,25 +94,19 @@ namespace Microsoft.Azure.Functions.Worker
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
             var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = ""input"",
-                Type = ""EventHubTrigger"",
-                Direction = ""In"",
-                EventHubName = ""test"",
-                Connection = ""EventHubConnectionAppSetting"",
-                Cardinality = ""One"",");
-             
+            var Function0RawBindings = new List<string>();");
+                expectedOutputBuilder.Append(@"
+            Function0RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""One""""");
                 if(!string.Equals(dataType, ""))
                 {
-                    expectedOutputBuilder.Append(@"
-                DataType = """ + dataType + "\",");
+                    expectedOutputBuilder.Append(@",""""dataType"""":""""" + dataType + @"""""}"");");
+                }
+                else
+                {
+                    expectedOutputBuilder.Append(@"}"");");
                 }
 
                 expectedOutputBuilder.Append(@"
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = ""dotnet-isolated"",
@@ -222,26 +216,20 @@ namespace Microsoft.Azure.Functions.Worker
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
             var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = ""input"",
-                Type = ""EventHubTrigger"",
-                Direction = ""In"",
-                EventHubName = ""test"",
-                Connection = ""EventHubConnectionAppSetting"",
-                Cardinality = ""Many"","
-                );
+            var Function0RawBindings = new List<string>();");
 
+                expectedOutputBuilder.Append(@"
+            Function0RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many""""");
                 if (!string.Equals(dataType, ""))
                 {
-                    expectedOutputBuilder.Append(@"
-                DataType = """ + dataType + "\",");
+                    expectedOutputBuilder.Append(@",""""dataType"""":""""" + dataType + @"""""}"");");
+                }
+                else
+                {
+                    expectedOutputBuilder.Append(@"}"");");
                 }
 
                 expectedOutputBuilder.Append(@"
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = ""dotnet-isolated"",
@@ -323,16 +311,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -466,17 +445,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-                DataType = 'String',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many"""",""""dataType"""":""""String""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -487,17 +456,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
-            var Function1binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-                DataType = 'String',
-            };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
-            Function1RawBindings.Add(Function1binding0JSON);
+            Function1RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many"""",""""dataType"""":""""String""""}"");
             var Function1 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -508,17 +467,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(Function1);
             var Function2RawBindings = new List<string>();
-            var Function2binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-                DataType = 'String',
-            };
-            var Function2binding0JSON = JsonSerializer.Serialize(Function2binding0);
-            Function2RawBindings.Add(Function2binding0JSON);
+            Function2RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many"""",""""dataType"""":""""String""""}"");
             var Function2 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -529,17 +478,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(Function2);
             var Function3RawBindings = new List<string>();
-            var Function3binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-                DataType = 'String',
-            };
-            var Function3binding0JSON = JsonSerializer.Serialize(Function3binding0);
-            Function3RawBindings.Add(Function3binding0JSON);
+            Function3RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many"""",""""dataType"""":""""String""""}"");
             var Function3 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -646,17 +585,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-                DataType = 'Binary',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many"""",""""dataType"""":""""Binary""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -667,17 +596,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
-            var Function1binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-                DataType = 'Binary',
-            };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
-            Function1RawBindings.Add(Function1binding0JSON);
+            Function1RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many"""",""""dataType"""":""""Binary""""}"");
             var Function1 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -771,16 +690,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -791,16 +701,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
-            var Function1binding0 = new {
-                Name = 'input',
-                Type = 'EventHubTrigger',
-                Direction = 'In',
-                EventHubName = 'test',
-                Connection = 'EventHubConnectionAppSetting',
-                Cardinality = 'Many',
-            };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
-            Function1RawBindings.Add(Function1binding0JSON);
+            Function1RawBindings.Add(@""{""""name"""":""""input"""",""""type"""":""""EventHubTrigger"""",""""direction"""":""""In"""",""""eventHubName"""":""""test"""",""""connection"""":""""EventHubConnectionAppSetting"""",""""cardinality"""":""""Many""""}"");
             var Function1 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',

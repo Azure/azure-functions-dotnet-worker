@@ -84,23 +84,8 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = '$return',
-                Type = 'Queue',
-                Direction = 'Out',
-                QueueName = 'test-output-dotnet-isolated',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                Name = 'message',
-                Type = 'QueueTrigger',
-                Direction = 'In',
-                QueueName = 'test-input-dotnet-isolated',
-                DataType = 'String',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""$return"""",""""type"""":""""Queue"""",""""direction"""":""""Out"""",""""queueName"""":""""test-output-dotnet-isolated""""}"");
+            Function0RawBindings.Add(@""{""""name"""":""""message"""",""""type"""":""""QueueTrigger"""",""""direction"""":""""In"""",""""queueName"""":""""test-input-dotnet-isolated"""",""""dataType"""":""""String""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -191,25 +176,8 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = '$return',
-                Type = 'Blob',
-                Direction = 'Out',
-                BlobPath = 'container1/hello.txt',
-                Connection = 'MyOtherConnection',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                Name = 'queuePayload',
-                Type = 'QueueTrigger',
-                Direction = 'In',
-                QueueName = 'queueName',
-                Connection = 'MyConnection',
-                DataType = 'String',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""$return"""",""""type"""":""""Blob"""",""""direction"""":""""Out"""",""""blobPath"""":""""container1/hello.txt"""",""""connection"""":""""MyOtherConnection""""}"");
+            Function0RawBindings.Add(@""{""""name"""":""""queuePayload"""",""""type"""":""""QueueTrigger"""",""""direction"""":""""In"""",""""queueName"""":""""queueName"""",""""connection"""":""""MyConnection"""",""""dataType"""":""""String""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -220,23 +188,8 @@ namespace Microsoft.Azure.Functions.Worker
             };
             metadataList.Add(Function0);
             var Function1RawBindings = new List<string>();
-            var Function1binding0 = new {
-                Name = '$return',
-                Type = 'Queue',
-                Direction = 'Out',
-                QueueName = 'queue2',
-            };
-            var Function1binding0JSON = JsonSerializer.Serialize(Function1binding0);
-            Function1RawBindings.Add(Function1binding0JSON);
-            var Function1binding1 = new {
-                Name = 'blob',
-                Type = 'BlobTrigger',
-                Direction = 'In',
-                Path = 'container2/%file%',
-                DataType = 'String',
-            };
-            var Function1binding1JSON = JsonSerializer.Serialize(Function1binding1);
-            Function1RawBindings.Add(Function1binding1JSON);
+            Function1RawBindings.Add(@""{""""name"""":""""$return"""",""""type"""":""""Queue"""",""""direction"""":""""Out"""",""""queueName"""":""""queue2""""}"");
+            Function1RawBindings.Add(@""{""""name"""":""""blob"""",""""type"""":""""BlobTrigger"""",""""direction"""":""""In"""",""""path"""":""""container2/%file%"""",""""dataType"""":""""String""""}"");
             var Function1 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',

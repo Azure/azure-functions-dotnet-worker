@@ -7,7 +7,6 @@
     <Description>This package provides source generation for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Generators</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <VersionSuffix>-preview2</VersionSuffix>

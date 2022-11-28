@@ -100,31 +100,9 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'req',
-                Type = 'HttpTrigger',
-                Direction = 'In',
-                AuthLevel = (AuthorizationLevel)0,
-                Methods = new List<string> { 'get','post' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                Name = 'Name',
-                Type = 'Queue',
-                Direction = 'Out',
-                QueueName = 'functionstesting2',
-                Connection = 'AzureWebJobsStorage',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0binding2 = new {
-                Name = 'HttpResponse',
-                Type = 'http',
-                Direction = 'Out',
-            };
-            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2);
-            Function0RawBindings.Add(Function0binding2JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""req"""",""""type"""":""""HttpTrigger"""",""""direction"""":""""In"""",""""methods"""":[""""get"""",""""post""""]}"");
+            Function0RawBindings.Add(@""{""""name"""":""""Name"""",""""type"""":""""Queue"""",""""direction"""":""""Out"""",""""queueName"""":""""functionstesting2"""",""""connection"""":""""AzureWebJobsStorage""""}"");
+            Function0RawBindings.Add(@""{""""name"""":""""HttpResponse"""",""""type"""":""""http"""",""""direction"""":""""Out""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -230,41 +208,10 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'req',
-                Type = 'HttpTrigger',
-                Direction = 'In',
-                AuthLevel = (AuthorizationLevel)0,
-                Methods = new List<string> { 'get','post' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                Name = 'myBlob',
-                Type = 'Blob',
-                Direction = 'In',
-                BlobPath = 'test-samples/sample1.txt',
-                Connection = 'AzureWebJobsStorage',
-                DataType = 'String',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0binding2 = new {
-                Name = 'Book',
-                Type = 'Queue',
-                Direction = 'Out',
-                QueueName = 'functionstesting2',
-                Connection = 'AzureWebJobsStorage',
-            };
-            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2);
-            Function0RawBindings.Add(Function0binding2JSON);
-            var Function0binding3 = new {
-                Name = 'HttpResponse',
-                Type = 'http',
-                Direction = 'Out',
-            };
-            var Function0binding3JSON = JsonSerializer.Serialize(Function0binding3);
-            Function0RawBindings.Add(Function0binding3JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""req"""",""""type"""":""""HttpTrigger"""",""""direction"""":""""In"""",""""methods"""":[""""get"""",""""post""""]}"");
+            Function0RawBindings.Add(@""{""""name"""":""""myBlob"""",""""type"""":""""Blob"""",""""direction"""":""""In"""",""""blobPath"""":""""test-samples/sample1.txt"""",""""connection"""":""""AzureWebJobsStorage"""",""""dataType"""":""""String""""}"");
+            Function0RawBindings.Add(@""{""""name"""":""""Book"""",""""type"""":""""Queue"""",""""direction"""":""""Out"""",""""queueName"""":""""functionstesting2"""",""""connection"""":""""AzureWebJobsStorage""""}"");
+            Function0RawBindings.Add(@""{""""name"""":""""HttpResponse"""",""""type"""":""""http"""",""""direction"""":""""Out""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -357,22 +304,8 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'req',
-                Type = 'HttpTrigger',
-                Direction = 'In',
-                AuthLevel = (AuthorizationLevel)0,
-                Methods = new List<string> { 'get' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                Name = '$return',
-                Type = 'http',
-                Direction = 'Out',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""req"""",""""type"""":""""HttpTrigger"""",""""direction"""":""""In"""",""""methods"""":[""""get""""]}"");
+            Function0RawBindings.Add(@""{""""name"""":""""$return"""",""""type"""":""""http"""",""""direction"""":""""Out""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -452,15 +385,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'timer',
-                Type = 'TimerTrigger',
-                Direction = 'In',
-                Schedule = '0 0 0 * * *',
-                RunOnStartup = 'False',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""timer"""",""""type"""":""""TimerTrigger"""",""""direction"""":""""In"""",""""schedule"""":""""0 0 0 * * *"""",""""runOnStartup"""":""""False""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',
@@ -541,23 +466,8 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                Name = 'myReq',
-                Type = 'HttpTrigger',
-                Direction = 'In',
-                AuthLevel = (AuthorizationLevel)4,
-                Methods = new List<string> { 'get','Post' },
-                Route = '/api2',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                Name = 'Result',
-                Type = 'http',
-                Direction = 'Out',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
+            Function0RawBindings.Add(@""{""""name"""":""""myReq"""",""""type"""":""""HttpTrigger"""",""""direction"""":""""In"""",""""methods"""":[""""get"""",""""Post""""],""""route"""":""""/api2""""}"");
+            Function0RawBindings.Add(@""{""""name"""":""""Result"""",""""type"""":""""http"""",""""direction"""":""""Out""""}"");
             var Function0 = new DefaultFunctionMetadata
             {
                 Language = 'dotnet-isolated',

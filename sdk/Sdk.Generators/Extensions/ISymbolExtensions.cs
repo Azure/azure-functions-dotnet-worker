@@ -47,11 +47,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return sb.ToString();
         }
 
-        internal static string GetAssemblyQualifiedName(this ITypeSymbol typeSymbol)
-        {
-            return typeSymbol.GetFullName() + ", " + typeSymbol.ContainingAssembly.ToString();
-        }
-
         private static bool IsRootNamespace(ISymbol symbol)
         {
             if (symbol is INamespaceSymbol namespaceSymbol)

@@ -5,11 +5,9 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -131,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var jsonBinding = JsonSerializer.Serialize(binding, _jsonOptions);
 
-                    indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add($\"{{{jsonBinding.Replace("\"", "\\\"")}}}\");");
+                    indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add(@\"{jsonBinding.Replace("\"", "\"\"")}\");");
 
                     bindingCount++;
                 }

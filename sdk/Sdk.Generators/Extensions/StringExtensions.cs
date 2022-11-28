@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             if (!char.IsLower(str[0]))
             {
                 // Return char and concat substring.
-                return char.ToLower(str[0]) + str.Substring(1);
+                return char.ToLowerInvariant(str[0]) + str.Substring(1);
             }
             else
             {

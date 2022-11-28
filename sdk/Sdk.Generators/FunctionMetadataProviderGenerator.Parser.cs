@@ -525,17 +525,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             dict[argumentName] = arg.Value;
                             break;
                         case TypedConstantKind.Enum:
-                            // Currently investigating why different scenarios fail here and a Type can't get loaded
-                            var typeName = arg.Type!.GetAssemblyQualifiedName();
-                            var type = Type.GetType(typeName);
-                            if (type != null)
-                            {
-                                dict[argumentName] = Enum.GetName(type, arg.Value);
-                            }
-                            else
-                            {
-                                dict[argumentName] = "Anonymous";
-                            }
+                            var enumValue = arg.Type!.GetMembers()
+                              .FirstOrDefault(m => m is IFieldSymbol field
+                                                            && field.ConstantValue is object value
+                                              && value.Equals(arg.Value));
                             break;
                         case TypedConstantKind.Type:
                             break;

@@ -243,10 +243,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
                             }
 
-                            // special handling for EventHubsTrigger - we need to define a property called "Cardinality"
+                            // special handling for EventHubsTrigger - we need to define a property called "cardinality"
                             if (validEventHubs)
                             {
-                                if (!bindingDict!.ContainsKey("Cardinality"))
+                                if (!bindingDict!.ContainsKey("cardinality"))
                                 {
                                     bindingDict["cardinality"] = cardinality is Cardinality.Many ? "Many" : "One";
                                 }
@@ -527,7 +527,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         case TypedConstantKind.Enum:
                             var enumValue = arg.Type!.GetMembers()
                               .FirstOrDefault(m => m is IFieldSymbol field
-                                                            && field.ConstantValue is object value
+                                              && field.ConstantValue is object value
                                               && value.Equals(arg.Value));
                             break;
                         case TypedConstantKind.Type:

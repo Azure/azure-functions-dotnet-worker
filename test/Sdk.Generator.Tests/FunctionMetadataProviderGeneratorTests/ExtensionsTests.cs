@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData("isBatched", "isBatched")]
             [InlineData("MyProperty", "myProperty")]
             [InlineData("myproperty", "myproperty")]
-            public void UpperCaseFirstLetter(string input, string expectedOutput)
+            public void LowerCaseFirstLetter(string input, string expectedOutput)
             {
                 Assert.Equal(input.LowercaseFirst(), expectedOutput);
             }

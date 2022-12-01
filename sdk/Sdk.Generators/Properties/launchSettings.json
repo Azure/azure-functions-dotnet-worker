@@ -1,10 +1,6 @@
 {
   "profiles": {
-<<<<<<< HEAD
-    "SourceGenDebug": {
-=======
     "Source Generator": {
->>>>>>> 3c1c792 (initial wip)
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\..\\samples\\FunctionApp\\FunctionApp.csproj"
     }

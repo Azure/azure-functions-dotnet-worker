@@ -83,5 +83,19 @@ namespace SampleApp
             _logger.LogInformation($"Book name: {data.Name}");
             return req.CreateResponse(HttpStatusCode.OK);
         }
+
+        [Function(nameof(BlobInputCollectionFunction))]
+        public HttpResponseData BlobInputCollectionFunction(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [BlobInput("input-container")] IEnumerable<BlobClient> blobs)
+        {
+            _logger.LogInformation("Blobs within container:");
+            foreach (BlobClient blob in blobs)
+            {
+                _logger.LogInformation(blob.Name);
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
     }
 }

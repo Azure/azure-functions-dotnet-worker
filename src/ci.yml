@@ -15,6 +15,9 @@ pr:
   paths:
     include:
     - src/
+    - test/DotNetWorkerTests
+    - test/E2ETests
+    - test/TestUtility
     - sdk/
 
 jobs:

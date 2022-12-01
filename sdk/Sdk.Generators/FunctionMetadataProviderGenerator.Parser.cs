@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ScriptFile = scriptFile
                     };
 
-                    if (!TryGetBindings(method, model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger))
+                    if (!TryGetBindings(method, model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger))
                     {
                         continue;
                     }
@@ -80,50 +80,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return result; 
-            }
-
-            /// <summary>
-            /// Formats an object into a string value for the source-generated file. This can mean adding quotation marks around the string
-            /// representation of the object, or leaving it as is if the object is a string or Enum type.
-            /// </summary>
-            /// <param name="propValue">The property that needs to be formmatted into a string.</param>
-            private string FormatObject(object? propValue, bool isEnum = false)
-            {
-                if (propValue is null)
-                {
-                    return "null";
-                }
-
-                // catch values that are already strings or Enum parsing
-                // we don't need to surround these cases with quotation marks
-                if (propValue.ToString().Contains("\"") || isEnum)
-                {
-                    return propValue.ToString();
-                }
-
-                return "\"" + propValue.ToString() + "\"";
-            }
-
-            /// <summary>
-            /// Format an array into a string.
-            /// </summary>
-            /// <param name="enumerableValues">A collection of values to be formatted?</param>
-            private string FormatArray(IEnumerable enumerableValues)
-            {
-                string arrAsString;
-
-                arrAsString = "new List<string> { ";
-
-                foreach (var o in enumerableValues)
-                {
-                    arrAsString += FormatObject(o);
-                    arrAsString += ",";
-                }
-
-                arrAsString = arrAsString.TrimEnd(',', ' ');
-                arrAsString += " }";
-
-                return arrAsString;
             }
 
             /// <summary>
@@ -153,20 +109,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, string>>? bindings, out bool hasHttpTrigger)
+            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger)
             {
                 hasHttpTrigger = false;
 
-                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, string>>? methodOutputBindings)
-                    || !TryGetParameterInputAndTriggerBindings(method, model, out hasHttpTrigger, out IList<IDictionary<string, string>>? parameterInputAndTriggerBindings)
-                    || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, string>>? returnTypeBindings))
+                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, object>>? methodOutputBindings)
+                    || !TryGetParameterInputAndTriggerBindings(method, model, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
+                    || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
                 {
                     bindings = null;
                     return false;
                 }
 
                 var listSize = methodOutputBindings!.Count + parameterInputAndTriggerBindings!.Count + returnTypeBindings!.Count;
-                var result = new List<IDictionary<string, string>>(listSize);
+                var result = new List<IDictionary<string, object>>(listSize);
 
                 result.AddRange(methodOutputBindings);
                 result.AddRange(parameterInputAndTriggerBindings);
@@ -179,7 +135,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any OutputBinding attributes associated with the method.
             /// </summary>
-            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out IList<IDictionary<string, string>>? bindingsList)
+            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var bindingLocation = method.Identifier.GetLocation();
 
@@ -208,30 +164,30 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, string>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
                     }
 
-                    bindingsList = new List<IDictionary<string, string>>(capacity: 1);
+                    bindingsList = new List<IDictionary<string, object>>(capacity: 1);
                     bindingsList.Add(bindingDict!);
                     return true;
                 }
 
                 // we didn't find any output bindings on the method, but there were no errors
                 // so we treat the found bindings as an empty list and return true
-                bindingsList = new List<IDictionary<string, string>>();
+                bindingsList = new List<IDictionary<string, object>>();
                 return true;
             }
 
             /// <summary>
             /// Checks for and returns input and trigger bindings found in the parameters of the Azure Function method.
             /// </summary>
-            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool hasHttpTrigger, out IList<IDictionary<string, string>>? bindingsList)
+            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
             {
                 hasHttpTrigger = false;
-                bindingsList = new List<IDictionary<string, string>>();
+                bindingsList = new List<IDictionary<string, object>>();
 
                 foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
                 {
@@ -276,7 +232,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Identifier.ValueText;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, string>? bindingDict))
+                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, object>? bindingDict))
                             {
                                 bindingsList = null;
                                 return false;
@@ -284,15 +240,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             
                             if (dataType is not DataType.Undefined)
                             {
-                                bindingDict!.Add("DataType", FormatObject(Enum.GetName(typeof(DataType), dataType)));
+                                bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
                             }
 
-                            // special handling for EventHubsTrigger - we need to define a property called "Cardinality"
+                            // special handling for EventHubsTrigger - we need to define a property called "cardinality"
                             if (validEventHubs)
                             {
-                                if (!bindingDict!.ContainsKey("Cardinality"))
+                                if (!bindingDict!.ContainsKey("cardinality"))
                                 {
-                                    bindingDict["Cardinality"] = cardinality is Cardinality.Many ? FormatObject("Many") : FormatObject("One");
+                                    bindingDict["cardinality"] = cardinality is Cardinality.Many ? "Many" : "One";
                                 }
                             }
 
@@ -307,11 +263,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any bindings found in the Return Type of the method
             /// </summary>
-            private bool TryGetReturnTypeBindings(MethodDeclarationSyntax method, SemanticModel model, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, string>>? bindingsList)
+            private bool TryGetReturnTypeBindings(MethodDeclarationSyntax method, SemanticModel model, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
             {
                 TypeSyntax returnTypeSyntax = method.ReturnType;
                 ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
-                bindingsList = new List<IDictionary<string, string>>();
+                bindingsList = new List<IDictionary<string, object>>();
 
                 if (returnTypeSymbol is null)
                 {
@@ -355,11 +311,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasOutputBinding, Location returnTypeLocation, out IList<IDictionary<string, string>>? bindingsList)
+            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasOutputBinding, Location returnTypeLocation, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var members = returnTypeSymbol.GetMembers();
                 var foundHttpOutput = false;
-                bindingsList = new List<IDictionary<string, string>>(); // initialize this without size, because it will be difficult to predict how many bindings we can find here in the user code.
+                bindingsList = new List<IDictionary<string, object>>(); // initialize this without size, because it will be difficult to predict how many bindings we can find here in the user code.
 
                 foreach (var prop in returnTypeSymbol.GetMembers().Where(a => a is IPropertySymbol))
                 {
@@ -399,7 +355,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     return false;
                                 }
 
-                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, string>? bindingDict))
+                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
                                 {
                                     bindingsList = null;
                                     return false;
@@ -429,18 +385,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private IDictionary<string, string> GetHttpReturnBinding(string returnBindingName)
+            private IDictionary<string, object> GetHttpReturnBinding(string returnBindingName)
             {
-                var httpBinding = new Dictionary<string, string>();
-
-                httpBinding.Add("Name", FormatObject(returnBindingName));
-                httpBinding.Add("Type", FormatObject("http"));
-                httpBinding.Add("Direction", FormatObject("Out"));
+                var httpBinding = new Dictionary<string, object>
+                {
+                    { "name", returnBindingName },
+                    { "type", "http" },
+                    { "direction", "Out" }
+                };
 
                 return httpBinding;
             }
 
-            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, string>? bindings)
+            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings)
             {
                 // Get binding info as a dictionary with keys as the property name and value as the property value
                 if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object?>? attributeProperties))
@@ -459,10 +416,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)) ? "Out" : "In";
 
                 var bindingCount = attributeProperties!.Count + 3;
-                bindings = new Dictionary<string, string>(capacity: bindingCount);
-                bindings.Add("Name", FormatObject(bindingName));
-                bindings.Add("Type", FormatObject(bindingType));
-                bindings.Add("Direction", FormatObject(bindingDirection));
+                bindings = new Dictionary<string, object>(capacity: bindingCount)
+                {
+                    { "name", bindingName },
+                    { "type", bindingType },
+                    { "direction", bindingDirection }
+                };
 
                 // Add additional bindingInfo to the anonymous type because some functions have more properties than others
                 foreach (var prop in attributeProperties!) // attributeProperties won't be null here b/c we would've exited this method earlier if it was during TryGetAttributeProperties check
@@ -471,16 +430,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (prop.Value?.GetType().IsArray ?? false)
                     {
-                        string arr = FormatArray((IEnumerable)prop.Value);
-                        bindings[propertyName.UppercaseFirst()] = arr; // Uppercase first to use PascalCase in generated file's anonymous type
+                        bindings[propertyName] = prop.Value;
                     }
                     else
                     {
-                        bool isEnum = string.Equals(prop.Key, "authLevel", StringComparison.OrdinalIgnoreCase); // prop keys come from Azure Functions defined attributes so we can check directly for authLevel
-
-                        var propertyValue = FormatObject(prop.Value, isEnum);
-                        bindings[propertyName.UppercaseFirst()] = propertyValue;
-                    }
+                        bindings[propertyName] = prop.Value!.ToString();
+                    }  
                 }
 
                 return true;
@@ -503,15 +458,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (namedArgument.Value.Value != null)
                     {
-                        if (string.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.ContainsKey("Cardinality"))
+                        if (string.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.ContainsKey("cardinality"))
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
-                            attrProperties["Cardinality"] = argValue ? "Many" : "One";
+                            attrProperties["cardinality"] = argValue ? "Many" : "One";
                         }
                         else
                         {
-                            attrProperties[namedArgument.Key.UppercaseFirst()] = namedArgument.Value.Value;
+                            attrProperties[namedArgument.Key] = namedArgument.Value.Value;
                         }
                     }
                 }
@@ -527,14 +482,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         object arg = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!; // only one constructor arg in DefaultValue attribute (the default value)
                         if (arg is bool b && string.Equals(argName, Constants.IsBatchedKey))
                         {
-                            if (!attrProperties.Keys.Contains("Cardinality"))
+                            if (!attrProperties.Keys.Contains("cardinality"))
                             {
-                                attrProperties["Cardinality"] = b ? "Many" : "One";
+                                attrProperties["cardinality"] = b ? "Many" : "One";
                             }
                         }
                         else if (!attrProperties.Keys.Any(a => string.Equals(a, argName, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
                         {
-                            attrProperties[argName.UppercaseFirst()] = arg;
+                            attrProperties[argName] = arg;
                         }
                     }
                 }
@@ -570,7 +525,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             dict[argumentName] = arg.Value;
                             break;
                         case TypedConstantKind.Enum:
-                            dict[argumentName] = $"(AuthorizationLevel){arg.Value}"; // the only enum type we have in function metadata is authlevel
+                            var enumValue = arg.Type!.GetMembers()
+                              .FirstOrDefault(m => m is IFieldSymbol field
+                                              && field.ConstantValue is object value
+                                              && value.Equals(arg.Value));
                             break;
                         case TypedConstantKind.Type:
                             break;

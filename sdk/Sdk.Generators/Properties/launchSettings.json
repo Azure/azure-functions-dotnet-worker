@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SourceGenDebug": {
+      "commandName": "DebugRoslynComponent",
+      "targetProject": "..\\..\\samples\\FunctionApp\\FunctionApp.csproj"
+    }
+  }
+}

@@ -5,9 +5,9 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -15,6 +15,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         internal sealed class Emitter
         {
+            JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
+            };
 
             public string Emit(IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, CancellationToken cancellationToken)
             {
@@ -115,25 +120,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
             }
 
-            private void AddBindingInfo(IndentedTextWriter indentedTextWriter, string functionVarName, string functionBindingsListVarName, IList<IDictionary<string, string>> bindings)
+            private void AddBindingInfo(IndentedTextWriter indentedTextWriter, string functionVarName, string functionBindingsListVarName, IList<IDictionary<string, object>> bindings)
             {
                 var bindingCount = 0;
 
                 foreach (var binding in bindings)
                 {
                     var bindingVarName = functionVarName + "binding" + bindingCount.ToString();
-                    indentedTextWriter.WriteLine($"var {bindingVarName} = new {{");
-                    indentedTextWriter.Indent++;
-                    
-                    foreach (var key in binding.Keys)
-                    {
-                        indentedTextWriter.WriteLine($"{key} = {binding[key]},");
-                    }
 
-                    indentedTextWriter.Indent--;
-                    indentedTextWriter.WriteLine("};");
-                    indentedTextWriter.WriteLine($"var {bindingVarName}JSON = JsonSerializer.Serialize({bindingVarName});");
-                    indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add({bindingVarName}JSON);");
+                    var jsonBinding = JsonSerializer.Serialize(binding, _jsonOptions);
+
+                    indentedTextWriter.WriteLine($"{functionBindingsListVarName}.Add(@\"{jsonBinding.Replace("\"", "\"\"")}\");");
 
                     bindingCount++;
                 }

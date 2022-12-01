@@ -17,7 +17,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
             };
 
             public string Emit(IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, CancellationToken cancellationToken)

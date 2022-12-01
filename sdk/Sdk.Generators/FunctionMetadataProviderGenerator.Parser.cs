@@ -430,11 +430,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (prop.Value?.GetType().IsArray ?? false)
                     {
-                        bindings[propertyName.LowercaseFirst()] = prop.Value;
+                        bindings[propertyName] = prop.Value;
                     }
                     else
                     {
-                        bindings[propertyName.LowercaseFirst()] = prop.Value!.ToString();
+                        bindings[propertyName] = prop.Value!.ToString();
                     }  
                 }
 
@@ -466,7 +466,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else
                         {
-                            attrProperties[namedArgument.Key.LowercaseFirst()] = namedArgument.Value.Value;
+                            attrProperties[namedArgument.Key] = namedArgument.Value.Value;
                         }
                     }
                 }
@@ -489,7 +489,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else if (!attrProperties.Keys.Any(a => string.Equals(a, argName, StringComparison.OrdinalIgnoreCase))) // check if this property has been assigned a value already in constructor or named args
                         {
-                            attrProperties[argName.LowercaseFirst()] = arg;
+                            attrProperties[argName] = arg;
                         }
                     }
                 }

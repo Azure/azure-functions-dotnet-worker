@@ -34,4 +34,17 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+
+<!-- Uncomment the item group below to debug the source generator and target this app specifically for compilation
+https://github.com/JoanComasFdz/dotnet-how-to-debug-source-generator-vs2022/blob/a811b433aa5f1e6f4550ebd2d6f721645bc921e9/README.md -->
+
+<!--
+  <ItemGroup>
+    <ProjectReference
+      Include="..\MySourceGenerator\MySourceGenerator.csproj"
+      OutputItemType="Analyzer"
+      ReferenceOutputAssembly="false"/>
+  </ItemGroup>
+-->
+    
 </Project>

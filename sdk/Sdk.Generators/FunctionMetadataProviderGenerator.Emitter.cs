@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     AddRegistrationExtension(indentedTextWriter);
 
                     indentedTextWriter.Indent--;
-                    indentedTextWriter.WriteLine("}");
+                    indentedTextWriter.Write("}");
 
                     indentedTextWriter.Flush();
                 }

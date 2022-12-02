@@ -76,8 +76,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
+
                 namespace Microsoft.Azure.Functions.Worker
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
@@ -88,6 +90,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""test-output-dotnet-isolated""}");
                             Function0RawBindings.Add(@"{""name"":""message"",""type"":""QueueTrigger"",""direction"":""In"",""queueName"":""test-input-dotnet-isolated"",""dataType"":""String""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
@@ -97,9 +100,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
+
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
+
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -170,8 +175,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
+
                 namespace Microsoft.Azure.Functions.Worker
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
@@ -182,6 +189,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""Blob"",""direction"":""Out"",""blobPath"":""container1/hello.txt"",""connection"":""MyOtherConnection""}");
                             Function0RawBindings.Add(@"{""name"":""queuePayload"",""type"":""QueueTrigger"",""direction"":""In"",""queueName"":""queueName"",""connection"":""MyConnection"",""dataType"":""String""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
@@ -194,6 +202,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function1RawBindings = new List<string>();
                             Function1RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
                             Function1RawBindings.Add(@"{""name"":""blob"",""type"":""BlobTrigger"",""direction"":""In"",""path"":""container2/%file%"",""dataType"":""String""}");
+
                             var Function1 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
@@ -203,9 +212,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function1);
+
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
+
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>

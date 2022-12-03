@@ -4,12 +4,12 @@
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     /// <summary>
-    /// A representation of a Microsoft.Azure.WebJobs.ParameterBindingData
+    /// A representation of Collection of Microsoft.Azure.WebJobs.ParameterBindingData
     /// </summary>
     public abstract class CollectionModelBindingData
     {
         /// <summary>
-        /// Gets the version of the binding data content
+        /// Gets the array of ModelBindingData
         /// </summary>
         public abstract ModelBindingData[] modelBindingDataArray { get; }
     }

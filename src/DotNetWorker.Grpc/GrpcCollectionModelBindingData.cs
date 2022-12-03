@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
             _modelBindingDataArray = modelBindingDataArray;
         }
 
-        public override GrpcModelBindingData[] modelBindingDataArray => _modelBindingDataArray.ModelBindingData.Select(
+        public override Core.ModelBindingData[] modelBindingDataArray => _modelBindingDataArray.ModelBindingData.Select(
                                                             p => new GrpcModelBindingData(p)).ToArray();
     }
 }

@@ -67,9 +67,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
-                using Microsoft.Azure.Functions.Worker.Http;
+
                 namespace Microsoft.Azure.Functions.Worker
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
@@ -80,6 +81,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
@@ -89,9 +91,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
+
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
+
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -150,9 +154,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
-                using Microsoft.Azure.Functions.Worker.Http;
+
                 namespace Microsoft.Azure.Functions.Worker
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
@@ -162,6 +167,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get"",""post""],""route"":""/api2""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
@@ -171,9 +177,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
+
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
+
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -237,9 +245,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
-                using Microsoft.Azure.Functions.Worker.Http;
+
                 namespace Microsoft.Azure.Functions.Worker
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
@@ -250,6 +259,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
                             Function0RawBindings.Add(@"{""name"":""httpResponseProp"",""type"":""http"",""direction"":""Out""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
@@ -259,9 +269,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
+
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
+
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>

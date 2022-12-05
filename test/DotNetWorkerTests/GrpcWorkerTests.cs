@@ -211,13 +211,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void WorkerOptions_CanChangeOptionalCapabilities()
         {
             var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults(builder =>
+                .ConfigureFunctionsWorkerDefaults((WorkerOptions options) =>
                 {
-                    builder.Services.Configure<WorkerOptions>(o =>
-                    {
-                        o.Capabilities.Remove("HandlesWorkerTerminateMessage");
-                        o.Capabilities.Add("SomeNewCapability", bool.TrueString);
-                    });
+                    options.Capabilities.Remove("HandlesWorkerTerminateMessage");
+                    options.Capabilities.Add("SomeNewCapability", bool.TrueString);
                 }).Build();
 
             var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>().Value;

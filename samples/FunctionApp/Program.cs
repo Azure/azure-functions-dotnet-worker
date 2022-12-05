@@ -18,10 +18,11 @@ namespace FunctionApp
             //<docsnippet_startup>
             var host = new HostBuilder()
                 //<docsnippet_configure_defaults>
-                .ConfigureFunctionsWorkerDefaults((WorkerOptions options) =>
+                .ConfigureFunctionsWorkerDefaults(builder =>
                 {
-                    // example (will remove before merge)
-                    options.Capabilities.Remove("HandlesWorkerTerminateMessage");
+                    builder
+                        .AddApplicationInsights()
+                        .AddApplicationInsightsLogger();
                 })
                 //</docsnippet_configure_defaults>
                 //<docsnippet_dependency_injection>

@@ -1,0 +1,6 @@
+.vs/
+build/
+out/
+.idea/
+cmake-build-*/
+/src/FunctionsNetHost/.idea/

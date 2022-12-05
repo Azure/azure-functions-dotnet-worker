@@ -1,0 +1,2 @@
+
+#define FunctionsNetHost_VERSION "@FunctionsNetHost_VERSION@-${CMAKE_BUILD_TYPE}"

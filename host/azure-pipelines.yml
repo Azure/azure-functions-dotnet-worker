@@ -28,6 +28,11 @@ steps:
   # Remember to add this task to allow vcpkg to upload archives via NuGet
   - task: NuGetAuthenticate@1
 
+  # Will remove after validating builds are working.
+  - script: dir
+    workingDirectory: $(Build.SourcesDirectory)
+    displayName: List Build.SourcesDirectory content
+
   # Run Cmake and output goes to /build dir.
   - task: CMake@1
     displayName: 'CMake ..'

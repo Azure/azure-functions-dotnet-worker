@@ -29,8 +29,6 @@ namespace Microsoft.Extensions.DependencyInjection
 
             services.AddDefaultInputConvertersToWorkerOptions();
 
-            services.AddDefaultCapabilitiesToWorkerOptions();
-
             // Default Json serialization should ignore casing on property names
             services.Configure<JsonSerializerOptions>(options =>
             {

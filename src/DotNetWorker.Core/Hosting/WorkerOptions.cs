@@ -24,15 +24,24 @@ namespace Microsoft.Azure.Functions.Worker
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
 
         /// <summary>
-        /// Gets the worker capabilities.
+        /// Gets the optional worker capabilities.
         /// </summary>
-        public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>();
+        public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>()
+        {
+            // Enable these by default, although they are not strictly required and can be removed
+            { "HandlesWorkerTerminateMessage", bool.TrueString },
+            { "HandlesInvocationCancelMessage", bool.TrueString }
+        };
 
         /// <summary>
         /// Gets and sets the flag for opting in to unwrapping user-code-thrown
         /// exceptions when they are surfaced to the Host. 
         /// </summary>
-        public bool EnableUserCodeException { get; set; } = false;
+        public bool EnableUserCodeException
+        {
+            get => GetBoolCapability(nameof(EnableUserCodeException));
+            set => SetBoolCapability(nameof(EnableUserCodeException), value);
+        }
 
         /// <summary>
         /// Gets or sets a value that determines if empty entries should be included in the function trigger message payload.
@@ -41,6 +50,29 @@ namespace Microsoft.Azure.Functions.Worker
         /// function code as trigger data when this setting value is <see langword="false"/>. When it is <see langword="true"/>,
         /// All entries will be sent to the function code as it is. Default value for this setting is <see langword="false"/>.
         /// </summary>
-        public bool IncludeEmptyEntriesInMessagePayload { get; set; }
+        public bool IncludeEmptyEntriesInMessagePayload
+        {
+            get => GetBoolCapability(nameof(IncludeEmptyEntriesInMessagePayload));
+            set => SetBoolCapability(nameof(IncludeEmptyEntriesInMessagePayload), value);
+        }
+
+        private bool GetBoolCapability(string name)
+        {
+            return Capabilities.TryGetValue(name, out string value) && bool.TryParse(value, out bool b) && b;
+        }
+
+        // For false values, the host does not expect the capability to exist; there are some cases where this
+        // will be interpreted as "true" just because the key is there.
+        private void SetBoolCapability(string name, bool value)
+        {
+            if (value)
+            {
+                Capabilities[name] = value.ToString();
+            }
+            else
+            {
+                Capabilities.Remove(name);
+            }
+        }
     }
 }

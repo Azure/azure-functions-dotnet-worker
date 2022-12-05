@@ -213,6 +213,15 @@ namespace Microsoft.Azure.Functions.Worker
 
             response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
 
+            // Add required capabilities; these cannot be modified
+            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
+            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
+            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
+            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
+            response.Capabilities.Add("TypedDataCollection", bool.TrueString);
+            response.Capabilities.Add("WorkerStatus", bool.TrueString);
+
+            // Add additional capabilites defined by WorkerOptions
             foreach (KeyValuePair<string, string> entry in workerOptions.Capabilities)
             {
                 response.Capabilities.Add(entry.Key, entry.Value);

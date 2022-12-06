@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker
             content.TryGetValue(Constants.ContainerName, out var containerName);
             content.TryGetValue(Constants.BlobName, out var blobName);
 
-            if (string.IsNullOrEmpty(connectionStr) || string.IsNullOrEmpty(containerName))
+            if (string.IsNullOrEmpty(connectionName) || string.IsNullOrEmpty(containerName))
             {
                 return ConversionResult.Unhandled();
             }

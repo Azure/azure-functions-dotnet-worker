@@ -53,3 +53,11 @@ steps:
   # Publish artifacts
   - publish: $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release
     artifact: drop
+
+  - task: NuGetCommand@2
+    displayName: "Nuget pack"
+    inputs:
+      command: 'pack'
+      packagesToPack: '$(Build.SourcesDirectory)/host/tools/build/Microsoft.Azure.Functions.DotnetIsolatedNativeHost.nuspec'
+      versioningScheme: 'off'
+      basePath: '$(Build.SourcesDirectory)/host/tools/build'

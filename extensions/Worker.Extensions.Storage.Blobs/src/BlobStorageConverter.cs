@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker
                 return ConversionResult.Unhandled();
             }
 
-            content.TryGetValue(Constants.Connection, out var connectionStr);
+            content.TryGetValue(Constants.Connection, out var connectionName);
             content.TryGetValue(Constants.ContainerName, out var containerName);
             content.TryGetValue(Constants.BlobName, out var blobName);
 
@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker
                 return ConversionResult.Unhandled();
             }
 
-            var connectionString = connectionStr is null ? null : connectionStr;
+            var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
             var result = await ToTargetType(context.TargetType, connectionString, containerName, blobName);
 
             if (result is not null)

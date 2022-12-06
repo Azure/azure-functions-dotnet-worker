@@ -45,14 +45,6 @@ steps:
     displayName: 'CMake --build . --config Release'
     inputs:
       cmakeArgs: '--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release --verbose'
- 
-  - script: dir
-    workingDirectory: $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release
-    displayName: List Release Artifacts
-
-  # Publish artifacts
-  - publish: $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release
-    artifact: drop
 
   - task: NuGetCommand@2
     displayName: "Nuget pack"
@@ -60,4 +52,17 @@ steps:
       command: 'pack'
       packagesToPack: '$(Build.SourcesDirectory)/host/tools/build/Microsoft.Azure.Functions.DotnetIsolatedNativeHost.nuspec'
       versioningScheme: 'off'
+      packDestination: '$(Build.ArtifactStagingDirectory)/host/build/nuget'
       basePath: '$(Build.SourcesDirectory)/host/tools/build'
+       
+  - script: dir
+    workingDirectory: $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release
+    displayName: List Release Artifacts
+
+  - script: dir
+    workingDirectory: $(Build.ArtifactStagingDirectory)/host/build/nuget
+    displayName: List ArtifactStagingDirectory
+
+  # Publish artifacts
+  - publish: $(Build.ArtifactStagingDirectory)/host/build/nuget
+    artifact: drop

@@ -6,7 +6,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
-    internal sealed partial class RpcHttpCookie : IHttpCookie
+    public sealed partial class RpcHttpCookie : IHttpCookie
     {
         string IHttpCookie.Domain => Domain.Value;
 

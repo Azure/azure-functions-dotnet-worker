@@ -5,7 +5,7 @@ using System;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
-    public sealed partial class StatusResult
+    internal sealed partial class StatusResult
     {
         private static StatusResult? _successInstance;
 

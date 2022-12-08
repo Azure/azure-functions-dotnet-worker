@@ -4,7 +4,7 @@ using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
-    public sealed partial class RpcFunctionMetadata : IFunctionMetadata
+    internal sealed partial class RpcFunctionMetadata : IFunctionMetadata
     {
         IList<string> IFunctionMetadata.RawBindings => RawBindings;
     }

@@ -3,7 +3,6 @@
 
 #include "../funcgrpc/func_bidi_reactor.h"
 #include "../funcgrpc/func_perf_marker.h"
-#include "appconfig.h"
 #include <boost/program_options.hpp>
 #include <exception>
 #include <iostream>

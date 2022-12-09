@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 #ifndef FUNCTIONSNETHOST_FUNC_PERF_MARKER_H
 #define FUNCTIONSNETHOST_FUNC_PERF_MARKER_H
 

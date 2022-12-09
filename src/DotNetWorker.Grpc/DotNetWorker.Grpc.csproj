@@ -42,7 +42,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\..\protos\**\*.proto" ProtoRoot="..\..\protos" GrpcServices="Client" Access="internal" />
+    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" 
+              ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" 
+              GrpcServices="Client" 
+              Access="internal" />
 
   </ItemGroup>
 

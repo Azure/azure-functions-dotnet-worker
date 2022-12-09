@@ -6,12 +6,13 @@ find_package(Threads)
 # So we will copy protos files to a relative location.
 get_filename_component(HOST_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 get_filename_component(REPO_ROOT ${HOST_DIR} DIRECTORY)
-SET (TARGET_DIR ${CMAKE_SOURCE_DIR}/Protos)
+SET (PROTOS_TARGET_DIR ${CMAKE_SOURCE_DIR}/Protos)
+SET (PROTOS_SRC_DIR ${REPO_ROOT}/protos/azure-functions-language-worker-protobuf/src/proto)
 
 # Copy proto files to the "Protos" directory(where this CMakeList.txt file is present).
-file(COPY ${REPO_ROOT}/protos/shared/NullableTypes.proto DESTINATION ${TARGET_DIR}/shared)
-file(COPY ${REPO_ROOT}/protos/identity/ClaimsIdentityRpc.proto DESTINATION ${TARGET_DIR}/identity)
-file(COPY ${REPO_ROOT}/protos/FunctionRpc.proto DESTINATION ${TARGET_DIR})
+file(COPY ${PROTOS_SRC_DIR}/shared/NullableTypes.proto DESTINATION ${PROTOS_TARGET_DIR}/shared)
+file(COPY ${PROTOS_SRC_DIR}/identity/ClaimsIdentityRpc.proto DESTINATION ${PROTOS_TARGET_DIR}/identity)
+file(COPY ${PROTOS_SRC_DIR}/FunctionRpc.proto DESTINATION ${PROTOS_TARGET_DIR})
 
 #
 # Protobuf/Grpc source files for function RPC

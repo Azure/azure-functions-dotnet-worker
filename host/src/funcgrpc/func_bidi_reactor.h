@@ -1,12 +1,15 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 #pragma once
 
 #include <future>
+#include <grpc/byte_buffer.h>
 #include <grpc/grpc.h>
 #include <grpcpp/channel.h>
 #include <grpcpp/client_context.h>
 #include <grpcpp/create_channel.h>
 #include <grpcpp/generic/generic_stub.h>
-#include <grpc/byte_buffer.h>
 #include <iostream>
 #include <memory>
 #include <mutex>
@@ -25,10 +28,10 @@ using AzureFunctionsRpcMessages::StartStream;
 using AzureFunctionsRpcMessages::StatusResult;
 using AzureFunctionsRpcMessages::StreamingMessage;
 using AzureFunctionsRpcMessages::WorkerInitResponse;
+using grpc::ByteBuffer;
 using grpc::Channel;
 using grpc::ClientContext;
 using grpc::Status;
-using grpc::ByteBuffer;
 
 using namespace AzureFunctionsRpc;
 using namespace grpc;
@@ -90,13 +93,13 @@ class FunctionBidiReactor : public grpc::ClientBidiReactor<ByteBuffer, ByteBuffe
     /// Message to read from server.
     /// This should not be modified while a read operation( StartRead(&read_) ) is in progress.
     /// </summary>
-	ByteBuffer read_;
+    ByteBuffer read_;
 
     /// <summary>
     /// Message to write to server.
     /// This should not be modified while a write operation( StartWrite(&write_) ) is in progress.
     /// </summary>
-	ByteBuffer write_;
+    ByteBuffer write_;
 
     std::atomic_bool write_inprogress_{false};
 

@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 #pragma once
 #include "messaging_channel.h"
 #include <FunctionRpc.pb.h>
@@ -9,9 +12,9 @@
 #include <string>
 #include <windows.h>
 
+#include <grpc/byte_buffer.h>
 #include <grpc/grpc.h>
 #include <grpcpp/channel.h>
-#include <grpc/byte_buffer.h>
 
 using grpc::ByteBuffer;
 using namespace std;

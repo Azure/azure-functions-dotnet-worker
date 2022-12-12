@@ -3,8 +3,6 @@
 
 #include "../funcgrpc/func_bidi_reactor.h"
 #include "../funcgrpc/func_perf_marker.h"
-#include "../funcgrpc/funcgrpc.h"
-#include "appconfig.h"
 #include <boost/program_options.hpp>
 #include <exception>
 #include <iostream>
@@ -20,7 +18,7 @@ unique_ptr<funcgrpc::GrpcWorkerStartupOptions> getWorkerStartupOptions(int argc,
 int main(int argc, char *argv[])
 {
     funcgrpc::Log::Init();
-    FUNC_LOG_INFO("Starting FunctionsNetHost main.Build:{}", FunctionsNetHost_VERSION);
+    FUNC_LOG_INFO("Starting FunctionsNetHost.");
 
     try
     {

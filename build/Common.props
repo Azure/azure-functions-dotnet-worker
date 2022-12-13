@@ -1,4 +1,4 @@
-﻿<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+﻿<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <Import Project=".\PackageInfo.props" />
   <PropertyGroup>
@@ -8,8 +8,8 @@
     <VersionPrefix Condition="$(VersionPrefix) == ''">$(MajorProductVersion).$(MinorProductVersion).$(PatchProductVersion)</VersionPrefix>
     <!--If a preview release, this should have the label with the separator (e.g.: -preview1)-->
     <VersionSuffix Condition="$(VersionSuffix) == ''"></VersionSuffix>
-    <IsLocalBuild Condition=" $(IsLocalBuild) == ''">True</IsLocalBuild>
-    <BuildNumber Condition=" $(IsLocalBuild) == 'True'">local</BuildNumber>
+    <IsLocalBuild Condition="$(IsLocalBuild) == ''">True</IsLocalBuild>
+    <BuildNumber Condition="$(IsLocalBuild) == 'True'">local</BuildNumber>
     <Version Condition=" '$(BuildNumber)' != '' And $(Version) == ''">$(VersionPrefix)$(VersionSuffix)-$(BuildNumber)</Version>
     <Version Condition=" '$(Version)' == '' ">$(VersionPrefix)$(VersionSuffix)</Version>
     <AssemblyVersion Condition="$(AssemblyVersion) == ''">$(VersionPrefix).0</AssemblyVersion>
@@ -20,12 +20,12 @@
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)/../key.snk</AssemblyOriginatorKeyFile>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true"</ContinuousIntegrationBuild>
+    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true</ContinuousIntegrationBuild>
     <Deterministic>true</Deterministic>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
   </ItemGroup>
 
 </Project>

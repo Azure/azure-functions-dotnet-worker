@@ -32,7 +32,7 @@ function IsStorageEmulatorRunning()
 {
     try
     {
-        $response = Invoke-WebRequest -Uri "http://127.0.0.1:10000/"
+        $response = Invoke-WebRequest -Uri "http://localhost:10000/"
         $StatusCode = $Response.StatusCode
     }
     catch

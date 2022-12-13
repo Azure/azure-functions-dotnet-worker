@@ -15,7 +15,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
 {
-#if NET472
+#if NET48
     [LoadInSeparateAppDomain]
     public class CreateZipFileTask : AppDomainIsolatedTask
 #else
@@ -68,7 +68,7 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
             {
                 string? executable = defaultExecutablePath.GetString();
 
-                // if the executable path contains "{WorkerRoot}", it means we'll be executing this file directly (as 
+                // if the executable path contains "{WorkerRoot}", it means we'll be executing this file directly (as
                 // opposed to running with 'dotnet ...'). If so, we need to make the file executable for Linux.
                 if (executable != null && executable.Contains(WorkerRootReplacement))
                 {

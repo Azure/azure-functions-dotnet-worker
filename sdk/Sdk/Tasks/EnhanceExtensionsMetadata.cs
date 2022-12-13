@@ -9,7 +9,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 {
-#if NET472
+#if NET48
     [LoadInSeparateAppDomain]
     public class EnhanceExtensionsMetadata : AppDomainIsolatedTask
 #else

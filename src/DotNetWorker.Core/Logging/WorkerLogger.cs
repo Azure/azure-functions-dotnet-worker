@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             _scopeProvider = scopeProvider;
         }
 
-        public IDisposable BeginScope<TState>(TState state)
+        public IDisposable BeginScope<TState>(TState state) where TState: notnull
         {
             // The built-in DI wire-up guarantees that scope provider will be set.
             return _scopeProvider.Push(state);
@@ -33,11 +33,11 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             return logLevel != LogLevel.None;
         }
 
-        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception, string> formatter)
         {
             if (WorkerMessage.IsSystemLog)
             {
-                _systemLogWriter.WriteSystemLog(_scopeProvider, _category, logLevel, eventId, state, exception, formatter);
+                _systemLogWriter.WriteSystemLog(_scopeProvider, _category, logLevel, eventId, state, exception ?? new Exception("No exception was passed"), formatter);
             }
             else
             {
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                     return;
                 }
 
-                _userLogWriter.WriteUserLog(_scopeProvider, _category, logLevel, eventId, state, exception, formatter);
+                _userLogWriter.WriteUserLog(_scopeProvider, _category, logLevel, eventId, state, exception ?? new Exception("No exception was passed"), formatter);
             }
         }
     }

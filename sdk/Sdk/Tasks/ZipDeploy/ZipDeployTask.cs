@@ -18,7 +18,7 @@ using Microsoft.NET.Sdk.Functions.MSBuild.Tasks;
 
 namespace Microsoft.NET.Sdk.Functions.Tasks
 {
-#if NET472
+#if NET48
     [LoadInSeparateAppDomain]
     public class ZipDeployTask : AppDomainIsolatedTask
 #else
@@ -49,7 +49,7 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
         public string? SiteName { get; set; }
 
         public override bool Execute()
-        { 
+        {
             using (DefaultHttpClient client = new DefaultHttpClient())
             {
                 System.Threading.Tasks.Task<bool> t = ZipDeployAsync(ZipToPublishPath!, DeploymentUsername!, DeploymentPassword!, PublishUrl, SiteName!, UserAgentVersion!, client, true);

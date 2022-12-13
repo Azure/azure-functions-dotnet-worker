@@ -2,7 +2,7 @@
   "profiles": {
     "Microsoft.Azure.Functions.Worker": {
       "commandName": "Project",
-      "commandLineArgs": "--host 127.0.0.1 --port 1710 --workerId 5b258b67-3440-4b89-bd75-e813bedb059c --requestId 4a28f828-4f90-4efa-bd5f-a08714ed28e3 --grpcMaxMessageLength 134217728"
+      "commandLineArgs": "--host localhost --port 1710 --workerId 5b258b67-3440-4b89-bd75-e813bedb059c --requestId 4a28f828-4f90-4efa-bd5f-a08714ed28e3 --grpcMaxMessageLength 134217728"
     }
   }
 }

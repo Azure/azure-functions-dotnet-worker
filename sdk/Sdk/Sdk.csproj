@@ -3,7 +3,7 @@
   <PropertyGroup>
     <MinorProductVersion>8</MinorProductVersion>
     <VersionSuffix>-preview3</VersionSuffix>
-    <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0;net48;</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>
     <Description>This package provides development time support for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk</AssemblyName>
@@ -38,6 +38,10 @@
 
     <!-- Marks all packages as 'local only' so they don't end up in the nuspec. -->
     <PackageReference Update="@(PackageReference)" PrivateAssets="All" />
+    <PackageReference Update="Microsoft.Build.Utilities.Core" Version="17.4.0" />
+    <PackageReference Update="Mono.Cecil" Version="0.11.4" />
+    <PackageReference Update="SharpZipLib" Version="1.4.1" />
+    <PackageReference Update="System.Text.Json" Version="6.0.7" />
   </ItemGroup>
 
   <Target Name="PackTaskDependencies" BeforeTargets="GenerateNuspec">
@@ -47,8 +51,8 @@
         <BuildAction>None</BuildAction>
         <Visible>false</Visible>
       </_PackageFiles>
-      <_PackageFiles Include="$(OutputPath)\net472\*.dll">
-        <PackagePath>tools/net472</PackagePath>
+      <_PackageFiles Include="$(OutputPath)\net48\*.dll">
+        <PackagePath>tools/net48</PackagePath>
         <BuildAction>None</BuildAction>
         <Visible>false</Visible>
       </_PackageFiles>

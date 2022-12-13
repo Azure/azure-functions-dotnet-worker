@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         public FunctionAppFixture(IMessageSink messageSink)
         {
-            // initialize logging            
+            // initialize logging
             ILoggerFactory loggerFactory = new LoggerFactory();
             TestLogs = new TestLoggerProvider(messageSink);
             loggerFactory.AddProvider(TestLogs);
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
                 }
 
-                await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);
+
 
                 FixtureHelpers.StartProcessWithLogging(_funcProcess, _logger);
 

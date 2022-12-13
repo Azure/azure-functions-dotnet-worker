@@ -4,9 +4,11 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
+using FluentAssertions;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Xunit;
@@ -56,8 +58,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
             Assert.Equal(ConversionStatus.Succeeded, actual.Status);
 
-            var value = TestUtility.AssertIsTypeAndConvert<DateTime>(actual.Value);
-            Assert.Equal("04/13/2022", value.ToString("MM/dd/yyyy"));
+
+            actual.Value.Should().BeOfType<DateTime>();
+
+            var value = actual.Value.As<DateTime>();
+            ////var value = TestUtility.AssertIsTypeAndConvert<DateTime>(actual.Value);
+
+            value.ToString("MM/dd/yyyy", DateTimeFormatInfo.InvariantInfo).Should().Be("04/13/2022");
         }
 
         [Fact]

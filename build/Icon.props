@@ -1,5 +1,5 @@
-<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  
+<Project ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup>
     <PackageIcon>icon.png</PackageIcon>
     <PackageIconUrl>https://aka.ms/azure-functions-package-icon</PackageIconUrl>

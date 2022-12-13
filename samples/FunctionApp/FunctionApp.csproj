@@ -14,10 +14,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.7.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.12.0-preview3-local202212131536" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.8.0-preview3-local202212131536" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
+
+  <ItemGroup Condition="$(TargetFramework) == 'net6.0'">
+     <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="6.0.0" />
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
@@ -46,5 +52,5 @@ https://github.com/JoanComasFdz/dotnet-how-to-debug-source-generator-vs2022/blob
       ReferenceOutputAssembly="false"/>
   </ItemGroup>
 -->
-    
+
 </Project>

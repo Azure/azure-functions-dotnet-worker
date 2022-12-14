@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Source Generator": {
+    "SourceGenerator": {
       "commandName": "DebugRoslynComponent",
       "targetProject": "..\\..\\samples\\FunctionApp\\FunctionApp.csproj"
     }

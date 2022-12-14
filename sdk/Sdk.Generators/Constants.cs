@@ -5,6 +5,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal static class Constants
     {
+        // MSBuild Props
+        internal const string EnableSourceGenProp = "build_property.FunctionsMetadataSourceGen_Enabled";
+
+        // Generated File Names
+        internal const string GeneratedFunctionMetadataFileName = "GeneratedFunctionMetadataProvider.g.cs";
+
         // Our types
         internal const string BindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingAttribute";
         internal const string OutputBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";

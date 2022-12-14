@@ -2,6 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+#if NET5_0_OR_GREATER
+using Microsoft.AspNetCore.Hosting;
+#endif
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
@@ -171,6 +174,14 @@ namespace Microsoft.Extensions.Hosting
                     // Add default middleware
                     appBuilder.UseDefaultWorkerMiddleware();
                 });
+
+#if NET5_0_OR_GREATER
+            builder.ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseUrls("http://localhost:5555/");
+                webBuilder.UseStartup<Startup>();
+            });
+#endif
 
             return builder;
         }

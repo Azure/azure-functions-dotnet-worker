@@ -3,7 +3,8 @@
 - My change description (#PR/#issue)
 -->
 
-### 3.6.0
-- Confluent library upgrade from 1.6.3 to 1.9.0 for fixing duplicate record processing issue (https://github.com/Azure/azure-functions-kafka-extension/pull/357)
-- Fixed the bug for accessing the certificate from relative path instead of absolute path (https://github.com/Azure/azure-functions-kafka-extension/pull/386)
+### 3.7.0
+- Boosted the Kafka Performance for output binding (https://github.com/Azure/azure-functions-kafka-extension/pull/403)
+- Added the config linger.ms for increasing the timeout for output binding (https://github.com/Azure/azure-functions-kafka-extension/pull/407)
+- Fixing the compilation issue bug for nullability from attribute properties (https://github.com/Azure/azure-functions-kafka-extension/pull/362)
 

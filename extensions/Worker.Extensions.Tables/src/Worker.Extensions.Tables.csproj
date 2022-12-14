@@ -1,13 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Storage.Tables</RootNamespace>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Tables</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Tables</RootNamespace>
     <Description>Azure Table Storage extensions for .NET isolated functions</Description>
     
     <!--Version information-->
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
 
   </PropertyGroup>
 

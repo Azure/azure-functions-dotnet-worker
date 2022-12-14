@@ -9,7 +9,6 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Grpc.Core;
-using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
@@ -261,7 +260,8 @@ namespace Microsoft.Azure.Functions.Worker
                         _ => BuildRpc(func),
                     };
 
-                    // add BindingInfo
+                    // add BindingInfo here instead of in the providers  
+                    // because we need access to gRPC types in proto-file and source-gen won't have access
                     rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
 
                     response.FunctionMetadataResults.Add(rpcFuncMetadata);

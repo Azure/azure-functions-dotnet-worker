@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.Azure.Functions.DotNetIsolatedNativeHost</id>
+    <title>Microsoft Azure Functions dotnet-isolated native host</title>
+    <tags>dotnet-isolated azure-functions azure</tags>
+    <version>1.0.0-preview2</version>
+    <authors>Microsoft</authors>
+    <owners>Microsoft</owners>
+    <projectUrl>https://github.com/Azure/azure-functions-dotnet-worker</projectUrl>
+    <licenseUrl>https://github.com/Azure/azure-functions-dotnet-worker/blob/main/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Microsoft Azure Functions Dotnet Isolated Native Host</description>
+    <copyright>Copyright (c) Microsoft Corporation. All rights reserved.</copyright>
+    <contentFiles>
+      <files include="**/*" buildAction="None" copyToOutput="true" flatten="false" />
+    </contentFiles>
+  </metadata>
+  <files>
+    <file src="..\..\build\win-x64\FunctionsNetHost\Release\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
+    <file src="worker.config.json" target="contentFiles/any/any/workers/dotnet-isolated" />
+  </files>
+</package>

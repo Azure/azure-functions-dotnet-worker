@@ -42,7 +42,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
+    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" 
+              ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" 
+              GrpcServices="Client" 
+              Access="internal" />
+
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
@@ -53,9 +57,4 @@
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Protobuf Update=".\protobuf\src\proto\FunctionRpc.proto" Access="Internal" />
-    <Protobuf Update=".\protobuf\src\proto\identity\ClaimsIdentityRpc.proto" Access="Internal" />
-    <Protobuf Update=".\protobuf\src\proto\shared\NullableTypes.proto" Access="Internal" />
-  </ItemGroup>
 </Project>

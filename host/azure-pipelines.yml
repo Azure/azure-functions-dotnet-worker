@@ -1,0 +1,54 @@
+variables:
+  - name: VCPKG_BINARY_SOURCES
+    value: "clear;nuget,https://azfunc.pkgs.visualstudio.com/e6a70c92-4128-439f-8012-382fe78d6396/_packaging/FunctionsNetHostBinaryCache/nuget/v3/index.json,readwrite"
+  - name: VCPKG_USE_NUGET_CACHE
+    value: 1
+
+trigger:
+  branches:
+    include:
+      - main
+      - release/*
+  paths:
+    include:
+      - host/src/
+pr:
+  branches:
+    include:
+      - main
+      - release/*
+  paths:
+    include:
+      - host/src/
+
+pool:
+  vmImage: windows-latest
+
+steps:
+  # Remember to add this task to allow vcpkg to upload archives via NuGet
+  - task: NuGetAuthenticate@1
+
+  # Run Cmake and output goes to /build dir.
+  - task: CMake@1
+    displayName: "CMake generation"
+    inputs:
+      cmakeArgs: "-S $(Build.SourcesDirectory)/host/src -B $(Build.SourcesDirectory)/host/build/win-x64"
+
+  # Run Cmake --build which produces the native binaries.
+  - task: CMake@1
+    displayName: "CMake build"
+    inputs:
+      cmakeArgs: "--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release"
+
+  - task: NuGetCommand@2
+    displayName: "Nuget pack"
+    inputs:
+      command: "pack"
+      packagesToPack: "$(Build.SourcesDirectory)/host/tools/build/Microsoft.Azure.Functions.DotnetIsolatedNativeHost.nuspec"
+      versioningScheme: "off"
+      packDestination: "$(Build.ArtifactStagingDirectory)/host/build/nuget"
+      basePath: "$(Build.SourcesDirectory)/host/tools/build"
+
+  # Publish artifacts.
+  - publish: $(Build.ArtifactStagingDirectory)/host/build/nuget
+    artifact: drop

@@ -6,6 +6,7 @@ trigger:
   paths:
     include:
     - src/
+    - sdk/
 pr:
   branches:
     include:
@@ -14,6 +15,7 @@ pr:
   paths:
     include:
     - src/
+    - sdk/
 
 jobs:
 - job: "Build_And_Test_Windows"

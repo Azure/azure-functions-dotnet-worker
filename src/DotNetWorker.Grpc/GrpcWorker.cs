@@ -151,7 +151,22 @@ namespace Microsoft.Azure.Functions.Worker
                 WorkerMetadata = GetWorkerMetadata()
             };
 
-            response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+            response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
+
+            // Add additional capabilities defined by WorkerOptions
+            foreach ((string key, string value) in workerOptions.Capabilities)
+            {
+                response.Capabilities[key] = value;
+            }
+
+            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
+            response.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            response.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            response.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            response.Capabilities["TypedDataCollection"] = bool.TrueString;
+            response.Capabilities["WorkerStatus"] = bool.TrueString;
+            response.Capabilities["EnableHttpProxying"] = bool.TrueString;
 
             return response;
         }

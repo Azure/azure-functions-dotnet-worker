@@ -33,6 +33,7 @@ namespace Microsoft.Extensions.Hosting
         public static IFunctionsWorkerApplicationBuilder UseDefaultWorkerMiddleware(this IFunctionsWorkerApplicationBuilder builder)
         {
             return builder.UseOutputBindingsMiddleware()
+                .UseMiddleware<FunctionsHttpProxyingMiddleware>()
                 .UseFunctionExecutionMiddleware();
         }
 

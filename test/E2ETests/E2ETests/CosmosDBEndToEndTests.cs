@@ -2,22 +2,25 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.E2ETests.Fixtures;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
-    [Collection(Constants.FunctionAppCollectionName)]
-    public class CosmosDBEndToEndTests : IDisposable
+    [Collection(Constants.CosmosFunctionAppCollectionName)]
+    public class CosmosDBEndToEndTests
     {
-        private readonly IDisposable _disposeLog;
-        private readonly FunctionAppFixture _fixture;
+        private const int SECONDS = 1000;
+        private const int DBTIMEOUT = 15 * SECONDS;
 
-        public CosmosDBEndToEndTests(FunctionAppFixture fixture, ITestOutputHelper testOutput)
+        private readonly CosmosDbFixture _fixture;
+
+        public CosmosDBEndToEndTests(CosmosDbFixture fixture, ITestOutputHelper testOutput)
         {
             _fixture = fixture;
-            _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
         [Fact]
@@ -26,23 +29,27 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             string expectedDocId = Guid.NewGuid().ToString();
             try
             {
-                //Trigger            
-                await CosmosDBHelpers.CreateDocument(expectedDocId);
+                //Trigger
+                await _fixture.CreateDocument(expectedDocId);
 
                 //Read
-                var documentId = await CosmosDBHelpers.ReadDocument(expectedDocId);
+                var documentId = await _fixture.ReadDocument(expectedDocId);
                 Assert.Equal(expectedDocId, documentId);
+
+                await TestUtility.RetryAsync(() => { 
+                    var _ = _fixture.TestLogs.CoreToolsLogs.Any(x => x.Contains("Executed 'Functions.CosmosTrigger'"));
+                    return Task.FromResult(_);
+                },
+                timeout: DBTIMEOUT,
+                userMessageCallback: () => $"Trigger log was not found"
+                );
+
             }
             finally
             {
                 //Clean up
-                await CosmosDBHelpers.DeleteTestDocuments(expectedDocId);
+                await _fixture.DeleteTestDocuments(expectedDocId);
             }
-        }
-
-        public void Dispose()
-        {
-            _disposeLog?.Dispose();
         }
     }
 }

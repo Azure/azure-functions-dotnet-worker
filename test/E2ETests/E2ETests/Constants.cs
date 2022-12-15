@@ -82,5 +82,9 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         // Xunit Fixtures and Collections
         public const string FunctionAppCollectionName = "FunctionAppCollection";
+
+        public const string StorageFunctionAppCollectionName = "StorageFunctionAppCollection";
+        
+        public const string CosmosFunctionAppCollectionName = "CosmosFunctionAppCollection";
     }
 }

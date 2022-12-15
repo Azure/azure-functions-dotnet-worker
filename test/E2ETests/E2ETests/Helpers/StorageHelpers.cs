@@ -16,6 +16,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     internal static class StorageHelpers
     {
+        private const int SECONDS = 1000;
         private static QueueClient CreateQueueClient(string queueName)
         {
             var options = new QueueClientOptions
@@ -35,13 +36,24 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return new BlobContainerClient(Constants.StorageConnectionStringSetting, containerName, options);
         }
 
-        public async static Task DeleteQueue(string queueName)
+        public static async Task DeleteQueue(string queueName)
         {
             var queueClient = CreateQueueClient(queueName);
             await queueClient.DeleteIfExistsAsync();
         }
 
-        public async static Task ClearQueue(string queueName)
+        public static async Task DeleteQueues()
+        {
+            await DeleteQueue(Constants.Queue.OutputBindingName);
+            await DeleteQueue(Constants.Queue.OutputArrayBindingName);
+            await DeleteQueue(Constants.Queue.OutputListBindingName);
+            await DeleteQueue(Constants.Queue.OutputBindingDataName);
+            await DeleteQueue(Constants.Queue.OutputBindingNameMetadata);
+            await DeleteQueue(Constants.Queue.OutputBindingNamePOCO);
+
+        }
+
+        public static async Task ClearQueue(string queueName)
         {
             var queueClient = CreateQueueClient(queueName);
             if (await queueClient.ExistsAsync())
@@ -50,13 +62,24 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
         }
 
-        public async static Task CreateQueue(string queueName)
+        public static async Task CreateQueue(string queueName)
         {
             var queueClient = CreateQueueClient(queueName);
             await queueClient.CreateIfNotExistsAsync();
         }
 
-        public async static Task<string> InsertIntoQueue(string queueName, string queueMessage)
+        public static async Task CreateQueues()
+        {
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingName);
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputArrayBindingName);
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputListBindingName);
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingDataName);
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingNameMetadata);
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingNamePOCO);
+
+        }
+
+        public static async Task<string> InsertIntoQueue(string queueName, string queueMessage)
         {
             var messageBytes = Encoding.UTF8.GetBytes(queueMessage);
             string base64 = Convert.ToBase64String(messageBytes);
@@ -76,7 +99,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 Response<QueueMessage> response = await queueClient.ReceiveMessageAsync();
                 retrievedMessage = response.Value;
                 return retrievedMessage != null;
-            });
+            }, userMessageCallback: () => $"Failed to retrieve message from {queueName}");
             await queueClient.DeleteMessageAsync(retrievedMessage.MessageId, retrievedMessage.PopReceipt);
             return retrievedMessage.Body.ToString();
         }
@@ -99,7 +122,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return messages;
         }
 
-        public async static Task ClearBlobContainers()
+        public static async Task ClearBlobContainers()
         {
             await ClearBlobContainer(Constants.Blob.TriggerInputBindingContainer);
             await ClearBlobContainer(Constants.Blob.InputBindingContainer);
@@ -108,6 +131,28 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await ClearBlobContainer(Constants.Blob.OutputPocoContainer);
             await ClearBlobContainer(Constants.Blob.TriggerStringContainer);
             await ClearBlobContainer(Constants.Blob.OutputStringContainer);
+        }
+
+        public static async Task CreateBlobContainers()
+        {
+            await CreateBlobContainer(Constants.Blob.TriggerInputBindingContainer);
+            await CreateBlobContainer(Constants.Blob.InputBindingContainer);
+            await CreateBlobContainer(Constants.Blob.OutputBindingContainer);
+            await CreateBlobContainer(Constants.Blob.TriggerPocoContainer);
+            await CreateBlobContainer(Constants.Blob.OutputPocoContainer);
+            await CreateBlobContainer(Constants.Blob.TriggerStringContainer);
+            await CreateBlobContainer(Constants.Blob.OutputStringContainer);
+
+        }
+
+        public static async Task ClearQueues()
+        {
+            await ClearQueue(Constants.Queue.OutputBindingName);
+            await ClearQueue(Constants.Queue.OutputArrayBindingName);
+            await ClearQueue(Constants.Queue.OutputListBindingName);
+            await ClearQueue(Constants.Queue.OutputBindingDataName);
+            await ClearQueue(Constants.Queue.OutputBindingNameMetadata);
+            await ClearQueue(Constants.Queue.OutputBindingNamePOCO);
         }
 
         public static Task UploadFileToContainer(string containerName, string fileName)
@@ -131,10 +176,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             string sourceFile = $"{expectedFileName}.txt";
             BlobContainerClient cloudBlobContainer = CreateBlobContainerClient(containerName);
             BlobClient cloudBlockBlob = cloudBlobContainer.GetBlobClient(sourceFile);
-            await TestUtility.RetryAsync(async () =>
-            {
-                return await cloudBlockBlob.ExistsAsync();
-            }, pollingInterval: 4000, timeout: 120 * 1000);
+            await TestUtility.RetryAsync(async () => await cloudBlockBlob.ExistsAsync(), 
+                pollingInterval: 2 * SECONDS , timeout: 120 * SECONDS);
 
             await cloudBlockBlob.DownloadToAsync(destinationFile);
 
@@ -144,17 +187,36 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         private static async Task<BlobContainerClient> CreateBlobContainer(string containerName)
         {
-            BlobContainerClient cloudBlobContainer = CreateBlobContainerClient(containerName);
+            var cloudBlobContainer = CreateBlobContainerClient(containerName);
             await cloudBlobContainer.CreateIfNotExistsAsync();
             await cloudBlobContainer.SetAccessPolicyAsync(PublicAccessType.Blob);
             return cloudBlobContainer;
+        }
+
+        private static async Task DeleteBlobContainer(string containerName)
+        {
+            var client = new BlobServiceClient(Constants.StorageConnectionStringSetting);
+            await client.DeleteBlobContainerAsync(containerName);
+        }
+
+        public static async Task DeleteBlobContainers()
+        {
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.TriggerInputBindingContainer);
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.InputBindingContainer);
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.OutputBindingContainer);
+
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.TriggerPocoContainer);
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.OutputPocoContainer);
+
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.TriggerStringContainer);
+            await StorageHelpers.DeleteBlobContainer(Constants.Blob.OutputStringContainer);
         }
 
         private static async Task ClearBlobContainer(string containerName)
         {
             BlobContainerClient cloudBlobContainer = CreateBlobContainerClient(containerName);
 
-            if (!cloudBlobContainer.Exists())
+            if (!await cloudBlobContainer.ExistsAsync())
             {
                 return;
             }
@@ -162,7 +224,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await foreach (BlobItem item in cloudBlobContainer.GetBlobsAsync())
             {
                 Console.WriteLine(item.Name);
-                BlobClient cloudBlob = cloudBlobContainer.GetBlobClient(item.Name);
+
+                var cloudBlob = cloudBlobContainer.GetBlobClient(item.Name);
                 await cloudBlob.DeleteIfExistsAsync();
             }
         }

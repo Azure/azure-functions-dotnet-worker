@@ -11,12 +11,14 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
-    [Collection(Constants.FunctionAppCollectionName)]
+    [Collection(Constants.StorageFunctionAppCollectionName)]
     public class StorageEndToEndTests
     {
-        private FunctionAppFixture _fixture;
+        private const int SECONDS = 1000;
+        
+        private readonly FunctionAppFixture _fixture;
 
-        public StorageEndToEndTests(FunctionAppFixture fixture)
+        public StorageEndToEndTests(StorageFunctionAppFixture fixture)
         {
             _fixture = fixture;
         }
@@ -29,11 +31,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingName);
             await StorageHelpers.ClearQueue(Constants.Queue.InputBindingName);
 
-            //Set up and trigger            
+            //Set up and trigger
             await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingName);
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingName, expectedQueueMessage);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.QueueTriggerAndOutput");
+
             var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingName);
             Assert.Equal(expectedQueueMessage, queueMessage);
         }
@@ -42,15 +46,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public async Task QueueTriggerAndArrayOutput_Succeeds()
         {
             string expectedQueueMessage = Guid.NewGuid().ToString();
-            //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.InputArrayBindingName);
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputArrayBindingName);
 
-            //Set up and trigger            
-            await StorageHelpers.CreateQueue(Constants.Queue.OutputArrayBindingName);
+            //Set up and trigger
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputArrayBindingName, expectedQueueMessage);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.QueueTriggerAndArrayOutput");
+
             string queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputArrayBindingName);
             string[] splitMessage1 = queueMessage1.Split("|");
             Assert.Equal(expectedQueueMessage, splitMessage1[0]);
@@ -68,15 +70,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public async Task QueueTriggerAndListOutput_Succeeds()
         {
             string expectedQueueMessage = Guid.NewGuid().ToString();
-            //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.InputListBindingName);
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputListBindingName);
 
-            //Set up and trigger            
-            await StorageHelpers.CreateQueue(Constants.Queue.OutputListBindingName);
+            //Set up and trigger
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputListBindingName, expectedQueueMessage);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.QueueTriggerAndListOutput");
+
             string queueMessage1 = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputListBindingName);
             string[] splitMessage1 = queueMessage1.Split("|");
             Assert.Equal(expectedQueueMessage, splitMessage1[0]);
@@ -94,15 +94,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public async Task QueueTriggerAndBindingDataOutput_Succeeds()
         {
             string expectedQueueMessage = Guid.NewGuid().ToString();
-            //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingDataName);
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingDataName);
 
-            //Set up and trigger            
-            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingDataName);
+            //Set up and trigger
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingDataName, expectedQueueMessage);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.QueueTriggerAndBindingDataOutput");
+
             string resultMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingDataName);
             IDictionary<string, string> splitMessage = resultMessage.Split(",").ToDictionary(s => s.Split('=')[0], s => s.Split('=')[1]);
 
@@ -119,14 +117,14 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             string inputQueueMessage = Guid.NewGuid().ToString();
             //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingNameMetadata);
-            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingNameMetadata);
 
-            //Set up and trigger            
+            //Set up and trigger
             await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingNameMetadata);
             string expectedQueueMessage = await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingNameMetadata, inputQueueMessage);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.QueueTriggerMetadata");
+
             var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingNameMetadata);
             Assert.Contains(expectedQueueMessage, queueMessage);
         }
@@ -135,11 +133,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public async Task QueueTrigger_QueueOutput_Poco_Succeeds()
         {
             string expectedQueueMessage = Guid.NewGuid().ToString();
-            //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingNamePOCO);
-            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingNamePOCO);
 
-            //Set up and trigger            
+            //Set up and trigger
             await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingNamePOCO);
 
             string json = JsonSerializer.Serialize(new { id = expectedQueueMessage });
@@ -147,6 +142,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingNamePOCO, json);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.QueueTriggerAndOutputPoco");
+
             var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingNamePOCO);
             Assert.Contains(expectedQueueMessage, queueMessage);
         }
@@ -155,9 +152,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public async Task QueueOutput_PocoList_Succeeds()
         {
             string expectedQueueMessage = Guid.NewGuid().ToString();
-
-            //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingNamePOCO);
 
             //Trigger
             Assert.True(await HttpHelpers.InvokeHttpTrigger("QueueOutputPocoList", $"?queueMessageId={expectedQueueMessage}", HttpStatusCode.OK, expectedQueueMessage));
@@ -172,9 +166,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             string fileName = Guid.NewGuid().ToString();
 
-            //cleanup
-            await StorageHelpers.ClearBlobContainers();
-
             //Setup
             await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, fileName);
 
@@ -182,6 +173,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerInputBindingContainer, fileName);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.BlobTriggerToBlobTest");
+
             string result = await StorageHelpers.DownloadFileFromContainer(Constants.Blob.OutputBindingContainer, fileName);
 
             Assert.Equal("Hello World", result);
@@ -192,14 +185,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             string fileName = Guid.NewGuid().ToString();
 
-            //cleanup
-            await StorageHelpers.ClearBlobContainers();
-
             //Trigger
             var json = JsonSerializer.Serialize(new { text = "Hello World" });
             await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerPocoContainer, fileName, json);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.BlobTriggerPocoTest");
+
             string result = await StorageHelpers.DownloadFileFromContainer(Constants.Blob.OutputPocoContainer, fileName);
 
             Assert.Equal(json, result);
@@ -210,16 +202,25 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             string fileName = Guid.NewGuid().ToString();
 
-            //cleanup
-            await StorageHelpers.ClearBlobContainers();
-
-            //Trigger            
+            //Trigger
             await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStringContainer, fileName);
 
             //Verify
+            await CheckLogForExecutionOf("Functions.BlobTriggerStringTest");
+
             string result = await StorageHelpers.DownloadFileFromContainer(Constants.Blob.OutputStringContainer, fileName);
 
             Assert.Equal("Hello World", result);
+        }
+
+        private async Task CheckLogForExecutionOf(string functionName)
+        {
+            await TestUtility.RetryAsync(() => { 
+                var _ = _fixture.TestLogs.CoreToolsLogs.Any(x => x.Contains($"Executed '{functionName}'"));
+                return Task.FromResult(_);
+            }, 
+            timeout: 15 * SECONDS,
+            userMessageCallback: () => "Executed log was not found");
         }
     }
 }

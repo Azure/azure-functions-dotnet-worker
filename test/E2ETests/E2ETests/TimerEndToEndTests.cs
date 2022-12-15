@@ -12,15 +12,13 @@ using Xunit.Abstractions;
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     [Collection(Constants.FunctionAppCollectionName)]
-    public class TimerEndToEndTests : IDisposable
+    public class TimerEndToEndTests
     {
-        private readonly IDisposable _disposeLog;
         private readonly FunctionAppFixture _fixture;
 
         public TimerEndToEndTests(FunctionAppFixture fixture, ITestOutputHelper testOutput)
         {
             _fixture = fixture;
-            _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
         [Fact]
@@ -47,11 +45,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
             // This will throw if it's not there or is not a bool.
             doc.RootElement.GetProperty("IsPastDue").GetBoolean();
-        }
-
-        public void Dispose()
-        {
-            _disposeLog?.Dispose();
         }
     }
 }

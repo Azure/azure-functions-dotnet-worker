@@ -14,6 +14,7 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
+
     public class FunctionAppFixture : IAsyncLifetime
     {
         private readonly ILogger _logger;
@@ -22,16 +23,17 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         private JobObjectRegistry _jobObjectRegistry;
 
+        // ReSharper disable once MemberCanBeProtected.Global
         public FunctionAppFixture(IMessageSink messageSink)
         {
-            // initialize logging            
+            // initialize logging
             ILoggerFactory loggerFactory = new LoggerFactory();
             TestLogs = new TestLoggerProvider(messageSink);
             loggerFactory.AddProvider(TestLogs);
             _logger = loggerFactory.CreateLogger<FunctionAppFixture>();
         }
 
-        public async Task InitializeAsync()
+        public virtual async Task InitializeAsync()
         {
             // start host via CLI if testing locally
             if (Constants.FunctionsHostUrl.Contains("localhost"))
@@ -57,8 +59,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     _funcProcess.StartInfo.ArgumentList.Add("HelloUsingPoco");
                     _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
                 }
-
-                await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);
 
                 FixtureHelpers.StartProcessWithLogging(_funcProcess, _logger);
 
@@ -98,10 +98,9 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
         }
 
-        internal TestLoggerProvider TestLogs { get; private set; }
-
-
-        public Task DisposeAsync()
+        internal TestLoggerProvider TestLogs { get; }
+        
+        public virtual Task DisposeAsync()
         {
             if (!_disposed)
             {
@@ -114,6 +113,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                         _logger.LogInformation($"Shutting down functions host for {Constants.FunctionAppCollectionName}");
                         _funcProcess.Kill();
                         _funcProcess.Dispose();
+
+                        TestLogs?.Dispose();
                     }
                     catch
                     {

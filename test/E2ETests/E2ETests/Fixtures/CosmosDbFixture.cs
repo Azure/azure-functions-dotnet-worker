@@ -3,51 +3,72 @@
 
 using System;
 using System.Net.Http;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+
 using Microsoft.Azure.Documents;
 using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Functions.Tests;
+using Microsoft.Azure.Functions.Tests.E2ETests;
+
 using Microsoft.Extensions.Logging;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+using Newtonsoft.Json;
+
+using Xunit;
+using Xunit.Abstractions;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
+
+namespace Microsoft.Azure.Functions.Worker.E2ETests.Fixtures
 {
-    public static class CosmosDBHelpers
+
+    public class CosmosDbFixture : FunctionAppFixture
     {
-        private static readonly DocumentClient _docDbClient;
         private static readonly Uri inputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName);
         private static readonly Uri outputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName);
         private static readonly Uri leasesCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.LeaseCollectionName);
 
-        static CosmosDBHelpers()
+
+        public CosmosDbFixture(IMessageSink messageSink) : base(messageSink)
+        {
+        }
+
+        private static Func<DocumentClient> CosmosClient() => () =>
         {
             var builder = new System.Data.Common.DbConnectionStringBuilder
             {
                 ConnectionString = Constants.CosmosDB.CosmosDBConnectionStringSetting
             };
-            var serviceUri = new Uri(builder["AccountEndpoint"].ToString());
-            _docDbClient = new DocumentClient(serviceUri, builder["AccountKey"].ToString());
-        }
+            var serviceUri = new Uri(builder["AccountEndpoint"].ToString()!);
+
+            return new DocumentClient(serviceUri, builder["AccountKey"].ToString());
+        };
 
         // keep
-        public async static Task CreateDocument(string docId)
+        public async Task CreateDocument(string docId)
         {
             Document documentToTest = new Document()
             {
                 Id = docId
             };
 
-            _ = await _docDbClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName), documentToTest);
+            var client = CosmosClient().Invoke();
+
+            _ = await client.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName), documentToTest);
         }
 
         // keep
-        public async static Task<string> ReadDocument(string docId)
+        public async Task<string> ReadDocument(string docId)
         {
             var docUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName, docId);
             Document retrievedDocument = null;
+
+            var client = CosmosClient().Invoke();
             await TestUtility.RetryAsync(async () =>
             {
                 try
                 {
-                    retrievedDocument = await _docDbClient.ReadDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(docId) });
+                    retrievedDocument = await client.ReadDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(docId) });
                     return true;
                 }
                 catch (DocumentClientException ex) when (ex.Error.Code == "NotFound")
@@ -60,7 +81,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         // keep
-        public async static Task DeleteTestDocuments(string docId)
+        public async Task DeleteTestDocuments(string docId)
         {
             var inputDocUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName, docId);
             await DeleteDocument(inputDocUri);
@@ -68,11 +89,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await DeleteDocument(outputDocUri);
         }
 
-        private async static Task DeleteDocument(Uri docUri)
+
+        private async Task DeleteDocument(Uri docUri)
         {
             try
             {
-                await _docDbClient.DeleteDocumentAsync(docUri);
+                var client = CosmosClient().Invoke();
+                await client.DeleteDocumentAsync(docUri);
             }
             catch (Exception)
             {
@@ -80,16 +103,17 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
         }
 
-        private async static Task<bool> CanConnectAsync(ILogger logger)
+        private async Task<bool> CanConnectAsync(ILogger logger)
         {
+            var client = CosmosClient().Invoke();
             try
             {
-                await new HttpClient().GetAsync(_docDbClient.ServiceEndpoint);
+                await new HttpClient().GetAsync(client.ServiceEndpoint);
             }
             catch
             {
                 // typically "the target machine actively refused it" if the emulator isn't running.
-                logger.LogError($"Could not connect to CosmosDB endpoint: '{_docDbClient.ServiceEndpoint}'. Are you using the emulator?");
+                logger.LogError($"Could not connect to CosmosDB endpoint: '{client.ServiceEndpoint}'. Are you using the emulator?");
                 return false;
             }
 
@@ -98,16 +122,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
 
         // keep
-        public async static Task<bool> TryCreateDocumentCollectionsAsync(ILogger logger)
+        public async Task<bool> TryCreateDocumentCollectionsAsync(ILogger logger)
         {
-            if (!await CanConnectAsync(logger))
-            {
-                // This can hang if the service is unavailable. Just return and let tests fail.
-                // The Cosmos tests may be filtered out anyway without an emulator running.
-                return false;
-            }
 
-            Database db = await _docDbClient.CreateDatabaseIfNotExistsAsync(new Database { Id = Constants.CosmosDB.DbName });
+            var client = CosmosClient().Invoke();
+
+            Database db = await client.CreateDatabaseIfNotExistsAsync(new Database { Id = Constants.CosmosDB.DbName });
             Uri dbUri = UriFactory.CreateDatabaseUri(db.Id);
 
             await Task.WhenAll(
@@ -118,7 +138,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return true;
         }
 
-        public async static Task DeleteDocumentCollections()
+        public async Task DeleteDocumentCollections()
         {
             await Task.WhenAll(
                 DeleteCollection(inputCollectionsUri),
@@ -126,11 +146,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 DeleteCollection(leasesCollectionsUri));
         }
 
-        private async static Task DeleteCollection(Uri collectionUri)
+        private async Task DeleteCollection(Uri collectionUri)
         {
             try
             {
-                await _docDbClient.DeleteDocumentCollectionAsync(collectionUri);
+                var client = CosmosClient().Invoke();
+                await client.DeleteDocumentCollectionAsync(collectionUri);
             }
             catch (Exception)
             {
@@ -138,7 +159,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
         }
 
-        private async static Task CreateCollection(Uri dbUri, string collectioName)
+        private async Task CreateCollection(Uri dbUri, string collectioName)
         {
             var pkd = new PartitionKeyDefinition();
             pkd.Paths.Add("/id");
@@ -147,12 +168,65 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 Id = collectioName,
                 PartitionKey = pkd
             };
-            await _docDbClient.CreateDocumentCollectionIfNotExistsAsync(dbUri, collection,
+            var client = CosmosClient().Invoke();
+            await client.CreateDocumentCollectionIfNotExistsAsync(dbUri, collection,
                 new RequestOptions()
                 {
                     PartitionKey = new PartitionKey("/id"),
                     OfferThroughput = 400
                 });
         }
+
+        #region Implementation of IAsyncLifetime
+
+        public override async Task InitializeAsync()
+        {
+            await TryCreateDocumentCollectionsAsync(base.TestLogs);
+
+            await base.InitializeAsync();
+        }
+
+        public override async Task DisposeAsync()
+        {
+            await base.DisposeAsync();
+
+            await DeleteDocumentCollections();
+        }
+
+        #endregion
     }
+
+    [CollectionDefinition(Constants.CosmosFunctionAppCollectionName)]
+    public class CosmosDbFixtureCollection : ICollectionFixture<CosmosDbFixture>
+    {
+        // This class has no code, and is never created. Its purpose is simply
+        // to be the place to apply [CollectionDefinition] and all the
+        // ICollectionFixture<> interfaces.
+    }
+
+
+    public class Item
+    {
+        public Item()
+        {
+            id = Guid.NewGuid().ToString("N");
+        }
+
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string id { get; set; }
+
+
+        [JsonPropertyName("name")]
+        public string Name { get; set; }
+
+        [JsonPropertyName("description")]
+        public string Description { get; set; }
+
+        [JsonPropertyName("isComplete")]
+        public bool Completed { get; set; }
+    }
+
 }
+
+

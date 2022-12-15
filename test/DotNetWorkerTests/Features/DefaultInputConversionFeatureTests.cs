@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
@@ -57,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal(ConversionStatus.Succeeded, actual.Status);
 
             var value = TestUtility.AssertIsTypeAndConvert<DateTime>(actual.Value);
-            Assert.Equal("04/13/2022", value.ToString("MM/dd/yyyy"));
+            Assert.Equal("04/13/2022", value.ToString("MM/dd/yyyy", CultureInfo.InvariantCulture));
         }
 
         [Fact]

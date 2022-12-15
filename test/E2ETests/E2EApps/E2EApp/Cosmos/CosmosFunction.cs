@@ -3,7 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
+
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp

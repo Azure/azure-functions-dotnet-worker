@@ -6,7 +6,7 @@
     
   <PropertyGroup Condition="$(FunctionsRuntimeVersion) == '3'">
     <TargetFramework>net7.0</TargetFramework>
-    <AzureFunctionsVersion>v3</AzureFunctionsVersion>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
     
   <PropertyGroup>

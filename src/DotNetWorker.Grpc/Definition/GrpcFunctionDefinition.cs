@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             Name = loadRequest.Metadata.Name;
             Id = loadRequest.FunctionId;
 
-            string? scriptRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot")!;
+            string? scriptRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
             if (string.IsNullOrWhiteSpace(scriptRoot))
             {
                 throw new ArgumentException("AzureWebJobsScriptRoot env variable value is null or empty");

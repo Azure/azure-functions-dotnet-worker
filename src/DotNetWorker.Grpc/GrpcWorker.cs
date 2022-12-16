@@ -5,10 +5,8 @@ using System;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
-using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
@@ -21,7 +19,6 @@ using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -78,7 +75,7 @@ namespace Microsoft.Azure.Functions.Worker
         Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
             // Dispatch and return.
-            Task.Run(() => ProcessRequestCoreAsync(message));
+            _ = ProcessRequestCoreAsync(message);
 
             return Task.CompletedTask;
         }

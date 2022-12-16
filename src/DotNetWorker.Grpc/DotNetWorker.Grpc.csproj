@@ -40,7 +40,7 @@
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Grpc.Core" Version="2.45.0" />
-    <Compile Remove="NativeHostIntegration/./*.*" />
+    <Compile Remove="NativeHostIntegration/**" />
   </ItemGroup>
 
   <ItemGroup>

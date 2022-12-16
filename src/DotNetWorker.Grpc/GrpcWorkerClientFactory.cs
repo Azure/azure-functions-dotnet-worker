@@ -35,7 +35,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         private class GrpcWorkerClient : IWorkerClient
         {
             private readonly FunctionRpcClient _grpcClient;
-            private readonly GrpcHostChannel _outputChannel;
             private readonly GrpcWorkerStartupOptions _startupOptions;
             private readonly ChannelReader<StreamingMessage> _outputReader;
             private readonly ChannelWriter<StreamingMessage> _outputWriter;
@@ -44,7 +43,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
             public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions)
             {
-                _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
                 _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
 
                 _outputReader = outputChannel.Channel.Reader;

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
 {
     internal static unsafe partial class NativeMethods
     {
-        internal const string NativeWorkerDll = "FunctionsNetHost.exe";
+        private const string NativeWorkerDll = "FunctionsNetHost.exe";
 
         public static NativeHost GetNativeHostData()
         {

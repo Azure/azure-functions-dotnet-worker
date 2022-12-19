@@ -15,7 +15,7 @@ using Microsoft.Build.Utilities;
 
 namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
 {
-#if NET472
+#if NET48
     [LoadInSeparateAppDomain]
     public class CreateZipFileTask : AppDomainIsolatedTask
 #else

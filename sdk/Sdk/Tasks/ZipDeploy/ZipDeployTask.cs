@@ -18,7 +18,7 @@ using Microsoft.NET.Sdk.Functions.MSBuild.Tasks;
 
 namespace Microsoft.NET.Sdk.Functions.Tasks
 {
-#if NET472
+#if NET48
     [LoadInSeparateAppDomain]
     public class ZipDeployTask : AppDomainIsolatedTask
 #else

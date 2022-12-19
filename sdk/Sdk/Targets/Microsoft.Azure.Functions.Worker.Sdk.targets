@@ -20,7 +20,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
         <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
         <_FunctionsTaskFramework Condition=" '$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
-        <_FunctionsTaskFramework Condition=" '$(_FunctionsTaskFramework)' == ''">net472</_FunctionsTaskFramework>
+        <_FunctionsTaskFramework Condition=" '$(_FunctionsTaskFramework)' == ''">net48</_FunctionsTaskFramework>
         <_FunctionsTasksDir Condition=" '$(_FunctionsTasksDir)'=='' ">$(MSBuildThisFileDirectory)..\tools\$(_FunctionsTaskFramework)\</_FunctionsTasksDir>
         <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(_FunctionsTasksDir)\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
 

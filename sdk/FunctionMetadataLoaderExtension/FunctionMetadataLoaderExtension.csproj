@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <IsPackable>false</IsPackable>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <AssemblyName>Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader</AssemblyName>
     <RootNamespace>Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader</RootNamespace>
   </PropertyGroup>
@@ -10,7 +10,7 @@
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.25" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.33" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.3-preview" />
   </ItemGroup>
 

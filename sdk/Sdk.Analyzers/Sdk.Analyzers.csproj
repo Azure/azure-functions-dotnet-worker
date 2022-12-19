@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
     <MinorProductVersion>1</MinorProductVersion>
-    <PatchProductVersion>1</PatchProductVersion>
+    <PatchProductVersion>2</PatchProductVersion>
     <OutputType>Library</OutputType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk.Analyzers</PackageId>
     <Description>This package provides development time code analysis for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Analyzers</AssemblyName>
@@ -29,7 +29,7 @@
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
   </ItemGroup>
-  
+
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.Azure.Functions.Worker.Sdk.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />

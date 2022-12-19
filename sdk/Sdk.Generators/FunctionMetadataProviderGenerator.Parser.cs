@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     result.Add(newFunction);
                 }
 
-                return result; 
+                return result;
             }
 
             /// <summary>
@@ -237,7 +237,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 bindingsList = null;
                                 return false;
                             }
-                            
+
                             if (dataType is not DataType.Undefined)
                             {
                                 bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
@@ -280,7 +280,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.TaskType)))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.TaskGenericType))) 
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.TaskGenericType)))
                     {
                         GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
@@ -435,7 +435,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     else
                     {
                         bindings[propertyName] = prop.Value!.ToString();
-                    }  
+                    }
                 }
 
                 return true;
@@ -649,7 +649,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     return true;
                 }
-                
+
                 // trigger input type doesn't match any of the valid cases so return false
                 return false;
             }
@@ -730,7 +730,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.ByteArrayType))
                     || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.ByteStructType)));
                 var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.ReadOnlyMemoryOfBytes));
-                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray && 
+                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray &&
                     outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, Compilation.GetTypeByMetadataName(Constants.ByteStructType));
 
 

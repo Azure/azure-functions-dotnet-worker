@@ -65,13 +65,44 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class Test : CSharpSourceGeneratorTest<TSourceGenerator, XUnitVerifier>
         {
+            //REF: https://dotnet.microsoft.com/en-us/platform/support/policy/dotnet-core
+
             public Test()
             {
-                // See https://www.nuget.org/packages/Microsoft.NETCore.App.Ref/6.0.0
-                this.ReferenceAssemblies = new ReferenceAssemblies(
-                    targetFramework: "net6.0",
-                    referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "6.0.0"),
-                    referenceAssemblyPath: Path.Combine("ref", "net6.0"));
+#if NET7_0_OR_GREATER //NOTE: EOL Support May 14, 2024
+
+                    // See https://www.nuget.org/packages/Microsoft.NETCore.App.Ref/7.0.1
+                    this.ReferenceAssemblies = new ReferenceAssemblies(
+                        targetFramework: "net7.0",
+                        referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "7.0.1"),
+                        referenceAssemblyPath: Path.Combine("ref", "net7.0"));
+
+#elif NET6_0_OR_GREATER //NOTE: EOL Support November 12, 2024
+
+                    // See https://www.nuget.org/packages/Microsoft.NETCore.App.Ref/6.0.0
+                    this.ReferenceAssemblies = new ReferenceAssemblies(
+                        targetFramework: "net6.0",
+                        referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "6.0.0"),
+                        referenceAssemblyPath: Path.Combine("ref", "net6.0"));
+
+#elif NET5_0_OR_GREATER //NOTE: No longer supported since May 10, 2022
+
+                    // See https://www.nuget.org/packages/Microsoft.NETCore.App.Ref/5.0.0
+                    this.ReferenceAssemblies = new ReferenceAssemblies(
+                        targetFramework: "net5.0",
+                        referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "5.0.0"),
+                        referenceAssemblyPath: Path.Combine("ref", "net5.0"));
+
+#elif NETCOREAPP3_1_OR_GREATER  //NOTE: No longer supported since December 13, 2022
+
+                    // See https://www.nuget.org/packages/Microsoft.NETCore.App.Ref/3.1.0
+                    this.ReferenceAssemblies = new ReferenceAssemblies(
+                        targetFramework: "netcoreapp3.1",
+                        referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "3.1.0"),
+                        referenceAssemblyPath: Path.Combine("ref", "netcoreapp3.1"));
+#else
+                    throw new InvalidOperationException("TFM is no longer supported by this library.");
+#endif
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp9;

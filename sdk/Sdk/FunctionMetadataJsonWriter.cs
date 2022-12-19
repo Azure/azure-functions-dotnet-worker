@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,
-                IgnoreNullValues = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNameCaseInsensitive = true,
                 IgnoreReadOnlyProperties = true,
                 DictionaryKeyPolicy = namingPolicy,

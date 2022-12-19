@@ -16,7 +16,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using Grpc.Net.Client;
 #endif
 
@@ -70,7 +70,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 }
 
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
                 {
                     MaxReceiveMessageSize = arguments.GrpcMaxMessageLength,
@@ -78,7 +78,6 @@ namespace Microsoft.Extensions.DependencyInjection
                     Credentials = ChannelCredentials.Insecure
                 });
 #else
-
                 var options = new ChannelOption[]
                 {
                     new ChannelOption(Grpc.Core.ChannelOptions.MaxReceiveMessageLength, arguments.GrpcMaxMessageLength),
@@ -86,8 +85,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 };
 
                 Grpc.Core.Channel grpcChannel = new Grpc.Core.Channel(arguments.Host, arguments.Port, ChannelCredentials.Insecure, options);
-
 #endif
+
                 return new FunctionRpcClient(grpcChannel);
             });
 

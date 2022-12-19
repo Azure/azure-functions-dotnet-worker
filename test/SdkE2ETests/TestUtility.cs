@@ -20,10 +20,11 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         // Configurations
         public const string Configuration = "Debug";
-        public const string NetCoreFramework = "netcoreapp3.1";
         public const string NetFramework = "net461";
         public const string NetStandard = "netstandard2.0";
         public const string Net50 = "net5.0";
+        public const string Net60 = "net6.0";
+        public const string Net70 = "net7.0";
 
         // Paths and executables
         public static readonly string DotNetExecutable = "dotnet";

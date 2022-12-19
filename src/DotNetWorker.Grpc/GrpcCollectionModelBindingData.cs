@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
             _modelBindingDataArray = modelBindingDataArray;
         }
 
-        public override Core.ModelBindingData[] modelBindingDataArray => _modelBindingDataArray.ModelBindingData.Select(
+        public override Core.ModelBindingData[] ModelBindingDataArray => _modelBindingDataArray.ModelBindingData.Select(
                                                             p => new GrpcModelBindingData(p)).ToArray();
     }
 }

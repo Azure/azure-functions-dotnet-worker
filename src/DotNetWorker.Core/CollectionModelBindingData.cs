@@ -11,6 +11,6 @@ namespace Microsoft.Azure.Functions.Worker.Core
         /// <summary>
         /// Gets the array of ModelBindingData
         /// </summary>
-        public abstract ModelBindingData[] modelBindingDataArray { get; }
+        public abstract ModelBindingData[] ModelBindingDataArray { get; }
     }
 }

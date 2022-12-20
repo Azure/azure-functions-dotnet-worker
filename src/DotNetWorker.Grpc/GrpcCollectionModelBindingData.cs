@@ -8,13 +8,9 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
     internal partial class GrpcCollectionModelBindingData : Microsoft.Azure.Functions.Worker.Core.CollectionModelBindingData
     {
-        private readonly CollectionModelBindingData _modelBindingDataArray;
-
         public GrpcCollectionModelBindingData(CollectionModelBindingData modelBindingDataArray)
         {
-            _modelBindingDataArray = modelBindingDataArray;
-
-            ModelBindingDataArray = _modelBindingDataArray.ModelBindingData
+            ModelBindingDataArray = modelBindingDataArray.ModelBindingData
                                         .Select(p => new GrpcModelBindingData(p)).ToArray();
         }
 

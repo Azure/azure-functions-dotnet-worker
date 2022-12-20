@@ -6,16 +6,19 @@ using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
-    internal partial class GrpcCollectionModelBindingData : Microsoft.Azure.Functions.Worker.Core.CollectionModelBindingData
+    internal class GrpcCollectionModelBindingData : Microsoft.Azure.Functions.Worker.Core.CollectionModelBindingData
     {
         private readonly CollectionModelBindingData _modelBindingDataArray;
+
+        private readonly Core.ModelBindingData[] _collectionModelBindingData;
 
         public GrpcCollectionModelBindingData(CollectionModelBindingData modelBindingDataArray)
         {
             _modelBindingDataArray = modelBindingDataArray;
+            _collectionModelBindingData = _modelBindingDataArray.ModelBindingData.Select(
+                                                p => new GrpcModelBindingData(p)).ToArray();
         }
 
-        public override Core.ModelBindingData[] ModelBindingDataArray => _modelBindingDataArray.ModelBindingData.Select(
-                                                            p => new GrpcModelBindingData(p)).ToArray();
+        public override Core.ModelBindingData[] ModelBindingDataArray => _collectionModelBindingData;
     }
 }

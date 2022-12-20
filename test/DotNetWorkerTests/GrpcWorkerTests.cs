@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
@@ -118,36 +119,66 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Contains("GetMethod", response.Result.Exception.Message);
         }
 
+        [Theory]
+        [InlineData(".NET Core 1.0", ".NET Core")]
+        [InlineData(".NET Core 1.1", ".NET Core")]
+        [InlineData(".NET Core 2.0", ".NET Core")]
+        [InlineData(".NET Core 2.1", ".NET Core")]
+        [InlineData(".NET Core 2.2", ".NET Core")]
+        [InlineData(".NET Core 3.0", ".NET Core")]
+        [InlineData(".NET Core 3.1", ".NET Core")]
+        [InlineData(".NET Core 5", ".NET Core")]
+        [InlineData(".NET Core 6", ".NET Core")]
+        [InlineData(".NET Core 7", ".NET Core")]
+        [InlineData(".NET Framework 4.7.1", ".NET Framework")]
+        [InlineData(".NET Framework 4.7.2", ".NET Framework")]
+        [InlineData(".NET Framework 4.8", ".NET Framework")]
+        [InlineData(".NET Framework 4.8.1", ".NET Framework")]
+        [InlineData(".NET Native 1.1", ".NET Native")]
+        [InlineData(".NET Native 1.2", ".NET Native")]
+        [InlineData(".NET Native 1.3", ".NET Native")]
+        [InlineData(".NET Native 1.4", ".NET Native")]
+        [InlineData(".NET Native 1.6", ".NET Native")]
+        [InlineData(".NET Native 2.0", ".NET Native")]
+        [InlineData(".NET Native 2.1", ".NET Native")]
+        [InlineData("", "")]
+        public void FrameworkDescriptionRegex_MatchesExpectedValues(string testFramework, string expectedFramework)
+        {
+            var result = GrpcWorker._frameworkDescriptionRegex.Match(testFramework).Value.Trim();
+            Assert.Equal(expectedFramework, result);
+        }
+
         [Fact]
         public void InitRequest_ReturnsExpectedMetadata()
         {
-            var response = GrpcWorker.WorkerInitRequestHandler(new(),new WorkerOptions());
-
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), new WorkerOptions());
             string grpcWorkerVersion = typeof(GrpcWorker).Assembly.GetName().Version?.ToString();
-            Assert.Equal(RuntimeInformation.FrameworkDescription, response.WorkerMetadata.RuntimeName);
+            var runtimeName = new Regex(@"^(\D*)").Match(RuntimeInformation.FrameworkDescription).Value;
+
+            Assert.Equal(runtimeName, response.WorkerMetadata.RuntimeName);
             Assert.Equal(Environment.Version.ToString(), response.WorkerMetadata.RuntimeVersion);
             Assert.Equal(WorkerInformation.Instance.WorkerVersion, response.WorkerMetadata.WorkerVersion);
             Assert.Equal(RuntimeInformation.ProcessArchitecture.ToString(), response.WorkerMetadata.WorkerBitness);
+
             Assert.Contains(response.WorkerMetadata.CustomProperties,
                 kvp => string.Equals(kvp.Key, "Worker.Grpc.Version", StringComparison.OrdinalIgnoreCase)
                 && string.Equals(kvp.Value, grpcWorkerVersion, StringComparison.OrdinalIgnoreCase));
-            
         }
-        
+
         [Theory]
         [InlineData("IncludeEmptyEntriesInMessagePayload", true, "IncludeEmptyEntriesInMessagePayload", true, "True")]
         [InlineData("IncludeEmptyEntriesInMessagePayload", false, "IncludeEmptyEntriesInMessagePayload", false)]
         public void InitRequest_ReturnsExpectedCapabilities_BasedOnWorkerOptions(
-            string booleanPropertyName, 
-            bool booleanPropertyValue, 
-            string capabilityName, 
+            string booleanPropertyName,
+            bool booleanPropertyValue,
+            string capabilityName,
             bool shouldCapabilityPresent,
             string expectedCapabilityValue = null)
         {
             var workerOptions = new WorkerOptions();
             // Update boolean property values of workerOption based on test input parameters.
             workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
-            
+
             var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions);
 
             IDictionary<string, string> capabilitiesDict = response.Capabilities;

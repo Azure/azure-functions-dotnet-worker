@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -43,6 +44,8 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
+
+        internal static readonly Regex _frameworkDescriptionRegex = new Regex(@"^(\D*)");
 
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
@@ -200,7 +203,7 @@ namespace Microsoft.Azure.Functions.Worker
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                 WorkerMetadata = new WorkerMetadata
                 {
-                    RuntimeName = RuntimeInformation.FrameworkDescription,
+                    RuntimeName = _frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value.Trim() ?? RuntimeInformation.FrameworkDescription,
                     RuntimeVersion = Environment.Version.ToString(),
                     WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                     WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()

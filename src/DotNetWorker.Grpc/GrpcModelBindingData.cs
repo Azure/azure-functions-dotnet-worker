@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -12,13 +12,14 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
         public GrpcModelBindingData(ModelBindingData modelBindingData)
         {
             _modelBindingData = modelBindingData;
+            Content = BinaryData.FromBytes(_modelBindingData.Content.ToByteArray());
         }
 
         public override string Version => _modelBindingData.Version;
 
         public override string Source => _modelBindingData.Source;
 
-        public override BinaryData Content => BinaryData.FromBytes(_modelBindingData.Content.ToByteArray());
+        public override BinaryData Content { get; }
 
         public override string ContentType => _modelBindingData.ContentType;
     }

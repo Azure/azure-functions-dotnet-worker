@@ -98,5 +98,12 @@ namespace SampleApp
 
             return req.CreateResponse(HttpStatusCode.OK);
         }
+
+        [Function(nameof(BlobMSIFunction))]
+        public void BlobMSIFunction(
+            [BlobTrigger("blobtest-trigger/{name}", Connection = "")] string myBlob, string name)
+        {
+            _logger.LogInformation($"C# Blob trigger function Processed blob\n Name: {name} \n Data: {myBlob}");
+        }
     }
 }

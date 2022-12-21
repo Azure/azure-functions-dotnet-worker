@@ -20,21 +20,44 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     internal class BlobStorageConverter : IInputConverter
     {
-        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context.Source is not ModelBindingData bindingData)
+            if (context.Source is CollectionModelBindingData collectionBindingData)
             {
-                return ConversionResult.Unhandled();
+                if (collectionBindingData != null)
+                {
+                    var collectionResult = ConvertCollectionModelBindingDataAsync(context.TargetType, collectionBindingData);
+
+                    if (collectionResult is not null && collectionResult.Any())
+                    {
+                        return new ValueTask<ConversionResult>(ConversionResult.Success(collectionResult));
+                    }
+                }
+            }
+            else if (context.Source is ModelBindingData bindingData)
+            {
+                var result = ConvertModelBindingDataAsync(bindingData, context.TargetType);
+
+                if (result is not null)
+                {
+                    return new ValueTask<ConversionResult>(ConversionResult.Success(result));
+                }
             }
 
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+        }
+
+
+        private object? ConvertModelBindingDataAsync(ModelBindingData bindingData, Type TargetType)
+        {
             if (bindingData.Source is not Constants.BlobExtensionName)
             {
-                return ConversionResult.Unhandled();
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
             if (!TryGetBindingDataContent(bindingData, out IDictionary<string, string> content))
             {
-                return ConversionResult.Unhandled();
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
             content.TryGetValue(Constants.Connection, out var connectionName);
@@ -43,19 +66,33 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (string.IsNullOrEmpty(connectionName) || string.IsNullOrEmpty(containerName))
             {
-                return ConversionResult.Unhandled();
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
             var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
-            var result = await ToTargetType(context.TargetType, connectionString, containerName, blobName);
+            var result = ToTargetType(TargetType, connectionString, containerName, blobName).GetAwaiter().GetResult();
 
-            if (result is not null)
+            return result;
+        }
+
+        private IEnumerable<object> ConvertCollectionModelBindingDataAsync(Type TargetType, CollectionModelBindingData collectionModelBindingData)
+        {
+            var collectionblob = new List<object>();
+
+            foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
             {
-                return ConversionResult.Success(result);
+                var element = ConvertModelBindingDataAsync(modelBindingData, TargetType.GenericTypeArguments[0]);
+                if (element != null)
+                {
+                    collectionblob.Add(element);
+                }
             }
 
-            return ConversionResult.Unhandled();
+            var result = ToTargetCollectionType(TargetType.GenericTypeArguments[0], collectionblob);
+
+            return result;
         }
+
 
         private bool TryGetBindingDataContent(ModelBindingData bindingData, out IDictionary<string, string> bindingDataContent)
         {
@@ -86,6 +123,13 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await DeserializeToTargetObject(targetType, connectionString, containerName, blobName)
         };
 
+        private IEnumerable<object> ToTargetCollectionType(Type targetType, IEnumerable<object> array) => targetType switch
+        {
+            Type _ when targetType == typeof(BlobClient) => array.Select(p => (BlobClient)p),
+            Type _ when targetType == typeof(String) => array.Select(p => GetBlobContentString((BlobClient)p).GetAwaiter().GetResult()),
+            _ => throw new Exception()
+        };
+
         private async Task<object?> DeserializeToTargetObject(Type targetType, string connectionString, string containerName, string blobName)
         {
             var content = await GetBlobString(connectionString, containerName, blobName);
@@ -95,6 +139,11 @@ namespace Microsoft.Azure.Functions.Worker
         private async Task<string> GetBlobString(string connectionString, string containerName, string blobName)
         {
             var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName);
+            return await GetBlobContentString(client);
+        }
+
+        private async Task<string> GetBlobContentString(BlobClient client)
+        {
             var download = await client.DownloadContentAsync();
             return download.Value.Content.ToString();
         }

@@ -45,8 +45,6 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
 
-        internal static readonly Regex _frameworkDescriptionRegex = new Regex(@"^(\D*)");
-
         public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
             IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
             IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
@@ -197,13 +195,15 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
         {
+            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
+
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                 WorkerMetadata = new WorkerMetadata
                 {
-                    RuntimeName = _frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value.Trim() ?? RuntimeInformation.FrameworkDescription,
+                    RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
                     RuntimeVersion = Environment.Version.ToString(),
                     WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                     WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()

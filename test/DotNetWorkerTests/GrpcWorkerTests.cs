@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [InlineData(".NET 3.1", ".NET")]
         [InlineData(".NET 5", ".NET")]
         [InlineData(".NET 6", ".NET")]
-        [InlineData(".NET 7", ".NET ")]
+        [InlineData(".NET 7", ".NET")]
         [InlineData(".NET Framework 4.7.1", ".NET Framework")]
         [InlineData(".NET Framework 4.7.2", ".NET Framework")]
         [InlineData(".NET Framework 4.8", ".NET Framework")]
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [InlineData("", "")]
         public void FrameworkDescriptionRegex_MatchesExpectedValues(string testFramework, string expectedFramework)
         {
-            var result = GrpcWorker._frameworkDescriptionRegex.Match(testFramework).Value.Trim();
+            var result = new Regex(@"^(\D*)+(?!\S)").Match(testFramework).Value;
             Assert.Equal(expectedFramework, result);
         }
 
@@ -153,7 +153,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var response = GrpcWorker.WorkerInitRequestHandler(new(), new WorkerOptions());
             string grpcWorkerVersion = typeof(GrpcWorker).Assembly.GetName().Version?.ToString();
-            var runtimeName = new Regex(@"^(\D*)").Match(RuntimeInformation.FrameworkDescription).Value;
+            var runtimeName = new Regex(@"^(\D*)+(?!\S)").Match(RuntimeInformation.FrameworkDescription).Value;
 
             Assert.Equal(runtimeName, response.WorkerMetadata.RuntimeName);
             Assert.Equal(Environment.Version.ToString(), response.WorkerMetadata.RuntimeVersion);

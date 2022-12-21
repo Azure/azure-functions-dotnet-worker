@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -26,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (collectionBindingData != null)
                 {
-                    var collectionResult = ConvertCollectionModelBindingDataAsync(context.TargetType, collectionBindingData);
+                    var collectionResult = ConvertCollectionModelBindingDataAsync(context.TargetType, collectionBindingData, context);
 
                     if (collectionResult is not null && collectionResult.Any())
                     {
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (context.Source is ModelBindingData bindingData)
             {
-                var result = ConvertModelBindingDataAsync(bindingData, context.TargetType);
+                var result = ConvertModelBindingDataAsync(bindingData, context.TargetType, context);
 
                 if (result is not null)
                 {
@@ -48,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
 
-        private object? ConvertModelBindingDataAsync(ModelBindingData bindingData, Type TargetType)
+        private object? ConvertModelBindingDataAsync(ModelBindingData bindingData, Type TargetType, ConverterContext context)
         {
             if (bindingData.Source is not Constants.BlobExtensionName)
             {
@@ -70,18 +71,18 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
-            var result = ToTargetType(TargetType, connectionString, containerName, blobName).GetAwaiter().GetResult();
+            var result = ToTargetType(TargetType, connectionString, containerName, blobName, context).GetAwaiter().GetResult();
 
             return result;
         }
 
-        private IEnumerable<object> ConvertCollectionModelBindingDataAsync(Type TargetType, CollectionModelBindingData collectionModelBindingData)
+        private IEnumerable<object> ConvertCollectionModelBindingDataAsync(Type TargetType, CollectionModelBindingData collectionModelBindingData, ConverterContext context)
         {
             var collectionblob = new List<object>();
 
             foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
             {
-                var element = ConvertModelBindingDataAsync(modelBindingData, TargetType.GenericTypeArguments[0]);
+                var element = ConvertModelBindingDataAsync(modelBindingData, TargetType.GenericTypeArguments[0], context);
                 if (element != null)
                 {
                     collectionblob.Add(element);
@@ -110,12 +111,12 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private async Task<object?> ToTargetType(Type targetType, string connectionString, string containerName, string blobName) => targetType switch
+        private async Task<object?> ToTargetType(Type targetType, string connectionString, string containerName, string blobName, ConverterContext context) => targetType switch
         {
-            Type _ when targetType == typeof(String) => await GetBlobString(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(String) => await GetBlobString(connectionString, containerName, blobName, context),
             Type _ when targetType == typeof(Stream) => await GetBlobStream(connectionString, containerName, blobName),
             Type _ when targetType == typeof(Byte[]) => await GetBlobBinaryData(connectionString, containerName, blobName),
-            Type _ when targetType == typeof(BlobClient) => CreateBlobReference<BlobClient>(connectionString, containerName, blobName),
+            Type _ when targetType == typeof(BlobClient) => CreateBlobReference<BlobClient>(connectionString, containerName, blobName, context),
             Type _ when targetType == typeof(BlockBlobClient) => CreateBlobReference<BlockBlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(PageBlobClient) => CreateBlobReference<PageBlobClient>(connectionString, containerName, blobName),
             Type _ when targetType == typeof(AppendBlobClient) => CreateBlobReference<AppendBlobClient>(connectionString, containerName, blobName),
@@ -136,9 +137,9 @@ namespace Microsoft.Azure.Functions.Worker
             return JsonConvert.DeserializeObject(content, targetType);
         }
 
-        private async Task<string> GetBlobString(string connectionString, string containerName, string blobName)
+        private async Task<string> GetBlobString(string connectionString, string containerName, string blobName, ConverterContext context = null)
         {
-            var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName);
+            var client = CreateBlobReference<BlobClient>(connectionString, containerName, blobName, context);
             return await GetBlobContentString(client);
         }
 
@@ -171,12 +172,53 @@ namespace Microsoft.Azure.Functions.Worker
             return container;
         }
 
-        private T CreateBlobReference<T>(string connectionString, string containerName, string blobName) where T : BlobBaseClient
+        private T CreateBlobReference<T>(string connectionString, string containerName, string blobName, ConverterContext context = null) where T : BlobBaseClient
         {
             if (string.IsNullOrEmpty(blobName))
             {
                 throw new ArgumentNullException(nameof(blobName));
             }
+
+            /*
+            BlobBaseClient blob = null;
+
+            if (connectionString == null)
+            {
+                // Try using Managed Identity
+                context.FunctionContext.BindingContext.BindingData.TryGetValue("Uri", out var blobEndpoint);
+                
+                if(Environment.GetEnvironmentVariable("AzureWebJobsStorage__accountName") != null)
+                {
+                    // for logged in user and AzureWebJobsStorage
+                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')), new DefaultAzureCredential());
+                }
+                if(Environment.GetEnvironmentVariable("AzureWebJobsStorage__blobServiceUri") != null)
+                {
+                    // for logged in user and AzureWebJobsStorage
+                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')), new DefaultAzureCredential());
+                }
+                else if (Environment.GetEnvironmentVariable("AzureWebJobsStorage__tenantId") != null)
+                {
+                    // if specific clientid to be userd - userassigned
+                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')),
+                    new ClientSecretCredential(
+                        Environment.GetEnvironmentVariable("AzureWebJobsStorage__tenantId"),
+                        Environment.GetEnvironmentVariable("AzureWebJobsStorage__clientId"),
+                        Environment.GetEnvironmentVariable("AzureWebJobsStorage__clientSecret")
+                    ));
+                }
+                else if (Environment.GetEnvironmentVariable("AzureWebJobsStorage__credential") == "ManagedIdentity")
+                {
+                    // Credential and ClientId. For portal apps.
+                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')),
+                                new ManagedIdentityCredential(
+                                    Environment.GetEnvironmentVariable("AzureWebJobsStorage__clientId")
+                                ));
+                }
+            }
+            else
+            {
+                */
 
             Type targetType = typeof(T);
             var container = CreateBlobContainerClient(connectionString, containerName);
@@ -189,6 +231,7 @@ namespace Microsoft.Azure.Functions.Worker
                 Type _ when targetType == typeof(AppendBlobClient) => container.GetAppendBlobClient(blobName),
                 _ => new(connectionString, containerName, blobName)
             };
+        //}
 
             return (T)blob;
         }

@@ -179,59 +179,56 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(blobName));
             }
 
-            /*
             BlobBaseClient blob = null;
 
             if (connectionString == null)
             {
                 // Try using Managed Identity
                 context.FunctionContext.BindingContext.BindingData.TryGetValue("Uri", out var blobEndpoint);
-                
-                if(Environment.GetEnvironmentVariable("AzureWebJobsStorage__accountName") != null)
+                string endpoint = blobEndpoint.ToString().Trim('\\', '"');
+
+                if(Environment.GetEnvironmentVariable(Constants.ConnectionAccountName) != null
+                || Environment.GetEnvironmentVariable(Constants.ConnectionBlobUri) != null)
                 {
-                    // for logged in user and AzureWebJobsStorage
-                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')), new DefaultAzureCredential());
+                    // for AzureWebJobsStorage
+                    blob = new BlobClient(new Uri(endpoint), new DefaultAzureCredential());
                 }
-                if(Environment.GetEnvironmentVariable("AzureWebJobsStorage__blobServiceUri") != null)
+                else if (
+                    Environment.GetEnvironmentVariable(Constants.ConnectionTenantId) != null
+                    && Environment.GetEnvironmentVariable(Constants.ConnectionClientId) != null
+                    && Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret) != null)
                 {
-                    // for logged in user and AzureWebJobsStorage
-                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')), new DefaultAzureCredential());
-                }
-                else if (Environment.GetEnvironmentVariable("AzureWebJobsStorage__tenantId") != null)
-                {
-                    // if specific clientid to be userd - userassigned
-                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')),
+                    // For user assigned identity
+                    blob = new BlobClient(new Uri(endpoint),
                     new ClientSecretCredential(
-                        Environment.GetEnvironmentVariable("AzureWebJobsStorage__tenantId"),
-                        Environment.GetEnvironmentVariable("AzureWebJobsStorage__clientId"),
-                        Environment.GetEnvironmentVariable("AzureWebJobsStorage__clientSecret")
+                        Environment.GetEnvironmentVariable(Constants.ConnectionTenantId),
+                        Environment.GetEnvironmentVariable(Constants.ConnectionClientId),
+                        Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret)
                     ));
                 }
-                else if (Environment.GetEnvironmentVariable("AzureWebJobsStorage__credential") == "ManagedIdentity")
+                else if (Environment.GetEnvironmentVariable(Constants.ConnectionCredential) == "ManagedIdentity")
                 {
-                    // Credential and ClientId. For portal apps.
-                    blob = new BlobClient(new Uri(blobEndpoint.ToString().Trim('\\', '"')),
+                    // For portal apps only - using credential and clientId
+                    blob = new BlobClient(new Uri(endpoint),
                                 new ManagedIdentityCredential(
-                                    Environment.GetEnvironmentVariable("AzureWebJobsStorage__clientId")
+                                    Environment.GetEnvironmentVariable(Constants.ConnectionClientId)
                                 ));
                 }
             }
             else
             {
-                */
+                Type targetType = typeof(T);
+                var container = CreateBlobContainerClient(connectionString, containerName);
 
-            Type targetType = typeof(T);
-            var container = CreateBlobContainerClient(connectionString, containerName);
-
-            BlobBaseClient blob = targetType switch
-            {
-                Type _ when targetType == typeof(BlobClient) => container.GetBlobClient(blobName),
-                Type _ when targetType == typeof(BlockBlobClient) => container.GetBlockBlobClient(blobName),
-                Type _ when targetType == typeof(PageBlobClient) => container.GetPageBlobClient(blobName),
-                Type _ when targetType == typeof(AppendBlobClient) => container.GetAppendBlobClient(blobName),
-                _ => new(connectionString, containerName, blobName)
-            };
-        //}
+                blob = targetType switch
+                {
+                    Type _ when targetType == typeof(BlobClient) => container.GetBlobClient(blobName),
+                    Type _ when targetType == typeof(BlockBlobClient) => container.GetBlockBlobClient(blobName),
+                    Type _ when targetType == typeof(PageBlobClient) => container.GetPageBlobClient(blobName),
+                    Type _ when targetType == typeof(AppendBlobClient) => container.GetAppendBlobClient(blobName),
+                    _ => new(connectionString, containerName, blobName)
+                };
+        }
 
             return (T)blob;
         }

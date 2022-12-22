@@ -4,6 +4,7 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -194,13 +195,15 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
         {
+            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
+
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                 WorkerMetadata = new WorkerMetadata
                 {
-                    RuntimeName = RuntimeInformation.FrameworkDescription,
+                    RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
                     RuntimeVersion = Environment.Version.ToString(),
                     WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                     WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()

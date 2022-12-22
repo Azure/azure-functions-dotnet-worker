@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Identity;
 using Azure.Storage.Blobs;
@@ -25,9 +24,9 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (context.Source is CollectionModelBindingData collectionBindingData)
             {
-                if (collectionBindingData != null)
+                if (collectionBindingData is not null)
                 {
-                    var collectionResult = ConvertCollectionModelBindingDataAsync(context.TargetType, collectionBindingData, context);
+                    var collectionResult = ConvertCollectionModelBindingDataAsync(context, context.TargetType, collectionBindingData);
 
                     if (collectionResult is not null && collectionResult.Any())
                     {
@@ -37,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else if (context.Source is ModelBindingData bindingData)
             {
-                var result = ConvertModelBindingDataAsync(bindingData, context.TargetType, context);
+                var result = ConvertModelBindingDataAsync(context, context.TargetType, bindingData);
 
                 if (result is not null)
                 {
@@ -49,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
 
-        private object? ConvertModelBindingDataAsync(ModelBindingData bindingData, Type TargetType, ConverterContext context)
+        private object? ConvertModelBindingDataAsync(ConverterContext context, Type targetType, ModelBindingData bindingData)
         {
             if (bindingData.Source is not Constants.BlobExtensionName)
             {
@@ -71,25 +70,25 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             var connectionString = connectionName is null ? null : Environment.GetEnvironmentVariable(connectionName);
-            var result = ToTargetType(TargetType, connectionString, containerName, blobName, context).GetAwaiter().GetResult();
+            var result = ToTargetType(targetType, connectionString, containerName, blobName, context).GetAwaiter().GetResult();
 
             return result;
         }
 
-        private IEnumerable<object> ConvertCollectionModelBindingDataAsync(Type TargetType, CollectionModelBindingData collectionModelBindingData, ConverterContext context)
+        private IEnumerable<object> ConvertCollectionModelBindingDataAsync(ConverterContext context, Type targetType, CollectionModelBindingData collectionModelBindingData)
         {
-            var collectionblob = new List<object>();
+            var collectionBlob = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
 
             foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
             {
-                var element = ConvertModelBindingDataAsync(modelBindingData, TargetType.GenericTypeArguments[0], context);
+                var element = ConvertModelBindingDataAsync(context, targetType.GenericTypeArguments[0], modelBindingData);
                 if (element != null)
                 {
-                    collectionblob.Add(element);
+                    collectionBlob.Add(element);
                 }
             }
 
-            var result = ToTargetCollectionType(TargetType.GenericTypeArguments[0], collectionblob);
+            var result = ToTargetCollectionType(targetType.GenericTypeArguments[0], collectionBlob);
 
             return result;
         }
@@ -181,30 +180,30 @@ namespace Microsoft.Azure.Functions.Worker
 
             BlobBaseClient blob = null;
 
-            if (connectionString == null)
+            if (connectionString is null)
             {
                 // Try using Managed Identity
                 context.FunctionContext.BindingContext.BindingData.TryGetValue("Uri", out var blobEndpoint);
                 string endpoint = blobEndpoint.ToString().Trim('\\', '"');
 
-                if(Environment.GetEnvironmentVariable(Constants.ConnectionAccountName) != null
-                || Environment.GetEnvironmentVariable(Constants.ConnectionBlobUri) != null)
+                if (Environment.GetEnvironmentVariable(Constants.ConnectionAccountName) is not null
+                    || Environment.GetEnvironmentVariable(Constants.ConnectionBlobUri) is not null)
                 {
                     // for AzureWebJobsStorage
                     blob = new BlobClient(new Uri(endpoint), new DefaultAzureCredential());
                 }
                 else if (
-                    Environment.GetEnvironmentVariable(Constants.ConnectionTenantId) != null
-                    && Environment.GetEnvironmentVariable(Constants.ConnectionClientId) != null
-                    && Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret) != null)
+                    Environment.GetEnvironmentVariable(Constants.ConnectionTenantId) is not null
+                    && Environment.GetEnvironmentVariable(Constants.ConnectionClientId) is not null
+                    && Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret) is not null)
                 {
                     // For user assigned identity
                     blob = new BlobClient(new Uri(endpoint),
-                    new ClientSecretCredential(
-                        Environment.GetEnvironmentVariable(Constants.ConnectionTenantId),
-                        Environment.GetEnvironmentVariable(Constants.ConnectionClientId),
-                        Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret)
-                    ));
+                                new ClientSecretCredential(
+                                    Environment.GetEnvironmentVariable(Constants.ConnectionTenantId),
+                                    Environment.GetEnvironmentVariable(Constants.ConnectionClientId),
+                                    Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret)
+                                ));
                 }
                 else if (Environment.GetEnvironmentVariable(Constants.ConnectionCredential) == "ManagedIdentity")
                 {
@@ -228,7 +227,7 @@ namespace Microsoft.Azure.Functions.Worker
                     Type _ when targetType == typeof(AppendBlobClient) => container.GetAppendBlobClient(blobName),
                     _ => new(connectionString, containerName, blobName)
                 };
-        }
+            }
 
             return (T)blob;
         }

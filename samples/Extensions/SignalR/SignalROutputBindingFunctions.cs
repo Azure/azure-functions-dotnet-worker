@@ -12,7 +12,8 @@ namespace SampleApp
     {
         [Function("BroadcastToAll")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction BroadcastToAll([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction BroadcastToAll(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -24,7 +25,8 @@ namespace SampleApp
 
         [Function("SendToConnection")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction SendToConnection([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction SendToConnection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")

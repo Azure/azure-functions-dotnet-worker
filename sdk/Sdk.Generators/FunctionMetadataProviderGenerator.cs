@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             // attempt to parse user compilation
             var p = new Parser(context);
 
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.EnableSourceGenProp, out var sourceGenSwitch);
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.EnableSourceGenProp, out var sourceGenSwitch);
 
             bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
 
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 Emitter e = new();
                 string result = e.Emit(functionMetadataInfo, context.CancellationToken);
 
-                context.AddSource(Constants.GeneratedFunctionMetadataFileName, SourceText.From(result, Encoding.UTF8));
+                context.AddSource(Constants.FileNames.GeneratedFunctionMetadataFileName, SourceText.From(result, Encoding.UTF8));
             }
         }
 

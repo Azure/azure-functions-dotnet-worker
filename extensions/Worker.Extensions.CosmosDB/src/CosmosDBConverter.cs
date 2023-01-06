@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.Worker
                                                 ? new ClientSecretCredential(tenantId, clientId, clientSecret)
                                                 : new ChainedTokenCredential(new ManagedIdentityCredential(clientId), new ManagedIdentityCredential());
 
-                // v4 does not appear to support token credentials at the moment
+
                 cosmosClient = new($"https://{accountName}.documents.azure.com:443/", credential);
             }
             else
@@ -106,8 +106,6 @@ namespace Microsoft.Azure.Functions.Worker
 
 
             Type targetType = typeof(T);
-
-            // v4: CosmosDatabase instead of Database and CosmosContainer instead of Container
             object cosmosReference = targetType switch {
                 Type _ when targetType == typeof(Database)    => cosmosClient.GetDatabase(cosmosAttribute?.DatabaseName),
                 Type _ when targetType == typeof(Container)   => cosmosClient.GetContainer(cosmosAttribute?.DatabaseName, cosmosAttribute?.ContainerName),

@@ -15,7 +15,6 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
-    <!-- <PackageReference Include="Azure.Cosmos" Version="4.0.0-preview3" /> -->
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.31.2" />
     <PackageReference Include="Azure.Identity" Version="1.8.0" />
   </ItemGroup>

@@ -8,12 +8,15 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace SampleApp
 {
-    public static class SignalROutputBindingFunctions
+    /// <summary>
+    /// The class is the same as SignalROutputBindingFunctions except the comments. Just keep the original one because the learn website refers to it.
+    /// </summary>
+    public static class SignalROutputBindingFunctions2
     {
+        // <snippet_broadcast_to_all>
         [Function("BroadcastToAll")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction BroadcastToAll(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction BroadcastToAll([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -22,11 +25,12 @@ namespace SampleApp
                 Arguments = new[] { bodyReader.ReadToEnd() },
             };
         }
+        // </snippet_broadcast_to_all>
 
+        // <snippet_send_to_connection>
         [Function("SendToConnection")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction SendToConnection(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction SendToConnection([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -35,7 +39,9 @@ namespace SampleApp
                 ConnectionId = "connectionToSend",
             };
         }
+        // </snippet_send_to_connection>
 
+        // <snippet_send_to_user>
         [Function("SendToUser")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToUser([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
@@ -47,7 +53,9 @@ namespace SampleApp
                 UserId = "userToSend",
             };
         }
+        // </snippet_send_to_user>
 
+        // <snippet_send_to_group>
         [Function("SendToGroup")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToGroup([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
@@ -59,7 +67,9 @@ namespace SampleApp
                 GroupName = "groupToSend"
             };
         }
+        // </snippet_send_to_group>
 
+        // <snippet_send_to_endpoint>
         [Function("SendToEndpoint")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToEndpoint(
@@ -75,7 +85,9 @@ namespace SampleApp
                 Endpoints = endpoints.Where(e => e.EndpointType == SignalREndpointType.Primary).ToArray()
             };
         }
+        // </snippet_send_to_endpoint>
 
+        // <snippet_remove_from_group>
         [Function("RemoveFromGroup")]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRGroupAction RemoveFromGroup([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
@@ -86,5 +98,6 @@ namespace SampleApp
                 UserId = "user1"
             };
         }
+        // </snippet_remove_from_group>
     }
 }

@@ -6,7 +6,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal static class Constants
     {
-        internal const string ExtensionName = "Microsoft.Azure.WebJobs.Extensions.CosmosDB";
+        internal const string ExtensionName = "CosmosDB";
 
         internal const string ConnectionAccountName = "AzureWebJobsStorage__accountName";
         internal const string ConnectionClientId = "AzureWebJobsStorage__clientId";

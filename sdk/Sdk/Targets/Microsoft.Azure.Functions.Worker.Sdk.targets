@@ -35,6 +35,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
         <FunctionsMetadataSourceGen_Enabled Condition="$(FunctionsMetadataSourceGen_Enabled) == ''">true</FunctionsMetadataSourceGen_Enabled>
+        <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"
@@ -75,7 +76,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
 
+        <!-- Do not copy _FunctionsMetadataLoaderExtensionFile when in placeholder mode, as we don't want the FunctionMetadataLoader entry in extensions.json-->
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
           OverwriteReadOnlyFiles="true" />
@@ -104,8 +107,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
           TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
-
+        <!-- Do not copy _FunctionsMetadataLoaderExtensionFile when in placeholder mode, as we don't want the FunctionMetadataLoader entry in extensions.json--> 
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
           OverwriteReadOnlyFiles="true" />

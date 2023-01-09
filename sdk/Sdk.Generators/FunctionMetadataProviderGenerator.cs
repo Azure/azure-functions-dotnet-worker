@@ -24,9 +24,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
-            // attempt to parse user compilation
-            var p = new Parser(context);
-
             context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.EnableSourceGenProp, out var sourceGenSwitch);
 
             bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
@@ -36,6 +33,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
+            // attempt to parse user compilation
+            var p = new Parser(context);
+
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
 
             // Proceed to generate the file if function metadata info was successfully returned
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 Emitter e = new();
                 string result = e.Emit(functionMetadataInfo, context.CancellationToken);
 
-                context.AddSource(Constants.FileNames.GeneratedFunctionMetadataFileName, SourceText.From(result, Encoding.UTF8));
+                context.AddSource(Constants.FileNames.GeneratedFunctionMetadata, SourceText.From(result, Encoding.UTF8));
             }
         }
 

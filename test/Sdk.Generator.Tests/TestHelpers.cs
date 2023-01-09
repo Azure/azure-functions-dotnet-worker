@@ -34,15 +34,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     Sources = { inputSource },
                     AdditionalReferences =
                     {
-                        typeof(WorkerExtensionStartupAttribute).Assembly,
-                    },
-                },
+                        typeof(WorkerExtensionStartupAttribute).Assembly
+                    }
+                }
             };
 
             if (expectedOutputSource != null && expectedFileName != null)
             {
                 test.TestState.GeneratedSources.Add((typeof(TSourceGenerator), expectedFileName, SourceText.From(expectedOutputSource, Encoding.UTF8)));
             }
+
+            // Enable SourceGen MSBuild Property for testing
+            string config = $"is_global = true{Environment.NewLine}build_property.FunctionsMetadataSourceGen_Enabled = {true}";
+            test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", config));
 
             foreach (var item in extensionAssemblyReferences)
             {

@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
-        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key 
+        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key
         /// path for the created container.
         /// When specified on an input binding, specifies the partition key value for the lookup.
         /// May include binding parameters.

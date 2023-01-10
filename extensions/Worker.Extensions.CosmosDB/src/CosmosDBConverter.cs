@@ -58,11 +58,10 @@ namespace Microsoft.Azure.Functions.Worker
                     {
                         var collectionResult = await ToTargetTypeCollection(context, context.TargetType, collectionModelBindingData);
 
-                        if (collectionResult is not null && collectionResult.Any())
+                        if (collectionResult is not null && collectionResult is { Count: > 0 })
                         {
                             return ConversionResult.Success(collectionResult);
                         }
-
                     }
                     catch (Exception ex)
                     {
@@ -83,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await CreateTargetObject(targetType, cosmosAttribute)
         };
 
-        private async Task<IEnumerable<object>> ToTargetTypeCollection(ConverterContext context, Type targetType, CollectionModelBindingData collectionModelBindingData)
+        private async Task<List<object>> ToTargetTypeCollection(ConverterContext context, Type targetType, CollectionModelBindingData collectionModelBindingData)
         {
             var collectionCosmosItems = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
 
@@ -139,7 +138,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
                 {
-                    throw new InvalidOperationException("Unable to retrieve document with ID {cosmosAttribute.Id} and PartitionKey {cosmosAttribute.PartitionKey}");
+                    throw new InvalidOperationException($"Unable to retrieve document with ID {cosmosAttribute.Id} and PartitionKey {cosmosAttribute.PartitionKey}");
                 }
 
                 return item.Resource;
@@ -172,7 +171,7 @@ namespace Microsoft.Azure.Functions.Worker
             return documentList;
         }
 
-        private object CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
+        private T CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
         {
             if (cosmosAttribute is null)
             {
@@ -197,8 +196,8 @@ namespace Microsoft.Azure.Functions.Worker
                 var clientSecret = Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret);
 
                 TokenCredential credential = !string.IsNullOrEmpty(tenantId) && !string.IsNullOrEmpty(clientSecret)
-                                                ? new ClientSecretCredential(tenantId, clientId, clientSecret)
-                                                : new ChainedTokenCredential(new ManagedIdentityCredential(clientId), new ManagedIdentityCredential());
+                                                ? new ClientSecretCredential(tenantId, clientId, clientSecret) // app registration (do we even want/need to support this?)
+                                                : new ChainedTokenCredential(new ManagedIdentityCredential(clientId), new ManagedIdentityCredential()); // user-managed, system-managed
 
                 cosmosClient = new($"https://{accountName}.documents.azure.com:443/", credential);
             }

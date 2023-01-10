@@ -12,6 +12,5 @@ namespace Microsoft.Azure.Functions.Worker
         internal const string ConnectionClientId = "AzureWebJobsStorage__clientId";
         internal const string ConnectionClientSecret = "AzureWebJobsStorage__clientSecret";
         internal const string ConnectionTenantId = "AzureWebJobsStorage__tenantId";
-        internal const string ConnectionCredential = "AzureWebJobsStorage__credential";
     }
 }

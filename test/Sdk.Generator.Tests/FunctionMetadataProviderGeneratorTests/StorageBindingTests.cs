@@ -158,7 +158,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         [QueueOutput("queue2")]
                         public object BlobToQueue(
                             [BlobTrigger("container2/%file%")] string blob)
+                        {
+                            throw new NotImplementedException();
+                        }
 
+                        [Function("BlobsToQueueFunction")]
+                        [QueueOutput("queue2")]
+                        public object BlobsToQueue(
+                            [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobs)
                         {
                             throw new NotImplementedException();
                         }
@@ -212,6 +219,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function1);
+                            var Function2RawBindings = new List<string>();
+                            Function2RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
+                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""blobPath"":""container2"",""cardinality"":""Many""}");
+                
+                            var Function2 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "BlobsToQueueFunction",
+                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobsToQueue",
+                                RawBindings = Function2RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function2);
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }

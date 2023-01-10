@@ -10,6 +10,8 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly string _blobPath;
 
+        private bool _isBatched = false;
+
         /// <summary>Initializes a new instance of the <see cref="BlobInputAttribute"/> class.</summary>
         /// <param name="blobPath">The path of the blob to which to bind.</param>
         public BlobInputAttribute(string blobPath)
@@ -23,6 +25,13 @@ namespace Microsoft.Azure.Functions.Worker
         public string BlobPath
         {
             get { return _blobPath; }
+        }
+
+        [DefaultValue(false)]
+        public bool IsBatched
+        {
+            get => _isBatched;
+            set => _isBatched = value;
         }
 
         /// <summary>

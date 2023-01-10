@@ -24,17 +24,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.EnableSourceGenProp, out var sourceGenSwitch);
+
+            bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
+
+            if (!enableSourceGen)
+            {
+                return;
+            }
+
             // attempt to parse user compilation
             var p = new Parser(context);
+
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
 
             // Proceed to generate the file if function metadata info was successfully returned
             if (functionMetadataInfo.Count > 0)
             {
-                var e = new Emitter();
+                Emitter e = new();
                 string result = e.Emit(functionMetadataInfo, context.CancellationToken);
 
-                context.AddSource($"GeneratedFunctionMetadataProvider.g.cs", SourceText.From(result, Encoding.UTF8));
+                context.AddSource(Constants.FileNames.GeneratedFunctionMetadata, SourceText.From(result, Encoding.UTF8));
             }
         }
 

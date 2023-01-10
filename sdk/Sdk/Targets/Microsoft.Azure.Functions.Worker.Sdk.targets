@@ -34,6 +34,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
       
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
+        <FunctionsMetadataSourceGen_Enabled Condition="$(FunctionsMetadataSourceGen_Enabled) == ''">true</FunctionsMetadataSourceGen_Enabled>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"

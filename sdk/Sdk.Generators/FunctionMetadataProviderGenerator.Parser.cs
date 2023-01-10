@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 foreach (var attr in methodSymbol.GetAttributes())
                 {
                     if (attr.AttributeClass != null &&
-                       SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.FunctionNameType)))
+                       SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
                     {
                         functionName = (string)attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
                         return true;
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var attribute in attributes)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)))
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.OutputBindingAttribute)))
                     {
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
                         if (hasOutputBinding)
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.ReturnBindingName, bindingLocation, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
@@ -207,18 +207,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     // Check to see if any of the attributes associated with this parameter is a BindingAttribute
                     foreach (var attribute in parameterSymbol.GetAttributes())
                     {
-                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, Compilation.GetTypeByMetadataName(Constants.BindingAttributeType)))
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.BindingAttribute)))
                         {
                             var validEventHubs = false;
                             var cardinality = Cardinality.Undefined;
                             var dataType = GetDataType(parameterSymbol.Type);
 
                             // There are two special cases we need to handle: HttpTrigger and EventHubsTrigger.
-                            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, Compilation.GetTypeByMetadataName(Constants.HttpTriggerBindingType)))
+                            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.HttpTriggerBinding)))
                             {
                                 hasHttpTrigger = true;
                             }
-                            else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, Compilation.GetTypeByMetadataName(Constants.EventHubsTriggerType)))
+                            else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.EventHubsTrigger)))
                             {
                                 // there are special rules for EventHubsTriggers that we will have to validate
                                 validEventHubs = IsEventHubsTriggerValid(parameterSymbol, parameter.Type, model, attribute, out dataType, out cardinality);
@@ -276,11 +276,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     return false;
                 }
 
-                if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.VoidType)) &&
-                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.TaskType)))
+                if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.Void)) &&
+                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.Task)))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.TaskGenericType))) 
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric))) 
                     {
                         GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
@@ -294,9 +294,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.HttpResponseType))) // If return type is HttpResponseData
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.HttpResponse))) // If return type is HttpResponseData
                     {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.ReturnBindingName));
+                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }
                     else
                     {
@@ -327,7 +327,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     // Check if this attribute is an HttpResponseData type attribute
-                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, Compilation.GetTypeByMetadataName(Constants.HttpResponseType)))
+                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, Compilation.GetTypeByMetadataName(Constants.Types.HttpResponse)))
                     {
                         if (foundHttpOutput)
                         {
@@ -345,7 +345,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         foreach (var attr in prop.GetAttributes()) // now loop through and check if any of the attributes are Binding attributes
                         {
-                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)))
+                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.OutputBindingAttribute)))
                             {
                                 // validate that there's only one binding attribute per property
                                 if (foundPropertyOutputAttr)
@@ -374,11 +374,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (!hasOutputBinding)
                     {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.ReturnBindingName));
+                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }
                     else
                     {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.HttpResponseBindingName));
+                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.HttpResponseBindingName));
                     }
                 }
 
@@ -413,7 +413,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string bindingType = attributeName.TrimStringsFromEnd(_functionsStringNamesToRemove);
 
                 // Set binding direction
-                string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.OutputBindingAttributeType)) ? "Out" : "In";
+                string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.OutputBindingAttribute)) ? "Out" : "In";
 
                 var bindingCount = attributeProperties!.Count + 3;
                 bindings = new Dictionary<string, object>(capacity: bindingCount)
@@ -458,7 +458,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (namedArgument.Value.Value != null)
                     {
-                        if (string.Equals(namedArgument.Key, Constants.IsBatchedKey) && !attrProperties.ContainsKey("cardinality"))
+                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality"))
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
@@ -474,13 +474,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // some properties have default values, so if these properties were not already defined in constructor or named arguments, we will auto-add them here
                 foreach (var member in attributeData.AttributeClass!.GetMembers().Where(a => a is IPropertySymbol))
                 {
-                    var defaultValAttrList = member.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType)));
+                    var defaultValAttrList = member.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue)));
 
                     if (defaultValAttrList.SingleOrDefault() is { } defaultValAttr) // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                     {
                         var argName = member.Name;
                         object arg = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!; // only one constructor arg in DefaultValue attribute (the default value)
-                        if (arg is bool b && string.Equals(argName, Constants.IsBatchedKey))
+                        if (arg is bool b && string.Equals(argName, Constants.FunctionMetadataBindingProps.IsBatchedKey))
                         {
                             if (!attrProperties.Keys.Contains("cardinality"))
                             {
@@ -546,7 +546,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private void OverrideBindingName(INamedTypeSymbol attributeClass, ref string argumentName)
             {
-                var bindingPropertyNameSymbol = Compilation.GetTypeByMetadataName(Constants.BindingPropertyNameAttributeType);
+                var bindingPropertyNameSymbol = Compilation.GetTypeByMetadataName(Constants.Types.BindingPropertyNameAttribute);
 
                 foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
                 {
@@ -574,7 +574,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // check if IsBatched is defined in the NamedArguments
                 foreach (var arg in attribute.NamedArguments)
                 {
-                    if (String.Equals(arg.Key, Constants.IsBatchedKey) &&
+                    if (String.Equals(arg.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) &&
                         arg.Value.Value != null)
                     {
                         var isBatched = (bool)arg.Value.Value; // isBatched takes in booleans so we can just type cast it here to use
@@ -590,8 +590,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // Check the default value of IsBatched
                 var eventHubsAttr = attribute.AttributeClass;
-                var isBatchedProp = eventHubsAttr!.GetMembers().Where(m => string.Equals(m.Name, Constants.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
-                AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.DefaultValueType))).SingleOrDefault();
+                var isBatchedProp = eventHubsAttr!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+                AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue))).SingleOrDefault();
                 var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg, the default value
                 if (!bool.TryParse(defaultVal, out bool b) || !b)
                 {
@@ -602,20 +602,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // we check if the param is an array type
                 // we exclude byte arrays (byte[]) b/c we handle that as cardinality one (we handle this simliar to how a char[] is basically a string)
-                if (parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, Compilation.GetTypeByMetadataName(Constants.ByteArrayType)))
+                if (parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray)))
                 {
                     dataType = GetDataType(parameterSymbol.Type);
                     cardinality = Cardinality.Many;
                     return true;
                 }
 
-                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType));
-                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableType));
+                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric));
+                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerable));
 
                 // Check if mapping type - mapping enumerables are not valid types for EventHubParameters
-                if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableOfKeyValuePair))
-                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.LookupGenericType))
-                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.DictionaryGenericType)))
+                if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableOfKeyValuePair))
+                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.LookupGeneric))
+                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.DictionaryGeneric)))
                 {
                     return false;
                 }
@@ -671,13 +671,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     INamedTypeSymbol? genericInterfaceSymbol = null;
 
-                    if (currSymbol.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType)) && currSymbol is INamedTypeSymbol currNamedSymbol)
+                    if (currSymbol.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric)) && currSymbol is INamedTypeSymbol currNamedSymbol)
                     {
                         finalSymbol = currNamedSymbol;
                         break;
                     }
 
-                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.IEnumerableGenericType))).FirstOrDefault();
+                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric))).FirstOrDefault();
                     if (genericInterfaceSymbol != null)
                     {
                         finalSymbol = genericInterfaceSymbol;
@@ -721,17 +721,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool IsStringType(ITypeSymbol symbol)
             {
-                return SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.StringType))
-                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.StringType)));
+                return SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.String))
+                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.String)));
             }
 
             private bool IsBinaryType(ITypeSymbol symbol)
             {
-                var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.ByteArrayType))
-                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.ByteStructType)));
-                var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.ReadOnlyMemoryOfBytes));
+                var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray))
+                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct)));
+                var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ReadOnlyMemoryOfBytes));
                 var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray && 
-                    outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, Compilation.GetTypeByMetadataName(Constants.ByteStructType));
+                    outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct));
 
 
                 return isByteArray || isReadOnlyMemoryOfBytes || isArrayOfByteArrays;

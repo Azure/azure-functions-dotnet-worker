@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Converters;
 using System.Collections.Generic;
-using Azure.Core;
-using Azure.Identity;
 using Microsoft.Azure.Cosmos;
 using System.Linq;
 using System.Reflection;
@@ -19,6 +17,13 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     internal class CosmosDBConverter : IInputConverter
     {
+        private readonly ICosmosDBServiceFactory _cosmosDBServiceFactory;
+
+        public CosmosDBConverter(ICosmosDBServiceFactory cosmosDBServiceFactory)
+        {
+            _cosmosDBServiceFactory = cosmosDBServiceFactory ?? throw new ArgumentNullException(nameof(cosmosDBServiceFactory));
+        }
+
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (context.Source is ModelBindingData modelBindingData)
@@ -179,32 +184,8 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("Cosmos attribute cannot be null");
             }
 
-            CosmosClient cosmosClient;
-            var connectionString = Environment.GetEnvironmentVariable(cosmosAttribute.Connection);
-
-            if (connectionString is null)
-            {
-                var accountName = Environment.GetEnvironmentVariable(Constants.ConnectionAccountName);
-                var clientId = Environment.GetEnvironmentVariable(Constants.ConnectionClientId);
-
-                if (accountName is null || string.IsNullOrEmpty(clientId))
-                {
-                    return ConversionResult.Unhandled();
-                }
-
-                var tenantId = Environment.GetEnvironmentVariable(Constants.ConnectionTenantId);
-                var clientSecret = Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret);
-
-                TokenCredential credential = !string.IsNullOrEmpty(tenantId) && !string.IsNullOrEmpty(clientSecret)
-                                                ? new ClientSecretCredential(tenantId, clientId, clientSecret) // app registration (do we even want/need to support this?)
-                                                : new ChainedTokenCredential(new ManagedIdentityCredential(clientId), new ManagedIdentityCredential()); // user-managed, system-managed
-
-                cosmosClient = new($"https://{accountName}.documents.azure.com:443/", credential);
-            }
-            else
-            {
-                cosmosClient = new(connectionString);
-            }
+            CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations) };
+            CosmosClient cosmosClient = _cosmosDBServiceFactory.CreateService(cosmosAttribute.Connection, cosmosClientOptions);
 
             Type targetType = typeof(T);
             object cosmosReference = targetType switch

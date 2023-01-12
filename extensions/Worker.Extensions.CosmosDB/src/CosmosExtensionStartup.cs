@@ -17,6 +17,8 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
+            applicationBuilder.Services.AddOptions<CosmosDBBindingOptions>();
+
             // Adds AzureComponentFactory
             applicationBuilder.Services.AddAzureClientsCore();
             applicationBuilder.Services.AddSingleton<ICosmosDBServiceFactory, DefaultCosmosDBServiceFactory>();

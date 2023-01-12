@@ -7,7 +7,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal static class ConfigurationExtensions
     {
-        public static IConfigurationSection GetConnectionStringSection(this IConfiguration configuration, string connectionStringName)
+        public static IConfigurationSection GetCosmosConnectionStringSection(this IConfiguration configuration, string connectionStringName)
         {
             if (string.IsNullOrWhiteSpace(connectionStringName))
             {

@@ -3,6 +3,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 [assembly: WorkerExtensionStartup(typeof(CosmosExtensionStartup))]
 
@@ -17,11 +18,9 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
+            applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             applicationBuilder.Services.AddOptions<CosmosDBBindingOptions>();
-
-            // Adds AzureComponentFactory
-            applicationBuilder.Services.AddAzureClientsCore();
-            applicationBuilder.Services.AddSingleton<ICosmosDBServiceFactory, DefaultCosmosDBServiceFactory>();
+            applicationBuilder.Services.AddSingleton<IConfigureOptions<CosmosDBBindingOptions>, CosmosDBBindingOptionsSetup>();
 
             applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
             {

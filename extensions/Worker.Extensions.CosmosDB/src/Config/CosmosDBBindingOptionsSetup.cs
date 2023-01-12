@@ -2,19 +2,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Azure.Core;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class LanguageWorkerOptionsSetup : IConfigureOptions<CosmosDBBindingOptions>
+    internal class CosmosDBBindingOptionsSetup : IConfigureNamedOptions<CosmosDBBindingOptions>
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
 
-        public LanguageWorkerOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory)
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
@@ -22,14 +21,17 @@ namespace Microsoft.Azure.Functions.Worker
 
         public void Configure(CosmosDBBindingOptions options)
         {
-            var connection = "this needs to come from the binding";
-            _configuration.Bind(connection);
-            IConfigurationSection connectionSection = _configuration.GetCosmosConnectionStringSection(connection);
+            Configure(Options.DefaultName, options);
+        }
+
+        public void Configure(string name, CosmosDBBindingOptions options)
+        {
+            IConfigurationSection connectionSection = _configuration.GetCosmosConnectionStringSection(name);
 
             if (!connectionSection.Exists())
             {
                 // Not found
-                throw new InvalidOperationException($"Cosmos DB connection configuration '{connection}' does not exist. " +
+                throw new InvalidOperationException($"Cosmos DB connection configuration '{name}' does not exist. " +
                                                     "Make sure that it is a defined App Setting.");
             }
 

@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using Microsoft.Azure.Cosmos;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -17,11 +18,11 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     internal class CosmosDBConverter : IInputConverter
     {
-        private readonly ICosmosDBServiceFactory _cosmosDBServiceFactory;
+        private readonly IOptionsSnapshot<CosmosDBBindingOptions> _cosmosOptions;
 
-        public CosmosDBConverter(ICosmosDBServiceFactory cosmosDBServiceFactory)
+        public CosmosDBConverter(IOptionsSnapshot<CosmosDBBindingOptions> cosmosOptions)
         {
-            _cosmosDBServiceFactory = cosmosDBServiceFactory ?? throw new ArgumentNullException(nameof(cosmosDBServiceFactory));
+            _cosmosOptions = cosmosOptions ?? throw new ArgumentNullException(nameof(cosmosOptions));
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -191,8 +192,9 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("Cosmos attribute cannot be null");
             }
 
+            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
             CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations) };
-            CosmosClient cosmosClient = _cosmosDBServiceFactory.CreateService(cosmosAttribute.Connection, cosmosClientOptions);
+            CosmosClient cosmosClient = cosmosDBOptions.CreateClient(cosmosClientOptions);
 
             Type targetType = typeof(T);
             object cosmosReference = targetType switch

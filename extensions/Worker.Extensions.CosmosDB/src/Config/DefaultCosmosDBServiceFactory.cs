@@ -2,32 +2,31 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Azure.Core;
 using Microsoft.Azure.Cosmos;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     internal class DefaultCosmosDBServiceFactory : ICosmosDBServiceFactory
     {
-        private readonly CosmosBindingOptions _options;
+        private readonly IOptions<CosmosBindingOptions> _options;
 
-        public DefaultCosmosDBServiceFactory(CosmosBindingOptions options)
+        public DefaultCosmosDBServiceFactory(IOptions<CosmosBindingOptions> options)
         {
             _options = options ?? throw new ArgumentNullException(nameof(options));
         }
 
         public CosmosClient CreateService(string connectionName, CosmosClientOptions cosmosClientOptions)
         {
-            if (string.IsNullOrEmpty(_options.ConnectionString))
+            // How to use `connectionName` with IOptions setup?
+            if (string.IsNullOrEmpty(_options.Value.ConnectionString))
             {
                 // AAD auth
-                return new CosmosClient(_options.AccountEndpoint, _options.Credential, cosmosClientOptions);
+                return new CosmosClient(_options.Value.AccountEndpoint, _options.Value.Credential, cosmosClientOptions);
             }
 
             // Connection string based auth
-            return new CosmosClient(_options.ConnectionString, cosmosClientOptions);
+            return new CosmosClient(_options.Value.ConnectionString, cosmosClientOptions);
         }
     }
 }

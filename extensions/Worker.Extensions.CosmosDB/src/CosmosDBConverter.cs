@@ -137,9 +137,11 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("Houston, we have a problem");
             }
 
-            if (cosmosAttribute.Id is not null && cosmosAttribute.PartitionKey is not null)
+            var partitionKey = cosmosAttribute.PartitionKey == null ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
+
+            if (cosmosAttribute.Id is not null)
             {
-                ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
+                ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, partitionKey);
 
                 if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
                 {
@@ -149,16 +151,22 @@ namespace Microsoft.Azure.Functions.Worker
                 return item.Resource;
             }
 
+            QueryDefinition queryDefinition = null;
             if (cosmosAttribute.SqlQuery is not null)
             {
-                using (var iterator = container.GetItemQueryIterator<T>(cosmosAttribute.SqlQuery))
+                queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
+                if (cosmosAttribute.SqlQueryParameters != null)
                 {
-                    return await ExtractCosmosDocuments(iterator);
+                    // TODO: fix SqlQueryParameters being empty
+                    foreach (var parameter in cosmosAttribute.SqlQueryParameters)
+                    {
+                        queryDefinition.WithParameter(parameter.Item1, parameter.Item2);
+                    }
                 }
             }
 
-            var allContainerDocuments = container.GetItemQueryIterator<T>();
-            using (var iterator = container.GetItemQueryIterator<T>())
+            QueryRequestOptions queryRequestOptions = new() { PartitionKey = partitionKey };
+            using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {
                 return await ExtractCosmosDocuments(iterator);
             }
@@ -170,8 +178,7 @@ namespace Microsoft.Azure.Functions.Worker
             while (iterator.HasMoreResults)
             {
                 FeedResponse<T> response = await iterator.ReadNextAsync();
-                IEnumerable<T> documents = response.Resource;
-                documentList.AddRange(documents);
+                documentList.AddRange(response.Resource);
             }
             return documentList;
         }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -67,5 +68,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// PreferredLocations = "East US,South Central US,North Europe"
         /// </example>
         public string? PreferredLocations { get; set; }
+
+        internal IEnumerable<(string, object)> SqlQueryParameters { get; set; }
     }
 }

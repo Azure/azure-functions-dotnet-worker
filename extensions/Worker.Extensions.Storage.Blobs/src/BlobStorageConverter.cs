@@ -119,6 +119,7 @@ namespace Microsoft.Azure.Functions.Worker
             Type _ when targetType == typeof(String) => await GetBlobString(connectionName, containerName, blobName),
             Type _ when targetType == typeof(Stream) => await GetBlobStream(connectionName, containerName, blobName),
             Type _ when targetType == typeof(Byte[]) => await GetBlobBinaryData(connectionName, containerName, blobName),
+            Type _ when targetType == typeof(BlobBaseClient) => CreateBlobClient<BlobBaseClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlobClient) => CreateBlobClient<BlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlockBlobClient) => CreateBlobClient<BlockBlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(PageBlobClient) => CreateBlobClient<PageBlobClient>(connectionName, containerName, blobName),

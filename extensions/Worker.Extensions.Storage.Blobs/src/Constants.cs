@@ -5,6 +5,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal static class Constants
     {
+        internal const string Storage = "Storage";
         internal const string BlobExtensionName = "AzureStorageBlobs";
         internal const string Connection = "Connection";
         internal const string ContainerName = "ContainerName";
@@ -12,12 +13,5 @@ namespace Microsoft.Azure.Functions.Worker
 
         // Media content types
         internal const string JsonContentType = "application/json";
-
-        internal const string ConnectionAccountName = "AzureWebJobsStorage__accountName";
-        internal const string ConnectionBlobUri = "AzureWebJobsStorage__blobServiceUri";
-        internal const string ConnectionClientId = "AzureWebJobsStorage__clientId";
-        internal const string ConnectionClientSecret = "AzureWebJobsStorage__clientSecret";
-        internal const string ConnectionTenantId = "AzureWebJobsStorage__tenantId";
-        internal const string ConnectionCredential = "AzureWebJobsStorage__credential";
     }
 }

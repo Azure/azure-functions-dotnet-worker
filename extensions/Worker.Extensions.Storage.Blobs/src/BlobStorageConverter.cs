@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Converters;
 using System.Linq;
 using Microsoft.Extensions.Options;
 using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -23,10 +24,13 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
 
-        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions)
+        private readonly ILogger<BlobStorageConverter> _logger;
+
+        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -35,6 +39,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (!TryGetBindingDataContent(bindingData, out IDictionary<string, string> content))
                 {
+                    _logger.LogTrace("Unable to parse model binding data content");
                     return ConversionResult.Unhandled();
                 }
 
@@ -50,6 +55,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (!IsSupportedEnumerable(context.TargetType))
                 {
+                    _logger.LogTrace("Target type '{targetType}' is not supported", context.TargetType);
                     return ConversionResult.Unhandled();
                 }
 
@@ -61,6 +67,7 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
                     {
+                        _logger.LogTrace("Unable to parse model binding data content");
                         return ConversionResult.Unhandled();
                     }
 
@@ -88,13 +95,16 @@ namespace Microsoft.Azure.Functions.Worker
             if (bindingData.Source is not Constants.BlobExtensionName)
             {
                 bindingDataContent = null;
+                _logger.LogTrace("Model binding data source '{source}' is not supported", bindingData.Source);
             }
-
-            bindingDataContent = bindingData.ContentType switch
+            else
             {
-                Constants.JsonContentType => new Dictionary<string, string>(bindingData.Content.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                _ => null
-            };
+                bindingDataContent = bindingData.ContentType switch
+                {
+                    Constants.JsonContentType => new Dictionary<string, string>(bindingData.Content.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
+                    _ => null
+                };
+            }
 
             return bindingDataContent is not null;
         }

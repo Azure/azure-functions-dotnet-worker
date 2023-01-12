@@ -4,7 +4,7 @@
     ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
       isReleaseBuildTemp: true
     buildNumber: $[variables.buildNumberTemp]
-    isReleaseBuild: true
+    isReleaseBuild: $[variables.isReleaseBuildTemp]
     solution: '**/*.sln'
     buildPlatform: 'Any CPU'
     buildConfiguration: 'Release'

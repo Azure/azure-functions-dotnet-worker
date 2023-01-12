@@ -9,24 +9,24 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal class DefaultCosmosDBServiceFactory : ICosmosDBServiceFactory
     {
-        private readonly IOptions<CosmosBindingOptions> _options;
+        private readonly CosmosBindingOptions _options;
 
         public DefaultCosmosDBServiceFactory(IOptions<CosmosBindingOptions> options)
         {
-            _options = options ?? throw new ArgumentNullException(nameof(options));
+            _options = options.Value ?? throw new ArgumentNullException(nameof(options));
         }
 
         public CosmosClient CreateService(string connectionName, CosmosClientOptions cosmosClientOptions)
         {
             // How to use `connectionName` with IOptions setup?
-            if (string.IsNullOrEmpty(_options.Value.ConnectionString))
+            if (string.IsNullOrEmpty(_options.ConnectionString))
             {
                 // AAD auth
-                return new CosmosClient(_options.Value.AccountEndpoint, _options.Value.Credential, cosmosClientOptions);
+                return new CosmosClient(_options.AccountEndpoint, _options.Credential, cosmosClientOptions);
             }
 
             // Connection string based auth
-            return new CosmosClient(_options.Value.ConnectionString, cosmosClientOptions);
+            return new CosmosClient(_options.ConnectionString, cosmosClientOptions);
         }
     }
 }

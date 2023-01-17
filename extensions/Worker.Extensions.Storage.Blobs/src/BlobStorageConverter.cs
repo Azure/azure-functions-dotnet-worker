@@ -37,10 +37,15 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (context.Source is ModelBindingData bindingData)
             {
+                if (!IsBlobExtension(bindingData))
+                {
+                    return ConversionResult.Unhandled();
+                }
+
                 if (!TryGetBindingDataContent(bindingData, out IDictionary<string, string> content))
                 {
-                    _logger.LogTrace("Unable to parse model binding data content");
-                    return ConversionResult.Unhandled();
+                    _logger.LogWarning("Unable to parse model binding data content");
+                    return ConversionResult.Failed();
                 }
 
                 var result = await ConvertModelBindingDataAsync(content, context.TargetType, bindingData);
@@ -55,8 +60,8 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (!IsSupportedEnumerable(context.TargetType))
                 {
-                    _logger.LogTrace("Target type '{targetType}' is not supported", context.TargetType);
-                    return ConversionResult.Unhandled();
+                    _logger.LogWarning("Target type '{targetType}' is not supported", context.TargetType);
+                    return ConversionResult.Failed();
                 }
 
                 Type individualTargetType = context.TargetType.GenericTypeArguments.FirstOrDefault();
@@ -65,10 +70,15 @@ namespace Microsoft.Azure.Functions.Worker
 
                 foreach (ModelBindingData modelBindingData in collectionBindingData.ModelBindingDataArray)
                 {
+                    if (!IsBlobExtension(modelBindingData))
+                    {
+                        return ConversionResult.Unhandled();
+                    }
+
                     if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
                     {
-                        _logger.LogTrace("Unable to parse model binding data content");
-                        return ConversionResult.Unhandled();
+                        _logger.LogWarning("Unable to parse model binding data content");
+                        return ConversionResult.Failed();
                     }
 
                     var element = await ConvertModelBindingDataAsync(content, individualTargetType, modelBindingData);
@@ -90,21 +100,24 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        private bool TryGetBindingDataContent(ModelBindingData bindingData, out IDictionary<string, string> bindingDataContent)
+        private bool IsBlobExtension(ModelBindingData bindingData)
         {
             if (bindingData.Source is not Constants.BlobExtensionName)
             {
-                bindingDataContent = null;
-                _logger.LogTrace("Model binding data source '{source}' is not supported", bindingData.Source);
+                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData.Source, nameof(BlobStorageConverter));
+                return false;
             }
-            else
+
+            return true;
+        }
+
+        private bool TryGetBindingDataContent(ModelBindingData bindingData, out IDictionary<string, string> bindingDataContent)
+        {
+            bindingDataContent = bindingData.ContentType switch
             {
-                bindingDataContent = bindingData.ContentType switch
-                {
-                    Constants.JsonContentType => new Dictionary<string, string>(bindingData.Content.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                    _ => null
-                };
-            }
+                Constants.JsonContentType => new Dictionary<string, string>(bindingData.Content.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
+                _ => null
+            };
 
             return bindingDataContent is not null;
         }
@@ -117,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (string.IsNullOrEmpty(connectionName) || string.IsNullOrEmpty(containerName))
             {
-                return ConversionResult.Unhandled();
+                throw new ArgumentNullException("'Connection' or 'ContainerName' cannot be null or empty");
             }
 
             var result = await ToTargetType(targetType, connectionName, containerName, blobName);

@@ -152,13 +152,19 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            Assert.Equal(2, functions.Count());
+            Assert.Equal(3, functions.Count());
 
             var queueToBlob = functions.Single(p => p.Name == "QueueToBlobFunction");
             var blobToQueue = functions.Single(p => p.Name == "BlobToQueueFunction");
+            var blobToBlobs = functions.Single(p => p.Name == "BlobToBlobsFunction");
 
             ValidateFunction(queueToBlob, "QueueToBlobFunction", GetEntryPoint(nameof(Storage), nameof(Storage.QueueToBlob)),
                 b => ValidateQueueTrigger(b),
+                b => ValidateBlobOutput(b));
+
+            ValidateFunction(blobToBlobs, "BlobToBlobsFunction", GetEntryPoint(nameof(Storage), nameof(Storage.BlobToBlobs)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
                 b => ValidateBlobOutput(b));
 
             AssertDictionary(extensions, new Dictionary<string, string>
@@ -194,6 +200,20 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
+            void ValidateBlobInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "DataType", "String"},
+                    { "Direction", "In" },
+                    { "blobPath", "container2" },
+                    { "Cardinality", "Many" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+
             ValidateFunction(blobToQueue, "BlobToQueueFunction", GetEntryPoint(nameof(Storage), nameof(Storage.BlobToQueue)),
                 b => ValidateBlobTrigger(b),
                 b => ValidateQueueOutput(b));
@@ -219,70 +239,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
-                    { "Properties", new Dictionary<String, Object>() }
-                });
-            }
-        }
-
-        [Fact]
-        public void StorageFunction_SDKTypeBindings()
-        {
-            var generator = new FunctionMetadataGenerator();
-            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
-            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
-            var extensions = generator.Extensions;
-
-            Assert.Equal(1, functions.Count());
-
-            var blobToBlob = functions.Single(p => p.Name == "BlobsToBlobFunction");
-
-            ValidateFunction(blobToBlob, "BlobsToBlobFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobsToBlob)),
-                b => ValidateBlobTrigger(b),
-                b => ValidateBlobInput(b),
-                b => ValidateBlobOutput(b));
-
-            AssertDictionary(extensions, new Dictionary<string, string>
-            {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0" }
-            });
-
-            void ValidateBlobTrigger(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "blob" },
-                    { "Type", "blobTrigger" },
-                    { "Direction", "In" },
-                    { "path", "container2/%file%" },
-                    { "DataType", "String" },
-                    { "Properties", new Dictionary<String, Object>() }
-                });
-            }
-
-            void ValidateBlobInput(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "blobinput" },
-                    { "Type", "blob" },
-                    { "DataType", "String"},
-                    { "Direction", "In" },
-                    { "blobPath", "container2" },
-                    { "Cardinality", "Many" },
-                    { "Properties", new Dictionary<String, Object>() }
-                });
-            }
-
-            void ValidateBlobOutput(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "$return" },
-                    { "Type", "blob" },
-                    { "Direction", "Out" },
-                    { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" },
                     { "Properties", new Dictionary<String, Object>() }
                 });
             }
@@ -783,6 +739,15 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
                 throw new NotImplementedException();
             }
+
+            [Function("BlobToBlobsFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobToBlobs(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         private class ExternalType_Return
@@ -845,18 +810,6 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             [QueueOutput("queue2")]
             public string queueOutput { get; set; }
-        }
-
-        private class SDKTypeBindings
-        {
-            [Function("BlobsToBlobFunction")]
-            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
-            public object BlobsToBlob(
-                [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
-            {
-                throw new NotImplementedException();
-            }
         }
 
         private class MultiReturn_Http

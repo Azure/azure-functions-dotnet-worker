@@ -27,6 +27,9 @@ namespace Microsoft.Azure.Functions.Worker
             get { return _blobPath; }
         }
 
+        /// <summary>
+        /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
+        /// </summary>
         [DefaultValue(false)]
         public bool IsBatched
         {

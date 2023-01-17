@@ -574,12 +574,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return binding;
         }
 
-        private static bool SupportsDeferredBinding(CustomAttribute attribute)
-        {
-            var typeDefinition = attribute.AttributeType.Resolve();
-            return typeDefinition.CustomAttributes.Any(a => a.AttributeType.FullName == Constants.SupportsDeferredBindingAttributeType);
-        }
-
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
             // Array and not byte array
@@ -799,6 +793,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return Constants.InputBindingDirection;
+        }
+
+        private static bool SupportsDeferredBinding(CustomAttribute attribute)
+        {
+            var typeDefinition = attribute?.AttributeType?.Resolve();
+
+            if (typeDefinition is null)
+            {
+                return false;
+            }
+
+            return typeDefinition.CustomAttributes
+                                 .Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
         }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)

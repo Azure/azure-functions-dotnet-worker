@@ -4,14 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
-using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Converters;
-using System.Linq;
+using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Options;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -44,8 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (!TryGetBindingDataContent(bindingData, out IDictionary<string, string> content))
                 {
-                    _logger.LogWarning("Unable to parse model binding data content");
-                    return ConversionResult.Failed();
+                    return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
                 }
 
                 var result = await ConvertModelBindingDataAsync(content, context.TargetType, bindingData);
@@ -60,8 +59,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (!IsSupportedEnumerable(context.TargetType))
                 {
-                    _logger.LogWarning("Target type '{targetType}' is not supported", context.TargetType);
-                    return ConversionResult.Failed();
+                    return ConversionResult.Failed(new InvalidOperationException($"Target type '{context.TargetType}' is not supported"));
                 }
 
                 Type individualTargetType = context.TargetType.GenericTypeArguments.FirstOrDefault();
@@ -77,8 +75,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                     if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
                     {
-                        _logger.LogWarning("Unable to parse model binding data content");
-                        return ConversionResult.Failed();
+                        return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
                     }
 
                     var element = await ConvertModelBindingDataAsync(content, individualTargetType, modelBindingData);

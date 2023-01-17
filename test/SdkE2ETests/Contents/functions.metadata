@@ -53,6 +53,7 @@
         "dataType": "String",
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
+        "cardinality": "One",
         "properties": {}
       },
       {
@@ -190,6 +191,7 @@
         "dataType": "String",
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
+        "cardinality": "One",
         "properties": {}
       }
     ],

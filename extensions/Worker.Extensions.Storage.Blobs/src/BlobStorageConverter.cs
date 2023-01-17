@@ -223,12 +223,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static bool IsSupportedEnumerable(Type type)
         {
-            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
-            {
-                return true;
-            }
-
-            return false;
+            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
         }
     }
 }

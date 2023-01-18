@@ -219,13 +219,13 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
                             Function2RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""blobPath"":""container2"",""cardinality"":""Many"",""dataType"":""String""}");
-                
+                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""blobPath"":""container2"",""cardinality"":""Many""}");
+
                             var Function2 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
                                 Name = "BlobsToQueueFunction",
-                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.BlobsToQueue",
+                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobsToQueue",
                                 RawBindings = Function2RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -243,7 +243,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         ///</summary>
                         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                         {
-                            builder.ConfigureServices(s => 
+                            builder.ConfigureServices(s =>
                             {
                                 s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
                             });

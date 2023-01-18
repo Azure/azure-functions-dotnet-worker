@@ -7,9 +7,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Mono.Cecil;
-using Mono.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -120,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 functions.AddRange(functionsResult);
             }
 
-            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, out bool supportsDeferredBinding, usedByFunction: false))
+            if (!moduleExtensionRegistered && TryAddExtensionInfo(_extensions, module.Assembly, usedByFunction: false))
             {
                 _logger.LogMessage($"Implicitly registered {module.FileName} as an extension.");
             }
@@ -347,7 +345,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     foundOutputAttribute = true;
 
                     AddOutputBindingMetadata(bindingMetadata, propertyAttribute, property.PropertyType, property.Name);
-                    AddExtensionInfo(_extensions, propertyAttribute, out bool supportsDeferredBinding);
+                    AddExtensionInfo(_extensions, propertyAttribute);
                 }
             }
         }
@@ -367,7 +365,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     }
 
                     AddOutputBindingMetadata(bindingMetadata, methodAttribute, methodAttribute.AttributeType, Constants.ReturnBindingName);
-                    AddExtensionInfo(_extensions, methodAttribute, out bool supportsDeferredBinding);
+                    AddExtensionInfo(_extensions, methodAttribute);
 
                     foundBinding = true;
                 }
@@ -384,8 +382,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (IsFunctionBindingType(parameterAttribute))
                     {
-                        AddExtensionInfo(_extensions, parameterAttribute, out bool supportsDeferredBinding);
-                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name, supportsDeferredBinding);
+                        AddExtensionInfo(_extensions, parameterAttribute);
+                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
                     }
                 }
             }
@@ -416,10 +414,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             AddBindingMetadata(bindingMetadata, attribute, parameterType, parameterName: name);
         }
 
-        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName, bool supportsReferenceType = false)
+        private static void AddBindingMetadata(IList<ExpandoObject> bindingMetadata, CustomAttribute attribute, TypeReference parameterType, string? parameterName)
         {
             string bindingType = GetBindingType(attribute);
-            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName, supportsReferenceType);
+            ExpandoObject binding = BuildBindingMetadataFromAttribute(attribute, bindingType, parameterType, parameterName);
             bindingMetadata.Add(binding);
         }
 
@@ -471,7 +469,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return bindingNameAliasMap;
         }
 
-        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName, bool supportsDeferredBinding)
+        private static ExpandoObject BuildBindingMetadataFromAttribute(CustomAttribute attribute, string bindingType, TypeReference parameterType, string? parameterName)
         {
             ExpandoObject binding = new ExpandoObject();
 
@@ -489,7 +487,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // For extensions that support deferred binding, set the supportsDeferredBinding property so parameters are bound by the worker
             // Only use deferred binding for input and trigger bindings, output is out not currently supported
-            if (supportsDeferredBinding && direction != Constants.OutputBindingDirection)
+            if (SupportsDeferredBinding(attribute) && direction != Constants.OutputBindingDirection)
             {
                 bindingProperties.Add(Constants.SupportsDeferredBindingProperty, Boolean.TrueString);
             }
@@ -752,16 +750,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             bindingMetadata.Add((ExpandoObject)returnBinding);
         }
 
-        private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute, out bool supportsDeferredBinding)
+        private static void AddExtensionInfo(IDictionary<string, string> extensions, CustomAttribute attribute)
         {
             AssemblyDefinition extensionAssemblyDefinition = attribute.AttributeType.Resolve().Module.Assembly;
-            TryAddExtensionInfo(extensions, extensionAssemblyDefinition, out supportsDeferredBinding);
+            TryAddExtensionInfo(extensions, extensionAssemblyDefinition);
         }
 
-        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, out bool supportsDeferredBinding, bool usedByFunction = true)
+        private static bool TryAddExtensionInfo(IDictionary<string, string> extensions, AssemblyDefinition extensionAssemblyDefinition, bool usedByFunction = true)
         {
-            supportsDeferredBinding = false;
-
             foreach (var assemblyAttribute in extensionAssemblyDefinition.CustomAttributes)
             {
                 if (string.Equals(assemblyAttribute.AttributeType.FullName, Constants.ExtensionsInformationType, StringComparison.Ordinal))
@@ -774,11 +770,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     {
                         // EnableImplicitRegistration
                         implicitlyRegister = (bool)assemblyAttribute.ConstructorArguments[2].Value;
-                    }
-                    
-                    if (assemblyAttribute.ConstructorArguments.Count >= 4)
-                    {
-                        supportsDeferredBinding = (bool)assemblyAttribute.ConstructorArguments[3].Value;
                     }
 
                     if (usedByFunction || implicitlyRegister)
@@ -802,6 +793,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return Constants.InputBindingDirection;
+        }
+
+        private static bool SupportsDeferredBinding(CustomAttribute attribute)
+        {
+            var typeDefinition = attribute?.AttributeType?.Resolve();
+
+            if (typeDefinition is null)
+            {
+                return false;
+            }
+
+            return typeDefinition.CustomAttributes
+                                 .Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
         }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)

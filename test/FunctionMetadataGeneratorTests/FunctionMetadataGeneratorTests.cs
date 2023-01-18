@@ -152,13 +152,19 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            Assert.Equal(2, functions.Count());
+            Assert.Equal(3, functions.Count());
 
             var queueToBlob = functions.Single(p => p.Name == "QueueToBlobFunction");
             var blobToQueue = functions.Single(p => p.Name == "BlobToQueueFunction");
+            var blobToBlobs = functions.Single(p => p.Name == "BlobToBlobsFunction");
 
             ValidateFunction(queueToBlob, "QueueToBlobFunction", GetEntryPoint(nameof(Storage), nameof(Storage.QueueToBlob)),
                 b => ValidateQueueTrigger(b),
+                b => ValidateBlobOutput(b));
+
+            ValidateFunction(blobToBlobs, "BlobToBlobsFunction", GetEntryPoint(nameof(Storage), nameof(Storage.BlobToBlobs)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
                 b => ValidateBlobOutput(b));
 
             AssertDictionary(extensions, new Dictionary<string, string>
@@ -190,6 +196,20 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "Out" },
                     { "blobPath", "container1/hello.txt" },
                     { "Connection", "MyOtherConnection" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+
+            void ValidateBlobInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "DataType", "String"},
+                    { "Direction", "In" },
+                    { "blobPath", "container2" },
+                    { "Cardinality", "Many" },
                     { "Properties", new Dictionary<String, Object>() }
                 });
             }
@@ -716,6 +736,15 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobToQueue(
                 [BlobTrigger("container2/%file%")] string blob)
 
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobToBlobsFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobToBlobs(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
             {
                 throw new NotImplementedException();
             }

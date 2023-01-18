@@ -28,7 +28,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         public void Configure(string name, BlobStorageBindingOptions options)
         {
-
             if (string.IsNullOrWhiteSpace(name))
             {
                 name = Constants.Storage; // default
@@ -43,15 +42,23 @@ namespace Microsoft.Azure.Functions.Worker
                                                     "Make sure that it is a defined App Setting.");
             }
 
-            options.ServiceUri  = new Uri(connectionSection["blobServiceUri"]);
-            if (options.ServiceUri is null)
+            if (!string.IsNullOrWhiteSpace(connectionSection.Value))
             {
-                // Not found
-                throw new InvalidOperationException($"Connection should have an 'blobServiceUri' property or be a " +
-                                                    "string representing a connection string.");
+                options.ConnectionString = connectionSection.Value;
+            }
+            else
+            {
+                options.ServiceUri  = new Uri(connectionSection["blobServiceUri"]);
+                if (options.ServiceUri is null)
+                {
+                    // Not found
+                    throw new InvalidOperationException($"Connection should have an 'blobServiceUri' property or be a " +
+                                                        "string representing a connection string.");
+                }
+
+                options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
             }
 
-            options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
             options.BlobClientOptions = (BlobClientOptions)_componentFactory.CreateClientOptions(typeof(BlobClientOptions), null, connectionSection);
         }
     }

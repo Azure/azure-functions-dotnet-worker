@@ -750,18 +750,6 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
-        private class SDKTypeBindings
-        {
-            [Function("BlobToBlobFunction")]
-            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
-            public object BlobToBlob(
-                [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2/%file%")] string blobinput)
-            {
-                throw new NotImplementedException();
-            }
-        }
-
         private class ExternalType_Return
         {
             public const string FunctionName = "BasicHttpWithExternalTypeReturn";

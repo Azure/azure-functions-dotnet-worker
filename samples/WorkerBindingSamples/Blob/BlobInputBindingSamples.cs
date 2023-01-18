@@ -35,18 +35,6 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        [Function(nameof(BlobInputClientFunctionValidateConnection))]
-        public async Task<HttpResponseData> BlobInputClientFunctionValidateConnection(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container/sample1.txt", Connection = "Storage")] BlobClient client)
-        {
-            var downloadResult = await client.DownloadContentAsync();
-            var content = downloadResult.Value.Content.ToString();
-            _logger.LogInformation("Blob content: {content}", content);
-
-            return req.CreateResponse(HttpStatusCode.OK);
-        }
-
         [Function(nameof(BlobInputStreamFunction))]
         public HttpResponseData BlobInputStreamFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
@@ -88,7 +76,7 @@ namespace SampleApp
         [Function(nameof(BlobInputCollectionFunction))]
         public HttpResponseData BlobInputCollectionFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container")] IEnumerable<BlobClient> blobs)
+            [BlobInput("input-container", IsBatched = true)] IEnumerable<BlobClient> blobs)
         {
             _logger.LogInformation("Blobs within container:");
             foreach (BlobClient blob in blobs)
@@ -99,11 +87,18 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        [Function(nameof(BlobMSIFunction))]
-        public void BlobMSIFunction(
-            [BlobTrigger("blobtest-trigger/{name}", Connection = "")] string myBlob, string name)
+        [Function(nameof(BlobInputStringArrayFunction))]
+        public HttpResponseData BlobInputStringArrayFunction(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [BlobInput("input-container", IsBatched = true)] string[] blobContent)
         {
-            _logger.LogInformation($"C# Blob trigger function Processed blob\n Name: {name} \n Data: {myBlob}");
+            _logger.LogInformation("Content of all blobs within container:");
+            foreach (var item in blobContent)
+            {
+                _logger.LogInformation(item);
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
         }
     }
 }

@@ -8,8 +8,8 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>7</MinorProductVersion>
-    <VersionSuffix>-preview7</VersionSuffix>
+    <MinorProductVersion>8</MinorProductVersion>
+    <VersionSuffix>-preview1</VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

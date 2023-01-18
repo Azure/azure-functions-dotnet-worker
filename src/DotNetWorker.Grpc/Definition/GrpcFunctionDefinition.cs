@@ -24,11 +24,12 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             string? scriptRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
             if (string.IsNullOrWhiteSpace(scriptRoot))
             {
-                throw new ArgumentException("AzureWebJobsScriptRoot env variable value is null or empty");
+                throw new InvalidOperationException("The 'AzureWebJobsScriptRoot' environment variable value is not defined. This is a required environment variable that is automatically set by the Azure Functions runtime.");
             }
+
             if (string.IsNullOrWhiteSpace(loadRequest.Metadata.ScriptFile))
             {
-                throw new ArgumentException("loadRequest.Metadata.ScriptFile value is null or empty");
+                throw new InvalidOperationException($"Metadata for function '{loadRequest.Metadata.Name} ({loadRequest.Metadata.FunctionId})' does not specify a 'ScriptFile'.");
             }
 
             string scriptFile = Path.Combine(scriptRoot, loadRequest.Metadata.ScriptFile);

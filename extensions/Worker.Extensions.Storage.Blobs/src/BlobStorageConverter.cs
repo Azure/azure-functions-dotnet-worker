@@ -149,15 +149,15 @@ namespace Microsoft.Azure.Functions.Worker
 
         private IEnumerable<object> ToTargetTypeCollection(Type targetType, IEnumerable<object> blobCollection) => targetType switch
         {
-            Type _ when targetType == typeof(BlobBaseClient) => blobCollection.Select(b => (BlobBaseClient)b),
-            Type _ when targetType == typeof(BlobClient) => blobCollection.Select(b => (BlobClient)b),
+            Type _ when targetType == typeof(IEnumerable<BlobBaseClient>) => blobCollection.Select(b => (BlobBaseClient)b),
+            Type _ when targetType == typeof(IEnumerable<BlobClient>) => blobCollection.Select(b => (BlobClient)b),
             Type _ when targetType == typeof(IEnumerable<String>) || targetType == typeof(String[]) => blobCollection.Select((b) =>  ((String)b)),
-            Type _ when targetType == typeof(Stream) => blobCollection.Select(b => (Stream)b),
-            Type _ when targetType == typeof(Byte[]) => blobCollection.Select(b => (Byte[])b),
-            Type _ when targetType == typeof(BlockBlobClient) => blobCollection.Select(b => (BlockBlobClient)b),
-            Type _ when targetType == typeof(PageBlobClient) => blobCollection.Select(b => (PageBlobClient)b),
-            Type _ when targetType == typeof(AppendBlobClient) => blobCollection.Select(b => (AppendBlobClient)b),
-            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select(b => (BlobClient)b),
+            Type _ when targetType == typeof(IEnumerable<Stream>) => blobCollection.Select(b => (Stream)b),
+            Type _ when targetType == typeof(IEnumerable<Byte[]>) => blobCollection.Select(b => (Byte[])b),
+            Type _ when targetType == typeof(IEnumerable<BlockBlobClient>) => blobCollection.Select(b => (BlockBlobClient)b),
+            Type _ when targetType == typeof(IEnumerable<PageBlobClient>) => blobCollection.Select(b => (PageBlobClient)b),
+            Type _ when targetType == typeof(IEnumerable<AppendBlobClient>) => blobCollection.Select(b => (AppendBlobClient)b),
+            Type _ when targetType == typeof(IEnumerable<BlobContainerClient>) => blobCollection.Select(b => (BlobClient)b),
             _ => throw new InvalidOperationException($"Requested type '{targetType}' not supported.")
         };
 

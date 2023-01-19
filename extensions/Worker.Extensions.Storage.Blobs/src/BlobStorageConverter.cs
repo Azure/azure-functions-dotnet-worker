@@ -71,7 +71,10 @@ namespace Microsoft.Azure.Functions.Worker
                         return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
                     }
 
-                    var element = await ConvertModelBindingDataAsync(content, context.TargetType.GenericTypeArguments[0], modelBindingData);
+                    var element = await ConvertModelBindingDataAsync(
+                        content,
+                        context.TargetType.IsArray? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0],
+                        modelBindingData);
 
                     if (element is not null)
                     {
@@ -79,7 +82,10 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
 
-                var collectionResult = ToTargetTypeCollection(context.TargetType.GenericTypeArguments[0], collectionBlob);
+                var collectionResult = context.TargetType.IsArray ?
+                    ToTargetTypeArray(context.TargetType, collectionBlob) :
+                    ToTargetTypeCollection(context.TargetType, collectionBlob);
+
 
                 if (collectionResult is not null && collectionResult.Any())
                 {
@@ -145,8 +151,27 @@ namespace Microsoft.Azure.Functions.Worker
         {
             Type _ when targetType == typeof(BlobBaseClient) => blobCollection.Select(b => (BlobBaseClient)b),
             Type _ when targetType == typeof(BlobClient) => blobCollection.Select(b => (BlobClient)b),
-            Type _ when targetType == typeof(String) => blobCollection.Select((b) =>  ((String)b)),
-            // Type _ when targetType == typeof(String[]) => blobCollection.ToArray(),
+            Type _ when targetType == typeof(IEnumerable<String>) || targetType == typeof(String[]) => blobCollection.Select((b) =>  ((String)b)),
+            Type _ when targetType == typeof(Stream) => blobCollection.Select(b => (Stream)b),
+            Type _ when targetType == typeof(Byte[]) => blobCollection.Select(b => (Byte[])b),
+            Type _ when targetType == typeof(BlockBlobClient) => blobCollection.Select(b => (BlockBlobClient)b),
+            Type _ when targetType == typeof(PageBlobClient) => blobCollection.Select(b => (PageBlobClient)b),
+            Type _ when targetType == typeof(AppendBlobClient) => blobCollection.Select(b => (AppendBlobClient)b),
+            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select(b => (BlobClient)b),
+            _ => throw new InvalidOperationException($"Requested type '{targetType}' not supported.")
+        };
+
+        private object[] ToTargetTypeArray(Type targetType, IEnumerable<object> blobCollection) => targetType switch
+        {
+            Type _ when targetType == typeof(BlobBaseClient[]) => blobCollection.Select((b) => ((BlobBaseClient)b)).ToArray(),
+            Type _ when targetType == typeof(BlobClient[]) => blobCollection.Select((b) => ((BlobClient)b)).ToArray(),
+            Type _ when targetType == typeof(String[]) => blobCollection.Select((b) => ((String)b)).ToArray(),
+            Type _ when targetType == typeof(Stream[]) => blobCollection.Select((b) => ((Stream)b)).ToArray(),
+            Type _ when targetType == typeof(Byte[][]) => blobCollection.Select((b) => ((Byte[])b)).ToArray(),
+            Type _ when targetType == typeof(BlockBlobClient[]) => blobCollection.Select((b) => ((BlockBlobClient)b)).ToArray(),
+            Type _ when targetType == typeof(PageBlobClient[]) => blobCollection.Select((b) => ((PageBlobClient)b)).ToArray(),
+            Type _ when targetType == typeof(AppendBlobClient[]) => blobCollection.Select((b) => ((AppendBlobClient)b)).ToArray(),
+            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select((b) => ((BlobClient)b)).ToArray(),
             _ => throw new InvalidOperationException($"Requested type '{targetType}' not supported.")
         };
 

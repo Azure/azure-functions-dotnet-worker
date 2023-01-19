@@ -7,6 +7,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using System.Globalization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -14,6 +15,8 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
+
+        private const string BlobServiceUriSubDomain = "blob";
 
         public BlobStorageBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory)
         {
@@ -48,18 +51,48 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                options.ServiceUri  = new Uri(connectionSection["blobServiceUri"]);
-                if (options.ServiceUri is null)
+                if (TryGetServiceUri(connectionSection, out Uri serviceUri))
                 {
-                    // Not found
-                    throw new InvalidOperationException($"Connection should have an 'blobServiceUri' property or be a " +
-                                                        "string representing a connection string.");
+                    options.ServiceUri = serviceUri;
                 }
-
-                options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
             }
 
             options.BlobClientOptions = (BlobClientOptions)_componentFactory.CreateClientOptions(typeof(BlobClientOptions), null, connectionSection);
+            options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
+        }
+
+        /// <summary>
+        /// Either constructs the serviceUri from the provided accountName
+        /// or retrieves the serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)
+        /// </summary>
+        private bool TryGetServiceUri(IConfiguration configuration, out Uri serviceUri)
+        {
+            var serviceUriConfig = string.Format(CultureInfo.InvariantCulture, "{0}ServiceUri", BlobServiceUriSubDomain);
+
+            string accountName;
+            string uriStr;
+            if ((accountName = configuration.GetValue<string>("accountName")) is not null)
+            {
+                serviceUri = FormatServiceUri(accountName);
+                return true;
+            }
+            else if ((uriStr = configuration.GetValue<string>(serviceUriConfig)) is not null)
+            {
+                serviceUri = new Uri(uriStr);
+                return true;
+            }
+
+            serviceUri = default(Uri);
+            return false;
+        }
+
+        /// <summary>
+        /// Generates the serviceUri for a particular storage resource
+        /// </summary>
+        private Uri FormatServiceUri(string accountName, string defaultProtocol = "https", string endpointSuffix = "core.windows.net")
+        {
+            var uri = string.Format(CultureInfo.InvariantCulture, "{0}://{1}.{2}.{3}", defaultProtocol, accountName, BlobServiceUriSubDomain, endpointSuffix);
+            return new Uri(uri);
         }
     }
 }

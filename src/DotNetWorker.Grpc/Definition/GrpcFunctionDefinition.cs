@@ -19,8 +19,21 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         {
             EntryPoint = loadRequest.Metadata.EntryPoint;
             Name = loadRequest.Metadata.Name;
-            PathToAssembly = Path.GetFullPath(loadRequest.Metadata.ScriptFile);
             Id = loadRequest.FunctionId;
+
+            string? scriptRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
+            if (string.IsNullOrWhiteSpace(scriptRoot))
+            {
+                throw new InvalidOperationException("The 'AzureWebJobsScriptRoot' environment variable value is not defined. This is a required environment variable that is automatically set by the Azure Functions runtime.");
+            }
+
+            if (string.IsNullOrWhiteSpace(loadRequest.Metadata.ScriptFile))
+            {
+                throw new InvalidOperationException($"Metadata for function '{loadRequest.Metadata.Name} ({loadRequest.Metadata.FunctionId})' does not specify a 'ScriptFile'.");
+            }
+
+            string scriptFile = Path.Combine(scriptRoot, loadRequest.Metadata.ScriptFile);
+            PathToAssembly = Path.GetFullPath(scriptFile);
 
             var grpcBindingsGroup = loadRequest.Metadata.Bindings.GroupBy(kv => kv.Value.Direction);
             var grpcInputBindings = grpcBindingsGroup.Where(kv => kv.Key == BindingInfo.Types.Direction.In).FirstOrDefault();

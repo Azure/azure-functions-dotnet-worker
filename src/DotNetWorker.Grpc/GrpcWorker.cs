@@ -6,10 +6,8 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
-using Grpc.Core;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
@@ -22,52 +20,43 @@ using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class GrpcWorker : IWorker
+    internal class GrpcWorker : IWorker, IMessageProcessor
     {
-        private readonly ChannelReader<StreamingMessage> _outputReader;
-        private readonly ChannelWriter<StreamingMessage> _outputWriter;
-
         private readonly IFunctionsApplication _application;
-        private readonly FunctionRpcClient _rpcClient;
         private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
-        private readonly GrpcWorkerStartupOptions _startupOptions;
         private readonly WorkerOptions _workerOptions;
         private readonly ObjectSerializer _serializer;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private IWorkerClient? _workerClient;
 
-        public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
-            IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
-            IInputConversionFeatureProvider inputConversionFeatureProvider,
-            IFunctionMetadataProvider functionMetadataProvider,
-            IHostApplicationLifetime hostApplicationLifetime,
-            ILogger<GrpcWorker> logger)
+        public GrpcWorker(IFunctionsApplication application,
+                          IWorkerClientFactory workerClientFactory,
+                          IInvocationFeaturesFactory invocationFeaturesFactory,
+                          IOutputBindingsInfoProvider outputBindingsInfoProvider,
+                          IMethodInfoLocator methodInfoLocator,
+                          IOptions<WorkerOptions> workerOptions,
+                          IInputConversionFeatureProvider inputConversionFeatureProvider,
+                          IFunctionMetadataProvider functionMetadataProvider,
+                          IHostApplicationLifetime hostApplicationLifetime,
+                          ILogger<GrpcWorker> logger)
         {
-            if (outputChannel == null)
-            {
-                throw new ArgumentNullException(nameof(outputChannel));
-            }
-
-            _outputReader = outputChannel.Channel.Reader;
-            _outputWriter = outputChannel.Channel.Writer;
-
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
+            _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
-            _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-            _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions));
+            
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
@@ -79,54 +68,16 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async Task StartAsync(CancellationToken token)
         {
-            var eventStream = _rpcClient.EventStream(cancellationToken: token);
-
-            await SendStartStreamMessageAsync(eventStream.RequestStream);
-
-            _ = StartWriterAsync(eventStream.RequestStream);
-            _ = StartReaderAsync(eventStream.ResponseStream);
+            _workerClient = await _workerClientFactory.StartClientAsync(this, token);
         }
 
-        public Task StopAsync(CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
+        public Task StopAsync(CancellationToken token) => Task.CompletedTask;
 
-        private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
-        {
-            StartStream str = new StartStream()
-            {
-                WorkerId = _startupOptions.WorkerId
-            };
-
-            StreamingMessage startStream = new StreamingMessage()
-            {
-                StartStream = str
-            };
-
-            await requestStream.WriteAsync(startStream);
-        }
-
-        private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
-        {
-            await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync())
-            {
-                await requestStream.WriteAsync(rpcWriteMsg);
-            }
-        }
-
-        private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
-        {
-            while (await responseStream.MoveNext())
-            {
-                await ProcessRequestAsync(responseStream.Current);
-            }
-        }
-
-        private Task ProcessRequestAsync(StreamingMessage request)
+        Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
             // Dispatch and return.
-            Task.Run(() => ProcessRequestCoreAsync(request));
+            _ = ProcessRequestCoreAsync(message);
+
             return Task.CompletedTask;
         }
 
@@ -180,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker
                     return;
             }
 
-            await _outputWriter.WriteAsync(responseMessage);
+            await _workerClient!.SendMessageAsync(responseMessage);
         }
 
         internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)

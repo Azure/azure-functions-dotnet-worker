@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public BlobServiceClient CreateClient()
         {
-            if (string.IsNullOrEmpty(ConnectionString))
+            if (ServiceUri is not null && Credential is not null)
             {
                 return new BlobServiceClient(ServiceUri, Credential, BlobClientOptions);
             }

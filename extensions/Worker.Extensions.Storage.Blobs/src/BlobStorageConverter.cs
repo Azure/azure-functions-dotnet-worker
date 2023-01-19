@@ -57,13 +57,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (context.Source is CollectionModelBindingData collectionBindingData)
             {
-                if (!IsSupportedEnumerable(context.TargetType))
-                {
-                    return ConversionResult.Failed(new InvalidOperationException($"Target type '{context.TargetType}' is not supported"));
-                }
-
-                Type individualTargetType = context.TargetType.GenericTypeArguments.FirstOrDefault();
-
                 var collectionBlob = new List<object>(collectionBindingData.ModelBindingDataArray.Length);
 
                 foreach (ModelBindingData modelBindingData in collectionBindingData.ModelBindingDataArray)
@@ -78,7 +71,7 @@ namespace Microsoft.Azure.Functions.Worker
                         return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
                     }
 
-                    var element = await ConvertModelBindingDataAsync(content, individualTargetType, modelBindingData);
+                    var element = await ConvertModelBindingDataAsync(content, context.TargetType.GenericTypeArguments[0], modelBindingData);
 
                     if (element is not null)
                     {
@@ -86,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
 
-                var collectionResult = ToTargetTypeCollection(individualTargetType, collectionBlob);
+                var collectionResult = ToTargetTypeCollection(context.TargetType.GenericTypeArguments[0], collectionBlob);
 
                 if (collectionResult is not null && collectionResult.Any())
                 {
@@ -151,7 +144,9 @@ namespace Microsoft.Azure.Functions.Worker
         private IEnumerable<object> ToTargetTypeCollection(Type targetType, IEnumerable<object> blobCollection) => targetType switch
         {
             Type _ when targetType == typeof(BlobBaseClient) => blobCollection.Select(b => (BlobBaseClient)b),
-            Type _ when targetType == typeof(String) => blobCollection.Select(async (b) => await GetBlobContentString((BlobClient)b)),
+            Type _ when targetType == typeof(BlobClient) => blobCollection.Select(b => (BlobClient)b),
+            Type _ when targetType == typeof(String) => blobCollection.Select((b) =>  ((String)b)),
+            // Type _ when targetType == typeof(String[]) => blobCollection.ToArray(),
             _ => throw new InvalidOperationException($"Requested type '{targetType}' not supported.")
         };
 
@@ -216,11 +211,6 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             return (T)blobClient;
-        }
-
-        internal static bool IsSupportedEnumerable(Type type)
-        {
-            return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>);
         }
     }
 }

@@ -3,6 +3,7 @@
 
 using System.IO;
 using System.Threading;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -18,6 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void Creates()
         {
+            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", ".");
+
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();
 

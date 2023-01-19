@@ -9,6 +9,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
@@ -67,6 +68,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_ReturnsSuccess()
         {
+            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+
             FunctionLoadRequest request = CreateFunctionLoadRequest();
 
             var response = GrpcWorker.FunctionLoadRequestHandler(request, _mockApplication.Object, _mockMethodInfoLocator.Object);
@@ -89,6 +92,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_Throws_ReturnsFailure()
         {
+            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+
             _mockApplication
                 .Setup(m => m.LoadFunction(It.IsAny<FunctionDefinition>()))
                 .Throws(new InvalidOperationException("whoops"));
@@ -105,9 +110,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void MethodInfoLocator_Throws_ReturnsFailure()
         {
+            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+
             _mockMethodInfoLocator
                 .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
                 .Throws(new InvalidOperationException("whoops"));
+
 
             FunctionLoadRequest request = CreateFunctionLoadRequest();
 

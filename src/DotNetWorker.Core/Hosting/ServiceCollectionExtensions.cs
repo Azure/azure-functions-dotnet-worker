@@ -10,6 +10,7 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Core.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -86,6 +87,9 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
 
+            // Add http coordinator
+            services.AddSingleton<IHttpCoordinator, HttpCoordinator>();
+
             if (configure != null)
             {
                 services.Configure(configure);
@@ -114,6 +118,7 @@ namespace Microsoft.Extensions.DependencyInjection
                 workerOption.InputConverters.Register<JsonPocoConverter>();
                 workerOption.InputConverters.Register<ArrayConverter>();
                 workerOption.InputConverters.Register<CancellationTokenConverter>();
+                workerOption.InputConverters.Register<HttpContextConverter>(); // added HTTPContext converter
             });
         }
 

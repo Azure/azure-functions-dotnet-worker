@@ -23,9 +23,17 @@ namespace FunctionApp
 
             var response = req.CreateResponse(HttpStatusCode.OK);
 
-            response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
-            response.Headers.Add("Content-Type", "text/html; charset=utf-8");
-            response.WriteString("Hello world!");
+
+            if (executionContext.Items.TryGetValue("HttpRequestContext", out object httpRequest))
+            {
+                response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
+                response.Headers.Add("Content-Type", "text/html; charset=utf-8");
+                response.WriteString("Hello world reached httpRequest!");
+            }
+            else
+            {
+                response.WriteString("Hello world!");
+            }
 
             logger.LogMetric(@"funcExecutionTimeMs", sw.Elapsed.TotalMilliseconds,
                 new Dictionary<string, object> {

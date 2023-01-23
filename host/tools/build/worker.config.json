@@ -3,6 +3,7 @@
     "language": "dotnet-isolated",
     "extensions": [ ".dll" ],
     "defaultExecutablePath": "%FUNCTIONS_WORKER_DIRECTORY%/bin/FunctionsNetHost.exe",
-    "defaultWorkerPath": "bin/FunctionsNetHost.exe"
+    "defaultWorkerPath": "bin/FunctionsNetHost.exe",
+    "workerIndexing": "true"
   }
 }

@@ -9,9 +9,9 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -25,12 +25,13 @@ namespace Microsoft.Extensions.DependencyInjection
                 {
                     SingleWriter = false,
                     SingleReader = true,
-                    AllowSynchronousContinuations = true
+                    AllowSynchronousContinuations = true,
                 };
 
                 return new GrpcHostChannel(Channel.CreateUnbounded<StreamingMessage>(outputOptions));
             });
         }
+
 
         public static IServiceCollection AddGrpc(this IServiceCollection services)
         {
@@ -49,6 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();
+            services.AddSingleton<IInvocationHandler, InvocationHandler>();
 
 #if NET5_0_OR_GREATER
             // If we are running in the native host process, use the native client
@@ -59,6 +61,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
             else
             {
+                services.AddSingleton<IWorkerHttpClientFactory, WorkerHttpClientFactory>();
+                services.AddHttpClient();
                 services.AddSingleton<IWorkerClientFactory, GrpcWorkerClientFactory>();
             }
 #else
@@ -73,5 +77,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
             return services;
         }
+
+#if NET5_0_OR_GREATER
+        public static IServiceCollection ConfigureGrpcClient(this IServiceCollection services, Action<IHttpClientBuilder> configure)
+        {
+            var builder = services.AddHttpClient(WorkerHttpClientFactory.GrpcWorkerHttClientName);
+            configure(builder);
+            return services;
+        }
+#endif
     }
 }

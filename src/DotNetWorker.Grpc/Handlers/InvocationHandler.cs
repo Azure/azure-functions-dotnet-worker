@@ -26,19 +26,20 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         private readonly ObjectSerializer _serializer;
         private readonly ILogger _logger;
 
-        private ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
+        private readonly ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
 
         public InvocationHandler(
             IFunctionsApplication application,
             IInvocationFeaturesFactory invocationFeaturesFactory,
-            ObjectSerializer serializer,
+            IOptions<WorkerOptions> workerOptions,
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
-            ILogger logger)
+            ILogger<InvocationHandler> logger)
         {
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
+            if(workerOptions?.Value == null) throw new ArgumentNullException(nameof(workerOptions));
+            _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

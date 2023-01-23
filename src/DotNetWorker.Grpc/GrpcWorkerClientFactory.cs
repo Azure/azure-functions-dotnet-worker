@@ -21,16 +21,19 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
     internal class GrpcWorkerClientFactory : IWorkerClientFactory
     {
         private readonly GrpcHostChannel _outputChannel;
+        private readonly IWorkerHttpClientFactory _clientFactory;
         private readonly GrpcWorkerStartupOptions _startupOptions;
 
-        public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions)
+        public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions, IWorkerHttpClientFactory clientFactory)
         {
+
             _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
+            _clientFactory = clientFactory ?? throw new ArgumentNullException(nameof(clientFactory));
             _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions), "gRPC Services are not correctly registered.");
         }
 
         public Task<IWorkerClient> StartClientAsync(IMessageProcessor messageProcessor, CancellationToken token) 
-            => GrpcWorkerClient.CreateAndStartAsync(_outputChannel, _startupOptions, messageProcessor, token);
+            => GrpcWorkerClient.CreateAndStartAsync(_outputChannel, _startupOptions, messageProcessor, _clientFactory, token);
 
         private class GrpcWorkerClient : IWorkerClient
         {
@@ -41,19 +44,19 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private bool _running;
             private IMessageProcessor? _processor;
 
-            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions)
+            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IWorkerHttpClientFactory clientFactory)
             {
                 _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
 
                 _outputReader = outputChannel.Channel.Reader;
                 _outputWriter = outputChannel.Channel.Writer;
 
-                _grpcClient = CreateClient();
+                _grpcClient = CreateClient(clientFactory);
             }
 
-            internal static async Task<IWorkerClient> CreateAndStartAsync(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor, CancellationToken token)
+            internal static async Task<IWorkerClient> CreateAndStartAsync(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor, IWorkerHttpClientFactory clientFactory, CancellationToken token)
             {
-                var client = new GrpcWorkerClient(outputChannel, startupOptions);
+                var client = new GrpcWorkerClient(outputChannel, startupOptions, clientFactory);
                
                 await client.StartAsync(processor, token);
 
@@ -110,7 +113,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 }
             }
 
-            private FunctionRpcClient CreateClient()
+            private FunctionRpcClient CreateClient(IWorkerHttpClientFactory httpClientFactory)
             {
                 string uriString = $"http://{_startupOptions.Host}:{_startupOptions.Port}";
                 if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
@@ -120,11 +123,15 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
 
 #if NET5_0_OR_GREATER
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
+                GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions
                 {
                     MaxReceiveMessageSize = _startupOptions.GrpcMaxMessageLength,
                     MaxSendMessageSize = _startupOptions.GrpcMaxMessageLength,
-                    Credentials = ChannelCredentials.Insecure
+                    Credentials = ChannelCredentials.Insecure,
+                    HttpClient = httpClientFactory.CreateClient(),
+                    DisposeHttpClient = true,
+                    
+                        
                 });
 #else
 

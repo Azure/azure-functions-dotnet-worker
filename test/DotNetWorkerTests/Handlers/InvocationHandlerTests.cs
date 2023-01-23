@@ -26,6 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
         private TestFunctionContext _context = new();
         private ILogger<InvocationHandler> _testLogger;
+        private readonly IOptions<WorkerOptions> _workerOptions;
 
         public InvocationHandlerTests()
         {
@@ -51,6 +52,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Returns(true);
 
             _testLogger = TestLoggerProvider.Factory.CreateLogger<InvocationHandler>();
+            _workerOptions = new OptionsWrapper<WorkerOptions>(new WorkerOptions
+            {
+                Serializer = new JsonObjectSerializer()
+            });
         }
 
         [Fact]
@@ -60,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = TestUtility.CreateInvocationRequest(invocationId);
 
             var handler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInvocationFeaturesFactory.Object, _workerOptions, _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await handler.InvokeAsync(request);
@@ -79,9 +84,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Throws(new AggregateException(new Exception[] { new TaskCanceledException() }));
 
             var request = TestUtility.CreateInvocationRequest("abc");
-
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInvocationFeaturesFactory.Object, _workerOptions, _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request);
@@ -98,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var cts = new CancellationTokenSource();
 
             var handler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInvocationFeaturesFactory.Object, _workerOptions, _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
             // Mock delay in InvokeFunctionAsync so that we can cancel mid invocation
@@ -127,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = TestUtility.CreateInvocationRequest(invocationId);
 
             var handler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInvocationFeaturesFactory.Object, _workerOptions, _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
             _ = await handler.InvokeAsync(request);
@@ -154,7 +158,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = TestUtility.CreateInvocationRequest("abc");
 
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInvocationFeaturesFactory.Object, _workerOptions, _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request, mockOptions);
@@ -183,7 +187,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = TestUtility.CreateInvocationRequest("abc");
 
             var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInvocationFeaturesFactory.Object, _workerOptions, _mockOutputBindingsInfoProvider.Object,
                 _mockInputConversionFeatureProvider.Object, _testLogger);
 
             var response = await invocationHandler.InvokeAsync(request, mockOptions);

@@ -17,10 +17,10 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 
         private string? _cachedToString;
 
-        public FunctionInvocationScope(string functionName, string invocationid)
+        public FunctionInvocationScope(string functionName, string invocationId)
         {
             _functionName = functionName;
-            _invocationId = invocationid;
+            _invocationId = invocationId;
         }
 
         public KeyValuePair<string, object> this[int index]

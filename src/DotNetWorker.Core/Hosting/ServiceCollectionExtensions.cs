@@ -70,6 +70,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // Worker initialization service
             services.AddSingleton<IHostedService, WorkerHostedService>();
 
+            // Binding logger service
+            services.AddSingleton<IHostedService, BindingLoggerHostedService>();
+
             // Default serializer settings
             services.AddOptions<WorkerOptions>()
                 .PostConfigure<IOptions<JsonSerializerOptions>>((workerOptions, serializerOptions) =>

@@ -18,9 +18,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             if (context.TargetType == typeof(HttpRequest))
             {
                 // look through Items to find the HttpContext and then return the request
-                if (context.FunctionContext.Items.TryGetValue("HttpRequestContext", out object request))
+                if (context.FunctionContext.Items.TryGetValue("HttpRequestContext", out object request) 
+                    && request is HttpContext httpContext)
                 {
-                    target = request;
+                    target = httpContext.Request;
                 }
             }
 

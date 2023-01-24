@@ -9,7 +9,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
 {
     internal class HttpCoordinator : IHttpCoordinator
     {
-        // TODO: Make concurrent dictionary
         private ConcurrentDictionary<string, HttpContextReference> _httpContextReferenceList;
 
         public HttpCoordinator()
@@ -30,7 +29,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             return httpContext.FunctionCompletionTask.Task;
         }
 
-        // TODO: Figure out how to set a timeout with this setup ...
         public Task<HttpContext> GetContextAsync(string invocationId)
         {
             var httpContext = _httpContextReferenceList.GetOrAdd(invocationId, new HttpContextReference(invocationId));

@@ -11,38 +11,38 @@ using Microsoft.Extensions.Logging;
 using FunctionApp;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Tests;
+using Microsoft.Extensions.Azure;
+using Azure.Storage.Blobs;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SampleIntegrationTests
 {
     public class Tests
     {
-        [SetUp]
-        public void Setup()
-        {
-        }
+        private IHost _host;
+        private FunctionRpcTestServer _functionRpcTestServer;
 
-        [Test]
-        public async Task Test1()
+        [OneTimeSetUp]
+        public async Task Setup()
         {
             using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", ".");
-            var host = new HostBuilder()
+            _host = new HostBuilder()
                 .ConfigureWebHost(a => a.UseTestServer().UseStartup<Startup>())
                 .ConfigureLogging(a => a.AddProvider(new NUnitLoggerProvider()))
-                    .ConfigureServices((context, services) =>
+                .ConfigureServices((context, services) =>
                 {
                     IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults();
                     services.ConfigureGrpcClient(a =>
                         a.ConfigurePrimaryHttpMessageHandler(provider =>
                             ((TestServer)provider.GetRequiredService<IServer>()).CreateHandler()));
-                    // Call the provided configuration prior to adding default middleware
-                    //configure(context, appBuilder);
-                    //appBuilder.Use(c =>
-                    //{
-                    //    return c;
-                    //});
-                    // Add default middleware
+
                     appBuilder.UseDefaultWorkerMiddleware();
                     services.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
+
+                    services.AddAzureClients(a => a.AddBlobServiceClient("UseDevelopmentStorage=true"));
+
                 })
                 .ConfigureHostConfiguration(a => a.AddInMemoryCollection(new[]
                 {
@@ -54,64 +54,72 @@ namespace SampleIntegrationTests
                 }))
                 .Build();
 
-            await host.StartAsync();
+            await _host.StartAsync();
 
-            //var functionId = Guid.NewGuid().ToString();
-            //var rpcFunctionMetadata = new RpcFunctionMetadata
-            //{
-            //    Name = "HttpTriggerSimple",
-            //    ScriptFile = "FunctionApp.dll",
-            //    EntryPoint = "FunctionApp.HttpTriggerSimple.Run",
-            //};
-            //rpcFunctionMetadata.Bindings.Add("req", new BindingInfo { Type = "httpTrigger" });
-            //rpcFunctionMetadata.Bindings.Add("$return", new BindingInfo { Type = "http", Direction = BindingInfo.Types.Direction.Out });
-            //await messageProcessor.ProcessMessageAsync(new StreamingMessage
-            //{
-            //    FunctionLoadRequest = new FunctionLoadRequest
-            //    {
-            //        FunctionId = functionId,
-            //        ManagedDependencyEnabled = true,
-            //        Metadata = rpcFunctionMetadata
-            //    }
-            //});
+            _functionRpcTestServer = _host.Services.GetRequiredService<FunctionRpcTestServer>();
+            await _functionRpcTestServer.Init();
+        }
 
-            
-            var invocationRequest = new InvocationRequest
+        [Test]
+        public async Task Sample_using_http_trigger_with_CallByNameAsync()
+        {
+            var response = await _functionRpcTestServer.CallByNameAsync("HttpTriggerSimple", new Dictionary<string, object>
             {
-                InvocationId = Guid.NewGuid().ToString(),
-                InputData = { new ParameterBinding
-                {
-                    Name = "req",
-                    Data = new TypedData
-                    {
-                        Http = new RpcHttp
-                        {
-                            Method = "GET",
-                            Url = "http://localhost:0/api/HttpTriggerSimple",
-
-                        }
-                    }
-                } },
-                TraceContext = new RpcTraceContext { },
-            };
-
-            //var response = await handler.ProcessMessageAsync(message);
-
-            //Assert.That(response.Result, Is.EqualTo(StatusResult.Success));
-            //Assert.That(response.ReturnValue.Http.StatusCode, Is.EqualTo(StatusCodes.Status200OK.ToString()));
-            //Assert.That(response.ReturnValue.Http.Body.Bytes.ToStringUtf8(), Is.EqualTo("Hello world!"));
-
-            //await Task.Delay(TimeSpan.FromSeconds(100));
-            var response = await host.Services.GetRequiredService<FunctionRpcTestServer>().Test("HttpTriggerSimple", invocationRequest);
+                ["req"] = new FakeHttpRequest(new Uri("http://localhost:0/api/HttpTriggerSimple"))
+            });
             Assert.That(response.Result, Is.EqualTo(StatusResult.Success));
             Assert.That(response.ReturnValue.Http.StatusCode, Is.EqualTo(StatusCodes.Status200OK.ToString()));
             Assert.That(response.ReturnValue.Http.Body.Bytes.ToStringUtf8(), Is.EqualTo("Hello world!"));
-            //await Task.Delay(TimeSpan.FromSeconds(100));
-            var test2 = await host.GetTestClient().GetAsync("/api/HttpTriggerSimple");
-            Assert.That(test2.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        }
 
-            var body = await test2.Content.ReadAsStringAsync();
+        [Test]
+        public async Task Sample_using_test_client_on_an_api_call()
+        {
+            var response = await _host.GetTestClient().GetAsync("/api/HttpTriggerSimple");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            var body = await response.Content.ReadAsStringAsync();
             Assert.That(body, Is.EqualTo("Hello world!"));
+        }
+
+
+        [Test]
+        public async Task Sample_using_test_client_on_a_function_with_route_specific_uri()
+        {
+            var response = await _host.GetTestClient().GetAsync("/api/some/route");
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.That(body, Is.EqualTo("Hello world! From HttpTriggerWithCustomRoute"));
+        }
+
+        [Test]
+        public async Task Sample_using_test_client_on_api_with_blob_input()
+        {
+            var blobServiceClient = _host.Services.GetRequiredService<BlobServiceClient>();
+            var client = blobServiceClient.GetBlobContainerClient("test-samples");
+
+            var book = new Book { id = "1", name = "How to test isolated functions" };
+
+            await client.DeleteIfExistsAsync();
+            if (!(await client.ExistsAsync()).Value)
+            {
+                await client.CreateAsync();
+            }
+
+            if (!(await client.GetBlobClient("sample1.txt").ExistsAsync()).Value)
+            {
+                
+                byte[] sample1 = JsonSerializer.SerializeToUtf8Bytes(book);
+                await using MemoryStream stream = new MemoryStream(sample1);
+                await client.GetBlobClient("sample1.txt").UploadAsync(stream);
+            }
+            var response = await _host.GetTestClient().GetAsync("/api/HttpTriggerWithBlobInput");
+            var content = await response.Content.ReadAsStringAsync();
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK), () => content);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.That(body, Is.EqualTo("Book Sent to Queue!"));
         }
 
     }

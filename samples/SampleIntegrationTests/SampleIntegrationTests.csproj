@@ -11,7 +11,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.13.1" />
     <PackageReference Include="Grpc.AspNetCore" Version="2.51.0" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.4.0" />
     <PackageReference Include="NUnit" Version="3.13.3" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />

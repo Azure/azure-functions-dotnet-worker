@@ -25,8 +25,14 @@ public class Startup
         {
             endpoints.MapGrpcService<FunctionRpcTestServer>();
             var server = app.ApplicationServices.GetRequiredService<FunctionRpcTestServer>();
-
-            endpoints.Map("/api/HttpTriggerSimple", context => server.HttpCall("HttpTriggerSimple",context));
+            var entryPoint = server.GetHttpRegistrations();
+            foreach (var registration in entryPoint)
+            {
+                endpoints.MapMethods(registration.Route, registration.Methods,
+                    context => server.HttpCall(registration.FunctionName, context));
+                
+            }
+            //endpoints.Map("/api/HttpTriggerSimple", context => server.HttpCall("HttpTriggerSimple", context));
             //endpoints.MapPost("/AzureFunctionsRpcMessages.FunctionRpc/EventStream", context => app.ApplicationServices.GetRequiredService<IMessageProcessor>().ProcessMessageAsync(context.Request.Body.Read()) )
             //endpoints.MapGet("/", async context =>
             //{

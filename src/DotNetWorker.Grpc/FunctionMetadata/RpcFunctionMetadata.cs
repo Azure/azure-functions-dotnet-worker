@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.CompilerServices;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.Messages

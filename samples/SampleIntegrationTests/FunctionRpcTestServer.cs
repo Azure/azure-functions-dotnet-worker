@@ -1,18 +1,21 @@
-﻿using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using Azure.Storage.Blobs;
+using Google.Protobuf;
 using Grpc.Core;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Azure.Functions.Worker.Sdk;
+using Microsoft.Azure.Functions.Worker.Rpc;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace SampleIntegrationTests;
 
 internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
 {
-    private event EventHandler<InvocationRespondedEventArgs> InvocationResponded;
-    private event EventHandler<FunctionLoadedEventArgs> FunctionLoaded;
+    private readonly IServiceProvider _serviceProvider;
+    private readonly WorkerOptions _options;
+    private event EventHandler<InvocationRespondedEventArgs>? InvocationResponded;
     private class InvocationRespondedEventArgs : EventArgs
     {
         public InvocationResponse Response { get; }
@@ -22,55 +25,103 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
             Response = response;
         }
     }
-    private class FunctionLoadedEventArgs : EventArgs
-    {
-        public string FunctionId { get; }
 
-        public FunctionLoadedEventArgs(string functionId)
-        {
-            FunctionId = functionId;
-        }
+    public FunctionRpcTestServer(IOptions<WorkerOptions> options, IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+        _options = options.Value;
     }
 
-    private static readonly JsonSerializerOptions _serializerOptions = CreateSerializerOptions();
 
     private IServerStreamWriter<StreamingMessage> _serverStreamWriter;
-    private readonly IDictionary<string, (bool isLoaded, RpcFunctionMetadata metadata)> _functions;
-    public FunctionRpcTestServer()
+    private readonly FunctionsLookup _functionsLookup = new FunctionsLookup();
+
+    public async Task Init() => await _functionsLookup.WaitForFunctionsLoading();
+
+    /// <summary>Calls a function method by the function name.</summary>
+    /// <param name="name">The name of the function to call.</param>
+    /// <param name="arguments">The argument names and values to bind to parameters in the function. In addition to parameter values, these may also include binding data values. </param>
+    /// <param name="cancellationToken">The token to monitor for cancellation requests.</param>
+    /// <returns>A <see cref="Task"/> that will call the function.</returns>
+    public Task CallAsync(string name, IDictionary<string, object> arguments,
+        CancellationToken cancellationToken = default) => CallByNameAsync(name, arguments, cancellationToken);
+
+    public Task<InvocationResponse> CallByNameAsync(string name, IDictionary<string, object> arguments, CancellationToken cancellationToken = default)
     {
-        _functions = GetFunctionsMetadata().ToDictionary(a => a.FunctionId, a => (false, a));
+        var function = _functionsLookup.Lookup(name);
+
+        return CallAsyncCore(function, arguments, cancellationToken);
     }
 
-    private static JsonSerializerOptions CreateSerializerOptions()
+    private async Task<InvocationResponse> CallAsyncCore(FunctionsLookup.TestFunctionDefinition function, IDictionary<string, object> arguments, CancellationToken cancellationToken)
     {
-        var namingPolicy = new FunctionsJsonNamingPolicy();
+        var request = await CreateInvocationRequest(function, arguments);
+        return await ExecuteInvocationAsync(request, cancellationToken);
+    }
 
-        var options = new JsonSerializerOptions
+    private async Task<InvocationRequest> CreateInvocationRequest(FunctionsLookup.TestFunctionDefinition function, IDictionary<string, object> arguments)
+    {
+        var invocationRequest = new InvocationRequest
         {
-            WriteIndented = true,
-            IgnoreNullValues = true,
-            PropertyNameCaseInsensitive = true,
-            IgnoreReadOnlyProperties = true,
-            DictionaryKeyPolicy = namingPolicy,
-            PropertyNamingPolicy = namingPolicy
+            FunctionId = function.Id,
+            InvocationId = Guid.NewGuid().ToString(),
+
+            TraceContext = new RpcTraceContext { },
         };
 
-        options.Converters.Add(new JsonStringEnumConverter());
+        foreach (var argument in arguments)
+        {
+            if (!function.InputBindings.TryGetValue(argument.Key, out var binding))
+            {
+                throw new ArgumentOutOfRangeException(
+                    $"The function {function.Name} has no argument named {argument.Key}");
+            }
 
-        return options;
+            var data = await GetData(binding.Type, argument.Value);
+
+            var parameterBinding = new ParameterBinding
+            {
+                Name = argument.Key,
+                Data = data
+            };
+            invocationRequest.InputData.Add(parameterBinding);
+        }
+        return invocationRequest;
     }
 
-    public async Task<InvocationResponse> Test(string name, InvocationRequest request)
+    private async Task<TypedData> GetData(string bindingType, object argumentValue)
     {
-        var function = _functions.First(a => a.Value.metadata.Name == name);
-        request.FunctionId = function.Value.metadata.FunctionId;
-            
-        return await ExecuteInvocation(request);
+
+        if (bindingType == "httpTrigger" && argumentValue is HttpRequest request)
+        {
+            var rpcHttp = new RpcHttp
+            {
+                Method = request.Method,
+                Body = await request.Body.ToRpcAsync(_options.Serializer!),
+                Url = request.GetDisplayUrl(),
+            };
+            var result = new TypedData
+            {
+
+                Http = rpcHttp
+            };
+            return result;
+        }
+
+        return await argumentValue.ToRpcAsync(_options.Serializer);
     }
 
-    private async Task<InvocationResponse> ExecuteInvocation(InvocationRequest request)
+    public async Task<InvocationResponse> Test(string name, InvocationRequest request, CancellationToken cancellationToken = default)
     {
-        await WaitForFunctionsLoading();
+        var function = _functionsLookup.Lookup(name);
+        request.FunctionId = function.Id;
+
+        return await ExecuteInvocationAsync(request, cancellationToken);
+    }
+
+    private async Task<InvocationResponse> ExecuteInvocationAsync(InvocationRequest request, CancellationToken cancellationToken)
+    {
+        await _functionsLookup.WaitForFunctionsLoading();
 
 
         var message = new StreamingMessage
@@ -83,21 +134,8 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
             if (args.Response.InvocationId == request.InvocationId)
                 result.SetResult(args.Response);
         };
-        await _serverStreamWriter.WriteAsync(message);
+        await _serverStreamWriter.WriteAsync(message, cancellationToken);
         return await result.Task;
-    }
-
-    private Task WaitForFunctionsLoading()
-    {
-        if (_functions.All(a => a.Value.isLoaded))
-            return Task.CompletedTask;
-        var result = new TaskCompletionSource();
-        FunctionLoaded += (_, args) =>
-        {
-            if(_functions.All(a => a.Value.isLoaded))
-                result.SetResult();
-        };
-        return result.Task;
     }
 
     /// <inheritdoc />
@@ -114,45 +152,6 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
             await ProcessMessageAsync(requestStream.Current);
         }
     }
-
-    private IReadOnlyCollection<RpcFunctionMetadata> GetFunctionsMetadata()
-    {
-        var generator = new FunctionMetadataGenerator();
-        var functions = generator.GenerateFunctionMetadata(Assembly.GetExecutingAssembly().Location, Array.Empty<string>());
-        return functions.Select(Map).ToArray();
-    }
-
-    private static RpcFunctionMetadata Map(SdkFunctionMetadata metadata)
-    {
-        try
-        {
-            var rpc = new RpcFunctionMetadata
-            {
-                EntryPoint = metadata.EntryPoint,
-                FunctionId = Guid.NewGuid().ToString(),
-                Name = metadata.Name,
-                ScriptFile = metadata.ScriptFile
-            };
-            foreach (var property in metadata.Properties)
-            {
-                rpc.Properties.Add(property.Key, property.Value.ToString());
-            }
-
-
-            foreach (var binding in metadata.Bindings)
-            {
-                rpc.RawBindings.Add(JsonSerializer.Serialize(binding, _serializerOptions));
-            }
-
-            return rpc;
-        }
-        catch (Exception e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-    }
-
 
     private async Task ProcessMessageAsync(StreamingMessage request)
     {
@@ -185,12 +184,8 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
             case StreamingMessage.ContentOneofCase.FunctionLoadResponse:
 
                 var functionId = request.FunctionLoadResponse.FunctionId;
-                if (_functions.TryGetValue(functionId, out var item))
-                {
-                    item.isLoaded = true;
-                    _functions[functionId] = item;
-                    FunctionLoaded.Invoke(this, new FunctionLoadedEventArgs(functionId));
-                }
+                _functionsLookup.IsLoaded(functionId);
+
                 break;
             case StreamingMessage.ContentOneofCase.InvocationRequest:
                 break;
@@ -224,10 +219,6 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
             default:
                 throw new ArgumentOutOfRangeException();
         }
-
-        //await _outputWriter.WriteAsync(request);
-
-        //_outputWriter.TryComplete();
     }
 
     private async Task LoadFunctions(StreamingMessage request)
@@ -243,7 +234,7 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
             await _serverStreamWriter.WriteAsync(request);
         }
 
-        foreach (var (_, (_, metadata)) in _functions)
+        foreach (var metadata in _functionsLookup.All)
         {
             await LoadFunction(metadata);
         }
@@ -262,47 +253,83 @@ internal class FunctionRpcTestServer : FunctionRpc.FunctionRpcBase
 
     public async Task HttpCall(string name, HttpContext context)
     {
-        var function = _functions.Single(a => a.Value.metadata.Name == name).Value.metadata;
-           
-        var invocationRequest = new InvocationRequest
+        var function = _functionsLookup.Lookup(name);
+        var requestParams = function.InputBindings.Single(a => a.Value.Type == "httpTrigger");
+        var arguments = new Dictionary<string, object>
         {
-            FunctionId = function.FunctionId,
-            InvocationId = Guid.NewGuid().ToString(),
-            InputData = { new ParameterBinding
-            {
-                Name = "req",
-                Data = new TypedData
-                {
-                    Http = new RpcHttp
-                    {
-                        Method = context.Request.Method,
-                        Url = context.Request.GetEncodedUrl(),
-                            
-                    }
-                }
-            } },
-            TraceContext = new RpcTraceContext { },
+            [requestParams.Key] = context.Request
         };
-        var response = await ExecuteInvocation(invocationRequest);
-        var http = response.ReturnValue.Http;
-        context.Response.StatusCode = int.Parse(http.StatusCode);
-        await context.Response.Body.WriteAsync(http.Body.Bytes.ToByteArray());
-        //http.WriteTo(context.Response.Body);
+        foreach (var parameter in function.InputBindings.Values.Where(a => a.Type != "httpTrigger").Cast<FunctionsLookup.TestFunctionMetadata>())
+        {
+            arguments[parameter.Name] = await GetInput(parameter);
+        }
+
+        
+        var response = await CallAsyncCore(function, arguments, context.RequestAborted);
+        if(response.Result.Status == StatusResult.Types.Status.Success)
+        {
+            var http = response.ReturnValue?.Http ?? response.OutputData.Single(a => a.Data.Http is not null).Data.Http;
+            context.Response.StatusCode = int.Parse(http.StatusCode);
+            await context.Response.Body.WriteAsync(http.Body.Bytes.ToByteArray());
+        }
+        else
+        {
+            context.Response.StatusCode = 500;
+            await context.Response.Body.WriteAsync(response.Result.Exception.ToByteArray());
+        }
     }
 
-    private int GetHttpStatus(StatusResult.Types.Status resultStatus)
+    private async Task<object> GetInput(FunctionsLookup.TestFunctionMetadata parameter)
     {
-        switch (resultStatus)
+        if (parameter.Type == "blob")
         {
-            case StatusResult.Types.Status.Failure:
-                return StatusCodes.Status500InternalServerError;
-                break;
-            case StatusResult.Types.Status.Success:
-                return StatusCodes.Status200OK;
-                break;
-            case StatusResult.Types.Status.Cancelled:
-            default:
-                throw new ArgumentOutOfRangeException(nameof(resultStatus), resultStatus, null);
+            return await GetBlob(parameter);
+        }
+
+        throw new NotImplementedException($"{parameter.Type} is not supported");
+    }
+
+    private async Task<object> GetBlob(FunctionsLookup.TestFunctionMetadata parameterValue)
+    {
+        var path = parameterValue.RawBinding.TryGetProperty("blobPath", out var pathElement)
+            ? pathElement.ToString()
+            : throw new MissingMemberException("blobPath");
+        var index = path.LastIndexOf('/');
+        var container = path.Substring(0, index);
+        var blobPath = path.Substring(index+1);
+
+        var type = parameterValue.RawBinding.TryGetProperty("dataType", out var typeElement)
+            ? typeElement.ToString()
+            : throw new MissingMemberException("dataType");
+        var blobServiceClient = _serviceProvider.GetRequiredService<BlobServiceClient>();
+        var blob = await blobServiceClient.GetBlobContainerClient(container).GetBlobClient(blobPath).DownloadContentAsync();
+        var binary = blob.Value.Content;
+        if (type == "String")
+        {
+            return binary.ToString();
+        }
+
+        return "toto";
+
+    }
+
+    public IEnumerable<HttpRegistration> GetHttpRegistrations()
+    {
+        foreach (var function in _functionsLookup.All)
+        {
+            var definition = _functionsLookup.Lookup(function.Name);
+            var httpTrigger = definition.InputBindings.Values.SingleOrDefault(a => a.Type == "httpTrigger");
+            if (httpTrigger is FunctionsLookup.TestFunctionMetadata metadata)
+            {
+                if (!metadata.RawBinding.TryGetProperty("methods", out var element))
+
+                    throw new ArgumentOutOfRangeException($"Missing methods property");
+                var methods = element.EnumerateArray().ToArray().Select(i => i.GetString()!).ToArray();
+                var route = metadata.RawBinding.TryGetProperty("route", out var routeValue) ? routeValue.ToString() : $"api/{function.Name}";
+                yield return new HttpRegistration(methods, route!, function.Name);
+            }
         }
     }
 }
+
+internal record HttpRegistration(IReadOnlyCollection<string> Methods, string Route, string FunctionName);

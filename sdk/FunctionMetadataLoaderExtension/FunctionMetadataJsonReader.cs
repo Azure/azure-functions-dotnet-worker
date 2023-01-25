@@ -25,7 +25,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
         public virtual async Task<ImmutableArray<FunctionMetadata>> ReadMetadataAsync()
         {
-            string metadataFile = Path.Combine(_options.Value.FunctionMetadataFileDrectory, FileName);
+            string metadataFile = Path.Combine(_options.Value.FunctionMetadataFileDirectory, FileName);
 
             if (!File.Exists(metadataFile))
             {

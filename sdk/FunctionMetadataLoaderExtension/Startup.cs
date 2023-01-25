@@ -57,7 +57,7 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
 
             if (!enableIndexing)
             {
-                builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDrectory = appRootPath);
+                builder.Services.AddOptions<FunctionMetadataJsonReaderOptions>().Configure(o => o.FunctionMetadataFileDirectory = appRootPath);
                 builder.Services.AddSingleton<FunctionMetadataJsonReader>();
                 builder.Services.AddSingleton<IFunctionProvider, JsonFunctionProvider>();
             }

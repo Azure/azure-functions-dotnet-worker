@@ -35,7 +35,8 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             }
             else
             {
-                // throw some error idk lol
+                // throw some error?
+                // what does it mean if the function completes without httpContext set / is it possible?
             }
         }
     }

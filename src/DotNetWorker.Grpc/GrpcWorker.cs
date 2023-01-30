@@ -176,6 +176,7 @@ namespace Microsoft.Azure.Functions.Worker
             response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
             response.Capabilities["TypedDataCollection"] = bool.TrueString;
             response.Capabilities["WorkerStatus"] = bool.TrueString;
+            response.Capabilities["EnableHttpProxying"] = bool.TrueString;
 
             return response;
         }

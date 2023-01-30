@@ -15,7 +15,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
-    internal static class GrpcServiceCollectionExtensions
+    public static class GrpcServiceCollectionExtensions
     {
         internal static IServiceCollection RegisterOutputChannel(this IServiceCollection services)
         {
@@ -33,7 +33,7 @@ namespace Microsoft.Extensions.DependencyInjection
         }
 
 
-        public static IServiceCollection AddGrpc(this IServiceCollection services)
+        internal static IServiceCollection AddGrpc(this IServiceCollection services)
         {
             // Channels
             services.RegisterOutputChannel();

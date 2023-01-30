@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Functions.Worker.TestServer;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -9,8 +10,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddGrpc(_ => { });
-        services.AddSingleton<FunctionRpcTestServer>();
+        services.WithRpcTestServer();
     }
 
 
@@ -23,21 +23,7 @@ public class Startup
         app.UseRouting();
         app.UseEndpoints(endpoints =>
         {
-            endpoints.MapGrpcService<FunctionRpcTestServer>();
-            var server = app.ApplicationServices.GetRequiredService<FunctionRpcTestServer>();
-            var entryPoint = server.GetHttpRegistrations();
-            foreach (var registration in entryPoint)
-            {
-                endpoints.MapMethods(registration.Route, registration.Methods,
-                    context => server.HttpCall(registration.FunctionName, context));
-                
-            }
-            //endpoints.Map("/api/HttpTriggerSimple", context => server.HttpCall("HttpTriggerSimple", context));
-            //endpoints.MapPost("/AzureFunctionsRpcMessages.FunctionRpc/EventStream", context => app.ApplicationServices.GetRequiredService<IMessageProcessor>().ProcessMessageAsync(context.Request.Body.Read()) )
-            //endpoints.MapGet("/", async context =>
-            //{
-            //    await context.Response.WriteAsync("Communication with gRPC endpoints must be made through a gRPC client. To learn how to create a client, visit: https://go.microsoft.com/fwlink/?linkid=2086909");
-            //});
+            endpoints.MapTestServer();
         });
     }
 }

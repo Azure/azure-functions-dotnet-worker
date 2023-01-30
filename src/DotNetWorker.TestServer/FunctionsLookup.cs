@@ -1,15 +1,19 @@
-﻿using System.Collections.Immutable;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Azure.Functions.Worker;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Sdk;
 
-namespace SampleIntegrationTests;
+namespace Microsoft.Azure.Functions.Worker.TestServer;
 
 internal class FunctionsLookup
 {
@@ -21,7 +25,6 @@ internal class FunctionsLookup
     private readonly IReadOnlyDictionary<string, TestFunctionDefinition> _functionsByName;
     private readonly IDictionary<string, bool> _functionsLoaded;
     private static readonly JsonSerializerOptions _serializerOptions = CreateSerializerOptions();
-
 
     public FunctionsLookup()
     {
@@ -73,14 +76,12 @@ internal class FunctionsLookup
             rpc.RawBindings.Add(bindingJson);
 
             var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
-            binding.TryGetProperty("name", out JsonElement jsonName);
-            rpc.Bindings.Add(jsonName.ToString(), FunctionMetadataRpcExtensions.CreateBindingInfo(binding));
+            if(!binding.TryGetProperty("name", out JsonElement jsonName)) throw new NullReferenceException("Missing property [name] on the binding");
+            rpc.Bindings.Add(jsonName.ToString()!, FunctionMetadataRpcExtensions.CreateBindingInfo(binding));
         }
 
         return rpc;
     }
-
-
 
     private static JsonSerializerOptions CreateSerializerOptions()
     {
@@ -100,7 +101,6 @@ internal class FunctionsLookup
 
         return options;
     }
-
 
     public void IsLoaded(string functionId)
     {
@@ -163,7 +163,6 @@ internal class FunctionsLookup
         return new TestFunctionDefinition(name, id, entryPoint, pathToAssembly, inputBindings, outputBindings,
             parameters);
     }
-
 
     private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
     {

@@ -26,7 +26,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
+    <ProjectReference Include="..\..\src\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
+    <ProjectReference Include="..\..\src\DotNetWorker.TestServer\DotNetWorker.TestServer.csproj" />
     <ProjectReference Include="..\..\test\TestUtility\TestUtility.csproj" />
     <ProjectReference Include="..\FunctionApp\FunctionApp.csproj" />
   </ItemGroup>

@@ -1,0 +1,25 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <OutputType>Library</OutputType>
+      <TargetFrameworks>net5.0</TargetFrameworks>
+      <PackageId>Microsoft.Azure.Functions.Worker.TestServer</PackageId>
+      <Description>This library provides a test server that allow testing of isolated function.</Description>
+      <AssemblyName>Microsoft.Azure.Functions.Worker.TestServer</AssemblyName>
+      <RootNamespace>Microsoft.Azure.Functions.Worker.TestServer</RootNamespace>
+      <GenerateDocumentationFile>true</GenerateDocumentationFile>
+      <MinorProductVersion>0</MinorProductVersion>
+      <VersionSuffix>-preview1</VersionSuffix>
+  </PropertyGroup>
+
+    <Import Project="..\..\build\Common.props" />
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
+      <ProjectReference Include="..\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore.Server" Version="2.51.0" />
+        <!--<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="5.0.0" />-->
+    </ItemGroup>
+</Project>

@@ -24,7 +24,7 @@ namespace SampleApp
             response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-            response.WriteString("Welcome to .NET 5!!");
+            response.WriteString("Welcome to .NET isolated worker !!");
 
             return response;
         }

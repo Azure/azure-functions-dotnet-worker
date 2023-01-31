@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         private bool GetBoolCapability(string name)
         {
-            return Capabilities.TryGetValue(name, out string value) && bool.TryParse(value, out bool b) && b;
+            return Capabilities.TryGetValue(name, out string? value) && bool.TryParse(value, out bool b) && b;
         }
 
         // For false values, the host does not expect the capability to exist; there are some cases where this
@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (value)
             {
-                Capabilities[name] = value.ToString();
+                Capabilities[name] = bool.TrueString;
             }
             else
             {

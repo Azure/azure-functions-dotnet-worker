@@ -74,7 +74,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                     var element = await ConvertModelBindingDataAsync(
                         content,
-                        context.TargetType.IsArray? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0],
+                        context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0],
                         modelBindingData);
 
                     if (element is not null)
@@ -83,18 +83,19 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
 
-                var collectionResult = context.TargetType.IsArray ?
-                    ToTargetTypeArray(context.TargetType, collectionBlob) :
-                    ToTargetTypeCollection(context.TargetType, collectionBlob);
+                var collectionResult = context.TargetType.IsArray
+                                    ? ToTargetTypeArray(context.TargetType, collectionBlob)
+                                    : ToTargetTypeCollection(context.TargetType, collectionBlob);
 
-                if(collectionResult == null && collectionBlob.Any())
+                if (collectionResult is null && collectionBlob.Any())
                 {
                     var result = DeserializeToTargetObjectCollection(collectionBlob, context.TargetType);
-                    if(result != null)
+                    if (result is not null)
                     {
                         return ConversionResult.Success(result);
                     }
                 }
+
                 if (collectionResult is not null && collectionResult.Any())
                 {
                     return ConversionResult.Success(collectionResult);
@@ -137,31 +138,44 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException("'Connection' or 'ContainerName' cannot be null or empty");
             }
 
-            var result = await ToTargetType(targetType, connectionName, containerName, blobName);
-            return result;
+            return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);
         }
 
-        private async Task<object?> ToTargetType(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
+        private async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
         {
-            Type _ when targetType == typeof(String) => await GetBlobString(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(Stream) => await GetBlobStream(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(Byte[]) => await GetBlobBinaryData(connectionName, containerName, blobName),
+            Type _ when targetType == typeof(String) => await GetBlobStringAsync(connectionName, containerName, blobName),
+            Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(connectionName, containerName, blobName),
+            Type _ when targetType == typeof(Byte[]) => await GetBlobBinaryDataAsync(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlobBaseClient) => CreateBlobClient<BlobBaseClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlobClient) => CreateBlobClient<BlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlockBlobClient) => CreateBlobClient<BlockBlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(PageBlobClient) => CreateBlobClient<PageBlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(AppendBlobClient) => CreateBlobClient<AppendBlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlobContainerClient) => CreateBlobContainerClient(connectionName, containerName),
-            _ => await DeserializeToTargetObject(targetType, connectionName, containerName, blobName)
+            _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
+        };
+
+        private object[]? ToTargetTypeArray(Type targetType, IEnumerable<object> blobCollection) => targetType switch
+        {
+            Type _ when targetType == typeof(String[]) => blobCollection.Select(b => (string)b).ToArray(),
+            Type _ when targetType == typeof(Stream[]) => blobCollection.Select(b => (Stream)b).ToArray(),
+            Type _ when targetType == typeof(Byte[][]) => blobCollection.Select(b => (Byte[])b).ToArray(),
+            Type _ when targetType == typeof(BlobBaseClient[]) => blobCollection.Select(b => (BlobBaseClient)b).ToArray(),
+            Type _ when targetType == typeof(BlobClient[]) => blobCollection.Select(b => (BlobClient)b).ToArray(),
+            Type _ when targetType == typeof(BlockBlobClient[]) => blobCollection.Select(b => (BlockBlobClient)b).ToArray(),
+            Type _ when targetType == typeof(PageBlobClient[]) => blobCollection.Select(b => (PageBlobClient)b).ToArray(),
+            Type _ when targetType == typeof(AppendBlobClient[]) => blobCollection.Select(b => (AppendBlobClient)b).ToArray(),
+            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select(b => (BlobClient)b).ToArray(),
+            _ => null
         };
 
         private IEnumerable<object>? ToTargetTypeCollection(Type targetType, IEnumerable<object> blobCollection) => targetType switch
         {
-            Type _ when targetType == typeof(IEnumerable<BlobBaseClient>) => blobCollection.Select(b => (BlobBaseClient)b),
-            Type _ when targetType == typeof(IEnumerable<BlobClient>) => blobCollection.Select(b => (BlobClient)b),
-            Type _ when targetType == typeof(IEnumerable<String>) || targetType == typeof(String[]) => blobCollection.Select((b) =>  ((String)b)),
+            Type _ when targetType == typeof(IEnumerable<String>) || targetType == typeof(String[]) => blobCollection.Select(b => (string)b),
             Type _ when targetType == typeof(IEnumerable<Stream>) => blobCollection.Select(b => (Stream)b),
             Type _ when targetType == typeof(IEnumerable<Byte[]>) => blobCollection.Select(b => (Byte[])b),
+            Type _ when targetType == typeof(IEnumerable<BlobBaseClient>) => blobCollection.Select(b => (BlobBaseClient)b),
+            Type _ when targetType == typeof(IEnumerable<BlobClient>) => blobCollection.Select(b => (BlobClient)b),
             Type _ when targetType == typeof(IEnumerable<BlockBlobClient>) => blobCollection.Select(b => (BlockBlobClient)b),
             Type _ when targetType == typeof(IEnumerable<PageBlobClient>) => blobCollection.Select(b => (PageBlobClient)b),
             Type _ when targetType == typeof(IEnumerable<AppendBlobClient>) => blobCollection.Select(b => (AppendBlobClient)b),
@@ -169,62 +183,49 @@ namespace Microsoft.Azure.Functions.Worker
             _ => null
         };
 
-        private object[]? ToTargetTypeArray(Type targetType, IEnumerable<object> blobCollection) => targetType switch
+        private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
         {
-            Type _ when targetType == typeof(BlobBaseClient[]) => blobCollection.Select((b) => ((BlobBaseClient)b)).ToArray(),
-            Type _ when targetType == typeof(BlobClient[]) => blobCollection.Select((b) => ((BlobClient)b)).ToArray(),
-            Type _ when targetType == typeof(String[]) => blobCollection.Select((b) => ((String)b)).ToArray(),
-            Type _ when targetType == typeof(Stream[]) => blobCollection.Select((b) => ((Stream)b)).ToArray(),
-            Type _ when targetType == typeof(Byte[][]) => blobCollection.Select((b) => ((Byte[])b)).ToArray(),
-            Type _ when targetType == typeof(BlockBlobClient[]) => blobCollection.Select((b) => ((BlockBlobClient)b)).ToArray(),
-            Type _ when targetType == typeof(PageBlobClient[]) => blobCollection.Select((b) => ((PageBlobClient)b)).ToArray(),
-            Type _ when targetType == typeof(AppendBlobClient[]) => blobCollection.Select((b) => ((AppendBlobClient)b)).ToArray(),
-            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select((b) => ((BlobClient)b)).ToArray(),
-            _ => null
-        };
-
-        private async Task<object?> DeserializeToTargetObject(Type targetType, string connectionName, string containerName, string blobName)
-        {
-            var content = await GetBlobStream(connectionName, containerName, blobName);
+            var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
             return _workerOptions.Value.Serializer.Deserialize(content, targetType, CancellationToken.None);
         }
 
         private object? DeserializeToTargetObjectCollection(IEnumerable<object> blobCollection, Type targetType)
         {
-            (string methodName, Type type) = targetType.IsArray ? (nameof(CloneToArray), targetType.GetElementType())
-                                                            : (nameof(CloneToList), targetType.GenericTypeArguments[0]);
+            (string methodName, Type type) = targetType.IsArray
+                                            ? (nameof(CloneToArray), targetType.GetElementType())
+                                            : (nameof(CloneToList), targetType.GenericTypeArguments[0]);
 
             blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
             MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName);
             MethodInfo genericMethod = method.MakeGenericMethod(type);
 
-            return genericMethod.Invoke(null, new[] {blobCollection.ToList()});
+            return genericMethod.Invoke(null, new[] { blobCollection.ToList() });
         }
-        
-        public static T[] CloneToArray<T>(IList<object> source)
+
+        private static T[] CloneToArray<T>(IList<object> source)
         {
             var result = source.Cast<T>().ToList();
             return result.ToArray();
         }
 
-        public static IEnumerable<T> CloneToList<T>(IList<object> source)
+        private static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
             return source.Cast<T>().ToList();
         }
 
-        private async Task<string> GetBlobString(string connectionName, string containerName, string blobName)
+        private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
-            return await GetBlobContentString(client);
+            return await GetBlobContentStringAsync(client);
         }
 
-        private async Task<string> GetBlobContentString(BlobClient client)
+        private async Task<string> GetBlobContentStringAsync(BlobClient client)
         {
             var download = await client.DownloadContentAsync();
             return download.Value.Content.ToString();
         }
 
-        private async Task<Byte[]> GetBlobBinaryData(string connectionName, string containerName, string blobName)
+        private async Task<Byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
         {
             using MemoryStream stream = new();
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
@@ -232,7 +233,7 @@ namespace Microsoft.Azure.Functions.Worker
             return stream.ToArray();
         }
 
-        private async Task<Stream> GetBlobStream(string connectionName, string containerName, string blobName)
+        private async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
             var download = await client.DownloadStreamingAsync();

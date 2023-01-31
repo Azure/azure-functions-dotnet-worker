@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                    if (!IsValidMethodAzureFunction(model, method, out string? functionName))
+                    if (!FunctionsUtil.IsValidMethodAzureFunction(_context, Compilation, model, method, out string? functionName))
                     {
                         continue;
                     }
@@ -81,33 +81,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return result; 
-            }
-
-            /// <summary>
-            /// Checks if a candidate method has a Function attribute on it.
-            /// </summary>
-            private bool IsValidMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, out string? functionName)
-            {
-                functionName = null;
-                var methodSymbol = model.GetDeclaredSymbol(method);
-
-                if (methodSymbol is null)
-                {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, method.Identifier.GetLocation(), nameof(methodSymbol)));
-                    return false;
-                }
-
-                foreach (var attr in methodSymbol.GetAttributes())
-                {
-                    if (attr.AttributeClass != null &&
-                       SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
-                    {
-                        functionName = (string)attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
-                        return true;
-                    }
-                }
-
-                return false;
             }
 
             private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger)

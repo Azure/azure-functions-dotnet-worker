@@ -15,6 +15,8 @@ using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.Azure.Functions.Worker.Core;
 using System.Reflection;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {

@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         public void Execute(GeneratorExecutionContext context)
         {
-            if (context.SyntaxReceiver is not SyntaxReceiver receiver || receiver.CandidateMethods.Count == 0)
+            if (context.SyntaxReceiver is not FunctionMethodSyntaxReceiver receiver || receiver.CandidateMethods.Count == 0)
             {
                 return;
             }
@@ -54,13 +54,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <param name="context"></param>
         public void Initialize(GeneratorInitializationContext context)
         {
-            context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+            context.RegisterForSyntaxNotifications(() => new FunctionMethodSyntaxReceiver());
         }
 
         /// <summary>
         /// Created on demand before each generation pass
         /// </summary>
-        private class SyntaxReceiver : ISyntaxReceiver
+        internal class FunctionMethodSyntaxReceiver : ISyntaxReceiver
         {
             public List<MethodDeclarationSyntax> CandidateMethods { get; } = new List<MethodDeclarationSyntax>();
 

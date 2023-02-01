@@ -41,8 +41,8 @@ public record TypedData
     {
         if (typedData == null) return null;
         return new TypedData(typedData.String, typedData.Json, typedData.Bytes, typedData.Stream,
-            Http.From(typedData.Http), typedData.Int, typedData.Double, typedData.CollectionBytes?.Bytes,
-            typedData.CollectionString?.String, typedData.CollectionDouble?.Double, typedData.CollectionSint64?.Sint64,
+            Http.From(typedData.Http), typedData.Int, typedData.Double, typedData.CollectionBytes?.Bytes.Clone(),
+            typedData.CollectionString?.String.Clone(), typedData.CollectionDouble?.Double.Clone(), typedData.CollectionSint64?.Sint64.Clone(),
             ModelBindingData.From(typedData.ModelBindingData),
             typedData.CollectionModelBindingData?.ModelBindingData?.Select(ModelBindingData.From).ToArray());
     }

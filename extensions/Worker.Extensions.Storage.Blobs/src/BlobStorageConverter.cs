@@ -202,13 +202,12 @@ namespace Microsoft.Azure.Functions.Worker
             return genericMethod.Invoke(null, new[] { blobCollection.ToList() });
         }
 
-        private static T[] CloneToArray<T>(IList<object> source)
+        public static T[] CloneToArray<T>(IList<object> source)
         {
-            var result = source.Cast<T>().ToList();
-            return result.ToArray();
+            return source.Cast<T>().ToArray();
         }
 
-        private static IEnumerable<T> CloneToList<T>(IList<object> source)
+        public static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
             return source.Cast<T>().ToList();
         }

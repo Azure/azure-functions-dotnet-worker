@@ -8,49 +8,59 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.ComponentModel;
 
-namespace Microsoft.Azure.Functions.Worker
+internal static class IDictionaryExtensions
 {
-    internal static class IDictionaryExtensions
+    internal static bool TryAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
     {
-        internal static bool TryAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, TValue value)
+        if (key == null)
         {
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (dictionary.ContainsKey(key))
-            {
-                return false;
-            }
-
-            dictionary.Add(key, value);
-            return true;
+            throw new ArgumentNullException(nameof(key));
         }
-    }
 
-    internal static class ConcurrentDictionaryExtensions
-    {
-        public static TValue GetOrAdd<TKey, TValue, TArg>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+        if (dictionary.ContainsKey(key))
         {
-            if (dictionary == null)
-            {
-                throw new ArgumentNullException(nameof(dictionary));
-            }
-
-            if (key == null)
-            {
-                throw new ArgumentNullException(nameof(key));
-            }
-
-            if (valueFactory == null)
-            {
-                throw new ArgumentNullException(nameof(valueFactory));
-            }
-
-            return dictionary.GetOrAdd(key, k => valueFactory(k, factoryArgument));
+            return false;
         }
+
+        dictionary.Add(key, value);
+        return true;
     }
 }
+
+internal static class ConcurrentDictionaryExtensions
+{
+    public static TValue GetOrAdd<TKey, TValue, TArg>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+    {
+        if (dictionary == null)
+        {
+            throw new ArgumentNullException(nameof(dictionary));
+        }
+
+        if (key == null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        if (valueFactory == null)
+        {
+            throw new ArgumentNullException(nameof(valueFactory));
+        }
+
+        return dictionary.GetOrAdd(key, k => valueFactory(k, factoryArgument));
+    }
+}
+
+internal static class KeyValuePairExtensions
+{
+    // Based on https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/KeyValuePair.cs,aa57b8e336bf7f59    
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey key, out TValue value)
+    {
+        key = pair.Key;
+        value = pair.Value;
+    }
+}
+
 #endif

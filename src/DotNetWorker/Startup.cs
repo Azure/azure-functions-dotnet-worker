@@ -1,4 +1,7 @@
-﻿#if NET5_0_OR_GREATER
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+#if NET5_0_OR_GREATER
 
 using System;
 using System.Globalization;

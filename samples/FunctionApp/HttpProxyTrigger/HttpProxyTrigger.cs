@@ -14,7 +14,6 @@ namespace FunctionApp
             var response = req.HttpContext.Response;
 
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.Headers.Add("IsHttpProxying", bool.TrueString);
 
             response.WriteAsync("Welcome to Azure Functions!");
 

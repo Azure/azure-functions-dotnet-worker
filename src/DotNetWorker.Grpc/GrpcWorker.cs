@@ -207,23 +207,19 @@ namespace Microsoft.Azure.Functions.Worker
 
             response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
 
-            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
-            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
-            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
-            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
-            response.Capabilities.Add("TypedDataCollection", bool.TrueString);
-            response.Capabilities.Add("WorkerStatus", bool.TrueString);
-            response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
-            response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
+            // Add additional capabilities defined by WorkerOptions
+            foreach ((string key, string value) in workerOptions.Capabilities)
+            {
+                response.Capabilities[key] = value;
+            }
 
-            if (workerOptions.EnableUserCodeException)
-            {
-                response.Capabilities.Add("EnableUserCodeException", bool.TrueString);
-            }
-            if (workerOptions.IncludeEmptyEntriesInMessagePayload)
-            {
-                response.Capabilities.Add("IncludeEmptyEntriesInMessagePayload", bool.TrueString);
-            }
+            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
+            response.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            response.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            response.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            response.Capabilities["TypedDataCollection"] = bool.TrueString;
+            response.Capabilities["WorkerStatus"] = bool.TrueString;
 
             return response;
         }

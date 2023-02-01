@@ -1,10 +1,13 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Text;
 using System.Threading;
 
-public partial class FunctionExecutorGenerator
+internal partial class FunctionExecutorGenerator
 {
-    public class Emitter
+    internal class Emitter
     {
         public string Emit(IEnumerable<FuncInfo> functions, CancellationToken cancellationToken)
         {
@@ -34,11 +37,11 @@ public partial class FunctionExecutorGenerator
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(@"var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
-            var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context);");
+            var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;");
             foreach (FuncInfo function in functions)
             {
                 sb.Append($@"
-            if (string.Equals(context.FunctionDefinition.Name, ""{function.FunctionName}"",StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.Name, ""{function.FunctionName}"", StringComparison.OrdinalIgnoreCase))
             {{");
 
                 int paramCounter = 0;
@@ -50,10 +53,7 @@ public partial class FunctionExecutorGenerator
                 var p{paramCounter} = context.InstanceServices.GetService<{argumentTypeName}>();");
                     paramInputs.Add($"p{paramCounter}");
                 }
-                var inputs = string.Join(",", paramInputs);
-
-                sb.Append($@"
-                var t = new {function.ParentClass.ClassName}({inputs});");
+                var inputs = string.Join(", ", paramInputs);
 
                 int paramCounter2 = 0;
                 var paramInputs2 = new List<string>();
@@ -62,10 +62,22 @@ public partial class FunctionExecutorGenerator
                     paramCounter2++;
                     paramInputs2.Add($"({argumentTypeName})inputArguments[{paramCounter2}]");
                 }
-                var methodInputs = string.Join(",", paramInputs2);
-                sb.Append(@$"
+                var methodInputs = string.Join(", ", paramInputs2);
+
+                if (function.IsStatic)
+                {
+                    sb.Append(@$"
+                context.GetInvocationResult().Value = {function.ParentClass.ClassName}.{function.MethodName}({methodInputs});
+            }}");
+                }
+                else
+                {
+                    sb.Append($@"
+                var t = new {function.ParentClass.ClassName}({inputs});
                 context.GetInvocationResult().Value = t.{function.MethodName}({methodInputs});
             }}");
+                }
+
 
             }
 

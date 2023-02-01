@@ -3,12 +3,13 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 
-public partial class FunctionExecutorGenerator
+internal partial class FunctionExecutorGenerator
 {
-    public class Parser
+    internal class Parser
     {
         private readonly GeneratorExecutionContext _context;
 
@@ -64,10 +65,22 @@ public partial class FunctionExecutorGenerator
                     classDict[entryPoint] = classInfo;
                 }
 
+                var rt = methodSymbol.ReturnType as INamedTypeSymbol;
+                var ort = rt.IsGenericType;
+                var srt = rt.OriginalDefinition;
+                var ts = methodSymbol.ReturnsVoid;
+                var tgs = Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric);
+                //rt.c
+                var ts2 = SymbolEqualityComparer.Default.Equals(srt, tgs);
+                var ts3 = SymbolEqualityComparer.Default.Equals(srt, Compilation.GetTypeByMetadataName(Constants.Types.Task));
+                //rt.IsOrDerivedFrom()
+                var b = ts || ts2 || ts3;
                 var funcInfo = new FuncInfo(entryPoint!)
                 {
                     ParameterTypeNames = methodParameterList,
-                    MethodName = methodName
+                    MethodName = methodName,
+                    
+                    IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword)
                 };
                 funcInfo.ParentClass = classInfo;
 
@@ -115,6 +128,7 @@ public partial class FunctionExecutorGenerator
             FunctionName = functionName;
         }
     
+        public bool ReturnsTask { get; set; }
         public string MethodName { get; set; }
 
         public bool IsStatic { get; set; }

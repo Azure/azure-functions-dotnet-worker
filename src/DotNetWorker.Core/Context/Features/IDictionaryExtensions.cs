@@ -54,7 +54,7 @@ internal static class ConcurrentDictionaryExtensions
 
 internal static class KeyValuePairExtensions
 {
-    // Based on https://source.dot.net/#System.Private.CoreLib/KeyValuePair.cs,aa57b8e336bf7f59
+    // Based on https://source.dot.net/#System.Private.CoreLib/src/libraries/System.Private.CoreLib/src/System/Collections/Generic/KeyValuePair.cs,aa57b8e336bf7f59    
     [EditorBrowsable(EditorBrowsableState.Never)]
     public static void Deconstruct<TKey, TValue>(this KeyValuePair<TKey, TValue> pair, out TKey key, out TValue value)
     {

@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 ModelBindingData binding => await ConvertAsync(context, binding),
                 CollectionModelBindingData binding => await ConvertAsync(context, binding),
-                _ => new ValueTask<ConversionResult>(ConversionResult.Unhandled()),
+                _ => ConversionResult.Unhandled(),
             };
         }
 

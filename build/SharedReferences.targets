@@ -1,0 +1,15 @@
+<Project>
+
+  <Target Name="IncludeSharedItems" BeforeTargets="BeforeCompile" Condition="'@(SharedReference)' != ''">
+
+    <PropertyGroup>
+      <_SharedReferenceCompileIncludes>@(SharedReference->'%(RelativeDir)**/*.cs')</_SharedReferenceCompileIncludes>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Include="$(_SharedReferenceCompileIncludes)" LinkBase="Shared" Visible="false" />
+    </ItemGroup>
+
+  </Target>
+
+</Project>

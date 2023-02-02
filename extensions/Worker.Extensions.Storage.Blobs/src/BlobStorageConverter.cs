@@ -200,18 +200,18 @@ namespace Microsoft.Azure.Functions.Worker
         private object? DeserializeToTargetObjectCollection(IEnumerable<object> blobCollection, string methodName, Type type)
         {
             blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
-            MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName);
+            MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
             MethodInfo genericMethod = method.MakeGenericMethod(type);
 
             return genericMethod.Invoke(null, new[] { blobCollection.ToList() });
         }
 
-        public static T[] CloneToArray<T>(IList<object> source)
+        private static T[] CloneToArray<T>(IList<object> source)
         {
             return source.Cast<T>().ToArray();
         }
 
-        public static IEnumerable<T> CloneToList<T>(IList<object> source)
+        private static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
             return source.Cast<T>().ToList(); // TODO: try this without .ToList()
         }

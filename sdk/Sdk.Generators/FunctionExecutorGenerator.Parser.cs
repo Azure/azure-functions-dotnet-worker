@@ -17,14 +17,17 @@ internal partial class FunctionExecutorGenerator
 
         private CancellationToken CancellationToken => _context.CancellationToken;
 
+        private KnownTypes _knownTypes;
+
         public Parser(GeneratorExecutionContext context)
         {
             _context = context;
+            _knownTypes = new KnownTypes(_context.Compilation);
         }
 
         internal IEnumerable<FuncInfo> Get(List<MethodDeclarationSyntax> methods)
         {
-             Dictionary<string, ClassInfo> classDict = new Dictionary<string, ClassInfo>();
+            Dictionary<string, ClassInfo> classDict = new Dictionary<string, ClassInfo>();
 
             var functionList = new List<FuncInfo>();
             foreach (MethodDeclarationSyntax method in methods)
@@ -50,7 +53,7 @@ internal partial class FunctionExecutorGenerator
                 }
 
                 var methodSymSemanticModel = Compilation.GetSemanticModel(method.SyntaxTree);
-                var methodSymbol = methodSymSemanticModel.GetDeclaredSymbol(method);
+                IMethodSymbol methodSymbol = methodSymSemanticModel.GetDeclaredSymbol(method)!;
                 var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
 
                 ClassDeclarationSyntax functionClass = (ClassDeclarationSyntax)method.Parent!;
@@ -65,21 +68,12 @@ internal partial class FunctionExecutorGenerator
                     classDict[entryPoint] = classInfo;
                 }
 
-                var rt = methodSymbol.ReturnType as INamedTypeSymbol;
-                var ort = rt.IsGenericType;
-                var srt = rt.OriginalDefinition;
-                var ts = methodSymbol.ReturnsVoid;
-                var tgs = Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric);
-                //rt.c
-                var ts2 = SymbolEqualityComparer.Default.Equals(srt, tgs);
-                var ts3 = SymbolEqualityComparer.Default.Equals(srt, Compilation.GetTypeByMetadataName(Constants.Types.Task));
-                //rt.IsOrDerivedFrom()
-                var b = ts || ts2 || ts3;
                 var funcInfo = new FuncInfo(entryPoint!)
                 {
                     ParameterTypeNames = methodParameterList,
                     MethodName = methodName,
-                    
+                    ShouldAwait = IsTaskType(methodSymbol.ReturnType),
+                    IsReturnValueAssignable = IsReturnValueAssignable(methodSymbol),
                     IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword)
                 };
                 funcInfo.ParentClass = classInfo;
@@ -89,6 +83,28 @@ internal partial class FunctionExecutorGenerator
 
             return functionList;
         }
+
+        private bool IsTaskType(ITypeSymbol typeSymbol)
+        {
+            return SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.TaskType)
+                || SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.TaskOfTType);
+
+        }
+        private bool IsReturnValueAssignable(IMethodSymbol methodSymbol)
+        {
+            if (methodSymbol.ReturnsVoid)
+            {
+                return false;
+            }
+
+            if(SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType.OriginalDefinition, _knownTypes.TaskType))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
         private static IEnumerable<string> GetConstructorParamTypeNames(ClassDeclarationSyntax functionClass,
             SemanticModel model)
         {
@@ -127,13 +143,18 @@ internal partial class FunctionExecutorGenerator
         {
             FunctionName = functionName;
         }
-    
-        public bool ReturnsTask { get; set; }
+
+        /// <summary>
+        ///  Task or Void
+        /// </summary>
+        public bool IsReturnValueAssignable { set; get; }
+
+        public bool ShouldAwait { get; set; }
         public string MethodName { get; set; }
 
         public bool IsStatic { get; set; }
         public string FunctionName { get; }
-    
+
         public ClassInfo ParentClass { set; get; }
 
         public IEnumerable<string> ParameterTypeNames { set; get; } = Enumerable.Empty<string>();
@@ -146,7 +167,7 @@ internal partial class FunctionExecutorGenerator
             ClassName = className;
         }
 
-        public IEnumerable<string> ConstructorArgumentTypeNames { set; get; }= Enumerable.Empty<string>();
+        public IEnumerable<string> ConstructorArgumentTypeNames { set; get; } = Enumerable.Empty<string>();
 
         public string ClassName { get; }
 

@@ -64,17 +64,24 @@ internal partial class FunctionExecutorGenerator
                 }
                 var methodInputs = string.Join(", ", paramInputs2);
 
+                sb.Append(@"
+                ");
+                if (function.IsReturnValueAssignable)
+                {
+                    sb.Append(@$"context.GetInvocationResult().Value = ");
+                }
+                if (function.ShouldAwait)
+                {
+                    sb.Append("await ");
+                }
                 if (function.IsStatic)
                 {
-                    sb.Append(@$"
-                context.GetInvocationResult().Value = {function.ParentClass.ClassName}.{function.MethodName}({methodInputs});
+                    sb.Append(@$"{function.ParentClass.ClassName}.{function.MethodName}({methodInputs});
             }}");
                 }
                 else
                 {
-                    sb.Append($@"
-                var t = new {function.ParentClass.ClassName}({inputs});
-                context.GetInvocationResult().Value = t.{function.MethodName}({methodInputs});
+                    sb.Append($@"new {function.ParentClass.ClassName}({inputs}).{function.MethodName}({methodInputs});
             }}");
                 }
 

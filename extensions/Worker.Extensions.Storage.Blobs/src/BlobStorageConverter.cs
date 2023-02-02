@@ -140,9 +140,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         private bool TryGetBindingDataContent(ModelBindingData bindingData, out IDictionary<string, string> bindingDataContent)
         {
-            bindingDataContent = bindingData.ContentType switch
+            bindingDataContent = bindingData?.ContentType switch
             {
-                Constants.JsonContentType => new Dictionary<string, string>(bindingData.Content.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
+                Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
                 _ => null
             };
 
@@ -194,7 +194,7 @@ namespace Microsoft.Azure.Functions.Worker
         private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
         {
             var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
-            return _workerOptions.Value.Serializer.Deserialize(content, targetType, CancellationToken.None);
+            return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
         }
 
         private object? DeserializeToTargetObjectCollection(IEnumerable<object> blobCollection, string methodName, Type type)

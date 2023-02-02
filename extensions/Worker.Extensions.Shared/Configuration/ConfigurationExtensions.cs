@@ -3,14 +3,14 @@
 
 using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
+namespace Microsoft.Azure.Functions.Worker
 {
-    public static class ConfigurationExtensions
+    internal static class ConfigurationExtensions
     {
         private const string WebJobsConfigurationSectionName = "AzureWebJobs";
         private const string ConnectionStringsConfigurationSectionName = "ConnectionStrings";
 
-        public static IConfigurationSection GetWebJobsConnectionStringSection(this IConfiguration configuration, string connectionName)
+        internal static IConfigurationSection GetWebJobsConnectionStringSection(this IConfiguration configuration, string connectionName)
         {
             // first try prefixing
             string prefixedConnectionStringName = GetPrefixedConnectionStringName(connectionName);
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
             return section;
         }
 
-        public static string GetPrefixedConnectionStringName(string connectionName)
+        internal static string GetPrefixedConnectionStringName(string connectionName)
         {
             return WebJobsConfigurationSectionName + connectionName;
         }
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         /// <param name="configuration">The configuration.</param>
         /// <param name="connectionName">The connection string key.</param>
         /// <returns></returns>
-        public static IConfigurationSection GetConnectionStringOrSetting(this IConfiguration configuration, string connectionName)
+        internal static IConfigurationSection GetConnectionStringOrSetting(this IConfiguration configuration, string connectionName)
         {
             if (configuration.GetSection(ConnectionStringsConfigurationSectionName).Exists())
             {

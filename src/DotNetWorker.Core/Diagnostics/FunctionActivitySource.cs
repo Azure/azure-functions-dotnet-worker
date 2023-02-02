@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 {
     internal class FunctionActivitySourceFactory
     {
-        private static readonly ActivitySource _activitySource = new(TraceConstants.FunctionsActivitySource);
+        private static readonly ActivitySource _activitySource = new(TraceConstants.FunctionsActivitySource, TraceConstants.FunctionsActivitySourceVersion);
         private readonly string _schemaVersionUrl;
         private readonly Lazy<IReadOnlyDictionary<string, string>> _attributeMap;
 
@@ -25,6 +25,11 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         {
             var activity = _activitySource.StartActivity(TraceConstants.FunctionsInvokeActivityName, ActivityKind.Internal, context.TraceContext.TraceParent,
                 tags: GetTags(context));
+
+            if (activity is not null)
+            {
+                activity.TraceStateString = context.TraceContext.TraceState;
+            }
 
             return activity;
         }

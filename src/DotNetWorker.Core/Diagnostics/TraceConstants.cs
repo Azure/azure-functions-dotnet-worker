@@ -15,8 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         public const string AttributeExceptionType = "exception.type";
         public const string AttributeExceptionMessage = "exception.message";
         public const string AttributeExceptionStacktrace = "exception.stacktrace";
+        public const string AttributeExceptionEscaped = "exception.escaped";
 
-        public const string AttributeSchemaUrl = "schema_url";
+        public const string AttributeSchemaUrl = "az.schema_url";
         public static IReadOnlyDictionary<OpenTelemetrySchemaVersion, string> OpenTelemetrySchemaMap =
             new Dictionary<OpenTelemetrySchemaVersion, string>()
             {

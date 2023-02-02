@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker
             catch (Exception ex)
             {
                 invokeActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
-                invokeActivity?.RecordException(ex);
+                invokeActivity?.RecordException(ex, escaped: true);
 
                 throw;
             }

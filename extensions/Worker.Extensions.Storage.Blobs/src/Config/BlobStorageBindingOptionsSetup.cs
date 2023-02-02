@@ -6,7 +6,6 @@ using Azure.Storage.Blobs;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using System.Globalization;
 
 namespace Microsoft.Azure.Functions.Worker

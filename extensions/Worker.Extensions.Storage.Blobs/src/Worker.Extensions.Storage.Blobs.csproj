@@ -27,4 +27,8 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <SharedReference Include="../../Worker.Extensions.Shared/Worker.Extensions.Shared.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <!-- Include packages here as appropriate so that intellisense still works. -->
-    <!-- <PackageReference Include="PackageId" Version="PackageVersion" /> -->
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
   </ItemGroup>
 
 </Project>

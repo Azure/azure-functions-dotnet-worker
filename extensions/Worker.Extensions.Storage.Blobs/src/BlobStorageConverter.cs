@@ -36,80 +36,102 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context.Source is ModelBindingData bindingData)
+            if (context is null)
             {
-                if (!IsBlobExtension(bindingData))
-                {
-                    return ConversionResult.Unhandled();
-                }
+                return ConversionResult.Unhandled();
+            }
 
-                if (!TryGetBindingDataContent(bindingData, out IDictionary<string, string> content))
-                {
-                    return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
-                }
+            return context.Source switch
+            {
+                ModelBindingData binding => await ConvertAsync(context, binding),
+                CollectionModelBindingData binding => await ConvertAsync(context, binding),
+                _ => new ValueTask<ConversionResult>(ConversionResult.Unhandled()),
+            };
+        }
 
-                var result = await ConvertModelBindingDataAsync(content, context.TargetType, bindingData);
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context, ModelBindingData modelBindingData)
+        {
+            if (!IsBlobExtension(modelBindingData))
+            {
+                return ConversionResult.Unhandled();
+            }
+
+            if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
+            {
+                return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
+            }
+
+            try
+            {
+                var result = await ConvertModelBindingDataAsync(content, context.TargetType, modelBindingData);
 
                 if (result is not null)
                 {
                     return ConversionResult.Success(result);
                 }
             }
-
-            if (context.Source is CollectionModelBindingData collectionBindingData)
+            catch (Exception ex)
             {
-                var collectionBlob = new List<object>(collectionBindingData.ModelBindingDataArray.Length);
-
-                foreach (ModelBindingData modelBindingData in collectionBindingData.ModelBindingDataArray)
-                {
-                    if (!IsBlobExtension(modelBindingData))
-                    {
-                        return ConversionResult.Unhandled();
-                    }
-
-                    if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
-                    {
-                        return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
-                    }
-
-                    var element = await ConvertModelBindingDataAsync(
-                        content,
-                        context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0],
-                        modelBindingData);
-
-                    if (element is not null)
-                    {
-                        collectionBlob.Add(element);
-                    }
-                }
-
-                var collectionResult = context.TargetType.IsArray
-                                    ? ToTargetTypeArray(context.TargetType, collectionBlob)
-                                    : ToTargetTypeCollection(context.TargetType, collectionBlob);
-
-                if (collectionResult is null && collectionBlob.Any())
-                {
-                    var result = DeserializeToTargetObjectCollection(collectionBlob, context.TargetType);
-                    if (result is not null)
-                    {
-                        return ConversionResult.Success(result);
-                    }
-                }
-
-                if (collectionResult is not null && collectionResult.Any())
-                {
-                    return ConversionResult.Success(collectionResult);
-                }
+                return ConversionResult.Failed(ex);
             }
 
             return ConversionResult.Unhandled();
         }
 
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
+        {
+            var blobCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
+            Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
+
+            foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
+            {
+                if (!IsBlobExtension(modelBindingData))
+                {
+                    return ConversionResult.Unhandled();
+                }
+
+                if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
+                {
+                    return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
+                }
+
+                var element = await ConvertModelBindingDataAsync(content, elementType, modelBindingData);
+
+                if (element is not null)
+                {
+                    blobCollection.Add(element);
+                }
+            }
+
+            try
+            {
+                var result = ToTargetTypeCollection(elementType, blobCollection);
+
+                if (result is null)
+                {
+                    var methodName = context.TargetType.IsArray ? nameof(CloneToArray) : nameof(CloneToList);
+                    var pocoResult = DeserializeToTargetObjectCollection(blobCollection, methodName, context.TargetType);
+                    return ConversionResult.Success(pocoResult);
+                }
+
+                if (context.TargetType.IsArray)
+                {
+                    result.ToArray();
+                }
+
+                return ConversionResult.Success(result);
+            }
+            catch (Exception ex)
+            {
+                return ConversionResult.Failed(ex);
+            }
+        }
+
         private bool IsBlobExtension(ModelBindingData bindingData)
         {
-            if (bindingData.Source is not Constants.BlobExtensionName)
+            if (bindingData?.Source is not Constants.BlobExtensionName)
             {
-                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData.Source, nameof(BlobStorageConverter));
+                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData?.Source, nameof(BlobStorageConverter));
                 return false;
             }
 
@@ -155,31 +177,17 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
         };
 
-        private object[]? ToTargetTypeArray(Type targetType, IEnumerable<object> blobCollection) => targetType switch
-        {
-            Type _ when targetType == typeof(String[]) => blobCollection.Select(b => (string)b).ToArray(),
-            Type _ when targetType == typeof(Stream[]) => blobCollection.Select(b => (Stream)b).ToArray(),
-            Type _ when targetType == typeof(Byte[][]) => blobCollection.Select(b => (Byte[])b).ToArray(),
-            Type _ when targetType == typeof(BlobBaseClient[]) => blobCollection.Select(b => (BlobBaseClient)b).ToArray(),
-            Type _ when targetType == typeof(BlobClient[]) => blobCollection.Select(b => (BlobClient)b).ToArray(),
-            Type _ when targetType == typeof(BlockBlobClient[]) => blobCollection.Select(b => (BlockBlobClient)b).ToArray(),
-            Type _ when targetType == typeof(PageBlobClient[]) => blobCollection.Select(b => (PageBlobClient)b).ToArray(),
-            Type _ when targetType == typeof(AppendBlobClient[]) => blobCollection.Select(b => (AppendBlobClient)b).ToArray(),
-            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select(b => (BlobClient)b).ToArray(),
-            _ => null
-        };
-
         private IEnumerable<object>? ToTargetTypeCollection(Type targetType, IEnumerable<object> blobCollection) => targetType switch
         {
-            Type _ when targetType == typeof(IEnumerable<String>) || targetType == typeof(String[]) => blobCollection.Select(b => (string)b),
-            Type _ when targetType == typeof(IEnumerable<Stream>) => blobCollection.Select(b => (Stream)b),
-            Type _ when targetType == typeof(IEnumerable<Byte[]>) => blobCollection.Select(b => (Byte[])b),
-            Type _ when targetType == typeof(IEnumerable<BlobBaseClient>) => blobCollection.Select(b => (BlobBaseClient)b),
-            Type _ when targetType == typeof(IEnumerable<BlobClient>) => blobCollection.Select(b => (BlobClient)b),
-            Type _ when targetType == typeof(IEnumerable<BlockBlobClient>) => blobCollection.Select(b => (BlockBlobClient)b),
-            Type _ when targetType == typeof(IEnumerable<PageBlobClient>) => blobCollection.Select(b => (PageBlobClient)b),
-            Type _ when targetType == typeof(IEnumerable<AppendBlobClient>) => blobCollection.Select(b => (AppendBlobClient)b),
-            Type _ when targetType == typeof(IEnumerable<BlobContainerClient>) => blobCollection.Select(b => (BlobClient)b),
+            Type _ when targetType == typeof(String) || targetType == typeof(String[]) => blobCollection.Select(b => (string)b),
+            Type _ when targetType == typeof(Stream) => blobCollection.Select(b => (Stream)b),
+            Type _ when targetType == typeof(Byte[]) => blobCollection.Select(b => (Byte[])b),
+            Type _ when targetType == typeof(BlobBaseClient) => blobCollection.Select(b => (BlobBaseClient)b),
+            Type _ when targetType == typeof(BlobClient) => blobCollection.Select(b => (BlobClient)b),
+            Type _ when targetType == typeof(BlockBlobClient) => blobCollection.Select(b => (BlockBlobClient)b),
+            Type _ when targetType == typeof(PageBlobClient) => blobCollection.Select(b => (PageBlobClient)b),
+            Type _ when targetType == typeof(AppendBlobClient) => blobCollection.Select(b => (AppendBlobClient)b),
+            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select(b => (BlobClient)b),
             _ => null
         };
 
@@ -189,12 +197,8 @@ namespace Microsoft.Azure.Functions.Worker
             return _workerOptions.Value.Serializer.Deserialize(content, targetType, CancellationToken.None);
         }
 
-        private object? DeserializeToTargetObjectCollection(IEnumerable<object> blobCollection, Type targetType)
+        private object? DeserializeToTargetObjectCollection(IEnumerable<object> blobCollection, string methodName, Type type)
         {
-            (string methodName, Type type) = targetType.IsArray
-                                            ? (nameof(CloneToArray), targetType.GetElementType())
-                                            : (nameof(CloneToList), targetType.GenericTypeArguments[0]);
-
             blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
             MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName);
             MethodInfo genericMethod = method.MakeGenericMethod(type);
@@ -209,7 +213,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
-            return source.Cast<T>().ToList();
+            return source.Cast<T>().ToList(); // TODO: try this without .ToList()
         }
 
         private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)

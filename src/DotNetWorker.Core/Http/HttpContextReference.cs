@@ -23,20 +23,19 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             _httpContextValueSource.SetResult(context);
         }
 
-        public TaskCompletionSource<HttpContext> FunctionCompletionTask { get => _functionCompletionTask; set => _functionCompletionTask = value; }
+        public TaskCompletionSource<HttpContext> FunctionCompletionTask { get => _functionCompletionTask; set => _httpContextValueSource = value; }
 
         public TaskCompletionSource<HttpContext> HttpContextValueSource { get => _httpContextValueSource; set => _httpContextValueSource = value; }
 
         internal void CompleteFunction()
         {
-            if (_httpContext is not null)
+            if (_httpContextValueSource.Task.IsCompleted)
             {
-                FunctionCompletionTask.SetResult(_httpContext);
+                _functionCompletionTask.SetResult(_httpContextValueSource.Task.Result);
             }
             else
             {
-                // throw some error?
-                // what does it mean if the function completes without httpContext set / is it possible?
+                // we should never reach here b/c the class that calls this needs httpContextValueSource to complete to reach this method
             }
         }
     }

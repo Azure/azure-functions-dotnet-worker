@@ -21,22 +21,14 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
         {
             var invocationId = context.InvocationId;
 
-            Task<HttpContext> httpContextTask = _coordinator.GetContextAsync(invocationId);
+            var httpContext = await _coordinator.GetContextAsync(invocationId);
 
-            if (httpContextTask == await Task.WhenAny(httpContextTask, Task.Delay(100000)))
-            {
-                var httpContext = await httpContextTask;
-                AddHttpContextToFunctionContext(context, httpContext);
+            AddHttpContextToFunctionContext(context, httpContext);
 
-                await next(context);
+            await next(context);
 
-                // allows asp.net middleware to continue
-                _coordinator.CompleteInvocation(invocationId);
-            }
-            else
-            {
-                _coordinator.CompleteInvocation(invocationId);
-            }
+            // allows asp.net middleware to continue
+            _coordinator.CompleteInvocation(invocationId);
         }
 
         private void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

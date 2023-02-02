@@ -9,12 +9,18 @@ namespace Microsoft.Azure.Functions.Worker.TestServer;
 /// </summary>
 public static class TestServerServiceCollectionExtensions
 {
-    public static IServiceCollection WithRpcTestServer(this IServiceCollection serviceCollection)
+    private const int MaxMessageLengthBytes = int.MaxValue;
+
+    public static IServiceCollection WithRpcTestServer(this IServiceCollection services)
     {
-        serviceCollection.AddGrpc(_ => { });
-        serviceCollection.AddSingleton<FunctionRpcTestServer>();
-        serviceCollection.AddSingleton<ITestServer>(provider => provider.GetRequiredService<FunctionRpcTestServer>());
-        return serviceCollection;
+        services.AddGrpc(options =>
+        {
+            options.MaxReceiveMessageSize = MaxMessageLengthBytes;
+            options.MaxSendMessageSize = MaxMessageLengthBytes;
+        });
+        services.AddSingleton<FunctionRpcTestServer>();
+        services.AddSingleton<ITestServer>(provider => provider.GetRequiredService<FunctionRpcTestServer>());
+        return services;
     }
 
     public static IEndpointRouteBuilder MapTestServer(this IEndpointRouteBuilder builder)

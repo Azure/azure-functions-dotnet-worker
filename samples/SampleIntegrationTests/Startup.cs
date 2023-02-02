@@ -1,6 +1,7 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using FunctionApp;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.Functions.Worker.TestServer;
+using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -10,7 +11,7 @@ public class Startup
 {
     public void ConfigureServices(IServiceCollection services)
     {
-        services.WithRpcTestServer();
+        services.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
     }
 
 
@@ -20,10 +21,7 @@ public class Startup
         {
             app.UseDeveloperExceptionPage();
         }
-        app.UseRouting();
-        app.UseEndpoints(endpoints =>
-        {
-            endpoints.MapTestServer();
-        });
     }
 }
+
+

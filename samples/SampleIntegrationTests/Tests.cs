@@ -3,7 +3,6 @@ using System.Text.Json;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Hosting.Server;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -17,26 +16,28 @@ namespace SampleIntegrationTests
 {
     public class Tests
     {
-        private IHost _host;
+        private IHost _functionHost;
+        private IHost _workerHost;
         private ITestServer _testServer;
 
         [OneTimeSetUp]
         public async Task Setup()
         {
             using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", ".");
-            _host = new HostBuilder()
-                .ConfigureWebHost(a => a.UseTestServer().UseStartup<Startup>())
+            _functionHost = new HostBuilder()
+                .ConfigureWebHost(a => a.UseTestServer().UseStartup<StartupHost>())
                 .ConfigureLogging(a => a.AddProvider(new NUnitLoggerProvider()))
-                .ConfigureServices((context, services) =>
-                {
-                    IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults();
-                    services.ConfigureGrpcClient(a =>
-                        a.ConfigurePrimaryHttpMessageHandler(provider =>
-                            ((TestServer)provider.GetRequiredService<IServer>()).CreateHandler()));
+                .Build();
 
-                    appBuilder.UseDefaultWorkerMiddleware();
-                    services.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
+            _workerHost = new HostBuilder().ConfigureWebHost(a => a.UseTestServer().UseStartup<Startup>())
+                .ConfigureLogging(a => a.SetMinimumLevel(LogLevel.Trace) .AddProvider(new NUnitLoggerProvider()))
+                .ConfigureServices((context, services)=>
+                {
+                    services.ConfigureGrpcClient(a =>
+                        a.ConfigurePrimaryHttpMessageHandler(_ =>
+                            ((TestServer)_functionHost.Services.GetRequiredService<IServer>()).CreateHandler()));
                 })
+                .ConfigureFunctionsWorkerDefaults()
                 .ConfigureHostConfiguration(a => a.AddInMemoryCollection(new[]
                 {
                     new KeyValuePair<string, string?>( "Host", "localhost"),
@@ -47,9 +48,10 @@ namespace SampleIntegrationTests
                 }))
                 .Build();
 
-            await _host.StartAsync();
+            await _functionHost.StartAsync();
+            await _workerHost.StartAsync();
 
-            _testServer = _host.Services.GetRequiredService<ITestServer>();
+            _testServer = _functionHost.Services.GetRequiredService<ITestServer>();
             await _testServer.StartAsync();
         }
 
@@ -64,7 +66,6 @@ namespace SampleIntegrationTests
             Assert.That(response.ReturnValue.Http.StatusCode, Is.EqualTo(StatusCodes.Status200OK.ToString()));
             Assert.That(response.ReturnValue.Http.Body.Bytes.ToStringUtf8(), Is.EqualTo("Hello world!"));
         }
-
 
         [Test]
         public async Task Sample_using_http_trigger_with_injection()
@@ -105,7 +106,7 @@ namespace SampleIntegrationTests
             string sample1 = Encoding.UTF8.GetString(JsonSerializer.SerializeToUtf8Bytes(book));
             var response = await _testServer.CallAsync("QueueTrigger", new Dictionary<string, object>
             {
-                ["myQueueItem"] = book,
+                ["myQueueItem"] = sample1,
                 ["myBlob"] = sample1
             });
             Assert.That(response.Result, Is.EqualTo(StatusResult.Success));

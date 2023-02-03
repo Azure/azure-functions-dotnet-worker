@@ -23,12 +23,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 if (syntaxNode is MethodDeclarationSyntax methodSyntax)
                 {
-                    if (methodSyntax.AttributeLists.Count <= 0) // collect all methods with attributes - we will verify they are functions when we have access to symbols to get the full name
+                    if (methodSyntax.AttributeLists.Count > 0) // collect all methods with attributes - we will verify they are functions when we have access to symbols to get the full name
                     {
-                        return;
+                        CandidateMethods.Add(methodSyntax);
                     }
-
-                    CandidateMethods.Add(methodSyntax);
                 }
             }
         }

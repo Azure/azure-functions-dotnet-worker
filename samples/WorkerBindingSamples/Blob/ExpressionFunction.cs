@@ -10,8 +10,8 @@ namespace SampleApp
     {
         [Function(nameof(ExpressionFunction))]
         public static void Run(
-            [QueueTrigger("expression-trigger", Connection = "AzureWebJobsStorage")] Book book,
-            [BlobInput("input-container/{id}.txt", Connection = "AzureWebJobsStorage")] string myBlob,
+            [QueueTrigger("expression-trigger")] Book book,
+            [BlobInput("input-container/{id}.txt")] string myBlob,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(ExpressionFunction));

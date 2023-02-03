@@ -15,7 +15,7 @@ namespace SampleApp
     {
         [Function(nameof(BlobClientFunction))]
         public static async Task BlobClientFunction(
-            [BlobTrigger("client-trigger/{name}", Connection = "AzureWebJobsStorage")] BlobClient client,
+            [BlobTrigger("client-trigger/{name}")] BlobClient client,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobClientFunction));
@@ -26,7 +26,7 @@ namespace SampleApp
 
         [Function(nameof(BlobStreamFunction))]
         public static void BlobStreamFunction(
-            [BlobTrigger("stream-trigger/{name}", Connection = "AzureWebJobsStorage")] Stream stream,
+            [BlobTrigger("stream-trigger/{name}")] Stream stream,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobStreamFunction));
@@ -36,7 +36,7 @@ namespace SampleApp
 
         [Function(nameof(BlobByteArrayFunction))]
         public static void BlobByteArrayFunction(
-            [BlobTrigger("byte-trigger/{name}", Connection = "AzureWebJobsStorage")] Byte[] data,
+            [BlobTrigger("byte-trigger/{name}")] Byte[] data,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobByteArrayFunction));
@@ -45,7 +45,7 @@ namespace SampleApp
 
         [Function(nameof(BlobStringFunction))]
         public static void BlobStringFunction(
-            [BlobTrigger("string-trigger/{name}", Connection = "AzureWebJobsStorage")] string data,
+            [BlobTrigger("string-trigger/{name}")] string data,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobStringFunction));
@@ -54,7 +54,7 @@ namespace SampleApp
 
         [Function(nameof(BlobBookFunction))]
         public static void BlobBookFunction(
-            [BlobTrigger("book-trigger/{name}", Connection = "AzureWebJobsStorage")] Book data,
+            [BlobTrigger("book-trigger/{name}")] Book data,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobBookFunction));

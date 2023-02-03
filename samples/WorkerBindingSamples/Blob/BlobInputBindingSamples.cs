@@ -25,8 +25,8 @@ namespace SampleApp
 
         [Function(nameof(BlobInputClientFunction))]
         public async Task<HttpResponseData> BlobInputClientFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container/sample1.txt", Connection = "AzureWebJobsStorage")] BlobClient client)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [BlobInput("input-container/sample1.txt")] BlobClient client)
         {
             var downloadResult = await client.DownloadContentAsync();
             var content = downloadResult.Value.Content.ToString();
@@ -37,8 +37,8 @@ namespace SampleApp
 
         [Function(nameof(BlobInputStreamFunction))]
         public HttpResponseData BlobInputStreamFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container/sample1.txt", Connection = "AzureWebJobsStorage")] Stream stream)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [BlobInput("input-container/sample1.txt")] Stream stream)
         {
             using var blobStreamReader = new StreamReader(stream);
             _logger.LogInformation("Blob content: {stream}", blobStreamReader.ReadToEnd());
@@ -48,8 +48,8 @@ namespace SampleApp
 
         [Function(nameof(BlobInputByteArrayFunction))]
         public HttpResponseData BlobInputByteArrayFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container/sample1.txt", Connection = "AzureWebJobsStorage")] Byte[] data)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [BlobInput("input-container/sample1.txt")] Byte[] data)
         {
             _logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
             return req.CreateResponse(HttpStatusCode.OK);
@@ -57,8 +57,8 @@ namespace SampleApp
 
         [Function(nameof(BlobInputStringFunction))]
         public HttpResponseData BlobInputStringFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container/sample1.txt", Connection = "AzureWebJobsStorage")] string data)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req, string filename,
+            [BlobInput("input-container/{filename}")] string data)
         {
             _logger.LogInformation($"Blob content: {data}");
             return req.CreateResponse(HttpStatusCode.OK);
@@ -66,8 +66,8 @@ namespace SampleApp
 
         [Function(nameof(BlobInputBookFunction))]
         public HttpResponseData BlobInputBookFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [BlobInput("input-container/book.json", Connection = "AzureWebJobsStorage")] Book data)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [BlobInput("input-container/book.json")] Book data)
         {
             _logger.LogInformation($"Book name: {data.Name}");
             return req.CreateResponse(HttpStatusCode.OK);
@@ -75,13 +75,13 @@ namespace SampleApp
 
         [Function(nameof(BlobInputCollectionFunction))]
         public HttpResponseData BlobInputCollectionFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             [BlobInput("input-container", IsBatched = true)] IEnumerable<BlobClient> blobs)
         {
             _logger.LogInformation("Blobs within container:");
             foreach (BlobClient blob in blobs)
             {
-                _logger.LogInformation(blob.Name);
+                _logger.LogInformation($"Blob name: {blob.Name}, Container name: {blob.BlobContainerName}");
             }
 
             return req.CreateResponse(HttpStatusCode.OK);
@@ -89,13 +89,27 @@ namespace SampleApp
 
         [Function(nameof(BlobInputStringArrayFunction))]
         public HttpResponseData BlobInputStringArrayFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             [BlobInput("input-container", IsBatched = true)] string[] blobContent)
         {
             _logger.LogInformation("Content of all blobs within container:");
             foreach (var item in blobContent)
             {
                 _logger.LogInformation(item);
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function(nameof(BlobInputBookArrayFunction))]
+        public HttpResponseData BlobInputBookArrayFunction(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [BlobInput("input-container", IsBatched = true)] Book[] books)
+        {
+            _logger.LogInformation("Content of all blobs within container:");
+            foreach (var item in books)
+            {
+                _logger.LogInformation(item.Name);
             }
 
             return req.CreateResponse(HttpStatusCode.OK);

@@ -45,7 +45,10 @@ internal partial class FunctionExecutorGenerator
 
                 foreach (var methodParam in method.ParameterList.Parameters)
                 {
-                    if (model.GetDeclaredSymbol(methodParam) is not IParameterSymbol parameterSymbol) continue;
+                    if (model.GetDeclaredSymbol(methodParam) is not IParameterSymbol parameterSymbol)
+                    {
+                        continue;
+                    }
 
                     methodParameterList.Add(parameterSymbol.Type.ToDisplayString());
                 }
@@ -138,7 +141,7 @@ internal partial class FunctionExecutorGenerator
             return constructorParamTypeNames;
         }
 
-        private static MemberDeclarationSyntax GetBestConstructor(ClassDeclarationSyntax functionClass)
+        private static MemberDeclarationSyntax? GetBestConstructor(ClassDeclarationSyntax functionClass)
         {
             // TO DO: Fix this.
             // Currently picking first constructor.
@@ -147,40 +150,5 @@ internal partial class FunctionExecutorGenerator
 
             return firstConstructorMember;
         }
-    }
-
-    internal class ExecutableFunction
-    {
-        /// <summary>
-        ///  True if the function returns Task or void.
-        /// </summary>
-        public bool IsReturnValueAssignable { set; get; }
-
-        public bool ShouldAwait { get; set; }
-
-        /// <summary>
-        /// The method name(which is part of EntryPoint prop value).
-        /// </summary>
-        public string MethodName { get; set; }
-
-        public bool IsStatic { get; set; }
-
-        public string EntryPoint { get; set; }
-
-        public FunctionClass ParentFunctionClass { set; get; }
-
-        public IEnumerable<string> ParameterTypeNames { set; get; } = Enumerable.Empty<string>();
-    }
-
-    internal class FunctionClass
-    {
-        public FunctionClass(string fullyQualifiedClassName)
-        {
-            ClassName = fullyQualifiedClassName;
-        }
-
-        public IEnumerable<string> ConstructorParameterTypeNames { set; get; } = Enumerable.Empty<string>();
-
-        public string ClassName { get; }
     }
 }

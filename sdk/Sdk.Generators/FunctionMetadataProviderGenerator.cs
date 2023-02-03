@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.EnableSourceGenProp, out var sourceGenSwitch);
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.EnableSourceGen, out var sourceGenSwitch);
 
             bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
 

@@ -13,14 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     [Generator]
     public class FunctionExecutorGenerator : ISourceGenerator
     {
-        private const string GeneratedFileName = "GeneratedFunctionExecutor.g.cs";
-        
-        /// <summary>
-        /// Build prop to enable this source generator(disabled by default)
-        /// Ex: <FunctionsEnablePlaceholder>True</FunctionsEnablePlaceholder>
-        /// </summary>
-        private const string BuildPropertyName = "build_property.FunctionsEnablePlaceholder";
-
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new FunctionMethodSyntaxReceiver());
@@ -46,13 +38,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
             
-            var sourceText = Emitter.Emit(functions, context.CancellationToken);
-            context.AddSource(GeneratedFileName, SourceText.From(sourceText, Encoding.UTF8));
+            var text = Emitter.Emit(functions, context.CancellationToken);
+            context.AddSource(Constants.FileNames.GeneratedFunctionExecutor, SourceText.From(text, Encoding.UTF8));
         }
 
         private static bool ShouldExecuteGeneration(GeneratorExecutionContext context)
         {
-            if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(BuildPropertyName, out var value))
+            if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                    Constants.BuildProperties.EnablePlaceholder, out var value))
             {
                 return false;
             }

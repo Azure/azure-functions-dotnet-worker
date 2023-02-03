@@ -32,7 +32,6 @@ internal partial class FunctionExecutorGenerator
             foreach (MethodDeclarationSyntax method in methods)
             {
                 _context.CancellationToken.ThrowIfCancellationRequested();
-
                 var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
                 if (!FunctionsUtil.IsValidMethodAzureFunction(_context, Compilation, model, method,
@@ -42,7 +41,6 @@ internal partial class FunctionExecutorGenerator
                 }
 
                 var methodName = method.Identifier.Text;
-
                 var methodParameterList = new List<string>(method.ParameterList.Parameters.Count);
 
                 foreach (var methodParam in method.ParameterList.Parameters)
@@ -55,7 +53,6 @@ internal partial class FunctionExecutorGenerator
                 var methodSymSemanticModel = Compilation.GetSemanticModel(method.SyntaxTree);
                 var methodSymbol = methodSymSemanticModel.GetDeclaredSymbol(method)!;
                 var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-
                 var functionClass = (ClassDeclarationSyntax)method.Parent!;
                 var entryPoint = $"{fullyQualifiedClassName}.{methodName}";
 

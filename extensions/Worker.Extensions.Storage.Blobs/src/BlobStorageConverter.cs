@@ -105,20 +105,8 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var result = ToTargetTypeCollection(elementType, blobCollection);
-
-                if (result is null)
-                {
-                    var methodName = context.TargetType.IsArray ? nameof(CloneToArray) : nameof(CloneToList);
-                    var pocoResult = DeserializeToTargetObjectCollection(blobCollection, methodName, context.TargetType);
-                    return ConversionResult.Success(pocoResult);
-                }
-
-                if (context.TargetType.IsArray)
-                {
-                    result.ToArray();
-                }
-
+                var methodName = context.TargetType.IsArray ? nameof(CloneToArray) : nameof(CloneToList);
+                var result = ToTargetTypeCollection(blobCollection, methodName, elementType);
                 return ConversionResult.Success(result);
             }
             catch (Exception ex)
@@ -177,27 +165,13 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
         };
 
-        private IEnumerable<object>? ToTargetTypeCollection(Type targetType, IEnumerable<object> blobCollection) => targetType switch
-        {
-            Type _ when targetType == typeof(String) || targetType == typeof(String[]) => blobCollection.Select(b => (string)b),
-            Type _ when targetType == typeof(Stream) => blobCollection.Select(b => (Stream)b),
-            Type _ when targetType == typeof(Byte[]) => blobCollection.Select(b => (Byte[])b),
-            Type _ when targetType == typeof(BlobBaseClient) => blobCollection.Select(b => (BlobBaseClient)b),
-            Type _ when targetType == typeof(BlobClient) => blobCollection.Select(b => (BlobClient)b),
-            Type _ when targetType == typeof(BlockBlobClient) => blobCollection.Select(b => (BlockBlobClient)b),
-            Type _ when targetType == typeof(PageBlobClient) => blobCollection.Select(b => (PageBlobClient)b),
-            Type _ when targetType == typeof(AppendBlobClient) => blobCollection.Select(b => (AppendBlobClient)b),
-            Type _ when targetType == typeof(BlobContainerClient) => blobCollection.Select(b => (BlobClient)b),
-            _ => null
-        };
-
         private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
         {
             var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
         }
 
-        private object? DeserializeToTargetObjectCollection(IEnumerable<object> blobCollection, string methodName, Type type)
+        private object? ToTargetTypeCollection(IEnumerable<object> blobCollection, string methodName, Type type)
         {
             blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
             MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
@@ -213,7 +187,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         private static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
-            return source.Cast<T>().ToList(); // TODO: try this without .ToList()
+            return source.Cast<T>();
         }
 
         private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)

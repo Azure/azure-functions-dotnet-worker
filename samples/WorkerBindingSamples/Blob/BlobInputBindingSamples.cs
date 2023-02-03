@@ -36,12 +36,12 @@ namespace SampleApp
         }
 
         [Function(nameof(BlobInputStreamFunction))]
-        public HttpResponseData BlobInputStreamFunction(
+        public async Task<HttpResponseData> BlobInputStreamFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/sample1.txt")] Stream stream)
         {
             using var blobStreamReader = new StreamReader(stream);
-            _logger.LogInformation("Blob content: {stream}", blobStreamReader.ReadToEnd());
+            _logger.LogInformation("Blob content: {stream}", await blobStreamReader.ReadToEndAsync());
 
             return req.CreateResponse(HttpStatusCode.OK);
         }
@@ -81,7 +81,7 @@ namespace SampleApp
             _logger.LogInformation("Blobs within container:");
             foreach (BlobClient blob in blobs)
             {
-                _logger.LogInformation($"Blob name: {blob.Name}, Container name: {blob.BlobContainerName}");
+                _logger.LogInformation("Blob name: {blobName}, Container name: {containerName}", blob.Name, blob.BlobContainerName);
             }
 
             return req.CreateResponse(HttpStatusCode.OK);

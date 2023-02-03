@@ -21,17 +21,17 @@ namespace SampleApp
             var logger = context.GetLogger(nameof(BlobClientFunction));
             var downloadResult = await client.DownloadContentAsync();
             var content = downloadResult.Value.Content.ToString();
-            logger.LogInformation("Blob content: {content}", content);
+            logger.LogInformation("Blob name: {blobName}, content: {content}", client.Name, content);
         }
 
         [Function(nameof(BlobStreamFunction))]
-        public static void BlobStreamFunction(
+        public static async Task BlobStreamFunction(
             [BlobTrigger("stream-trigger/{name}")] Stream stream,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(BlobStreamFunction));
             using var blobStreamReader = new StreamReader(stream);
-            logger.LogInformation("Blob content: {stream}", blobStreamReader.ReadToEnd());
+            logger.LogInformation("Blob content: {stream}", await blobStreamReader.ReadToEndAsync());
         }
 
         [Function(nameof(BlobByteArrayFunction))]

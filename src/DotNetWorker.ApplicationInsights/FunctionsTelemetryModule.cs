@@ -5,17 +5,20 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 {
-    internal class FunctionsTelemetryModule : ITelemetryModule, IDisposable
+    internal sealed class FunctionsTelemetryModule : ITelemetryModule, IAsyncDisposable
     {
         private const string DependencyTelemetryKey = "_depTel";
+        private const string DependencyTypeInProc = "InProc";
 
-        private TelemetryClient _telemetryClient = default!;
+        private TelemetryClient? _telemetryClient;
         private ActivityListener? _listener;
 
         public void Initialize(TelemetryConfiguration configuration)
@@ -28,6 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                 ActivityStarted = activity =>
                 {
                     var dependency = _telemetryClient.StartOperation<DependencyTelemetry>(activity);
+                    dependency.Telemetry.Type = DependencyTypeInProc; // Required for proper rendering in App Insights.
                     activity.SetCustomProperty(DependencyTelemetryKey, dependency);
                 },
                 ActivityStopped = activity =>
@@ -98,10 +102,16 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
             }
         }
 
-        public void Dispose()
+        public async ValueTask DisposeAsync()
         {
-            _telemetryClient?.Flush();
             _listener?.Dispose();
+
+            if (_telemetryClient is not null)
+            {
+                await _telemetryClient.FlushAsync(CancellationToken.None);
+            }
+
+            GC.SuppressFinalize(this);
         }
     }
 }

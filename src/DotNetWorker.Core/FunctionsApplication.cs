@@ -75,7 +75,6 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 await _functionExecutionDelegate(context);
-                invokeActivity?.SetStatus(ActivityStatusCode.Ok);
             }
             catch (Exception ex)
             {

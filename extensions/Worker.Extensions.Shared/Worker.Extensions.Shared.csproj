@@ -12,6 +12,7 @@
     <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
     <EnableDefaultEmbeddedResourceItems>true</EnableDefaultEmbeddedResourceItems>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

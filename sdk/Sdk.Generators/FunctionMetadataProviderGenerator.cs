@@ -4,7 +4,6 @@
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
@@ -55,28 +54,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new FunctionMethodSyntaxReceiver());
-        }
-
-        /// <summary>
-        /// Created on demand before each generation pass
-        /// </summary>
-        internal class FunctionMethodSyntaxReceiver : ISyntaxReceiver
-        {
-            public List<MethodDeclarationSyntax> CandidateMethods { get; } = new List<MethodDeclarationSyntax>();
-
-            /// <summary>
-            /// Called for every syntax node in the compilation, we can inspect the nodes and save any information useful for generation
-            /// </summary>
-            public void OnVisitSyntaxNode(SyntaxNode syntaxNode)
-            {
-                if (syntaxNode is MethodDeclarationSyntax methodSyntax)
-                {
-                    if (methodSyntax.AttributeLists.Count > 0) // collect all methods with attributes - we will verify they are functions when we have access to symbols to get the full name
-                    {
-                        CandidateMethods.Add(methodSyntax);
-                    }
-                }
-            }
         }
     }
 }

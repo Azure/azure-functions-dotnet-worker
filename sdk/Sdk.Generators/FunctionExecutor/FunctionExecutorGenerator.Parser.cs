@@ -1,11 +1,12 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-
 
 internal partial class FunctionExecutorGenerator
 {
@@ -13,30 +14,29 @@ internal partial class FunctionExecutorGenerator
     {
         private readonly GeneratorExecutionContext _context;
 
+        private readonly KnownTypes _knownTypes;
+
         private Compilation Compilation => _context.Compilation;
 
-        private CancellationToken CancellationToken => _context.CancellationToken;
-
-        private KnownTypes _knownTypes;
-
-        public Parser(GeneratorExecutionContext context)
+        internal Parser(GeneratorExecutionContext context)
         {
             _context = context;
             _knownTypes = new KnownTypes(_context.Compilation);
         }
 
-        internal IEnumerable<FuncInfo> Get(List<MethodDeclarationSyntax> methods)
+        internal ICollection<ExecutableFunction> GetFunctions(List<MethodDeclarationSyntax> methods)
         {
-            Dictionary<string, ClassInfo> classDict = new Dictionary<string, ClassInfo>();
+            var classDict = new Dictionary<string, FunctionClass>();
+            var functionList = new List<ExecutableFunction>();
 
-            var functionList = new List<FuncInfo>();
             foreach (MethodDeclarationSyntax method in methods)
             {
-                CancellationToken.ThrowIfCancellationRequested();
+                _context.CancellationToken.ThrowIfCancellationRequested();
 
                 var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                if (!FunctionsUtil.IsValidMethodAzureFunction(_context, Compilation, model, method, out string? functionName))
+                if (!FunctionsUtil.IsValidMethodAzureFunction(_context, Compilation, model, method,
+                        out _))
                 {
                     continue;
                 }
@@ -53,30 +53,31 @@ internal partial class FunctionExecutorGenerator
                 }
 
                 var methodSymSemanticModel = Compilation.GetSemanticModel(method.SyntaxTree);
-                IMethodSymbol methodSymbol = methodSymSemanticModel.GetDeclaredSymbol(method)!;
+                var methodSymbol = methodSymSemanticModel.GetDeclaredSymbol(method)!;
                 var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
 
-                ClassDeclarationSyntax functionClass = (ClassDeclarationSyntax)method.Parent!;
+                var functionClass = (ClassDeclarationSyntax)method.Parent!;
                 var entryPoint = $"{fullyQualifiedClassName}.{methodName}";
 
-                if (!classDict.TryGetValue(entryPoint, out var classInfo))
+                if (!classDict.TryGetValue(fullyQualifiedClassName, out var classInfo))
                 {
-                    classInfo = new ClassInfo(fullyQualifiedClassName)
+                    classInfo = new FunctionClass(fullyQualifiedClassName)
                     {
-                        ConstructorArgumentTypeNames = GetConstructorParamTypeNames(functionClass, model)
+                        ConstructorParameterTypeNames = GetConstructorParamTypeNames(functionClass, model)
                     };
-                    classDict[entryPoint] = classInfo;
+                    classDict[fullyQualifiedClassName] = classInfo;
                 }
 
-                var funcInfo = new FuncInfo(entryPoint!)
+                var funcInfo = new ExecutableFunction
                 {
+                    EntryPoint = entryPoint,
                     ParameterTypeNames = methodParameterList,
                     MethodName = methodName,
                     ShouldAwait = IsTaskType(methodSymbol.ReturnType),
                     IsReturnValueAssignable = IsReturnValueAssignable(methodSymbol),
-                    IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword)
+                    IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword),
+                    ParentFunctionClass = classInfo
                 };
-                funcInfo.ParentClass = classInfo;
 
                 functionList.Add(funcInfo);
             }
@@ -86,10 +87,13 @@ internal partial class FunctionExecutorGenerator
 
         private bool IsTaskType(ITypeSymbol typeSymbol)
         {
-            return SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.TaskType)
-                || SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.TaskOfTType);
-
+            return
+                SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.TaskType) ||
+                SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.TaskOfTType) ||
+                SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.ValueTaskType) ||
+                SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.ValueTaskOfTTypeOpt);
         }
+
         private bool IsReturnValueAssignable(IMethodSymbol methodSymbol)
         {
             if (methodSymbol.ReturnsVoid)
@@ -97,7 +101,13 @@ internal partial class FunctionExecutorGenerator
                 return false;
             }
 
-            if(SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType.OriginalDefinition, _knownTypes.TaskType))
+            if (SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType.OriginalDefinition, _knownTypes.TaskType))
+            {
+                return false;
+            }
+
+            if (SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType.OriginalDefinition,
+                    _knownTypes.ValueTaskType))
             {
                 return false;
             }
@@ -115,21 +125,26 @@ internal partial class FunctionExecutorGenerator
                 return Enumerable.Empty<string>();
             }
 
-            var constructorParams = new List<string>(constructorSyntax.ParameterList.Parameters.Count);
+            var constructorParamTypeNames = new List<string>(constructorSyntax.ParameterList.Parameters.Count);
 
             foreach (var param in constructorSyntax.ParameterList.Parameters)
             {
-                if (model.GetDeclaredSymbol(param) is not IParameterSymbol parameterSymbol) continue;
+                if (model.GetDeclaredSymbol(param) is not IParameterSymbol parameterSymbol)
+                {
+                    continue;
+                }
 
-                constructorParams.Add(parameterSymbol.Type.ToDisplayString());
+                // We are getting fully qualified name of the type
+                constructorParamTypeNames.Add(parameterSymbol.Type.ToDisplayString());
             }
 
-            return constructorParams;
+            return constructorParamTypeNames;
         }
 
         private static MemberDeclarationSyntax GetBestConstructor(ClassDeclarationSyntax functionClass)
         {
-            // to do: Use a better algo for this instead of picking first constructor.
+            // TO DO: Fix this.
+            // Currently picking first constructor.
             var firstConstructorMember =
                 functionClass.Members.FirstOrDefault(member => member is ConstructorDeclarationSyntax);
 
@@ -137,39 +152,38 @@ internal partial class FunctionExecutorGenerator
         }
     }
 
-    public class FuncInfo
+    internal class ExecutableFunction
     {
-        internal FuncInfo(string functionName)
-        {
-            FunctionName = functionName;
-        }
-
         /// <summary>
-        ///  Task or Void
+        ///  True if the function returns Task or void.
         /// </summary>
         public bool IsReturnValueAssignable { set; get; }
 
         public bool ShouldAwait { get; set; }
+
+        /// <summary>
+        /// The method name(which is part of EntryPoint prop value).
+        /// </summary>
         public string MethodName { get; set; }
 
         public bool IsStatic { get; set; }
-        public string FunctionName { get; }
 
-        public ClassInfo ParentClass { set; get; }
+        public string EntryPoint { get; set; }
+
+        public FunctionClass ParentFunctionClass { set; get; }
 
         public IEnumerable<string> ParameterTypeNames { set; get; } = Enumerable.Empty<string>();
     }
 
-    public class ClassInfo
+    internal class FunctionClass
     {
-        public ClassInfo(string className)
+        public FunctionClass(string fullyQualifiedClassName)
         {
-            ClassName = className;
+            ClassName = fullyQualifiedClassName;
         }
 
-        public IEnumerable<string> ConstructorArgumentTypeNames { set; get; } = Enumerable.Empty<string>();
+        public IEnumerable<string> ConstructorParameterTypeNames { set; get; } = Enumerable.Empty<string>();
 
         public string ClassName { get; }
-
     }
 }

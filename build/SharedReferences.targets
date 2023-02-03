@@ -32,7 +32,7 @@
   <Target Name="GetSharedEmbeddedResourceItems" Outputs="@(_SharedEmbeddedResource)">
     <ItemGroup>
       <_SharedEmbeddedResource Include="@(EmbeddedResource)" SharedLinkBase="$(MSBuildProjectName)">
-        <!-- We need to explicitly set LogicalName to ensure the recieving project will get the same logical name our designer .cs file was generated with -->
+        <!-- We need to explicitly set LogicalName to ensure the receiving project will get the same logical name our designer .cs file was generated with -->
         <RecursiveNamespace>$([System.String]::Copy('%(RecursiveDir)').Replace($([System.IO.Path]::DirectorySeparatorChar.ToString()), '.'))</RecursiveNamespace>
         <LogicalName Condition="'%(EmbeddedResource.LogicalName)' == ''">$(RootNamespace).%(_SharedEmbeddedResource.RecursiveNamespace)%(Filename).resources</LogicalName>
       </_SharedEmbeddedResource>

@@ -5,6 +5,7 @@
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [SupportsDeferredBinding]
     public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         private bool _isBatched = false;

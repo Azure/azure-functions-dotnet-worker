@@ -9,6 +9,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -240,6 +241,41 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
                     { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void ServiceBusTriggerFunction_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(ServiceBusSDKBindings));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(1, functions.Count());
+
+            var serviceBusTrigger = functions.Single(p => p.Name == "ServiceBusTriggerFunction");
+
+            ValidateFunction(serviceBusTrigger, "ServiceBusTriggerFunction",
+                GetEntryPoint(nameof(ServiceBusSDKBindings), nameof(ServiceBusSDKBindings.ServiceBusFunction)),
+                b => ValidateServiceBusTrigger(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.9.0-alpha.20230203.1" },
+            });
+
+            void ValidateServiceBusTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Properties", new Dictionary<String, Object>() { { "SupportsDeferredBinding", "True" } } }
                 });
             }
         }
@@ -745,6 +781,16 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobToBlobs(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class ServiceBusSDKBindings
+        {
+            [Function("ServiceBusTriggerFunction")]
+            public object ServiceBusFunction(
+                [ServiceBusTrigger("queue")] ServiceBusReceivedMessage message)
             {
                 throw new NotImplementedException();
             }

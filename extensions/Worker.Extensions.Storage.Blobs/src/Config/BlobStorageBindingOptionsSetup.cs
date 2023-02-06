@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker
                 return true;
             }
 
-            serviceUri = default(Uri);
+            serviceUri = default(Uri)!;
             return false;
         }
 

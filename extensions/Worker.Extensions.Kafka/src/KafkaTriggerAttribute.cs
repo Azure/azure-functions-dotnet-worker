@@ -12,6 +12,11 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private bool _isBatched = false;
 
+        /// <summary>
+        /// Initialize a new instance of the <see cref="KafkaTriggerAttribute"/>
+        /// </summary>
+        /// <param name="brokerList">Name of broker list</param>
+        /// <param name="topic">Name of topic</param>
         public KafkaTriggerAttribute(string brokerList, string topic)
         {
             BrokerList = brokerList;

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker
         public string AvroSchema { get; set; }
 
         /// <summary>
-        /// Gets or sets the Maximum transmit message size. Default: 1MB
+        /// Gets or sets the maximum transmit message size in bytes. Default: 1MB
         /// </summary>
         public int MaxMessageBytes { get; set; } = 1_000_000;
 

@@ -3,13 +3,18 @@
 
 using Microsoft.Extensions.Configuration;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Worker.Extensions
 {
     internal static class ConfigurationExtensions
     {
         private const string WebJobsConfigurationSectionName = "AzureWebJobs";
         private const string ConnectionStringsConfigurationSectionName = "ConnectionStrings";
 
+        /// <summary>
+        /// Gets the configuration section for a given connection name.
+        /// </summary>
+        /// <param name="configuration">The configuration.</param>
+        /// <param name="connectionName">The connection string key.</param>
         internal static IConfigurationSection GetWebJobsConnectionStringSection(this IConfiguration configuration, string connectionName)
         {
             // first try prefixing
@@ -25,7 +30,11 @@ namespace Microsoft.Azure.Functions.Worker
             return section;
         }
 
-        internal static string GetPrefixedConnectionStringName(string connectionName)
+        /// <summary>
+        /// Creates a WebJobs specific prefixed string using a given connection name.
+        /// </summary>
+        /// <param name="connectionName">The connection string key.</param>
+        private static string GetPrefixedConnectionStringName(string connectionName)
         {
             return WebJobsConfigurationSectionName + connectionName;
         }
@@ -35,8 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="configuration">The configuration.</param>
         /// <param name="connectionName">The connection string key.</param>
-        /// <returns></returns>
-        internal static IConfigurationSection GetConnectionStringOrSetting(this IConfiguration configuration, string connectionName)
+        private static IConfigurationSection GetConnectionStringOrSetting(this IConfiguration configuration, string connectionName)
         {
             if (configuration.GetSection(ConnectionStringsConfigurationSectionName).Exists())
             {

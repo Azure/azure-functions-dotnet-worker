@@ -36,20 +36,15 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context is null)
+            return context?.Source switch
             {
-                return ConversionResult.Unhandled();
-            }
-
-            return context.Source switch
-            {
-                ModelBindingData binding => await ConvertAsync(context, binding),
-                CollectionModelBindingData binding => await ConvertAsync(context, binding),
+                ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
+                CollectionModelBindingData binding => await ConvertFromCollectionBindingDataAsync(context, binding),
                 _ => ConversionResult.Unhandled(),
             };
         }
 
-        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context, ModelBindingData modelBindingData)
+        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsBlobExtension(modelBindingData))
             {
@@ -78,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
+        private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
             var blobCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
             Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
@@ -131,7 +126,7 @@ namespace Microsoft.Azure.Functions.Worker
             bindingDataContent = bindingData?.ContentType switch
             {
                 Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                _ => null
+                _ => throw new InvalidOperationException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
             };
 
             return bindingDataContent is not null;
@@ -145,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (string.IsNullOrEmpty(connectionName) || string.IsNullOrEmpty(containerName))
             {
-                throw new ArgumentNullException("'Connection' or 'ContainerName' cannot be null or empty");
+                throw new ArgumentNullException("'Connection' and 'ContainerName' cannot be null or empty");
             }
 
             return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);

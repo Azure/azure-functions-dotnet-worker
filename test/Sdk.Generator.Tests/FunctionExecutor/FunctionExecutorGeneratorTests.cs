@@ -88,13 +88,13 @@ namespace Microsoft.Azure.Functions.Worker
         {{
             var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
             var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;
-            if (string.Equals(context.FunctionDefinition.Name, ""MyCompany.MyHttpTriggers.Foo"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Foo"", StringComparison.OrdinalIgnoreCase))
             {{
-                context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers().Foo((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[1], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[2]);
+                context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers().Foo((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""MyCompany.Foo.MyAsyncStaticMethod"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.Foo.MyAsyncStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
-                context.GetInvocationResult().Value = await MyCompany.Foo.MyAsyncStaticMethod((string)inputArguments[1]);
+                context.GetInvocationResult().Value = await MyCompany.Foo.MyAsyncStaticMethod((string)inputArguments[0]);
             }}
         }}
     }}
@@ -158,15 +158,15 @@ namespace Microsoft.Azure.Functions.Worker
         {{
             var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
             var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;
-            if (string.Equals(context.FunctionDefinition.Name, ""MyCompany.MyHttpTriggers.Run1"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run1"", StringComparison.OrdinalIgnoreCase))
             {{
                 var p1 = context.InstanceServices.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers(p1).Run1((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[1]);
+                context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers(p1).Run1((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""MyCompany.MyHttpTriggers.Run2"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run2"", StringComparison.OrdinalIgnoreCase))
             {{
                 var p1 = context.InstanceServices.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
-                context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers(p1).Run2((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[1], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[2]);
+                context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers(p1).Run2((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
             }}
         }}
     }}
@@ -237,29 +237,29 @@ namespace Microsoft.Azure.Functions.Worker
         {{
             var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
             var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;
-            if (string.Equals(context.FunctionDefinition.Name, ""FunctionApp26.MyQTriggers.MyTaskStaticMethod"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyTaskStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
-                await FunctionApp26.MyQTriggers.MyTaskStaticMethod((string)inputArguments[1]);
+                await FunctionApp26.MyQTriggers.MyTaskStaticMethod((string)inputArguments[0]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethod"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
-                context.GetInvocationResult().Value = await FunctionApp26.MyQTriggers.MyAsyncStaticMethod((string)inputArguments[1]);
+                context.GetInvocationResult().Value = await FunctionApp26.MyQTriggers.MyAsyncStaticMethod((string)inputArguments[0]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""FunctionApp26.MyQTriggers.MyVoidStaticMethod"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyVoidStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
-                FunctionApp26.MyQTriggers.MyVoidStaticMethod((string)inputArguments[1]);
+                FunctionApp26.MyQTriggers.MyVoidStaticMethod((string)inputArguments[0]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn"", StringComparison.OrdinalIgnoreCase))
             {{
-                context.GetInvocationResult().Value = await FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn((string)inputArguments[1], (string)inputArguments[2]);
+                context.GetInvocationResult().Value = await FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn((string)inputArguments[0], (string)inputArguments[1]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod"", StringComparison.OrdinalIgnoreCase))
             {{
-                context.GetInvocationResult().Value = await FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod((string)inputArguments[1]);
+                context.GetInvocationResult().Value = await FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod((string)inputArguments[0]);
             }}
-            if (string.Equals(context.FunctionDefinition.Name, ""FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2"", StringComparison.OrdinalIgnoreCase))
             {{
-                await FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2((string)inputArguments[1]);
+                await FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2((string)inputArguments[0]);
             }}
         }}
     }}

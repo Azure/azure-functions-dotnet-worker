@@ -56,7 +56,7 @@ internal partial class FunctionExecutorGenerator
             foreach (ExecutableFunction function in functions)
             {
                 sb.Append($@"
-            if (string.Equals(context.FunctionDefinition.Name, ""{function.EntryPoint}"", StringComparison.OrdinalIgnoreCase))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""{function.EntryPoint}"", StringComparison.OrdinalIgnoreCase))
             {{");
 
                 int paramCounter = 0;
@@ -74,8 +74,7 @@ internal partial class FunctionExecutorGenerator
                 var functionParamList = new List<string>();
                 foreach (var argumentTypeName in function.ParameterTypeNames)
                 {
-                    paramCounter2++;
-                    functionParamList.Add($"({argumentTypeName})inputArguments[{paramCounter2}]");
+                    functionParamList.Add($"({argumentTypeName})inputArguments[{paramCounter2++}]");
                 }
                 var methodParamsStr = string.Join(", ", functionParamList);
 

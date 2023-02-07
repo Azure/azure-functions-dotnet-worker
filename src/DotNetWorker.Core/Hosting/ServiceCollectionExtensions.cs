@@ -88,7 +88,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
 
             // Add http coordinator
-            services.AddSingleton<IHttpCoordinator, HttpCoordinator>();
+            services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
 
             if (configure != null)
             {

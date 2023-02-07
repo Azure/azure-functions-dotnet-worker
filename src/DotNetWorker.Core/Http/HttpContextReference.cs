@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
@@ -9,6 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
         private TaskCompletionSource<HttpContext> _functionCompletionTask = new TaskCompletionSource<HttpContext>();
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new TaskCompletionSource<HttpContext>();
         private string _invocationId;
+        private CancellationToken _token;
 
         public HttpContextReference(string invocationId)
         {
@@ -25,11 +27,23 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
 
         public TaskCompletionSource<HttpContext> HttpContextValueSource { get => _httpContextValueSource; set => _httpContextValueSource = value; }
 
+        internal void SetCancellationToken(CancellationToken token)
+        {
+            _token = token;
+        }
+
         internal void CompleteFunction()
         {
             if (_httpContextValueSource.Task.IsCompleted)
             {
-                _functionCompletionTask.SetResult(_httpContextValueSource.Task.Result);
+                if (_httpContextValueSource.Task.IsCanceled || _token.IsCancellationRequested)
+                {
+                    _functionCompletionTask.SetCanceled();
+                }
+                else
+                {
+                    _functionCompletionTask.SetResult(_httpContextValueSource.Task.Result);
+                }
             }
             else
             {

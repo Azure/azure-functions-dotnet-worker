@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
         {
             var invocationId = context.InvocationId;
 
-            var httpContext = await _coordinator.GetContextAsync(invocationId);
+            var httpContext = await _coordinator.GetContextAsync(invocationId, context.CancellationToken);
 
             AddHttpContextToFunctionContext(context, httpContext);
 

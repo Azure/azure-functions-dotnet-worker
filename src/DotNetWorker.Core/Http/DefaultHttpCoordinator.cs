@@ -2,16 +2,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Http
 {
-    internal class HttpCoordinator : IHttpCoordinator
+    internal class DefaultHttpCoordinator : IHttpCoordinator
     {
         private ConcurrentDictionary<string, HttpContextReference> _httpContextReferenceList;
 
-        public HttpCoordinator()
+        public DefaultHttpCoordinator()
         {
             _httpContextReferenceList = new ConcurrentDictionary<string, HttpContextReference>();
         }
@@ -19,21 +20,22 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
 
         public Task SetContextAsync(string invocationId, HttpContext context)
         {
-            var httpContext = _httpContextReferenceList.AddOrUpdate(invocationId,
+            var httpContextRef = _httpContextReferenceList.AddOrUpdate(invocationId,
                 s => new HttpContextReference(invocationId, context), (s, c) =>
                 {
                     c.HttpContextValueSource.SetResult(context);
                     return c;
                 });
 
-            return httpContext.FunctionCompletionTask.Task;
+            return httpContextRef.FunctionCompletionTask.Task;
         }
 
-        public Task<HttpContext> GetContextAsync(string invocationId)
+        public Task<HttpContext> GetContextAsync(string invocationId, CancellationToken cancellationToken)
         {
-            var httpContext = _httpContextReferenceList.GetOrAdd(invocationId, new HttpContextReference(invocationId));
+            var httpContextRef = _httpContextReferenceList.GetOrAdd(invocationId, new HttpContextReference(invocationId));
+            httpContextRef.SetCancellationToken(cancellationToken);
 
-            return httpContext.HttpContextValueSource.Task;
+            return httpContextRef.HttpContextValueSource.Task;
         }
 
         // TODO:See about making this not public

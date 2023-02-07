@@ -2,27 +2,30 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.IO;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Azure.Functions.Worker;
+[assembly: WorkerExtensionStartup(typeof(ServiceBusExtensionStartup))]
 
-public class ServiceBusExtensionStartup : WorkerExtensionStartup
+namespace Microsoft.Azure.Functions.Worker
 {
-    public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
+    public class ServiceBusExtensionStartup : WorkerExtensionStartup
     {
-        if (applicationBuilder == null)
+        public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
-            throw new ArgumentNullException(nameof(applicationBuilder));
+            if (applicationBuilder == null)
+            {
+                throw new ArgumentNullException(nameof(applicationBuilder));
+            }
+
+            applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
+
+            applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
+            {
+                workerOption.InputConverters.RegisterAt<ServiceBusReceivedMessageConverter>(0);
+            });
         }
-
-        applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-
-        applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
-        {
-            workerOption.InputConverters.RegisterAt<ServiceBusReceivedMessageConverter>(0);
-        });
     }
 }

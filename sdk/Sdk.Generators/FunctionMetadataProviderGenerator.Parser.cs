@@ -521,21 +521,35 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         case TypedConstantKind.Error:
                             break;
+
                         case TypedConstantKind.Primitive:
                             dict[argumentName] = arg.Value;
                             break;
+
                         case TypedConstantKind.Enum:
+                            // enumValue will look like "Microsoft.Azure.Functions.Worker.AuthorizationLevel.Admin"
                             var enumValue = arg.Type!.GetMembers()
                               .FirstOrDefault(m => m is IFieldSymbol field
                                               && field.ConstantValue is object value
                                               && value.Equals(arg.Value));
+
+                            if (enumValue is null)
+                            {
+                                return false;
+                            }
+
+                            // we want just the enumValue symbol's name (Admin, Anonymous, Function)
+                            dict[argumentName] = enumValue!.Name;
                             break;
+
                         case TypedConstantKind.Type:
                             break;
+
                         case TypedConstantKind.Array:
                             var arrayValues = arg.Values.Select(a => a.Value?.ToString()).ToArray();
                             dict[argumentName] = arrayValues;
                             break;
+
                         default:
                             break;
                     }

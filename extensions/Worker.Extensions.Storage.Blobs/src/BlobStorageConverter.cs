@@ -51,13 +51,9 @@ namespace Microsoft.Azure.Functions.Worker
                 return ConversionResult.Unhandled();
             }
 
-            if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
-            {
-                return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
-            }
-
             try
             {
+                Dictionary<string, string> content = GetBindingDataContent(modelBindingData);
                 var result = await ConvertModelBindingDataAsync(content, context.TargetType, modelBindingData);
 
                 if (result is not null)
@@ -78,30 +74,27 @@ namespace Microsoft.Azure.Functions.Worker
             var blobCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
             Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
 
-            foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
-            {
-                if (!IsBlobExtension(modelBindingData))
-                {
-                    return ConversionResult.Unhandled();
-                }
-
-                if (!TryGetBindingDataContent(modelBindingData, out IDictionary<string, string> content))
-                {
-                    return ConversionResult.Failed(new InvalidOperationException("Unable to parse model binding data content"));
-                }
-
-                var element = await ConvertModelBindingDataAsync(content, elementType, modelBindingData);
-
-                if (element is not null)
-                {
-                    blobCollection.Add(element);
-                }
-            }
-
             try
             {
+                foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
+                {
+                    if (!IsBlobExtension(modelBindingData))
+                    {
+                        return ConversionResult.Unhandled();
+                    }
+
+                    Dictionary<string, string> content = GetBindingDataContent(modelBindingData);
+                    var element = await ConvertModelBindingDataAsync(content, elementType, modelBindingData);
+
+                    if (element is not null)
+                    {
+                        blobCollection.Add(element);
+                    }
+                }
+
                 var methodName = context.TargetType.IsArray ? nameof(CloneToArray) : nameof(CloneToList);
                 var result = ToTargetTypeCollection(blobCollection, methodName, elementType);
+
                 return ConversionResult.Success(result);
             }
             catch (Exception ex)
@@ -121,15 +114,13 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private bool TryGetBindingDataContent(ModelBindingData bindingData, out IDictionary<string, string> bindingDataContent)
+        private Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
         {
-            bindingDataContent = bindingData?.ContentType switch
+            return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
                 _ => throw new InvalidOperationException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
             };
-
-            return bindingDataContent is not null;
         }
 
         private async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)

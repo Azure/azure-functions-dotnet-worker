@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>2</MinorProductVersion>
+    <MinorProductVersion>1</MinorProductVersion>
+    <PatchProductVersion>2</PatchProductVersion>
     <OutputType>Library</OutputType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput>

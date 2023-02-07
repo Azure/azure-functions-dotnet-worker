@@ -4,7 +4,10 @@
 using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core.Http;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
@@ -41,7 +44,16 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
                 inputArguments = await modelBindingFeature.BindFunctionInputAsync(context);
             }
 
-            context.GetBindings().InvocationResult = await invoker.InvokeAsync(instance, inputArguments);
+            var invocationResult = await invoker.InvokeAsync(instance, inputArguments);
+
+            if (invocationResult is HttpResponse httpResponse)
+            {
+                var httpResponseData = new DummyHttpResponseData(context);
+            }
+            else
+            {
+                context.GetBindings().InvocationResult = invocationResult;
+            }
         }
     }
 }

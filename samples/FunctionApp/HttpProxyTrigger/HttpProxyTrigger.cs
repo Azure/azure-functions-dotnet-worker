@@ -15,7 +15,7 @@ namespace FunctionApp
 
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
-            response.WriteAsync("Welcome to Azure Functions!");
+            response.WriteAsync("Welcome to Azure Functions!", cancellationToken: cancellationToken);
 
             return response;
         }

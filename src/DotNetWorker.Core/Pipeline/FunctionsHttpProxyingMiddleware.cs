@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
 
             AddHttpContextToFunctionContext(context, httpContext);
 
-            await next(context);
+            await next(context); 
 
             // allows asp.net middleware to continue
             _coordinator.CompleteInvocation(invocationId);

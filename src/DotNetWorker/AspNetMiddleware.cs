@@ -35,8 +35,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Pipeline
             // TODO: Discuss whether we need to handle invocationId (a StringValues obj) being more than one string? 
             // Likely not since this info is sent from host which we control?
             await _coordinator.SetContextAsync(invocationId, context);
-
-            await _next(context);
         }
     }
 

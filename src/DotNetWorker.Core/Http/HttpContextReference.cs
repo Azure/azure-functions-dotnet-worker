@@ -9,7 +9,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
         private TaskCompletionSource<HttpContext> _functionCompletionTask = new TaskCompletionSource<HttpContext>();
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new TaskCompletionSource<HttpContext>();
         private string _invocationId;
-        private HttpContext? _httpContext;
 
         public HttpContextReference(string invocationId)
         {
@@ -19,7 +18,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
         public HttpContextReference(string invocationId, HttpContext context)
         {
             _invocationId = invocationId;
-            _httpContext = context;
             _httpContextValueSource.SetResult(context);
         }
 

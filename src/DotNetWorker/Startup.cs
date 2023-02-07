@@ -19,6 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
         public void Configure(IApplicationBuilder app)
         {
             app.UseAspNetHttpForwarderMiddleware();
+            
         }
 
         public void ConfigureServices(IServiceCollection services)

@@ -6,17 +6,23 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
-    public static class ExpressionFunction
+    public class ExpressionFunction
     {
+        private readonly ILogger<ExpressionFunction> _logger;
+
+        public ExpressionFunction(ILogger<ExpressionFunction> logger)
+        {
+            _logger = logger;
+        }
+
         [Function(nameof(ExpressionFunction))]
-        public static void Run(
+        public void Run(
             [QueueTrigger("expression-trigger")] Book book,
             [BlobInput("input-container/{id}.txt")] string myBlob,
             FunctionContext context)
         {
-            var logger = context.GetLogger(nameof(ExpressionFunction));
-            logger.LogInformation("Trigger content: {content}", book);
-            logger.LogInformation("Blob content: {content}", myBlob);
+            _logger.LogInformation("Trigger content: {content}", book);
+            _logger.LogInformation("Blob content: {content}", myBlob);
         }
     }
 }

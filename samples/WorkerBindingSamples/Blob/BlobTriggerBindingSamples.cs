@@ -11,54 +11,52 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
-    public static class BlobTriggerBindingSamples
+    public class BlobTriggerBindingSamples
     {
-        [Function(nameof(BlobClientFunction))]
-        public static async Task BlobClientFunction(
-            [BlobTrigger("client-trigger/{name}")] BlobClient client,
-            FunctionContext context)
+        private readonly ILogger<BlobTriggerBindingSamples> _logger;
+
+        public BlobTriggerBindingSamples(ILogger<BlobTriggerBindingSamples> logger)
         {
-            var logger = context.GetLogger(nameof(BlobClientFunction));
+            _logger = logger;
+        }
+
+        [Function(nameof(BlobClientFunction))]
+        public async Task BlobClientFunction(
+            [BlobTrigger("client-trigger/{name}")] BlobClient client)
+        {
             var downloadResult = await client.DownloadContentAsync();
             var content = downloadResult.Value.Content.ToString();
-            logger.LogInformation("Blob name: {blobName}, content: {content}", client.Name, content);
+            _logger.LogInformation("Blob name: {blobName}, content: {content}", client.Name, content);
         }
 
         [Function(nameof(BlobStreamFunction))]
-        public static async Task BlobStreamFunction(
-            [BlobTrigger("stream-trigger/{name}")] Stream stream,
-            FunctionContext context)
+        public async Task BlobStreamFunction(
+            [BlobTrigger("stream-trigger/{name}")] Stream stream)
         {
-            var logger = context.GetLogger(nameof(BlobStreamFunction));
             using var blobStreamReader = new StreamReader(stream);
-            logger.LogInformation("Blob content: {stream}", await blobStreamReader.ReadToEndAsync());
+            var content = await blobStreamReader.ReadToEndAsync();
+            _logger.LogInformation("Blob content: {stream}", content);
         }
 
         [Function(nameof(BlobByteArrayFunction))]
-        public static void BlobByteArrayFunction(
-            [BlobTrigger("byte-trigger/{name}")] Byte[] data,
-            FunctionContext context)
+        public void BlobByteArrayFunction(
+            [BlobTrigger("byte-trigger/{name}")] Byte[] data)
         {
-            var logger = context.GetLogger(nameof(BlobByteArrayFunction));
-            logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
+            _logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
         }
 
         [Function(nameof(BlobStringFunction))]
-        public static void BlobStringFunction(
-            [BlobTrigger("string-trigger/{name}")] string data,
-            FunctionContext context)
+        public void BlobStringFunction(
+            [BlobTrigger("string-trigger/{name}")] string data)
         {
-            var logger = context.GetLogger(nameof(BlobStringFunction));
-            logger.LogInformation($"Blob content: {data}");
+            _logger.LogInformation($"Blob content: {data}");
         }
 
         [Function(nameof(BlobBookFunction))]
-        public static void BlobBookFunction(
-            [BlobTrigger("book-trigger/{name}")] Book data,
-            FunctionContext context)
+        public void BlobBookFunction(
+            [BlobTrigger("book-trigger/{name}")] Book data)
         {
-            var logger = context.GetLogger(nameof(BlobBookFunction));
-            logger.LogInformation($"Id: {data.Id} - Name: {data.Name}");
+            _logger.LogInformation($"Id: {data.Id} - Name: {data.Name}");
         }
     }
 }

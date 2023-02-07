@@ -25,11 +25,12 @@ namespace SampleApp
 
         [Function(nameof(BlobInputClientFunction))]
         public async Task<HttpResponseData> BlobInputClientFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/sample1.txt")] BlobClient client)
         {
             var downloadResult = await client.DownloadContentAsync();
             var content = downloadResult.Value.Content.ToString();
+
             _logger.LogInformation("Blob content: {content}", content);
 
             return req.CreateResponse(HttpStatusCode.OK);
@@ -37,7 +38,7 @@ namespace SampleApp
 
         [Function(nameof(BlobInputStreamFunction))]
         public async Task<HttpResponseData> BlobInputStreamFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/sample1.txt")] Stream stream)
         {
             using var blobStreamReader = new StreamReader(stream);
@@ -48,7 +49,7 @@ namespace SampleApp
 
         [Function(nameof(BlobInputByteArrayFunction))]
         public HttpResponseData BlobInputByteArrayFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/sample1.txt")] Byte[] data)
         {
             _logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
@@ -57,7 +58,7 @@ namespace SampleApp
 
         [Function(nameof(BlobInputStringFunction))]
         public HttpResponseData BlobInputStringFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req, string filename,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req, string filename,
             [BlobInput("input-container/{filename}")] string data)
         {
             _logger.LogInformation($"Blob content: {data}");
@@ -66,7 +67,7 @@ namespace SampleApp
 
         [Function(nameof(BlobInputBookFunction))]
         public HttpResponseData BlobInputBookFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/book.json")] Book data)
         {
             _logger.LogInformation($"Book name: {data.Name}");
@@ -75,10 +76,11 @@ namespace SampleApp
 
         [Function(nameof(BlobInputCollectionFunction))]
         public HttpResponseData BlobInputCollectionFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container", IsBatched = true)] IEnumerable<BlobClient> blobs)
         {
             _logger.LogInformation("Blobs within container:");
+
             foreach (BlobClient blob in blobs)
             {
                 _logger.LogInformation("Blob name: {blobName}, Container name: {containerName}", blob.Name, blob.BlobContainerName);
@@ -89,10 +91,11 @@ namespace SampleApp
 
         [Function(nameof(BlobInputStringArrayFunction))]
         public HttpResponseData BlobInputStringArrayFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container", IsBatched = true)] string[] blobContent)
         {
             _logger.LogInformation("Content of all blobs within container:");
+
             foreach (var item in blobContent)
             {
                 _logger.LogInformation(item);
@@ -103,10 +106,11 @@ namespace SampleApp
 
         [Function(nameof(BlobInputBookArrayFunction))]
         public HttpResponseData BlobInputBookArrayFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container", IsBatched = true)] Book[] books)
         {
             _logger.LogInformation("Content of all blobs within container:");
+
             foreach (var item in books)
             {
                 _logger.LogInformation(item.Name);

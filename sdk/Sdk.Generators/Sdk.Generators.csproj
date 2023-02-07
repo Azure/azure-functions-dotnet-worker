@@ -9,7 +9,8 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
-    <VersionSuffix>-preview3</VersionSuffix>
+    <MinorProductVersion>1</MinorProductVersion>
+    <VersionSuffix>-preview1</VersionSuffix>
     <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 

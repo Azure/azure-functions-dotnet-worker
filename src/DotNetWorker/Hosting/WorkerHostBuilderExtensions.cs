@@ -177,9 +177,16 @@ namespace Microsoft.Extensions.Hosting
                 });
 
 #if NET5_0_OR_GREATER
+            var port = Environment.GetEnvironmentVariable("Azure_Functions_HttpProxyingPort");
+
+            if (port is null)
+            {
+                port = "5555";
+            }
+
             builder.ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseUrls("http://localhost:5555/");
+                webBuilder.UseUrls("http://localhost:" + port);
                 webBuilder.UseStartup<Startup>();
             });
 #endif

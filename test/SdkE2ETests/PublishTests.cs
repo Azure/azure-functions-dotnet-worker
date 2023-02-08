@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         private async Task RunPublishTest(string outputDir, string additionalParams = null)
         {
-            // Name of the csproj            
+            // Name of the csproj
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
 
             await TestUtility.RestoreAndPublishProjectAsync(projectFileDirectory, outputDir, additionalParams, _testOutputHelper);

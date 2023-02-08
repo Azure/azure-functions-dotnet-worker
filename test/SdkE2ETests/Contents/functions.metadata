@@ -54,7 +54,9 @@
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
         "cardinality": "One",
-        "properties": {}
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
       },
       {
         "name": "Book",
@@ -192,7 +194,9 @@
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
         "cardinality": "One",
-        "properties": {}
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
       }
     ],
     "retry": {

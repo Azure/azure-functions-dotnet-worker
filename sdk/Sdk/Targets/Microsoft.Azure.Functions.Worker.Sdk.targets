@@ -296,6 +296,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           OutputPath="$(PublishDir)"/>
 
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
           OverwriteReadOnlyFiles="true" />
@@ -326,6 +327,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           OutputPath="$(PublishDir)"/>
 
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
           OverwriteReadOnlyFiles="true" />

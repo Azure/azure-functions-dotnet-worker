@@ -170,7 +170,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -210,7 +210,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "blobPath", "container2" },
                     { "Cardinality", "Many" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
 
@@ -226,8 +226,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
                     { "path", "container2/%file%" },
-                    { "DataType", "String" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
 
@@ -264,7 +263,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0-alpha.20221103.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
             });
 
             void ValidateBlobTrigger(ExpandoObject b)
@@ -287,6 +286,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blob" },
                     { "Direction", "In" },
                     { "blobPath", "container2/%file%" },
+                    { "Cardinality", "One" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
@@ -354,7 +354,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -629,7 +629,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         [Fact]
         public void EnableImplicitRegistration_False()
-        {            
+        {
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
 
@@ -661,7 +661,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(RetryFunctions));
-            
+
             var functions = generator.GenerateFunctionMetadata(typeDef);
 
             var funcName = "FixedDelayRetryFunction";

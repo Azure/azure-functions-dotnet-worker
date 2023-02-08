@@ -32,4 +32,7 @@
       <CopyToPublishDirectory>Never</CopyToPublishDirectory>
     </None>
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="WebPubSub\" />
+  </ItemGroup>
 </Project>

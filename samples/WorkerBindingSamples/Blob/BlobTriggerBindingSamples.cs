@@ -22,39 +22,39 @@ namespace SampleApp
 
         [Function(nameof(BlobClientFunction))]
         public async Task BlobClientFunction(
-            [BlobTrigger("client-trigger/{name}")] BlobClient client)
+            [BlobTrigger("client-trigger/{name}")] BlobClient client, string name)
         {
             var downloadResult = await client.DownloadContentAsync();
             var content = downloadResult.Value.Content.ToString();
-            _logger.LogInformation("Blob name: {blobName}, content: {content}", client.Name, content);
+            _logger.LogInformation("Blob name: {name} -- Blob content: {content}", name, content);
         }
 
         [Function(nameof(BlobStreamFunction))]
         public async Task BlobStreamFunction(
-            [BlobTrigger("stream-trigger/{name}")] Stream stream)
+            [BlobTrigger("stream-trigger/{name}")] Stream stream, string name)
         {
             using var blobStreamReader = new StreamReader(stream);
             var content = await blobStreamReader.ReadToEndAsync();
-            _logger.LogInformation("Blob content: {stream}", content);
+            _logger.LogInformation("Blob name: {name} -- Blob content: {content}", name, content);
         }
 
         [Function(nameof(BlobByteArrayFunction))]
         public void BlobByteArrayFunction(
-            [BlobTrigger("byte-trigger/{name}")] Byte[] data)
+            [BlobTrigger("byte-trigger")] Byte[] data)
         {
             _logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
         }
 
         [Function(nameof(BlobStringFunction))]
         public void BlobStringFunction(
-            [BlobTrigger("string-trigger/{name}")] string data)
+            [BlobTrigger("string-trigger")] string data)
         {
             _logger.LogInformation($"Blob content: {data}");
         }
 
         [Function(nameof(BlobBookFunction))]
         public void BlobBookFunction(
-            [BlobTrigger("book-trigger/{name}")] Book data)
+            [BlobTrigger("book-trigger")] Book data)
         {
             _logger.LogInformation($"Id: {data.Id} - Name: {data.Name}");
         }

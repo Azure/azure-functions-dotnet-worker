@@ -527,7 +527,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             break;
 
                         case TypedConstantKind.Enum:
-                            // enumValue will look like "Microsoft.Azure.Functions.Worker.AuthorizationLevel.Admin"
                             var enumValue = arg.Type!.GetMembers()
                               .FirstOrDefault(m => m is IFieldSymbol field
                                               && field.ConstantValue is object value
@@ -539,7 +538,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
 
                             // we want just the enumValue symbol's name (Admin, Anonymous, Function)
-                            dict[argumentName] = enumValue!.Name;
+                            dict[argumentName] = enumValue.Name;
                             break;
 
                         case TypedConstantKind.Type:
@@ -615,7 +614,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 // we check if the param is an array type
-                // we exclude byte arrays (byte[]) b/c we handle that as cardinality one (we handle this simliar to how a char[] is basically a string)
+                // we exclude byte arrays (byte[]) b/c we handle that as cardinality one (we handle this similar to how a char[] is basically a string)
                 if (parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray)))
                 {
                     dataType = GetDataType(parameterSymbol.Type);

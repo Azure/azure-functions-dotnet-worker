@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.Worker
             return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                _ => throw new InvalidOperationException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
+                _ => throw new NotSupportedException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
             };
         }
 

@@ -6,6 +6,7 @@ using Azure.Storage.Blobs;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Microsoft.Azure.Functions.Worker.Extensions;
 using System.Globalization;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -81,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker
                 return true;
             }
 
-            serviceUri = default(Uri);
+            serviceUri = default(Uri)!;
             return false;
         }
 

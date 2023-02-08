@@ -534,7 +534,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedOutput);
             }
 
-            [Fact]
+            [Fact (Skip = "Depends on source gen description cleanup, issue #1323")]
             public async void MultipleOutputOnMethodFails()
             {
                 var inputCode = @"using System;

@@ -526,6 +526,43 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedGeneratedFileName,
                     expectedOutput);
             }
+
+            [Fact (Skip = "Depends on source gen description cleanup, issue #1323")]
+            public async void MultipleOutputOnMethodFails()
+            {
+                var inputCode = @"using System;
+                using System.Net;
+                using System.Collections;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using System.Linq;
+                using System.Threading.Tasks;
+
+                namespace FunctionApp
+                {
+                    public class EventHubsInput
+                    {
+                        [Function(""QueueToBlobFunction"")]
+                        [BlobOutput(""container1/hello.txt"", Connection = ""MyOtherConnection"")]
+                        [QueueOutput(""queue2"")]
+                        public string QueueToBlob(
+                            [QueueTrigger(""queueName"", Connection = ""MyConnection"")] string queuePayload)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
+                    _referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput);
+            }
         }
     }
 }

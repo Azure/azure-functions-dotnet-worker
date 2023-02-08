@@ -50,11 +50,12 @@
         "name": "myBlob",
         "direction": "In",
         "type": "blob",
-        "dataType": "String",
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
         "cardinality": "One",
-        "properties": {}
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
       },
       {
         "name": "Book",
@@ -182,11 +183,12 @@
         "name": "myBlob",
         "direction": "In",
         "type": "blob",
-        "dataType": "String",
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
         "cardinality": "One",
-        "properties": {}
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
       }
     ]
   }

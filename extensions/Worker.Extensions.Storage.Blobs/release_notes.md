@@ -4,6 +4,5 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
-
-- <entry>
+- Add support for SDK-type bindings via deferred binding feature #1108
+- Assign cardinality correctly for Blob collection scenarios #1271

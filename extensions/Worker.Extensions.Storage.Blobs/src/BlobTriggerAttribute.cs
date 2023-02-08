@@ -5,6 +5,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [SupportsDeferredBinding]
     public sealed class BlobTriggerAttribute : TriggerBindingAttribute
     {
         private readonly string _blobPath;

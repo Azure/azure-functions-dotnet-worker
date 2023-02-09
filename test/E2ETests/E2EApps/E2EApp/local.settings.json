@@ -6,6 +6,7 @@
     "CosmosConnection": "AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==",
     "CosmosDb": "ItemDb",
     "CosmosCollIn": "ItemCollectionIn",
-    "CosmosCollOut": "ItemCollectionOut"
+    "CosmosCollOut": "ItemCollectionOut",
+    "WebPubSubConnectionString": "Endpoint=https://jixinwpsdev.webpubsub.azure.com;AccessKey=bePBTP7GnQPNZ09V9G31/ZKPt/DcTbJJKJA4HyZFELc=;Version=1.0;"
   }
 }

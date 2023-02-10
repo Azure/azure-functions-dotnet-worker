@@ -42,21 +42,21 @@ namespace SampleApp
         public void BlobByteArrayFunction(
             [BlobTrigger("byte-trigger")] Byte[] data)
         {
-            _logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
+            _logger.LogInformation("Blob content: {content}", Encoding.Default.GetString(data));
         }
 
         [Function(nameof(BlobStringFunction))]
         public void BlobStringFunction(
             [BlobTrigger("string-trigger")] string data)
         {
-            _logger.LogInformation($"Blob content: {data}");
+            _logger.LogInformation("Blob content: {content}", data);
         }
 
         [Function(nameof(BlobBookFunction))]
         public void BlobBookFunction(
             [BlobTrigger("book-trigger")] Book data)
         {
-            _logger.LogInformation($"Id: {data.Id} - Name: {data.Name}");
+            _logger.LogInformation("Id: {id} - Name: {name}", data.Id, data.Name);
         }
     }
 }

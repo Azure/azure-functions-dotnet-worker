@@ -42,7 +42,7 @@ namespace SampleApp
             [BlobInput("input-container/sample1.txt")] Stream stream)
         {
             using var blobStreamReader = new StreamReader(stream);
-            _logger.LogInformation("Blob content: {stream}", await blobStreamReader.ReadToEndAsync());
+            _logger.LogInformation("Blob content: {content}", await blobStreamReader.ReadToEndAsync());
 
             return req.CreateResponse(HttpStatusCode.OK);
         }
@@ -52,7 +52,7 @@ namespace SampleApp
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/sample1.txt")] Byte[] data)
         {
-            _logger.LogInformation($"Blob content: {Encoding.Default.GetString(data)}");
+            _logger.LogInformation("Blob content: {content}", Encoding.Default.GetString(data));
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
@@ -61,7 +61,7 @@ namespace SampleApp
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req, string filename,
             [BlobInput("input-container/{filename}")] string data)
         {
-            _logger.LogInformation($"Blob content: {data}");
+            _logger.LogInformation("Blob content: {content}", data);
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
@@ -70,7 +70,7 @@ namespace SampleApp
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/book.json")] Book data)
         {
-            _logger.LogInformation($"Book name: {data.Name}");
+            _logger.LogInformation("Book name: {name}", data.Name);
             return req.CreateResponse(HttpStatusCode.OK);
         }
 

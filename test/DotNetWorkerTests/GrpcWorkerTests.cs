@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_ReturnsSuccess()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             FunctionLoadRequest request = CreateFunctionLoadRequest();
 
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_Throws_ReturnsFailure()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             _mockApplication
                 .Setup(m => m.LoadFunction(It.IsAny<FunctionDefinition>()))
@@ -115,7 +115,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void MethodInfoLocator_Throws_ReturnsFailure()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             _mockMethodInfoLocator
                 .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))

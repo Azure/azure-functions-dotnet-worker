@@ -9,6 +9,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MinorProductVersion>12</MinorProductVersion>
+    <PatchProductVersion>1</PatchProductVersion>
     <VersionSuffix>-preview1</VersionSuffix>
   </PropertyGroup>
 

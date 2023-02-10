@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void Creates()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", ".");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
 
             var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
             var methodInfoLocator = new DefaultMethodInfoLocator();

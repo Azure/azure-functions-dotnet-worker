@@ -5,10 +5,16 @@ using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
-    internal interface IModelBindingFeature
+    /// <summary>
+    /// Provides a mechanism to bind function inputs.
+    /// </summary>
+    public interface IModelBindingFeature
     {
-        object?[]? InputArguments { get; }
-
-        ValueTask<object?[]> BindFunctionInputAsync(FunctionContext context);
+        /// <summary>
+        /// Binds function inputs.
+        /// </summary>
+        /// <param name="context">The <see cref="FunctionContext"/> instance.</param>
+        /// <returns>An array of bounded input values.</returns>
+        ValueTask<FunctionInputBindingResult> BindFunctionInputAsync(FunctionContext context);
     }
 }

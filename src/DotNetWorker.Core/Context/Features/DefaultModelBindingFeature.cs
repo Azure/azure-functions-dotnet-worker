@@ -12,8 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     internal class DefaultModelBindingFeature : IModelBindingFeature
     {
-        private bool _inputBound;
-        private object?[]? _parameterValues;
+        private FunctionInputBindingResult? _inputBindingResult;
         private readonly IConverterContextFactory _converterContextFactory;
 
         public DefaultModelBindingFeature(IConverterContextFactory converterContextFactory)
@@ -22,18 +21,13 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                                        throw new ArgumentNullException(nameof(converterContextFactory));
         }
 
-        public object?[]? InputArguments => _parameterValues;
-
-        public async ValueTask<object?[]> BindFunctionInputAsync(FunctionContext context)
+        public async ValueTask<FunctionInputBindingResult> BindFunctionInputAsync(FunctionContext context)
         {
-            if (_inputBound)
+            if (_inputBindingResult is not null)
             {
-                throw new InvalidOperationException("Duplicate binding call detected. " +
-                    $"Input parameters can only be bound to arguments once. Use the {nameof(InputArguments)} property to inspect values.");
+                // Return the cached value if BindFunctionInputAsync is called a second time during invocation.
+                return _inputBindingResult!;
             }
-
-            _parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
-            _inputBound = true;
 
             IFunctionBindingsFeature functionBindings = context.GetBindings();
             var inputBindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
@@ -44,8 +38,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 throw new InvalidOperationException("Input conversion feature is missing.");
             }
 
+            var parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             List<string>? errors = null;
-            for (int i = 0; i < _parameterValues.Length; i++)
+            
+            for (int i = 0; i < parameterValues.Length; i++)
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
@@ -66,7 +62,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     IReadOnlyDictionary<string, object> properties = ImmutableDictionary<string, object>.Empty;
 
                     // Pass info about specific input converter type defined for this parameter, if present.
-                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
+                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType,
+                            out var converterTypeAssemblyFullName))
                     {
                         properties = new Dictionary<string, object>()
                         {
@@ -82,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                 if (bindingResult.Status == ConversionStatus.Succeeded)
                 {
-                    _parameterValues[i] = bindingResult.Value;
+                    parameterValues[i] = bindingResult.Value;
                 }
                 else if (bindingResult.Status == ConversionStatus.Failed && source is not null)
                 {
@@ -101,7 +98,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     $"Error converting {errors.Count} input parameters for Function '{context.FunctionDefinition.Name}': {string.Join(Environment.NewLine, errors)}");
             }
 
-            return _parameterValues;
+            _inputBindingResult = new FunctionInputBindingResult(parameterValues);
+
+            return _inputBindingResult;
         }
     }
 }

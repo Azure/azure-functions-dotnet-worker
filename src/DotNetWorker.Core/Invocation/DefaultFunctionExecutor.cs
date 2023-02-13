@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             object? instance = invoker.CreateInstance(context);
             var modelBindingFeature = context.Features.Get<IModelBindingFeature>();
-            
+
             FunctionInputBindingResult inputBindingResult;
             if (modelBindingFeature is null)
             {

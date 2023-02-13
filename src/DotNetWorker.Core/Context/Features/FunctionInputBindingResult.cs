@@ -16,9 +16,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             Values = values;
         }
-        
+
         /// <summary>
-        /// Gets the values of bound function inputs.
+        /// Gets or sets the values of bound function inputs.
         /// </summary>
         public object?[] Values { get; set; }
     }

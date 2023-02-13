@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             var parameterValues = new object?[context.FunctionDefinition.Parameters.Length];
             List<string>? errors = null;
-            
+
             for (int i = 0; i < parameterValues.Length; i++)
             {
                 FunctionParameter param = context.FunctionDefinition.Parameters[i];
@@ -62,8 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     IReadOnlyDictionary<string, object> properties = ImmutableDictionary<string, object>.Empty;
 
                     // Pass info about specific input converter type defined for this parameter, if present.
-                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType,
-                            out var converterTypeAssemblyFullName))
+                    if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
                     {
                         properties = new Dictionary<string, object>()
                         {

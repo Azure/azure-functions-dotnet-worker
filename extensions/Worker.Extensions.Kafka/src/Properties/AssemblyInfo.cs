@@ -2,4 +2,5 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+
 [assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.Kafka", "3.7.0")]

@@ -10,12 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
-    internal class DefaultModelBindingFeature : IModelBindingFeature
+    internal class DefaultFunctionInputBindingFeature : IFunctionInputBindingFeature
     {
         private FunctionInputBindingResult? _inputBindingResult;
         private readonly IConverterContextFactory _converterContextFactory;
 
-        public DefaultModelBindingFeature(IConverterContextFactory converterContextFactory)
+        public DefaultFunctionInputBindingFeature(IConverterContextFactory converterContextFactory)
         {
             _converterContextFactory = converterContextFactory ??
                                        throw new ArgumentNullException(nameof(converterContextFactory));

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     /// <summary>
     /// Provides a mechanism to bind function inputs.
     /// </summary>
-    public interface IModelBindingFeature
+    public interface IFunctionInputBindingFeature
     {
         /// <summary>
         /// Binds function inputs.

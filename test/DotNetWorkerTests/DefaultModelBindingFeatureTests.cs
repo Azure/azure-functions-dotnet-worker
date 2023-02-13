@@ -14,12 +14,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class DefaultModelBindingFeatureTests
     {
         private readonly ServiceProvider _serviceProvider;
-        private readonly DefaultModelBindingFeature _modelBindingFeature;
+        private readonly DefaultFunctionInputBindingFeature _functionInputBindingFeature;
         public DefaultModelBindingFeatureTests()
         {
             var serializer = new JsonObjectSerializer(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             _serviceProvider = TestUtility.GetServiceProviderWithInputBindingServices(o => o.Serializer = serializer);
-            _modelBindingFeature = _serviceProvider.GetService<DefaultModelBindingFeature>();
+            _functionInputBindingFeature = _serviceProvider.GetService<DefaultFunctionInputBindingFeature>();
         }
 
         [Fact]
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
 
             // Act
-            var bindingResult = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+            var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
             var parameterValuesArray = bindingResult.Values;
             // Assert
             var book = TestUtility.AssertIsTypeAndConvert<Book>(parameterValuesArray[0]);
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
 
             // Act
-            var bindingResult1 = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+            var bindingResult1 = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
             var parameterValuesArray = bindingResult1.Values;
             // Assert
             var book = TestUtility.AssertIsTypeAndConvert<Book>(parameterValuesArray[0]);
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Update the result from caller side.
             bindingResult1.Values[0] = new Book { Id = "bar" };
             // Call Bind again. This should return the same result(bindingResult1) instead of rebinding everything from scratch.
-            var bindingResult2 = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+            var bindingResult2 = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
             Assert.Same(bindingResult1, bindingResult2);
         }
 
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Same(otherBook, bookInputBindingData2.Value);
 
             // Get all parameters from ModelBindingFeature. This should also reflect what we set above.
-            var bindingResult = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
+            var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
             Assert.Same(otherBook, bindingResult.Values[0] as Book);
         }
     }

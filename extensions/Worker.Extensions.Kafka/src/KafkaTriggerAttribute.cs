@@ -12,6 +12,11 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private bool _isBatched = false;
 
+        /// <summary>
+        /// Initialize a new instance of the <see cref="KafkaTriggerAttribute"/>
+        /// </summary>
+        /// <param name="brokerList">Name of broker list</param>
+        /// <param name="topic">Name of topic</param>
         public KafkaTriggerAttribute(string brokerList, string topic)
         {
             BrokerList = brokerList;
@@ -31,13 +36,13 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the consumer group
         /// </summary>
-        public string? ConsumerGroup { get; set; }
+        public string ConsumerGroup { get; set; }
 
         /// <summary>
         /// Gets or sets the Avro schema.
         /// Should be used only if a generic record should be generated
         /// </summary>
-        public string? AvroSchema { get; set; }
+        public string AvroSchema { get; set; }
 
         /// <summary>
         /// SASL mechanism to use for authentication. 
@@ -54,7 +59,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// 
         /// 'sasl.username' in librdkafka
         /// </summary>
-        public string? Username { get; set; }
+        public string Username { get; set; }
 
         /// <summary>
         /// SASL password for use with the PLAIN and SASL-SCRAM-.. mechanism
@@ -62,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// 
         /// sasl.password in librdkafka
         /// </summary>
-        public string? Password { get; set; }
+        public string Password { get; set; }
 
         /// <summary>
         /// Gets or sets the security protocol used to communicate with brokers
@@ -77,25 +82,25 @@ namespace Microsoft.Azure.Functions.Worker
         /// Default: ""
         /// ssl.key.location in librdkafka
         /// </summary>
-        public string? SslKeyLocation { get; set; }
+        public string SslKeyLocation { get; set; }
 
         /// <summary>
         /// Path to CA certificate file for verifying the broker's certificate.
         /// ssl.ca.location in librdkafka
         /// </summary>
-        public string? SslCaLocation { get; set; }
+        public string SslCaLocation { get; set; }
 
         /// <summary>
         /// Path to client's certificate.
         /// ssl.certificate.location in librdkafka
         /// </summary>
-        public string? SslCertificateLocation { get; set; }
+        public string SslCertificateLocation { get; set; }
 
         /// <summary>
         /// Password for client's certificate.
         /// ssl.key.password in librdkafka
         /// </summary>
-        public string? SslKeyPassword { get; set; }
+        public string SslKeyPassword { get; set; }
 
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".

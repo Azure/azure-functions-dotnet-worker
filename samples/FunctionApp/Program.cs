@@ -12,9 +12,9 @@ namespace FunctionApp
     {
         static async Task Main(string[] args)
         {
-#if DEBUG
+/*#if DEBUG
             Debugger.Launch();
-#endif
+#endif*/
             //<docsnippet_startup>
             var host = new HostBuilder()
                 //<docsnippet_configure_defaults>

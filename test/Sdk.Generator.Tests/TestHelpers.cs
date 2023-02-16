@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             // Enable SourceGen MSBuild Property for testing
-            string config = $"is_global = true{Environment.NewLine}build_property.FunctionsMetadataSourceGen_Enabled = {true}";
+            string config = $"is_global = true{Environment.NewLine}build_property.FunctionsEnableMetadataSourceGen = {true}";
             test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", config));
 
             foreach (var item in extensionAssemblyReferences)

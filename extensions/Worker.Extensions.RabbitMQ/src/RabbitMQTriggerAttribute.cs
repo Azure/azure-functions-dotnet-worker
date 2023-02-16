@@ -55,5 +55,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the Port used. Defaults to 0.
         /// </summary>
         public int Port { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether certificate validation should be disabled. Not recommended for
+        /// production. Does not apply when SSL is disabled.
+        /// </summary>
+        public bool DisableCertificateValidation { get; set; }
     }
 }

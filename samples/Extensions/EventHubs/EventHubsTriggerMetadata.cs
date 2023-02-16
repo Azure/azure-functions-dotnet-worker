@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 
@@ -50,5 +52,44 @@ namespace SampleApp
                 Dictionary<string, JsonElement> systemProperties = systemPropertiesArray[i];
             }
         }
+
+        // batched scenarios
+        [Function("EventHubsTriggerMetadata-ByteParameter-Batched")]
+        public static void UsingByteParameterBatched([EventHubTrigger("src-parameters", Connection = "EventHubConnectionAppSetting")] IEnumerable<byte[]> batchedMessages,
+           DateTime[] enqueuedTimeUtcArray,
+           long[] sequenceNumberArray,
+           string[] offsetArray,
+           Dictionary<string, JsonElement>[] propertiesArray,
+           Dictionary<string, JsonElement>[] systemPropertiesArray)
+        {
+            // You can directly access binding data via parameters.
+            for (int i = 0; i < batchedMessages.Count(); i++)
+            {
+                string message = Encoding.ASCII.GetString(batchedMessages.ElementAt(i));
+                DateTime enqueuedTimeUtc = enqueuedTimeUtcArray[i];
+                long sequenceNumber = sequenceNumberArray[i];
+                string offset = offsetArray[i];
+                Dictionary<string, JsonElement> properties = propertiesArray[i];
+                Dictionary<string, JsonElement> systemProperties = systemPropertiesArray[i];
+            }
+        }
+
+        // non-batched scenarios
+        [Function("EventHubsTriggerMetadata-ByteParameter-NotBatched")]
+        public static void UsingByteParameterNotBatched([EventHubTrigger("src-parameters", Connection = "EventHubConnectionAppSetting", IsBatched = false)] byte[] message,
+           DateTime enqueuedTimeUtc,
+           long sequenceNumber,
+           string offset,
+           Dictionary<string, JsonElement> properties,
+           Dictionary<string, JsonElement> systemProperties)
+        {
+            string _message = Encoding.ASCII.GetString(message);
+            DateTime _enqueuedTimeUtc = enqueuedTimeUtc;
+            long _sequenceNumber = sequenceNumber;
+            string _offset = offset;
+            Dictionary<string, JsonElement> _properties = properties;
+            Dictionary<string, JsonElement> _systemProperties = systemProperties;
+        }
     }
 }
+

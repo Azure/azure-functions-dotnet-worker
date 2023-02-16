@@ -30,7 +30,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          using System.Text.Json;
                          using System.Threading.Tasks;
                          using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                         using Microsoft.Azure.Functions.Worker.Http;
                          using Microsoft.Extensions.DependencyInjection;
                          using Microsoft.Extensions.Hosting;
                      

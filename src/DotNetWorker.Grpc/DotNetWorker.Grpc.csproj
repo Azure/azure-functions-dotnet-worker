@@ -9,6 +9,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MinorProductVersion>8</MinorProductVersion>
+    <PatchProductVersion>1</PatchProductVersion>
     <VersionSuffix>-preview1</VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>

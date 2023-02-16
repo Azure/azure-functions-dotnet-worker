@@ -171,7 +171,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "blobPath", "container2" },
                     { "Cardinality", "Many" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
 
@@ -227,8 +227,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
                     { "path", "container2/%file%" },
-                    { "DataType", "String" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
 
@@ -240,6 +239,68 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void StorageFunction_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(1, functions.Count());
+
+            var blobToBlob = functions.Single(p => p.Name == "BlobToBlobFunction");
+
+            ValidateFunction(blobToBlob, "BlobToBlobFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobToBlob)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
+            });
+
+            void ValidateBlobTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blob" },
+                    { "Type", "blobTrigger" },
+                    { "Direction", "In" },
+                    { "path", "container2/%file%" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateBlobInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "Direction", "In" },
+                    { "blobPath", "container2/%file%" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateBlobOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "blob" },
+                    { "Direction", "Out" },
+                    { "blobPath", "container1/hello.txt" },
+                    { "Connection", "MyOtherConnection" },
                     { "Properties", new Dictionary<String, Object>() }
                 });
             }
@@ -329,7 +390,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.0.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -604,7 +665,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         [Fact]
         public void EnableImplicitRegistration_False()
-        {            
+        {
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
 
@@ -636,7 +697,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
             var typeDef = TestUtility.GetTypeDefinition(typeof(RetryFunctions));
-            
+
             var functions = generator.GenerateFunctionMetadata(typeDef);
 
             var funcName = "FixedDelayRetryFunction";
@@ -781,6 +842,18 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobToBlobs(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings
+        {
+            [Function("BlobToBlobFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobToBlob(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2/%file%")] string blobinput)
             {
                 throw new NotImplementedException();
             }

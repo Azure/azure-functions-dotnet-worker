@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -18,12 +19,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 FunctionId = functionId;
             }
+
+            // create/dispose activity to pull off it's Id
+            using Activity activity = new Activity(string.Empty).Start();
+            TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString());
         }
 
         public override string Id { get; } = Guid.NewGuid().ToString();
 
         public override string FunctionId { get; } = Guid.NewGuid().ToString();
 
-        public override TraceContext TraceContext { get; } = new DefaultTraceContext($"00-{Guid.NewGuid()}-00", Guid.NewGuid().ToString());
+        public override TraceContext TraceContext { get; }
     }
 }

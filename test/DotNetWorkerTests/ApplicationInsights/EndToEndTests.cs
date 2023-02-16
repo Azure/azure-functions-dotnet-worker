@@ -79,7 +79,6 @@ public class EndToEndTests : IDisposable
     public async Task Logger_SendsTraceAndDependencyTelemetry()
     {
         var context = CreateContext();
-        var invocationId = context.InvocationId;
 
         await _application.InvokeFunctionAsync(context);
 
@@ -97,7 +96,6 @@ public class EndToEndTests : IDisposable
     {
         var context = CreateContext();
         context.Items["_throw"] = true;
-        var invocationId = context.InvocationId;
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _application.InvokeFunctionAsync(context));
 

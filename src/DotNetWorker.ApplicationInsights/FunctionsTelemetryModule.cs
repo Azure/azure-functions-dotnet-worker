@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 {
     internal sealed class FunctionsTelemetryModule : ITelemetryModule, IAsyncDisposable
     {
-        private const string DependencyTelemetryKey = "_depTel";
+        private const string DependencyTelemetryKey = "_tel";
         private const string DependencyTypeInProc = "InProc";
 
         private TelemetryClient? _telemetryClient;
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
             ActivitySource.AddActivityListener(_listener);
         }
 
-        internal static void TrackExceptionTelemetryFromActivityEvent(ActivityEvent activityEvent, TelemetryClient telemetryClient)
+        private static void TrackExceptionTelemetryFromActivityEvent(ActivityEvent activityEvent, TelemetryClient telemetryClient)
         {
             if (activityEvent.Name == TraceConstants.AttributeExceptionEventName)
             {
@@ -108,7 +108,19 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 
             if (_telemetryClient is not null)
             {
-                await _telemetryClient.FlushAsync(CancellationToken.None);
+                CancellationTokenSource cts = new(millisecondsDelay: 5000);
+                try
+                {
+                    await _telemetryClient.FlushAsync(cts.Token);
+                }
+                catch
+                {
+                    // Ignore for now; potentially log this in the future.
+                }
+                finally
+                {
+                    cts.Dispose();
+                }
             }
 
             GC.SuppressFinalize(this);

@@ -23,12 +23,14 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 
         public Activity? StartInvoke(FunctionContext context)
         {
-            var activity = _activitySource.StartActivity(TraceConstants.FunctionsInvokeActivityName, ActivityKind.Internal, context.TraceContext.TraceParent,
-                tags: GetTags(context));
+            Activity? activity = null;
 
-            if (activity is not null)
+            if (_activitySource.HasListeners())
             {
-                activity.TraceStateString = context.TraceContext.TraceState;
+                ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, out ActivityContext activityContext);
+
+                activity = _activitySource.StartActivity(TraceConstants.FunctionsInvokeActivityName, ActivityKind.Internal, activityContext,
+                    tags: GetTags(context));
             }
 
             return activity;

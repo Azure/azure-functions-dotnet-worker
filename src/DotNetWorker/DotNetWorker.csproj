@@ -9,6 +9,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MinorProductVersion>10</MinorProductVersion>
+    <PatchProductVersion>1</PatchProductVersion>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

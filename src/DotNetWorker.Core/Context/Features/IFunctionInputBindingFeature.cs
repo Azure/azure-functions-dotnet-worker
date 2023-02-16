@@ -11,10 +11,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     public interface IFunctionInputBindingFeature
     {
         /// <summary>
-        /// Binds function inputs.
+        /// Asynchronously binds the function inputs.
         /// </summary>
         /// <param name="context">The <see cref="FunctionContext"/> instance.</param>
-        /// <returns>An array of bounded input values.</returns>
+        /// <returns>A <see cref="ValueTask{TResult}"/>that will contain an instance of the <see cref="FunctionInputBindingResult"/>.</returns>
         ValueTask<FunctionInputBindingResult> BindFunctionInputAsync(FunctionContext context);
     }
 }

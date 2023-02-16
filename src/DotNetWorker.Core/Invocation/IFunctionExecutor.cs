@@ -11,10 +11,10 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
     public interface IFunctionExecutor
     {
         /// <summary>
-        /// Executes the function code.
+        /// Asynchronously executes the function code.
         /// </summary>
         /// <param name="context">The <see cref="FunctionContext"/> instance.</param>
-        /// <returns>A <see cref="Task"/> representing the result of execute operation.</returns>
+        /// <returns>A <see cref="ValueTask"/> representing the completion of the operation.</returns>
         ValueTask ExecuteAsync(FunctionContext context);
     }
 }

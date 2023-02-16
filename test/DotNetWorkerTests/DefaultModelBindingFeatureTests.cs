@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
         /// <summary>
         /// This UT simulates a case where the input binding entry is being updated (could be in a middleware) using the
-        /// BindInputAsync extension method result and that change is reflected when the ModelBindingFeature
+        /// BindInputAsync extension method result and that change is reflected when the FunctionInputBindingFeature
         /// returns the parameter values array for the function definition.
         /// </summary>
         [Fact]
@@ -146,7 +146,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var bookInputBindingData2 = await functionContext.BindInputAsync<Book>(queueBindingMetaData);
             Assert.Same(otherBook, bookInputBindingData2.Value);
 
-            // Get all parameters from ModelBindingFeature. This should also reflect what we set above.
+            // Get all parameters from FunctionInputBindingFeature. This should also reflect what we set above.
             var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
             Assert.Same(otherBook, bindingResult.Values[0] as Book);
         }

@@ -33,9 +33,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
       
+        <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
+        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnablePlaceholder) == 'true'">true</FunctionsEnableWorkerIndexing>
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
         <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) == 'true' And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
-        <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"

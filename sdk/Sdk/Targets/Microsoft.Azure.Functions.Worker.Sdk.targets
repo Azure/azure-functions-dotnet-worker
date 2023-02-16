@@ -34,7 +34,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
       
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
-        <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) == true And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
+        <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) == 'true' And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
         <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
     </PropertyGroup>
 

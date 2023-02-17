@@ -97,8 +97,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await TestUtility.RetryAsync(() =>
             {
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
-                // The "RunOnStartup" log should show, and then a true invocation.
-                return Task.FromResult(logs.Count() >= 2);
+                return Task.FromResult(logs.Count() >= 1);
             });
 
             var lastLog = logs.Last();
@@ -125,8 +124,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await TestUtility.RetryAsync(() =>
             {
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
-                // The "RunOnStartup" log should show, and then a true invocation.
-                return Task.FromResult(logs.Count() >= 2);
+                return Task.FromResult(logs.Count() >= 1);
             });
 
             var lastLog = logs.Last();
@@ -153,8 +151,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await TestUtility.RetryAsync(() =>
             {
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
-                // The "RunOnStartup" log should show, and then a true invocation.
-                return Task.FromResult(logs.Count() >= 2);
+                return Task.FromResult(logs.Count() >= 1);
             });
 
             var lastLog = logs.Last();

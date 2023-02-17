@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -13,16 +15,18 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Base Uri of the websocket connection.
         /// </summary>
-        public Uri BaseUri { get; }
+        [JsonPropertyName("baseUrl")]
+        public Uri BaseUri { get; set; }
 
         /// <summary>
         /// Uri with accessToken of the websocket connection.
         /// </summary>
-        public Uri Uri { get; }
+        [JsonPropertyName("url")]
+        public Uri Uri { get; set; }
 
         /// <summary>
         /// Access token of the websocket connection.
         /// </summary>
-        public string AccessToken { get; }
+        public string AccessToken { get; set; }
     }
 }

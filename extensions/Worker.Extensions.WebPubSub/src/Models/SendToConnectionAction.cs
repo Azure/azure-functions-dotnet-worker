@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -18,6 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Message to send.
         /// </summary>
+        [JsonConverter(typeof(BinaryDataJsonConverter))]
         public BinaryData Data { get; set; }
 
         /// <summary>

@@ -5,5 +5,12 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public abstract class WebPubSubAction
     {
+        public string ActionName
+        {
+            get
+            {
+                return GetType().Name.Replace("Action", "");
+            }
+        }
     }
 }

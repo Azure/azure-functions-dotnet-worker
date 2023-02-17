@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -19,6 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Message to send.
         /// </summary>
+        [JsonConverter(typeof(BinaryDataJsonConverter))]
         public BinaryData Data { get; set; }
 
         /// <summary>

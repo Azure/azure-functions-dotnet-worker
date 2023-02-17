@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -49,6 +50,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// The connection states.
         /// </summary>
+        [JsonConverter(typeof(ConnectionStatesConverter))]
         public IReadOnlyDictionary<string, BinaryData> ConnectionStates { get; }
 
         /// <summary>

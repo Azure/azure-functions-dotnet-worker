@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Text.Json.Serialization;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -81,6 +82,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Event type.
     /// </summary>
+    [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum WebPubSubEventType
     {
         /// <summary>

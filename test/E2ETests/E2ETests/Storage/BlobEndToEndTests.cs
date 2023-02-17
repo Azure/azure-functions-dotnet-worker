@@ -86,6 +86,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             string key = "StreamTriggerOutput: ";
             string fileName = Guid.NewGuid().ToString();
 
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStreamContainer, fileName);
+
+            //Verify
             IEnumerable<string> logs = null;
             await TestUtility.RetryAsync(() =>
             {
@@ -94,13 +101,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
                 return Task.FromResult(logs.Count() >= 2);
             });
 
-            //Cleanup
-            await StorageHelpers.ClearBlobContainers();
-
-            //Trigger
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStreamContainer, fileName);
-
-            //Verify
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;
             var result = lastLog[subStringStart..];
@@ -114,6 +114,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             string key = "BlobClientTriggerOutput: ";
             string fileName = Guid.NewGuid().ToString();
 
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobClientContainer, fileName);
+
+            //Verify
             IEnumerable<string> logs = null;
             await TestUtility.RetryAsync(() =>
             {
@@ -122,13 +129,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
                 return Task.FromResult(logs.Count() >= 2);
             });
 
-            //Cleanup
-            await StorageHelpers.ClearBlobContainers();
-
-            //Trigger
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobClientContainer, fileName);
-
-            //Verify
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;
             var result = lastLog[subStringStart..];
@@ -142,6 +142,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             string key = "BlobContainerTriggerOutput: ";
             string fileName = Guid.NewGuid().ToString();
 
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobContainerClientContainer, fileName);
+
+            //Verify
             IEnumerable<string> logs = null;
             await TestUtility.RetryAsync(() =>
             {
@@ -150,13 +157,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
                 return Task.FromResult(logs.Count() >= 2);
             });
 
-            //Cleanup
-            await StorageHelpers.ClearBlobContainers();
-
-            //Trigger
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobContainerClientContainer, fileName);
-
-            //Verify
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;
             var result = lastLog[subStringStart..];

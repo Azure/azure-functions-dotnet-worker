@@ -9,17 +9,20 @@ using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 {
     [Collection(Constants.FunctionAppCollectionName)]
-    public class BlobEndToEndTests
+    public class BlobEndToEndTests : IDisposable
     {
+        private readonly IDisposable _disposeLog;
         private FunctionAppFixture _fixture;
 
-        public BlobEndToEndTests(FunctionAppFixture fixture)
+        public BlobEndToEndTests(FunctionAppFixture fixture, ITestOutputHelper testOutput)
         {
             _fixture = fixture;
+            _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
         [Fact]
@@ -282,6 +285,11 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             //Verify
             Assert.Equal(expectedStatusCode, response.StatusCode);
             Assert.Contains(expectedMessage, actualMessage);
+        }
+
+        public void Dispose()
+        {
+            _disposeLog?.Dispose();
         }
     }
 }

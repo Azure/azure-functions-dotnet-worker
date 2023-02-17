@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public static DiagnosticDescriptor MultipleBindingsGroupedTogether { get; }
                 = Create(id: "AZFW0005",
                     title: "Multiple bindings are grouped together on one property, method, or parameter syntax.",
-                    messageFormat: "'{0}' must have only one binding attribute.",
+                    messageFormat: "{0} '{1}' must have only one binding attribute.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 

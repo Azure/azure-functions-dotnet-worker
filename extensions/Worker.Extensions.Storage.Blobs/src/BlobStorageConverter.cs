@@ -114,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
+        internal Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker
             return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);
         }
 
-        private async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
+        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
         {
             Type _ when targetType == typeof(String) => await GetBlobStringAsync(connectionName, containerName, blobName),
             Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(connectionName, containerName, blobName),
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.Worker
             return source.Cast<T>();
         }
 
-        private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
+        internal virtual async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
             return await GetBlobContentStringAsync(client);

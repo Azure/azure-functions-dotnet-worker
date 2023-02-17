@@ -10,6 +10,8 @@ param(
     $NoWait
 )
 
+$DebugPreference = 'Continue'
+
 Write-Host "Skip CosmosDB Emulator: $SkipCosmosDBEmulator"
 Write-Host "Skip Storage Emulator: $SkipStorageEmulator"
 
@@ -53,8 +55,13 @@ if (!$SkipCosmosDBEmulator)
     Write-Host ""
     Write-Host "---Starting CosmosDB emulator---"
     $cosmosStatus = Get-CosmosDbEmulatorStatus
+    Write-Host "CosmosDB emulator status: $cosmosStatus"
 
-    if ($cosmosStatus -ne "Running")
+    if ($cosmosStatus -eq "StartPending")
+    {        
+        $startedCosmos = $true
+    }
+    elseif ($cosmosStatus -ne "Running")
     {
         Write-Host "CosmosDB emulator is not running. Starting emulator."
         Start-CosmosDbEmulator -NoWait -NoUI

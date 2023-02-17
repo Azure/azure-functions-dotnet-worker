@@ -2,6 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text.Json;
@@ -40,15 +42,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Equal("Hello World", result);
         }
 
-        [Theory]
-        [InlineData(Constants.Blob.TriggerBlobContainerClientContainer, Constants.Blob.OutputBlobContainerClientContainer)]
-        [InlineData(Constants.Blob.TriggerBlobContainerClientContainer, Constants.Blob.OutputBlobContainerClientContainer)]
-        [InlineData(Constants.Blob.TriggerBlobClientContainer, Constants.Blob.OutputBlobClientContainer)]
-        [InlineData(Constants.Blob.TriggerStreamContainer, Constants.Blob.OutputStreamContainer)]
-        [InlineData(Constants.Blob.TriggerStringContainer, Constants.Blob.OutputStringContainer)]
-        [InlineData(Constants.Blob.TriggerPocoContainer, Constants.Blob.OutputPocoContainer)]
-        [InlineData()]
-        public async Task BlobTrigger_Succeeds(string triggerContainer, string outputContainer)
+        [Fact]
+        public async Task BlobTrigger_Poco_Succeeds()
         {
             string fileName = Guid.NewGuid().ToString();
 
@@ -56,39 +51,139 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await StorageHelpers.ClearBlobContainers();
 
             //Trigger
-            await StorageHelpers.UploadFileToContainer(triggerContainer, fileName);
+            var json = JsonSerializer.Serialize(new { text = "Hello World" });
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerPocoContainer, fileName, json);
 
             //Verify
-            string result = await StorageHelpers.DownloadFileFromContainer(outputContainer, fileName);
+            string result = await StorageHelpers.DownloadFileFromContainer(Constants.Blob.OutputPocoContainer, fileName);
+
+            Assert.Equal(json, result);
+        }
+
+        [Fact]
+        public async Task BlobTrigger_String_Succeeds()
+        {
+            string fileName = Guid.NewGuid().ToString();
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStringContainer, fileName);
+
+            //Verify
+            string result = await StorageHelpers.DownloadFileFromContainer(Constants.Blob.OutputStringContainer, fileName);
+
+            Assert.Equal("Hello World", result);
+        }
+
+        [Fact]
+        public async Task BlobTrigger_Stream_Succeeds()
+        {
+            string key = "StreamTriggerOutput: ";
+            string fileName = Guid.NewGuid().ToString();
+
+            IEnumerable<string> logs = null;
+            await TestUtility.RetryAsync(() =>
+            {
+                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
+                // The "RunOnStartup" log should show, and then a true invocation.
+                return Task.FromResult(logs.Count() >= 2);
+            });
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStreamContainer, fileName);
+
+            //Verify
+            var lastLog = logs.Last();
+            int subStringStart = lastLog.LastIndexOf(key) + key.Length;
+            var result = lastLog[subStringStart..];
+
+            Assert.Equal("Hello World", result);
+        }
+
+        [Fact]
+        public async Task BlobTrigger_BlobClient_Succeeds()
+        {
+            string key = "BlobClientTriggerOutput: ";
+            string fileName = Guid.NewGuid().ToString();
+
+            IEnumerable<string> logs = null;
+            await TestUtility.RetryAsync(() =>
+            {
+                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
+                // The "RunOnStartup" log should show, and then a true invocation.
+                return Task.FromResult(logs.Count() >= 2);
+            });
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobClientContainer, fileName);
+
+            //Verify
+            var lastLog = logs.Last();
+            int subStringStart = lastLog.LastIndexOf(key) + key.Length;
+            var result = lastLog[subStringStart..];
+
+            Assert.Equal("Hello World", result);
+        }
+
+        [Fact]
+        public async Task BlobTrigger_BlobContainerClient_Succeeds()
+        {
+            string key = "BlobContainerTriggerOutput: ";
+            string fileName = Guid.NewGuid().ToString();
+
+            IEnumerable<string> logs = null;
+            await TestUtility.RetryAsync(() =>
+            {
+                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
+                // The "RunOnStartup" log should show, and then a true invocation.
+                return Task.FromResult(logs.Count() >= 2);
+            });
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobContainerClientContainer, fileName);
+
+            //Verify
+            var lastLog = logs.Last();
+            int subStringStart = lastLog.LastIndexOf(key) + key.Length;
+            var result = lastLog[subStringStart..];
 
             Assert.Equal("Hello World", result);
         }
 
         [Theory]
         [InlineData("BlobInputClientTest")]
+        [InlineData("BlobInputContainerClientTest")]
         [InlineData("BlobInputStreamTest")]
         [InlineData("BlobInputByteTest")]
         [InlineData("BlobInputStringTest")]
-        [InlineData("BlobInputBookArrayTest")]
-        [InlineData("BlobInputCollectionTest")]
-        [InlineData("BlobInputStringArrayTest")]
-        public async Task BlobInput_Succeeds(string functionName)
+        public async Task BlobInput_SingleCardinality_Succeeds(string functionName)
         {
-            string fileName = "testFile";
             string expectedMessage = "Hello World";
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             //Cleanup
             await StorageHelpers.ClearBlobContainers();
 
             //Setup
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, fileName, expectedMessage);
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile", expectedMessage);
 
             //Trigger
             HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
             Assert.Equal(expectedStatusCode, response.StatusCode);
             Assert.Contains(expectedMessage, actualMessage);
         }
@@ -96,26 +191,26 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
         [Fact]
         public async Task BlobInput_Poco_Succeeds()
         {
-            string fileContent = $@"{{ ""id"": ""1"", ""name"": ""To Kill a Mockingbird""}}";
-            string expectedMessage = "To Kill a Mockingbird";
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
-
             //Cleanup
             await StorageHelpers.ClearBlobContainers();
 
             //Setup
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile", fileContent);
+            var json = JsonSerializer.Serialize(new { id = "1", name = "To Kill a Mockingbird" });
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile", json);
 
             //Trigger
             HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputPocoTest");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
+            string expectedMessage = "To Kill a Mockingbird";
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
             Assert.Equal(expectedStatusCode, response.StatusCode);
             Assert.Contains(expectedMessage, actualMessage);
         }
 
-        [Fact]
+        [Fact(Skip = "Collection support released in host version 4.16+")]
         public async Task BlobInput_BlobClientCollection_Succeeds()
         {
             string expectedMessage = "testFile1, testFile2, testFile3";
@@ -138,7 +233,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Contains(expectedMessage, actualMessage);
         }
 
-        [Fact]
+        [Fact(Skip = "Collection support released in host version 4.16+")]
         public async Task BlobInput_StringCollection_Succeeds()
         {
             string expectedMessage = "ABC, DEF, GHI";
@@ -161,7 +256,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Contains(expectedMessage, actualMessage);
         }
 
-        [Fact]
+        [Fact(Skip = "Collection support released in host version 4.16+")]
         public async Task BlobInput_PocoCollection_Succeeds()
         {
             string book1 = $@"{{ ""id"": ""1"", ""name"": ""To Kill a Mockingbird""}}";

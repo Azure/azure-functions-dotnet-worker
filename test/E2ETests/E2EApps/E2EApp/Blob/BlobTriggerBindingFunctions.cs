@@ -51,38 +51,34 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         }
 
         [Function(nameof(BlobTriggerStreamTest))]
-        [BlobOutput("test-output-stream-dotnet-isolated/{name}")]
-        public async Task<Stream> BlobTriggerStreamTest(
-            [BlobTrigger("test-trigger-stream-dotnet-isolated/{name}")] Stream stream, string name)
+        public async Task BlobTriggerStreamTest(
+            [BlobTrigger("test-trigger-stream-dotnet-isolated/{name}")] Stream stream, string name,
+            FunctionContext context)
         {
             using var blobStreamReader = new StreamReader(stream);
-            var content = await blobStreamReader.ReadToEndAsync();
-            _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + content);
-            return stream;
-
+            string content = await blobStreamReader.ReadToEndAsync();
+            _logger.LogInformation("StreamTriggerOutput: {c}", content);
         }
 
         [Function(nameof(BlobTriggerBlobClientTest))]
-        [BlobOutput("test-output-blobclient-dotnet-isolated/{name}")]
-        public async Task<string> BlobTriggerBlobClientTest(
-            [BlobTrigger("test-trigger-blobclient-dotnet-isolated/{name}")] BlobClient client, string name)
+        public async Task BlobTriggerBlobClientTest(
+            [BlobTrigger("test-trigger-blobclient-dotnet-isolated/{name}")] BlobClient client, string name,
+            FunctionContext context)
         {
             var downloadResult = await client.DownloadContentAsync();
-            var content = downloadResult.Value.Content.ToString();
-            _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + content);
-            return content;
+            string content = downloadResult.Value.Content.ToString();
+            _logger.LogInformation("BlobClientTriggerOutput: {c}", content);
         }
 
         [Function(nameof(BlobTriggerBlobContainerClientTest))]
-        [BlobOutput("test-output-containerclient-dotnet-isolated/{name}")]
-        public async Task<string> BlobTriggerBlobContainerClientTest(
-            [BlobTrigger("test-trigger-containerclient-dotnet-isolated/{name}")] BlobContainerClient client, string name)
+        public async Task BlobTriggerBlobContainerClientTest(
+            [BlobTrigger("test-trigger-containerclient-dotnet-isolated/{name}")] BlobContainerClient client, string name,
+            FunctionContext context)
         {
             var blobClient = client.GetBlobClient(name);
             var downloadResult = await blobClient.DownloadContentAsync();
-            var content = downloadResult.Value.Content.ToString();
-            _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + content);
-            return content;
+            string content = downloadResult.Value.Content.ToString();
+            _logger.LogInformation("BlobContainerTriggerOutput: {c}", content);
         }
 
         public class TestBlobData

@@ -25,10 +25,22 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputClientTest))]
         public async Task<HttpResponseData> BlobInputClientTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated/testFile")] BlobClient client)
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] BlobClient client)
         {
-            var response = req.CreateResponse(HttpStatusCode.OK);
             var downloadResult = await client.DownloadContentAsync();
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
+            return response;
+        }
+
+        [Function(nameof(BlobInputContainerClientTest))]
+        public async Task<HttpResponseData> BlobInputContainerClientTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] BlobContainerClient client)
+        {
+            var blobClient = client.GetBlobClient("testFile.txt");
+            var downloadResult = await blobClient.DownloadContentAsync();
+            var response = req.CreateResponse(HttpStatusCode.OK);
             await response.Body.WriteAsync(downloadResult.Value.Content);
             return response;
         }
@@ -36,10 +48,10 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputStreamTest))]
         public async Task<HttpResponseData> BlobInputStreamTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated/testFile")] Stream stream)
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] Stream stream)
         {
-            var response = req.CreateResponse(HttpStatusCode.OK);
             using var blobStreamReader = new StreamReader(stream);
+            var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(blobStreamReader.ReadToEnd());
             return response;
         }
@@ -47,7 +59,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputByteTest))]
         public async Task<HttpResponseData> BlobInputByteTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated/testFile")] Byte[] data)
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] Byte[] data)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(Encoding.Default.GetString(data));
@@ -57,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputStringTest))]
         public async Task<HttpResponseData> BlobInputStringTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated/testFile")] string data)
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] string data)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(data);
@@ -67,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputPocoTest))]
         public async Task<HttpResponseData> BlobInputPocoTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated/testFile")] Book data)
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] Book data)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(data.Name);

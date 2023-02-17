@@ -42,8 +42,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.10.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.7.0" />
+    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.12.1-preview1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.9.0-preview1" />
   
     <PackageReference Condition="$(FunctionsRuntimeVersion) != '3'" Include="System.Text.Json" Version="6.0.5" />
     <PackageReference Condition="$(FunctionsRuntimeVersion) == '3'" Include="System.Text.Json" Version="5.0.2" />

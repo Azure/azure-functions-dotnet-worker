@@ -6,8 +6,8 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-     /// Provides <see cref="WebPubSubContext"/> from a Web PubSub client event with HttpTrigger.
-     /// </summary>
+    /// Provides <see cref="WebPubSubContext"/> from a Web PubSub client event with HttpTrigger.
+    /// </summary>
     public sealed class WebPubSubContextInputAttribute : InputBindingAttribute
     {
         /// <summary>

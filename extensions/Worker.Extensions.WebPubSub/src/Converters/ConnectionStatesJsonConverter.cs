@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-
+    /// Copied from: https://github.com/Azure/azure-sdk-for-net/blob/main/sdk/webpubsub/Microsoft.Azure.WebPubSub.Common/src/Shared/ConnectionStatesConverter.cs
     /// <summary>
     /// Converter to turn the ConnectionStates dictionary into a regular JSON
     /// object works for data transport over http between server and service.

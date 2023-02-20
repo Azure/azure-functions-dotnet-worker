@@ -6,19 +6,18 @@ using System.Text.Json.Serialization;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Web PubSub permissions.
+    /// Event type.
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum WebPubSubPermission
+    public enum WebPubSubEventType
     {
         /// <summary>
-        /// Permission to send messages to a group.
+        /// system event, including connect, connected, disconnected.
         /// </summary>
-        SendToGroup = 1,
-
+        System,
         /// <summary>
-        /// Permission to join and leave a group.
+        /// user event.
         /// </summary>
-        JoinLeaveGroup = 2
+        User
     }
 }

@@ -6,19 +6,13 @@ using System.Text.Json.Serialization;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Web PubSub permissions.
+    /// Client certificate info.
     /// </summary>
-    [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum WebPubSubPermission
+    public sealed class WebPubSubClientCertificate
     {
         /// <summary>
-        /// Permission to send messages to a group.
+        /// Certificate thumbprint.
         /// </summary>
-        SendToGroup = 1,
-
-        /// <summary>
-        /// Permission to join and leave a group.
-        /// </summary>
-        JoinLeaveGroup = 2
+        public string Thumbprint { get; set; }
     }
 }

@@ -15,8 +15,34 @@ public static class WebPubSubOutputFunction
     {
         return new SendToAllAction
         {
-            Data = BinaryData.FromString($"[{DateTime.UtcNow}]{Guid.NewGuid()}"),
+            Data = BinaryData.FromString($"Hello SendToAll."),
             DataType = WebPubSubDataType.Text
         };
     }
+
+    [Function("Notification1")]
+    public static MultipleActions MultipleActions([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req)
+    {
+        return new MultipleActions
+        {
+            SendToAll = new SendToAllAction
+            {
+                Data = BinaryData.FromString($"Hello SendToAll."),
+                DataType = WebPubSubDataType.Text
+            },
+            AddUserToGroup = new AddUserToGroupAction
+            {
+                UserId = "user A",
+                Group = "group A"
+            }
+        };
+    }
+}
+
+public class MultipleActions
+{
+    [WebPubSubOutput(Hub = "notification")]
+    public SendToAllAction SendToAll { get; set; }
+    [WebPubSubOutput(Hub = "notification")]
+    public AddUserToGroupAction AddUserToGroup { get; set; }
 }

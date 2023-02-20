@@ -4,13 +4,13 @@
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Web PubSub service request.
+    /// Disconnected event request.
     /// </summary>
-    public abstract class WebPubSubEventRequest
+    public sealed class DisconnectedEventRequest : WebPubSubEventRequest
     {
         /// <summary>
-        /// Connection context contains connection metadata following CloudEvents.
+        /// Reason of the disconnect event.
         /// </summary>
-        public WebPubSubConnectionContext ConnectionContext { get; }
+        public string Reason { get; set; }
     }
 }

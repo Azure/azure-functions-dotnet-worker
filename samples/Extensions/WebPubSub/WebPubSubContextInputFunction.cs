@@ -8,17 +8,25 @@ namespace SampleApp;
 
 internal class WebPubSubContextInputFunction
 {
-    // TODO: whether to define the class from Microsoft.Azure.WebPubSub.Common
     [Function("connect")]
-    public static void Connect(
+    public static HttpResponseData Connected(
         [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
         [WebPubSubContextInput] WebPubSubContext wpsReq)
     {
-        //if (wpsReq.Request is PreflightRequest || wpsReq.ErrorMessage != null)
-        //{
-        //    return wpsReq.Response;
-        //}
-        //var request = wpsReq.Request as ConnectEventRequest;
-        //return request.CreateResponse(request.ConnectionContext.UserId, null, null, null);
+        var response = req.CreateResponse();
+        if (wpsReq.Request is PreflightRequest || wpsReq.ErrorMessage != null)
+        {
+            response.StatusCode = wpsReq.Response.StatusCode;
+            response.WriteString(wpsReq.ErrorMessage);
+            return response;
+        }
+        var request = wpsReq.Request as ConnectEventRequest;
+
+        var wpsResponse = new ConnectEventResponse
+        {
+            UserId = request.ConnectionContext.UserId
+        };
+        response.WriteAsJsonAsync(wpsResponse);
+        return response;
     }
 }

@@ -1,0 +1,62 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
+using System.Text.Json.Serialization;
+
+namespace Microsoft.Azure.Functions.Worker
+{
+    /// <summary>
+    /// User message event request.
+    /// </summary>
+    public sealed class UserEventRequest : WebPubSubEventRequest
+    {
+        /// <summary>
+        /// Message content.
+        /// </summary>
+        [JsonConverter(typeof(BinaryDataJsonConverter))]
+        public BinaryData Data { get; set; }
+
+        /// <summary>
+        /// Message data type.
+        /// </summary>
+        public WebPubSubDataType DataType { get; set; }
+
+        /// <summary>
+        /// Create <see cref="UserEventResponse"/>.
+        /// </summary>
+        /// <param name="data">String message to return caller.</param>
+        /// <param name="dataType">Message <see cref="WebPubSubDataType"/>, default as Text.</param>
+        /// <returns>A message response to return caller.</returns>
+        public UserEventResponse CreateResponse(string data, WebPubSubDataType dataType = WebPubSubDataType.Text)
+        {
+            return new UserEventResponse(data, dataType);
+        }
+
+        /// <summary>
+        /// Create <see cref="UserEventResponse"/>.
+        /// </summary>
+        /// <param name="data">BinaryData message to return caller.</param>
+        /// <param name="dataType">Message <see cref="WebPubSubDataType"/>.</param>
+        /// <returns>A message response to return caller.</returns>
+        public UserEventResponse CreateResponse(BinaryData data, WebPubSubDataType dataType)
+        {
+            return new UserEventResponse(data, dataType);
+        }
+
+        /// <summary>
+        /// Create <see cref="EventErrorResponse"/>.
+        /// Methods works for Function Extensions. And AspNetCore SDK Hub methods can directly throw exception for error cases.
+        /// </summary>
+        /// <param name="code"><see cref="WebPubSubErrorCode"/>.</param>
+        /// <param name="message">Detail error message.</param>
+        /// <returns>A error response to return caller and will drop connection.</returns>
+        public EventErrorResponse CreateErrorResponse(WebPubSubErrorCode code, string message)
+        {
+            return new EventErrorResponse(code, message);
+        }
+
+        public UserEventRequest()
+        { }
+    }
+}

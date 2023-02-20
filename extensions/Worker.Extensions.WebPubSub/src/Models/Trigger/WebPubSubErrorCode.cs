@@ -6,19 +6,22 @@ using System.Text.Json.Serialization;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Web PubSub permissions.
+    /// Response Error Code.
     /// </summary>
     [JsonConverter(typeof(JsonStringEnumConverter))]
-    public enum WebPubSubPermission
+    public enum WebPubSubErrorCode
     {
         /// <summary>
-        /// Permission to send messages to a group.
+        /// Unauthorized error.
         /// </summary>
-        SendToGroup = 1,
-
+        Unauthorized,
         /// <summary>
-        /// Permission to join and leave a group.
+        /// User error.
         /// </summary>
-        JoinLeaveGroup = 2
+        UserError,
+        /// <summary>
+        /// Server error.
+        /// </summary>
+        ServerError
     }
 }

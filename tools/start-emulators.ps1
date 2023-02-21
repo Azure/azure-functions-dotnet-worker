@@ -57,7 +57,7 @@ if (!$SkipCosmosDBEmulator)
     $cosmosStatus = Get-CosmosDbEmulatorStatus
     Write-Host "CosmosDB emulator status: $cosmosStatus"
 
-    if ($cosmosStatus -eq "StartPending")
+    if ($waitSuccess -eq "StartPending")
     {        
         $startedCosmos = $true
     }
@@ -115,13 +115,19 @@ if ($NoWait -eq $true)
 if (!$SkipCosmosDBEmulator -and $startedCosmos -eq $true)
 {
     Write-Host "---Waiting for CosmosDB emulator to be running---"
-    while ($cosmosStatus -ne "Running")
-    {
-        Write-Host "Cosmos emulator not ready. Status: $cosmosStatus"
-        $cosmosStatus = Get-CosmosDbEmulatorStatus
-        Start-Sleep -Seconds 5
-    }
+    $cosmosStatus = Get-CosmosDbEmulatorStatus
     Write-Host "Cosmos status: $cosmosStatus"
+
+    $waitSuccess = Wait-CosmosDbEmulator -Status Running -Timeout 60
+
+    if ($waitSuccess -ne $true)
+    {
+        Write-Host "CosmosDB emulator not yet running after waiting 60 seconds. Restarting."
+        Stop-CosmosDbEmulator
+        Write-Host "Restarting CosmosDB emulator"
+        Start-CosmosDbEmulator -NoUI
+    }
+
     Write-Host "------"
     Write-Host
 }

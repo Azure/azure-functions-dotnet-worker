@@ -63,7 +63,7 @@ jobs:
       projects: |
         test/**/*Tests.csproj
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'Sdk: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -95,7 +95,7 @@ jobs:
           }
         ]
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'Sdk: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -127,7 +127,7 @@ jobs:
           }
         ]
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'DotnetWorker: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -174,7 +174,7 @@ jobs:
       projects: |
         **\DotNetWorker.Core.slnf
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'
     condition: eq(variables.isReleaseBuild, true)
     inputs:

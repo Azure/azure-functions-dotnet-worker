@@ -151,7 +151,7 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
         };
 
-        private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
+        internal async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
         {
             var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);

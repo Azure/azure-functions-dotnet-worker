@@ -24,6 +24,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
+using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests
@@ -144,11 +145,43 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(typeof(MemoryStream), result.GetType());
         }
 
+        [Fact]
+        public async Task DeserializeToTargetObjectAsync_CorrectPoco_Works()
+        {
+            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
+            string jsonstr = "{" + "\"Id\" : \"1\", \"Title\" : \"title\", \"Author\" : \"author\"}";
+            byte[] byteArray = Encoding.UTF8.GetBytes(jsonstr);
+
+            mock.Setup(c => c.GetBlobStreamAsync(Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync(new MemoryStream(byteArray));
+
+            var result = await mock.Object.DeserializeToTargetObjectAsync(typeof(Book), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+
+            Assert.Equal(typeof(Book), result.GetType());
+        }
+
+        [Fact]
+        public async Task DeserializeToTargetObjectAsync_IncorrectPoco_Fails()
+        {
+            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
+            string jsonstr = "{" + "\"Id\" : \"1\", \"Name\" : \"name\"}";
+            byte[] byteArray = Encoding.UTF8.GetBytes(jsonstr);
+
+            mock.Setup(c => c.GetBlobStreamAsync(Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync(new MemoryStream(byteArray));
+
+            try
+            {
+                var result = await mock.Object.DeserializeToTargetObjectAsync(typeof(Book), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+                Assert.Fail("Test fails as the expected exception not thrown");
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal(typeof(Xunit.Sdk.FailException), ex.GetType());
+            }
+        }
+
         private BinaryData GetTestBinaryData()
         { 
-            return new BinaryData("{" +
-                "\"BlobName\" : \"BlobName\"" +
-                "}");
+            return new BinaryData("{" + "\"BlobName\" : \"BlobName\"" + "}");
         }
 
         private BinaryData GetFullTestBinaryData()

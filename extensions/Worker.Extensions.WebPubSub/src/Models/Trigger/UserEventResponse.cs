@@ -35,16 +35,19 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// The connection states.
         /// </summary>
+        [JsonPropertyName("states")]
         public IReadOnlyDictionary<string, BinaryData> ConnectionStates { get; set; }
 
         /// <summary>
         /// Message.
         /// </summary>
+        [JsonPropertyName("data")]
         [JsonConverter(typeof(BinaryDataJsonConverter))]
         public BinaryData Data { get; set; }
 
         /// <summary>
         /// Message data type.
+        [JsonPropertyName("dataType")]
         /// </summary>
         public WebPubSubDataType DataType { get; set; }
 

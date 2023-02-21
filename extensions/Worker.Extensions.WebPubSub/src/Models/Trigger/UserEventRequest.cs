@@ -15,11 +15,13 @@ namespace Microsoft.Azure.Functions.Worker
         /// Message content.
         /// </summary>
         [JsonConverter(typeof(BinaryDataJsonConverter))]
+        [JsonPropertyName("data")]
         public BinaryData Data { get; set; }
 
         /// <summary>
         /// Message data type.
         /// </summary>
+        [JsonPropertyName("dataType")]
         public WebPubSubDataType DataType { get; set; }
 
         /// <summary>

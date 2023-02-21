@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Text.Json.Serialization;
+
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
@@ -13,6 +15,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Error code. Required field to deserialize ErrorResponse.
         /// </summary>
+        [JsonPropertyName("code")]
         public WebPubSubErrorCode Code
         {
             get
@@ -28,6 +31,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Error messages.
         /// </summary>
+        [JsonPropertyName("errorMessage")]
         public string ErrorMessage { get; set; }
 
         /// <summary>

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -33,26 +34,31 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// The connection states.
         /// </summary>
+        [JsonPropertyName("states")]
         public IReadOnlyDictionary<string, BinaryData> ConnectionStates => _states;
 
         /// <summary>
         /// UserId.
         /// </summary>
+        [JsonPropertyName("userId")]
         public string UserId { get; set; }
 
         /// <summary>
         /// Groups.
         /// </summary>
+        [JsonPropertyName("groups")]
         public string[] Groups { get; set; }
 
         /// <summary>
         /// Subprotocol.
         /// </summary>
+        [JsonPropertyName("subprotocol")]
         public string Subprotocol { get; set; }
 
         /// <summary>
         /// User roles.
         /// </summary>
+        [JsonPropertyName("roles")]
         public string[] Roles { get; set; }
 
         /// <summary>

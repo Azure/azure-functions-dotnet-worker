@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Text.Json.Serialization;
+
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
@@ -12,6 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Flag to indicate whether the request is valid.
         /// The property will be preprocessed with available validation options when parsing the request.
         /// </summary>
+        [JsonPropertyName("isValid")]
         public bool IsValid { get; set; }
     }
 }

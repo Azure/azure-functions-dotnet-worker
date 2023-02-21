@@ -78,6 +78,55 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
         }
 
+        [Fact]
+        public async Task ConvertAsync_SourceAsModelBindingData_Fails()
+        {
+            var binaryData = new BinaryData("{" +
+                "\"Connection\" : \"connection\"," +
+                "\"ContainerName\" : \"container\"," +
+                "\"BlobName\" : \"BlobName\"" +
+                "}");
+
+            object source = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "AzureStorageBlobs",
+                Content = ByteString.CopyFrom(binaryData),
+                ContentType = "application/json"
+            });
+
+            var context = new TestConverterContext(typeof(string), source);
+            mock.Setup(c => c.ToTargetTypeAsync(typeof(string), "connection", "container", "BlobName")).ThrowsAsync(new Exception());
+
+            var conversionResult = await mock.Object.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+        }
+
+        [Theory]
+        [InlineData(Constants.BlobExtensionName, true)]
+        [InlineData(" ", false)]
+        [InlineData("incorrect.value", false)]
+        public void IsBlobExtension_GrpcModelBindingData_Works(string sourceVal, bool expectedResult)
+        {
+            var binaryData = new BinaryData("{" +
+                "\"Connection\" : \"connection\"," +
+                "\"ContainerName\" : \"container\"," +
+                "\"BlobName\" : \"BlobName\"" +
+                "}");
+
+            var grpcModelBindingData = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
+            {
+                Version = "1.0",
+                Source = sourceVal,
+                Content = ByteString.CopyFrom(binaryData),
+                ContentType = "application/json"
+            });
+
+            var result = mock.Object.IsBlobExtension(grpcModelBindingData);
+
+            Assert.Equal(result, expectedResult);
+        }
 
         [Fact]
         public void GetBindingDataContent_GrpcModelBindingData_Works()
@@ -107,6 +156,45 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("connection", connectionName);
             Assert.Equal("container", containerName);
             Assert.Equal("BlobName", blobName);
+        }
+
+        [Fact]
+        public async Task GetBindingDataContent_GrpcModelBindingData_Throws()
+        {
+            var binaryData = new BinaryData("{" +
+                "\"BlobName\" : \"BlobName\"" +
+                "}");
+
+            var grpcModelBindingData = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "AzureStorageBlobs",
+                Content = ByteString.CopyFrom(binaryData),
+                ContentType = "application/json"
+            });
+
+            var dict = mock.Object.GetBindingDataContent(grpcModelBindingData);
+
+            try
+            {
+                var result = await mock.Object.ConvertModelBindingDataAsync(dict, typeof(string), grpcModelBindingData);
+                Assert.Fail("Test fails as the expected exception not thrown");
+            }
+            catch (Exception ex)
+            {
+                Assert.Equal(typeof(ArgumentNullException), ex.GetType());
+            }
+
+            /*
+                        Assert.Equal(3, result.Count);
+
+                        result.TryGetValue(Constants.Connection, out var connectionName);
+                        result.TryGetValue(Constants.ContainerName, out var containerName);
+                        result.TryGetValue(Constants.BlobName, out var blobName);
+
+                        Assert.Equal("connection", connectionName);
+                        Assert.Equal("container", containerName);
+                        Assert.Equal("BlobName", blobName);*/
         }
     }
 }

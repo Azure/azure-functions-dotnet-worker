@@ -103,7 +103,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private bool IsBlobExtension(ModelBindingData bindingData)
+        internal bool IsBlobExtension(ModelBindingData bindingData)
         {
             if (bindingData?.Source is not Constants.BlobExtensionName)
             {
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        private async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
+        internal async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
         {
             content.TryGetValue(Constants.Connection, out var connectionName);
             content.TryGetValue(Constants.ContainerName, out var containerName);

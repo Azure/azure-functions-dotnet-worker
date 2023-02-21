@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -37,8 +38,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var _workerOptions = host.Services.GetService<IOptions<WorkerOptions>>();
             var _blobOptions = host.Services.GetService<IOptionsSnapshot<BlobStorageBindingOptions>>();
             var logger = host.Services.GetService<ILogger<BlobStorageConverter>>();
-
-            //_converter = new BlobStorageConverter(_workerOptions, _blobOptions, logger);
             mock = new Mock<BlobStorageConverter>(_workerOptions, _blobOptions, logger);
             mock.CallBase = true;
         }
@@ -56,22 +55,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_SourceAsModelBindingData_Works()
         {
-            var binaryData = new BinaryData("{" +
-                "\"Connection\" : \"connection\"," +
-                "\"ContainerName\" : \"container\"," +
-                "\"BlobName\" : \"BlobName\"" +
-                "}");
-
-            object source = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
-            {
-                Version = "1.0",
-                Source = "AzureStorageBlobs",
-                Content = ByteString.CopyFrom(binaryData),
-                ContentType = "application/json"
-            });
-
+            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
             var context = new TestConverterContext(typeof(string), source);
-            mock.Setup(c => c.ToTargetTypeAsync(typeof(string),"connection", "container", "BlobName")).ReturnsAsync("abc");
+            mock.Setup(c => c.ToTargetTypeAsync(typeof(string), Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync("abc");
 
             var conversionResult = await mock.Object.ConvertAsync(context);
 
@@ -81,22 +67,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_SourceAsModelBindingData_Fails()
         {
-            var binaryData = new BinaryData("{" +
-                "\"Connection\" : \"connection\"," +
-                "\"ContainerName\" : \"container\"," +
-                "\"BlobName\" : \"BlobName\"" +
-                "}");
-
-            object source = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
-            {
-                Version = "1.0",
-                Source = "AzureStorageBlobs",
-                Content = ByteString.CopyFrom(binaryData),
-                ContentType = "application/json"
-            });
-
+            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
             var context = new TestConverterContext(typeof(string), source);
-            mock.Setup(c => c.ToTargetTypeAsync(typeof(string), "connection", "container", "BlobName")).ThrowsAsync(new Exception());
+            mock.Setup(c => c.ToTargetTypeAsync(typeof(string), Constants.Connection, Constants.ContainerName, Constants.BlobName)).ThrowsAsync(new Exception());
 
             var conversionResult = await mock.Object.ConvertAsync(context);
 
@@ -109,17 +82,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [InlineData("incorrect.value", false)]
         public void IsBlobExtension_GrpcModelBindingData_Works(string sourceVal, bool expectedResult)
         {
-            var binaryData = new BinaryData("{" +
-                "\"Connection\" : \"connection\"," +
-                "\"ContainerName\" : \"container\"," +
-                "\"BlobName\" : \"BlobName\"" +
-                "}");
-
             var grpcModelBindingData = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
             {
                 Version = "1.0",
                 Source = sourceVal,
-                Content = ByteString.CopyFrom(binaryData),
+                Content = ByteString.CopyFrom(GetFullTestBinaryData()),
                 ContentType = "application/json"
             });
 
@@ -131,19 +98,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public void GetBindingDataContent_GrpcModelBindingData_Works()
         {
-            var binaryData = new BinaryData("{" +
-                "\"Connection\" : \"connection\"," +
-                "\"ContainerName\" : \"container\"," +
-                "\"BlobName\" : \"BlobName\"" +
-                "}");
-
-            var grpcModelBindingData = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
-            {
-                Version = "1.0",
-                Source = "AzureStorageBlobs",
-                Content = ByteString.CopyFrom(binaryData),
-                ContentType = "application/json"
-            });
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetFullTestBinaryData());
 
             var result = mock.Object.GetBindingDataContent(grpcModelBindingData);
 
@@ -153,25 +108,15 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             result.TryGetValue(Constants.ContainerName, out var containerName);
             result.TryGetValue(Constants.BlobName, out var blobName);
 
-            Assert.Equal("connection", connectionName);
-            Assert.Equal("container", containerName);
-            Assert.Equal("BlobName", blobName);
+            Assert.Equal(Constants.Connection, connectionName);
+            Assert.Equal(Constants.ContainerName, containerName);
+            Assert.Equal(Constants.BlobName, blobName);
         }
 
         [Fact]
         public async Task GetBindingDataContent_GrpcModelBindingData_Throws()
         {
-            var binaryData = new BinaryData("{" +
-                "\"BlobName\" : \"BlobName\"" +
-                "}");
-
-            var grpcModelBindingData = new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
-            {
-                Version = "1.0",
-                Source = "AzureStorageBlobs",
-                Content = ByteString.CopyFrom(binaryData),
-                ContentType = "application/json"
-            });
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
 
             var dict = mock.Object.GetBindingDataContent(grpcModelBindingData);
 
@@ -184,17 +129,47 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             {
                 Assert.Equal(typeof(ArgumentNullException), ex.GetType());
             }
+        }
 
-            /*
-                        Assert.Equal(3, result.Count);
+        [Fact]
+        public async Task ToTargetTypeAsync_SourceAsModelBindingData_Fails()
+        {
+            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
+            byte[] byteArray = Encoding.UTF8.GetBytes("abc");
 
-                        result.TryGetValue(Constants.Connection, out var connectionName);
-                        result.TryGetValue(Constants.ContainerName, out var containerName);
-                        result.TryGetValue(Constants.BlobName, out var blobName);
+            mock.Setup(c => c.GetBlobStreamAsync(Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync(new MemoryStream(byteArray));
 
-                        Assert.Equal("connection", connectionName);
-                        Assert.Equal("container", containerName);
-                        Assert.Equal("BlobName", blobName);*/
+            var result = await mock.Object.ToTargetTypeAsync(typeof(Stream), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+
+            Assert.Equal(typeof(MemoryStream), result.GetType());
+        }
+
+        private BinaryData GetTestBinaryData()
+        { 
+            return new BinaryData("{" +
+                "\"BlobName\" : \"BlobName\"" +
+                "}");
+        }
+
+        private BinaryData GetFullTestBinaryData()
+        {
+            return new BinaryData("{" +
+                "\"Connection\" : \"Connection\"," +
+                "\"ContainerName\" : \"ContainerName\"," +
+                "\"BlobName\" : \"BlobName\"" +
+                "}");
+        }
+
+
+        private GrpcModelBindingData GetTestGrpcModelBindingData(BinaryData binaryData)
+        {
+            return new GrpcModelBindingData(new Worker.Grpc.Messages.ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "AzureStorageBlobs",
+                Content = ByteString.CopyFrom(binaryData),
+                ContentType = "application/json"
+            });
         }
     }
 }

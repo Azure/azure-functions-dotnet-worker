@@ -196,7 +196,7 @@ namespace Microsoft.Azure.Functions.Worker
             return stream.ToArray();
         }
 
-        private async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
+        internal virtual async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
             var download = await client.DownloadStreamingAsync();

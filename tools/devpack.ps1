@@ -40,7 +40,7 @@ if (!(Test-Path $localPack))
 Write-Host
 Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing Core .NET Worker projects to $localPack"
-& "dotnet" "pack" $sdkProject "-o" "$localPack" "-nologo" "-p:BuildNumber=$buildNumber" $AdditionalPackArgs
+& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:BuildNumber=$buildNumber" $AdditionalPackArgs
 Write-Host
 
 Write-Host "Removing SDK package reference in $project"

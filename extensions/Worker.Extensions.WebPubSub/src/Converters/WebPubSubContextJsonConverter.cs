@@ -13,10 +13,6 @@ namespace Microsoft.Azure.Functions.Worker
         public override WebPubSubContext? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
             using var jsonDoc = JsonDocument.ParseValue(ref reader);
-            var innerOptions = new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            };
             var element = jsonDoc.RootElement;
     
             var isPreflight = element.GetProperty("isPreflight").GetBoolean();
@@ -29,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker
             else
             {
                 // depends on connectionContext info to parse request.
-                var connectionContext = JsonSerializer.Deserialize<WebPubSubConnectionContext>(element.GetProperty("request").GetProperty("connectionContext").GetRawText(), innerOptions);
+                var connectionContext = JsonSerializer.Deserialize<WebPubSubConnectionContext>(element.GetProperty("request").GetProperty("connectionContext").GetRawText());
                 if (connectionContext.EventType == WebPubSubEventType.User)
                 {
                     request = JsonSerializer.Deserialize<UserEventRequest>(element.GetProperty("request").GetRawText());

@@ -117,7 +117,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Tables", "extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj", "{004DEF24-7EBB-499D-BD1C-E940AC4E122D}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Shared", "extensions\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj", "{277D77B9-8915-41E3-8763-0B66328ADDDA}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerBindingSamples", "samples\WorkerBindingSamples\WorkerBindingSamples.csproj", "{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerExtensionTests", "test\WorkerExtensionTests\WorkerExtensionTests.csproj", "{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}"

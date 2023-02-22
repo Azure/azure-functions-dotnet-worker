@@ -1,6 +1,6 @@
 ﻿using Xunit;
-using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.SupportsDeferredBindingNotSupported, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.SupportsDeferredBindingNotSupported>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.DeferredBindingAttributeNotSupported, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.DeferredBindingAttributeNotSupported>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;

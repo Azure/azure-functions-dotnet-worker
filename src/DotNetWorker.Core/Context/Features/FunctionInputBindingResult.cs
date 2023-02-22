@@ -18,8 +18,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
         /// <summary>
-        /// Gets or sets the values of bound function inputs.
+        /// Gets the values of bound function inputs.
         /// </summary>
-        public object?[] Values { get; set; }
+        public object?[] Values { get; }
     }
 }

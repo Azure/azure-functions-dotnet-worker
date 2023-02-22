@@ -16,12 +16,11 @@ internal class WebPubSubContextInputFunction
         [WebPubSubContextInput] WebPubSubContext wpsReq)
     {
         var response = req.CreateResponse();
-        Console.WriteLine($"Received client connect with connectionId: {wpsReq.Request.ConnectionContext.ConnectionId}");
         if (wpsReq.Request is PreflightRequest || wpsReq.ErrorMessage != null)
         {
-            response.WriteAsJsonAsync(wpsReq.Response);
-            return response;
+            return BuildHttpResponseData(req, wpsReq.Response);
         }
+
         var request = wpsReq.Request as ConnectEventRequest;
         // assign the properties if needed.
         response.WriteAsJsonAsync(request.CreateResponse(request.ConnectionContext.UserId, null, null, null));
@@ -37,6 +36,7 @@ internal class WebPubSubContextInputFunction
         return BuildHttpResponseData(req, wpsReq.Response);
     }
 
+    // Respond AbuseProtection to put header correctly.
     private static HttpResponseData BuildHttpResponseData(HttpRequestData request, SimpleResponse wpsResponse)
     {
         var response = request.CreateResponse();

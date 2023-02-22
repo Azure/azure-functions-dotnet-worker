@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        internal virtual async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsBlobExtension(modelBindingData))
             {
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
+        internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
             var blobCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
             Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        internal async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
+        internal virtual async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
         {
             content.TryGetValue(Constants.Connection, out var connectionName);
             content.TryGetValue(Constants.ContainerName, out var containerName);
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.Functions.Worker
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
         }
 
-        private object? ToTargetTypeCollection(IEnumerable<object> blobCollection, string methodName, Type type)
+        internal object? ToTargetTypeCollection(IEnumerable<object> blobCollection, string methodName, Type type)
         {
             blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
             MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
@@ -166,12 +166,12 @@ namespace Microsoft.Azure.Functions.Worker
             return genericMethod.Invoke(null, new[] { blobCollection.ToList() });
         }
 
-        private static T[] CloneToArray<T>(IList<object> source)
+        internal static T[] CloneToArray<T>(IList<object> source)
         {
             return source.Cast<T>().ToArray();
         }
 
-        private static IEnumerable<T> CloneToList<T>(IList<object> source)
+        internal static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
             return source.Cast<T>();
         }

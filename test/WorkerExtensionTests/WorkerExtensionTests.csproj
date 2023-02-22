@@ -23,7 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
-        <ProjectReference Include="..\DotnetWorkerTests\DotnetWorkerTests.csproj" />
+        <ProjectReference Include="..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
     </ItemGroup>
 
 </Project>

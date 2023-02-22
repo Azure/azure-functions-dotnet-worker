@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class CosmosDBEndToEndTests : IDisposable
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             string expectedDocId = Guid.NewGuid().ToString();
             try
             {
-                //Trigger            
+                //Trigger
                 await CosmosDBHelpers.CreateDocument(expectedDocId);
 
                 //Read

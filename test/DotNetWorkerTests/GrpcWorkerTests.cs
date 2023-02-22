@@ -16,7 +16,10 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -41,7 +44,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             _mockApplication
                 .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Returns((IInvocationFeatures f, CancellationToken ct) => {
+                .Returns((IInvocationFeatures f, CancellationToken ct) =>
+                {
                     _context = new TestFunctionContext(f, ct);
                     return _context;
                 });
@@ -69,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_ReturnsSuccess()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             FunctionLoadRequest request = CreateFunctionLoadRequest();
 
@@ -93,7 +97,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_Throws_ReturnsFailure()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             _mockApplication
                 .Setup(m => m.LoadFunction(It.IsAny<FunctionDefinition>()))
@@ -111,7 +115,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void MethodInfoLocator_Throws_ReturnsFailure()
         {
-            using var testVariables = new TestScopedEnvironmentVariable("AzureWebJobsScriptRoot", "test");
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             _mockMethodInfoLocator
                 .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
@@ -184,6 +188,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             string expectedCapabilityValue = null)
         {
             var workerOptions = new WorkerOptions();
+
             // Update boolean property values of workerOption based on test input parameters.
             workerOptions.GetType().GetProperty(booleanPropertyName)?.SetValue(workerOptions, booleanPropertyValue);
 
@@ -208,6 +213,36 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 Assert.DoesNotContain(capabilityName, capabilitiesDict);
             }
+        }
+
+        [Fact]
+        public void WorkerOptions_CanChangeOptionalCapabilities()
+        {
+            var host = new HostBuilder()
+                .ConfigureFunctionsWorkerDefaults((WorkerOptions options) =>
+                {
+                    options.Capabilities.Remove("HandlesWorkerTerminateMessage");
+                    options.Capabilities.Add("SomeNewCapability", bool.TrueString);
+                }).Build();
+
+            var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>().Value;
+            var response = GrpcWorker.WorkerInitRequestHandler(new(), workerOptions);
+
+            void AssertKeyAndValue(KeyValuePair<string, string> kvp, string expectedKey, string expectedValue)
+            {
+                Assert.Same(expectedKey, kvp.Key);
+                Assert.Same(expectedValue, kvp.Value);
+            }
+
+            Assert.Collection(response.Capabilities.OrderBy(p => p.Key),
+                c => AssertKeyAndValue(c, "HandlesInvocationCancelMessage", bool.TrueString),
+                c => AssertKeyAndValue(c, "RawHttpBodyBytes", bool.TrueString),
+                c => AssertKeyAndValue(c, "RpcHttpBodyOnly", bool.TrueString),
+                c => AssertKeyAndValue(c, "RpcHttpTriggerMetadataRemoved", bool.TrueString),
+                c => AssertKeyAndValue(c, "SomeNewCapability", bool.TrueString),
+                c => AssertKeyAndValue(c, "TypedDataCollection", bool.TrueString),
+                c => AssertKeyAndValue(c, "UseNullableValueDictionaryForHttp", bool.TrueString),
+                c => AssertKeyAndValue(c, "WorkerStatus", bool.TrueString));
         }
 
         [Fact]

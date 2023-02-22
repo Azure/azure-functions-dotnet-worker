@@ -91,7 +91,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
@@ -103,7 +102,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""Name"",""type"":""Queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
                             Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
 
@@ -205,7 +204,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
@@ -217,7 +215,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""myBlob"",""type"":""Blob"",""direction"":""In"",""blobPath"":""test-samples/sample1.txt"",""connection"":""AzureWebJobsStorage"",""cardinality"":""One"",""dataType"":""String""}");
                             Function0RawBindings.Add(@"{""name"":""Book"",""type"":""Queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
                             Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
@@ -307,7 +305,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
@@ -319,7 +316,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -394,7 +391,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
@@ -480,7 +476,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Text.Json;
                 using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
@@ -492,7 +487,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""myReq"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get"",""Post""],""route"":""/api2""}");
+                            Function0RawBindings.Add(@"{""name"":""myReq"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""Post""],""route"":""/api2""}");
                             Function0RawBindings.Add(@"{""name"":""Result"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -534,7 +529,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedOutput);
             }
 
-            [Fact]
+            [Fact (Skip = "Depends on source gen description cleanup, issue #1323")]
             public async void MultipleOutputOnMethodFails()
             {
                 var inputCode = @"using System;

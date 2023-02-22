@@ -188,7 +188,7 @@ namespace Microsoft.Azure.Functions.Worker
             return download.Value.Content.ToString();
         }
 
-        private async Task<Byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
+        internal virtual async Task<Byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
         {
             using MemoryStream stream = new();
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
@@ -203,7 +203,7 @@ namespace Microsoft.Azure.Functions.Worker
             return download.Value.Content;
         }
 
-        private BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
+        internal virtual BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
         {
             var blobStorageOptions = _blobOptions.Get(connectionName);
             BlobServiceClient blobServiceClient = blobStorageOptions.CreateClient();
@@ -211,7 +211,7 @@ namespace Microsoft.Azure.Functions.Worker
             return container;
         }
 
-        private T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
+        internal virtual T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
         {
             if (string.IsNullOrEmpty(blobName))
             {

@@ -5,27 +5,21 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core;
-using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests
@@ -229,38 +223,84 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ToTargetTypeAsync_SourceAsModelBindingData_Fails()
+        public async Task ToTargetTypeAsync_Works()
         {
             object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
-            byte[] byteArray = Encoding.UTF8.GetBytes("abc");
 
+            byte[] byteArray = Encoding.UTF8.GetBytes("test");
             mock.Setup(c => c.GetBlobStreamAsync(Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync(new MemoryStream(byteArray));
+            mock.Setup(c => c.GetBlobBinaryDataAsync(Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync(byteArray);
+            mock.Setup(c => c.GetBlobStringAsync(Constants.Connection, Constants.ContainerName, Constants.BlobName)).ReturnsAsync("test");
+            mock.Setup(c => c.CreateBlobClient<BlobBaseClient>(Constants.Connection, Constants.ContainerName, Constants.BlobName)).Returns(new Mock<BlobBaseClient>().Object);
+            mock.Setup(c => c.CreateBlobClient<BlobClient>(Constants.Connection, Constants.ContainerName, Constants.BlobName)).Returns(new Mock<BlobClient>().Object);
+            mock.Setup(c => c.CreateBlobClient<BlockBlobClient>(Constants.Connection, Constants.ContainerName, Constants.BlobName)).Returns(new Mock<BlockBlobClient>().Object);
+            mock.Setup(c => c.CreateBlobClient<PageBlobClient>(Constants.Connection, Constants.ContainerName, Constants.BlobName)).Returns(new Mock<PageBlobClient>().Object);
+            mock.Setup(c => c.CreateBlobClient<AppendBlobClient>(Constants.Connection, Constants.ContainerName, Constants.BlobName)).Returns(new Mock<AppendBlobClient>().Object);
+            mock.Setup(c => c.CreateBlobContainerClient(Constants.Connection, Constants.ContainerName)).Returns(new Mock<BlobContainerClient>().Object);
 
-            var result = await mock.Object.ToTargetTypeAsync(typeof(Stream), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var streamResult = await mock.Object.ToTargetTypeAsync(typeof(Stream), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var byteArrayResult = await mock.Object.ToTargetTypeAsync(typeof(Byte[]), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var stringResult = await mock.Object.ToTargetTypeAsync(typeof(string), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var blobClientResult = await mock.Object.ToTargetTypeAsync(typeof(BlobClient), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var blobBaseClientResult = await mock.Object.ToTargetTypeAsync(typeof(BlobBaseClient), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var blockBlobClientResult = await mock.Object.ToTargetTypeAsync(typeof(BlockBlobClient), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var pageBlobClientResult = await mock.Object.ToTargetTypeAsync(typeof(PageBlobClient), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var appendBlobClientResult = await mock.Object.ToTargetTypeAsync(typeof(AppendBlobClient), Constants.Connection, Constants.ContainerName, Constants.BlobName);
+            var blobContainerClientResult = await mock.Object.ToTargetTypeAsync(typeof(BlobContainerClient), Constants.Connection, Constants.ContainerName, Constants.BlobName);
 
-            Assert.Equal(typeof(MemoryStream), result.GetType());
+            Assert.Equal(typeof(MemoryStream), streamResult.GetType());
+            Assert.Equal(typeof(Byte[]), byteArrayResult.GetType());
+            Assert.Equal(typeof(string), stringResult.GetType());
+            Assert.Equal(typeof(BlobClient), blobClientResult.GetType().BaseType);
+            Assert.Equal(typeof(BlobBaseClient), blobBaseClientResult.GetType().BaseType);
+            Assert.Equal(typeof(BlockBlobClient), blockBlobClientResult.GetType().BaseType);
+            Assert.Equal(typeof(PageBlobClient), pageBlobClientResult.GetType().BaseType);
+            Assert.Equal(typeof(AppendBlobClient), appendBlobClientResult.GetType().BaseType);
+            Assert.Equal(typeof(BlobContainerClient), blobContainerClientResult.GetType().BaseType);
         }
 
         [Fact]
         public void ToTargetTypeCollection_CloneToArray_Works()
         {
-            IEnumerable<object> collection = new List<object>() { "hello", "world"};
+            IEnumerable<object> stringCollection = new List<object>() { "hello", "world"};
+            string[] stringResult = (string[])mock.Object.ToTargetTypeCollection(stringCollection, nameof(BlobStorageConverter.CloneToArray), typeof(string));
 
-            string[] result = (string[])mock.Object.ToTargetTypeCollection(collection, nameof(BlobStorageConverter.CloneToArray), typeof(string));
-            
-            Assert.Equal(2, result.Length);
-            Assert.Equal(typeof(string), result[0].GetType());
+            IEnumerable<object> pocoCollection = new List<object>() { new Book(), new Book() };
+            Book[] pocoResult = (Book[])mock.Object.ToTargetTypeCollection(pocoCollection, nameof(BlobStorageConverter.CloneToArray), typeof(Book));
+
+            IEnumerable<object> byteArraycollection = new List<object>() { Encoding.UTF8.GetBytes("hello"), Encoding.UTF8.GetBytes("world") };
+            Byte[][] byteArrayResult = (Byte[][])mock.Object.ToTargetTypeCollection(byteArraycollection, nameof(BlobStorageConverter.CloneToArray), typeof(Byte[]));
+
+            Assert.Equal(2, stringResult.Length);
+            Assert.Equal(typeof(string), stringResult[0].GetType());
+
+            Assert.Equal(2, pocoResult.Length);
+            Assert.Equal(typeof(Book), pocoResult[0].GetType());
+
+            Assert.Equal(2, byteArrayResult.Length);
+            Assert.Equal(typeof(Byte[]), byteArrayResult[0].GetType());
         }
 
         [Fact]
         public void ToTargetTypeCollection_CloneToList_Works()
         {
-            IEnumerable<object> collection = new List<object>() { new Book(), new Book() };
+            IEnumerable<object> stringCollection = new List<object>() { "hello", "world" };
+            IEnumerable<string> stringResult = (IEnumerable<string>)mock.Object.ToTargetTypeCollection(stringCollection, nameof(BlobStorageConverter.CloneToArray), typeof(string));
 
-            IEnumerable<Book> result = (IEnumerable<Book>)mock.Object.ToTargetTypeCollection(collection, nameof(BlobStorageConverter.CloneToList), typeof(Book));
+            IEnumerable<object> pocoCollection = new List<object>() { new Book(), new Book() };
+            IEnumerable<Book> pocoResult = (IEnumerable<Book>)mock.Object.ToTargetTypeCollection(pocoCollection, nameof(BlobStorageConverter.CloneToList), typeof(Book));
 
-            Assert.Equal(2, result.Count());
-            Assert.Equal(typeof(Book), result.FirstOrDefault().GetType());
+            IEnumerable<object> byteArraycollection = new List<object>() { Encoding.UTF8.GetBytes("hello"), Encoding.UTF8.GetBytes("world") };
+            IEnumerable<Byte[]> byteArrayResult = (IEnumerable<Byte[]>)mock.Object.ToTargetTypeCollection(byteArraycollection, nameof(BlobStorageConverter.CloneToArray), typeof(Byte[]));
+
+            Assert.Equal(2, stringResult.Count());
+            Assert.Equal(typeof(string), stringResult.FirstOrDefault().GetType());
+
+            Assert.Equal(2, pocoResult.Count());
+            Assert.Equal(typeof(Book), pocoResult.FirstOrDefault().GetType());
+
+            Assert.Equal(2, byteArrayResult.Count());
+            Assert.Equal(typeof(Byte[]), byteArrayResult.FirstOrDefault().GetType());
         }
 
 

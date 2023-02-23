@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WebJobsAttributesNotSupported : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(DiagnosticDescriptors.WebJobsAttributesAreNotSuppoted); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(DiagnosticDescriptors.WebJobsAttributesAreNotSupported); } }
 
         public override void Initialize(AnalysisContext context)
         {
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     foreach (var attribute in webjobsAttributes)
                     {
                         var location = Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
-                        c.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.WebJobsAttributesAreNotSuppoted, location, attribute.AttributeClass.Name));
+                        c.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.WebJobsAttributesAreNotSupported, location, attribute.AttributeClass.Name));
                     }
                 }
             }, SymbolKind.Method);

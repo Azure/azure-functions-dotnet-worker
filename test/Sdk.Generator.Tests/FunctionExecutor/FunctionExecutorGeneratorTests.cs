@@ -84,10 +84,12 @@ namespace Microsoft.Azure.Functions.Worker
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        public async Task ExecuteAsync(FunctionContext context)
+        public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
-            var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputArguments = inputBindingResult.Values;
+            
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Foo"", StringComparison.OrdinalIgnoreCase))
             {{
                 context.GetInvocationResult().Value = new MyCompany.MyHttpTriggers().Foo((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
@@ -154,10 +156,12 @@ namespace Microsoft.Azure.Functions.Worker
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        public async Task ExecuteAsync(FunctionContext context)
+        public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
-            var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputArguments = inputBindingResult.Values;
+            
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run1"", StringComparison.OrdinalIgnoreCase))
             {{
                 var p1 = context.InstanceServices.GetService<Microsoft.Extensions.Logging.ILoggerFactory>();
@@ -233,10 +237,12 @@ namespace Microsoft.Azure.Functions.Worker
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        public async Task ExecuteAsync(FunctionContext context)
+        public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
-            var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputArguments = inputBindingResult.Values;
+            
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyTaskStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
                 await FunctionApp26.MyQTriggers.MyTaskStaticMethod((string)inputArguments[0]);

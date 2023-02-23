@@ -23,7 +23,7 @@ internal partial class FunctionExecutorGenerator
                          {
                              internal class DirectFunctionExecutor : IFunctionExecutor
                              {
-                                 public async Task ExecuteAsync(FunctionContext context)
+                                 public async ValueTask ExecuteAsync(FunctionContext context)
                                  {
                                      {{GetMethodBody(functions)}}
                                  }
@@ -50,9 +50,10 @@ internal partial class FunctionExecutorGenerator
         private static string GetMethodBody(IEnumerable<ExecutableFunction> functions)
         {
             var sb = new StringBuilder();
-            
-            sb.Append(@"var modelBindingFeature = context.Features.Get<IModelBindingFeature>()!;
-            var inputArguments = await modelBindingFeature.BindFunctionInputAsync(context)!;");
+            sb.Append(@"var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputArguments = inputBindingResult.Values;
+            ");
             foreach (ExecutableFunction function in functions)
             {
                 sb.Append($@"
@@ -80,7 +81,7 @@ internal partial class FunctionExecutorGenerator
 
                 sb.Append(@"
                 ");
-                
+
                 if (function.IsReturnValueAssignable)
                 {
                     sb.Append(@$"context.GetInvocationResult().Value = ");

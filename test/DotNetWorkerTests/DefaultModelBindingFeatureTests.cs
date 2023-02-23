@@ -11,7 +11,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    public class DefaultModelBindingFeatureTests
+    public class DefaultModelBindingFeatureTests : IDisposable
     {
         private readonly ServiceProvider _serviceProvider;
         private readonly DefaultFunctionInputBindingFeature _functionInputBindingFeature;
@@ -149,6 +149,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Get all parameters from FunctionInputBindingFeature. This should also reflect what we set above.
             var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
             Assert.Same(otherBook, bindingResult.Values[0] as Book);
+        }
+
+        public void Dispose()
+        {
+            _serviceProvider?.Dispose();
+            _functionInputBindingFeature?.Dispose();
         }
     }
 }

@@ -13,9 +13,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
     internal class DefaultFunctionInputBindingFeature : IFunctionInputBindingFeature, IDisposable
     {
+        private const int WaitTimeInMilliSeconds = 100;
         private readonly SemaphoreSlim _semaphoreSlim = new(1, 1);
-        private FunctionInputBindingResult? _inputBindingResult;
         private readonly IConverterContextFactory _converterContextFactory;
+        private FunctionInputBindingResult? _inputBindingResult;
+        private bool _disposed;
 
         public DefaultFunctionInputBindingFeature(IConverterContextFactory converterContextFactory)
         {
@@ -25,7 +27,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         public async ValueTask<FunctionInputBindingResult> BindFunctionInputAsync(FunctionContext context)
         {
-            await _semaphoreSlim.WaitAsync();
+            ObjectDisposedThrowHelper.ThrowIf(_disposed, this);
+
+            await _semaphoreSlim.WaitAsync(WaitTimeInMilliSeconds, context.CancellationToken);
 
             if (_inputBindingResult is not null)
             {
@@ -115,6 +119,12 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         public void Dispose()
         {
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
             _semaphoreSlim.Dispose();
         }
     }

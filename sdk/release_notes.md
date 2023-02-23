@@ -8,9 +8,9 @@
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
 
-- <entry>
+- Add analyzer for SupportsDeferredBindingAttribute #1367
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

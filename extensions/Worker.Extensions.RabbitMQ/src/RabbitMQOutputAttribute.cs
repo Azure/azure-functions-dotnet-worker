@@ -46,5 +46,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the name of app setting that contains the connection string to authenticate with RabbitMQ.
         /// </summary>
         public string? ConnectionStringSetting { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether certificate validation should be disabled. Not recommended for
+        /// production. Does not apply when SSL is disabled.
+        /// </summary>
+        public bool DisableCertificateValidation { get; set; }
     }
 }

@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 new TypeConverter()
             };
             context.Features.Set<IInputConversionFeature>(_mockInputConversionFeature.Object);
-            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(_mockConvertContextFactory.Object));
+            context.Features.Set<IFunctionInputBindingFeature>(new DefaultFunctionInputBindingFeature(_mockConvertContextFactory.Object));
             context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
 
             await _executor.ExecuteAsync(context);
@@ -169,7 +169,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var context = CreateContext(invocation: new TestFunctionInvocation());
             context.Features.Set<IFunctionBindingsFeature>(_functionBindings);
             context.Features.Set<IInputConversionFeature>(_mockInputConversionFeature.Object);
-            context.Features.Set<IModelBindingFeature>(new DefaultModelBindingFeature(_mockConvertContextFactory.Object));
+            context.Features.Set<IFunctionInputBindingFeature>(new DefaultFunctionInputBindingFeature(_mockConvertContextFactory.Object));
 
             await _executor.ExecuteAsync(context);
 

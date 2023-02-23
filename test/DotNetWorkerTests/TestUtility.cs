@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .AddScoped<IBindingCache<ConversionResult>, DefaultBindingCache<ConversionResult>>()
                 .AddSingleton<IInputConversionFeature, DefaultInputConversionFeature>()
                 .Configure<WorkerOptions>(o => configure?.Invoke(o))
-                .AddSingleton<DefaultModelBindingFeature>()
+                .AddSingleton<DefaultFunctionInputBindingFeature>()
                 .AddDefaultInputConvertersToWorkerOptions()
                 .BuildServiceProvider();
         }

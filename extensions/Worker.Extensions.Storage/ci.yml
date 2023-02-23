@@ -1,23 +1,3 @@
-trigger:
-  branches:
-    include:
-    - main
-    - release/*
-    - feature/*
-  paths:
-    include:
-    - extensions/Worker.Extensions.Storage/
-
-pr:
-  branches:
-    include:
-    - main
-    - release/*
-    - feature/*
-  paths:
-    include:
-    - extensions/Worker.Extensions.Storage/
-
 extends:
   template: ../../build/pipelines/templates/extensions-ci.yml
   parameters:

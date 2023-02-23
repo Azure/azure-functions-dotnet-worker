@@ -3,6 +3,26 @@ parameters:
   type: string
   default: not-specified
 
+trigger:
+  branches:
+    include:
+    - main
+    - release/*
+    - feature/*
+  paths:
+    include:
+    - ${{ parameters.ExtensionDirectory }}
+
+pr:
+  branches:
+    include:
+    - main
+    - release/*
+    - feature/*
+  paths:
+    include:
+    - ${{ parameters.ExtensionDirectory }}
+
 jobs:
 - job: "Build_And_Test_Windows"
   pool:
@@ -14,7 +34,6 @@ jobs:
     - template: extensions-variables.yml
 
   steps:
-  
   - template: ../../install-dotnet.yml
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
@@ -109,6 +128,6 @@ jobs:
     inputs:
       BuildDropPath: '$(System.DefaultWorkingDirectory)/packages'
       Verbosity: 'Information'
-      
+
   - publish: $(System.DefaultWorkingDirectory)/packages
     artifact: drop

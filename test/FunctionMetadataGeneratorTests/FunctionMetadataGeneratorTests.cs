@@ -225,6 +225,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "blob" },
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
+                    { "DataType", "String"},
                     { "path", "container2/%file%" },
                     { "Properties", new Dictionary<String, Object>() }
                 });

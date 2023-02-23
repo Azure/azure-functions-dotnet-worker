@@ -22,6 +22,7 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true"</ContinuousIntegrationBuild>
     <Deterministic>true</Deterministic>
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <ItemGroup>

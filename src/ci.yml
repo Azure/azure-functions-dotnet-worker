@@ -39,8 +39,11 @@ jobs:
     buildConfiguration: 'Release'
 
   steps:
-  - pwsh: . "tools/start-emulators.ps1" -NoWait
-    displayName: "Start emulators (-NoWait)"
+  - pwsh: |
+      Add-MpPreference -ExclusionPath "$env:ProgramFiles\Azure Cosmos DB Emulator"
+      Add-MpPreference -ExclusionPath "$env:localappdata\CosmosDBEmulator"
+      ./tools/start-emulators.ps1 -NoWait
+    displayName: "Start emulators (-NoWait)"    
 
   - template: ../build/install-dotnet.yml
   

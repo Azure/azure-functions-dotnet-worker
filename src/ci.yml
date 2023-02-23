@@ -18,6 +18,7 @@ pr:
     include:
     - src/
     - test/DotNetWorkerTests
+    - test/WorkerExtensionTests
     - test/E2ETests
     - test/TestUtility
     - sdk/

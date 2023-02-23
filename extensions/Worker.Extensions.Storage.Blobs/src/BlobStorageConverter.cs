@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        internal virtual async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsBlobExtension(modelBindingData))
             {
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
+        internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
             Type elementType = context.TargetType.IsArray
                 ? context.TargetType.GetElementType()
@@ -124,7 +124,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private bool IsBlobExtension(ModelBindingData bindingData)
+        internal bool IsBlobExtension(ModelBindingData bindingData)
         {
             if (bindingData?.Source is not Constants.BlobExtensionName)
             {
@@ -135,7 +135,7 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
+        internal Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
@@ -144,7 +144,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        private async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
+        internal virtual async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
         {
             content.TryGetValue(Constants.Connection, out var connectionName);
             content.TryGetValue(Constants.ContainerName, out var containerName);
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.Functions.Worker
             return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);
         }
 
-        private async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
+        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
         {
             Type _ when targetType == typeof(string) => await GetBlobStringAsync(connectionName, containerName, blobName),
             Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(connectionName, containerName, blobName),
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
         };
 
-        private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
+        internal async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
         {
             var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
@@ -198,14 +198,14 @@ namespace Microsoft.Azure.Functions.Worker
             return stream.ToArray();
         }
 
-        private async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
+        internal virtual async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
             var download = await client.DownloadStreamingAsync();
             return download.Value.Content;
         }
 
-        private BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
+        internal virtual BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
         {
             var blobStorageOptions = _blobOptions.Get(connectionName);
             BlobServiceClient blobServiceClient = blobStorageOptions.CreateClient();
@@ -213,7 +213,7 @@ namespace Microsoft.Azure.Functions.Worker
             return container;
         }
 
-        private T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
+        internal virtual T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
         {
             if (string.IsNullOrEmpty(blobName))
             {

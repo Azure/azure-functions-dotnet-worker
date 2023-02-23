@@ -13,7 +13,6 @@ internal partial class FunctionExecutorGenerator
     internal class Parser
     {
         private readonly GeneratorExecutionContext _context;
-
         private readonly KnownTypes _knownTypes;
 
         private Compilation Compilation => _context.Compilation;
@@ -68,7 +67,7 @@ internal partial class FunctionExecutorGenerator
                     classDict[fullyQualifiedClassName] = classInfo;
                 }
 
-                var funcInfo = new ExecutableFunction
+                var function = new ExecutableFunction
                 {
                     EntryPoint = entryPoint,
                     ParameterTypeNames = methodParameterList,
@@ -79,12 +78,15 @@ internal partial class FunctionExecutorGenerator
                     ParentFunctionClass = classInfo
                 };
 
-                functionList.Add(funcInfo);
+                functionList.Add(function);
             }
 
             return functionList;
         }
 
+        /// <summary>
+        /// Returns true if the symbol is Task/Task<T>/ValueTask/ValueTask<T>.
+        /// </summary>
         private bool IsTaskType(ITypeSymbol typeSymbol)
         {
             return
@@ -94,11 +96,15 @@ internal partial class FunctionExecutorGenerator
                 SymbolEqualityComparer.Default.Equals(typeSymbol.OriginalDefinition, _knownTypes.ValueTaskOfTTypeOpt);
         }
 
+        /// <summary>
+        /// Is the return value of the method assignable to a variable?
+        /// Returns True for methods which has Task or void as return type.
+        /// </summary>
         private bool IsReturnValueAssignable(IMethodSymbol methodSymbol)
         {
             if (methodSymbol.ReturnsVoid)
             {
-                return false;
+                return false; 
             }
 
             if (SymbolEqualityComparer.Default.Equals(methodSymbol.ReturnType.OriginalDefinition, _knownTypes.TaskType))
@@ -115,6 +121,12 @@ internal partial class FunctionExecutorGenerator
             return true;
         }
 
+        /// <summary>
+        /// Gets the full type name of all the parameters of the constructor of the class.
+        /// </summary>
+        /// <param name="functionClass"></param>
+        /// <param name="model"></param>
+        /// <returns></returns>
         private static IEnumerable<string> GetConstructorParamTypeNames(ClassDeclarationSyntax functionClass,
             SemanticModel model)
         {
@@ -141,6 +153,11 @@ internal partial class FunctionExecutorGenerator
             return constructorParamTypeNames;
         }
 
+        /// <summary>
+        /// Pick the constructor to be used for creating an instance of the class.
+        /// </summary>
+        /// <param name="functionClass"></param>
+        /// <returns></returns>
         private static MemberDeclarationSyntax? GetBestConstructor(ClassDeclarationSyntax functionClass)
         {
             // TO DO: Fix this.

@@ -6,6 +6,9 @@ using System.Linq;
 
 internal partial class FunctionExecutorGenerator
 {
+    /// <summary>
+    /// A type which holds information about the parent class of a function.
+    /// </summary>
     internal class FunctionClass
     {
         public FunctionClass(string fullyQualifiedClassName)

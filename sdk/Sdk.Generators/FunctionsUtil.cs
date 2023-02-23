@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
-    internal class FunctionsUtil
+    internal static class FunctionsUtil
     {
         /// <summary>
         /// Checks if a candidate method has a Function attribute on it.

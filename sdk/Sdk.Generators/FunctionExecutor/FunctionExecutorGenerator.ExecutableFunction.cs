@@ -6,6 +6,9 @@ using System.Linq;
 
 internal partial class FunctionExecutorGenerator
 {
+    /// <summary>
+    /// A type which holds information about the functions which can be executed from an invocation.
+    /// </summary>
     internal class ExecutableFunction
     {
         /// <summary>
@@ -13,6 +16,9 @@ internal partial class FunctionExecutorGenerator
         /// </summary>
         internal bool IsReturnValueAssignable { set; get; }
 
+        /// <summary>
+        /// Whether the function should be awaited or not for getting the result of execution.
+        /// </summary>
         internal bool ShouldAwait { get; set; }
 
         /// <summary>

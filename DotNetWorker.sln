@@ -119,6 +119,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Shared", "extensions\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj", "{277D77B9-8915-41E3-8763-0B66328ADDDA}"
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerBindingSamples", "samples\WorkerBindingSamples\WorkerBindingSamples.csproj", "{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WorkerExtensionTests", "test\WorkerExtensionTests\WorkerExtensionTests.csproj", "{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -293,6 +295,10 @@ Global
 		{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{901DA3C3-3ABA-4859-89D3-63343ED2A0AC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -344,6 +350,7 @@ Global
 		{004DEF24-7EBB-499D-BD1C-E940AC4E122D} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{277D77B9-8915-41E3-8763-0B66328ADDDA} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{901DA3C3-3ABA-4859-89D3-63343ED2A0AC} = {9D6603BD-7EA2-4D11-A69C-0D9E01317FD6}
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

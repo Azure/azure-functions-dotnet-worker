@@ -31,14 +31,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             await _semaphoreSlim.WaitAsync(WaitTimeInMilliSeconds, context.CancellationToken);
 
-            if (_inputBindingResult is not null)
-            {
-                // Return the cached value if BindFunctionInputAsync is called a second time during invocation.
-                return _inputBindingResult!;
-            }
-
             try
             {
+                if (_inputBindingResult is not null)
+                {
+                    // Return the cached value if BindFunctionInputAsync is called a second time during invocation.
+                    return _inputBindingResult!;
+                }
+                
                 IFunctionBindingsFeature functionBindings = context.GetBindings();
                 var inputBindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
                 var inputConversionFeature = context.Features.Get<IInputConversionFeature>();

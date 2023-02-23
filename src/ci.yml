@@ -42,6 +42,8 @@ jobs:
   - pwsh: |
       Add-MpPreference -ExclusionPath "$env:ProgramFiles\Azure Cosmos DB Emulator"
       Add-MpPreference -ExclusionPath "$env:localappdata\CosmosDBEmulator"
+      Write-Host "Defender exclusions:"
+      $(Get-MpPreference).ExclusionPath
       ./tools/start-emulators.ps1 -NoWait
     displayName: "Start emulators (-NoWait)"    
 

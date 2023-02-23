@@ -122,10 +122,10 @@ if (!$SkipCosmosDBEmulator -and $startedCosmos -eq $true)
 
     if ($waitSuccess -ne $true)
     {
-        Write-Host "CosmosDB emulator not yet running after waiting 60 seconds. Restarting."
-        Stop-CosmosDbEmulator
-        Write-Host "Restarting CosmosDB emulator"
-        Start-CosmosDbEmulator -NoUI
+        Write-Host "CosmosDB emulator not yet running after waiting 60 seconds. Stopping emulator."
+        Stop-CosmosDbEmulator -Verbose
+        Write-Host "Restarting CosmosDB emulator."
+        Start-CosmosDbEmulator -NoUI -Timeout 300 -Verbose
     }
 
     Write-Host "------"

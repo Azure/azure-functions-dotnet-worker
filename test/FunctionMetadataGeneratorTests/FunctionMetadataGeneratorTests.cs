@@ -252,7 +252,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            Assert.Equal(1, functions.Count());
+            Assert.Single(functions);
 
             var blobToBlob = functions.Single(p => p.Name == "BlobToBlobFunction");
 

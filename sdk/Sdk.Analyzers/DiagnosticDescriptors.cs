@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
 
         public static DiagnosticDescriptor DeferredBindingAttributeNotSupported{ get; }
-            = Create(id: "AZFW0003", title: "Invalid class attribute", messageFormat: "The attribute '{0}' can only be used on trigger and input binding attributes.",
+            = Create(id: "AZFW0009", title: "Invalid class attribute", messageFormat: "The attribute '{0}' can only be used on trigger and input binding attributes.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
 
     }

@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.;
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -54,12 +53,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         continue;
                     }
 
-                    var functionClass = (ClassDeclarationSyntax) method.Parent!;
-                    var functionClassName = functionClass.Identifier.ValueText;
+                    var methodSymbol = model.GetDeclaredSymbol(method)!;
+                    var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
+                    var entryPoint = $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
+
                     var newFunction = new GeneratorFunctionMetadata
                     {
                         Name = functionName,
-                        EntryPoint = assemblyName + "." + functionClassName + "." + method.Identifier.ValueText,
+                        EntryPoint = entryPoint,
                         Language = "dotnet-isolated",
                         ScriptFile = scriptFile
                     };

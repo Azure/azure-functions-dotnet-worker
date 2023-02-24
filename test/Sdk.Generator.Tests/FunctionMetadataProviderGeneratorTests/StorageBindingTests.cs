@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Reflection;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Xunit;
 
@@ -13,7 +11,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class StorageBindingTests
         {
-            private Assembly[] referencedExtensionAssemblies;
+            private readonly Assembly[] _referencedExtensionAssemblies;
 
             public StorageBindingTests()
             {
@@ -28,7 +26,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
 
-                referencedExtensionAssemblies = new[]
+                _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,
                     blobExtension,
@@ -94,7 +92,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "QueueTriggerFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.QueueTriggerAndOutputFunction",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.QueueTriggerAndOutputFunction",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -123,7 +121,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -199,7 +197,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "QueueToBlobFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.QueueToBlob",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.QueueToBlob",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -212,7 +210,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "BlobToQueueFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobToQueue",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.BlobToQueue",
                                 RawBindings = Function1RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -225,7 +223,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "BlobsToQueueFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobsToQueue",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.BlobsToQueue",
                                 RawBindings = Function2RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -254,7 +252,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);

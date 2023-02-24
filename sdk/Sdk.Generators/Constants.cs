@@ -7,7 +7,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         public static class BuildProperties
         {
-            internal const string EnableSourceGenProp = "build_property.FunctionsMetadataSourceGen_Enabled";
+            internal const string EnableSourceGenProp = "build_property.FunctionsEnableMetadataSourceGen";
         }
 
         public static class FileNames

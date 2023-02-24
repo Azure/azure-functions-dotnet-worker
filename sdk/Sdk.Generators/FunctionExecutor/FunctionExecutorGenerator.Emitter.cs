@@ -60,22 +60,22 @@ internal partial class FunctionExecutorGenerator
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""{function.EntryPoint}"", StringComparison.OrdinalIgnoreCase))
             {{");
 
-                int paramCounter = 0;
+                int constructorParamCounter = 0;
                 var constructorParamTypeNameList = new List<string>();
                 foreach (var argumentTypeName in function.ParentFunctionClass.ConstructorParameterTypeNames)
                 {
-                    paramCounter++;
+                    constructorParamCounter++;
                     sb.Append($@"
-                var p{paramCounter} = context.InstanceServices.GetService<{argumentTypeName}>();");
-                    constructorParamTypeNameList.Add($"p{paramCounter}");
+                var p{constructorParamCounter} = context.InstanceServices.GetService<{argumentTypeName}>();");
+                    constructorParamTypeNameList.Add($"p{constructorParamCounter}");
                 }
                 var constructorParamsStr = string.Join(", ", constructorParamTypeNameList);
 
-                int paramCounter2 = 0;
+                int functionParamCounter = 0;
                 var functionParamList = new List<string>();
                 foreach (var argumentTypeName in function.ParameterTypeNames)
                 {
-                    functionParamList.Add($"({argumentTypeName})inputArguments[{paramCounter2++}]");
+                    functionParamList.Add($"({argumentTypeName})inputArguments[{functionParamCounter++}]");
                 }
                 var methodParamsStr = string.Join(", ", functionParamList);
 

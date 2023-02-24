@@ -1,17 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Text;
 using Microsoft.CodeAnalysis;
-using Parser = FunctionExecutorGenerator.Parser;
+using Microsoft.CodeAnalysis.Text;
 using Emitter = FunctionExecutorGenerator.Emitter;
 using FunctionMethodSyntaxReceiver = Microsoft.Azure.Functions.Worker.Sdk.Generators.FunctionMetadataProviderGenerator.FunctionMethodSyntaxReceiver;
-using Microsoft.CodeAnalysis.Text;
-using System.Text;
+using Parser = FunctionExecutorGenerator.Parser;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     [Generator]
-    public class FunctionExecutorGenerator : ISourceGenerator
+    public sealed class FunctionExecutorGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {

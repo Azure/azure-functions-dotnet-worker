@@ -22,7 +22,7 @@ internal partial class FunctionExecutorGenerator
         internal bool ShouldAwait { get; set; }
 
         /// <summary>
-        /// The method name(which is part of EntryPoint prop value).
+        /// The method name (which is part of EntryPoint property value).
         /// </summary>
         internal string MethodName { get; set; } = null!;
 

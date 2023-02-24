@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 internal partial class FunctionExecutorGenerator
 {
-    internal class Parser
+    internal sealed class Parser
     {
         private readonly GeneratorExecutionContext _context;
         private readonly KnownTypes _knownTypes;

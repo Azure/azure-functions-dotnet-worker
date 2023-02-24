@@ -1,9 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
@@ -15,7 +12,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class EventHubsBindingsTests
         {
-            private Assembly[] referencedExtensionAssemblies;
+            private readonly Assembly[] _referencedExtensionAssemblies;
             private readonly string _usingStringsForInput;
 
             public EventHubsBindingsTests()
@@ -28,7 +25,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
 
-                referencedExtensionAssemblies = new[]
+                _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,
                     httpExtension,
@@ -110,7 +107,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 {
                                     Language = "dotnet-isolated",
                                     Name = "{{functionName}}",
-                                    EntryPoint = "TestProject.EventHubsInput.{{functionName}}",
+                                    EntryPoint = "FunctionApp.EventHubsInput.{{functionName}}",
                                     RawBindings = Function0RawBindings,
                                     ScriptFile = "TestProject.dll"
                                 };
@@ -139,7 +136,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     """);
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCodeBuilder.ToString(),
                     expectedGeneratedFileName,
                     expectedOutputBuilder.ToString());
@@ -234,7 +231,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "{{functionName}}",
-                                EntryPoint = "TestProject.EventHubsInput.{{functionName}}",
+                                EntryPoint = "FunctionApp.EventHubsInput.{{functionName}}",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -263,7 +260,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """);
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCodeBuilder.ToString(),
                     expectedGeneratedFileName,
                     expectedOutputBuilder.ToString());
@@ -321,7 +318,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableBinaryInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableBinaryInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableBinaryInputFunction",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -350,7 +347,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -459,7 +456,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableStringClassInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableStringClassInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableStringClassInputFunction",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -471,7 +468,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableNestedStringClassInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableNestedStringClassInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableNestedStringClassInputFunction",
                                 RawBindings = Function1RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -483,7 +480,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableNestedStringGenericClassInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableNestedStringGenericClassInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableNestedStringGenericClassInputFunction",
                                 RawBindings = Function2RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -495,7 +492,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableNestedStringGenericClass2InputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableNestedStringGenericClass2InputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableNestedStringGenericClass2InputFunction",
                                 RawBindings = Function3RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -524,7 +521,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -607,7 +604,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableBinaryClassInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableBinaryClassInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableBinaryClassInputFunction",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -619,7 +616,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerableNestedBinaryClassInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerableNestedBinaryClassInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerableNestedBinaryClassInputFunction",
                                 RawBindings = Function1RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -648,7 +645,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -718,7 +715,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "EnumerablePocoInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.EnumerablePocoInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.EnumerablePocoInputFunction",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -730,7 +727,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "ListPocoInputFunction",
-                                EntryPoint = "TestProject.EventHubsInput.ListPocoInputFunction",
+                                EntryPoint = "FunctionApp.EventHubsInput.ListPocoInputFunction",
                                 RawBindings = Function1RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -759,7 +756,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -794,7 +791,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 string? expectedOutput = null;
 
                 await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);

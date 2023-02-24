@@ -10,11 +10,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
     public partial class FunctionMetadataProviderGeneratorTests
     {
-        public class HttpTriggerTests
+        public class NestedTypesTests
         {
             private readonly Assembly[] _referencedExtensionAssemblies;
 
-            public HttpTriggerTests()
+            public NestedTypesTests()
             {
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async Task GenerateSimpleHttpTriggerMetadataTest()
+            public async Task NestedNamespace()
             {
                 string inputCode = """
                 using System;
@@ -44,14 +44,20 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
 
-                namespace FunctionApp
+                namespace MyCompany
                 {
-                    public static class HttpTriggerSimple
+                    namespace MyProject
                     {
-                        [Function(nameof(HttpTriggerSimple))]
-                        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
+                        public static class HttpTriggerSimple
                         {
-                            throw new NotImplementedException();
+                            [Function(nameof(HttpTriggerSimple))]
+                            public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.User, "get")] HttpRequestData req, FunctionContext c)
+                            {
+                                return Run(req);
+                            }
+
+                            public static HttpResponseData Run(HttpRequestData req)
+                                => req.CreateResponse(System.Net.HttpStatusCode.OK);
                         }
                     }
                 }
@@ -77,14 +83,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""User"",""methods"":[""get""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
                                 Name = "HttpTriggerSimple",
-                                EntryPoint = "FunctionApp.HttpTriggerSimple.Run",
+                                EntryPoint = "MyCompany.MyProject.HttpTriggerSimple.Run",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -118,9 +124,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedGeneratedFileName,
                     expectedOutput);
             }
-
             [Fact]
-            public async void BasicHttpFunctionWithNoResponse()
+            public async Task NestedClass()
             {
                 string inputCode = """
                 using System;
@@ -128,19 +133,21 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
 
-                namespace FunctionApp
+                namespace MyCompany
                 {
-                    public static class HttpTriggerSimple
+                    public class  WebApis
                     {
-                        [Function("HttpTrigger")]
-                        public static void HttpTrigger([HttpTrigger(AuthorizationLevel.Admin, "get", "post", Route = "/api2")] HttpRequestData req)
+                        public static class HttpTriggerSimple
                         {
-                            throw new NotImplementedException();
+                            [Function(nameof(HttpTriggerSimple))]
+                            public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.User, "get")] HttpRequestData req)
+                            {
+                                throw new NotImplementedException();
+                            }
                         }
                     }
                 }
                 """;
-
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
                 string expectedOutput = """
@@ -162,103 +169,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""post""],""route"":""/api2""}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""User"",""methods"":[""get""]}");
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "HttpTrigger",
-                                EntryPoint = "FunctionApp.HttpTriggerSimple.HttpTrigger",
-                                RawBindings = Function0RawBindings,
-                                ScriptFile = "TestProject.dll"
-                            };
-                            metadataList.Add(Function0);
-
-                            return Task.FromResult(metadataList.ToImmutableArray());
-                        }
-                    }
-
-                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-                    {
-                        ///<summary>
-                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
-                        ///</summary>
-                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-                        {
-                            builder.ConfigureServices(s => 
-                            {
-                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-                            });
-                            return builder;
-                        }
-                    }
-                }
-                """;
-
-                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    _referencedExtensionAssemblies,
-                    inputCode,
-                    expectedGeneratedFileName,
-                    expectedOutput);
-            }
-
-            [Fact]
-            public async void ReturnTypeJustHttp()
-            {
-                string inputCode = """
-                using System;
-                using System.Collections.Generic;
-                using Microsoft.Azure.Functions.Worker.Http;
-                using Microsoft.Azure.Functions.Worker;
-
-                namespace Foo
-                {
-                    public class HttpTriggerSimple
-                    {
-                        [Function("JustHtt")]
-                        public JustHttp Justhtt([HttpTrigger("get")] string req)
-                        {
-                            throw new NotImplementedException();
-                        }
-
-                        public class JustHttp
-                        {
-                            public HttpResponseData httpResponseProp { get; set; }
-                        }
-                    }
-                }
-                """;
-
-
-                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-                string expectedOutput = """
-                // <auto-generated/>
-                using System;
-                using System.Collections.Generic;
-                using System.Collections.Immutable;
-                using System.Text.Json;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-                using Microsoft.Extensions.DependencyInjection;
-                using Microsoft.Extensions.Hosting;
-
-                namespace Microsoft.Azure.Functions.Worker
-                {
-                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-                    {
-                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-                        {
-                            var metadataList = new List<IFunctionMetadata>();
-                            var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
-                            Function0RawBindings.Add(@"{""name"":""httpResponseProp"",""type"":""http"",""direction"":""Out""}");
-
-                            var Function0 = new DefaultFunctionMetadata
-                            {
-                                Language = "dotnet-isolated",
-                                Name = "JustHtt",
-                                EntryPoint = "Foo.HttpTriggerSimple.Justhtt",
+                                Name = "HttpTriggerSimple",
+                                EntryPoint = "MyCompany.WebApis.HttpTriggerSimple.Run",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };

@@ -40,5 +40,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             return false;
         }
+
+        /// <summary>
+        /// Gets the fully qualified name of the method.
+        /// Ex: "MyNamespaceName.MyClassName.MyMethod" 
+        /// for a method called "MyMethod" inside the "MyClassName" type which is inside the "MyNamespaceName" namespace.
+        /// </summary>
+        internal static string GetFullyQualifiedMethodName(MethodDeclarationSyntax method, SemanticModel semanticModel)
+        {
+            var methodSymbol = semanticModel.GetDeclaredSymbol(method)!;
+            var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
+
+            return $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
+        }
     }
 }

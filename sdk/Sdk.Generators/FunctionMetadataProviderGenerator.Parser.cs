@@ -53,15 +53,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         continue;
                     }
 
-                    var methodSymbol = model.GetDeclaredSymbol(method)!;
-                    var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-                    var entryPoint = $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
-
                     var newFunction = new GeneratorFunctionMetadata
                     {
                         Name = functionName,
-                        EntryPoint = entryPoint,
-                        Language = "dotnet-isolated",
+                        EntryPoint = FunctionsUtil.GetFullyQualifiedMethodName(method, model),
+                        Language = Constants.Languages.DotnetIsolated,
                         ScriptFile = scriptFile
                     };
 
@@ -80,7 +76,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     result.Add(newFunction);
                 }
 
-                return result; 
+                return result;
             }
 
             private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger)
@@ -211,7 +207,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 bindingsList = null;
                                 return false;
                             }
-                            
+
                             if (dataType is not DataType.Undefined)
                             {
                                 bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
@@ -254,7 +250,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.Task)))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric))) 
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric)))
                     {
                         GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
@@ -274,7 +270,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        if(!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, returnTypeSyntax.GetLocation(), out bindingsList))
+                        if (!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, returnTypeSyntax.GetLocation(), out bindingsList))
                         {
                             bindingsList = null;
                             return false;
@@ -409,7 +405,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     else
                     {
                         bindings[propertyName] = prop.Value!.ToString();
-                    }  
+                    }
                 }
 
                 return true;
@@ -636,7 +632,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     return true;
                 }
-                
+
                 // trigger input type doesn't match any of the valid cases so return false
                 return false;
             }
@@ -654,7 +650,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var currSymbol = parameterSymbol.Type;
                 INamedTypeSymbol? finalSymbol = null;
 
-                while(currSymbol != null)
+                while (currSymbol != null)
                 {
                     INamedTypeSymbol? genericInterfaceSymbol = null;
 
@@ -717,7 +713,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray))
                     || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct)));
                 var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ReadOnlyMemoryOfBytes));
-                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray && 
+                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray &&
                     outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct));
 
 

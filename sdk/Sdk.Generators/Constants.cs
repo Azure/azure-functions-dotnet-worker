@@ -5,10 +5,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal static class Constants
     {
+        internal static class Languages
+        {
+            internal const string DotnetIsolated = "dotnet-isolated";
+        }
+
         internal static class BuildProperties
         {
-            internal const string EnableSourceGenProp = "build_property.FunctionsEnableMetadataSourceGen";
-            internal const string EnableSourceGen = "build_property.FunctionsMetadataSourceGen_Enabled";
+            internal const string EnableSourceGen = "build_property.FunctionsEnableMetadataSourceGen";
             internal const string EnablePlaceholder = "build_property.FunctionsEnablePlaceholder";
         }
 

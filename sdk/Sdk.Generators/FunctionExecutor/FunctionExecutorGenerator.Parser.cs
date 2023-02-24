@@ -52,14 +52,11 @@ internal partial class FunctionExecutorGenerator
                     methodParameterList.Add(parameterSymbol.Type.ToDisplayString());
                 }
 
-                var methodSymSemanticModel = Compilation.GetSemanticModel(method.SyntaxTree);
-                var methodSymbol = methodSymSemanticModel.GetDeclaredSymbol(method)!;
+                var methodSymbol = model.GetDeclaredSymbol(method)!;
                 var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-                var functionClass = (ClassDeclarationSyntax)method.Parent!;
-                var entryPoint = $"{fullyQualifiedClassName}.{methodName}";
-
                 if (!classDict.TryGetValue(fullyQualifiedClassName, out var classInfo))
                 {
+                    var functionClass = (ClassDeclarationSyntax)method.Parent!;
                     classInfo = new FunctionClass(fullyQualifiedClassName)
                     {
                         ConstructorParameterTypeNames = GetConstructorParamTypeNames(functionClass, model)
@@ -69,7 +66,7 @@ internal partial class FunctionExecutorGenerator
 
                 var function = new ExecutableFunction
                 {
-                    EntryPoint = entryPoint,
+                    EntryPoint = $"{fullyQualifiedClassName}.{method.Identifier.ValueText}",
                     ParameterTypeNames = methodParameterList,
                     MethodName = methodName,
                     ShouldAwait = IsTaskType(methodSymbol.ReturnType),
@@ -83,9 +80,9 @@ internal partial class FunctionExecutorGenerator
 
             return functionList;
         }
-
+        
         /// <summary>
-        /// Returns true if the symbol is Task/Task<T>/ValueTask/ValueTask<T>.
+        /// Returns true if the symbol is Task/Task of T/ValueTask/ValueTask of T.
         /// </summary>
         private bool IsTaskType(ITypeSymbol typeSymbol)
         {

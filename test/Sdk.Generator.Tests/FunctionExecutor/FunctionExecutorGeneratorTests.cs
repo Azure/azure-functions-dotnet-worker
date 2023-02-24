@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
     public class FunctionExecutorGeneratorTests
     {
-        string expectedExtensionMethodCode = @"public static class FunctionExecutorHostBuilderExtensions
+        private const string ExpectedExtensionMethodCode = @"public static class FunctionExecutorHostBuilderExtensions
     {
         ///<summary>
         /// Configures an optimized function executor to the invocation pipeline.
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     }";
 
         // A super set of assemblies we need for all tests in the file.
-        private Assembly[] _referencedAssemblies = new[]
+        private readonly Assembly[] _referencedAssemblies = new[]
         {
             typeof(HttpTriggerAttribute).Assembly,
             typeof(FunctionAttribute).Assembly,
@@ -100,7 +100,7 @@ namespace Microsoft.Azure.Functions.Worker
             }}
         }}
     }}
-    {expectedExtensionMethodCode}
+    {ExpectedExtensionMethodCode}
 }}".Replace("'", "\"");
 
             await TestHelpers.RunTestAsync<Worker.Sdk.Generators.FunctionExecutorGenerator>(
@@ -174,7 +174,7 @@ namespace Microsoft.Azure.Functions.Worker
             }}
         }}
     }}
-    {expectedExtensionMethodCode}
+    {ExpectedExtensionMethodCode}
 }}".Replace("'", "\"");
 
             await TestHelpers.RunTestAsync<Worker.Sdk.Generators.FunctionExecutorGenerator>(
@@ -191,6 +191,7 @@ namespace Microsoft.Azure.Functions.Worker
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
+
 namespace FunctionApp26
 {
     public static class MyQTriggers
@@ -269,7 +270,7 @@ namespace Microsoft.Azure.Functions.Worker
             }}
         }}
     }}
-    {expectedExtensionMethodCode}
+    {ExpectedExtensionMethodCode}
 }}".Replace("'", "\"");
 
             await TestHelpers.RunTestAsync<Worker.Sdk.Generators.FunctionExecutorGenerator>(

@@ -10,7 +10,7 @@
 
 Welcome to the Azure Functions .NET Worker Repository. Introduced in 2020, Azure Functions' **Isolated Worker Model** moves function execution into a separate language worker process. Isolating function execution from the Azure Functions runtime allows you to have full control over your application's dependencies and easily incorporate advanced .NET features such as middleware and dependency injection.
 
-A .NET Isolated worker process function works different to a .NET in-process function. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
+A .NET Isolated worker process function works differently from a .NET in-process function. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
 
 ## Binding Model
 

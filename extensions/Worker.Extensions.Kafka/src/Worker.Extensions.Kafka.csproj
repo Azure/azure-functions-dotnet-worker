@@ -9,6 +9,9 @@
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+
+    <!-- disable warnings about non-nullable properties in attributes -->
+    <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Extensions.props" />

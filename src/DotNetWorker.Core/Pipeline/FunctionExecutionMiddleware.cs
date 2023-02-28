@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
 
         public Task Invoke(FunctionContext context)
         {
-            return _functionExecutor.ExecuteAsync(context);
+            return _functionExecutor.ExecuteAsync(context).AsTask();
         }
     }
 }

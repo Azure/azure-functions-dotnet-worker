@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
     internal class DefaultBindingFeatureProvider : IInvocationFeatureProvider
     {
         private readonly IConverterContextFactory _converterContextFactory;
-        private static readonly Type _featureType = typeof(IModelBindingFeature);
+        private static readonly Type _featureType = typeof(IFunctionInputBindingFeature);
 
         public DefaultBindingFeatureProvider(IConverterContextFactory converterContextFactory)
         {
@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         public bool TryCreate(Type type, out object? feature)
         {
             feature = type == _featureType
-                ? new DefaultModelBindingFeature(_converterContextFactory)
+                ? new DefaultFunctionInputBindingFeature(_converterContextFactory)
                 : null;
 
             return feature is not null;

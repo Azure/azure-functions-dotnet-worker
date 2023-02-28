@@ -8,13 +8,13 @@
 
 # Azure Functions .NET Worker
 
-Welcome to the Azure Functions .NET Worker Repository. The .NET Worker provides .NET 5 support in Azure Functions, introducing an **Isolated Model**, running as an out-of-process language worker that is separate from the Azure Functions runtime. This allows you to have full control over your application's dependencies as well as other new features like a middleware pipeline.
+Welcome to the Azure Functions .NET Worker Repository. Since 2020, Azure functions introduced an **Isolated worker Model**, running as an isolated language worker that is separate from the Azure Functions host runtime. This allows you to have full control over your application's dependencies, easily incorperate Dependency Injection as well as other advanced .NET features such as middleware.
 
-A .NET Isolated function app works differently than a .NET Core 3.1 function app. For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
+A .NET Isolated worker process function works different than a .NET in-process function . For .NET Isolated, you build an executable that imports the .NET Isolated language worker as a NuGet package. Your app includes a [`Program.cs`](samples/FunctionApp/Program.cs) that starts the worker.
 
 ## Binding Model
 
-.NET Isolated introduces a new binding model, slightly different from the binding model exposed in .NET Core 3 Azure Functions. More information can be [found here](https://github.com/Azure/azure-functions-dotnet-worker/wiki/.NET-Worker-bindings). Please review our samples for usage information.
+.NET Isolated introduces a new binding model, slightly different from the binding model exposed in .NET in-process Azure Functions. More information can be [found here](https://github.com/Azure/azure-functions-dotnet-worker/wiki/.NET-Worker-bindings). Please review our samples for usage information.
 
 ## Middleware
 
@@ -28,8 +28,8 @@ You can find samples on how to use different features of the .NET Worker under `
 
 **Note: Visual Studio and Visual Studio Code support is on the way. In the meantime, please use `azure-functions-core-tools` or the sample projects as a starting point.**
 
-### Install .NET 5.0
-Download .NET 5.0 [from here](https://dotnet.microsoft.com/download/dotnet/5.0)
+### Install .NET 7.0
+Download .NET 7.0 [from here](https://dotnet.microsoft.com/download/dotnet/7.0)
 
 ### Install the Azure Functions Core Tools
 

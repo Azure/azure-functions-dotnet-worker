@@ -18,13 +18,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             public DiagnosticResultTests()
             {
-                // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
-                var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
-                var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
-                var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
@@ -38,9 +34,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     abstractionsExtension,
                     httpExtension,
                     storageExtension,
-                    cosmosDBExtension,
-                    timerExtension,
-                    eventHubsExtension,
                     blobExtension,
                     queueExtension,
                     loggerExtension,
@@ -52,7 +45,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async void MultipleOutputOnMethodFails()
+            public async void MultipleOutputBindingsOnMethodFails()
             {
                 var inputCode = @"using System;
                 using System.Net;
@@ -65,7 +58,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 namespace FunctionApp
                 {
-                    public class EventHubsInput
+                    public class StorageInputs
                     {
                         [Function(""QueueToBlobFunction"")]
                         [BlobOutput(""container1/hello.txt"", Connection = ""MyOtherConnection"")]
@@ -85,7 +78,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             {
                 new DiagnosticResult(DiagnosticDescriptors.MultipleBindingsGroupedTogether)
                 .WithSpan(17, 39, 17, 50)
-                // these arguments are the value we pass as the message format parameters when creating the DiagnosticDescriptor instance.
+                // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                 .WithArguments("Method", "QueueToBlob")
             };
 
@@ -98,7 +91,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async void MultipleBindingsOnPropertyFails()
+            public async void MultipleOutputBindingsOnPropertyFails()
             {
                 var inputCode = @"using System.Net;
                 using Microsoft.Azure.Functions.Worker;
@@ -140,9 +133,59 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             {
                 new DiagnosticResult(DiagnosticDescriptors.MultipleBindingsGroupedTogether)
                 .WithSpan(28, 39, 28, 43)
-                // these arguments are the value we pass as the message format parameters when creating the DiagnosticDescriptor instance.
+                // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                 .WithArguments("Property", "Name")
             };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults);
+            }
+
+            [Fact]
+            public async void MultipleHttpResponseBindingsFails()
+            {
+                var inputCode = @"using System;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using System.Threading.Tasks;
+
+                namespace FunctionApp
+                {
+                    public class MultiOutputReturnTypeHttp
+                    {
+                        [Function(""HttpAndBlob"")]
+                        public MultiReturnHttp HttpAndBlobFunction(
+                            [HttpTrigger(""get"")] string req)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public class MultiReturnHttp
+                    {
+                        [BlobOutput(""container1/hello.txt"", Connection = ""MyOtherConnection"")]
+                        public string Name { get; set; }
+
+                        public HttpResponseData HttpResponse { get; set; }
+
+                        public HttpResponseData HttpResult { get; set; }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.MultipleHttpResponseTypes)
+                    .WithSpan(11, 32, 11, 47)
+                    // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
+                    .WithArguments("MultiReturnHttp")
+                };
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
                     referencedExtensionAssemblies,

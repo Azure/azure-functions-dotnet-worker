@@ -331,7 +331,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         if (foundHttpOutput)
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, returnTypeLocation, new object[] { nameof(prop), nameof(returnTypeSymbol) }));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, returnTypeLocation, new object[] { returnTypeSymbol.Name }));
                             bindingsList = null;
                             return false;
                         }

@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Defines a prefix to be used within a Leases container for this Trigger. Useful when sharing the same Lease container among multiple Triggers
         /// </summary>
         public string? LeaseContainerPrefix { get; set; }
-        
+
         /// <summary>
         /// Optional.
         /// Customizes the delay in milliseconds in between polling a partition for new changes on the feed, after all current changes are drained.  Default is 5000 (5 seconds).
@@ -120,8 +120,8 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
-        /// GGets or sets the a date and time to initialize the change feed read operation from. 
-        /// The recommended format is ISO 8601 with the UTC designator. 
+        /// GGets or sets the a date and time to initialize the change feed read operation from.
+        /// The recommended format is ISO 8601 with the UTC designator.
         /// For example: "2021-02-16T14:19:29Z"
         /// </summary>
         public string? StartFromTime { get; set; }

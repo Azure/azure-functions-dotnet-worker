@@ -6,109 +6,218 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Converters;
 using System.Collections.Generic;
-using Azure.Core;
-using Azure.Identity;
 using Microsoft.Azure.Cosmos;
+using System.Linq;
+using System.Reflection;
+using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind Blob Storage type parameters.
+    /// Converter to bind Cosmos DB type parameters.
     /// </summary>
     internal class CosmosDBConverter : IInputConverter
     {
-        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
-        {
-            if (context.Source is not ModelBindingData ||
-                context.Source is not CollectionModelBindingData)
-            {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
-            }
+        private readonly IOptionsSnapshot<CosmosDBBindingOptions> _cosmosOptions;
+        private readonly ILogger<CosmosDBConverter> _logger;
 
-            if (context.Source.Source is not Constants.ExtensionName)
+        public CosmosDBConverter(IOptionsSnapshot<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
+        {
+            _cosmosOptions = cosmosOptions ?? throw new ArgumentNullException(nameof(cosmosOptions));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        {
+            return context?.Source switch
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
+                CollectionModelBindingData binding => await ConvertFromCollectionBindingDataAsync(context, binding), // we don't have cardinality so this never hits
+                _ => ConversionResult.Unhandled(),
+            };
+        }
+
+        internal virtual async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        {
+            if (!IsCosmosExtension(modelBindingData))
+            {
+                return ConversionResult.Unhandled();
             }
 
             try
             {
-                object result = context.Source switch
-                {
-                    ModelBindingData => ToTargetType(context.TargetType, context.Source.Content),
-                    CollectionModelBindingData => ToTargetTypeCollection(context.TargetType, context.Source),
-                    _ => null
-                };
+                Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
+                var cosmosAttribute = GetBindingDataContent(modelBindingData);
+                object result = await ToTargetType(context.TargetType, cosmosAttribute);
 
                 if (result is not null)
                 {
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(result));
+                    return ConversionResult.Success(result);
                 }
             }
             catch (Exception ex)
             {
-                // TODO: DeserializeObject could throw
-                Console.WriteLine(ex);
+                return ConversionResult.Failed(ex);
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return ConversionResult.Unhandled();
         }
 
-        // v4: CosmosDatabase instead of Database and CosmosContainer instead of Container
-        private object? ToTargetType(Type targetType, BinaryData content) => targetType switch
+        internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
-            Type _ when targetType == typeof(CosmosClient)        => CreateCosmosReference<CosmosClient>(content),
-            Type _ when targetType == typeof(Database)            => CreateCosmosReference<Database>(content),
-            Type _ when targetType == typeof(Container)           => CreateCosmosReference<Container>(content),
-            _ => content.ToObjectFromJson(targetType)
+            var cosmosCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
+
+            if (collectionModelBindingData.ModelBindingDataArray.Any(bindingData => !IsCosmosExtension(bindingData)))
+            {
+                return ConversionResult.Unhandled();
+            }
+
+            try
+            {
+                foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
+                {
+                    var cosmosAttribute = GetBindingDataContent(modelBindingData);
+                    var cosmosItem = await ToTargetType(context.TargetType, cosmosAttribute);
+                    if (cosmosItem is not null)
+                    {
+                        cosmosCollection.Add(cosmosItem);
+                    }
+                }
+
+                if (cosmosCollection is not null && cosmosCollection is { Count: > 0 })
+                {
+                    return ConversionResult.Success(cosmosCollection);
+                }
+            }
+            catch (Exception ex)
+            {
+                return ConversionResult.Failed(ex);
+            }
+
+            return ConversionResult.Unhandled();
+        }
+
+        internal bool IsCosmosExtension(ModelBindingData bindingData)
+        {
+            if (bindingData?.Source is not Constants.CosmosExtensionName)
+            {
+                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData?.Source, nameof(CosmosDBConverter));
+                return false;
+            }
+
+            return true;
+        }
+
+        internal CosmosDBInputAttribute GetBindingDataContent(ModelBindingData bindingData)
+        {
+            return bindingData?.ContentType switch
+            {
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>(),
+                _ => throw new NotSupportedException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
+            };
+        }
+
+        private async Task<object> ToTargetType(Type targetType, CosmosDBInputAttribute cosmosAttribute) => targetType switch
+        {
+            Type _ when targetType == typeof(CosmosClient) => CreateCosmosClient<CosmosClient>(cosmosAttribute),
+            Type _ when targetType == typeof(Database) => CreateCosmosClient<Database>(cosmosAttribute),
+            Type _ when targetType == typeof(Container) => CreateCosmosClient<Container>(cosmosAttribute),
+            _ => await CreateTargetObject(targetType, cosmosAttribute)
         };
 
-        private IEnumerable<object> ToTargetTypeCollection(ConverterContext context, Type targetType, CollectionModelBindingData collectionModelBindingData)
+        private async Task<object> CreateTargetObject(Type targetType, CosmosDBInputAttribute cosmosAttribute)
         {
-            var collectionBlob = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
-
-            foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
+            if (targetType.GenericTypeArguments.Any())
             {
-                var element = ToTargetType(targetType, modelBindingData.Content);
-                if (element != null)
+                targetType = targetType.GenericTypeArguments.FirstOrDefault();
+            }
+
+            MethodInfo createPOCOFromReferenceMethod = GetType()
+                                                        .GetMethod(nameof(CreatePOCOFromReference), BindingFlags.Instance | BindingFlags.NonPublic)
+                                                        .MakeGenericMethod(new Type[] { targetType });
+
+            return await (Task<object>)createPOCOFromReferenceMethod.Invoke(this, new object[] { cosmosAttribute });
+        }
+
+        // This will be for input bindings only.
+        // a) If users bind to just a POCO, they need to provide the `Id` and `PartitionKey`
+        //     attributes so that we know which document to pull
+        // b) If they bind to IList<POCO>, we should be able to just pull every document
+        //    in the container, unless they specify the the SqlQuery attribute, in which case
+        //    we need to filter on that.
+        private async Task<object> CreatePOCOFromReference<T>(CosmosDBInputAttribute cosmosAttribute)
+        {
+            var container = CreateCosmosClient<Container>(cosmosAttribute) as Container;
+
+            if (container is null)
+            {
+                // use proper exception type or handle
+                throw new InvalidOperationException("Houston, we have a problem");
+            }
+
+            var partitionKey = cosmosAttribute.PartitionKey == null ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
+
+            if (cosmosAttribute.Id is not null)
+            {
+                ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, partitionKey);
+
+                if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
                 {
-                    collectionBlob.Add(element);
+                    throw new InvalidOperationException($"Unable to retrieve document with ID {cosmosAttribute.Id} and PartitionKey {cosmosAttribute.PartitionKey}");
+                }
+
+                return item.Resource;
+            }
+
+            QueryDefinition queryDefinition = null;
+            if (cosmosAttribute.SqlQuery is not null)
+            {
+                queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
+                if (cosmosAttribute.SqlQueryParameters != null)
+                {
+                    // TODO: fix SqlQueryParameters being empty
+                    foreach (var parameter in cosmosAttribute.SqlQueryParameters)
+                    {
+                        queryDefinition.WithParameter(parameter.Item1, parameter.Item2);
+                    }
                 }
             }
 
-            return collectionBlob;
+            QueryRequestOptions queryRequestOptions = new() { PartitionKey = partitionKey };
+            using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
+            {
+                return await ExtractCosmosDocuments(iterator);
+            }
         }
 
-        private object CreateCosmosReference<T>(BinaryData content)
+        private async Task<IList<T>> ExtractCosmosDocuments<T>(FeedIterator<T> iterator)
         {
-            var cosmosAttribute = content.ToObjectFromJson<CosmosDBInputAttribute>();
-            var connectionString = Environment.GetEnvironmentVariable(cosmosAttribute?.Connection);
-
-            CosmosClient cosmosClient;
-
-            if (connectionString is null)
+            var documentList = new List<T>();
+            while (iterator.HasMoreResults)
             {
-                var tenantId = Environment.GetEnvironmentVariable(Constants.ConnectionTenantId);
-                var clientId = Environment.GetEnvironmentVariable(Constants.ConnectionClientId);
-                var clientSecret = Environment.GetEnvironmentVariable(Constants.ConnectionClientSecret);
-                var accountName = Environment.GetEnvironmentVariable(Constants.ConnectionAccountName);
-
-                TokenCredential credential = !string.IsNullOrEmpty(clientSecret) && !string.IsNullOrEmpty(tenantId)
-                                                ? new ClientSecretCredential(tenantId, clientId, clientSecret)
-                                                : new ChainedTokenCredential(new ManagedIdentityCredential(clientId), new ManagedIdentityCredential());
-
-
-                cosmosClient = new($"https://{accountName}.documents.azure.com:443/", credential);
+                FeedResponse<T> response = await iterator.ReadNextAsync();
+                documentList.AddRange(response.Resource);
             }
-            else
+            return documentList;
+        }
+
+        private T CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
+        {
+            if (cosmosAttribute is null)
             {
-                cosmosClient = new(connectionString);
+                throw new ArgumentNullException(nameof(cosmosAttribute));
             }
 
+            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
+            CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations) };
+            CosmosClient cosmosClient = cosmosDBOptions.CreateClient(cosmosClientOptions);
 
             Type targetType = typeof(T);
-            object cosmosReference = targetType switch {
-                Type _ when targetType == typeof(Database)    => cosmosClient.GetDatabase(cosmosAttribute?.DatabaseName),
-                Type _ when targetType == typeof(Container)   => cosmosClient.GetContainer(cosmosAttribute?.DatabaseName, cosmosAttribute?.ContainerName),
+            object cosmosReference = targetType switch
+            {
+                Type _ when targetType == typeof(Database) => cosmosClient.GetDatabase(cosmosAttribute.DatabaseName),
+                Type _ when targetType == typeof(Container) => cosmosClient.GetContainer(cosmosAttribute.DatabaseName, cosmosAttribute.ContainerName),
                 _ => cosmosClient
             };
 

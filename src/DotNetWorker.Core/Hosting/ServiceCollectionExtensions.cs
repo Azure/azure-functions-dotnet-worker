@@ -87,9 +87,6 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
 
-            // Add http coordinator
-            services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
-
             if (configure != null)
             {
                 services.Configure(configure);
@@ -118,7 +115,6 @@ namespace Microsoft.Extensions.DependencyInjection
                 workerOption.InputConverters.Register<JsonPocoConverter>();
                 workerOption.InputConverters.Register<ArrayConverter>();
                 workerOption.InputConverters.Register<CancellationTokenConverter>();
-                workerOption.InputConverters.Register<HttpContextConverter>(); // added HTTPContext converter
             });
         }
 

@@ -21,10 +21,10 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             Name = loadRequest.Metadata.Name;
             Id = loadRequest.FunctionId;
 
-            string? scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY");
+            string? scriptRoot = Environment.GetEnvironmentVariable("AzureWebJobsScriptRoot");
             if (string.IsNullOrWhiteSpace(scriptRoot))
             {
-                throw new InvalidOperationException("The 'FUNCTIONS_WORKER_DIRECTORY' environment variable value is not defined. This is a required environment variable that is automatically set by the Azure Functions runtime.");
+                throw new InvalidOperationException("The 'AzureWebJobsScriptRoot' environment variable value is not defined. This is a required environment variable that is automatically set by the Azure Functions runtime.");
             }
 
             if (string.IsNullOrWhiteSpace(loadRequest.Metadata.ScriptFile))

@@ -153,7 +153,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
                         if (hasOutputBinding)
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, bindingLocation, method.ToString()));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, bindingLocation, new object[] { "Method", method.Identifier.ToString() }));
                             bindingsList = null;
                             return false;
                         }
@@ -332,7 +332,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         if (foundHttpOutput)
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, returnTypeLocation, new object[] { nameof(prop), nameof(returnTypeSymbol) }));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, returnTypeLocation, new object[] { returnTypeSymbol.Name }));
                             bindingsList = null;
                             return false;
                         }
@@ -351,7 +351,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 // validate that there's only one binding attribute per property
                                 if (foundPropertyOutputAttr)
                                 {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, prop.Locations.FirstOrDefault(), new object[] { nameof(prop), nameof(returnTypeSymbol) }));
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, prop.Locations.FirstOrDefault(), new object[] { "Property", prop.Name.ToString() }));
                                     bindingsList = null;
                                     return false;
                                 }

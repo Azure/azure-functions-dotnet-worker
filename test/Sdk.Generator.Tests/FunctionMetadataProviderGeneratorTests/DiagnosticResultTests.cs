@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
@@ -51,10 +50,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Net;
                 using System.Collections;
                 using System.Collections.Generic;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
                 using System.Linq;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
 
                 namespace FunctionApp
                 {
@@ -149,9 +148,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             public async void MultipleHttpResponseBindingsFails()
             {
                 var inputCode = @"using System;
+                using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
-                using System.Threading.Tasks;
 
                 namespace FunctionApp
                 {

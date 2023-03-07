@@ -4,11 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Microsoft.Azure.Functions.Worker.Sdk.Generators.Enums;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 

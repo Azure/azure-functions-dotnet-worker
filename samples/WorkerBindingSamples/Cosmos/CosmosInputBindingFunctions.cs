@@ -136,7 +136,6 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        // Currently not working, unable to resolve {id} from route
         [Function(nameof(DocByIdFromRouteDataUsingSqlQuery))]
         public HttpResponseData DocByIdFromRouteDataUsingSqlQuery(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "todoitems2/{id}")] HttpRequestData req,
@@ -157,8 +156,6 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        // not working
-        // Error converting 1 input parameters for Function 'DocsBySqlQuery': Cannot convert input parameter 'toDoItems' to type 'System.Collections.Generic.IEnumerable`1[[SampleApp.ToDoItem, WorkerBindingSamples, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]' from type 'Microsoft.Azure.Functions.Worker.Grpc.Messages.GrpcModelBindingData'. Error:System.ArgumentException: PartitionKey has fewer components than defined the collection resource.
         [Function(nameof(DocsBySqlQuery))]
         public HttpResponseData DocsBySqlQuery(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,

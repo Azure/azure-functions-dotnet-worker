@@ -70,6 +70,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// </example>
         public string? PreferredLocations { get; set; }
 
-        internal IEnumerable<(string, object)> SqlQueryParameters { get; set; }
+        /// <summary>
+        /// Optional.
+        /// Defines the parameters to be used with the SqlQuery
+        /// </summary>
+        public IDictionary<string, object>? SqlQueryParameters { get; set; }
     }
 }

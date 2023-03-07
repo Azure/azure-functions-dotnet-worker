@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker
             return context?.Source switch
             {
                 ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
-                CollectionModelBindingData binding => await ConvertFromCollectionBindingDataAsync(context, binding), // we don't have cardinality so this never hits
+                CollectionModelBindingData binding => await ConvertFromCollectionBindingDataAsync(context, binding), // we don't have cardinality in cosmos so this never hits
                 _ => ConversionResult.Unhandled(),
             };
         }
@@ -167,24 +167,30 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new InvalidOperationException($"Unable to retrieve document with ID {cosmosAttribute.Id} and PartitionKey {cosmosAttribute.PartitionKey}");
                 }
 
-                return item.Resource;
+                return item.Resource!;
             }
 
-            QueryDefinition queryDefinition = null;
+            QueryDefinition queryDefinition = null!;
             if (cosmosAttribute.SqlQuery is not null)
             {
                 queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
-                if (cosmosAttribute.SqlQueryParameters != null)
+                if (cosmosAttribute.SqlQueryParameters?.Count() <= 0)
                 {
-                    // TODO: fix SqlQueryParameters being empty
                     foreach (var parameter in cosmosAttribute.SqlQueryParameters)
                     {
-                        queryDefinition.WithParameter(parameter.Item1, parameter.Item2);
+                        queryDefinition.WithParameter(parameter.Key, parameter.Value.ToString());
                     }
                 }
             }
 
-            QueryRequestOptions queryRequestOptions = new() { PartitionKey = partitionKey };
+            // Workaround until bug in Cosmos SDK is fixed
+            // Currently pending release: https://github.com/Azure/azure-cosmos-dotnet-v3/commit/d6e04a92f8778565eb1d1452738d37c7faf3c47a
+            QueryRequestOptions queryRequestOptions = new();
+            if (partitionKey != PartitionKey.None)
+            {
+                queryRequestOptions = new() { PartitionKey = partitionKey };
+            }
+
             using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {
                 return await ExtractCosmosDocuments(iterator);
@@ -210,7 +216,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
-            CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations) };
+            CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations!) };
             CosmosClient cosmosClient = cosmosDBOptions.CreateClient(cosmosClientOptions);
 
             Type targetType = typeof(T);

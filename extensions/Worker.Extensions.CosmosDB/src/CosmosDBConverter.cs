@@ -33,7 +33,6 @@ namespace Microsoft.Azure.Functions.Worker
             return context?.Source switch
             {
                 ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
-                CollectionModelBindingData binding => await ConvertFromCollectionBindingDataAsync(context, binding), // we don't have cardinality in cosmos so this never hits
                 _ => ConversionResult.Unhandled(),
             };
         }
@@ -54,40 +53,6 @@ namespace Microsoft.Azure.Functions.Worker
                 if (result is not null)
                 {
                     return ConversionResult.Success(result);
-                }
-            }
-            catch (Exception ex)
-            {
-                return ConversionResult.Failed(ex);
-            }
-
-            return ConversionResult.Unhandled();
-        }
-
-        internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
-        {
-            var cosmosCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
-
-            if (collectionModelBindingData.ModelBindingDataArray.Any(bindingData => !IsCosmosExtension(bindingData)))
-            {
-                return ConversionResult.Unhandled();
-            }
-
-            try
-            {
-                foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
-                {
-                    var cosmosAttribute = GetBindingDataContent(modelBindingData);
-                    var cosmosItem = await ToTargetType(context.TargetType, cosmosAttribute);
-                    if (cosmosItem is not null)
-                    {
-                        cosmosCollection.Add(cosmosItem);
-                    }
-                }
-
-                if (cosmosCollection is not null && cosmosCollection is { Count: > 0 })
-                {
-                    return ConversionResult.Success(cosmosCollection);
                 }
             }
             catch (Exception ex)
@@ -152,8 +117,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (container is null)
             {
-                // use proper exception type or handle
-                throw new InvalidOperationException("Houston, we have a problem");
+                throw new InvalidOperationException("Unable to create Cosmos Container.");
             }
 
             var partitionKey = cosmosAttribute.PartitionKey == null ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);

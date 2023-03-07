@@ -46,7 +46,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
                 var cosmosAttribute = GetBindingDataContent(modelBindingData);
                 object result = await ToTargetType(context.TargetType, cosmosAttribute);
 
@@ -138,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker
             if (cosmosAttribute.SqlQuery is not null)
             {
                 queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
-                if (cosmosAttribute.SqlQueryParameters?.Count() <= 0)
+                if (cosmosAttribute.SqlQueryParameters?.Count() > 0)
                 {
                     foreach (var parameter in cosmosAttribute.SqlQueryParameters)
                     {

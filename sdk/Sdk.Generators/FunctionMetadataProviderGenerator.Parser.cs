@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.SqlTypes;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -210,20 +211,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.BindingAttribute)))
                         {
-                            //var cardinality = Cardinality.Undefined;
-                            var dataType = GetDataType(parameterSymbol.Type);
 
                             if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.HttpTriggerBinding)))
                             {
                                 hasHttpTrigger = true;
                             }
 
-                            
-                            if (IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out dataType))
+                            DataType dataType = GetDataType(parameterSymbol.Type);
+
+                            if(HasCardinality(attribute))
                             {
-                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidEventHubsTrigger, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
-                                bindingsList = null;
-                                return false;
+                                if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out dataType))
+                                {
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
+                                    bindingsList = null;
+                                    return false;
+                                }
                             }
 
                             string bindingName = parameter.Identifier.ValueText;
@@ -234,7 +237,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 return false;
                             }
 
-                            // TODO: Check to see if these values are already defined using NamedArgs and stuff
                             if (dataType is not DataType.Undefined)
                             {
                                 bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
@@ -563,6 +565,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
             }
 
+            private bool HasCardinality(AttributeData attribute)
+            {
+                var attrClass = attribute.AttributeClass;
+                var isBatchedProp = attrClass!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+
+                if (isBatchedProp != null)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             /// <summary>
             /// This method verifies that a binding that has Cardinality (isBatched property) is valid. If isBatched is set to true, the parameter with the
             /// attribute must be an enumerable type.
@@ -589,15 +604,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-                // Check the default value of IsBatched
-                var attrClass = attribute.AttributeClass;
-                var isBatchedProp = attrClass!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
-                AttributeData defaultValAttr= isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue))).SingleOrDefault();
-                var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg, the default value
-                if (!cardinalityIsNamedArg && (!bool.TryParse(defaultVal, out bool b) || !b))
+                // When "IsBatched" is not a named arg, we have to check the default value
+                if (!cardinalityIsNamedArg)
                 {
-                    dataType = GetDataType(parameterSymbol.Type);
-                    return true;
+                    var attrClass = attribute.AttributeClass;
+                    var isBatchedProp = attrClass!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+                    AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue))).SingleOrDefault();
+                    var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
+                    if (!bool.TryParse(defaultVal, out bool b) || !b)
+                    {
+                        dataType = GetDataType(parameterSymbol.Type);
+                        return true;
+                    }
                 }
 
                 // we check if the param is an array type

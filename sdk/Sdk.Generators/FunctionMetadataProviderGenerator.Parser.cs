@@ -221,7 +221,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out dataType))
                                 {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), parameterSymbol.Name));
                                     bindingsList = null;
                                     return false;
                                 }

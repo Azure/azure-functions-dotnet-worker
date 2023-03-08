@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Reflection;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -18,7 +21,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");            
+                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
                 var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
@@ -256,6 +259,51 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
+            }
+
+            [Fact]
+            public async void TestInvalidBlobCardinalityMany()
+            {
+                string inputCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Net;
+                using System.Text.Json.Serialization;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class BlobTest
+                    {                
+                        [Function("Function1")]
+                        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+                            [BlobInput("input-container", Connection = "AzureWebJobsStorage", IsBatched = true)] string blobs)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """;
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.InvalidCardinality)
+                    .WithSpan(15, 105, 15, 110)
+                    // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
+                    .WithArguments("blobs")
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    _referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults);
             }
         }
     }

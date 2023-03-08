@@ -11,8 +11,6 @@ namespace SampleApp
     // We cannot use trigger bindings with reference types because there is no way for the CosmosDB
     // SDK to let us know the ID of the document that triggered the function; therefore we cannot create
     // a client that is able to pull the triggering document.
-    //
-    // TODO: ensure that for Cosmos trigger binding we do NOT use ParameterBindingData
     public static class CosmosTriggerFunction
     {
         [Function(nameof(CosmosTriggerFunction))]

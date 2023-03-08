@@ -217,7 +217,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             DataType dataType = GetDataType(parameterSymbol.Type);
 
-                            if(HasCardinality(attribute))
+                            if(IsCardinalitySupported(attribute))
                             {
                                 if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out dataType))
                                 {
@@ -563,7 +563,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
             }
 
-            private bool HasCardinality(AttributeData attribute)
+            private bool IsCardinalitySupported(AttributeData attribute)
             {
                 var attrClass = attribute.AttributeClass;
                 var isBatchedProp = attrClass!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();

@@ -3,6 +3,7 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker.Extensions;
+using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;

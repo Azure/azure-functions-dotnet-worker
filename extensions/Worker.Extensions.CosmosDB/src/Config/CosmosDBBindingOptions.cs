@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public TokenCredential? Credential { get; set; }
 
-        public CosmosClient CreateClient(CosmosClientOptions cosmosClientOptions)
+        internal virtual CosmosClient CreateClient(CosmosClientOptions cosmosClientOptions)
         {
             if (string.IsNullOrEmpty(ConnectionString))
             {

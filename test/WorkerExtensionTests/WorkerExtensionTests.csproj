@@ -23,6 +23,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
+        <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
         <ProjectReference Include="..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
     </ItemGroup>
 

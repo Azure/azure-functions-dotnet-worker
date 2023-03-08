@@ -5,6 +5,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using System.Collections.Generic;
 using Microsoft.Azure.Cosmos;
 using System.Linq;
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        internal virtual async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsCosmosExtension(modelBindingData))
             {
@@ -47,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 var cosmosAttribute = GetBindingDataContent(modelBindingData);
-                object result = await ToTargetType(context.TargetType, cosmosAttribute);
+                object result = await ToTargetTypeAsync(context.TargetType, cosmosAttribute);
 
                 if (result is not null)
                 {
@@ -62,7 +63,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        internal bool IsCosmosExtension(ModelBindingData bindingData)
+        private bool IsCosmosExtension(ModelBindingData bindingData)
         {
             if (bindingData?.Source is not Constants.CosmosExtensionName)
             {
@@ -73,24 +74,24 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        internal CosmosDBInputAttribute GetBindingDataContent(ModelBindingData bindingData)
+        private CosmosDBInputAttribute GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>(),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
+                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
             };
         }
 
-        private async Task<object> ToTargetType(Type targetType, CosmosDBInputAttribute cosmosAttribute) => targetType switch
+        private async Task<object> ToTargetTypeAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute) => targetType switch
         {
             Type _ when targetType == typeof(CosmosClient) => CreateCosmosClient<CosmosClient>(cosmosAttribute),
             Type _ when targetType == typeof(Database) => CreateCosmosClient<Database>(cosmosAttribute),
             Type _ when targetType == typeof(Container) => CreateCosmosClient<Container>(cosmosAttribute),
-            _ => await CreateTargetObject(targetType, cosmosAttribute)
+            _ => await CreateTargetObjectAsync(targetType, cosmosAttribute)
         };
 
-        private async Task<object> CreateTargetObject(Type targetType, CosmosDBInputAttribute cosmosAttribute)
+        private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute)
         {
             if (targetType.GenericTypeArguments.Any())
             {
@@ -98,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             MethodInfo createPOCOFromReferenceMethod = GetType()
-                                                        .GetMethod(nameof(CreatePOCOFromReference), BindingFlags.Instance | BindingFlags.NonPublic)
+                                                        .GetMethod(nameof(CreatePOCOFromReferenceAsync), BindingFlags.Instance | BindingFlags.NonPublic)
                                                         .MakeGenericMethod(new Type[] { targetType });
 
             return await (Task<object>)createPOCOFromReferenceMethod.Invoke(this, new object[] { cosmosAttribute });
@@ -110,7 +111,7 @@ namespace Microsoft.Azure.Functions.Worker
         // b) If they bind to IList<POCO>, we should be able to just pull every document
         //    in the container, unless they specify the the SqlQuery attribute, in which case
         //    we need to filter on that.
-        private async Task<object> CreatePOCOFromReference<T>(CosmosDBInputAttribute cosmosAttribute)
+        private async Task<object> CreatePOCOFromReferenceAsync<T>(CosmosDBInputAttribute cosmosAttribute)
         {
             var container = CreateCosmosClient<Container>(cosmosAttribute) as Container;
 
@@ -119,22 +120,22 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("Unable to create Cosmos Container.");
             }
 
-            var partitionKey = cosmosAttribute.PartitionKey == null ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
+            var partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey) ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
 
-            if (cosmosAttribute.Id is not null)
+            if (!String.IsNullOrEmpty(cosmosAttribute.Id))
             {
                 ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, partitionKey);
 
                 if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
                 {
-                    throw new InvalidOperationException($"Unable to retrieve document with ID {cosmosAttribute.Id} and PartitionKey {cosmosAttribute.PartitionKey}");
+                    throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
                 }
 
                 return item.Resource!;
             }
 
             QueryDefinition queryDefinition = null!;
-            if (cosmosAttribute.SqlQuery is not null)
+            if (!String.IsNullOrEmpty(cosmosAttribute.SqlQuery))
             {
                 queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
                 if (cosmosAttribute.SqlQueryParameters?.Count() > 0)
@@ -156,11 +157,17 @@ namespace Microsoft.Azure.Functions.Worker
 
             using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {
-                return await ExtractCosmosDocuments(iterator);
+                if (iterator is null)
+                {
+                    var queryInfo = queryDefinition is not null ? $" SqlQuery: {queryDefinition.QueryText}." : "";
+                    throw new InvalidOperationException($"Unable to retrieve documents for container '{container.Id}'.{queryInfo}");
+                }
+
+                return await ExtractCosmosDocumentsAsync(iterator);
             }
         }
 
-        private async Task<IList<T>> ExtractCosmosDocuments<T>(FeedIterator<T> iterator)
+        private async Task<IList<T>> ExtractCosmosDocumentsAsync<T>(FeedIterator<T> iterator)
         {
             var documentList = new List<T>();
             while (iterator.HasMoreResults)
@@ -173,11 +180,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         private T CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
         {
-            if (cosmosAttribute is null)
-            {
-                throw new ArgumentNullException(nameof(cosmosAttribute));
-            }
-
             var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
             CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations!) };
             CosmosClient cosmosClient = cosmosDBOptions.CreateClient(cosmosClientOptions);

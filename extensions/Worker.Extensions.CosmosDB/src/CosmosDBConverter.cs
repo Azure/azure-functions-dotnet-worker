@@ -93,26 +93,24 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute)
         {
+            MethodInfo createPOCOMethod;
+
             if (targetType.GenericTypeArguments.Any())
             {
                 targetType = targetType.GenericTypeArguments.FirstOrDefault();
+
+                createPOCOMethod = GetType()
+                                    .GetMethod(nameof(CreatePOCOCollectionAsync), BindingFlags.Instance | BindingFlags.NonPublic)
+                                    .MakeGenericMethod(new Type[] { targetType });
+            }
+            else
+            {
+                createPOCOMethod = GetType()
+                                    .GetMethod(nameof(CreatePOCOAsync), BindingFlags.Instance | BindingFlags.NonPublic)
+                                    .MakeGenericMethod(new Type[] { targetType });
             }
 
-            MethodInfo createPOCOFromReferenceMethod = GetType()
-                                                        .GetMethod(nameof(CreatePOCOFromReferenceAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                                        .MakeGenericMethod(new Type[] { targetType });
 
-            return await (Task<object>)createPOCOFromReferenceMethod.Invoke(this, new object[] { cosmosAttribute });
-        }
-
-        // This will be for input bindings only.
-        // a) If users bind to just a POCO, they need to provide the `Id` and `PartitionKey`
-        //     attributes so that we know which document to pull
-        // b) If they bind to IList<POCO>, we should be able to just pull every document
-        //    in the container, unless they specify the the SqlQuery attribute, in which case
-        //    we need to filter on that.
-        private async Task<object> CreatePOCOFromReferenceAsync<T>(CosmosDBInputAttribute cosmosAttribute)
-        {
             var container = CreateCosmosClient<Container>(cosmosAttribute) as Container;
 
             if (container is null)
@@ -122,18 +120,28 @@ namespace Microsoft.Azure.Functions.Worker
 
             var partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey) ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
 
-            if (!String.IsNullOrEmpty(cosmosAttribute.Id))
+            return await (Task<object>)createPOCOMethod.Invoke(this, new object[] { container, cosmosAttribute, partitionKey });
+        }
+
+        private async Task<object> CreatePOCOAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute, PartitionKey partitionKey)
+        {
+            if (String.IsNullOrEmpty(cosmosAttribute.Id))
             {
-                ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, partitionKey);
-
-                if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
-                {
-                    throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
-                }
-
-                return item.Resource!;
+                throw new ArgumentNullException(nameof(cosmosAttribute.Id), "An 'Id' must be provided to retrieve a single document.");
             }
 
+            ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, partitionKey);
+
+            if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
+            {
+                throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
+            }
+
+            return item.Resource!;
+        }
+
+        private async Task<object> CreatePOCOCollectionAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute, PartitionKey partitionKey)
+        {
             QueryDefinition queryDefinition = null!;
             if (!String.IsNullOrEmpty(cosmosAttribute.SqlQuery))
             {

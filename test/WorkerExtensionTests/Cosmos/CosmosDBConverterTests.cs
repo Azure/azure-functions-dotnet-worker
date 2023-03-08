@@ -101,9 +101,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_POCO_ReturnsSuccess()
+        public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithId_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var expectedToDoItem = new ToDoItem() { Id = "1", Description = "Take out the rubbish"};
@@ -127,6 +127,23 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(expectedToDoItem, conversionResult.Value);
         }
 
+        [Fact]
+        public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithoutId_ReturnsFailed()
+        {
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
+
+            var mockContainer = new Mock<Container>();
+
+            _mockCosmosClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("An 'Id' must be provided to retrieve a single document. (Parameter 'Id')", conversionResult.Error.Message);
+        }
 
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_IEnumerablePOCO_ReturnsSuccess()
@@ -233,7 +250,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ThrowsException_ReturnsFailure()
         {
             var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(Database), grpcModelBindingData);
 
             _mockCosmosClient
                 .Setup(m => m.GetDatabase(It.IsAny<string>()))
@@ -272,17 +289,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ModelBindingDataSource_NotCosmosExtension_ReturnsUnhandled()
         {
             var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(), source: "anotherExtensions");
-            var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
-
-            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_ModelBindingDataSource_Null_ReturnsUnhandled()
-        {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(), source: null);
             var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);

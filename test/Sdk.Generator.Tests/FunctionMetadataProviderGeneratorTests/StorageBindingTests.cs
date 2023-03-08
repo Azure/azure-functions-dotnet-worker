@@ -3,7 +3,6 @@
 
 using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;

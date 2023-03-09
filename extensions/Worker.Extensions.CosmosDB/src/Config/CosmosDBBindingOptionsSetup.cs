@@ -32,7 +32,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (!connectionSection.Exists())
             {
-                // Not found
                 throw new InvalidOperationException($"Cosmos DB connection configuration '{name}' does not exist. " +
                                                     "Make sure that it is a defined App Setting.");
             }
@@ -43,10 +42,9 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                options.AccountEndpoint  = connectionSection[Constants.AccountEndpoint];
+                options.AccountEndpoint = connectionSection[Constants.AccountEndpoint];
                 if (string.IsNullOrWhiteSpace(options.AccountEndpoint))
                 {
-                    // Not found
                     throw new InvalidOperationException($"Connection should have an '{Constants.AccountEndpoint}' property or be a " +
                         $"string representing a connection string.");
                 }

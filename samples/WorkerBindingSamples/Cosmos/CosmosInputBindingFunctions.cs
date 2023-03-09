@@ -37,7 +37,7 @@ namespace SampleApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    _logger.LogInformation(d.description);
+                    _logger.LogInformation((string)d.description);
                 }
             }
 
@@ -58,7 +58,7 @@ namespace SampleApp
                 var containers = await iterator.ReadNextAsync();
                 foreach (dynamic c in containers)
                 {
-                    _logger.LogInformation(c.id);
+                    _logger.LogInformation((string)c.id);
                 }
             }
 
@@ -79,7 +79,7 @@ namespace SampleApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    _logger.LogInformation("Found ToDo item, Description={desc}", d.description);
+                    _logger.LogInformation("Found ToDo item, Description={desc}", (string)d.description);
                 }
             }
 

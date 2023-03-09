@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
-    // We cannot use trigger bindings with reference types because there is no way for the CosmosDB
-    // SDK to let us know the ID of the document that triggered the function; therefore we cannot create
-    // a client that is able to pull the triggering document.
+    // We cannot use SDK-type bindings with the Cosmos trigger binding. There is no way for
+    // the CosmosDB SDK to let us know the ID of the document that triggered the function;
+    // therefore we cannot create a client that is able to pull the triggering document.
     public static class CosmosTriggerFunction
     {
         [Function(nameof(CosmosTriggerFunction))]

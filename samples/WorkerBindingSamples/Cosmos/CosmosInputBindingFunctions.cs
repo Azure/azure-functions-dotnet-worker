@@ -22,11 +22,10 @@ namespace SampleApp
             _logger = logger;
         }
 
-        // Note: attribute should not require databaseName and containerName for CosmosClient
         [Function(nameof(DocsByUsingCosmosClient))]
         public async Task<HttpResponseData>  DocsByUsingCosmosClient(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [CosmosDBInput("ToDoItems", "Items", Connection = "CosmosDBConnection")] CosmosClient client)
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput("", "", Connection = "CosmosDBConnection")] CosmosClient client)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -38,18 +37,17 @@ namespace SampleApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    Console.WriteLine(d.description);
+                    _logger.LogInformation(d.description);
                 }
             }
 
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        // Note: attribute should not require containerName for Database
         [Function(nameof(DocsByUsingDatabaseClient))]
         public async Task<HttpResponseData> DocsByUsingDatabaseClient(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
-            [CosmosDBInput("ToDoItems", "Items", Connection = "CosmosDBConnection")] Database database)
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput("ToDoItems", "", Connection = "CosmosDBConnection")] Database database)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -60,7 +58,7 @@ namespace SampleApp
                 var containers = await iterator.ReadNextAsync();
                 foreach (dynamic c in containers)
                 {
-                    Console.WriteLine(c.id);
+                    _logger.LogInformation(c.id);
                 }
             }
 
@@ -69,7 +67,7 @@ namespace SampleApp
 
         [Function(nameof(DocsByUsingContainerClient))]
         public async Task<HttpResponseData>  DocsByUsingContainerClient(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput("ToDoItems", "Items", Connection = "CosmosDBConnection")] Container container)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
@@ -81,8 +79,32 @@ namespace SampleApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    Console.WriteLine(d.description);
+                    _logger.LogInformation("Found ToDo item, Description={desc}", d.description);
                 }
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        [Function(nameof(DocByIdFromQueryString))]
+        public HttpResponseData DocByIdFromQueryString(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput(
+                databaseName: "ToDoItems",
+                containerName: "Items",
+                Connection = "CosmosDBConnection",
+                Id = "{Query.id}",
+                PartitionKey = "{Query.partitionKey}")] ToDoItem toDoItem)
+        {
+            _logger.LogInformation("C# HTTP trigger function processed a request.");
+
+            if (toDoItem == null)
+            {
+                _logger.LogInformation("ToDo item not found");
+            }
+            else
+            {
+                _logger.LogInformation("Found ToDo item, Description={desc}", toDoItem.Description);
             }
 
             return req.CreateResponse(HttpStatusCode.OK);
@@ -90,7 +112,7 @@ namespace SampleApp
 
         [Function(nameof(DocByIdFromRouteData))]
         public HttpResponseData DocByIdFromRouteData(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "todoitems/{partitionKey}/{id}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "todoitems/{partitionKey}/{id}")] HttpRequestData req,
             [CosmosDBInput(
                 databaseName: "ToDoItems",
                 containerName: "Items",
@@ -112,33 +134,29 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        [Function(nameof(DocByIdFromQueryString))]
-        public HttpResponseData DocByIdFromQueryString(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+        [Function(nameof(DocByIdFromRouteDataUsingSqlQuery))]
+        public HttpResponseData DocByIdFromRouteDataUsingSqlQuery(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "todoitems2/{id}")] HttpRequestData req,
             [CosmosDBInput(
                 databaseName: "ToDoItems",
                 containerName: "Items",
                 Connection = "CosmosDBConnection",
-                Id = "{Query.id}",
-                PartitionKey = "{Query.partitionKey}")] ToDoItem toDoItem)
+                SqlQuery = "SELECT * FROM ToDoItems t where t.id = {id}")]
+                IEnumerable<ToDoItem> toDoItems)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            if (toDoItem == null)
+            foreach (ToDoItem toDoItem in toDoItems)
             {
-                _logger.LogInformation($"ToDo item not found");
-            }
-            else
-            {
-                _logger.LogInformation($"Found ToDo item, Description={toDoItem.Description}");
+                _logger.LogInformation(toDoItem.Description);
             }
 
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-        [Function(nameof(DocByIdFromRouteDataUsingSqlQuery))]
-        public HttpResponseData DocByIdFromRouteDataUsingSqlQuery(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "todoitems2/{id}")] HttpRequestData req,
+        [Function(nameof(DocByIdFromQueryStringUsingSqlQuery))]
+        public HttpResponseData DocByIdFromQueryStringUsingSqlQuery(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput(
                 databaseName: "ToDoItems",
                 containerName: "Items",
@@ -158,7 +176,7 @@ namespace SampleApp
 
         [Function(nameof(DocsBySqlQuery))]
         public HttpResponseData DocsBySqlQuery(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput(
                 databaseName: "ToDoItems",
                 containerName: "Items",
@@ -199,9 +217,9 @@ namespace SampleApp
 
         public class ToDoItemLookup
         {
-            public string ToDoItemId { get; set; }
+            public string? ToDoItemId { get; set; }
 
-            public string ToDoItemPartitionKeyValue { get; set; }
+            public string? ToDoItemPartitionKeyValue { get; set; }
         }
     }
 }

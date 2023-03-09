@@ -16,14 +16,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal virtual CosmosClient CreateClient(CosmosClientOptions cosmosClientOptions)
         {
-            if (string.IsNullOrEmpty(ConnectionString))
-            {
-                // AAD auth
-                return new CosmosClient(AccountEndpoint, Credential, cosmosClientOptions);
-            }
-
-            // Connection string based auth
-            return new CosmosClient(ConnectionString, cosmosClientOptions);
+            return string.IsNullOrEmpty(ConnectionString)
+                    ? new CosmosClient(AccountEndpoint, Credential, cosmosClientOptions) // AAD auth
+                    : new CosmosClient(ConnectionString, cosmosClientOptions); // Connection string based auth
         }
     }
 }

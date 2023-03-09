@@ -101,13 +101,13 @@ namespace Microsoft.Azure.Functions.Worker
 
                 createPOCOMethod = GetType()
                                     .GetMethod(nameof(CreatePOCOCollectionAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                    .MakeGenericMethod(new Type[] { targetType });
+                                    .MakeGenericMethod(targetType);
             }
             else
             {
                 createPOCOMethod = GetType()
                                     .GetMethod(nameof(CreatePOCOAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                    .MakeGenericMethod(new Type[] { targetType });
+                                    .MakeGenericMethod(targetType);
             }
 
 
@@ -115,32 +115,30 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (container is null)
             {
-                throw new InvalidOperationException("Unable to create Cosmos Container.");
+                throw new InvalidOperationException($"Unable to create Cosmos container client for '{cosmosAttribute.ContainerName}'.");
             }
 
-            var partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey) ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
-
-            return await (Task<object>)createPOCOMethod.Invoke(this, new object[] { container, cosmosAttribute, partitionKey });
+            return await (Task<object>)createPOCOMethod.Invoke(this, new object[] { container, cosmosAttribute });
         }
 
-        private async Task<object> CreatePOCOAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute, PartitionKey partitionKey)
+        private async Task<object> CreatePOCOAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
-            if (String.IsNullOrEmpty(cosmosAttribute.Id))
+            if (String.IsNullOrEmpty(cosmosAttribute.Id) || String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
             {
-                throw new ArgumentNullException(nameof(cosmosAttribute.Id), "An 'Id' must be provided to retrieve a single document.");
+                throw new InvalidOperationException("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.");
             }
 
-            ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, partitionKey);
+            ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
 
-            if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK)
+            if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK || item.Resource is null)
             {
                 throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
             }
 
-            return item.Resource!;
+            return item.Resource;
         }
 
-        private async Task<object> CreatePOCOCollectionAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute, PartitionKey partitionKey)
+        private async Task<object> CreatePOCOCollectionAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
             QueryDefinition queryDefinition = null!;
             if (!String.IsNullOrEmpty(cosmosAttribute.SqlQuery))
@@ -154,6 +152,8 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
             }
+
+            PartitionKey partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey) ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
 
             // Workaround until bug in Cosmos SDK is fixed
             // Currently pending release: https://github.com/Azure/azure-cosmos-dotnet-v3/commit/d6e04a92f8778565eb1d1452738d37c7faf3c47a

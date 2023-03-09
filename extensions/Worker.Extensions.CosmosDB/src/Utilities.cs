@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Microsoft.Azure.Functions.Worker
+namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
 {
     internal class Utilities
     {

@@ -101,9 +101,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithId_ReturnsSuccess()
+        public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"));
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var expectedToDoItem = new ToDoItem() { Id = "1", Description = "Take out the rubbish"};
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithoutId_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(partitionKey: "1"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
@@ -142,7 +142,25 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("An 'Id' must be provided to retrieve a single document. (Parameter 'Id')", conversionResult.Error.Message);
+            Assert.Equal("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithoutPK_ReturnsFailed()
+        {
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"));
+            var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
+
+            var mockContainer = new Mock<Container>();
+
+            _mockCosmosClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -190,7 +208,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             mockContainer.Setup(m => m .Id).Returns("testId");
             mockContainer
                 .Setup(m => m.GetItemQueryIterator<ToDoItem>(It.IsAny<QueryDefinition>(), null, null))
-                .Returns((FeedIterator<ToDoItem>)null);
+                .Returns<FeedIterator<ToDoItem>>(null);
 
             _mockCosmosClient
                 .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
@@ -246,6 +264,21 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
+        [Fact] // Should we fail if the result is ever null?
+        public async Task ConvertAsync_ResultIsNull_ReturnsUnhandled()
+        {
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var context = new TestConverterContext(typeof(Database), grpcModelBindingData);
+
+            _mockCosmosClient
+                .Setup(m => m.GetDatabase(It.IsAny<string>()))
+                .Returns<Database>(null);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+        }
+
         [Fact]
         public async Task ConvertAsync_ThrowsException_ReturnsFailure()
         {
@@ -262,9 +295,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ResultIsNull_ReturnsUnhandled()
+        public async Task ConvertAsync_ItemResponse_ResourceIsNull_ThrowsException_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"));
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockResponse = new Mock<ItemResponse<ToDoItem>>();
@@ -282,7 +315,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Unable to retrieve document with ID '1' and PartitionKey '1'", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -311,7 +345,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_CosmosContainerIsNull_ThrowsException_ReturnsFailure()
         {
-            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(container: "myContainer"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             _mockCosmosClient
@@ -321,11 +355,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Unable to create Cosmos Container.", conversionResult.Error.Message);
+            Assert.Equal($"Unable to create Cosmos container client for 'myContainer'.", conversionResult.Error.Message);
         }
 
         [Fact]
-        public async Task ConvertAsync_POCO_IdProvided_ItemNull_ThrowsException_ReturnsFailure()
+        public async Task ConvertAsync_POCO_ItemResponseNull_ThrowsException_ReturnsFailure()
         {
             object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
@@ -348,7 +382,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_POCO_IdProvided_StatusNot200_ThrowsException_ReturnsFailure()
         {
-            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"));
+            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockResponse = new Mock<ItemResponse<ToDoItem>>();
@@ -366,7 +400,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Unable to retrieve document with ID '1' and PartitionKey ''", conversionResult.Error.Message);
+            Assert.Equal("Unable to retrieve document with ID '1' and PartitionKey '1'", conversionResult.Error.Message);
         }
 
         private BinaryData GetTestBinaryData(string db = "testDb", string container = "testContainer", string connection = "cosmosConnection", string id = "", string partitionKey = "", string query = "", string location = "", string queryParams = "{}")

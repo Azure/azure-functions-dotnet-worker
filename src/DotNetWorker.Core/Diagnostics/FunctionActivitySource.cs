@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
             {
                 ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, out ActivityContext activityContext);
 
-                activity = _activitySource.StartActivity(TraceConstants.FunctionsInvokeActivityName, ActivityKind.Internal, activityContext,
+                activity = _activitySource.StartActivity(TraceConstants.FunctionsInvokeActivityName, ActivityKind.Server, activityContext,
                     tags: GetTags(context));
             }
 

@@ -22,9 +22,9 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         [Theory]
-        [InlineData("HelloFromQuery", "?name=Test", HttpStatusCode.OK, "Hello Test")]
-        [InlineData("HelloFromQuery", "?name=John&lastName=Doe", HttpStatusCode.OK, "Hello John")]
-        [InlineData("HelloFromQuery", "?emptyProperty=&name=Jane", HttpStatusCode.OK, "Hello Jane")]
+        [InlineData("HelloFromQuery", "?name=Test", HttpStatusCode.OK, "Test")]
+        [InlineData("HelloFromQuery", "?name=John&lastName=Doe", HttpStatusCode.OK, "John")]
+        [InlineData("HelloFromQuery", "?emptyProperty=&name=Jane", HttpStatusCode.OK, "Jane")]
         [InlineData("ExceptionFunction", "", HttpStatusCode.InternalServerError, "")]
         [InlineData("HelloFromQuery", "", HttpStatusCode.BadRequest, "")]
         public async Task HttpTriggerTests(string functionName, string queryString, HttpStatusCode expectedStatusCode, string expectedMessage)

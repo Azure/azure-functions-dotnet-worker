@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         {
             var logger = context.GetLogger(nameof(HelloFromQuery));
             logger.LogInformation(".NET Worker HTTP trigger function processed a request");
-            var queryName = HttpUtility.ParseQueryString(req.Url.Query)["name"];
+            var queryName = req.Query["name"];
 
             if (!string.IsNullOrEmpty(queryName))
             {

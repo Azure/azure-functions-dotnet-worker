@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.IO;
 using System.Security.Claims;
+using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
@@ -62,5 +64,10 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// </summary>
         /// <returns>The response instance.</returns>
         public abstract HttpResponseData CreateResponse();
+
+        /// <summary>
+        /// Gets the <see cref="Query"/> containing the request query. 
+        /// </summary>
+        public abstract IDictionary<string, StringValues> Query { get; }
     }
 }

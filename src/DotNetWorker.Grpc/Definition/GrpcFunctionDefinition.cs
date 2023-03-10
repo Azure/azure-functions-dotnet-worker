@@ -7,24 +7,30 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
     internal class GrpcFunctionDefinition : FunctionDefinition
     {
+        private const string FunctionsWorkerDirectoryKey = "FUNCTIONS_WORKER_DIRECTORY";
+        private const string FunctionsApplicationDirectoryKey = "FUNCTIONS_APPLICATION_DIRECTORY";
+
         public GrpcFunctionDefinition(FunctionLoadRequest loadRequest, IMethodInfoLocator methodInfoLocator)
         {
             EntryPoint = loadRequest.Metadata.EntryPoint;
             Name = loadRequest.Metadata.Name;
             Id = loadRequest.FunctionId;
 
-            string? scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY");
+            // The long-term solution is FUNCTIONS_APPLICATION_DIRECTORY, but that change has not rolled out to 
+            // production at this time. Use FUNCTIONS_WORKER_DIRECTORY as a fallback. They are currently identical, but
+            // this will change once dotnet-isolated placeholder support rolls out. Eventually we can remove this.
+            string? scriptRoot = Environment.GetEnvironmentVariable(FunctionsApplicationDirectoryKey) ?? Environment.GetEnvironmentVariable(FunctionsWorkerDirectoryKey);
             if (string.IsNullOrWhiteSpace(scriptRoot))
             {
-                throw new InvalidOperationException("The 'FUNCTIONS_WORKER_DIRECTORY' environment variable value is not defined. This is a required environment variable that is automatically set by the Azure Functions runtime.");
+                throw new InvalidOperationException($"The '{FunctionsApplicationDirectoryKey}' environment variable value is not defined. This is a required environment variable that is automatically set by the Azure Functions runtime.");
             }
 
             if (string.IsNullOrWhiteSpace(loadRequest.Metadata.ScriptFile))

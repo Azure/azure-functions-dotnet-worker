@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Checks if a candidate method has a Function attribute on it.
         /// </summary>
-        internal static bool IsValidMethodAzureFunction(
+        internal static bool IsValidFunctionMethod(
             GeneratorExecutionContext context,
             Compilation compilation,
             SemanticModel model, 

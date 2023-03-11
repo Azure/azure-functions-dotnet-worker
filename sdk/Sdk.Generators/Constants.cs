@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal static class BuildProperties
         {
             internal const string EnableSourceGen = "build_property.FunctionsEnableMetadataSourceGen";
-            internal const string EnablePlaceholder = "build_property.FunctionsEnablePlaceholder";
+            internal const string EnablePlaceholder = "build_property.FunctionsEnableExecutorSourceGen";
         }
 
         internal static class FileNames

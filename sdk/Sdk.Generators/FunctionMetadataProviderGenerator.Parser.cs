@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                    if (!FunctionsUtil.IsValidMethodAzureFunction(_context, Compilation, model, method, out string? functionName))
+                    if (!FunctionsUtil.IsValidFunctionMethod(_context, Compilation, model, method, out string? functionName))
                     {
                         continue;
                     }

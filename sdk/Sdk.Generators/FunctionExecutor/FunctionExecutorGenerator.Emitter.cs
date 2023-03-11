@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private static string GetTypesDictionary(IEnumerable<ExecutableFunction> functions)
             {
-                var classNames = functions.Where(f => !f.IsStatic).Select(f => f.ParentFunctionClass.Name).Distinct();
+                var classNames = functions.Where(f => !f.IsStatic).Select(f => f.ParentFunctionClassName).Distinct();
                 if (!classNames.Any())
                 {
                     return
@@ -123,8 +123,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         sb.Append($$"""
 
-                                var instanceType = types["{{function.ParentFunctionClass.Name}}"];
-                                var c = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionClass.Name}};
+                                var instanceType = types["{{function.ParentFunctionClassName}}"];
+                                var i = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionClassName}};
                 """);
                     }
 
@@ -141,9 +141,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     sb.Append(function.IsStatic
-                        ? @$"{function.ParentFunctionClass.Name}.{function.MethodName}({methodParamsStr});
+                        ? @$"{function.ParentFunctionClassName}.{function.MethodName}({methodParamsStr});
             }}"
-                        : $@"c.{function.MethodName}({methodParamsStr});
+                        : $@"i.{function.MethodName}({methodParamsStr});
             }}");
                 }
 

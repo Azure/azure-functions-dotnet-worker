@@ -25,7 +25,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             internal ICollection<ExecutableFunction> GetFunctions(List<MethodDeclarationSyntax> methods)
             {
-                var classDict = new Dictionary<string, FunctionClass>();
                 var functionList = new List<ExecutableFunction>();
 
                 foreach (MethodDeclarationSyntax method in methods)
@@ -54,11 +53,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var methodSymbol = model.GetDeclaredSymbol(method)!;
                     var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-                    if (!classDict.TryGetValue(fullyQualifiedClassName, out var classInfo))
-                    {
-                        classInfo = new FunctionClass(fullyQualifiedClassName);
-                        classDict[fullyQualifiedClassName] = classInfo;
-                    }
 
                     var function = new ExecutableFunction
                     {
@@ -68,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ShouldAwait = IsTaskType(methodSymbol.ReturnType),
                         IsReturnValueAssignable = IsReturnValueAssignable(methodSymbol),
                         IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword),
-                        ParentFunctionClass = classInfo
+                        ParentFunctionClassName = fullyQualifiedClassName
                     };
 
                     functionList.Add(function);

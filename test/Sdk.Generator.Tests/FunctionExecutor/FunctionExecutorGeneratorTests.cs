@@ -105,8 +105,8 @@ namespace Microsoft.Azure.Functions.Worker
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Foo"", StringComparison.OrdinalIgnoreCase))
             {{
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
-                var c = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
-                context.GetInvocationResult().Value = c.Foo((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                var i = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
+                context.GetInvocationResult().Value = i.Foo((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
             }}
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.Foo.MyAsyncStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
@@ -191,14 +191,14 @@ namespace Microsoft.Azure.Functions.Worker
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run1"", StringComparison.OrdinalIgnoreCase))
             {{
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
-                var c = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
-                context.GetInvocationResult().Value = c.Run1((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                var i = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
+                context.GetInvocationResult().Value = i.Run1((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
             }}
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run2"", StringComparison.OrdinalIgnoreCase))
             {{
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
-                var c = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
-                context.GetInvocationResult().Value = c.Run2((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                var i = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
+                context.GetInvocationResult().Value = i.Run2((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
             }}
         }}
     }}

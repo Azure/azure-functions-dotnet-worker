@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     internal class ExecutableFunction
     {
         /// <summary>
-        ///  True if the function returns Task or void.
+        ///  False if the function returns Task or void.
         /// </summary>
         internal bool IsReturnValueAssignable { set; get; }
 
@@ -33,7 +33,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         internal string EntryPoint { get; set; } = null!;
 
-        internal FunctionClass ParentFunctionClass { set; get; } = null!;
+        /// <summary>
+        /// Fully qualified type name of the parent class.
+        /// Ex: MyNamespace.MyClass
+        /// </summary>
+        internal string ParentFunctionClassName { get; set; } = null!;
 
         /// <summary>
         /// A collection of fully qualified type names of the parameters of the function.

@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-internal partial class FunctionExecutorGenerator
+namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     /// <summary>
     /// A type which holds information about the functions which can be executed from an invocation.

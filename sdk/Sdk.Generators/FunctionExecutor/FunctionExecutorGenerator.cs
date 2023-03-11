@@ -4,14 +4,12 @@
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
-using Emitter = FunctionExecutorGenerator.Emitter;
 using FunctionMethodSyntaxReceiver = Microsoft.Azure.Functions.Worker.Sdk.Generators.FunctionMetadataProviderGenerator.FunctionMethodSyntaxReceiver;
-using Parser = FunctionExecutorGenerator.Parser;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     [Generator]
-    public sealed class FunctionExecutorGenerator : ISourceGenerator
+    public sealed partial class FunctionExecutorGenerator : ISourceGenerator
     {
         public void Initialize(GeneratorInitializationContext context)
         {

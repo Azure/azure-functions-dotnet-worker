@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Pipeline
 
             if (invocationId == 0 || invocationId.Count == 0) 
             {
-                throw new ArgumentNullException("Some message?");
+                throw new InvalidOperationException("Expected correlation id header ('invocation-id') not present"); // TODO: Need a better header name.
             }
 
             // TODO: Discuss whether we need to handle invocationId (a StringValues obj) being more than one string? 

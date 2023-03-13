@@ -85,9 +85,6 @@ void AzureFunctionsRpc::NativeHostMessageHandler::HandleMessage(ByteBuffer *rece
 
                         _putenv(envString.c_str());
                     }
-
-                    string scriptRootEnvVar("AzureWebJobsScriptRoot=" + dir);
-                    _putenv(scriptRootEnvVar.c_str());
                 }
 
                 string exePath = funcgrpc::WorkerConfigHandle().GetApplicationExePath(dir);

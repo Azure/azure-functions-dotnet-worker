@@ -566,7 +566,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private bool IsCardinalitySupported(AttributeData attribute)
             {
                 var attrClass = attribute.AttributeClass;
-                var isBatchedProp = attrClass!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
+                var isBatchedProp = attrClass!
+                    .GetMembers()
+                    .SingleOrDefault(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase));
 
                 if (isBatchedProp != null)
                 {
@@ -606,9 +608,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 if (!cardinalityIsNamedArg)
                 {
                     var attrClass = attribute.AttributeClass;
-                    var isBatchedProp = attrClass!.GetMembers().Where(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase)).SingleOrDefault();
-                    AttributeData defaultValAttr = isBatchedProp.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue))).SingleOrDefault();
-                    var defaultVal = defaultValAttr.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
+                    var isBatchedProp = attrClass!
+                        .GetMembers()
+                        .SingleOrDefault(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase));
+                    
+                    if(isBatchedProp is null)
+                    {
+                        dataType = DataType.Undefined;
+                        return false;
+                    }
+
+                    var defaultValAttr = isBatchedProp!
+                        .GetAttributes()
+                        .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue)));
+                    
+                    var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
+                    
                     if (!bool.TryParse(defaultVal, out bool b) || !b)
                     {
                         dataType = GetDataType(parameterSymbol.Type);
@@ -624,9 +639,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     return true;
                 }
 
-                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric));
-                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerable));
-
                 // Check if mapping type - mapping enumerables are not valid types for Cardinality.Many
                 if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableOfKeyValuePair))
                     || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.LookupGeneric))
@@ -634,6 +646,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     return false;
                 }
+
+                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric));
+                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerable));
 
                 if (!IsStringType(parameterSymbol.Type) && (isGenericEnumerable || isEnumerable))
                 {

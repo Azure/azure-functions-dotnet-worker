@@ -11,8 +11,17 @@ using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
 {
+    /// <summary>
+    /// Provides extension methods to work with a <see cref="IFunctionsWorkerApplicationBuilder"/>.
+    /// </summary>
     public static class WorkerBuilderExtensions
     {
+        /// <summary>
+        /// Adds the services needed to integrate with AspNetCore
+        /// </summary>
+        /// <param name="builder"></param>
+        /// <returns></returns>
+        /// <exception cref="ArgumentNullException"></exception>
         public static IFunctionsWorkerApplicationBuilder UseAspNetCoreIntegration(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (builder is null)

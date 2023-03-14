@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 
             if (_telemetryClient is not null)
             {
-                CancellationTokenSource cts = new(millisecondsDelay: 5000);
+                using CancellationTokenSource cts = new(millisecondsDelay: 5000);
                 try
                 {
                     await _telemetryClient.FlushAsync(cts.Token);
@@ -116,10 +116,6 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                 catch
                 {
                     // Ignore for now; potentially log this in the future.
-                }
-                finally
-                {
-                    cts.Dispose();
                 }
             }
 

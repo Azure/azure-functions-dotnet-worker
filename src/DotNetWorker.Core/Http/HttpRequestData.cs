@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.IO;
 using System.Security.Claims;
@@ -68,6 +69,6 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <summary>
         /// Gets the <see cref="Query"/> containing the request query. 
         /// </summary>
-        public abstract IDictionary<string, StringValues> Query { get; }
+        public abstract NameValueCollection Query { get; }
     }
 }

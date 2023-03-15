@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Extensions.Primitives;
+using System.Web;
+using System.Collections.Specialized;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -25,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker
         private Stream? _bodyStream;
         private bool _disposed;
         private readonly Lazy<IReadOnlyCollection<IHttpCookie>> _cookies;
-        private Dictionary<string, StringValues>? _query;
+        private NameValueCollection? _query;
 
         public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
             : base(functionContext)
@@ -102,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override Uri Url => _url ??= new Uri(_httpData.Url);
 
-        public override IDictionary<string, StringValues> Query => _query ??= _httpData.NullableQuery.ToDictionary(q => q.Key, q => new StringValues(q.Value?.Value.Split(',')));
+        public override NameValueCollection Query => _query ??= HttpUtility.ParseQueryString(Url.Query);
 
         public override IEnumerable<ClaimsIdentity> Identities
         {

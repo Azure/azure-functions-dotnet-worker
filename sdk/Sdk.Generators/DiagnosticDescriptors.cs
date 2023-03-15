@@ -51,8 +51,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public static DiagnosticDescriptor InvalidCardinality { get; }
                   = Create(id: "AZFW0008",
-                    title: "Input Binding or Trigger Cardinality is invalid.",
-                    messageFormat: "The Cardinality of the input binding or trigger on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
+                    title: "Input or Trigger Binding Cardinality is invalid.",
+                    messageFormat: "The Cardinality of the Input or Trigger Binding on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
     }

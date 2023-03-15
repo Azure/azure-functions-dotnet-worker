@@ -5,11 +5,13 @@ using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Functions.Worker.Core.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
 {
+    /// <summary>
+    /// Provides extension methods to work with a <see cref="IHostBuilder"/>.
+    /// </summary>
     public static class HostBuilderExtensions
     {
 
@@ -22,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
         public static IHostBuilder ConfigureAspNetCoreIntegration(this IHostBuilder builder)
         {
             // TODO: Update this logic. Port should always come through configuration.
-            var port = Environment.GetEnvironmentVariable("Azure_Functions_HttpProxyingPort") ?? "5555";
+            var port = Environment.GetEnvironmentVariable("FUNCTIONS_HTTP_PROXY_PORT") ?? "5555";
 
             builder.ConfigureWebHostDefaults(webBuilder =>
             {

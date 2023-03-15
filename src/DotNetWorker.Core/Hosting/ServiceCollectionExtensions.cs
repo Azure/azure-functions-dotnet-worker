@@ -10,6 +10,7 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
@@ -85,6 +86,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
+            services.AddSingleton<FunctionActivitySourceFactory>();
 
             if (configure != null)
             {

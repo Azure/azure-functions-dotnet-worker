@@ -4,10 +4,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
-using System.Data;
 using System.IO;
 using System.Security.Claims;
-using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {

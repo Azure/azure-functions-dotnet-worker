@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public override Uri Url => _url ??= new Uri(_httpData.Url);
 
-        public override IDictionary<string, StringValues> Query => _query ??= _httpData.NullableQuery.ToDictionary(q => q.Key, q => new StringValues(q.Value.ToString()));
+        public override IDictionary<string, StringValues> Query => _query ??= _httpData.NullableQuery.ToDictionary(q => q.Key, q => new StringValues(q.Value?.Value.ToString().Split(',')));
 
         public override IEnumerable<ClaimsIdentity> Identities
         {

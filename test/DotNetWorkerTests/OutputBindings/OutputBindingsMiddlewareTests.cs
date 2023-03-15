@@ -3,12 +3,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Extensions.Primitives;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
@@ -222,6 +222,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             throw new NotImplementedException();
         }
 
-        public override Dictionary<string, StringValues> Query { get; }
+        public override NameValueCollection Query { get; }
     }
 }

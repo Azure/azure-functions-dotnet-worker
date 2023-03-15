@@ -19,18 +19,27 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         {
             var logger = context.GetLogger(nameof(HelloFromQuery));
             logger.LogInformation(".NET Worker HTTP trigger function processed a request");
-            var queryName = req.Query["name"];
-
-            if (!string.IsNullOrEmpty(queryName))
+            try
             {
-                var response = req.CreateResponse(HttpStatusCode.OK);
-                response.WriteString("Hello " + queryName);
-                return response;
+                var queryName = req.Query["name"];
+
+                if (!string.IsNullOrEmpty(queryName))
+                {
+                    var response = req.CreateResponse(HttpStatusCode.OK);
+                    response.WriteString("Hello " + queryName);
+                    return response;
+                }
+                else
+                {
+                    return req.CreateResponse(HttpStatusCode.BadRequest);
+                }
             }
-            else
+            catch
             {
                 return req.CreateResponse(HttpStatusCode.BadRequest);
+
             }
+
         }
 
         [Function(nameof(HelloFromJsonBody))]

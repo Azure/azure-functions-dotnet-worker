@@ -2,14 +2,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
-using System.Collections.Generic;
-using Microsoft.Azure.Cosmos;
-using System.Linq;
-using System.Reflection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 
@@ -153,7 +153,9 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }
 
-            PartitionKey partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey) ? PartitionKey.None : new PartitionKey(cosmosAttribute.PartitionKey);
+            PartitionKey partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey)
+                                        ? PartitionKey.None
+                                        : new PartitionKey(cosmosAttribute.PartitionKey);
 
             // Workaround until bug in Cosmos SDK is fixed
             // Currently pending release: https://github.com/Azure/azure-cosmos-dotnet-v3/commit/d6e04a92f8778565eb1d1452738d37c7faf3c47a

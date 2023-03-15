@@ -2,9 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Xunit;
-using System.Linq;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 {

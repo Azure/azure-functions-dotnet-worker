@@ -217,7 +217,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             DataType dataType = GetDataType(parameterSymbol.Type);
 
-                            if(IsCardinalitySupported(attribute))
+                            if (IsCardinalitySupported(attribute))
                             {
                                 if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out dataType))
                                 {
@@ -565,17 +565,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool IsCardinalitySupported(AttributeData attribute)
             {
+                return TryGetIsBatchedProp(attribute, out var isBatchedProp);
+            }
+
+            private bool TryGetIsBatchedProp(AttributeData attribute, out ISymbol? isBatchedProp)
+            {
                 var attrClass = attribute.AttributeClass;
-                var isBatchedProp = attrClass!
+                isBatchedProp = attrClass!
                     .GetMembers()
                     .SingleOrDefault(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase));
 
-                if (isBatchedProp != null)
-                {
-                    return true;
-                }
-
-                return false;
+                return isBatchedProp != null ? true : false;
             }
 
             /// <summary>
@@ -607,12 +607,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // When "IsBatched" is not a named arg, we have to check the default value
                 if (!cardinalityIsNamedArg)
                 {
-                    var attrClass = attribute.AttributeClass;
-                    var isBatchedProp = attrClass!
-                        .GetMembers()
-                        .SingleOrDefault(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase));
-                    
-                    if(isBatchedProp is null)
+                    if (!TryGetIsBatchedProp(attribute, out var isBatchedProp))
                     {
                         dataType = DataType.Undefined;
                         return false;

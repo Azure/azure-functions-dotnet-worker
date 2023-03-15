@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
         public static IHostBuilder ConfigureAspNetCoreIntegration(this IHostBuilder builder)
         {
             // TODO: Update this logic. Port should always come through configuration.
-            var port = Environment.GetEnvironmentVariable("AZURE_FUNCTIONS_HTTP_PROXY_PORT") ?? "5555";
+            var port = Environment.GetEnvironmentVariable("FUNCTIONS_HTTP_PROXY_PORT") ?? "5555";
 
             builder.ConfigureWebHostDefaults(webBuilder =>
             {

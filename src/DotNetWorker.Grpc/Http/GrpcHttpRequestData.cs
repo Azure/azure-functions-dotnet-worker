@@ -3,12 +3,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -26,7 +24,6 @@ namespace Microsoft.Azure.Functions.Worker
         private Stream? _bodyStream;
         private bool _disposed;
         private readonly Lazy<IReadOnlyCollection<IHttpCookie>> _cookies;
-        private NameValueCollection? _query;
 
         public GrpcHttpRequestData(RpcHttp httpData, FunctionContext functionContext)
             : base(functionContext)
@@ -102,8 +99,6 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         public override Uri Url => _url ??= new Uri(_httpData.Url);
-
-        public override NameValueCollection Query => _query ??= HttpUtility.ParseQueryString(Url.Query);
 
         public override IEnumerable<ClaimsIdentity> Identities
         {

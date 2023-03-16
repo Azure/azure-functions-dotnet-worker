@@ -15,6 +15,8 @@ namespace Microsoft.Azure.Functions.Worker.Http
     /// </summary>
     public abstract class HttpRequestData
     {
+        private NameValueCollection? _query;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpRequestData"/> class.
         /// </summary>
@@ -68,12 +70,6 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <summary>
         /// Gets the <see cref="Query"/> containing the request query. 
         /// </summary>
-        public virtual NameValueCollection Query
-        {
-            get
-            {
-                return HttpUtility.ParseQueryString(Url.Query);
-            }
-        }
+        public virtual NameValueCollection Query => _query ??= HttpUtility.ParseQueryString(Url.Query);
     }
 }

@@ -190,15 +190,14 @@ namespace Microsoft.Azure.Functions.Worker
 
         private T CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
         {
-            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
-            CosmosClientOptions cosmosClientOptions = new() { ApplicationPreferredRegions = Utilities.ParsePreferredLocations(cosmosAttribute.PreferredLocations!) };
-            CosmosClient cosmosClient = cosmosDBOptions.CreateClient(cosmosClientOptions);
+            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute?.Connection);
+            CosmosClient cosmosClient = cosmosDBOptions.GetClient(cosmosAttribute?.Connection!, cosmosAttribute?.PreferredLocations!);
 
             Type targetType = typeof(T);
             object cosmosReference = targetType switch
             {
-                Type _ when targetType == typeof(Database) => cosmosClient.GetDatabase(cosmosAttribute.DatabaseName),
-                Type _ when targetType == typeof(Container) => cosmosClient.GetContainer(cosmosAttribute.DatabaseName, cosmosAttribute.ContainerName),
+                Type _ when targetType == typeof(Database) => cosmosClient.GetDatabase(cosmosAttribute?.DatabaseName),
+                Type _ when targetType == typeof(Container) => cosmosClient.GetContainer(cosmosAttribute?.DatabaseName, cosmosAttribute?.ContainerName),
                 _ => cosmosClient
             };
 

@@ -81,6 +81,8 @@ namespace Microsoft.Azure.Functions.Worker
                 invokeActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
                 invokeActivity?.RecordException(ex, escaped: true);
 
+                Log.InvocationError(_logger, context.FunctionDefinition.Name, context.InvocationId, ex);
+
                 throw;
             }
         }

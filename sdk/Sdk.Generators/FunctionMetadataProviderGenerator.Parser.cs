@@ -219,12 +219,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             if (IsCardinalitySupported(attribute))
                             {
-                                if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out dataType))
+                                DataType updatedDataType = DataType.Undefined;
+
+                                if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out updatedDataType))
                                 {
                                     _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), parameterSymbol.Name));
                                     bindingsList = null;
                                     return false;
                                 }
+
+                                // update the DataType of this binding with the updated type found during call to IsCardinalityValid
+                                // ex. IList<String> would be evaluated as "Undefined" by the call to GetDataType
+                                // but it would be correctly evaluated as "String" during the call to IsCardinalityValid which parses iterable collections
+                                dataType = updatedDataType;
                             }
 
                             string bindingName = parameter.Identifier.ValueText;
@@ -575,7 +582,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     .GetMembers()
                     .SingleOrDefault(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase));
 
-                return isBatchedProp != null ? true : false;
+                return isBatchedProp != null;
             }
 
             /// <summary>

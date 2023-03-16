@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -790,11 +792,20 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 string? expectedGeneratedFileName = null;
                 string? expectedOutput = null;
 
-                await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.InvalidCardinality)
+                    .WithSpan(15, 146, 15, 151)
+                    // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
+                    .WithArguments("input")
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    expectedDiagnosticResults);
             }
         }
     }

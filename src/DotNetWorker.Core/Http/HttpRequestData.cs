@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
 using System.Security.Claims;
+using System.Web;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
@@ -67,6 +68,12 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// <summary>
         /// Gets the <see cref="Query"/> containing the request query. 
         /// </summary>
-        public abstract NameValueCollection Query { get; }
+        public virtual NameValueCollection Query
+        {
+            get
+            {
+                return HttpUtility.ParseQueryString(Url.Query);
+            }
+        }
     }
 }

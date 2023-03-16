@@ -221,7 +221,5 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
         {
             throw new NotImplementedException();
         }
-
-        public override NameValueCollection Query { get; }
     }
 }

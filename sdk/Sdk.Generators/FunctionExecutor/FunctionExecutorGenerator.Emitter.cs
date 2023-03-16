@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                              internal class DirectFunctionExecutor : IFunctionExecutor
                              {
                                  private readonly IFunctionActivator _functionActivator;
-                         {{GetTypesDictionary(functions)}}
+                                 {{GetTypesDictionary(functions)}}
                                  public DirectFunctionExecutor(IFunctionActivator functionActivator)
                                  {
                                      _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
@@ -63,34 +63,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var classNames = functions.Where(f => !f.IsStatic).Select(f => f.ParentFunctionClassName).Distinct();
                 if (!classNames.Any())
                 {
-                    return
-                        """
+                    return """
 
-                    """;
+                     """;
                 }
 
-                StringBuilder sb = new StringBuilder();
-                sb.Append(
-                    """
-                        private readonly Dictionary<string, Type> types = new()
+                return $$"""
+                private readonly Dictionary<string, Type> types = new()
                         {
-                """);
-                foreach (var parentClassName in classNames)
-                {
-                    sb.Append(
-                        $$"""
+                           {{string.Join("\n", classNames.Select(c => $$""" { "{{c}}", Type.GetType("{{c}}")! }"""))}},
+                        };
 
-                            { "{{parentClassName}}", Type.GetType("{{parentClassName}}")! },
-                """);
-                }
-
-                sb.Append(
-                   """
-
-                    };
-
-            """);
-                return sb.ToString();
+                """;
             }
 
             private static string GetMethodBody(IEnumerable<ExecutableFunction> functions)

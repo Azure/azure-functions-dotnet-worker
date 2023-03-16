@@ -205,7 +205,7 @@ namespace Microsoft.Azure.Functions.Worker
     {ExpectedExtensionMethodCode}
 }}".Replace("'", "\"");
 
-            await TestHelpers.RunTestAsync<Worker.Sdk.Generators.FunctionExecutorGenerator>(
+            await TestHelpers.RunTestAsync<FunctionExecutorGenerator>(
                 _referencedAssemblies,
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
@@ -268,7 +268,7 @@ namespace Microsoft.Azure.Functions.Worker
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
-
+        
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
         {{
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));

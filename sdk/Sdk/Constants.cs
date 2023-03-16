@@ -55,5 +55,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         // Binding properties
         internal const string SupportsDeferredBindingProperty = "SupportsDeferredBinding";
+        internal const string InputConverterProperty = "InputConverter";
     }
 }

@@ -14,12 +14,16 @@ using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using System.ComponentModel;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
     /// Converter to bind Blob Storage type parameters.
     /// </summary>
+    [SupportsDeferredBinding]
+    [SupportedConverterTypes(typeof(string), typeof(Stream))]
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;

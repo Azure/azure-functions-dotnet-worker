@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [SupportsDeferredBinding]
+    [InputConverter(disableConverterFallback:true , typeof(BlobStorageConverter), typeof(GuidConverter))]
     public sealed class BlobTriggerAttribute : TriggerBindingAttribute
     {
         private readonly string _blobPath;

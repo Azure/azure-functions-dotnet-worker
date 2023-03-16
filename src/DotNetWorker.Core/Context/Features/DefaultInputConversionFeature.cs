@@ -128,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     return null;
                 }
 
-                Type converterType = ((InputConverterAttribute)converterAttribute).ConverterType;
+                Type converterType = ((InputConverterAttribute)converterAttribute).ConverterTypes.FirstOrDefault();
                 return converterType.AssemblyQualifiedName!;
 
             }, targetType);

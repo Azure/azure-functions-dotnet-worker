@@ -104,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal("16-converted customer", customer.Name);
         }
 
-        [InputConverter(typeof(MyCustomerAsyncInputConverter))]
+        [InputConverter(false, typeof(MyCustomerAsyncInputConverter))]
         internal record Customer(string Id, string Name);
 
         internal class MyCustomerAsyncInputConverter : IInputConverter

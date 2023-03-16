@@ -1,11 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.ComponentModel;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [SupportsDeferredBinding]
+    [InputConverter(disableConverterFallback: true, typeof(BlobStorageConverter), typeof(GuidConverter))]
     public sealed class BlobInputAttribute : InputBindingAttribute
     {
         private readonly string _blobPath;
@@ -30,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
         /// </summary>
-        [DefaultValue(false)]
+        [System.ComponentModel.DefaultValue(false)]
         public bool IsBatched
         {
             get => _isBatched;

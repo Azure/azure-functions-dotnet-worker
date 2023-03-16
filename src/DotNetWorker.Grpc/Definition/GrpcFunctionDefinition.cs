@@ -76,7 +76,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             {
                 return new Dictionary<string, object>()
                 {
-                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }
+                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterTypes.FirstOrDefault().AssemblyQualifiedName! }
                 }.ToImmutableDictionary();
             }
 

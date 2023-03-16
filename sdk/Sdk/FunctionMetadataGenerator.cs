@@ -487,7 +487,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // For extensions that support deferred binding, set the supportsDeferredBinding property so parameters are bound by the worker
             // Only use deferred binding for input and trigger bindings, output is out not currently supported
-            if (SupportsDeferredBinding(attribute) && direction != Constants.OutputBindingDirection)
+            if (SupportsDeferredBinding(attribute, bindingType) && direction != Constants.OutputBindingDirection)
             {
                 bindingProperties.Add(Constants.SupportsDeferredBindingProperty, Boolean.TrueString);
             }
@@ -795,7 +795,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return Constants.InputBindingDirection;
         }
 
-        private static bool SupportsDeferredBinding(CustomAttribute attribute)
+        private static bool SupportsDeferredBinding(CustomAttribute attribute, string bindingType)
         {
             var typeDefinition = attribute?.AttributeType?.Resolve();
 
@@ -804,8 +804,43 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 return false;
             }
 
-            return typeDefinition.CustomAttributes
-                                 .Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
+            foreach (var a in typeDefinition.CustomAttributes)
+            {
+                if (string.Equals(a.AttributeType.FullName, Constants.InputConverterProperty, StringComparison.Ordinal))
+                {
+                    var b = a.ConstructorArguments;
+
+                    foreach (var c in b)
+                    {
+                        if (string.Equals(c.Type, "IInputConverter"))
+                        {
+                            var t = attribute?.AttributeType?.Resolve(); //BlobStorageConverter
+
+                            if (t is null)
+                            {
+                                return false;
+                            }
+
+                            bool res = false;
+
+                            foreach (var d in t.CustomAttributes)
+                            {
+                                if (string.Equals(d.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
+                                {
+                                    res = true;
+                                }
+                                else if (res && string.Equals(d.AttributeType.FullName, bindingType, StringComparison.Ordinal))
+                                {
+                                    return true;
+                                }
+
+                            }
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)

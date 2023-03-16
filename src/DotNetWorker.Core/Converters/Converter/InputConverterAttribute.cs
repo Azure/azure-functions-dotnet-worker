@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
@@ -17,29 +18,42 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     public sealed class InputConverterAttribute : Attribute
     {
         /// <summary>
+        /// Gets the value of disable converter fallback
+        /// </summary>
+        public bool DisableConverterFallback { get; }
+
+        /// <summary>
         /// Gets the input converter type.
         /// </summary>
-        public Type ConverterType { get; }
+        public List<Type>? ConverterTypes { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="InputConverterAttribute"/>
         /// </summary>
-        /// <param name="converterType">The input converter type.</param>
+        /// <param name="disableConverterFallback">disableConverterFallback.</param>
+        /// <param name="converterTypes">The input converter type.</param>
         /// <exception cref="InvalidOperationException">Thrown when the converterType parameter value is a type which has not implemented Microsoft.Azure.Functions.Worker.Converters.IInputConverter</exception>
-        public InputConverterAttribute(Type converterType)
+        public InputConverterAttribute(bool disableConverterFallback = false, params Type[] converterTypes)
         {
-            if (converterType == null)
+            DisableConverterFallback = disableConverterFallback;
+
+            if (converterTypes == null || converterTypes.Length == 0)
             {
-                throw new ArgumentNullException(nameof(converterType));
+                throw new ArgumentNullException(nameof(converterTypes));
             }
 
-            var interfaceType = typeof(IInputConverter);
-            if (!interfaceType.IsAssignableFrom(converterType))
-            {
-                throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter.");
-            }
+            ConverterTypes = new List<Type> { };
 
-            ConverterType = converterType;
+            foreach (var converterType in converterTypes)
+            {
+                var interfaceType = typeof(IInputConverter);
+                if (!interfaceType.IsAssignableFrom(converterType))
+                {
+                    throw new InvalidOperationException($"{converterType.Name} must implement {interfaceType.FullName} to be used as an input converter.");
+                }
+
+                ConverterTypes.Add(converterType);
+            }
         }
     }
 }

@@ -16,6 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string ExponentialBackoffRetryAttributeType = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
         internal const string BindingPropertyNameAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingPropertyNameAttribute";
         internal const string SupportsDeferredBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
+        internal const string InputConverterProperty = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";
@@ -55,6 +56,5 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         // Binding properties
         internal const string SupportsDeferredBindingProperty = "SupportsDeferredBinding";
-        internal const string InputConverterProperty = "InputConverter";
     }
 }

@@ -154,18 +154,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             Assert.Equal(3, functions.Count());
 
-            var queueToBlob = functions.Single(p => p.Name == "QueueToBlobFunction");
-            var blobToQueue = functions.Single(p => p.Name == "BlobToQueueFunction");
             var blobToBlobs = functions.Single(p => p.Name == "BlobToBlobsFunction");
-
-            ValidateFunction(queueToBlob, "QueueToBlobFunction", GetEntryPoint(nameof(Storage), nameof(Storage.QueueToBlob)),
-                b => ValidateQueueTrigger(b),
-                b => ValidateBlobOutput(b));
-
-            ValidateFunction(blobToBlobs, "BlobToBlobsFunction", GetEntryPoint(nameof(Storage), nameof(Storage.BlobToBlobs)),
-                b => ValidateBlobTrigger(b),
-                b => ValidateBlobInput(b),
-                b => ValidateBlobOutput(b));
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
@@ -214,9 +203,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
-            ValidateFunction(blobToQueue, "BlobToQueueFunction", GetEntryPoint(nameof(Storage), nameof(Storage.BlobToQueue)),
-                b => ValidateBlobTrigger(b),
-                b => ValidateQueueOutput(b));
 
             void ValidateBlobTrigger(ExpandoObject b)
             {

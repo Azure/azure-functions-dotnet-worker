@@ -812,28 +812,36 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     foreach (var c in b)
                     {
-                        if (string.Equals(c.Type, "IInputConverter"))
+                        if (string.Equals(c.Type.GetElementType().FullName, "System.Type"))
                         {
-                            var t = attribute?.AttributeType?.Resolve(); //BlobStorageConverter
-
-                            if (t is null)
+                            if (c.Value.GetType() == typeof(CustomAttributeArgument[]))
                             {
-                                return false;
-                            }
+                                CustomAttributeArgument[] t = (CustomAttributeArgument[])c.Value; //BlobStorageConverter
 
-                            bool res = false;
-
-                            foreach (var d in t.CustomAttributes)
-                            {
-                                if (string.Equals(d.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
+                                if (t is null)
                                 {
-                                    res = true;
-                                }
-                                else if (res && string.Equals(d.AttributeType.FullName, bindingType, StringComparison.Ordinal))
-                                {
-                                    return true;
+                                    return false;
                                 }
 
+
+                                bool res = false;
+
+                                foreach (var m in t)
+                                {
+                                    var t1 = (TypeDefinition)m.Value;//.GetType().GenericTypeArguments;
+                                    
+                                    foreach (var d in t1.CustomAttributes)
+                                    {
+                                        if (string.Equals(d.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
+                                        {
+                                            res = true;
+                                        }
+                                        else if (res && string.Equals(d.AttributeType.FullName, bindingType, StringComparison.Ordinal))
+                                        {
+                                            return true;
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

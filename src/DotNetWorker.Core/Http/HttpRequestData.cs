@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         public abstract HttpResponseData CreateResponse();
 
         /// <summary>
-        /// Gets the <see cref="Query"/> containing the request query. 
+        /// Gets the <see cref="NameValueCollection"/> containing the request query. 
         /// </summary>
         public virtual NameValueCollection Query => _query ??= HttpUtility.ParseQueryString(Url.Query);
     }

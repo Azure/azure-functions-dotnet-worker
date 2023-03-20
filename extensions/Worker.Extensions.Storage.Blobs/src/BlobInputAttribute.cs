@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
+        [Extensions.Abstractions.DefaultValue(false)]
         public bool IsBatched
         {
             get => _isBatched;

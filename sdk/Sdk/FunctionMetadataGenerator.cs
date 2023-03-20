@@ -487,7 +487,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // For extensions that support deferred binding, set the supportsDeferredBinding property so parameters are bound by the worker
             // Only use deferred binding for input and trigger bindings, output is out not currently supported
-            if (SupportsDeferredBinding(attribute, bindingType) && direction != Constants.OutputBindingDirection)
+            if (SupportsDeferredBinding(attribute, parameterType.FullName) && direction != Constants.OutputBindingDirection)
             {
                 bindingProperties.Add(Constants.SupportsDeferredBindingProperty, Boolean.TrueString);
             }
@@ -828,17 +828,31 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                                 foreach (var m in t)
                                 {
-                                    var t1 = (TypeDefinition)m.Value;//.GetType().GenericTypeArguments;
-                                    
-                                    foreach (var d in t1.CustomAttributes)
+                                    var t1 = (TypeReference)m.Value;//.GetType().GenericTypeArguments;
+                                    var t2 = t1.Resolve().CustomAttributes;
+                                    foreach (var d in t2)
                                     {
                                         if (string.Equals(d.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
                                         {
                                             res = true;
                                         }
-                                        else if (res && string.Equals(d.AttributeType.FullName, bindingType, StringComparison.Ordinal))
+                                        if (res && string.Equals(d.AttributeType.FullName, "Microsoft.Azure.Functions.Worker.Converters.SupportedConverterTypesAttribute", StringComparison.Ordinal))
                                         {
-                                            return true;
+                                            foreach (var n in d.ConstructorArguments)
+                                            {
+                                                CustomAttributeArgument[] n1 = (CustomAttributeArgument[])n.Value;
+
+                                                foreach (var n2 in n1)
+                                                {
+                                                    var n3 = (TypeReference)n2.Value;//.GetType().GenericTypeArguments;
+
+                                                    if (string.Equals(n3.FullName, bindingType, StringComparison.Ordinal))
+                                                    {
+                                                        return true;
+                                                    }
+
+                                                }
+                                            }
                                         }
                                     }
                                 }

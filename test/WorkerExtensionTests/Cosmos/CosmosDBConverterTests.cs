@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             var mockCosmosOptions = new Mock<CosmosDBBindingOptions>();
             mockCosmosOptions
-                .Setup(m => m.CreateClient(It.IsAny<CosmosClientOptions>()))
+                .Setup(m => m.GetClient(It.IsAny<string>(), It.IsAny<string>()))
                 .Returns(_mockCosmosClient.Object);
 
             var mockCosmosOptionsSnapshot = new Mock<IOptionsSnapshot<CosmosDBBindingOptions>>();

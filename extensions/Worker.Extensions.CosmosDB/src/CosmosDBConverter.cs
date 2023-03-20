@@ -169,8 +169,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (iterator is null)
                 {
-                    var queryInfo = queryDefinition is not null ? $" SqlQuery: {queryDefinition.QueryText}." : "";
-                    throw new InvalidOperationException($"Unable to retrieve documents for container '{container.Id}'.{queryInfo}");
+                    throw new InvalidOperationException($"Unable to retrieve documents for container '{container.Id}'.");
                 }
 
                 return await ExtractCosmosDocumentsAsync(iterator);

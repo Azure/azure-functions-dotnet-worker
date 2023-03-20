@@ -29,8 +29,10 @@ namespace Microsoft.Azure.Functions.Worker
 
             string cacheKey = BuildCacheKey(connection, preferredLocations);
 
-            CosmosClientOptions cosmosClientOptions = new ();
-            cosmosClientOptions.ConnectionMode = ConnectionMode.Gateway;
+            CosmosClientOptions cosmosClientOptions = new ()
+            {
+                ConnectionMode = ConnectionMode.Gateway
+            };
 
             if (!string.IsNullOrEmpty(preferredLocations))
             {

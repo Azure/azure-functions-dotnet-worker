@@ -829,7 +829,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var typeReferenceValue = customAttribute.Value as TypeReference;
             var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
-
             // Attributes advertised by converter
             if (typeReferenceCustomAttributes is not null)
             {

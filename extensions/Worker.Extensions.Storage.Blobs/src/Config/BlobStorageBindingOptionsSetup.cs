@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -7,6 +7,7 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.Azure.Functions.Worker.Extensions;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using System.Globalization;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -51,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                if (TryGetServiceUri(connectionSection, out Uri serviceUri))
+                if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
                 {
                     options.ServiceUri = serviceUri;
                 }
@@ -59,40 +60,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             options.BlobClientOptions = (BlobClientOptions)_componentFactory.CreateClientOptions(typeof(BlobClientOptions), null, connectionSection);
             options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
-        }
-
-        /// <summary>
-        /// Either constructs the serviceUri from the provided accountName
-        /// or retrieves the serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)
-        /// </summary>
-        private bool TryGetServiceUri(IConfiguration configuration, out Uri serviceUri)
-        {
-            var serviceUriConfig = string.Format(CultureInfo.InvariantCulture, "{0}ServiceUri", BlobServiceUriSubDomain);
-
-            string accountName;
-            string uriStr;
-            if ((accountName = configuration.GetValue<string>("accountName")) is not null)
-            {
-                serviceUri = FormatServiceUri(accountName);
-                return true;
-            }
-            else if ((uriStr = configuration.GetValue<string>(serviceUriConfig)) is not null)
-            {
-                serviceUri = new Uri(uriStr);
-                return true;
-            }
-
-            serviceUri = default(Uri)!;
-            return false;
-        }
-
-        /// <summary>
-        /// Generates the serviceUri for a particular storage resource
-        /// </summary>
-        private Uri FormatServiceUri(string accountName, string defaultProtocol = "https", string endpointSuffix = "core.windows.net")
-        {
-            var uri = string.Format(CultureInfo.InvariantCulture, "{0}://{1}.{2}.{3}", defaultProtocol, accountName, BlobServiceUriSubDomain, endpointSuffix);
-            return new Uri(uri);
         }
     }
 }

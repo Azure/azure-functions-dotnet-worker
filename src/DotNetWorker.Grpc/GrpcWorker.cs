@@ -149,6 +149,7 @@ namespace Microsoft.Azure.Functions.Worker
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                 WorkerMetadata = GetWorkerMetadata()
             };
+
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return response;
@@ -258,6 +259,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             return response;
         }
+
         internal static FunctionEnvironmentReloadResponse EnvReloadRequestHandler(FunctionEnvironmentReloadRequest request, WorkerOptions workerOptions)
         {
             var envReloadResponse = new FunctionEnvironmentReloadResponse
@@ -294,6 +296,7 @@ namespace Microsoft.Azure.Functions.Worker
         private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions)
         {
             var capabilities = new Dictionary<string, string>();
+
             // Add additional capabilities defined by WorkerOptions
             foreach ((string key, string value) in workerOptions.Capabilities)
             {

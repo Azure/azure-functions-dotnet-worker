@@ -10,7 +10,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- <entry>
+- Unsealed `InputConverterAttribute`. Implementers can now derive from this type to map attributes to custom converters. 
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 

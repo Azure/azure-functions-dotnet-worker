@@ -16,7 +16,7 @@ namespace FunctionApp
         static async Task Main(string[] args)
         {
             // #if DEBUG
-            //     Debugger.Launch();
+            System.Diagnostics.Debugger.Launch();
             // #endif
             //<docsnippet_startup>
             var host = new HostBuilder()

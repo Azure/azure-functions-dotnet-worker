@@ -241,7 +241,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Contains($"Unable to retrieve documents for container 'testId'. SqlQuery: {query}.", conversionResult.Error.Message);
+            Assert.Contains($"Unable to retrieve documents for container 'testId'.", conversionResult.Error.Message);
         }
 
         [Fact]

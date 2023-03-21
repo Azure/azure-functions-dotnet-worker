@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [SupportsDeferredBinding]
     public sealed class CosmosDBInputAttribute : InputBindingAttribute
     {
         /// <summary>
@@ -44,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
-        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key 
+        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key
         /// path for the created container.
         /// When specified on an input binding, specifies the partition key value for the lookup.
         /// May include binding parameters.
@@ -67,5 +69,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// PreferredLocations = "East US,South Central US,North Europe"
         /// </example>
         public string? PreferredLocations { get; set; }
+
+        /// <summary>
+        /// Optional.
+        /// Defines the parameters to be used with the SqlQuery
+        /// </summary>
+        public IDictionary<string, object>? SqlQueryParameters { get; set; }
     }
 }

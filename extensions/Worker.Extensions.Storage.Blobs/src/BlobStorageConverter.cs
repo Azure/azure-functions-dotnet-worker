@@ -12,6 +12,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +25,6 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
-
         private readonly ILogger<BlobStorageConverter> _logger;
 
         public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)

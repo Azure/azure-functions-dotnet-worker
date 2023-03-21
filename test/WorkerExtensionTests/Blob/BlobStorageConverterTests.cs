@@ -22,6 +22,8 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
+using Constants = Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.Constants;
+
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 {
     public class BlobStorageConverterTests

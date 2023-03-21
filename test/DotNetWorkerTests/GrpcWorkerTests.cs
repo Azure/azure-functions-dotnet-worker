@@ -322,6 +322,31 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Contains("CreateContext", response.Result.Exception.Message);
         }
 
+        [Fact]
+        public void EnvReloadRequestHandler_ReturnsExpected_NativeHost()
+        {
+            AppContext.SetData("AZURE_FUNCTIONS_NATIVE_HOST", "1");
+
+            var actual = GrpcWorker.EnvReloadRequestHandler(new FunctionEnvironmentReloadRequest(), new WorkerOptions());
+
+            Assert.Equal(StatusResult.Success, actual.Result);
+            // In native host mode, we expect worker metadata & capabilities in env reload response.
+            Assert.NotNull(actual.WorkerMetadata);
+            Assert.NotEmpty(actual.Capabilities);
+
+            AppContext.SetData("AZURE_FUNCTIONS_NATIVE_HOST", null);
+        }
+
+        [Fact]
+        public void EnvReloadRequestHandler_ReturnsExpected()
+        {
+            var actual = GrpcWorker.EnvReloadRequestHandler(new FunctionEnvironmentReloadRequest(), new WorkerOptions()); ;
+
+            Assert.Equal(StatusResult.Success, actual.Result);
+            Assert.Null(actual.WorkerMetadata);
+            Assert.Empty(actual.Capabilities);
+        }
+
         private static FunctionLoadRequest CreateFunctionLoadRequest()
         {
             return new FunctionLoadRequest

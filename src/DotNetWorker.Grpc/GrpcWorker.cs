@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -115,11 +116,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionEnvironmentReloadRequest:
-                    // No-op for now, but return a response.
-                    responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
-                    {
-                        Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                    };
+                    responseMessage.FunctionEnvironmentReloadResponse = EnvReloadRequestHandler(request.FunctionEnvironmentReloadRequest, _workerOptions);
                     break;
 
                 case MsgType.InvocationCancel:
@@ -146,36 +143,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
         {
-            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
-
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
-                WorkerMetadata = new WorkerMetadata
-                {
-                    RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
-                    RuntimeVersion = Environment.Version.ToString(),
-                    WorkerVersion = WorkerInformation.Instance.WorkerVersion,
-                    WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
-                }
+                WorkerMetadata = GetWorkerMetadata()
             };
-
-            response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
-
-            // Add additional capabilities defined by WorkerOptions
-            foreach ((string key, string value) in workerOptions.Capabilities)
-            {
-                response.Capabilities[key] = value;
-            }
-
-            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
-            response.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
-            response.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
-            response.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
-            response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
-            response.Capabilities["TypedDataCollection"] = bool.TrueString;
-            response.Capabilities["WorkerStatus"] = bool.TrueString;
+            response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return response;
         }
@@ -283,6 +257,58 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
+        }
+        internal static FunctionEnvironmentReloadResponse EnvReloadRequestHandler(FunctionEnvironmentReloadRequest request, WorkerOptions workerOptions)
+        {
+            var envReloadResponse = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+            };
+
+            if (AppContextUtils.IsRunningWithNativeHost())
+            {
+                envReloadResponse.WorkerMetadata = GetWorkerMetadata();
+                envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+            }
+            // If not running with native host, worker metadata & capabilities are sent in worker init response.
+
+            return envReloadResponse;
+        }
+
+        private static WorkerMetadata GetWorkerMetadata()
+        {
+            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
+
+            var workerMetadata = new WorkerMetadata
+            {
+                RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
+                RuntimeVersion = Environment.Version.ToString(),
+                WorkerVersion = WorkerInformation.Instance.WorkerVersion,
+                WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
+            };
+            workerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
+
+            return workerMetadata;
+        }
+
+        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions)
+        {
+            var capabilities = new Dictionary<string, string>();
+            // Add additional capabilities defined by WorkerOptions
+            foreach ((string key, string value) in workerOptions.Capabilities)
+            {
+                capabilities[key] = value;
+            }
+
+            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
+            capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            capabilities["TypedDataCollection"] = bool.TrueString;
+            capabilities["WorkerStatus"] = bool.TrueString;
+
+            return capabilities;
         }
     }
 }

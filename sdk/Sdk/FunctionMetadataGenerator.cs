@@ -804,59 +804,64 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 return false;
             }
 
-            foreach (var a in typeDefinition.CustomAttributes)
+            foreach (var bindingAttribute in typeDefinition.CustomAttributes)
             {
-                if (string.Equals(a.AttributeType.FullName, Constants.InputConverterProperty, StringComparison.Ordinal))
+                if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterProperty, StringComparison.Ordinal))
                 {
-                    var b = a.ConstructorArguments;
+                    return CheckBindingAttribute(bindingAttribute, bindingType);
+                }
+            }
 
-                    foreach (var c in b)
+            return false;
+        }
+
+        private static bool CheckBindingAttribute(CustomAttribute bindingAttribute, string bindingType)
+        {
+            foreach (var customAttribute in bindingAttribute.ConstructorArguments)
+            {
+                if (string.Equals(customAttribute.Type.GetElementType().FullName, typeof(Type).FullName)
+                    && customAttribute.Value.GetType() == typeof(CustomAttributeArgument[]))
+                {
+                    return CheckBindingCustomAttributeArgument(customAttribute, bindingType);
+                }
+            }
+
+            return false;
+        }
+
+        private static bool CheckBindingCustomAttributeArgument(CustomAttributeArgument customAttribute, string bindingType)
+        {
+            //BlobStorageConverter
+            CustomAttributeArgument[] customAttributeArguments = (CustomAttributeArgument[])customAttribute.Value;
+
+            if (customAttributeArguments is null)
+            {
+                return false;
+            }
+
+            bool isSupportsDeferredBindingAttribute = false;
+
+            foreach (var element in customAttributeArguments)
+            {
+                var typeReferenceValue = (TypeReference)element.Value;
+                var typeReferenceCustomAttributes = typeReferenceValue.Resolve().CustomAttributes;
+
+                foreach (var attribute in typeReferenceCustomAttributes)
+                {
+                    if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
                     {
-                        if (string.Equals(c.Type.GetElementType().FullName, "System.Type"))
+                        isSupportsDeferredBindingAttribute = true;
+                        break;
+                    }
+                }
+
+                if (isSupportsDeferredBindingAttribute)
+                {
+                    foreach (var attribute in typeReferenceCustomAttributes)
+                    {
+                        if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypesAttributeType, StringComparison.Ordinal))
                         {
-                            if (c.Value.GetType() == typeof(CustomAttributeArgument[]))
-                            {
-                                CustomAttributeArgument[] t = (CustomAttributeArgument[])c.Value; //BlobStorageConverter
-
-                                if (t is null)
-                                {
-                                    return false;
-                                }
-
-
-                                bool res = false;
-
-                                foreach (var m in t)
-                                {
-                                    var t1 = (TypeReference)m.Value;//.GetType().GenericTypeArguments;
-                                    var t2 = t1.Resolve().CustomAttributes;
-                                    foreach (var d in t2)
-                                    {
-                                        if (string.Equals(d.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
-                                        {
-                                            res = true;
-                                        }
-                                        if (res && string.Equals(d.AttributeType.FullName, "Microsoft.Azure.Functions.Worker.Converters.SupportedConverterTypesAttribute", StringComparison.Ordinal))
-                                        {
-                                            foreach (var n in d.ConstructorArguments)
-                                            {
-                                                CustomAttributeArgument[] n1 = (CustomAttributeArgument[])n.Value;
-
-                                                foreach (var n2 in n1)
-                                                {
-                                                    var n3 = (TypeReference)n2.Value;//.GetType().GenericTypeArguments;
-
-                                                    if (string.Equals(n3.FullName, bindingType, StringComparison.Ordinal))
-                                                    {
-                                                        return true;
-                                                    }
-
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            return CheckConverterTypes(attribute, bindingType);
                         }
                     }
                 }
@@ -864,6 +869,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             return false;
         }
+
+        private static bool CheckConverterTypes(CustomAttribute attribute, string bindingType)
+        {
+            foreach (var bindingTypes in attribute.ConstructorArguments)
+            {
+                CustomAttributeArgument[] bindingTypeElements = (CustomAttributeArgument[])bindingTypes.Value;
+
+                foreach (var bindingTypeElement in bindingTypeElements)
+                {
+                    var bindingTypeValue = (TypeReference)bindingTypeElement.Value;
+
+                    if (string.Equals(bindingTypeValue.FullName, bindingType, StringComparison.Ordinal))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
 
         private static bool IsOutputBindingType(CustomAttribute attribute)
         {

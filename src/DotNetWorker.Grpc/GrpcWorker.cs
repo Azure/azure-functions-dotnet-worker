@@ -169,13 +169,22 @@ namespace Microsoft.Azure.Functions.Worker
                 response.Capabilities[key] = value;
             }
 
+            // Check if HttpProxying is enabled. If so, an available port must be resolved for this worker.
+            if (workerOptions.Capabilities.TryGetValue(GrpcWorkerConstants.EnableHttpProxying, out var enableProxying))
+            {
+                if (enableProxying == bool.TrueString)
+                {
+                    response.WorkerMetadata.CustomProperties.Add(GrpcWorkerConstants.HttpProxyPortKey, Utilities.GetUnusedTcpPort().ToString());
+                }
+            }
+
             // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
-            response.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
-            response.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
-            response.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
-            response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
-            response.Capabilities["TypedDataCollection"] = bool.TrueString;
-            response.Capabilities["WorkerStatus"] = bool.TrueString;
+            response.Capabilities[GrpcWorkerConstants.RpcHttpBodyOnly] = bool.TrueString;
+            response.Capabilities[GrpcWorkerConstants.RawHttpBodyBytes] = bool.TrueString;
+            response.Capabilities[GrpcWorkerConstants.RpcHttpTriggerMetadataRemoved] = bool.TrueString;
+            response.Capabilities[GrpcWorkerConstants.UseNullableValueDictionaryForHttp] = bool.TrueString;
+            response.Capabilities[GrpcWorkerConstants.TypedDataCollection] = bool.TrueString;
+            response.Capabilities[GrpcWorkerConstants.WorkerStatus] = bool.TrueString;
 
             return response;
         }

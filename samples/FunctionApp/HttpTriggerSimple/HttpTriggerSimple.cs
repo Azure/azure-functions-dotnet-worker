@@ -13,7 +13,9 @@ namespace FunctionApp
     public static class HttpTriggerSimple
     {
         [Function(nameof(HttpTriggerSimple))]
-        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
+        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [FromBody] MyPoco myPoco,
+            FunctionContext executionContext)
         {
             var sw = new Stopwatch();
             sw.Restart();
@@ -36,5 +38,10 @@ namespace FunctionApp
 
             return response;
         }
+    }
+
+    public class MyPoco
+    {
+        public string Name { get; set; }
     }
 }

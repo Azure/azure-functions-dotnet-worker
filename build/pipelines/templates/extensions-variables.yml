@@ -1,7 +1,7 @@
 variables:
-  ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
+  ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
     buildNumberTemp: $(Build.BuildNumber)
-  ${{ or(contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags')) }}:
+  ${{ if or( contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags') ) }}:
     isReleaseBuildTemp: true
   buildNumber: $[variables.buildNumberTemp]
   isReleaseBuild: $[variables.isReleaseBuildTemp]

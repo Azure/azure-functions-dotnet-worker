@@ -106,7 +106,6 @@ public class EndToEndTests : IDisposable
         Assert.Collection(telemetries,
             t => ValidateDependencyTelemetry((DependencyTelemetry)t, context, activity),
             t => ValidateExceptionTelemetry((ExceptionTelemetry)t, context, activity),
-            t => ValidateExceptionTelemetry((ExceptionTelemetry)t, context, activity),
             t => ValidateTraceTelemetry((TraceTelemetry)t, context, activity));
     }
 

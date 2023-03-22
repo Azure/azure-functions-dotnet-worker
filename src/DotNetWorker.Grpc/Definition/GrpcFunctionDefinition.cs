@@ -11,6 +11,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.OutputBindings;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -85,13 +86,14 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 // inspect - flag
                 // populate context - converters should be used List<Types>
 
-                var result = new Dictionary<string, object>();
 
                 var inputAttribute = parameterInfo?.GetCustomAttribute<InputBindingAttribute>();
                 var triggerAttribute = parameterInfo?.GetCustomAttribute<TriggerBindingAttribute>();
 
                 if (inputAttribute != null)
                 {
+                    var result = new Dictionary<string, object>();
+
                     var customAttributes = inputAttribute.GetType().GetCustomAttributes();
                     foreach (var c in customAttributes)
                     {
@@ -102,9 +104,13 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                             result.Add(PropertyBagKeys.inputAttributeConverters, b.ConverterTypes);
                         }
                     }
+
+                    return result.ToImmutableDictionary();
                 }
                 else if (triggerAttribute != null)
                 {
+                    var result = new Dictionary<string, object>();
+
                     var customAttributes = triggerAttribute.GetType().GetCustomAttributes();
                     foreach (var c in customAttributes)
                     {
@@ -115,6 +121,8 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                             result.Add(PropertyBagKeys.inputAttributeConverters, b.ConverterTypes);
                         }
                     }
+
+                    return result.ToImmutableDictionary();
                 }
             }
 

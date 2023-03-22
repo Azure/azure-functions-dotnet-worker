@@ -145,7 +145,26 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             // Check a converter is specified on the conversionContext.Properties. If yes, use that.
             if (context.Properties.TryGetValue(PropertyBagKeys.inputAttributeConverters, out var converterTypes))
             {
-                return (List<IInputConverter>)converterTypes;
+                if (converterTypes.GetType() == typeof(List<Type>))
+                {
+                    var res = new List<IInputConverter>();
+                    var k = (List<Type>)converterTypes;
+
+                    foreach (var p in k)
+                    {
+                        var interfaceType = typeof(IInputConverter);
+                        if (interfaceType.IsAssignableFrom(p))
+                        {
+                            string? converterTypeFullName = p.AssemblyQualifiedName;
+                            if (converterTypeFullName is not null)
+                            {
+                                res.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName));
+                            }
+                        }
+                    }
+                    
+                    return res;
+                }
             }
 
             return null;

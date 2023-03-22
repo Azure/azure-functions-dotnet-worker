@@ -26,6 +26,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         internal string MethodName { get; set; } = null!;
 
+        /// <summary>
+        /// A value indicating whether the function is static or not.
+        /// </summary>
         internal bool IsStatic { get; set; }
 
         /// <summary>

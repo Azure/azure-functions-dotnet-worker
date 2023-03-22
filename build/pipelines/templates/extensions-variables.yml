@@ -1,10 +1,10 @@
- variables:
-    ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
-      buildNumberTemp: $(Build.BuildNumber)
-    ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
-      isReleaseBuildTemp: true
-    buildNumber: $[variables.buildNumberTemp]
-    isReleaseBuild: $[variables.isReleaseBuildTemp]
-    solution: '**/*.sln'
-    buildPlatform: 'Any CPU'
-    buildConfiguration: 'Release'
+variables:
+  ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
+    buildNumberTemp: $(Build.BuildNumber)
+  ${{ or(contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags')) }}:
+    isReleaseBuildTemp: true
+  buildNumber: $[variables.buildNumberTemp]
+  isReleaseBuild: $[variables.isReleaseBuildTemp]
+  solution: '**/*.sln'
+  buildPlatform: 'Any CPU'
+  buildConfiguration: 'Release'

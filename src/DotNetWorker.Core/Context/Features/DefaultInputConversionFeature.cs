@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             //access BindingAttribute
             // converterContext.FunctionContext.FunctionDefinition.Parameters.First().
 
-            List<IInputConverter> types = checkForExplicitConverterTypes(converterContext);
+            List<IInputConverter>? types = checkForExplicitConverterTypes(converterContext);
 
             if (types is not null)
             {
@@ -147,23 +147,23 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 if (converterTypes.GetType() == typeof(List<Type>))
                 {
-                    var res = new List<IInputConverter>();
-                    var k = (List<Type>)converterTypes;
+                    var result = new List<IInputConverter>();
+                    var converters = (List<Type>)converterTypes;
 
-                    foreach (var p in k)
+                    foreach (var converter in converters)
                     {
                         var interfaceType = typeof(IInputConverter);
-                        if (interfaceType.IsAssignableFrom(p))
+                        if (interfaceType.IsAssignableFrom(converter))
                         {
-                            string? converterTypeFullName = p.AssemblyQualifiedName;
+                            string? converterTypeFullName = converter.AssemblyQualifiedName;
                             if (converterTypeFullName is not null)
                             {
-                                res.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName));
+                                result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName));
                             }
                         }
                     }
                     
-                    return res;
+                    return result;
                 }
             }
 

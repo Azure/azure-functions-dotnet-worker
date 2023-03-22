@@ -22,6 +22,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <ItemGroup>
     <CompilerVisibleProperty Include="FunctionsEnableMetadataSourceGen" />
+    <CompilerVisibleProperty Include="FunctionsEnableExecutorSourceGen" />
   </ItemGroup>
 <!--
   ***********************************************************************************************

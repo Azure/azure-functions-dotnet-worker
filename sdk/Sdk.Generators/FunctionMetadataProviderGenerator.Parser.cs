@@ -47,20 +47,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                    if (!IsValidMethodAzureFunction(model, method, out string? functionName))
+                    if (!FunctionsUtil.IsValidFunctionMethod(_context, Compilation, model, method, out string? functionName))
                     {
                         continue;
                     }
 
-                    var methodSymbol = model.GetDeclaredSymbol(method)!;
-                    var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-                    var entryPoint = $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
-
                     var newFunction = new GeneratorFunctionMetadata
                     {
                         Name = functionName,
-                        EntryPoint = entryPoint,
-                        Language = "dotnet-isolated",
+                        EntryPoint = FunctionsUtil.GetFullyQualifiedMethodName(method, model),
+                        Language = Constants.Languages.DotnetIsolated,
                         ScriptFile = scriptFile
                     };
 
@@ -79,34 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     result.Add(newFunction);
                 }
 
-                return result; 
-            }
-
-            /// <summary>
-            /// Checks if a candidate method has a Function attribute on it.
-            /// </summary>
-            private bool IsValidMethodAzureFunction(SemanticModel model, MethodDeclarationSyntax method, out string? functionName)
-            {
-                functionName = null;
-                var methodSymbol = model.GetDeclaredSymbol(method);
-
-                if (methodSymbol is null)
-                {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, method.Identifier.GetLocation(), nameof(methodSymbol)));
-                    return false;
-                }
-
-                foreach (var attr in methodSymbol.GetAttributes())
-                {
-                    if (attr.AttributeClass != null &&
-                       SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
-                    {
-                        functionName = (string)attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
-                        return true;
-                    }
-                }
-
-                return false;
+                return result;
             }
 
             private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger)
@@ -275,7 +244,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.Task)))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric))) 
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric)))
                     {
                         GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
@@ -295,7 +264,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        if(!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, returnTypeSyntax.GetLocation(), out bindingsList))
+                        if (!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, returnTypeSyntax.GetLocation(), out bindingsList))
                         {
                             bindingsList = null;
                             return false;
@@ -430,7 +399,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     else
                     {
                         bindings[propertyName] = prop.Value!.ToString();
-                    }  
+                    }
                 }
 
                 return true;
@@ -680,7 +649,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     return true;
                 }
-                
+
                 // trigger input type doesn't match any of the valid cases so return false
                 return false;
             }
@@ -698,7 +667,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var currSymbol = parameterSymbol.Type;
                 INamedTypeSymbol? finalSymbol = null;
 
-                while(currSymbol != null)
+                while (currSymbol != null)
                 {
                     INamedTypeSymbol? genericInterfaceSymbol = null;
 
@@ -761,7 +730,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray))
                     || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct)));
                 var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ReadOnlyMemoryOfBytes));
-                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray && 
+                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray &&
                     outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct));
 
 

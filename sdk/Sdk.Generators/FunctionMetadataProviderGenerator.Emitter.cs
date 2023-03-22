@@ -84,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                      {{bindingInfo}}
                                  var {{functionVariableName}} = new DefaultFunctionMetadata
                                  {
-                                     Language = "dotnet-isolated",
+                                     Language = "{{Constants.Languages.DotnetIsolated}}",
                                      Name = "{{function.Name}}",
                                      EntryPoint = "{{function.EntryPoint}}",
                                      RawBindings = {{functionBindingsListVarName}},

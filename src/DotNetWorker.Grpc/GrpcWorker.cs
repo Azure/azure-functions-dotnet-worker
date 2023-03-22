@@ -116,7 +116,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionEnvironmentReloadRequest:
-                    responseMessage.FunctionEnvironmentReloadResponse = EnvReloadRequestHandler(request.FunctionEnvironmentReloadRequest, _workerOptions);
+                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions);
                     break;
 
                 case MsgType.InvocationCancel:
@@ -260,19 +260,14 @@ namespace Microsoft.Azure.Functions.Worker
             return response;
         }
 
-        internal static FunctionEnvironmentReloadResponse EnvReloadRequestHandler(FunctionEnvironmentReloadRequest request, WorkerOptions workerOptions)
+        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions)
         {
             var envReloadResponse = new FunctionEnvironmentReloadResponse
             {
-                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success },
+                WorkerMetadata = GetWorkerMetadata()
             };
-
-            if (AppContextUtils.IsRunningWithNativeHost())
-            {
-                envReloadResponse.WorkerMetadata = GetWorkerMetadata();
-                envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
-            }
-            // If not running with native host, worker metadata & capabilities are sent in worker init response.
+            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return envReloadResponse;
         }

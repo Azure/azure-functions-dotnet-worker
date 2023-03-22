@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -47,17 +48,38 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            // Use the registered converters. The first converter which can handle the conversion wins.
-            foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
+            //access BindingAttribute
+            // converterContext.FunctionContext.FunctionDefinition.Parameters.First().
+
+            List<IInputConverter> types = checkForExplicitConverterTypes(converterContext);
+
+            if (types is not null)
             {
-                var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
-
-                if (conversionResult.Status != ConversionStatus.Unhandled)
+                foreach (var conveterType in types)
                 {
-                    return conversionResult;
-                }
+                    var conversionResult = await ConvertAsyncUsingConverter(conveterType, converterContext);
 
-                // If "Status" is Unhandled, we move on to the next converter and try to convert with that.
+                    if (conversionResult.Status != ConversionStatus.Unhandled)
+                    {
+                        return conversionResult;
+                    }
+                }
+            }
+
+            if (!checkFlag(converterContext))
+            {
+                // Use the registered converters. The first converter which can handle the conversion wins.
+                foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
+                {
+                    var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
+
+                    if (conversionResult.Status != ConversionStatus.Unhandled)
+                    {
+                        return conversionResult;
+                    }
+
+                    // If "Status" is Unhandled, we move on to the next converter and try to convert with that.
+                }
             }
 
             return ConversionResult.Unhandled();
@@ -89,6 +111,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <returns>An IInputConverter instance or null</returns>
         private IInputConverter? GetConverterFromContext(ConverterContext context)
         {
+            //rename method - checkForExplicitConverterTypes, GetConverterTypeContext
+            //GetBindingConverters
+
             string? converterTypeFullName;
 
             // Check a converter is specified on the conversionContext.Properties. If yes, use that.
@@ -110,6 +135,36 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             return null;
         }
+
+
+        private List<IInputConverter>? checkForExplicitConverterTypes(ConverterContext context)
+        {
+            //rename method - checkForExplicitConverterTypes, GetConverterTypeContext
+            //GetBindingConverters
+
+            // Check a converter is specified on the conversionContext.Properties. If yes, use that.
+            if (context.Properties.TryGetValue(PropertyBagKeys.inputAttributeConverters, out var converterTypes))
+            {
+                return (List<IInputConverter>)converterTypes;
+            }
+
+            return null;
+        }
+
+        private bool checkFlag(ConverterContext context)
+        {
+            //rename method - checkForExplicitConverterTypes, GetConverterTypeContext
+            //GetBindingConverters
+
+            // Check a converter is specified on the conversionContext.Properties. If yes, use that.
+            if (context.Properties.TryGetValue(PropertyBagKeys.inputAttributeFlagKey, out var res))
+            {
+                return (bool)res;
+            }
+
+            return false;
+        }
+
 
         /// <summary>
         /// Checks a type has an "InputConverter" attribute decoration present

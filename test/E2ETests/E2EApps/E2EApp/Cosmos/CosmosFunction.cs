@@ -3,20 +3,30 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json.Serialization;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
-    public static class CosmosFunction
+    public class CosmosFunction
     {
+        private readonly ILogger<CosmosFunction> _logger;
+
+        public CosmosFunction(ILogger<CosmosFunction> logger)
+        {
+            _logger = logger;
+        }
+
         [Function(nameof(CosmosTrigger))]
         [CosmosDBOutput(
             databaseName: "%CosmosDb%",
             containerName: "%CosmosCollOut%",
             Connection = "CosmosConnection",
             CreateIfNotExists = true)]
-        public static object CosmosTrigger([CosmosDBTrigger(
+        public object CosmosTrigger([CosmosDBTrigger(
             databaseName: "%CosmosDb%",
             containerName: "%CosmosCollIn%",
             Connection = "CosmosConnection",
@@ -34,6 +44,135 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             }
 
             return null;
+        }
+
+        [Function(nameof(DocsByUsingCosmosClient))]
+        public async Task<HttpResponseData>  DocsByUsingCosmosClient(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput("", "", Connection = "CosmosConnection")] CosmosClient client)
+        {
+            var iterator = client.GetContainer("ItemDb", "ItemCollectionIn")
+                                 .GetItemQueryIterator<MyDocument>("SELECT * FROM c");
+
+            var output = "";
+
+            while (iterator.HasMoreResults)
+            {
+                var documents = await iterator.ReadNextAsync();
+                foreach (MyDocument d in documents)
+                {
+                    output += $"{(string)d.Text}, ";
+                }
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteStringAsync(output);
+            return response;
+        }
+
+        [Function(nameof(DocsByUsingDatabaseClient))]
+        public async Task<HttpResponseData> DocsByUsingDatabaseClient(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput("%CosmosDb%", "", Connection = "CosmosConnection")] Database database)
+        {
+            var iterator = database.GetContainerQueryIterator<dynamic>("SELECT * FROM c");
+
+            var output = "";
+
+            while (iterator.HasMoreResults)
+            {
+                var containers = await iterator.ReadNextAsync();
+                foreach (dynamic c in containers)
+                {
+                    output += $"{(string)c.id}, ";
+                }
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteStringAsync(output);
+            return response;
+        }
+
+        [Function(nameof(DocsByUsingContainerClient))]
+        public async Task<HttpResponseData>  DocsByUsingContainerClient(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput("%CosmosDb%", "%CosmosCollIn%", Connection = "CosmosConnection")] Container container)
+        {
+            var iterator = container.GetItemQueryIterator<MyDocument>("SELECT * FROM c");
+
+            var output = "";
+
+            while (iterator.HasMoreResults)
+            {
+                var documents = await iterator.ReadNextAsync();
+                foreach (MyDocument d in documents)
+                {
+                    output += $"{(string)d.Text}, ";
+                }
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteStringAsync(output);
+            return response;
+        }
+
+        [Function(nameof(DocByIdFromRouteData))]
+        public async Task<HttpResponseData> DocByIdFromRouteData(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "docsbyroute/{partitionKey}/{id}")] HttpRequestData req,
+            [CosmosDBInput(
+                databaseName: "%CosmosDb%",
+                containerName: "%CosmosCollIn%",
+                Connection = "CosmosConnection",
+                Id = "{id}",
+                PartitionKey = "{partitionKey}")] MyDocument doc)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteStringAsync(doc.Text);
+            return response;
+        }
+
+        [Function(nameof(DocByIdFromRouteDataUsingSqlQuery))]
+        public async Task<HttpResponseData> DocByIdFromRouteDataUsingSqlQuery(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "docsbysql/{id}")] HttpRequestData req,
+            [CosmosDBInput(
+                databaseName: "%CosmosDb%",
+                containerName: "%CosmosCollIn%",
+                Connection = "CosmosConnection",
+                SqlQuery = "SELECT * FROM ToDoItems t where t.id = {id}")]
+                IEnumerable<MyDocument> myDocs)
+        {
+            var output = "";
+
+            foreach (MyDocument doc in myDocs)
+            {
+                output += $"{(string)doc.Text}, ";
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteStringAsync(output);
+            return response;
+        }
+
+        [Function(nameof(DocByIdFromQueryStringUsingSqlQuery))]
+        public async Task<HttpResponseData> DocByIdFromQueryStringUsingSqlQuery(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [CosmosDBInput(
+                databaseName: "%CosmosDb%",
+                containerName: "%CosmosCollIn%",
+                Connection = "CosmosConnection",
+                SqlQuery = "SELECT * FROM ToDoItems t where t.id = {id}")]
+                IEnumerable<MyDocument> myDocs)
+        {
+            var output = "";
+
+            foreach (MyDocument doc in myDocs)
+            {
+                output += $"{(string)doc.Text}, ";
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.WriteStringAsync(output);
+            return response;
         }
 
         public class MyDocument

@@ -38,6 +38,11 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             _ = await _docDbClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName), documentToTest);
         }
 
+        public async static Task CreateDocument(object documentToTest)
+        {
+            _ = await _docDbClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName), documentToTest);
+        }
+
         // keep
         public async static Task<string> ReadDocument(string docId)
         {

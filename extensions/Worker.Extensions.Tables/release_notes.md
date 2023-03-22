@@ -3,4 +3,4 @@
 - My change description (#PR/#issue)
 -->
 
-- Publishing Worker.Extension.Tables package v 1.0.0 (#1173)
+- Changed TableInputAttribute.Take from int? to int (#1403)

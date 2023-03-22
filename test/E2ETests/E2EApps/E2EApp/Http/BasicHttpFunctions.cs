@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using System.Web;
 using Microsoft.Azure.Functions.Worker;
@@ -19,7 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         {
             var logger = context.GetLogger(nameof(HelloFromQuery));
             logger.LogInformation(".NET Worker HTTP trigger function processed a request");
-            var queryName = HttpUtility.ParseQueryString(req.Url.Query)["name"];
+
+            var queryName = req.Query["name"];
 
             if (!string.IsNullOrEmpty(queryName))
             {

@@ -37,6 +37,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnablePlaceholder)">true</FunctionsEnableWorkerIndexing>
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' And !$(FunctionsEnablePlaceholder)">false</FunctionsEnableWorkerIndexing>
         <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
+        <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == ''">false</FunctionsEnableExecutorSourceGen>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"

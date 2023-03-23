@@ -9,7 +9,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MinorProductVersion>11</MinorProductVersion>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

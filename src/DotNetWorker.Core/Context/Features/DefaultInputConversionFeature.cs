@@ -48,16 +48,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            //access BindingAttribute
-            // converterContext.FunctionContext.FunctionDefinition.Parameters.First().
-
-            List<IInputConverter>? types = checkForExplicitConverterTypes(converterContext);
+            // Check for advertised converters by Binding Attribute
+            List<IInputConverter>? types = CheckForExplicitConverterTypes(converterContext);
 
             if (types is not null)
             {
-                foreach (var conveterType in types)
+                foreach (var converterType in types)
                 {
-                    var conversionResult = await ConvertAsyncUsingConverter(conveterType, converterContext);
+                    var conversionResult = await ConvertAsyncUsingConverter(converterType, converterContext);
 
                     if (conversionResult.Status != ConversionStatus.Unhandled)
                     {
@@ -66,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            if (!checkFlag(converterContext))
+            if (!CheckFlagForConvertersFallback(converterContext))
             {
                 // Use the registered converters. The first converter which can handle the conversion wins.
                 foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
@@ -137,18 +135,17 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
 
-        private List<IInputConverter>? checkForExplicitConverterTypes(ConverterContext context)
+        private List<IInputConverter>? CheckForExplicitConverterTypes(ConverterContext context)
         {
-            //rename method - checkForExplicitConverterTypes, GetConverterTypeContext
-            //GetBindingConverters
+            //rename method - checkForExplicitConverterTypes, GetConverterTypeContext, GetBindingConverters
 
-            // Check a converter is specified on the conversionContext.Properties. If yes, use that.
+            // Check advertised converters
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
                 if (converterTypes.GetType() == typeof(List<Type>))
                 {
-                    var result = new List<IInputConverter>();
                     var converters = (List<Type>)converterTypes;
+                    var result = new List<IInputConverter>();
 
                     foreach (var converter in converters)
                     {
@@ -170,12 +167,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return null;
         }
 
-        private bool checkFlag(ConverterContext context)
+        private bool CheckFlagForConvertersFallback(ConverterContext context)
         {
-            //rename method - checkForExplicitConverterTypes, GetConverterTypeContext
-            //GetBindingConverters
-
-            // Check a converter is specified on the conversionContext.Properties. If yes, use that.
             if (context.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallbackFlag, out var res))
             {
                 return (bool)res;

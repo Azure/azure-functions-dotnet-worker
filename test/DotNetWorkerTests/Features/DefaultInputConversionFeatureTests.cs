@@ -4,11 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Features
@@ -104,6 +106,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal("16-converted customer", customer.Name);
         }
 
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeConverters, new List<Type>() { typeof(MySimpleSyncInputConverter) }  },
+                { PropertyBagKeys.DisableConverterFallbackFlag, true }
+            };
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d-converted value", actual.Value);
+            TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
+        }
+
         [InputConverter(false, typeof(MyCustomerAsyncInputConverter))]
         internal record Customer(string Id, string Name);
 
@@ -118,6 +138,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             }
         }
 
+        [SupportsDeferredBinding]
+        [SupportedConverterTypes(typeof(string), typeof(Stream))]
         internal class MySimpleSyncInputConverter : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)

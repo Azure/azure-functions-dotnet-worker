@@ -34,10 +34,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
             // Add http coordinator
             builder.Services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
 
+            var port = Utilities.GetUnusedTcpPort().ToString();
+
+            // temporarily use env vars until HostBuilderExtensions extends IFunctionsWorkerApplicationBuilder instead?
+            Environment.SetEnvironmentVariable("FUNCTIONS_HTTP_PROXY_PORT", port);
+
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.RegisterAt<HttpContextConverter>(0);
-                workerOption.Capabilities.Add("EnableHttpProxying", bool.TrueString);
+                workerOption.Capabilities.Add("EnableHttpProxying", port);
             });
 
             return builder;

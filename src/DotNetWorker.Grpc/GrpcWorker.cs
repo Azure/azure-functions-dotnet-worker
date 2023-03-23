@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-            
+
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
@@ -169,22 +169,13 @@ namespace Microsoft.Azure.Functions.Worker
                 response.Capabilities[key] = value;
             }
 
-            // Check if HttpProxying is enabled. If so, an available port must be resolved for this worker.
-            if (workerOptions.Capabilities.TryGetValue(GrpcWorkerConstants.EnableHttpProxying, out var enableProxying))
-            {
-                if (enableProxying == bool.TrueString)
-                {
-                    response.WorkerMetadata.CustomProperties.Add(GrpcWorkerConstants.HttpProxyPortKey, Utilities.GetUnusedTcpPort().ToString());
-                }
-            }
-
             // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
-            response.Capabilities[GrpcWorkerConstants.RpcHttpBodyOnly] = bool.TrueString;
-            response.Capabilities[GrpcWorkerConstants.RawHttpBodyBytes] = bool.TrueString;
-            response.Capabilities[GrpcWorkerConstants.RpcHttpTriggerMetadataRemoved] = bool.TrueString;
-            response.Capabilities[GrpcWorkerConstants.UseNullableValueDictionaryForHttp] = bool.TrueString;
-            response.Capabilities[GrpcWorkerConstants.TypedDataCollection] = bool.TrueString;
-            response.Capabilities[GrpcWorkerConstants.WorkerStatus] = bool.TrueString;
+            response.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            response.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            response.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            response.Capabilities["TypedDataCollection"] = bool.TrueString;
+            response.Capabilities["WorkerStatus"] = bool.TrueString;
 
             return response;
         }

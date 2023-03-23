@@ -4,7 +4,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Microsoft.Azure.Functions.Worker.Grpc
+namespace Microsoft.Azure.Functions.Worker.Core.Http
 {
     internal class Utilities
     {

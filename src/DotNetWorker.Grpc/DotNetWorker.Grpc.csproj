@@ -8,9 +8,9 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>8</MinorProductVersion>
-    <PatchProductVersion>1</PatchProductVersion>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <MinorProductVersion>9</MinorProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix></VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -45,9 +45,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" 
-              ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" 
-              GrpcServices="Client" 
+    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto"
+              ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto"
+              GrpcServices="Client"
               Access="internal" />
 
   </ItemGroup>

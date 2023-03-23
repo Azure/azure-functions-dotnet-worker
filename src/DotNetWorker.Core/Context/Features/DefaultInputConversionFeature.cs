@@ -143,7 +143,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             //GetBindingConverters
 
             // Check a converter is specified on the conversionContext.Properties. If yes, use that.
-            if (context.Properties.TryGetValue(PropertyBagKeys.inputAttributeConverters, out var converterTypes))
+            if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
                 if (converterTypes.GetType() == typeof(List<Type>))
                 {
@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             //GetBindingConverters
 
             // Check a converter is specified on the conversionContext.Properties. If yes, use that.
-            if (context.Properties.TryGetValue(PropertyBagKeys.inputAttributeFlagKey, out var res))
+            if (context.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallbackFlag, out var res))
             {
                 return (bool)res;
             }

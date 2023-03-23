@@ -15,7 +15,6 @@ using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using System.ComponentModel;
 
 namespace Microsoft.Azure.Functions.Worker
 {

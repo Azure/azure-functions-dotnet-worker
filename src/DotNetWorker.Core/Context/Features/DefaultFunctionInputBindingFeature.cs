@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -70,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     }
                     else
                     {
-                        Dictionary<string, object> properties = null;
+                        Dictionary<string, object>? properties = null;
 
                         // Pass info about specific input converter type defined for this parameter, if present.
                         if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
@@ -80,20 +79,20 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                             { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName }
                         };
                         }
-                        if (param.Properties.TryGetValue(PropertyBagKeys.inputAttributeFlagKey, out var flag))
+                        if (param.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallbackFlag, out var flag))
                         {
                             properties = properties == null ? new Dictionary<string, object>() : properties;
-                            properties.Add(PropertyBagKeys.inputAttributeFlagKey, flag);
+                            properties.Add(PropertyBagKeys.DisableConverterFallbackFlag, flag);
                         }
-                        if (param.Properties.TryGetValue(PropertyBagKeys.inputAttributeConverters, out var input))
+                        if (param.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var input))
                         {
                             properties = properties == null ? new Dictionary<string, object>() : properties;
-                            properties.Add(PropertyBagKeys.inputAttributeConverters, input);
+                            properties.Add(PropertyBagKeys.BindingAttributeConverters, input);
                         }
 
-                        IReadOnlyDictionary<string, object> prop = properties != null ? properties.ToImmutableDictionary() : ImmutableDictionary<string, object>.Empty;
+                        IReadOnlyDictionary<string, object> propertiesDict = properties != null ? properties.ToImmutableDictionary() : ImmutableDictionary<string, object>.Empty;
 
-                        var converterContext = _converterContextFactory.Create(param.Type, source, context, prop);
+                        var converterContext = _converterContextFactory.Create(param.Type, source, context, propertiesDict);
 
                         bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
                         inputBindingCache[cacheKey] = bindingResult;

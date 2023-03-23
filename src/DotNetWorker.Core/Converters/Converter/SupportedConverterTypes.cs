@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
-    /// An attribute that can specify a type of <see cref="IInputConverter"/> to use for function input conversion.
+    /// An attribute that can specify a type of <see cref="Type"/> to use for function input conversion.
     /// </summary>
     [AttributeUsage(
         AttributeTargets.Parameter |

@@ -100,8 +100,8 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                         if (c.GetType() == typeof(InputConverterAttribute))
                         {
                             var b = (InputConverterAttribute)c;
-                            result.Add(PropertyBagKeys.inputAttributeFlagKey, b.DisableConverterFallback);
-                            result.Add(PropertyBagKeys.inputAttributeConverters, b.ConverterTypes);
+                            result.Add(PropertyBagKeys.DisableConverterFallbackFlag, b.DisableConverterFallback);
+                            result.Add(PropertyBagKeys.BindingAttributeConverters, b.ConverterTypes);
                         }
                     }
 
@@ -117,8 +117,8 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                         if (c.GetType() == typeof(InputConverterAttribute))
                         {
                             var b = (InputConverterAttribute)c;
-                            result.Add(PropertyBagKeys.inputAttributeFlagKey, b.DisableConverterFallback);
-                            result.Add(PropertyBagKeys.inputAttributeConverters, b.ConverterTypes);
+                            result.Add(PropertyBagKeys.DisableConverterFallbackFlag, b.DisableConverterFallback);
+                            result.Add(PropertyBagKeys.BindingAttributeConverters, b.ConverterTypes);
                         }
                     }
 

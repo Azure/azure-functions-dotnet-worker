@@ -79,8 +79,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
             try
             {
                 //Setup
-                MyDocument document = new() { Id = expectedDocId, Text = "hello world", Number = 1, Boolean = true };
-                await CosmosDBHelpers.CreateDocument(document);
+                await CosmosDBHelpers.CreateDocument(expectedDocId, "DocByIdFromRouteData");
 
                 //Trigger
                 HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionPath);
@@ -90,7 +89,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
                 HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
                 Assert.Equal(expectedStatusCode, response.StatusCode);
-                Assert.Contains("hello world", actualMessage);
+                Assert.Contains("DocByIdFromRouteData", actualMessage);
             }
             finally
             {
@@ -107,8 +106,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
             try
             {
                 //Setup
-                MyDocument document = new() { Id = expectedDocId, Text = "hello world", Number = 1, Boolean = true };
-                await CosmosDBHelpers.CreateDocument(document);
+                await CosmosDBHelpers.CreateDocument(expectedDocId, "DocByIdFromRouteDataUsingSqlQuery");
 
                 //Trigger
                 HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionPath);
@@ -118,7 +116,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
                 HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
                 Assert.Equal(expectedStatusCode, response.StatusCode);
-                Assert.Contains("hello world", actualMessage);
+                Assert.Contains("DocByIdFromRouteDataUsingSqlQuery", actualMessage);
             }
             finally
             {
@@ -136,8 +134,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
             try
             {
                 //Setup
-                MyDocument document = new() { Id = expectedDocId, Text = "hello world", Number = 1, Boolean = true };
-                await CosmosDBHelpers.CreateDocument(document);
+                await CosmosDBHelpers.CreateDocument(expectedDocId, functionName);
 
                 //Trigger
                 HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody(functionName, requestBody, "application/json");
@@ -147,7 +144,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
                 HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
                 Assert.Equal(expectedStatusCode, response.StatusCode);
-                Assert.Contains("hello world", actualMessage);
+                Assert.Contains(functionName, actualMessage);
             }
             finally
             {
@@ -159,17 +156,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
         public void Dispose()
         {
             _disposeLog?.Dispose();
-        }
-
-        public class MyDocument
-        {
-            public string Id { get; set; }
-
-            public string Text { get; set; }
-
-            public int Number { get; set; }
-
-            public bool Boolean { get; set; }
         }
     }
 }

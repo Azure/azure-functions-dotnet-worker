@@ -51,17 +51,17 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput("", "", Connection = "CosmosConnection")] CosmosClient client)
         {
-            var iterator = client.GetContainer("ItemDb", "ItemCollectionIn")
-                                 .GetItemQueryIterator<MyDocument>("SELECT * FROM c");
+            var container = client.GetContainer("ItemDb", "ItemCollectionIn");
+            var iterator = container.GetItemQueryIterator<MyDocument>("SELECT * FROM c");
 
             var output = "";
 
             while (iterator.HasMoreResults)
             {
                 var documents = await iterator.ReadNextAsync();
-                foreach (MyDocument d in documents)
+                foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.Text}, ";
+                    output += $"{(string)d.id}, ";
                 }
             }
 
@@ -75,16 +75,17 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput("%CosmosDb%", "", Connection = "CosmosConnection")] Database database)
         {
-            var iterator = database.GetContainerQueryIterator<dynamic>("SELECT * FROM c");
+            var container = database.GetContainer("ItemCollectionIn");;
+            var iterator = container.GetItemQueryIterator<MyDocument>("SELECT * FROM c");
 
             var output = "";
 
             while (iterator.HasMoreResults)
             {
-                var containers = await iterator.ReadNextAsync();
-                foreach (dynamic c in containers)
+                var documents = await iterator.ReadNextAsync();
+                foreach (dynamic d in documents)
                 {
-                    output += $"{(string)c.id}, ";
+                    output += $"{(string)d.id}, ";
                 }
             }
 
@@ -105,9 +106,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             while (iterator.HasMoreResults)
             {
                 var documents = await iterator.ReadNextAsync();
-                foreach (MyDocument d in documents)
+                foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.Text}, ";
+                    output += $"{(string)d.id}, ";
                 }
             }
 
@@ -138,16 +139,10 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 databaseName: "%CosmosDb%",
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
-                SqlQuery = "SELECT * FROM ToDoItems t where t.id = {id}")]
+                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.Id = {id}")]
                 IEnumerable<MyDocument> myDocs)
         {
-            var output = "";
-
-            foreach (MyDocument doc in myDocs)
-            {
-                output += $"{(string)doc.Text}, ";
-            }
-
+            var output = myDocs.FirstOrDefault().Text;
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(output);
             return response;
@@ -160,16 +155,10 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 databaseName: "%CosmosDb%",
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
-                SqlQuery = "SELECT * FROM ToDoItems t where t.id = {id}")]
+                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.Id = {id}")]
                 IEnumerable<MyDocument> myDocs)
         {
-            var output = "";
-
-            foreach (MyDocument doc in myDocs)
-            {
-                output += $"{(string)doc.Text}, ";
-            }
-
+            var output = myDocs.FirstOrDefault().Text;
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(output);
             return response;
@@ -180,10 +169,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             public string Id { get; set; }
 
             public string Text { get; set; }
-
-            public int Number { get; set; }
-
-            public bool Boolean { get; set; }
         }
     }
 }

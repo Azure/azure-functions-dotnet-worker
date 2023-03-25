@@ -16,7 +16,8 @@ add_library(funcgrpc
         funcgrpc_worker_config_handle.cpp
         funcgrpc_worker_config_handle.h
         byte_buffer_helper.cpp 
-        byte_buffer_helper.h)
+        byte_buffer_helper.h 
+        func_message_types.h)
 
 # set_target_properties(funcgrpc PROPERTIES ENABLE_EXPORTS TRUE)
 # set_target_properties(funcgrpc PROPERTIES WINDOWS_EXPORT_ALL_SYMBOLS TRUE)

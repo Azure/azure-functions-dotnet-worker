@@ -1,0 +1,5 @@
+enum messageType
+{
+    streamingMessage,
+    loadCustomerAssembly
+};

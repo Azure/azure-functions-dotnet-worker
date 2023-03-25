@@ -88,9 +88,11 @@ void AzureFunctionsRpc::NativeHostMessageHandler::HandleMessage(ByteBuffer *rece
                 }
 
                 string exePath = funcgrpc::WorkerConfigHandle().GetApplicationExePath(dir);
+                FUNC_LOG_INFO("Calling application_->LoadCustomerAssembly from handler with exePath: {}", exePath);
+
                 {
                     funcgrpc::FuncPerfMarker mark2("application_->ExecuteApplication");
-                    application_->ExecuteApplication(exePath);
+                    application_->LoadCustomerAssembly(exePath);
                 }
 
                 FUNC_LOG_INFO("Waiting for worker initialization.");

@@ -3,6 +3,7 @@
 
 #include "nativehostapplication.h"
 #include "func_log.h"
+#include "func_message_types.h"
 #include <nethost.h>
 
 using namespace std;
@@ -13,13 +14,28 @@ NativeHostApplication::NativeHostApplication()
 {
     initMutex_ = CreateMutex(nullptr, FALSE, nullptr);
     load_hostfxr();
+    // to do: fix this to relative path
+    auto managedAppLoaderPath =
+        "C:\\Dev\\OSS\\azure-functions-dotnet-worker\\host\\src\\ManagedLoader\\bin\\Debug\\net6.0\\ManagedLoader.dll";
+    LoadMinimalManagedLoader(managedAppLoaderPath);
 }
 
 NativeHostApplication::~NativeHostApplication()
 {
 }
 
-void NativeHostApplication::ExecuteApplication(string dllPath)
+void NativeHostApplication::LoadCustomerAssembly(string assemblyPath)
+{
+    FUNC_LOG_INFO("NativeHostApplication::LoadManangedLoader invoked with assemblyPath: {}", assemblyPath);
+
+    auto size = assemblyPath.length();
+    auto charArr = assemblyPath.c_str();
+    auto *unsignedCharArr = (unsigned char *)charArr;
+
+    HandleIncomingMessage(unsignedCharArr, size, messageType::loadCustomerAssembly);
+}
+
+void NativeHostApplication::LoadMinimalManagedLoader(string dllPath)
 {
     s_Application = this;
 
@@ -53,11 +69,11 @@ void NativeHostApplication::ExecuteApplication(string dllPath)
         run_app_fptr, cxt, initMutex_);
 }
 
-void NativeHostApplication::HandleIncomingMessage(unsigned char *buffer, int size)
+void NativeHostApplication::HandleIncomingMessage(unsigned char *buffer, int size, int messageType)
 {
     WaitForSingleObject(initMutex_, INFINITE);
 
-    callback(&buffer, size, handle);
+    callback(&buffer, size, messageType, handle);
 }
 
 void NativeHostApplication::SendOutgoingMessage(_In_ ByteBuffer *msg)
@@ -69,6 +85,8 @@ void NativeHostApplication::SendOutgoingMessage(_In_ ByteBuffer *msg)
 
 void NativeHostApplication::SetCallbackHandles(_In_ PFN_REQUEST_HANDLER request_callback, _In_ void *grpcHandle)
 {
+    FUNC_LOG_INFO("SetCallbackHandles called.");
+
     callback = request_callback;
     handle = grpcHandle;
 

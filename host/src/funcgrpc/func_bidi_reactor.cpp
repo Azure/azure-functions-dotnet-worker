@@ -6,6 +6,7 @@
 #include "func_log.h"
 #include "handlers/funcgrpc_native_handler.h"
 #include "messaging_channel.h"
+#include "func_message_types.h"
 
 funcgrpc::FunctionBidiReactor::FunctionBidiReactor(GrpcWorkerStartupOptions *pOptions,
                                                    NativeHostApplication *pApplication)
@@ -194,7 +195,7 @@ void funcgrpc::FunctionBidiReactor::handleInboundMessagesForApplication()
         auto charArr = t.c_str();
         auto *unsignedCharArr = (unsigned char *)charArr;
 
-        pApplication_->HandleIncomingMessage(unsignedCharArr, size);
+        pApplication_->HandleIncomingMessage(unsignedCharArr, size, messageType::streamingMessage);
     }
 
     FUNC_LOG_WARN("exiting handleInboundMessagesForApplication");

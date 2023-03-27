@@ -31,7 +31,7 @@ class NativeHostApplication
 
     void LoadCustomerAssembly(string assemblyPath);
 
-    void LoadMinimalManagedLoader(string dllPath);
+    void LoadManagedLoader(string dllPath);
 
     void SetCallbackHandles(_In_ PFN_REQUEST_HANDLER request_callback, _In_ void *grpcHandle);
 

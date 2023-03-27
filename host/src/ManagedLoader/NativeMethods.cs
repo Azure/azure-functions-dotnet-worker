@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManagedLoader
+namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 {
     internal static unsafe partial class NativeMethods
     {

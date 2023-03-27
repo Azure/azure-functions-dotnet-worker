@@ -5,6 +5,7 @@
 #include "func_log.h"
 #include "func_message_types.h"
 #include <nethost.h>
+#include "funcgrpc_pathutils.h"
 
 using namespace std;
 
@@ -14,10 +15,9 @@ NativeHostApplication::NativeHostApplication()
 {
     initMutex_ = CreateMutex(nullptr, FALSE, nullptr);
     load_hostfxr();
-    // to do: fix this to relative path
-    auto managedAppLoaderPath =
-        "C:\\Dev\\OSS\\azure-functions-dotnet-worker\\host\\src\\ManagedLoader\\bin\\Debug\\net6.0\\ManagedLoader.dll";
-    LoadMinimalManagedLoader(managedAppLoaderPath);
+
+    auto managedAppLoaderPath = getCurrentDirectory() + "\\loader\\FunctionsNetHost.ManagedLoader.dll";
+    LoadManagedLoader(managedAppLoaderPath);
 }
 
 NativeHostApplication::~NativeHostApplication()
@@ -26,7 +26,7 @@ NativeHostApplication::~NativeHostApplication()
 
 void NativeHostApplication::LoadCustomerAssembly(string assemblyPath)
 {
-    FUNC_LOG_INFO("NativeHostApplication::LoadManangedLoader invoked with assemblyPath: {}", assemblyPath);
+    FUNC_LOG_INFO("NativeHostApplication::LoadManangedLoader1 invoked with assemblyPath: {}", assemblyPath);
 
     auto size = assemblyPath.length();
     auto charArr = assemblyPath.c_str();
@@ -35,8 +35,11 @@ void NativeHostApplication::LoadCustomerAssembly(string assemblyPath)
     HandleIncomingMessage(unsignedCharArr, size, messageType::loadCustomerAssembly);
 }
 
-void NativeHostApplication::LoadMinimalManagedLoader(string dllPath)
+void NativeHostApplication::LoadManagedLoader(string dllPath)
 {
+
+    FUNC_LOG_INFO("NativeHostApplication LoadManagedLoader invoked with dllPath: {}", dllPath);
+
     s_Application = this;
 
     hostfxr_handle cxt = nullptr;

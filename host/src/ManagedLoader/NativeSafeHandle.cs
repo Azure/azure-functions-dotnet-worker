@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
-namespace ManagedLoader
+namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 {
     internal sealed class NativeSafeHandle : SafeHandle, IValueTaskSource<object?>
     {

@@ -1,6 +1,9 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics.Metrics;
+using System.Runtime.InteropServices;
+using System.Text;
+using FunctionsNetHost.ManagedLoader;
 
-namespace ManagedLoader
+namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 {
     internal class ManagedAppLoader
     {
@@ -9,9 +12,12 @@ namespace ManagedLoader
 
         public ManagedAppLoader()
         {
-            Console.WriteLine($"~~~ ManagedAppLoader initialized ~~~");
+            Logger.Log("Initializing.");
+            
             var nativeHostData = NativeMethods.GetNativeHostData();
             _application = new NativeSafeHandle(nativeHostData.pNativeApplication);
+            
+            Logger.Log("Initialization finished.");
         }
 
         public unsafe void Start()
@@ -22,8 +28,14 @@ namespace ManagedLoader
             int ranForSeconds = 0;
             while (true)
             {
-                Console.WriteLine($"Program still running for last {ranForSeconds++} seconds.");
+                // TEMP Heartbeat printing so we know this process is still up
+                if (ranForSeconds % 5 == 0)
+                {
+                    Logger.Log($"ManagedAppLoader is running for last {ranForSeconds} seconds.");
+                }
+
                 Thread.Sleep(1000);
+                ranForSeconds++;
             }
         }
 
@@ -31,7 +43,7 @@ namespace ManagedLoader
         private static unsafe IntPtr HandleRequest(byte** nativeMessage, int nativeMessageSize, int messageType, IntPtr grpcHandler)
         {
             MessageType type = (MessageType)messageType;
-            Console.WriteLine($"~~~ HandleRequest called. MessageType: {type} ~~~");
+            Logger.Log($"~~~ HandleRequest called. MessageType: {type} ~~~");
 
             switch (type) // STREAMING MESSAGE
             {
@@ -39,17 +51,19 @@ namespace ManagedLoader
                     {
                         var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
                         /// TO DO : Send to handler._inbound.Writer.TryWrite(msg);
-                        // Need to geneate the StreamingMessage class from proto to use here.
+                        // TO DO: Need to generate the StreamingMessage class from proto to use here.
                         break;
                     }
 
                 case MessageType.LoadCustomerAssembly:
                     {
-                        // INTERNAL REQ BETWEEN MANADED COMPONENT and MANAGED LOADER
-                        // TO DO : Load customer assembly.
+                        // INTERNAL REQ BETWEEN Native component and MANAGED LOADER
+
                         var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
-                        var assemblyPath = "to do: read from span"; //span.ToString();
-                        Console.WriteLine($"~~~ Customer assembly: {assemblyPath} ~~~");
+                        var assemblyPath = Encoding.UTF8.GetString(span);
+
+                        Logger.Log($"~~~ Customer assembly path: {assemblyPath} ~~~");
+                        // TO DO: Load this assembly.
                         break;
                     }
             }

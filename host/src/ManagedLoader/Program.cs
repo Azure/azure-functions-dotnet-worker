@@ -1,14 +1,16 @@
-﻿using static System.Net.Mime.MediaTypeNames;
+﻿
+using FunctionsNetHost.ManagedLoader;
 
-namespace ManagedLoader
+namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 {
     internal class Program
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello, World!");
+            Logger.Log("Starting FunctionsNetHost ManagedAppLoader");
 
-            new ManagedAppLoader().Start();
+            var loader = new ManagedAppLoader();
+            loader.Start();
         }
     }
 }

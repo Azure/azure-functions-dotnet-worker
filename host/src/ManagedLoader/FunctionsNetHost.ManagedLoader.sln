@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.33516.290
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManagedLoader", "ManagedLoader.csproj", "{D1BE1000-4E2E-493A-A2C5-D1B320F63D3C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FunctionsNetHost.ManagedLoader", "FunctionsNetHost.ManagedLoader.csproj", "{D1BE1000-4E2E-493A-A2C5-D1B320F63D3C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

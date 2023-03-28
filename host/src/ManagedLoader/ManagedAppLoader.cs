@@ -12,24 +12,24 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 
         public ManagedAppLoader()
         {
-            Logger.Log("Initializing.");
-            
+            Logger.Log("Initializing...");
+
             var nativeHostData = NativeMethods.GetNativeHostData();
             _application = new NativeSafeHandle(nativeHostData.pNativeApplication);
-            
+
             Logger.Log("Initialization finished.");
         }
 
         public unsafe void Start()
         {
             _gcHandle = GCHandle.Alloc(this);
-            NativeMethods.RegisterCallbacks(_application, &HandleRequest, (IntPtr)_gcHandle);
+            NativeMethods.RegisterAppLoaderCallbacks(_application, &HandleAppLoaderRequest, (IntPtr)_gcHandle);
 
             int ranForSeconds = 0;
             while (true)
             {
                 // TEMP Heartbeat printing so we know this process is still up
-                if (ranForSeconds % 5 == 0)
+                if (ranForSeconds % 15 == 0)
                 {
                     Logger.Log($"ManagedAppLoader is running for last {ranForSeconds} seconds.");
                 }
@@ -40,33 +40,14 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
         }
 
         [UnmanagedCallersOnly]
-        private static unsafe IntPtr HandleRequest(byte** nativeMessage, int nativeMessageSize, int messageType, IntPtr grpcHandler)
+        private static unsafe IntPtr HandleAppLoaderRequest(byte** nativeMessage, int nativeMessageSize, IntPtr grpcHandler)
         {
-            MessageType type = (MessageType)messageType;
-            Logger.Log($"~~~ HandleRequest called. MessageType: {type} ~~~");
+            // As of today, we have only one message (load customer assembly) from managed to apploader.
+            var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
+            var customerAssemblyPath = Encoding.UTF8.GetString(span);
+            Logger.Log($"~~~ HandleAppLoaderRequest. Customer assembly path: {customerAssemblyPath} ~~~");
 
-            switch (type) // STREAMING MESSAGE
-            {
-                case MessageType.StreamingMessage:
-                    {
-                        var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
-                        /// TO DO : Send to handler._inbound.Writer.TryWrite(msg);
-                        // TO DO: Need to generate the StreamingMessage class from proto to use here.
-                        break;
-                    }
-
-                case MessageType.LoadCustomerAssembly:
-                    {
-                        // INTERNAL REQ BETWEEN Native component and MANAGED LOADER
-
-                        var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
-                        var assemblyPath = Encoding.UTF8.GetString(span);
-
-                        Logger.Log($"~~~ Customer assembly path: {assemblyPath} ~~~");
-                        // TO DO: Load this assembly.
-                        break;
-                    }
-            }
+            // TO DO: Call the method which loads customer assembly.
 
             return IntPtr.Zero;
         }

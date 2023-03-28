@@ -195,7 +195,7 @@ void funcgrpc::FunctionBidiReactor::handleInboundMessagesForApplication()
         auto charArr = t.c_str();
         auto *unsignedCharArr = (unsigned char *)charArr;
 
-        pApplication_->HandleIncomingMessage(unsignedCharArr, size, messageType::streamingMessage);
+        pApplication_->HandleIncomingMessage(unsignedCharArr, size);
     }
 
     FUNC_LOG_WARN("exiting handleInboundMessagesForApplication");

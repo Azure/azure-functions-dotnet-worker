@@ -20,7 +20,7 @@ using grpc::ByteBuffer;
 using namespace std;
 
 // delegate for requests
-typedef int(__stdcall *PFN_REQUEST_HANDLER)(unsigned char **msg, int size, int messageType, void *grpcHandle);
+typedef int(__stdcall *PFN_REQUEST_HANDLER)(unsigned char **msg, int size, void *grpcHandle);
 
 class NativeHostApplication
 {
@@ -35,7 +35,9 @@ class NativeHostApplication
 
     void SetCallbackHandles(_In_ PFN_REQUEST_HANDLER request_callback, _In_ void *grpcHandle);
 
-    void HandleIncomingMessage(_In_ unsigned char *buffer, _In_ int size, _In_ int messageType);
+    void SetAppLoaderCallbackHandles(_In_ PFN_REQUEST_HANDLER request_callback, _In_ void *grpcHandle);
+
+    void HandleIncomingMessage(_In_ unsigned char *buffer, _In_ int size);
 
     void SendOutgoingMessage(_In_ ByteBuffer *message);
 
@@ -63,6 +65,8 @@ class NativeHostApplication
     bool load_hostfxr();
     void *load_library(const char_t *);
     void *get_export(void *h, const char *name);
+
+    PFN_REQUEST_HANDLER appLoaderCallback;
 
     PFN_REQUEST_HANDLER callback;
     void *handle;

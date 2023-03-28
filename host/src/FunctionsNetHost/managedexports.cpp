@@ -56,3 +56,18 @@ extern "C" __declspec(dllexport) HRESULT
 
     return S_OK;
 }
+
+extern "C" __declspec(dllexport) HRESULT
+    register_apploader_callbacks(_In_ NativeHostApplication *pInProcessApplication,
+                                 _In_ PFN_REQUEST_HANDLER apploader_request_callback,
+                       _In_ VOID *grpcHandler)
+{
+    if (pInProcessApplication == nullptr)
+    {
+        return E_INVALIDARG;
+    }
+
+    pInProcessApplication->SetAppLoaderCallbackHandles(apploader_request_callback, grpcHandler);
+
+    return S_OK;
+}

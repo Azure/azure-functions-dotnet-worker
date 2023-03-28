@@ -32,7 +32,8 @@ void NativeHostApplication::LoadCustomerAssembly(string assemblyPath)
     auto charArr = assemblyPath.c_str();
     auto *unsignedCharArr = (unsigned char *)charArr;
 
-    HandleIncomingMessage(unsignedCharArr, size, messageType::loadCustomerAssembly);
+    WaitForSingleObject(initMutex_, INFINITE);
+    appLoaderCallback(&unsignedCharArr, size, handle);
 }
 
 void NativeHostApplication::LoadManagedLoader(string dllPath)
@@ -72,11 +73,11 @@ void NativeHostApplication::LoadManagedLoader(string dllPath)
         run_app_fptr, cxt, initMutex_);
 }
 
-void NativeHostApplication::HandleIncomingMessage(unsigned char *buffer, int size, int messageType)
+void NativeHostApplication::HandleIncomingMessage(unsigned char *buffer, int size)
 {
     WaitForSingleObject(initMutex_, INFINITE);
 
-    callback(&buffer, size, messageType, handle);
+    callback(&buffer, size, handle);
 }
 
 void NativeHostApplication::SendOutgoingMessage(_In_ ByteBuffer *msg)
@@ -91,6 +92,16 @@ void NativeHostApplication::SetCallbackHandles(_In_ PFN_REQUEST_HANDLER request_
     FUNC_LOG_INFO("SetCallbackHandles called.");
 
     callback = request_callback;
+    handle = grpcHandle;
+
+    //ReleaseMutex(initMutex_);
+}
+
+void NativeHostApplication::SetAppLoaderCallbackHandles(_In_ PFN_REQUEST_HANDLER apploader_request_callback, _In_ void *grpcHandle)
+{
+    FUNC_LOG_INFO("SetAppLoaderCallbackHandles called.");
+
+    appLoaderCallback = apploader_request_callback;
     handle = grpcHandle;
 
     ReleaseMutex(initMutex_);

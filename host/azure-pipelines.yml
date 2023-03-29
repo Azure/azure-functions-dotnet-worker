@@ -51,6 +51,7 @@ steps:
     inputs:
       command: 'publish'
       workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
+      projects: 'FunctionsNetHost.ManagedLoader.csproj'
 
   - task: NuGetCommand@2
     displayName: "Nuget pack"

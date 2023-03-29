@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             _gcHandle = GCHandle.Alloc(this);
             NativeMethods.RegisterAppLoaderCallbacks(_application, &HandleAppLoaderRequest, (IntPtr)_gcHandle);
 
-            // PreJitPrepare(Constants.JitTraceFileName);
+            PreJitPrepare(Constants.JitTraceFileName);
 
             int ranForSeconds = 0;
             while (true)

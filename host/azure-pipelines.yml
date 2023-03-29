@@ -28,17 +28,17 @@ steps:
   # Remember to add this task to allow vcpkg to upload archives via NuGet
   - task: NuGetAuthenticate@1
 
-  # Run Cmake and output goes to /build dir.
-  - task: CMake@1
-    displayName: "CMake generation"
-    inputs:
-      cmakeArgs: "-S $(Build.SourcesDirectory)/host/src -B $(Build.SourcesDirectory)/host/build/win-x64"
+  ## Run Cmake and output goes to /build dir.
+  #- task: CMake@1
+  #  displayName: "CMake generation"
+  #  inputs:
+  #    cmakeArgs: "-S $(Build.SourcesDirectory)/host/src -B $(Build.SourcesDirectory)/host/build/win-x64"
 
-  # Run Cmake --build which produces the native binaries.
-  - task: CMake@1
-    displayName: "CMake build"
-    inputs:
-      cmakeArgs: "--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release"
+  ## Run Cmake --build which produces the native binaries.
+  #- task: CMake@1
+  #  displayName: "CMake build"
+  #  inputs:
+  #    cmakeArgs: "--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release"
 
     # Will remove after validating builds are working.
   - script: dir
@@ -51,7 +51,6 @@ steps:
     inputs:
       command: 'publish'
       workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
-      arguments: '-c Release -o $(Build.SourcesDirectory)/host/build/win-x64/loader'
 
   - task: NuGetCommand@2
     displayName: "Nuget pack"

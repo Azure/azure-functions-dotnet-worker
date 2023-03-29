@@ -7,4 +7,14 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="PreJIT\coldstart.jittrace" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="PreJIT\coldstart.jittrace">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 </Project>

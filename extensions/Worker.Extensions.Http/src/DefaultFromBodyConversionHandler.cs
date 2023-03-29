@@ -4,20 +4,22 @@
 using System;
 using System.Linq;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.DependencyInjection;
-using System.Threading;
+using Microsoft.Extensions.Options;
 
-namespace Microsoft.Azure.Functions.Worker.Core.Converters
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http
 {
-    internal class HttpRequestDataConverter : IInputConverter
+    internal class DefaultFromBodyConversionHandler : IFromBodyConversionHandler
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
+
             var requestDataResult = context.FunctionContext.GetHttpRequestDataAsync();
 
             if (requestDataResult.IsCompletedSuccessfully)
@@ -94,7 +96,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Converters
         {
             var (key, value) = request.Headers
                 .FirstOrDefault(h => string.Equals(h.Key, "Content-Type", StringComparison.OrdinalIgnoreCase));
-
+                
             if (value is not null
                 && MediaTypeHeaderValue.TryParse(value.FirstOrDefault(), out var mediaType)
                 && mediaType.MediaType != null)

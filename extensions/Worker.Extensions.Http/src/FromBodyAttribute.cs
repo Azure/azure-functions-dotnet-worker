@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// Creates an instance of the <see cref="FromBodyAttribute"/>.
         /// </summary>
         public FromBodyAttribute() 
-            : base(typeof(HttpRequestDataConverter))
+            : base(typeof(FromBodyConverter))
         {
         }
     }

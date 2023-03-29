@@ -322,6 +322,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Contains("CreateContext", response.Result.Exception.Message);
         }
 
+        [Fact]
+        public void EnvironmentReloadRequestHandler_ReturnsExpected()
+        {
+            var actual = GrpcWorker.EnvironmentReloadRequestHandler(new WorkerOptions()); ;
+
+            Assert.Equal(StatusResult.Success, actual.Result);
+            Assert.NotNull(actual.WorkerMetadata);
+            Assert.NotEmpty(actual.Capabilities);
+        }
+
         private static FunctionLoadRequest CreateFunctionLoadRequest()
         {
             return new FunctionLoadRequest

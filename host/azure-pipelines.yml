@@ -50,8 +50,8 @@ steps:
     displayName: 'Publish Managed AppLoader binaries'
     inputs:
       command: 'publish'
+      workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
       arguments: '-c Release -o $(Build.SourcesDirectory)/host/build/win-x64/loader'
-      projects: '$(Build.SourcesDirectory)/host/src/ManagedLoader/FunctionsNetHost.ManagedLoader.sln'
 
   - task: NuGetCommand@2
     displayName: "Nuget pack"

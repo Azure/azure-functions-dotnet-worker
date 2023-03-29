@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 
 namespace Microsoft.Diagnostics.JitTrace
 {
+    // COPIED FROM https://github.com/Azure/azure-functions-host/blob/dev/src/WebJobs.Script.WebHost/PreJIT/JitTraceRuntime.cs
     public static class JitTraceRuntime
     {
         /// <summary>

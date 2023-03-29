@@ -19,6 +19,7 @@
   <files>
     <file src="..\..\build\win-x64\FunctionsNetHost\Release\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
     <file src="..\..\build\win-x64\FunctionsNetHost\Release\loader\*" target="contentFiles/any/any/workers/dotnet-isolated/bin/loader" />
+    <file src="..\..\build\win-x64\FunctionsNetHost\Release\loader\PreJIT\*" target="contentFiles/any/any/workers/dotnet-isolated/bin/loader/PreJIT" />
     <file src="worker.config.json" target="contentFiles/any/any/workers/dotnet-isolated" />
   </files>
 </package>

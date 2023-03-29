@@ -1,16 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Threading.Tasks.Sources;
 
-namespace Microsoft.Azure.Functions.Worker.ManagedLoader
+namespace FunctionsNetHost.ManagedLoader.NativeHostIntegration
 {
     // I think we can remove the same type we added to src/DotNetWorker.Grpc/NativeHostIntegration 
     internal sealed class NativeSafeHandle : SafeHandle, IValueTaskSource<object?>

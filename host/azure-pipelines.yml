@@ -40,6 +40,11 @@ steps:
     inputs:
       cmakeArgs: "--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release"
 
+    # Will remove after validating builds are working.
+  - script: dir
+    workingDirectory: $(Build.SourcesDirectory)/host/src
+    displayName: List Build.SourcesDirectory content
+
   # Publish managed apploader binaries to same location(under loader dir) where we produced native component binaries.
   - task: DotNetCoreCLI@2
     displayName: 'Publish Managed AppLoader binaries'

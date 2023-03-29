@@ -42,7 +42,7 @@ steps:
 
     # Will remove after validating builds are working.
   - script: dir
-    workingDirectory: $(Build.SourcesDirectory)/host/src
+    workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
     displayName: List Build.SourcesDirectory content
 
   # Publish managed apploader binaries to same location(under loader dir) where we produced native component binaries.

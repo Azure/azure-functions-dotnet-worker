@@ -40,11 +40,6 @@ steps:
     inputs:
       cmakeArgs: "--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release"
 
-    # Will remove after validating builds are working.
-  - script: dir
-    workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
-    displayName: List Build.SourcesDirectory content
-
   # Install NET 6.x SDK
   - task: UseDotNet@2
     inputs:

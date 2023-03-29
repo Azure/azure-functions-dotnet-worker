@@ -36,13 +36,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
 
             var port = Utilities.GetUnusedTcpPort().ToString();
 
-            // temporarily use env vars until HostBuilderExtensions extends IFunctionsWorkerApplicationBuilder instead?
-            Environment.SetEnvironmentVariable("FUNCTIONS_HTTP_PROXY_PORT", port);
-
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.RegisterAt<HttpContextConverter>(0);
-                workerOption.Capabilities.Add("EnableHttpProxying", port);
+                workerOption.Capabilities.Add(Constants.HttpProxyingPortCapability, "5555"); // testing host side, remove this const later
             });
 
             return builder;

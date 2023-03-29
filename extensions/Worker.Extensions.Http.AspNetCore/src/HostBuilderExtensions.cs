@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Functions.Worker.Core.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,12 +22,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
         /// <returns>The same instance of the <see cref="IHostBuilder"/> for chaining.</returns>
         public static IHostBuilder ConfigureAspNetCoreIntegration(this IHostBuilder builder)
         {
-            // TODO: Update this logic. Port should always come through configuration.
-            var port = Environment.GetEnvironmentVariable("FUNCTIONS_HTTP_PROXY_PORT");
-
             builder.ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseUrls("http://localhost:" + port);
+                webBuilder.UseUrls("http://localhost:5555");
                 webBuilder.Configure(b =>
                 {
                     b.UseAspNetHttpForwarderMiddleware();

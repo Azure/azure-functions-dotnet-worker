@@ -57,7 +57,7 @@ steps:
       command: 'publish'
       publishWebProjects: false
       zipAfterPublish: false
-      arguments: '-c Release -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release'
+      arguments: '-c Release -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release/loader'
       workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
 
   - task: NuGetCommand@2

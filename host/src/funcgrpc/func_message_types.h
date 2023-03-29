@@ -1,5 +1,0 @@
-enum messageType
-{
-    streamingMessage,
-    loadCustomerAssembly
-};

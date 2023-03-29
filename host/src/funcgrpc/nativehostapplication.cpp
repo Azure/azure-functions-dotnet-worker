@@ -3,7 +3,6 @@
 
 #include "nativehostapplication.h"
 #include "func_log.h"
-#include "func_message_types.h"
 #include <nethost.h>
 #include "funcgrpc_pathutils.h"
 

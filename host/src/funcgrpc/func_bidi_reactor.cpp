@@ -6,7 +6,6 @@
 #include "func_log.h"
 #include "handlers/funcgrpc_native_handler.h"
 #include "messaging_channel.h"
-#include "func_message_types.h"
 
 funcgrpc::FunctionBidiReactor::FunctionBidiReactor(GrpcWorkerStartupOptions *pOptions,
                                                    NativeHostApplication *pApplication)

@@ -93,7 +93,7 @@ void AzureFunctionsRpc::NativeHostMessageHandler::HandleMessage(ByteBuffer *rece
                     application_->ExecuteApplication(exePath);
                 }
 
-                FUNC_LOG_INFO("Going to wait for worker payload to load.");
+                FUNC_LOG_INFO("Waiting for worker initialization.");
                 std::unique_lock lk(application_->mtx_workerLoaded);
                 application_->cv_workerLoaded.wait(lk, [this] { return application_->hasWorkerLoaded; });
                 FUNC_LOG_INFO("Worker payload loaded. Forwarding env reload request to worker.");

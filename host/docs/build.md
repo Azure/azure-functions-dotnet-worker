@@ -52,3 +52,8 @@ To build the binaries after code change, Run the below commands.
 > CMAKE --build . --config Release
 
 ```
+
+
+## ADO Build failures
+
+We rely on [VCPKG binary caching](https://learn.microsoft.com/en-us/vcpkg/users/binarycaching) using nuget feed. If you see your build failing after ~1 hour of runnin "CMake generation" step, Re run the build again. This second time, it will be able to use the cached artifacts from previous attempt and will be done quicker.

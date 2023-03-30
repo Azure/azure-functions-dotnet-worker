@@ -6,6 +6,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
     internal static class Constants
     {
         // Rpc Constants
-        internal const string HttpProxyingPortCapability = "HttpProxyingPort";
+        internal const string HttpUriCapability = "HttpUri";
+
+        // Header constants
+        internal const string CorrelationHeader = "x-invocation-id";
     }
 }

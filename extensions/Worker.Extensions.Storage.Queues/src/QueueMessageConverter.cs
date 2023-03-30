@@ -10,11 +10,12 @@ using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Storage.Queues;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     [SupportsDeferredBinding]
-    [SupportedConverterTypes(typeof(QueueMessage))]
+    [SupportedConverterTypes(typeof(QueueMessage), typeof(BinaryData))]
     internal class QueueMessageConverter : IInputConverter
     {
         // private readonly IOptions<WorkerOptions> _workerOptions;
@@ -30,33 +31,31 @@ namespace Microsoft.Azure.Functions.Worker
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            return context?.Source switch
+            var result = context?.Source switch
             {
-                ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
+                ModelBindingData binding => ConvertFromBindingDataAsync(context, binding),
                 _ => ConversionResult.Unhandled()
             };
+
+            return new ValueTask<ConversionResult>(result);
         }
 
-        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        private ConversionResult ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsQueueExtension(modelBindingData))
             {
                 return ConversionResult.Unhandled();
             }
 
-            if (modelBindingData.ContentType is not Constants.JsonContentType)
-            {
-                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
-            }
-
             try
             {
-                var options = new JsonSerializerOptions() { Converters = { new QueueMessageJsonConverter() } };
-                var queueMessage = modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
 
-                if (queueMessage is not null)
+                QueueMessage queueMessage = ExtractQueueMessageFromBindingData(modelBindingData);
+                var result = ToTargetType(context.TargetType, queueMessage);
+
+                if (result is not null)
                 {
                     return ConversionResult.Success(queueMessage);
                 }
@@ -79,6 +78,45 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return true;
+        }
+
+        private QueueMessage ExtractQueueMessageFromBindingData(ModelBindingData modelBindingData)
+        {
+            if (modelBindingData.ContentType is not Constants.JsonContentType)
+            {
+                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
+            }
+
+            JsonSerializerOptions options = new() { Converters = { new QueueMessageJsonConverter() } };
+            return modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
+        }
+
+        private object? ToTargetType(Type targetType, QueueMessage message) => targetType switch
+        {
+            Type _ when targetType == typeof(QueueMessage) => message,
+            Type _ when targetType == typeof(BinaryData) => ConvertToBinaryData(message),
+            Type _ when targetType == typeof(JObject) => ConvertToJObject(message),
+            _ => null
+        };
+
+        private BinaryData ConvertToBinaryData(QueueMessage input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            return input.Body;
+        }
+
+        private JObject ConvertToJObject(QueueMessage input)
+        {
+            if (input == null)
+            {
+                throw new ArgumentNullException(nameof(input));
+            }
+
+            return JObject.FromObject(input);
         }
     }
 }

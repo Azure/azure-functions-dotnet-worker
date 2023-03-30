@@ -17,20 +17,23 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
 
         public override QueueMessage? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            JObject jo = JObject.Load(reader);
-            Connection conn = new Connection
-            {
-                Id = (string)jo["connectionId"],
-                SystemId = (string)jo["systemId"]
-            };
+            JsonElement root = JsonDocument.ParseValue(ref reader).RootElement;
 
-            // Construct the Result object using the non-default constructor
-            QueueMessage result = new QueueMessage();
+            root.TryGetProperty("MessageId", out var messageId);
+            root.TryGetProperty("PopReceipt", out var popReceipt);
+            root.TryGetProperty("DequeueCount", out var dequeueCount);
+            root.TryGetProperty("NextVisibleOn", out var nextVisibleOn);
+            root.TryGetProperty("ExpiresOn", out var expiresOn);
+            root.TryGetProperty("MessageText", out var messageText);
 
-            // (If anything else needs to be populated on the result object, do that here)
-
-            // Return the result
-            return result;
+            return QueuesModelFactory.QueueMessage(
+                messageId.GetString(),
+                popReceipt.GetString(),
+                messageText.GetString(),
+                dequeueCount.GetInt64(),
+                nextVisibleOn.GetDateTimeOffset(),
+                expiresOn.GetDateTimeOffset()
+            );
         }
 
         public override void Write(Utf8JsonWriter writer, QueueMessage value, JsonSerializerOptions options)

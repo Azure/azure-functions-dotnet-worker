@@ -30,16 +30,16 @@ namespace Microsoft.Azure.Functions.Worker
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public ConversionResult ConvertAsync(ConverterContext context)
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             return context?.Source switch
             {
-                ModelBindingData binding => ConvertFromBindingDataAsync(context, binding),
+                ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
                 _ => ConversionResult.Unhandled()
             };
         }
 
-        private ConversionResult ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsQueueExtension(modelBindingData))
             {
@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var options = new JsonSerializerOptions();
+                var options = new JsonSerializerOptions() { Converters = { new QueueMessageJsonConverter() } };
                 var queueMessage = modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
 
                 if (queueMessage is not null)

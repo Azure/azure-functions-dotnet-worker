@@ -1,14 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
-using System.Diagnostics.Metrics;
-using System.IO;
 using System.Runtime.InteropServices;
 using Microsoft.Diagnostics.JitTrace;
 using System.Text;
 using FunctionsNetHost.ManagedLoader;
 using FunctionsNetHost.ManagedLoader.NativeHostIntegration;
+using System.Reflection;
 
 namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 {
@@ -78,8 +76,30 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             Logger.Log($"~~~ HandleAppLoaderRequest. Customer assembly path: {customerAssemblyPath} ~~~");
 
             // TO DO: Call the method which loads customer assembly.
-
+            TempMethodForLoading(customerAssemblyPath);
+            
             return IntPtr.Zero;
+        }
+
+
+        // Temp method I tried. Fabio will replace this.
+        private static void TempMethodForLoading(string customerAssemblyPath)
+        {
+            Logger.Log($"~~~~  TempMethodForLoading customerAssemblyPath:{customerAssemblyPath}~~~~");
+            
+            var customerAssembly = Assembly.LoadFrom(customerAssemblyPath);
+            if (customerAssembly is null)
+            {
+                return;
+            }
+
+            var entryPointTypeInstance = Activator.CreateInstance(customerAssembly.EntryPoint.DeclaringType);
+            customerAssembly.EntryPoint.Invoke(entryPointTypeInstance, new object[] { Array.Empty<string>() });
+            
+            // Tested this version and getting below exception.
+            // System.IO.FileNotFoundException: Could not load file or assembly 'Microsoft.Extensions.Hosting.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
+            // The system cannot find the file specified.
+            
         }
     }
 }

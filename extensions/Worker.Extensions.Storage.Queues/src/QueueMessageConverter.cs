@@ -15,7 +15,7 @@ using Newtonsoft.Json.Linq;
 namespace Microsoft.Azure.Functions.Worker
 {
     [SupportsDeferredBinding]
-    [SupportedConverterTypes(typeof(QueueMessage), typeof(BinaryData))]
+    [SupportedConverterTypes(typeof(QueueMessage), typeof(BinaryData), typeof(JObject))]
     internal class QueueMessageConverter : IInputConverter
     {
         // private readonly IOptions<WorkerOptions> _workerOptions;
@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (result is not null)
                 {
-                    return ConversionResult.Success(queueMessage);
+                    return ConversionResult.Success(result);
                 }
             }
             catch (Exception ex)
@@ -116,6 +116,8 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(input));
             }
 
+            // What should this being be? The queueMessage as JObject, or the body
+            // as JObject
             return JObject.FromObject(input);
         }
     }

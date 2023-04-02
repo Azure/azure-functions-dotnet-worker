@@ -9,7 +9,6 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Tests.OutputBindings;
 using Microsoft.Extensions.Options;
 using Moq;
 using Newtonsoft.Json;

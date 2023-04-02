@@ -9,6 +9,7 @@ using System.Linq;
 using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
@@ -42,12 +43,9 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             PathToAssembly = Path.GetFullPath(scriptFile);
 
             var grpcBindingsGroup = loadRequest.Metadata.Bindings.GroupBy(kv => kv.Value.Direction);
-            var grpcInputBindings = grpcBindingsGroup.Where(kv => kv.Key == BindingInfo.Types.Direction.In).FirstOrDefault();
+            var grpcInputBindings = grpcBindingsGroup.Where(kv => kv.Key == BindingInfo.Types.Direction.In).FirstOrDefault()?.ToList();
             var grpcOutputBindings = grpcBindingsGroup.Where(kv => kv.Key != BindingInfo.Types.Direction.In).FirstOrDefault();
             var infoToMetadataLambda = new Func<KeyValuePair<string, BindingInfo>, BindingMetadata>(kv => new GrpcBindingMetadata(kv.Key, kv.Value));
-
-            InputBindings = grpcInputBindings?.ToImmutableDictionary(kv => kv.Key, infoToMetadataLambda)
-                ?? ImmutableDictionary<string, BindingMetadata>.Empty;
 
             OutputBindings = grpcOutputBindings?.ToImmutableDictionary(kv => kv.Key, infoToMetadataLambda)
                 ?? ImmutableDictionary<string, BindingMetadata>.Empty;
@@ -57,6 +55,17 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 .Where(p => p.Name != null)
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
+
+            if (grpcInputBindings is { Count: > 0 } && Parameters.Length > 1 && Parameters[1].Type.IsAssignableFrom(typeof(HttpRequestData)))
+            {
+                grpcInputBindings.Add(
+                    new KeyValuePair<string, BindingInfo>(
+                        Parameters[1].Name,
+                        grpcInputBindings[0].Value));
+            }
+
+            InputBindings = grpcInputBindings?.ToImmutableDictionary(kv => kv.Key, infoToMetadataLambda)
+                ?? ImmutableDictionary<string, BindingMetadata>.Empty;
         }
 
         public override string PathToAssembly { get; }

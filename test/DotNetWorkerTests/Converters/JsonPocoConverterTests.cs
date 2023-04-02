@@ -3,12 +3,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Tests.OutputBindings;
 using Microsoft.Extensions.Options;
+using Moq;
 using Newtonsoft.Json;
 using Xunit;
 
@@ -17,9 +20,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
     public class JsonPocoConverterTests
     {
         private JsonPocoConverter _jsonPocoConverter;
+        private Mock<FunctionContext> _mockFunctionContext;
 
         public JsonPocoConverterTests()
         {
+            _mockFunctionContext = new Mock<FunctionContext>();
+
             var options = new WorkerOptions();
             options.Serializer = new JsonObjectSerializer(new JsonSerializerOptions()
             {
@@ -63,6 +69,23 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
             var sourceMemory = new ReadOnlyMemory<byte>(Encoding.UTF8.GetBytes(source));
             var context = new TestConverterContext(typeof(Book), sourceMemory);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
+            Assert.Equal("a", book.Title);
+            Assert.Equal("b", book.Author);
+        }
+
+        [Fact]
+        public async Task ConvertHttpRequestData()
+        {
+            string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
+            var body = new MemoryStream(Encoding.UTF8.GetBytes(source));
+            var request = new TestHttpRequestData(_mockFunctionContext.Object, body);
+            var context = new TestConverterContext(typeof(Book), request);
 
             var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
 

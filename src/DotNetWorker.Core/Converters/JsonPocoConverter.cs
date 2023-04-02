@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Converters
@@ -36,16 +37,13 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return ConversionResult.Unhandled();
             }
 
-            byte[]? bytes = null;
-
-            if (context.Source is string sourceString)
+            var bytes = context.Source switch
             {
-                bytes = Encoding.UTF8.GetBytes(sourceString);
-            }
-            else if (context.Source is ReadOnlyMemory<byte> sourceMemory)
-            {
-                bytes = sourceMemory.ToArray();
-            }
+                string sourceString => Encoding.UTF8.GetBytes(sourceString),
+                ReadOnlyMemory<byte> sourceMemory => sourceMemory.ToArray(),
+                HttpRequestData requestData => Encoding.UTF8.GetBytes(new StreamReader(requestData.Body).ReadToEnd()),
+                _ => null
+            };
 
             if (bytes == null)
             {

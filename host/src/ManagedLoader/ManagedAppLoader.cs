@@ -30,7 +30,8 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             _gcHandle = GCHandle.Alloc(this);
             NativeMethods.RegisterAppLoaderCallbacks(_application, &HandleAppLoaderRequest, (IntPtr)_gcHandle);
 
-            PreJitPrepare(Constants.JitTraceFileName);
+            var appTargetFramework = GetApplicationTargetFramework();
+            PreJitPrepare(appTargetFramework);
 
             int ranForSeconds = 0;
             while (true)
@@ -46,25 +47,27 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             }
         }
 
-        private void PreJitPrepare(string jitTraceFileName)
+        private void PreJitPrepare(string targetFramework)
         {
             // This is to PreJIT all methods captured in coldstart.jittrace file to improve cold start time
             var assemblyLocalPath = Path.GetDirectoryName(new Uri(typeof(ManagedAppLoader).Assembly.Location).LocalPath);
-            Logger.Log($"JI file path: {assemblyLocalPath}");
+            var filePath = Path.Combine(assemblyLocalPath!, Constants.PreJitFolderName, targetFramework, Constants.JitTraceFileName);
 
-            var path = Path.Combine(assemblyLocalPath!, Constants.PreJitFolderName, jitTraceFileName);
+            Logger.Log($"JI file path: {filePath}");
 
-            var file = new FileInfo(path);
+            var file = new FileInfo(filePath);
 
-            if (file.Exists)
+            if (!file.Exists)
             {
-                JitTraceRuntime.Prepare(file, out int successfulPrepares, out int failedPrepares);
-
-                // We will need to monitor failed vs success prepares and if the failures increase, it means code paths have diverged or there have been updates on dotnet core side.
-                // When this happens, we will need to regenerate the coldstart.jittrace file.
-                Logger.Log(
-                    $"PreJIT Successful prepares: {successfulPrepares}, Failed prepares: {failedPrepares} FileName = {jitTraceFileName}");
+                return;
             }
+
+            JitTraceRuntime.Prepare(file, out int successfulPrepares, out int failedPrepares);
+
+            // We will need to monitor failed vs success prepares and if the failures increase, it means code paths have diverged or there have been updates on dotnet core side.
+            // When this happens, we will need to regenerate the coldstart.jittrace file.
+            Logger.Log(
+                $"PreJIT Successful prepares: {successfulPrepares}, Failed prepares: {failedPrepares} FileName = {targetFramework}/{Constants.JitTraceFileName}");
         }
 
         [UnmanagedCallersOnly]
@@ -77,29 +80,38 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 
             // TO DO: Call the method which loads customer assembly.
             TempMethodForLoading(customerAssemblyPath);
-            
+
             return IntPtr.Zero;
         }
-
 
         // Temp method I tried. Fabio will replace this.
         private static void TempMethodForLoading(string customerAssemblyPath)
         {
             Logger.Log($"~~~~  TempMethodForLoading customerAssemblyPath:{customerAssemblyPath}~~~~");
-            
+
             var customerAssembly = Assembly.LoadFrom(customerAssemblyPath);
-            if (customerAssembly is null)
+            if (customerAssembly.EntryPoint is null)
             {
                 return;
             }
 
             var entryPointTypeInstance = Activator.CreateInstance(customerAssembly.EntryPoint.DeclaringType);
             customerAssembly.EntryPoint.Invoke(entryPointTypeInstance, new object[] { Array.Empty<string>() });
-            
-            // Tested this version and getting below exception.
-            // System.IO.FileNotFoundException: Could not load file or assembly 'Microsoft.Extensions.Hosting.Abstractions, Version=6.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60'.
-            // The system cannot find the file specified.
-            
+
+            // Tested this version and getting exception about dependencies not loaded/found.Ex: 'Microsoft.Extensions.Hosting.Abstractions.
+        }
+
+        /// <summary>
+        /// Gets the Target framework value of the customer function app.
+        /// </summary>
+        /// <returns></returns>
+        private static string GetApplicationTargetFramework()
+        {
+            // TO DO : Read from what managed code is passing.
+            // May be read from AppContext.GetData or Environment variable or read from cmdline args?
+            // var applicationTfm = AppContext.GetData("AZURE_FUNCTIONS_ISOLATED_APP_TFM");
+
+            return "net6.0";
         }
     }
 }

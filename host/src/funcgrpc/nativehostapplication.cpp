@@ -15,7 +15,8 @@ NativeHostApplication::NativeHostApplication()
     initMutex_ = CreateMutex(nullptr, FALSE, nullptr);
     load_hostfxr();
 
-    auto managedAppLoaderPath = getCurrentDirectory() + "\\loader\\FunctionsNetHost.ManagedLoader.dll";
+    auto tfm = "net6.0";  // to do: Get this from Environment variable.
+    auto managedAppLoaderPath = getCurrentDirectory() + "\\" + tfm + "\\loader\\FunctionsNetHost.ManagedLoader.dll";
     LoadManagedLoader(managedAppLoaderPath);
 }
 

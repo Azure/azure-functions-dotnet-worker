@@ -1,19 +1,24 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFrameworks>net6.0;net7.0;</TargetFrameworks>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
+    <LangVersion>preview</LangVersion>
+    <Nullable Condition="$(Nullable) == ''">enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="PreJIT\coldstart.jittrace" />
+    <None Remove="PreJIT\net7.0\coldstart.jittrace" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="PreJIT\coldstart.jittrace">
+    <Content Include="PreJIT\net7.0\coldstart.jittrace">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="PreJIT\net6.0\coldstart.jittrace">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

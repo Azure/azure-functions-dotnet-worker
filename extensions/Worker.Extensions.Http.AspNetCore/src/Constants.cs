@@ -9,6 +9,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
         internal const string HttpUriCapability = "HttpUri";
 
         // Header constants
-        internal const string CorrelationHeader = "x-invocation-id";
+        internal const string CorrelationHeader = "x-ms-invocation-id";
     }
 }

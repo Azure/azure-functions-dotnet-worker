@@ -18,11 +18,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             private readonly GeneratorExecutionContext _context;
             private readonly ImmutableArray<string> _functionsStringNamesToRemove;
+            private readonly KnownTypes _knownTypes;
 
             public Parser(GeneratorExecutionContext context)
             {
                 _context = context;
                 _functionsStringNamesToRemove = ImmutableArray.Create("Attribute", "Input", "Output");
+                _knownTypes = new KnownTypes(_context.Compilation);
             }
 
             private Compilation Compilation => _context.Compilation;
@@ -240,11 +242,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     return false;
                 }
 
-                if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.Void)) &&
-                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.Task)))
+                if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.VoidType) &&
+                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.TaskType))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.TaskGeneric)))
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.TaskOfTType))
                     {
                         GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
@@ -604,7 +606,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // we check if the param is an array type
                 // we exclude byte arrays (byte[]) b/c we handle that as Cardinality.One (we handle this similar to how a char[] is basically a string)
-                if (parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray)))
+                if (parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, _knownTypes.ByteArray))
                 {
                     dataType = GetDataType(parameterSymbol.Type);
                     return true;
@@ -612,14 +614,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 // Check if mapping type - mapping enumerables are not valid types for Cardinality.Many
                 if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableOfKeyValuePair))
-                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.LookupGeneric))
-                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.DictionaryGeneric)))
+                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.LookupGeneric)
+                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.DictionaryGeneric))
                 {
                     return false;
                 }
 
-                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric));
-                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerable));
+                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.IEnumerableGeneric);
+                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.IEnumerable);
 
                 if (!IsStringType(parameterSymbol.Type) && (isGenericEnumerable || isEnumerable))
                 {
@@ -721,17 +723,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool IsStringType(ITypeSymbol symbol)
             {
-                return SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.String))
-                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.String)));
+                return SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.StringType)
+                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, _knownTypes.StringType));
             }
 
             private bool IsBinaryType(ITypeSymbol symbol)
             {
-                var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ByteArray))
-                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct)));
-                var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, Compilation.GetTypeByMetadataName(Constants.Types.ReadOnlyMemoryOfBytes));
+                var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.ByteArray)
+                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, _knownTypes.ByteType));
+                var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.ReadOnlyMemoryOfBytes);
                 var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray &&
-                    outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, Compilation.GetTypeByMetadataName(Constants.Types.ByteStruct));
+                    outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, _knownTypes.ByteType);
 
 
                 return isByteArray || isReadOnlyMemoryOfBytes || isArrayOfByteArrays;

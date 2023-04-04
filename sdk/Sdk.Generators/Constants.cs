@@ -35,18 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string DefaultValue = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.DefaultValueAttribute";
 
             // System types
-            internal const string IEnumerable = "System.Collections.IEnumerable";
-            internal const string IEnumerableGeneric = "System.Collections.Generic.IEnumerable`1";
             internal const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
-            internal const string String = "System.String";
-            internal const string ByteArray = "System.Byte[]";
-            internal const string ByteStruct = "System.Byte";
-            internal const string TaskGeneric = "System.Threading.Tasks.Task`1";
-            internal const string Task = "System.Threading.Tasks.Task";
-            internal const string Void = "System.Void";
-            internal const string ReadOnlyMemoryOfBytes = "System.ReadOnlyMemory`1<System.Byte>";
-            internal const string LookupGeneric = "System.Linq.Lookup`2";
-            internal const string DictionaryGeneric = "System.Collections.Generic.Dictionary`2";
         }
         
         internal static class FunctionMetadataBindingProps {

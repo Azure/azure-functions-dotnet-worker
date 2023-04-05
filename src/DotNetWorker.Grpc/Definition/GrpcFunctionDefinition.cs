@@ -56,13 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 .Select(p => new FunctionParameter(p.Name!, p.ParameterType, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
 
-            if (grpcInputBindings is { Count: > 0 } && Parameters.Length > 1 && Parameters[1].Type.IsAssignableFrom(typeof(HttpRequestData)))
-            {
-                grpcInputBindings.Add(
-                    new KeyValuePair<string, BindingInfo>(
-                        Parameters[1].Name,
-                        grpcInputBindings[0].Value));
-            }
+            AddHttpRequestDataIfSecondaryParameter(grpcInputBindings);
 
             InputBindings = grpcInputBindings?.ToImmutableDictionary(kv => kv.Key, infoToMetadataLambda)
                 ?? ImmutableDictionary<string, BindingMetadata>.Empty;
@@ -81,6 +75,21 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         public override IImmutableDictionary<string, BindingMetadata> OutputBindings { get; }
 
         public override ImmutableArray<FunctionParameter> Parameters { get; }
+
+        private void AddHttpRequestDataIfSecondaryParameter(List<KeyValuePair<string, BindingInfo>>? grpcInputBindings)
+        {
+            if (grpcInputBindings is not { Count: > 0 }
+                || Parameters.Length == 0
+                || Parameters[0].Type.IsAssignableFrom(typeof(HttpRequestData)))
+            {
+                return;
+            }
+
+            if (Parameters.FirstOrDefault(p => p.Type.IsAssignableFrom(typeof(HttpRequestData))) is { } firstHttpRequestData)
+            {
+                grpcInputBindings.Add(new KeyValuePair<string, BindingInfo>(firstHttpRequestData.Name, grpcInputBindings[0].Value));
+            }
+        }
 
         private ImmutableDictionary<string, object> GetAdditionalPropertiesDictionary(ParameterInfo parameterInfo)
         {

@@ -118,12 +118,67 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
 
             // InputBindings
-            Assert.Collection(definition.InputBindings,
+            Assert.All(definition.InputBindings,
                 p =>
                 {
                     Assert.Equal(BindingDirection.In, p.Value.Direction);
                     Assert.Equal("HttpTrigger", p.Value.Type);
+                });
+
+            Assert.True(definition.InputBindings.ContainsKey("data"));
+            Assert.True(definition.InputBindings.ContainsKey("req"));
+        }
+        
+        [Fact]
+        public void Creates_InputBindings_WhenHttpRequestDataIsThirdParameter()
+        {
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+
+            var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+
+            string fullPathToThisAssembly = GetType().Assembly.Location;
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyFunctionClass)}.{nameof(MyFunctionClass.ThirdParameterHttpRequestData)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            functionLoadRequest.Metadata.Bindings.Add("data", new BindingInfo { Type = "HttpTrigger", Direction = Direction.In });
+            functionLoadRequest.Metadata.Bindings.Add("$return", new BindingInfo { Type = "Http", Direction = Direction.Out });
+
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
+
+            Assert.Equal(functionLoadRequest.FunctionId, definition.Id);
+            Assert.Equal(functionLoadRequest.Metadata.EntryPoint, definition.EntryPoint);
+            Assert.Equal(functionLoadRequest.Metadata.Name, definition.Name);
+            Assert.Equal(fullPathToThisAssembly, definition.PathToAssembly);
+
+            // Parameters
+            Assert.Collection(definition.Parameters,
+                p =>
+                {
+                    Assert.Equal("data", p.Name);
+                    Assert.Equal(typeof(string), p.Type);
                 },
+                p =>
+                {
+                    Assert.Equal("category", p.Name);
+                    Assert.Equal(typeof(string), p.Type);
+                },
+                p =>
+                {
+                    Assert.Equal("req", p.Name);
+                    Assert.Equal(typeof(HttpRequestData), p.Type);
+                });
+
+            // InputBindings
+            Assert.All(definition.InputBindings,
                 p =>
                 {
                     Assert.Equal(BindingDirection.In, p.Value.Direction);
@@ -142,6 +197,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }
 
             public HttpResponseData SecondParameterHttpRequestData(string data, HttpRequestData req)
+            {
+                return req.CreateResponse();
+            }
+
+            public HttpResponseData ThirdParameterHttpRequestData(string data, string category, HttpRequestData req)
             {
                 return req.CreateResponse();
             }

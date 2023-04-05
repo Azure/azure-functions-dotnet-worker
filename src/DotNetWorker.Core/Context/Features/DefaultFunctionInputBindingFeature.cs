@@ -56,9 +56,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     FunctionParameter param = context.FunctionDefinition.Parameters[i];
 
                     // Check InputData first, then TriggerMetadata
-                    if (!functionBindings.InputData.TryGetValue(param.Name, out object? source))
+                    if (!functionBindings.InputData.TryGetValue(param.Name, out object? source)
+                        && !functionBindings.TriggerMetadata.TryGetValue(param.Name, out source)
+                        && IsHttpRequestDataParameter(param, context))
                     {
-                        functionBindings.TriggerMetadata.TryGetValue(param.Name, out source);
+                        functionBindings.InputData.TryGetValue(context.FunctionDefinition.Parameters[0].Name, out source);
                     }
 
                     ConversionResult bindingResult;
@@ -126,6 +128,12 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             _disposed = true;
             _semaphoreSlim.Dispose();
+        }
+
+        private static bool IsHttpRequestDataParameter(FunctionParameter param, FunctionContext context)
+        {
+            return context.FunctionDefinition.InputBindings.TryGetValue(param.Name, out var inputBinding)
+                && inputBinding.Type == "httpTrigger";
         }
     }
 }

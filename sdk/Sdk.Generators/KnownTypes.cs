@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         internal readonly INamedTypeSymbol IEnumerable;
         internal readonly INamedTypeSymbol IEnumerableGeneric; // IEnumerable<T>
-        //internal readonly INamedTypeSymbol IEnumerableOfKeyValuePair; TODO: Revisit and add this value here as well
+        internal readonly INamedTypeSymbol IEnumerableOfKeyValuePair;
         internal readonly INamedTypeSymbol StringType;
         internal readonly INamedTypeSymbol ByteArray;
         internal readonly INamedTypeSymbol ByteType;
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             IEnumerable = compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName)!;
             IEnumerableGeneric = compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName)!;
-            // IEnumerableOfKeyValuePair = compilation.GetTypeByMetadataName(typeof(IEnumerable<KeyValuePair<,>>).FullName)!;
+            IEnumerableOfKeyValuePair = compilation.GetTypeByMetadataName(Constants.Types.IEnumerableOfKeyValuePair)!; // TODO: Revisit using typeof instead of string constant
             StringType = compilation.GetTypeByMetadataName(typeof(string).FullName)!;
             ByteArray = compilation.GetTypeByMetadataName(typeof(byte[]).FullName)!;
             ByteType = compilation.GetTypeByMetadataName(typeof(byte).FullName)!;

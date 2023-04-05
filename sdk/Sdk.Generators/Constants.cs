@@ -25,14 +25,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal static class Types
         {
             // Our types
+            internal const string FunctionName = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
             internal const string BindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingAttribute";
             internal const string OutputBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";
-            internal const string FunctionName = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
-            internal const string HttpResponse = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
-            internal const string HttpTriggerBinding = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
-            internal const string EventHubsTrigger = "Microsoft.Azure.Functions.Worker.EventHubTriggerAttribute";
             internal const string BindingPropertyNameAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingPropertyNameAttribute";
             internal const string DefaultValue = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.DefaultValueAttribute";
+
+            internal const string HttpResponse = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
+            internal const string HttpTriggerBinding = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
+
 
             // System types
             internal const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";

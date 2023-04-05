@@ -19,12 +19,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private readonly GeneratorExecutionContext _context;
             private readonly ImmutableArray<string> _functionsStringNamesToRemove;
             private readonly KnownTypes _knownTypes;
+            private readonly KnownFunctionMetadataTypes _knownFunctionMetadataTypes;
 
             public Parser(GeneratorExecutionContext context)
             {
                 _context = context;
                 _functionsStringNamesToRemove = ImmutableArray.Create("Attribute", "Input", "Output");
                 _knownTypes = new KnownTypes(_context.Compilation);
+                _knownFunctionMetadataTypes = new KnownFunctionMetadataTypes(context.Compilation);
             }
 
             private Compilation Compilation => _context.Compilation;
@@ -118,7 +120,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var attribute in attributes)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.OutputBindingAttribute)))
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
                     {
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
                         if (hasOutputBinding)
@@ -141,8 +143,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
-                    bindingsList = new List<IDictionary<string, object>>(capacity: 1);
-                    bindingsList.Add(bindingDict!);
+                    bindingsList = new List<IDictionary<string, object>>(capacity: 1)
+                    {
+                        bindingDict!
+                    };
+
                     return true;
                 }
 
@@ -178,10 +183,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     // Check to see if any of the attributes associated with this parameter is a BindingAttribute
                     foreach (var attribute in parameterSymbol.GetAttributes())
                     {
-                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.BindingAttribute)))
+                        if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, _knownFunctionMetadataTypes.BindingAttribute))
                         {
 
-                            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.HttpTriggerBinding)))
+                            if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.HttpTriggerBinding))
                             {
                                 hasHttpTrigger = true;
                             }
@@ -260,7 +265,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, Compilation.GetTypeByMetadataName(Constants.Types.HttpResponse))) // If return type is HttpResponseData
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponse)) // If return type is HttpResponseData
                     {
                         bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }
@@ -293,7 +298,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     // Check if this attribute is an HttpResponseData type attribute
-                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, Compilation.GetTypeByMetadataName(Constants.Types.HttpResponse)))
+                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponse))
                     {
                         if (foundHttpOutput)
                         {
@@ -311,7 +316,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         foreach (var attr in prop.GetAttributes()) // now loop through and check if any of the attributes are Binding attributes
                         {
-                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.OutputBindingAttribute)))
+                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
                             {
                                 // validate that there's only one binding attribute per property
                                 if (foundPropertyOutputAttr)
@@ -379,7 +384,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string bindingType = attributeName.TrimStringsFromEnd(_functionsStringNamesToRemove);
 
                 // Set binding direction
-                string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, Compilation.GetTypeByMetadataName(Constants.Types.OutputBindingAttribute)) ? "Out" : "In";
+                string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute) ? "Out" : "In";
 
                 var bindingCount = attributeProperties!.Count + 3;
                 bindings = new Dictionary<string, object>(capacity: bindingCount)
@@ -440,7 +445,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // some properties have default values, so if these properties were not already defined in constructor or named arguments, we will auto-add them here
                 foreach (var member in attributeData.AttributeClass!.GetMembers().Where(a => a is IPropertySymbol))
                 {
-                    var defaultValAttrList = member.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue)));
+                    var defaultValAttrList = member.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.DefaultValue));
 
                     if (defaultValAttrList.SingleOrDefault() is { } defaultValAttr) // list will only be of size one b/c there cannot be duplicates of an attribute on one piece of syntax
                     {
@@ -525,13 +530,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private void OverrideBindingName(INamedTypeSymbol attributeClass, ref string argumentName)
             {
-                var bindingPropertyNameSymbol = Compilation.GetTypeByMetadataName(Constants.Types.BindingPropertyNameAttribute);
-
                 foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
                 {
                     if (String.Equals(prop.Name, argumentName, StringComparison.OrdinalIgnoreCase)) // relies on convention where constructor parameter names match the property their value will be assigned to (JSON serialization is a precedence for this convention)
                     {
-                        var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, bindingPropertyNameSymbol));
+                        var bindingNameAttrList = prop.GetAttributes().Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.BindingPropertyNameAttribute));
 
                         if (bindingNameAttrList.SingleOrDefault() is { } bindingNameAttr) // there will only be one BindingAttributeName attribute b/c there can't be duplicate attributes on a piece of syntax
                         {
@@ -593,7 +596,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var defaultValAttr = isBatchedProp!
                         .GetAttributes()
-                        .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, Compilation.GetTypeByMetadataName(Constants.Types.DefaultValue)));
+                        .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.DefaultValue));
                     
                     var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
                     
@@ -613,7 +616,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 // Check if mapping type - mapping enumerables are not valid types for Cardinality.Many
-                if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableOfKeyValuePair))
+                if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.IEnumerableOfKeyValuePair)
                     || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.LookupGeneric)
                     || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.DictionaryGeneric))
                 {
@@ -673,13 +676,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     INamedTypeSymbol? genericInterfaceSymbol = null;
 
-                    if (currSymbol.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric)) && currSymbol is INamedTypeSymbol currNamedSymbol)
+                    if (currSymbol.IsOrDerivedFrom(_knownTypes.IEnumerableGeneric) && currSymbol is INamedTypeSymbol currNamedSymbol)
                     {
                         finalSymbol = currNamedSymbol;
                         break;
                     }
 
-                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(Compilation.GetTypeByMetadataName(Constants.Types.IEnumerableGeneric))).FirstOrDefault();
+                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(_knownTypes.IEnumerableGeneric)).FirstOrDefault();
                     if (genericInterfaceSymbol != null)
                     {
                         finalSymbol = genericInterfaceSymbol;
@@ -734,7 +737,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.ReadOnlyMemoryOfBytes);
                 var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray &&
                     outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, _knownTypes.ByteType);
-
 
                 return isByteArray || isReadOnlyMemoryOfBytes || isArrayOfByteArrays;
             }

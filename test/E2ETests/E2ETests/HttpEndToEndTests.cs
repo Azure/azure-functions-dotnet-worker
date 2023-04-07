@@ -48,7 +48,33 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [InlineData("HelloFromJsonBody", "{\"Name\": \"Bob\"}", "application/octet-stream", HttpStatusCode.OK, "Hello Bob")]
         public async Task HttpTriggerTestsMediaTypeDoNotMatter(string functionName, string body, string mediaType, HttpStatusCode expectedStatusCode, string expectedBody)
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody(functionName, body, expectedStatusCode, mediaType);
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody(functionName, body, mediaType);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal(expectedBody, responseBody);
+        }
+
+        [Theory]
+        [InlineData("POCOAndHttpRequestWithQueryString", "?name=Test", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.OK, "Book b")]
+        public async Task HttpTriggerTests_RequestBodyAndQueryString(string functionName, string queryString, string body, string mediaType, HttpStatusCode expectedStatusCode, string expectedBody)
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody(functionName, body, mediaType, queryString);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal(expectedBody, responseBody);
+        }
+
+        [Theory]
+        [InlineData("POCOAndHttpRequest", "", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.OK, "Book b")]
+        [InlineData("POCOAndHttpRequest", "", "{ \"Title\": \"b\" }", "application/octet-stream", HttpStatusCode.OK, "Book b")]
+        [InlineData("VoidHttpTriggerWithPOCO", "", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.NoContent, "")]
+        [InlineData("RequestDataAfterRouteParameters", "eu/books/", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.OK, "eu books b")]
+        [InlineData("CreatingResponseFromDuplicateHttpRequestDataParameter", "", "body", "application/json", HttpStatusCode.InternalServerError, "")]
+        public async Task HttpTriggerTests_RequestBody(string functionName, string route, string body, string mediaType, HttpStatusCode expectedStatusCode, string expectedBody)
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody($"{route}{functionName}", body, mediaType);
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -58,7 +84,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [Fact]
         public async Task HttpTriggerTestsPocoResult()
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("HelloUsingPoco", string.Empty, HttpStatusCode.OK, "application/json");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("HelloUsingPoco", string.Empty, "application/json");
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -68,7 +94,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [Fact(Skip = "Proxies not currently supported in V4 but will be coming back.")]
         public async Task HttpProxy()
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("proxytest", string.Empty, HttpStatusCode.OK, "application/json");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("proxytest", string.Empty, "application/json");
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

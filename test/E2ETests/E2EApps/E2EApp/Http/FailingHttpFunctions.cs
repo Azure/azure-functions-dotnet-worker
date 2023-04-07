@@ -1,10 +1,9 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
-using Microsoft.Azure.Functions.Worker;
+using System.Net;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp
@@ -19,6 +18,19 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             var logger = context.GetLogger(nameof(ExceptionFunction));
             logger.LogInformation(".NET Worker HTTP trigger function processed a request");
             throw new Exception("This should never succeed!");
+        }
+
+        [Function(nameof(CreatingResponseFromDuplicateHttpRequestDataParameter))]
+        public static HttpResponseData CreatingResponseFromDuplicateHttpRequestDataParameter(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] string input,
+            HttpRequestData req,
+            HttpRequestData req2,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(CreatingResponseFromDuplicateHttpRequestDataParameter));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            return req2.CreateResponse(HttpStatusCode.OK);
         }
     }
 }

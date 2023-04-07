@@ -37,13 +37,23 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 return ConversionResult.Unhandled();
             }
 
-            var bytes = context.Source switch
+            byte[]? bytes = null;
+
+            if (context.Source is string sourceString)
             {
-                string sourceString => Encoding.UTF8.GetBytes(sourceString),
-                ReadOnlyMemory<byte> sourceMemory => sourceMemory.ToArray(),
-                HttpRequestData requestData => Encoding.UTF8.GetBytes(new StreamReader(requestData.Body).ReadToEnd()),
-                _ => null
-            };
+                bytes = Encoding.UTF8.GetBytes(sourceString);
+            }
+            else if (context.Source is ReadOnlyMemory<byte> sourceMemory)
+            {
+                bytes = sourceMemory.ToArray();
+            }
+            else if (context.Source is HttpRequestData requestData)
+            {
+                using var reader = new StreamReader(requestData.Body, Encoding.UTF8, true, -1, leaveOpen: true);
+
+                bytes = Encoding.UTF8.GetBytes(await reader.ReadToEndAsync());
+                requestData.Body.Seek(0, SeekOrigin.Begin);
+            }
 
             if (bytes == null)
             {

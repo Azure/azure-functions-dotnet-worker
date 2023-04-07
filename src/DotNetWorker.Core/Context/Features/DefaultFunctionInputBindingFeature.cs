@@ -77,10 +77,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                             properties ??= new Dictionary<string, object>();
                             properties.Add(PropertyBagKeys.ConverterType, converterTypeAssemblyFullName);
                         }
-                        if (param.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallbackFlag, out var flag))
+                        if (param.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallback, out var flag))
                         {
                             properties ??= new Dictionary<string, object>();
-                            properties.Add(PropertyBagKeys.DisableConverterFallbackFlag, flag);
+                            properties.Add(PropertyBagKeys.DisableConverterFallback, flag);
                         }
                         if (param.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var input))
                         {

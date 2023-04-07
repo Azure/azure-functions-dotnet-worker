@@ -6,7 +6,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     internal static class PropertyBagKeys
     {
         internal const string ConverterType = "converterType";
-        internal const string DisableConverterFallbackFlag = "disableConverterFallbackFlag";
+        internal const string DisableConverterFallback = "disableConverterFallback";
         internal const string BindingAttributeConverters = "bindingAttributeConverters";
     }
 }

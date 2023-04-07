@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             // Get the input converter attribute information, if present on the parameter.
             var inputConverterAttribute = parameterInfo?.GetCustomAttribute<InputConverterAttribute>();
 
-            if (inputConverterAttribute != null)
+            if (inputConverterAttribute != null && inputConverterAttribute.ConverterTypes != null && inputConverterAttribute.ConverterTypes.Any())
             {
                 return new Dictionary<string, object>()
                 {
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 if (element.GetType() == typeof(InputConverterAttribute))
                 {
                     var attribute = (InputConverterAttribute)element;
-                    result.Add(PropertyBagKeys.DisableConverterFallbackFlag, attribute.DisableConverterFallback);
+                    result.Add(PropertyBagKeys.DisableConverterFallback, attribute.DisableConverterFallback);
                     result.Add(PropertyBagKeys.BindingAttributeConverters, attribute.ConverterTypes);
                 }
             }

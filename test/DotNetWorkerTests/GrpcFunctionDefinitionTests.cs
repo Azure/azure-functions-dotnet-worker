@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -121,10 +120,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 {
                     Assert.Equal("myBlob", q.Name);
                     Assert.Equal(typeof(string), q.Type);
-                    Assert.Contains("disableConverterFallbackFlag", q.Properties.Keys);
-                    Assert.Contains("bindingAttributeConverters", q.Properties.Keys);
-                    Assert.True(true, q.Properties["disableConverterFallbackFlag"].ToString());
-                    Assert.Contains(new List<Type>().ToString(), q.Properties["bindingAttributeConverters"].ToString());
+                    Assert.Contains(PropertyBagKeys.DisableConverterFallback, q.Properties.Keys);
+                    Assert.Contains(PropertyBagKeys.BindingAttributeConverters, q.Properties.Keys);
+                    Assert.True(true, q.Properties[PropertyBagKeys.DisableConverterFallback].ToString());
+                    Assert.Contains(new List<Type>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeConverters].ToString());
                 });
 
             // InputBindings

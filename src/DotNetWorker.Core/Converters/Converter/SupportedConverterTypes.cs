@@ -9,24 +9,19 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     /// <summary>
     /// An attribute that can specify a type of <see cref="Type"/> to use for function input conversion.
     /// </summary>
-    [AttributeUsage(
-        AttributeTargets.Parameter |
-        AttributeTargets.Class |
-        AttributeTargets.Interface |
-        AttributeTargets.Enum |
-        AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class SupportedConverterTypesAttribute : Attribute
     {
         /// <summary>
-        /// Gets the input converter type.
+        /// Gets the input converter types.
         /// </summary>
         public List<Type>? Types { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="SupportedConverterTypesAttribute"/>
         /// </summary>
-        /// <param name="types">The input converter type.</param>
-        /// <exception cref="InvalidOperationException">Thrown when the converterType parameter value is a type which has not implemented Microsoft.Azure.Functions.Worker.Converters.IInputConverter</exception>
+        /// <param name="types">Input converter types.</param>
+        /// <exception cref="ArgumentNullException">Thrown when types is null or empty</exception>
         public SupportedConverterTypesAttribute(params Type[] types)
         {
             if (types == null || types.Length == 0)

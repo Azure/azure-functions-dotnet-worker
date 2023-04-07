@@ -18,19 +18,19 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     public sealed class InputConverterAttribute : Attribute
     {
         /// <summary>
-        /// Gets the value of disable converter fallback
+        /// Gets the value of disable converter fallback flag
         /// </summary>
         public bool DisableConverterFallback { get; }
 
         /// <summary>
         /// Gets the input converter type.
         /// </summary>
-        public List<Type>? ConverterTypes { get; }
+        public List<Type> ConverterTypes { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="InputConverterAttribute"/>
         /// </summary>
-        /// <param name="disableConverterFallback">disableConverterFallback.</param>
+        /// <param name="disableConverterFallback">disable converter fallback flag.</param>
         /// <param name="converterTypes">The input converter type.</param>
         /// <exception cref="InvalidOperationException">Thrown when the converterType parameter value is a type which has not implemented Microsoft.Azure.Functions.Worker.Converters.IInputConverter</exception>
         public InputConverterAttribute(bool disableConverterFallback = false, params Type[] converterTypes)

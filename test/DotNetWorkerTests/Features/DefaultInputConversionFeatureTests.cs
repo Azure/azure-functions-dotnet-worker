@@ -113,7 +113,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new List<Type>() { typeof(MySimpleSyncInputConverter) }  },
-                { PropertyBagKeys.DisableConverterFallbackFlag, true }
+                { PropertyBagKeys.DisableConverterFallback, true }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new List<Type>() { }  },
-                { PropertyBagKeys.DisableConverterFallbackFlag, false }
+                { PropertyBagKeys.DisableConverterFallback, false }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -149,7 +149,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new List<Type>() { }  },
-                { PropertyBagKeys.DisableConverterFallbackFlag, true }
+                { PropertyBagKeys.DisableConverterFallback, true }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 

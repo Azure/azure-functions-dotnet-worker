@@ -124,6 +124,40 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
         }
 
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties2()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeConverters, new List<Type>() { }  },
+                { PropertyBagKeys.DisableConverterFallbackFlag, false }
+            };
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d", actual.Value);
+            TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_DisableFallback()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeConverters, new List<Type>() { }  },
+                { PropertyBagKeys.DisableConverterFallbackFlag, true }
+            };
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Unhandled, actual.Status);
+        }
+
         [InputConverter(false, typeof(MyCustomerAsyncInputConverter))]
         internal record Customer(string Id, string Name);
 

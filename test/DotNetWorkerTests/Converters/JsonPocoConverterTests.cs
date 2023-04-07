@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
         }
 
         [Fact]
-        public async Task ConvertHttpRequestData()
+        public async Task ConvertAsync_HttpRequestDataWithValidJsonBody_ConvertsCorrectly()
         {
             string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
             var body = new MemoryStream(Encoding.UTF8.GetBytes(source));
@@ -93,6 +93,32 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var book = TestUtility.AssertIsTypeAndConvert<Book>(conversionResult.Value);
             Assert.Equal("a", book.Title);
             Assert.Equal("b", book.Author);
+        }
+        
+        [Fact]
+        public async Task ConvertAsync_HttpRequestDataWithValidJsonBody_ResetsRequestBodyStreamPosition()
+        {
+            string source = "{ \"Title\": \"a\", \"Author\": \"b\" }";
+            var body = new MemoryStream(Encoding.UTF8.GetBytes(source));
+            var request = new TestHttpRequestData(_mockFunctionContext.Object, body);
+            var context = new TestConverterContext(typeof(Book), request);
+
+            await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(0, request.Body.Position);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_HttpRequestDataWithInvalidJson_ReturnsFailedStatus()
+        {
+            string source = "invalid";
+            var body = new MemoryStream(Encoding.UTF8.GetBytes(source));
+            var request = new TestHttpRequestData(_mockFunctionContext.Object, body);
+            var context = new TestConverterContext(typeof(Book), request);
+
+            var conversionResult = await _jsonPocoConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
@@ -129,6 +155,31 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var conversionResult = await jsonPocoConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
+            var book = TestUtility.AssertIsTypeAndConvert<NewtonsoftBook>(conversionResult.Value);
+            Assert.Equal("a", book.BookTitle);
+            Assert.Equal("b", book.BookAuthor);
+        }
+
+
+        [Fact]
+        public async Task Newtonsoft_ValidHttpRequestData()
+        {
+            var options = new WorkerOptions
+            {
+                Serializer = new NewtonsoftJsonObjectSerializer()
+            };
+
+            var wrapper = new OptionsWrapper<WorkerOptions>(options);
+            var jsonPocoConverter = new JsonPocoConverter(wrapper);
+
+            string source = "{ \"title\": \"a\", \"Author\": \"b\" }";
+
+            var body = new MemoryStream(Encoding.UTF8.GetBytes(source));
+            var request = new TestHttpRequestData(_mockFunctionContext.Object, body);
+            var context = new TestConverterContext(typeof(NewtonsoftBook), request);
+
+            var conversionResult = await jsonPocoConverter.ConvertAsync(context);
 
             var book = TestUtility.AssertIsTypeAndConvert<NewtonsoftBook>(conversionResult.Value);
             Assert.Equal("a", book.BookTitle);

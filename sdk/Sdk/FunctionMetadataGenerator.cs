@@ -808,30 +808,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
                 {
-                    return CheckBindingAttribute(bindingAttribute, bindingType);
+                    return CheckBindingAttributeForInputConverters(bindingAttribute, bindingType);
                 }
             }
 
             return false;
         }
 
-        private static bool CheckBindingAttribute(CustomAttribute bindingAttribute, string bindingType)
+        private static bool CheckBindingAttributeForInputConverters(CustomAttribute bindingAttribute, string bindingType)
         {
+            // InputConverterAttribute has list of supported converter types
             foreach (var customAttribute in bindingAttribute.ConstructorArguments)
             {
-                if (string.Equals(customAttribute.Type.GetElementType().FullName, typeof(Type).FullName)
-                    && customAttribute.Value.GetType() == typeof(CustomAttributeArgument[]))
+                if (string.Equals(customAttribute.Type.GetElementType().FullName, typeof(Type).FullName) &&
+                    customAttribute.Value.GetType() == typeof(CustomAttributeArgument[]))
                 {
-                    return CheckBindingCustomAttributeArgument(customAttribute, bindingType);
+                    return CheckSupportedConverters(customAttribute, bindingType);
                 }
             }
 
             return false;
         }
 
-        private static bool CheckBindingCustomAttributeArgument(CustomAttributeArgument customAttribute, string bindingType)
+        private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, string bindingType)
         {
-            //BlobStorageConverter
+            // Check if converter supports deferred binding for the binding type
+
             CustomAttributeArgument[] customAttributeArguments = (CustomAttributeArgument[])customAttribute.Value;
 
             if (customAttributeArguments is null)
@@ -839,10 +841,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 return false;
             }
 
-            bool isSupportsDeferredBindingAttribute = false;
-
             foreach (var element in customAttributeArguments)
             {
+                bool isSupportsDeferredBindingAttribute = false;
+
                 var typeReferenceValue = (TypeReference)element.Value;
                 var typeReferenceCustomAttributes = typeReferenceValue.Resolve().CustomAttributes;
 
@@ -874,7 +876,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             foreach (var bindingTypes in attribute.ConstructorArguments)
             {
-                CustomAttributeArgument[] bindingTypeElements = (CustomAttributeArgument[])bindingTypes.Value;
+                var bindingTypeElements = (CustomAttributeArgument[])bindingTypes.Value;
 
                 foreach (var bindingTypeElement in bindingTypeElements)
                 {

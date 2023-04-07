@@ -3,6 +3,8 @@
 
 using System.Net;
 using System.Text.Json;
+using System.Threading.Tasks;
+using Azure;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
@@ -81,6 +83,20 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             response.WriteString($"Book {book.Title}");
+            return response;
+        }
+
+        [Function(nameof(POCOAndHttpRequestWithReadAsString))]
+        public static async Task<HttpResponseData> POCOAndHttpRequestWithReadAsString(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] Book book,
+            HttpRequestData req,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(POCOAndHttpRequestWithReadAsString));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString(await req.ReadAsStringAsync());
             return response;
         }
 

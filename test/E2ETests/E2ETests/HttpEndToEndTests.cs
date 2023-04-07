@@ -69,6 +69,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [Theory]
         [InlineData("POCOAndHttpRequest", "", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.OK, "Book b")]
         [InlineData("POCOAndHttpRequest", "", "{ \"Title\": \"b\" }", "application/octet-stream", HttpStatusCode.OK, "Book b")]
+        [InlineData("POCOAndHttpRequestWithReadAsString", "", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.OK, "{ \"Title\": \"b\" }")]
         [InlineData("VoidHttpTriggerWithPOCO", "", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.NoContent, "")]
         [InlineData("RequestDataAfterRouteParameters", "eu/books/", "{ \"Title\": \"b\" }", "application/json", HttpStatusCode.OK, "eu books b")]
         [InlineData("CreatingResponseFromDuplicateHttpRequestDataParameter", "", "body", "application/json", HttpStatusCode.InternalServerError, "")]

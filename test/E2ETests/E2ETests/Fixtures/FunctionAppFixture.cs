@@ -57,6 +57,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     _funcProcess.StartInfo.ArgumentList.Add("HelloUsingPoco");
                     _funcProcess.StartInfo.ArgumentList.Add("POCOAndHttpRequest");
                     _funcProcess.StartInfo.ArgumentList.Add("POCOAndHttpRequestWithQueryString");
+                    _funcProcess.StartInfo.ArgumentList.Add("POCOAndHttpRequestWithReadAsString");
                     _funcProcess.StartInfo.ArgumentList.Add("VoidHttpTriggerWithPOCO");
                     _funcProcess.StartInfo.ArgumentList.Add("RequestDataAfterRouteParameters");
                     _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");

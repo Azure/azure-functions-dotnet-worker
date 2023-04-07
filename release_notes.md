@@ -5,3 +5,4 @@
 
 - Logging an error on a function invocation exception. This error will also be logged by the host, but this allows for richer telemetry coming directly from the worker. See #1421 for details on how to disable this log if desired.
 - Add query as property to HttpRequestData (#1408)
+- Enable HttpTriggers with object deserialization and a secondary HttpRequestData parameter (#1454)

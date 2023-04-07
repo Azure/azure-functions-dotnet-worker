@@ -22,7 +22,16 @@ namespace Microsoft.Azure.Functions.Worker
     /// Converter to bind Blob Storage type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterTypes(typeof(string), typeof(Stream), typeof(IEnumerable<string>))]
+    [SupportedConverterTypes(
+        typeof(string), typeof(IEnumerable<string>), typeof(string[]),
+        typeof(Stream), typeof(IEnumerable<Stream>), typeof(Stream[]),
+        typeof(Byte[]), typeof(IEnumerable<Byte[]>), typeof(Byte[][]),
+        typeof(BlobBaseClient), typeof(IEnumerable<BlobBaseClient>), typeof(BlobBaseClient[]),
+        typeof(BlobClient), typeof(IEnumerable<BlobClient>), typeof(BlobClient[]),
+        typeof(BlockBlobClient), typeof(IEnumerable<BlockBlobClient>), typeof(BlockBlobClient[]),
+        typeof(PageBlobClient), typeof(IEnumerable<PageBlobClient>), typeof(PageBlobClient[]),
+        typeof(AppendBlobClient), typeof(IEnumerable<AppendBlobClient>), typeof(AppendBlobClient[]),
+        typeof(BlobContainerClient), typeof(IEnumerable<BlobContainerClient>), typeof(BlobContainerClient[]))]
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;

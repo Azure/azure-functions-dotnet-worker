@@ -806,7 +806,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (var bindingAttribute in typeDefinition.CustomAttributes)
             {
-                if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterProperty, StringComparison.Ordinal))
+                if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
                 {
                     return CheckBindingAttribute(bindingAttribute, bindingType);
                 }

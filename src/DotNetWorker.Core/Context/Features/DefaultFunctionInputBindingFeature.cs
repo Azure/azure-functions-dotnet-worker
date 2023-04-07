@@ -74,25 +74,21 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         // Pass info about specific input converter type defined for this parameter, if present.
                         if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
                         {
-                            properties = new Dictionary<string, object>()
-                        {
-                            { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName }
-                        };
+                            properties ??= new Dictionary<string, object>();
+                            properties.Add(PropertyBagKeys.ConverterType, converterTypeAssemblyFullName);
                         }
                         if (param.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallbackFlag, out var flag))
                         {
-                            properties = properties == null ? new Dictionary<string, object>() : properties;
+                            properties ??= new Dictionary<string, object>();
                             properties.Add(PropertyBagKeys.DisableConverterFallbackFlag, flag);
                         }
                         if (param.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var input))
                         {
-                            properties = properties == null ? new Dictionary<string, object>() : properties;
+                            properties ??= new Dictionary<string, object>();
                             properties.Add(PropertyBagKeys.BindingAttributeConverters, input);
                         }
 
-                        IReadOnlyDictionary<string, object> propertiesDict = properties != null ? properties.ToImmutableDictionary() : ImmutableDictionary<string, object>.Empty;
-
-                        var converterContext = _converterContextFactory.Create(param.Type, source, context, propertiesDict);
+                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties != null ? properties.ToImmutableDictionary() : ImmutableDictionary<string, object>.Empty);
 
                         bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
                         inputBindingCache[cacheKey] = bindingResult;

@@ -10,6 +10,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// Attribute used to mark a function that should be invoked periodically based on
     /// a timer schedule.
     /// </summary>
+    [SupportsFunctionLevelRetry]
     public sealed class TimerTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>

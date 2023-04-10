@@ -49,17 +49,22 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             // Get list of converters advertised by the Binding Attribute
-            List<IInputConverter>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
+            Dictionary<IInputConverter, List<Type>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    var conversionResult = await ConvertAsyncUsingConverter(converterType, converterContext);
+                    bool res = converterType.Value.Any(a => a == converterContext.TargetType);
 
-                    if (conversionResult.Status != ConversionStatus.Unhandled)
+                    if (res)
                     {
-                        return conversionResult;
+                        var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
+
+                        if (conversionResult.Status != ConversionStatus.Unhandled)
+                        {
+                            return conversionResult;
+                        }
                     }
                 }
             }
@@ -132,24 +137,39 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
 
-        private List<IInputConverter>? GetExplicitConverterTypes(ConverterContext context)
+        private Dictionary<IInputConverter, List<Type>>? GetExplicitConverterTypes(ConverterContext context)
         {
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
-                if (converterTypes is not null && converterTypes.GetType() == typeof(List<Type>))
+                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, List<Type>>))
                 {
-                    var converters = (List<Type>)converterTypes;
-                    var result = new List<IInputConverter>();
+                    var converters = (Dictionary<Type, List<Type>>)converterTypes;
+                    var result = new Dictionary<IInputConverter, List<Type>>();
                     var interfaceType = typeof(IInputConverter);
 
-                    foreach (var converter in converters)
+                    foreach (var converterTypesPair in converters)
                     {
+                        var converter = converterTypesPair.Key;
+                        /*
+                        var types = new List<Type>();
+
+                        foreach (var type in converterTypesPair.Value)
+                        {
+                            try
+                            {
+                                Type t = (Type)type;
+                                types.Add(t);
+                            }
+                            catch { }
+                        }
+                        */
+
                         if (interfaceType.IsAssignableFrom(converter))
                         {
                             string? converterTypeFullName = converter.AssemblyQualifiedName;
                             if (converterTypeFullName is not null)
                             {
-                                result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName));
+                                result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName), converterTypesPair.Value);
                             }
                         }
                     }

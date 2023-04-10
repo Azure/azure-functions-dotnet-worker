@@ -31,7 +31,8 @@ namespace Microsoft.Azure.Functions.Worker
         typeof(BlockBlobClient), typeof(IEnumerable<BlockBlobClient>), typeof(BlockBlobClient[]),
         typeof(PageBlobClient), typeof(IEnumerable<PageBlobClient>), typeof(PageBlobClient[]),
         typeof(AppendBlobClient), typeof(IEnumerable<AppendBlobClient>), typeof(AppendBlobClient[]),
-        typeof(BlobContainerClient), typeof(IEnumerable<BlobContainerClient>), typeof(BlobContainerClient[]))]
+        typeof(BlobContainerClient), typeof(IEnumerable<BlobContainerClient>), typeof(BlobContainerClient[]),
+        typeof(object), typeof(IEnumerable<object>), typeof(object[]))]
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;

@@ -12,7 +12,7 @@ namespace FunctionApp
     {
         static async Task Main(string[] args)
         {
-            Debugger.Launch();
+            //Debugger.Launch();
 
             var host = new HostBuilder()
             .ConfigureFunctionsWorkerDefaults(builder =>
@@ -23,32 +23,6 @@ namespace FunctionApp
             .Build();
 
             await host.RunAsync();
-
-            /*            // #if DEBUG
-                        //     Debugger.Launch();
-                        // #endif
-                        //<docsnippet_startup>
-                        var host = new HostBuilder()
-                            //<docsnippet_configure_defaults>
-                            .ConfigureFunctionsWorkerDefaults(builder =>
-                            {
-                                builder
-                                    .AddApplicationInsights()
-                                    .AddApplicationInsightsLogger();
-                            })
-                            //</docsnippet_configure_defaults>
-                            //<docsnippet_dependency_injection>
-                            .ConfigureServices(s =>
-                            {
-                                s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
-                            })
-                            //</docsnippet_dependency_injection>
-                            .Build();
-                        //</docsnippet_startup>
-
-                        //<docsnippet_host_run>
-                        await host.RunAsync();
-                        //</docsnippet_host_run>*/
         }
     }
 }

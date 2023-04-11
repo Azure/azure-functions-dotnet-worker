@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             _httpContextReferenceList = new ConcurrentDictionary<string, HttpContextReference>();
         }
 
-        public Task SetContextAsync(string invocationId, HttpContext context)
+        public Task<FunctionContext> SetContextAsync(string invocationId, HttpContext context)
         {
             var httpContextRef = _httpContextReferenceList.AddOrUpdate(invocationId,
                 s => new HttpContextReference(invocationId, context), (s, c) =>
@@ -38,11 +38,11 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
         }
 
         // TODO:See about making this not public
-        public void CompleteInvocation(string functionId)
+        public void CompleteInvocation(string functionId, FunctionContext functionContext)
         {
             if (_httpContextReferenceList.TryGetValue(functionId, out var httpContextRef))
             {
-                httpContextRef.CompleteFunction();
+                httpContextRef.CompleteFunction(functionContext);
             }
             else
             {

@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
 {
     internal class HttpContextReference
     {
-        private TaskCompletionSource<HttpContext> _functionCompletionTask = new TaskCompletionSource<HttpContext>();
+        private TaskCompletionSource<FunctionContext> _functionCompletionTask = new TaskCompletionSource<FunctionContext>();
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new TaskCompletionSource<HttpContext>();
         private string _invocationId;
         private CancellationToken _token;
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             _httpContextValueSource.SetResult(context);
         }
 
-        public TaskCompletionSource<HttpContext> FunctionCompletionTask { get => _functionCompletionTask; set => _httpContextValueSource = value; }
+        public TaskCompletionSource<FunctionContext> FunctionCompletionTask { get => _functionCompletionTask; set => _functionCompletionTask = value; }
 
         public TaskCompletionSource<HttpContext> HttpContextValueSource { get => _httpContextValueSource; set => _httpContextValueSource = value; }
 
@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             _token = token;
         }
 
-        internal void CompleteFunction()
+        internal void CompleteFunction(FunctionContext functionContext)
         {
             if (_httpContextValueSource.Task.IsCompleted)
             {
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
                 }
                 else
                 {
-                    _functionCompletionTask.SetResult(_httpContextValueSource.Task.Result);
+                    _functionCompletionTask.SetResult(functionContext);
                 }
             }
             else

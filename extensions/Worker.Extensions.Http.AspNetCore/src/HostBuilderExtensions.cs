@@ -33,11 +33,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
                 });
             });
 
-            builder.ConfigureServices(services =>
-            {
-                services.AddMvc();
-            });
-
             return builder;
         }
     }

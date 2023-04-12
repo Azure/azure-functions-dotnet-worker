@@ -5,9 +5,6 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Functions.Worker.Core.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
 using Microsoft.Extensions.Primitives;
@@ -36,13 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Pipeline
 
             // TODO: Discuss whether we need to handle invocationId (a StringValues obj) being more than one string? 
             // Likely not since this info is sent from host which we control?
-            FunctionContext functionContext = await _coordinator.SetContextAsync(invocationId, context);
-
-            if (functionContext.GetInvocationResult().Value is IActionResult actionResult)
-            {
-                ActionContext actionContext = new ActionContext(context, context.GetRouteData(), new ActionDescriptor());
-                await actionResult.ExecuteResultAsync(actionContext);
-            }
+            await _coordinator.SetContextAsync(invocationId, context);
         }
     }
 

@@ -24,7 +24,6 @@ namespace Extensions.CosmosDB
         }
 
         [Function("DocByIdFromJSON")]
-        [FixedDelayRetry(5, "00:00:10")]
         public void Run(
             [QueueTrigger("todoqueueforlookup")] ToDoItemLookup toDoItemLookup,
             [CosmosDBInput(databaseName: "ToDoItems",

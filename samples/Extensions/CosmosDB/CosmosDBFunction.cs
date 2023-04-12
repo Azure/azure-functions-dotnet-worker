@@ -11,6 +11,7 @@ namespace SampleApp
     public static class CosmosDBFunction
     {
         [Function("CosmosDBFunction")]
+        [FixedDelayRetry(5, "00:00:10")]
         [CosmosDBOutput("%CosmosDb%", "%CosmosCollOut%", ConnectionStringSetting = "CosmosConnection", CreateIfNotExists = true)]
         public static object Run(
             [CosmosDBTrigger("%CosmosDb%", "%CosmosCollIn%", ConnectionStringSetting = "CosmosConnection",

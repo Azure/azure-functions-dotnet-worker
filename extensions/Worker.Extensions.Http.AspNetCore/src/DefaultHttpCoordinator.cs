@@ -17,7 +17,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.Http
             _httpContextReferenceList = new ConcurrentDictionary<string, HttpContextReference>();
         }
 
-
         public Task SetContextAsync(string invocationId, HttpContext context)
         {
             var httpContextRef = _httpContextReferenceList.AddOrUpdate(invocationId,

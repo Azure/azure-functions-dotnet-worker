@@ -112,20 +112,31 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                     {
                         foreach (var attr in converter.CustomAttributes)
                         {
-                            if (attr.GetType() == typeof(SupportedConverterTypesAttribute))
+                            if (attr.AttributeType == typeof(SupportedConverterTypesAttribute))
                             {
                                 var types = new List<Type>();
 
                                 foreach (var type in attr.ConstructorArguments)
                                 {
-                                    var tempType = (object)type;
-
-                                    try
+                                    if (type.ArgumentType == typeof(Type[]))
                                     {
-                                        Type t = (Type)tempType;
-                                        types.Add(t);
+                                        object anArray = type.Value;
+                                        var a = anArray as System.Collections.ObjectModel.ReadOnlyCollection<CustomAttributeTypedArgument>;
+                                        
+                                        foreach (var tempType in a)
+                                        {
+                                            try
+                                            {
+                                                if (tempType.ArgumentType == typeof(Type))
+                                                {
+                                                    object obj = tempType.Value;
+                                                    Type t = obj as Type;
+                                                    types.Add(t);
+                                                }
+                                            }
+                                            catch { }
+                                        }
                                     }
-                                    catch { }
                                 }
 
                                 converterTypesDictionary.Add(converter, types);

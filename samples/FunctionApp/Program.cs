@@ -1,9 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
 using Microsoft.Extensions.Hosting;
 
 namespace FunctionApp
@@ -12,31 +12,17 @@ namespace FunctionApp
     {
         static async Task Main(string[] args)
         {
-            // #if DEBUG
-            //     Debugger.Launch();
-            // #endif
-            //<docsnippet_startup>
-            var host = new HostBuilder()
-                //<docsnippet_configure_defaults>
-                .ConfigureFunctionsWorkerDefaults(builder =>
-                {
-                    builder
-                        .AddApplicationInsights()
-                        .AddApplicationInsightsLogger();
-                })
-                //</docsnippet_configure_defaults>
-                //<docsnippet_dependency_injection>
-                .ConfigureServices(s =>
-                {
-                    s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
-                })
-                //</docsnippet_dependency_injection>
-                .Build();
-            //</docsnippet_startup>
+            //Debugger.Launch();
 
-            //<docsnippet_host_run>
+            var host = new HostBuilder()
+            .ConfigureFunctionsWorkerDefaults(builder =>
+            {
+                builder.UseAspNetCoreIntegration();
+            })
+            .ConfigureAspNetCoreIntegration()
+            .Build();
+
             await host.RunAsync();
-            //</docsnippet_host_run>
         }
     }
 }

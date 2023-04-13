@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Core.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Pipeline
@@ -23,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Pipeline
 
         public async Task Invoke(HttpContext context)
         {
-            context.Request.Headers.TryGetValue("invocation-id", out StringValues invocationId);
+            context.Request.Headers.TryGetValue(Constants.CorrelationHeader, out StringValues invocationId);
 
             if (invocationId == 0 || invocationId.Count == 0) 
             {

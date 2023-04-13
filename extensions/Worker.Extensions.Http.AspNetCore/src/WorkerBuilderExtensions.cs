@@ -5,6 +5,7 @@ using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -34,10 +35,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
             // Add http coordinator
             builder.Services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
 
+            var port = Utilities.GetUnusedTcpPort().ToString();
+
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.RegisterAt<HttpContextConverter>(0);
-                workerOption.Capabilities.Add("EnableHttpProxying", bool.TrueString);
+                workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.GetHttpUri().ToString()); // testing host side, remove this const later
             });
 
             return builder;

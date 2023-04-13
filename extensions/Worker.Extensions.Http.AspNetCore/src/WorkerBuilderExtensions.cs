@@ -33,8 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
 
             builder.UseMiddleware<FunctionsHttpProxyingMiddleware>();
 
-            // Add http coordinator; one-per-invocation
-            builder.Services.AddScoped<IHttpCoordinator, DefaultHttpCoordinator>();
+            builder.Services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
 
             var port = Utilities.GetUnusedTcpPort().ToString();
 

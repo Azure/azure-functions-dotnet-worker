@@ -9,6 +9,7 @@ namespace SampleApp
     public static class TimerFunction
     {
         [Function("TimerFunction")]
+        [FixedDelayRetry(5, "00:00:10")]
         public static void Run([TimerTrigger("0 */5 * * * *")] TimerInfo timerInfo,
             FunctionContext context)
         {

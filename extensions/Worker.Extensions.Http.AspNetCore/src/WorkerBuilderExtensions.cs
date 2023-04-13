@@ -6,7 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
-using Microsoft.Azure.Functions.Worker.Pipeline;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.FunctionsMiddleware;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 
@@ -32,8 +33,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
 
             builder.UseMiddleware<FunctionsHttpProxyingMiddleware>();
 
-            // Add http coordinator
-            builder.Services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
+            // Add http coordinator; one-per-invocation
+            builder.Services.AddScoped<IHttpCoordinator, DefaultHttpCoordinator>();
 
             var port = Utilities.GetUnusedTcpPort().ToString();
 

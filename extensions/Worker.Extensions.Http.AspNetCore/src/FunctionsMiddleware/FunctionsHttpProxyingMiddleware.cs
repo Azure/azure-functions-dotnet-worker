@@ -3,10 +3,10 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Functions.Worker.Core.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace Microsoft.Azure.Functions.Worker.Pipeline
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.FunctionsMiddleware
 {
     internal class FunctionsHttpProxyingMiddleware : IFunctionsWorkerMiddleware
     {
@@ -21,19 +21,20 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline
         {
             var invocationId = context.InvocationId;
 
-            var httpContext = await _coordinator.GetContextAsync(invocationId, context.CancellationToken);
+            // this call will block until the ASP.NET middleware pipleline has signaled that it's ready to run the function
+            var httpContext = await _coordinator.SetFunctionContextAsync(invocationId, context);
 
             AddHttpContextToFunctionContext(context, httpContext);
 
-            await next(context); 
+            await next(context);
 
             // allows asp.net middleware to continue
-            _coordinator.CompleteInvocation(invocationId);
+            _coordinator.CompleteFunctionInvocation(invocationId);
         }
 
-        private void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)
+        private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)
         {
-            funcContext.Items.Add("HttpRequestContext", httpContext); 
+            funcContext.Items.Add("HttpRequestContext", httpContext);
         }
     }
 }

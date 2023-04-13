@@ -1,9 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Azure.Functions.Worker.Core.Pipeline;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -29,7 +27,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
                 webBuilder.UseUrls(HttpUriProvider.GetHttpUri().ToString());
                 webBuilder.Configure(b =>
                 {
-                    b.UseAspNetHttpForwarderMiddleware();
+                    b.UseSetServiceProviderMiddleware();
+                    // TODO: provide a way for customers to configure their middleware pipeline here
+                    b.UseInvokeFunctionMiddleware();
                 });
             });
 

@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
@@ -29,7 +28,15 @@ internal class SetServiceProviderMiddleware
         }
 
         FunctionContext functionContext = await _coordinator.SetHttpContextAsync(invocationId, context);
-        context.Features.Set<IServiceProvidersFeature>(new RequestServicesFeature(context, functionContext.InstanceServices as IServiceScopeFactory));
+
+        // Explicitly set the RequestServices to prevent a new scope from being created internally.
+        // This also prevents the scope from being disposed when the request is complete. We want this to 
+        // be disposed in the Functions middleware, not here.
+        var servicesFeature = new RequestServicesFeature(context, null)
+        {
+            RequestServices = functionContext.InstanceServices
+        };
+        context.Features.Set<IServiceProvidersFeature>(servicesFeature);
 
         await _next(context);
     }

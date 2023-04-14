@@ -100,7 +100,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         private ImmutableDictionary<string, object> GetBindingAttributePropertiesDictionary(IEnumerable<Attribute> customAttributes)
         {
             var result = new Dictionary<string, object>();
-            var converterTypesDictionary = new Dictionary<Type, List<Type>>();
+            var converterTypesDictionary = new Dictionary<string, List<string>>();
 
             foreach (var element in customAttributes)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                         {
                             if (attr.AttributeType == typeof(SupportedConverterTypesAttribute))
                             {
-                                var types = new List<Type>();
+                                var types = new List<string>();
 
                                 foreach (var type in attr.ConstructorArguments)
                                 {
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                                                 {
                                                     object obj = tempType.Value;
                                                     Type t = obj as Type;
-                                                    types.Add(t);
+                                                    types.Add(t.FullName);
                                                 }
                                             }
                                             catch { }
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                                     }
                                 }
 
-                                converterTypesDictionary.Add(converter, types);
+                                converterTypesDictionary.Add(converter.AssemblyQualifiedName, types);
                             }
                         }
 

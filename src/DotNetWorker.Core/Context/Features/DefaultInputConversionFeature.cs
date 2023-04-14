@@ -49,13 +49,13 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             // Get list of converters advertised by the Binding Attribute
-            Dictionary<IInputConverter, List<Type>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
+            Dictionary<IInputConverter, List<string>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    bool res = converterType.Value.Any(a => a == converterContext.TargetType);
+                    bool res = converterType.Value.Any(a => a == converterContext.TargetType.FullName);
 
                     if (res)
                     {
@@ -137,14 +137,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
 
-        private Dictionary<IInputConverter, List<Type>>? GetExplicitConverterTypes(ConverterContext context)
+        private Dictionary<IInputConverter, List<string>>? GetExplicitConverterTypes(ConverterContext context)
         {
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
-                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, List<Type>>))
+                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<string, List<string>>))
                 {
-                    var converters = (Dictionary<Type, List<Type>>)converterTypes;
-                    var result = new Dictionary<IInputConverter, List<Type>>();
+                    var converters = (Dictionary<string, List<string>>)converterTypes;
+                    var result = new Dictionary<IInputConverter, List<string>>();
                     var interfaceType = typeof(IInputConverter);
 
                     foreach (var converterTypesPair in converters)
@@ -164,10 +164,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         }
                         */
 
-                        if (interfaceType.IsAssignableFrom(converter))
+                        if (interfaceType.IsAssignableFrom(_inputConverterProvider.GetOrCreateConverterInstance(converter).GetType()))
                         {
-                            string? converterTypeFullName = converter.AssemblyQualifiedName;
-                            if (converterTypeFullName is not null)
+                            string? converterTypeFullName = _inputConverterProvider.GetOrCreateConverterInstance(converter).GetType().AssemblyQualifiedName;
+                            if (converter is not null)
                             {
                                 result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName), converterTypesPair.Value);
                             }

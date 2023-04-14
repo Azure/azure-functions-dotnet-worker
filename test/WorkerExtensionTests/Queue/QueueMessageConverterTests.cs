@@ -42,7 +42,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("hello world", expectedData.Body.ToString());
         }
 
-
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BinaryData_ReturnsSuccess()
         {

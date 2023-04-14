@@ -18,16 +18,10 @@ namespace Microsoft.Azure.Functions.Worker
     [SupportedConverterTypes(typeof(QueueMessage), typeof(BinaryData), typeof(JObject))]
     internal class QueueMessageConverter : IInputConverter
     {
-        // private readonly IOptions<WorkerOptions> _workerOptions;
-        // private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
-
         private readonly ILogger<QueueMessageConverter> _logger;
 
-        // IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions,
         public QueueMessageConverter(ILogger<QueueMessageConverter> logger)
         {
-            // _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
-            // _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -35,25 +29,28 @@ namespace Microsoft.Azure.Functions.Worker
         {
             var result = context?.Source switch
             {
-                ModelBindingData binding => ConvertFromBindingDataAsync(context, binding),
+                ModelBindingData binding => ConvertFromBindingData(context, binding),
                 _ => ConversionResult.Unhandled()
             };
 
             return new ValueTask<ConversionResult>(result);
         }
 
-        private ConversionResult ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        private ConversionResult ConvertFromBindingData(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsQueueExtension(modelBindingData))
             {
                 return ConversionResult.Unhandled();
             }
 
+            if (modelBindingData.ContentType is not Constants.JsonContentType)
+            {
+                return ConversionResult.Failed(new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported."));
+            }
+
             try
             {
-
-                QueueMessage queueMessage = ExtractQueueMessageFromBindingData(modelBindingData);
-                var result = ToTargetType(context.TargetType, queueMessage);
+                var result = ToTargetType(context.TargetType, modelBindingData);
 
                 if (result is not null)
                 {
@@ -80,45 +77,28 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private QueueMessage ExtractQueueMessageFromBindingData(ModelBindingData modelBindingData)
+        private object? ToTargetType(Type targetType, ModelBindingData modelBindingData) => targetType switch
         {
-            if (modelBindingData.ContentType is not Constants.JsonContentType)
-            {
-                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
-            }
+            Type _ when targetType == typeof(QueueMessage) => ConvertToQueueMessage(modelBindingData),
+            Type _ when targetType == typeof(BinaryData) => ConvertToBinaryData(modelBindingData),
+            Type _ when targetType == typeof(JObject) => ConvertToJObject(modelBindingData),
+            _ => null
+        };
 
+        private QueueMessage ConvertToQueueMessage(ModelBindingData modelBindingData)
+        {
             JsonSerializerOptions options = new() { Converters = { new QueueMessageJsonConverter() } };
             return modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
         }
 
-        private object? ToTargetType(Type targetType, QueueMessage message) => targetType switch
+        private BinaryData ConvertToBinaryData(ModelBindingData modelBindingData)
         {
-            Type _ when targetType == typeof(QueueMessage) => message,
-            Type _ when targetType == typeof(BinaryData) => ConvertToBinaryData(message),
-            Type _ when targetType == typeof(JObject) => ConvertToJObject(message),
-            _ => null
-        };
-
-        private BinaryData ConvertToBinaryData(QueueMessage input)
-        {
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
-
-            return input.Body;
+            return modelBindingData.Content;
         }
 
-        private JObject ConvertToJObject(QueueMessage input)
+        private JObject ConvertToJObject(ModelBindingData modelBindingData)
         {
-            if (input == null)
-            {
-                throw new ArgumentNullException(nameof(input));
-            }
-
-            // What should this being be? The queueMessage as JObject, or the body
-            // as JObject
-            return JObject.FromObject(input);
+            return JObject.Parse(modelBindingData.Content.ToString());
         }
     }
 }

@@ -20,6 +20,7 @@ namespace FunctionApp
 
             var logger = executionContext.GetLogger("FunctionApp.HttpTriggerSimple");
             logger.LogInformation("Message logged");
+            logger.LogInformation("test");
 
             var response = req.CreateResponse(HttpStatusCode.OK);
 

@@ -5,11 +5,7 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
 {
     internal static class Constants
     {
-        internal const string Storage = "Storage";
         internal const string QueueExtensionName = "AzureStorageQueues";
-        internal const string Connection = "Connection";
-        internal const string ContainerName = "ContainerName";
-        internal const string BlobName = "BlobName";
 
         // Media content types
         internal const string JsonContentType = "application/json";

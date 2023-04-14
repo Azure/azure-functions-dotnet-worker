@@ -8,7 +8,7 @@ using Azure.Storage.Queues.Models;
 
 namespace Microsoft.Azure.Functions.Worker.Storage.Queues
 {
-    public class QueueMessageJsonConverter : JsonConverter<QueueMessage>
+    internal class QueueMessageJsonConverter : JsonConverter<QueueMessage>
     {
         public override bool CanConvert(Type objectType)
         {

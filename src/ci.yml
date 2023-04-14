@@ -21,6 +21,8 @@ pr:
     - test/E2ETests
     - test/TestUtility
     - sdk/
+    - samples/FunctionApp
+    - tools/
 
 jobs:
 - job: "Build_And_Test_Windows"

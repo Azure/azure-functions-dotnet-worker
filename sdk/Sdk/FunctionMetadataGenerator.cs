@@ -487,7 +487,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // For extensions that support deferred binding, set the supportsDeferredBinding property so parameters are bound by the worker
             // Only use deferred binding for input and trigger bindings, output is out not currently supported
-            if (SupportsDeferredBinding(attribute, parameterType.FullName) && direction != Constants.OutputBindingDirection)
+            if (SupportsDeferredBinding(attribute, parameterType) && direction != Constants.OutputBindingDirection)
             {
                 bindingProperties.Add(Constants.SupportsDeferredBindingProperty, Boolean.TrueString);
             }
@@ -795,7 +795,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return Constants.InputBindingDirection;
         }
 
-        private static bool SupportsDeferredBinding(CustomAttribute attribute, string bindingType)
+        private static bool SupportsDeferredBinding(CustomAttribute attribute, TypeReference bindingType)
         {
             var typeDefinition = attribute?.AttributeType?.Resolve();
 
@@ -815,7 +815,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool CheckBindingAttributeForInputConverters(CustomAttribute bindingAttribute, string bindingType)
+        private static bool CheckBindingAttributeForInputConverters(CustomAttribute bindingAttribute, TypeReference bindingType)
         {
             // InputConverterAttribute has list of supported converter types
             foreach (var customAttribute in bindingAttribute.ConstructorArguments)
@@ -830,7 +830,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, string bindingType)
+        private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, TypeReference bindingType)
         {
             // Check if converter supports deferred binding for the binding type
 
@@ -872,7 +872,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool CheckConverterTypes(CustomAttribute attribute, string bindingType)
+        private static bool CheckConverterTypes(CustomAttribute attribute, TypeReference bindingType)
         {
             foreach (var bindingTypes in attribute.ConstructorArguments)
             {
@@ -882,7 +882,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     var bindingTypeValue = (TypeReference)bindingTypeElement.Value;
 
-                    if (string.Equals(bindingTypeValue.FullName, bindingType, StringComparison.Ordinal))
+                    if (string.Equals(bindingTypeValue.FullName, bindingType.FullName, StringComparison.Ordinal))
                     {
                         return true;
                     }

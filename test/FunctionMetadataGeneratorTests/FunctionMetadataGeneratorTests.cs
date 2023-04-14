@@ -431,6 +431,69 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+
+        [Fact]
+        public void StorageFunction_SDKTypeBindings_Test3()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Test3));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Single(functions);
+
+            var blobToBlob = functions.Single(p => p.Name == "BlobToBlobFunction");
+
+            ValidateFunction(blobToBlob, "BlobToBlobFunction", GetEntryPoint(nameof(SDKTypeBindings_Test3), nameof(SDKTypeBindings_Test3.BlobToBlob)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
+            });
+
+            void ValidateBlobTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blob" },
+                    { "Type", "blobTrigger" },
+                    { "Direction", "In" },
+                    { "path", "container2/%file%" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
+                });
+            }
+
+            void ValidateBlobInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "Direction", "In" },
+                    { "blobPath", "container2/%file%" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<String, Object>( ) { } }
+                });
+            }
+
+            void ValidateBlobOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "blob" },
+                    { "Direction", "Out" },
+                    { "blobPath", "container1/hello.txt" },
+                    { "Connection", "MyOtherConnection" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
         [Fact]
         public void TimerFunction()
         {
@@ -973,6 +1036,17 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class SDKTypeBindings_Test3
+        {
+            [Function("BlobToBlobFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobToBlob(
+                [BlobTrigger("container2/%file%")] Poco blob,
+                [BlobInput("container2/%file%")] BinaryData blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
 
         private class ExternalType_Return
         {

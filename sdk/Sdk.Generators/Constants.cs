@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         internal static class Types
         {
-            // Our types
+            // Azure Functions worker types
             internal const string FunctionName = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
             internal const string BindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingAttribute";
             internal const string OutputBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";

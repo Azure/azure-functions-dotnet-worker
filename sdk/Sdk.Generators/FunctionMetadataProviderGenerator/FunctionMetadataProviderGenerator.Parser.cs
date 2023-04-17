@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 _context = context;
                 _functionsStringNamesToRemove = ImmutableArray.Create("Attribute", "Input", "Output");
-                _knownTypes = new KnownTypes(_context.Compilation);
+                _knownTypes = new KnownTypes(context.Compilation);
                 _knownFunctionMetadataTypes = new KnownFunctionMetadataTypes(context.Compilation);
             }
 

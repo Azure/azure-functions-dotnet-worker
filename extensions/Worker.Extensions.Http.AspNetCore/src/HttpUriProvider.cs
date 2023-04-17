@@ -21,7 +21,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             // TODO: replace local host string
             var uriString = "http://localhost:" + HttpPort.Value.ToString();
 
-            return new Uri(uriString);
+            _httpUri = new Uri(uriString);
+
+            return _httpUri;
         }
 
         public static string GetHttpUriAsString()

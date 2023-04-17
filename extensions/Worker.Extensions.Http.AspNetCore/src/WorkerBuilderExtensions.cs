@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             builder.Services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
 
-            var port = Utilities.GetUnusedTcpPort().ToString();
+            builder.Services.AddMvc();
 
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {

@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             return await contextRef.HttpContextValueSource.Task;
         }
 
-        public Task RunFunctionInvocationAsync(string invocationId)
+        public Task<InvocationResult> RunFunctionInvocationAsync(string invocationId)
         {
             if (!_contextReferenceList.TryGetValue(invocationId, out var contextReference))
             {
@@ -46,13 +46,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             return contextReference.InvokeFunctionAsync();
         }
 
-        // TODO:See about making this not public
-        public void CompleteFunctionInvocation(string invocationId)
+        public void CompleteFunctionInvocation(string invocationId, FunctionContext functionContext)
         {
             // This is the last step; remove the context reference
             if (_contextReferenceList.TryRemove(invocationId, out var contextRef))
             {
-                contextRef.CompleteFunction();
+                contextRef.CompleteFunction(functionContext);
                 contextRef.Dispose();
             }
             else

@@ -3,8 +3,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker.Converters;
 
-namespace Microsoft.Azure.Functions.Worker.Converters
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     /// <summary>
     /// Converter to bind HttpRequest type parameters.
@@ -14,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             object? target = null;
-            
+
             if (context.TargetType == typeof(HttpRequest))
             {
                 if (context.FunctionContext.Items.TryGetValue("HttpRequestContext", out var requestContext)

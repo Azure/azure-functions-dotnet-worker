@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Storage.Queues.Models;
@@ -43,14 +44,10 @@ namespace Microsoft.Azure.Functions.Worker
                 return ConversionResult.Unhandled();
             }
 
-            if (modelBindingData.ContentType is not Constants.JsonContentType)
-            {
-                return ConversionResult.Failed(new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported."));
-            }
-
             try
             {
-                var result = ToTargetType(context.TargetType, modelBindingData);
+                QueueMessage queueMessage = ExtractQueueMessageFromBindingData(modelBindingData);
+                var result = ToTargetType(context.TargetType, queueMessage);
 
                 if (result is not null)
                 {
@@ -77,28 +74,57 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private object? ToTargetType(Type targetType, ModelBindingData modelBindingData) => targetType switch
+        private object? ToTargetType(Type targetType, QueueMessage queueMessage) => targetType switch
         {
-            Type _ when targetType == typeof(QueueMessage) => ConvertToQueueMessage(modelBindingData),
-            Type _ when targetType == typeof(BinaryData) => ConvertToBinaryData(modelBindingData),
-            Type _ when targetType == typeof(JObject) => ConvertToJObject(modelBindingData),
+            Type _ when targetType == typeof(QueueMessage) => queueMessage,
+            Type _ when targetType == typeof(BinaryData) => ConvertMessageContentToBinaryData(queueMessage),
+            Type _ when targetType == typeof(JObject) => ConvertMessageContentToJObject(queueMessage),
             _ => null
         };
 
-        private QueueMessage ConvertToQueueMessage(ModelBindingData modelBindingData)
+        private QueueMessage ExtractQueueMessageFromBindingData(ModelBindingData modelBindingData)
         {
-            JsonSerializerOptions options = new() { Converters = { new QueueMessageJsonConverter() } };
-            return modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
+            if (modelBindingData.ContentType is not Constants.JsonContentType)
+            {
+                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
+            }
+
+            try
+            {
+                JsonSerializerOptions options = new() { Converters = { new QueueMessageJsonConverter() } };
+                return modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
+            }
+            catch (JsonException ex)
+            {
+                // Easy to have the queue payload not deserialize properly. So give a useful error.
+                string msg = String.Format(CultureInfo.CurrentCulture,
+                                @"Binding parameters to complex objects uses Json.NET serialization.
+                                1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
+                                2. Change the queue payload to be valid json. The JSON parser failed: {0}",
+                                ex.Message);
+
+                throw new InvalidOperationException(msg);
+            }
         }
 
-        private BinaryData ConvertToBinaryData(ModelBindingData modelBindingData)
+        private BinaryData ConvertMessageContentToBinaryData(QueueMessage queueMessage)
         {
-            return modelBindingData.Content;
+            if (queueMessage == null)
+            {
+                throw new ArgumentNullException(nameof(queueMessage));
+            }
+
+            return queueMessage.Body;
         }
 
-        private JObject ConvertToJObject(ModelBindingData modelBindingData)
+        private JObject ConvertMessageContentToJObject(QueueMessage queueMessage)
         {
-            return JObject.Parse(modelBindingData.Content.ToString());
+            if (queueMessage == null)
+            {
+                throw new ArgumentNullException(nameof(queueMessage));
+            }
+
+            return JObject.Parse(queueMessage.Body.ToString());
         }
     }
 }

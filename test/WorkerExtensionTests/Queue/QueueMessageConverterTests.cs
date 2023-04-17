@@ -51,23 +51,35 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _queueMessageConverter.ConvertAsync(context);
 
             var expectedData = (BinaryData)conversionResult.Value;
-            var obj = JObject.Parse(expectedData.ToString());
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal("hello world",  (string) obj["MessageText"]);
+            Assert.Equal("hello world",  expectedData.ToString());
         }
 
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_JObject_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(message: "{\\\"text\\\":\\\"hello world\\\"}"));
             var context = new TestConverterContext(typeof(JObject), grpcModelBindingData);
 
             var conversionResult = await _queueMessageConverter.ConvertAsync(context);
 
             var expectedData = (JObject)conversionResult.Value;
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal("hello world", (string) expectedData["MessageText"]);
+            Assert.Equal("hello world", (string) expectedData["text"]);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_InvalidJsonMessage_JObject_ReturnsFailed()
+        {
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(message: "{\"text\\\":\\\"hello world\\\"}"));
+            var context = new TestConverterContext(typeof(JObject), grpcModelBindingData);
+
+            var conversionResult = await _queueMessageConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal(typeof(InvalidOperationException), conversionResult.Error.GetType());
+            Assert.Contains("Binding parameters to complex objects uses Json.NET serialization", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -113,13 +125,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("Unexpected content-type. Currently only 'application/json' is supported.", conversionResult.Error.Message);
         }
 
-        private BinaryData GetTestBinaryData(string messageId = "fbb84c41-9f1f-4c75-950c-72d0541fb8ae", string message = "hello world", string body = "{}")
+        private BinaryData GetTestBinaryData(string messageId = "fbb84c41-9f1f-4c75-950c-72d0541fb8ae", string message = "hello world")
         {
             string jsonData = $@"{{
                                 ""MessageId"" : ""{messageId}"",
                                 ""PopReceipt"" : ""AgAAAAMAAAAAAAAASm\u002B7xBZv2QE="",
                                 ""MessageText"" : ""{message}"",
-                                ""Body"" : {body},
+                                ""Body"" : {{}},
                                 ""NextVisibleOn"" : ""2023-04-14T21:19:16+00:00"",
                                 ""InsertedOn"" : ""2023-04-14T21:09:14+00:00"",
                                 ""ExpiresOn"" : ""2023-04-21T21:09:14+00:00"",

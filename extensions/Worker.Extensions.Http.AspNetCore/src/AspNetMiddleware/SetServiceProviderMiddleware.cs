@@ -2,15 +2,13 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 
 internal class SetServiceProviderMiddleware
 {
-    private IHttpCoordinator _coordinator;
+    private readonly IHttpCoordinator _coordinator;
     private readonly RequestDelegate _next;
 
     public SetServiceProviderMiddleware(RequestDelegate next, IHttpCoordinator httpCoordinator)

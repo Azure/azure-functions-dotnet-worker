@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal interface IHttpCoordinator
     {

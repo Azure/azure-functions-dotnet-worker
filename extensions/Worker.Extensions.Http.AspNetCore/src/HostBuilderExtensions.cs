@@ -4,9 +4,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet
+namespace Microsoft.Extensions.Hosting
 {
     /// <summary>
     /// Provides extension methods to work with a <see cref="IHostBuilder"/>.

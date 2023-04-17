@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Functions.Worker.Core.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
@@ -11,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         private static Uri? _httpUri;
 
         public static Lazy<int> HttpPort = new Lazy<int>(() => Utilities.GetUnusedTcpPort());
-        
+
         public static Uri GetHttpUri()
         {
             if (_httpUri is not null)

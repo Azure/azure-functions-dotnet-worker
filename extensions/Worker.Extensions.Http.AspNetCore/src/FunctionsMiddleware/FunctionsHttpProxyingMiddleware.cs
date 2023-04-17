@@ -3,10 +3,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.FunctionsMiddleware
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class FunctionsHttpProxyingMiddleware : IFunctionsWorkerMiddleware
     {

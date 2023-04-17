@@ -3,11 +3,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
 using Microsoft.Extensions.Primitives;
 
-namespace Microsoft.Azure.Functions.Worker.Core.Pipeline
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class InvokeFunctionMiddleware
     {

@@ -1,9 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Coordinator;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;

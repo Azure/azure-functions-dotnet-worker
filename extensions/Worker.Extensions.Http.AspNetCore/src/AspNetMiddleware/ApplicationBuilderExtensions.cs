@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.Azure.Functions.Worker.Core.Pipeline;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {

@@ -4,7 +4,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace Microsoft.Azure.Functions.Worker.Core.Http
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class Utilities
     {

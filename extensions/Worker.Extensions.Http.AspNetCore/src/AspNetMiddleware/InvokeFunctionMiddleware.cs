@@ -3,9 +3,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc.Abstractions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
@@ -19,17 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             _coordinator = httpCoordinator;
         }
 
-        public async Task Invoke(HttpContext context)
+        public Task Invoke(HttpContext context)
         {
             context.Request.Headers.TryGetValue(Constants.CorrelationHeader, out StringValues invocationId);
-            InvocationResult invocationResult = await _coordinator.RunFunctionInvocationAsync(invocationId);
-
-/*            if (invocationResult.Value is IActionResult actionResult)
-            {
-                ActionContext actionContext = new ActionContext(context, context.GetRouteData(), new ActionDescriptor());
-
-                await actionResult.ExecuteResultAsync(actionContext);
-            }*/
+            return _coordinator.RunFunctionInvocationAsync(invocationId);
         }
     }
 }

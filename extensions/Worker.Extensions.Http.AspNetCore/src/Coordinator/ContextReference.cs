@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
     internal class ContextReference : IDisposable
     {
         private readonly TaskCompletionSource<bool> _functionStartTask = new();
-        private readonly TaskCompletionSource<InvocationResult> _functionCompletionTask = new();
+        private readonly TaskCompletionSource<bool> _functionCompletionTask = new();
 
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new();
         private TaskCompletionSource<FunctionContext> _functionContextValueSource = new();
@@ -44,13 +44,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             });
         }
 
-        internal Task<InvocationResult> InvokeFunctionAsync()
+        internal Task InvokeFunctionAsync()
         {
             _functionStartTask.SetResult(true);
             return _functionCompletionTask.Task;
         }
 
-        internal void CompleteFunction(FunctionContext functionContext)
+        internal void CompleteFunction()
         {
             if (_httpContextValueSource.Task.IsCompleted)
             {
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 }
                 else
                 {
-                    _functionCompletionTask.SetResult(functionContext.GetInvocationResult());
+                    _functionCompletionTask.SetResult(true);
                 }
             }
             else

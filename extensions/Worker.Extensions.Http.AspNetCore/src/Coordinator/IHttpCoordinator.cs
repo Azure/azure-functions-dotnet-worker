@@ -30,13 +30,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         /// </summary>
         /// <param name="invocationId">The invocation id.</param>
         /// <returns>A Task that completes when the function invocation is complete.</returns>
-        public Task<InvocationResult> RunFunctionInvocationAsync(string invocationId);
+        public Task RunFunctionInvocationAsync(string invocationId);
 
         /// <summary>
         /// Signals that the function invocation is complete. Allows the ASP.NET middleware pipeline to continue.
         /// </summary>
         /// <param name="invocationId">A Task that completes when the function invocation is complete.</param>
-        /// <param name="functionContext"></param>
-        public void CompleteFunctionInvocation(string invocationId, FunctionContext functionContext);
+        public void CompleteFunctionInvocation(string invocationId);
     }
 }

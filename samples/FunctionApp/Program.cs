@@ -12,7 +12,7 @@ namespace FunctionApp
     {
         static async Task Main(string[] args)
         {
-            Debugger.Launch();
+            //Debugger.Launch();
 
             var host = new HostBuilder()
             .ConfigureFunctionsWorkerDefaults(builder =>

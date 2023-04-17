@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
 
             // allows asp.net middleware to continue
-            _coordinator.CompleteFunctionInvocation(invocationId, context);
+            _coordinator.CompleteFunctionInvocation(invocationId);
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

@@ -6,12 +6,12 @@ using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 
-internal class SetServiceProviderMiddleware
+internal class WorkerRequestServicesMiddleware
 {
     private readonly IHttpCoordinator _coordinator;
     private readonly RequestDelegate _next;
 
-    public SetServiceProviderMiddleware(RequestDelegate next, IHttpCoordinator httpCoordinator)
+    public WorkerRequestServicesMiddleware(RequestDelegate next, IHttpCoordinator httpCoordinator)
     {
         _next = next;
         _coordinator = httpCoordinator;

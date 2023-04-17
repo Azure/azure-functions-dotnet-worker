@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
                 .Setup(p => p.SetHttpContextAsync(functionContext.InvocationId, httpContext))
                 .ReturnsAsync(functionContext);
 
-            var middleware = new SetServiceProviderMiddleware(next, httpCoordinator.Object);
+            var middleware = new WorkerRequestServicesMiddleware(next, httpCoordinator.Object);
             await middleware.Invoke(httpContext);
         }
 

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,9 +27,9 @@ namespace Microsoft.Extensions.Hosting
                 webBuilder.UseUrls(HttpUriProvider.GetHttpUri().ToString());
                 webBuilder.Configure(b =>
                 {
-                    b.UseSetServiceProviderMiddleware();
+                    b.UseMiddleware<WorkerRequestServicesMiddleware>();
                     // TODO: provide a way for customers to configure their middleware pipeline here
-                    b.UseInvokeFunctionMiddleware();
+                    b.UseMiddleware<InvokeFunctionMiddleware>();
                 });
             });
 

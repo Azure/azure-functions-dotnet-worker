@@ -110,39 +110,14 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
                     foreach (var converter in attribute.ConverterTypes)
                     {
-                        foreach (var attr in converter.CustomAttributes)
+                        foreach (var converterAttribute in converter.CustomAttributes)
                         {
-                            if (attr.AttributeType == typeof(SupportedConverterTypesAttribute))
+                            if (converterAttribute.AttributeType == typeof(SupportedConverterTypesAttribute))
                             {
-                                var types = new List<string>();
-
-                                foreach (var type in attr.ConstructorArguments)
-                                {
-                                    if (type.ArgumentType == typeof(Type[]))
-                                    {
-                                        object anArray = type.Value;
-                                        var a = anArray as System.Collections.ObjectModel.ReadOnlyCollection<CustomAttributeTypedArgument>;
-                                        
-                                        foreach (var tempType in a)
-                                        {
-                                            try
-                                            {
-                                                if (tempType.ArgumentType == typeof(Type))
-                                                {
-                                                    object obj = tempType.Value;
-                                                    Type t = obj as Type;
-                                                    types.Add(t.FullName);
-                                                }
-                                            }
-                                            catch { }
-                                        }
-                                    }
-                                }
-
+                                var types = GetTypesSupportedByConverter(converterAttribute);
                                 converterTypesDictionary.Add(converter.AssemblyQualifiedName, types);
                             }
                         }
-
                     }
 
                     result.Add(PropertyBagKeys.DisableConverterFallback, attribute.DisableConverterFallback);
@@ -151,6 +126,39 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             }
 
             return result.ToImmutableDictionary();
+        }
+
+        private List<string> GetTypesSupportedByConverter(CustomAttributeData converterAttribute)
+        {
+            var types = new List<string>();
+
+            foreach (var supportedTypes in converterAttribute.ConstructorArguments)
+            {
+                if (supportedTypes.ArgumentType == typeof(Type[]))
+                {
+                    object supportedTypesObject = supportedTypes.Value;
+                    var supportedTypesArray = supportedTypesObject as System.Collections.ObjectModel.ReadOnlyCollection<CustomAttributeTypedArgument>;
+
+                    if (supportedTypesArray is not null)
+                    {
+                        foreach (var type in supportedTypesArray)
+                        {
+                            if (type.ArgumentType == typeof(Type))
+                            {
+                                object obj = type.Value;
+                                Type? supportedType = obj as Type;
+
+                                if (supportedType != null)
+                                {
+                                    types.Add(supportedType.FullName);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return types;
         }
 
     }

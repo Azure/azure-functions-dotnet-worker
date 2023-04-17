@@ -139,34 +139,23 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         private Dictionary<IInputConverter, List<string>>? GetExplicitConverterTypes(ConverterContext context)
         {
+            var result = new Dictionary<IInputConverter, List<string>>();
+
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
                 if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<string, List<string>>))
                 {
                     var converters = (Dictionary<string, List<string>>)converterTypes;
-                    var result = new Dictionary<IInputConverter, List<string>>();
                     var interfaceType = typeof(IInputConverter);
 
                     foreach (var converterTypesPair in converters)
                     {
                         var converter = converterTypesPair.Key;
-                        /*
-                        var types = new List<Type>();
+                        Type converterType = _inputConverterProvider.GetOrCreateConverterInstance(converter).GetType();
 
-                        foreach (var type in converterTypesPair.Value)
+                        if (interfaceType.IsAssignableFrom(converterType))
                         {
-                            try
-                            {
-                                Type t = (Type)type;
-                                types.Add(t);
-                            }
-                            catch { }
-                        }
-                        */
-
-                        if (interfaceType.IsAssignableFrom(_inputConverterProvider.GetOrCreateConverterInstance(converter).GetType()))
-                        {
-                            string? converterTypeFullName = _inputConverterProvider.GetOrCreateConverterInstance(converter).GetType().AssemblyQualifiedName;
+                            string? converterTypeFullName = converterType.AssemblyQualifiedName;
                             if (converter is not null)
                             {
                                 result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName), converterTypesPair.Value);

@@ -3,7 +3,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNet;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.ApplicationInsights;

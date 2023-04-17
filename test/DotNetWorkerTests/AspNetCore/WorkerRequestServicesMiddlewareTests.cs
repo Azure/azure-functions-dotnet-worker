@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 {
-    public class SetServiceProviderMiddlewareTests
+    public class WorkerRequestServicesMiddlewareTests
     {
         [Fact]
         public async Task ServiceProviders_Equal()

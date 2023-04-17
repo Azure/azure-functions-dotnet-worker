@@ -28,8 +28,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public TaskCompletionSource<bool> FunctionStartTask { get => _functionStartTask; }
 
-        public TaskCompletionSource<bool> FunctionCompletionTask { get => _functionCompletionTask; }
-
         public TaskCompletionSource<HttpContext> HttpContextValueSource { get => _httpContextValueSource; set => _httpContextValueSource = value; }
 
         public TaskCompletionSource<FunctionContext> FunctionContextValueSource { get => _functionContextValueSource; set => _functionContextValueSource = value; }
@@ -46,9 +44,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             });
         }
 
-        internal void StartFunction()
+        internal Task InvokeFunctionAsync()
         {
             _functionStartTask.SetResult(true);
+            return _functionCompletionTask.Task;
         }
 
         internal void CompleteFunction()

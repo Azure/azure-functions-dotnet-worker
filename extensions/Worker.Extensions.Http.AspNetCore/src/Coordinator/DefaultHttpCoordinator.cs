@@ -43,8 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 throw new InvalidOperationException($"Context for invocation id '{invocationId}' does not exist.");
             }
 
-            contextReference.StartFunction();
-            return contextReference.FunctionCompletionTask.Task;
+            return contextReference.InvokeFunctionAsync();
         }
 
         // TODO:See about making this not public

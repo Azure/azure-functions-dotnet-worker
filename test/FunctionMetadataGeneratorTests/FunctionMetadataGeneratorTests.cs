@@ -253,11 +253,11 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            Assert.Single(functions);
+            Assert.Equal(4, functions.Count());
 
-            var blobToBlob = functions.Single(p => p.Name == "BlobToBlobFunction");
+            var blobStringToBlobStringFunction = functions.Single(p => p.Name == "BlobStringToBlobStringFunction");
 
-            ValidateFunction(blobToBlob, "BlobToBlobFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobToBlob)),
+            ValidateFunction(blobStringToBlobStringFunction, "BlobStringToBlobStringFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobStringToBlobStringFunction)),
                 b => ValidateBlobTrigger(b),
                 b => ValidateBlobInput(b),
                 b => ValidateBlobOutput(b));
@@ -304,32 +304,17 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Properties", new Dictionary<String, Object>() }
                 });
             }
-        }
 
-        [Fact]
-        public void StorageFunction_SDKTypeBindings_Test()
-        {
-            var generator = new FunctionMetadataGenerator();
-            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
-            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Test));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
-            var extensions = generator.Extensions;
 
-            Assert.Single(functions);
+            var blobClientToBlobStringFunction = functions.Single(p => p.Name == "BlobClientToBlobStringFunction");
 
-            var blobToBlob = functions.Single(p => p.Name == "BlobToBlobFunction");
-
-            ValidateFunction(blobToBlob, "BlobToBlobFunction", GetEntryPoint(nameof(SDKTypeBindings_Test), nameof(SDKTypeBindings_Test.BlobToBlob)),
-                b => ValidateBlobTrigger(b),
+            ValidateFunction(blobClientToBlobStringFunction, "BlobClientToBlobStringFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobClientToBlobStringFunction)),
+                b => ValidateBlobTriggerForBlobClient(b),
                 b => ValidateBlobInput(b),
                 b => ValidateBlobOutput(b));
 
-            AssertDictionary(extensions, new Dictionary<string, string>
-            {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
-            });
 
-            void ValidateBlobTrigger(ExpandoObject b)
+            void ValidateBlobTriggerForBlobClient(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
@@ -341,58 +326,14 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
-            void ValidateBlobInput(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "blobinput" },
-                    { "Type", "blob" },
-                    { "Direction", "In" },
-                    { "blobPath", "container2/%file%" },
-                    { "Cardinality", "One" },
-                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
-                });
-            }
+            var blobUnsupportedTypeToBlobStringFunction = functions.Single(p => p.Name == "BlobUnsupportedTypeToBlobStringFunction");
 
-            void ValidateBlobOutput(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "$return" },
-                    { "Type", "blob" },
-                    { "Direction", "Out" },
-                    { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" },
-                    { "Properties", new Dictionary<String, Object>() }
-                });
-            }
-        }
-
-
-        [Fact]
-        public void StorageFunction_SDKTypeBindings_Test2()
-        {
-            var generator = new FunctionMetadataGenerator();
-            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
-            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Test2));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
-            var extensions = generator.Extensions;
-
-            Assert.Single(functions);
-
-            var blobToBlob = functions.Single(p => p.Name == "BlobToBlob2Function");
-
-            ValidateFunction(blobToBlob, "BlobToBlob2Function", GetEntryPoint(nameof(SDKTypeBindings_Test2), nameof(SDKTypeBindings_Test2.BlobToBlob2)),
-                b => ValidateBlobTrigger(b),
+            ValidateFunction(blobUnsupportedTypeToBlobStringFunction, "BlobUnsupportedTypeToBlobStringFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobUnsupportedTypeToBlobStringFunction)),
+                b => ValidateBlobTriggerForUnsupportedType(b),
                 b => ValidateBlobInput(b),
                 b => ValidateBlobOutput(b));
 
-            AssertDictionary(extensions, new Dictionary<string, string>
-            {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
-            });
-
-            void ValidateBlobTrigger(ExpandoObject b)
+            void ValidateBlobTriggerForUnsupportedType(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
@@ -404,70 +345,15 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
-            void ValidateBlobInput(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "blobinput" },
-                    { "Type", "blob" },
-                    { "Direction", "In" },
-                    { "blobPath", "container2/%file%" },
-                    { "Cardinality", "One" },
-                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
-                });
-            }
 
-            void ValidateBlobOutput(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "$return" },
-                    { "Type", "blob" },
-                    { "Direction", "Out" },
-                    { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" },
-                    { "Properties", new Dictionary<String, Object>() }
-                });
-            }
-        }
+            var blobPocoToBlobUnsupportedType = functions.Single(p => p.Name == "BlobPocoToBlobUnsupportedType");
 
-
-        [Fact]
-        public void StorageFunction_SDKTypeBindings_Test3()
-        {
-            var generator = new FunctionMetadataGenerator();
-            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
-            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Test3));
-            var functions = generator.GenerateFunctionMetadata(typeDef);
-            var extensions = generator.Extensions;
-
-            Assert.Single(functions);
-
-            var blobToBlob = functions.Single(p => p.Name == "BlobToBlobFunction");
-
-            ValidateFunction(blobToBlob, "BlobToBlobFunction", GetEntryPoint(nameof(SDKTypeBindings_Test3), nameof(SDKTypeBindings_Test3.BlobToBlob)),
-                b => ValidateBlobTrigger(b),
-                b => ValidateBlobInput(b),
+            ValidateFunction(blobPocoToBlobUnsupportedType, "BlobPocoToBlobUnsupportedType", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobPocoToBlobUnsupportedType)),
+                b => ValidateBlobTriggerForPoco(b),
+                b => ValidateBlobInputForUnsupportedType(b),
                 b => ValidateBlobOutput(b));
 
-            AssertDictionary(extensions, new Dictionary<string, string>
-            {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
-            });
-
-            void ValidateBlobTrigger(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "blob" },
-                    { "Type", "blobTrigger" },
-                    { "Direction", "In" },
-                    { "path", "container2/%file%" },
-                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
-                });
-            }
-
-            void ValidateBlobInput(ExpandoObject b)
+            void ValidateBlobInputForUnsupportedType(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
@@ -480,18 +366,18 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
-            void ValidateBlobOutput(ExpandoObject b)
+            void ValidateBlobTriggerForPoco(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
                 {
-                    { "Name", "$return" },
-                    { "Type", "blob" },
-                    { "Direction", "Out" },
-                    { "blobPath", "container1/hello.txt" },
-                    { "Connection", "MyOtherConnection" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Name", "blob" },
+                    { "Type", "blobTrigger" },
+                    { "Direction", "In" },
+                    { "path", "container2/%file%" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
                 });
             }
+
         }
 
         [Fact]
@@ -1002,16 +888,46 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         private class SDKTypeBindings
         {
-            [Function("BlobToBlobFunction")]
+            [Function("BlobStringToBlobStringFunction")]
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
-            public object BlobToBlob(
+            public object BlobStringToBlobStringFunction(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2/%file%")] string blobinput)
             {
                 throw new NotImplementedException();
             }
+
+
+            [Function("BlobClientToBlobStringFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobClientToBlobStringFunction(
+                [BlobTrigger("container2/%file%")] BlobClient blob,
+                [BlobInput("container2/%file%")] string blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobUnsupportedTypeToBlobStringFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobUnsupportedTypeToBlobStringFunction(
+                [BlobTrigger("container2/%file%")] BinaryData blob,
+                [BlobInput("container2/%file%")] string blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobPocoToBlobUnsupportedType")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobPocoToBlobUnsupportedType(
+                [BlobTrigger("container2/%file%")] Poco blob,
+                [BlobInput("container2/%file%")] BinaryData blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
         }
 
+        /*
         private class SDKTypeBindings_Test
         {
             [Function("BlobToBlobFunction")]
@@ -1047,7 +963,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                 throw new NotImplementedException();
             }
         }
-
+        */
+        
         private class ExternalType_Return
         {
             public const string FunctionName = "BasicHttpWithExternalTypeReturn";

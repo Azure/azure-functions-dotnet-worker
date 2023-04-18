@@ -1,14 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Text.Json.Serialization;
+using Azure.Storage.Queues.Models;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
 {
@@ -136,6 +137,38 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             return testData;
         }
 
+        [Function(nameof(QueueMessageQueueTriggerAndOutput))]
+        [QueueOutput("test-output-dotnet-isolated-queuemessage")]
+        public string QueueMessageQueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated-queuemessage")] QueueMessage message,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger<QueueTestFunctions>();
+            logger.LogInformation($"Message: {message}");
+
+            return message.Body.ToString();
+        }
+
+        [Function(nameof(BinaryDataQueueTriggerAndOutput))]
+        [QueueOutput("test-output-dotnet-isolated-binarydata")]
+        public string BinaryDataQueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated-binarydata")] BinaryData message,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger<QueueTestFunctions>();
+            logger.LogInformation($"Message: {message.ToString()}");
+
+            return message.ToString();
+        }
+
+        [Function(nameof(JObjectQueueTriggerAndOutput))]
+        [QueueOutput("test-output-dotnet-isolated-jobject")]
+        public string JObjectQueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated-jobject")] JObject message,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger<QueueTestFunctions>();
+            logger.LogInformation($"Message: {message.ToString()}");
+
+            return message.ToString();
+        }
         public class TestData
         {
             public string Id { get; set; }

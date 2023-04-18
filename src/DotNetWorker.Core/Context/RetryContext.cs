@@ -12,12 +12,12 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// The the retry count for the current event.
         /// </summary>
-        public abstract int RetryCount { get; }
+        public abstract int? RetryCount { get; }
 
         /// <summary>
         /// The maximum number of retry attempts that will be made by the trigger/host
         /// before the event is considered undeliverable.
         /// </summary>
-        public abstract int MaxRetryCount { get; }
+        public abstract int? MaxRetryCount { get; }
     }
 }

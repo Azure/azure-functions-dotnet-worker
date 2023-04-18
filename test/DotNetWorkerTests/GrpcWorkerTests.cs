@@ -303,6 +303,23 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public async Task SetRetryContextToNull()
+        {
+            var request = TestUtility.CreateInvocationRequestWithNullRetryContext();
+
+            var invocationHandler = new InvocationHandler(_mockApplication.Object,
+                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, _testLogger);
+
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True(_context.IsDisposed);
+            Assert.Null( _context.RetryContext.RetryCount);
+            Assert.Null( _context.RetryContext.MaxRetryCount);
+        }
+
+        [Fact]
         public async Task Invoke_CreateContextThrows_ReturnsFailure()
         {
             _mockApplication

@@ -7,28 +7,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal static class HttpUriProvider
     {
-        private static Uri? _httpUri;
+        public static Lazy<Uri> HttpUri = new Lazy<Uri>(() => GetHttpUri());
 
         public static Lazy<int> HttpPort = new Lazy<int>(() => Utilities.GetUnusedTcpPort());
 
+        public static Lazy<string> HttpUriString = new Lazy<string>(() => HttpUri.Value.ToString());
+
         public static Uri GetHttpUri()
         {
-            if (_httpUri is not null)
-            {
-                return _httpUri;
-            }
-
             // TODO: replace local host string
             var uriString = "http://localhost:" + HttpPort.Value.ToString();
 
-            _httpUri = new Uri(uriString);
-
-            return _httpUri;
-        }
-
-        public static string GetHttpUriAsString()
-        {
-            return GetHttpUri().ToString();
+            return new Uri(uriString);
         }
     }
 }

@@ -8,6 +8,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
+using Mono.Cecil.Rocks;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -857,13 +858,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     }
                 }
 
+                foreach (var attribute in typeReferenceCustomAttributes)
+                {
+                    if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
+                    {
+                        var b = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+
+                        if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+
                 if (isSupportsDeferredBindingAttribute)
                 {
                     foreach (var attribute in typeReferenceCustomAttributes)
                     {
                         if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypesAttributeType, StringComparison.Ordinal))
                         {
-                            return CheckConverterTypes(attribute, bindingType);
+                            bool result =  CheckConverterTypes(attribute, bindingType);
+
+                            if (result)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -874,17 +894,37 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool CheckConverterTypes(CustomAttribute attribute, TypeReference bindingType)
         {
+            bool supportsCollection = false;
+
             foreach (var bindingTypes in attribute.ConstructorArguments)
             {
-                var bindingTypeElements = (CustomAttributeArgument[])bindingTypes.Value;
-
-                foreach (var bindingTypeElement in bindingTypeElements)
+                if (bindingTypes.Type.FullName == typeof(bool).FullName)
                 {
-                    var bindingTypeValue = (TypeReference)bindingTypeElement.Value;
+                    supportsCollection = (bool)bindingTypes.Value;
+                }
+            }
 
-                    if (string.Equals(bindingTypeValue.FullName, bindingType.FullName, StringComparison.Ordinal))
+            foreach (var bindingTypes in attribute.ConstructorArguments)
+            {
+                if (bindingTypes.Type.FullName == typeof(Type).FullName)
+                {
+                    var bindingTypeElement = bindingTypes.Value as TypeReference;
+
+                    if (bindingTypeElement != null && string.Equals(bindingTypeElement.FullName, bindingType.FullName, StringComparison.Ordinal))
                     {
                         return true;
+                    }
+
+                    var c = bindingType.Resolve();
+
+                    if (c.IsArray)
+                    {
+                        if (bindingTypeElement != null &&
+                            supportsCollection == true &&
+                            string.Equals(bindingTypeElement.FullName, c.GetElementType().FullName, StringComparison.Ordinal))
+                        {
+                            return true;
+                        }
                     }
                 }
             }

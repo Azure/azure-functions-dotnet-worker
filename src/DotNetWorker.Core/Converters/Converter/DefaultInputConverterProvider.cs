@@ -50,10 +50,15 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 {
                     yield return _converterCache.GetOrAdd(converterType.AssemblyQualifiedName!, (key) =>
                     {
-                        return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+                        return GetOrCreateConverterInstance(converterType);
                     });
                 }
             }
+        }
+
+        public IInputConverter GetOrCreateConverterInstance(Type converterType)
+        {
+            return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
         }
 
         /// <summary>

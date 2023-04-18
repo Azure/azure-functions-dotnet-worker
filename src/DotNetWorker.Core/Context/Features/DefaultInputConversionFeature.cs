@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    if (converterType.GetType().IsAssignableFrom(converterContext.TargetType))
+                    if (converterType.Value.Any(a => a.IsAssignableFrom(converterContext.TargetType)))
                     { 
                     //    bool res = converterType.Value.Any(a => a == converterContext.TargetType.FullName);
 
@@ -157,7 +157,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                         if (interfaceType.IsAssignableFrom(converterType))
                         {
-                            result.Add((IInputConverter)converterType, converterTypesPair.Value);
+                            result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), converterTypesPair.Value);
                             /*
                             string? converterTypeFullName = converterType.AssemblyQualifiedName;
                             if (converter is not null)

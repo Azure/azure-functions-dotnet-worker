@@ -56,6 +56,12 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
         }
 
+        /// <summary>
+        /// Gets an instance of the converter for the type requested.
+        /// </summary>
+        /// <param name="converterType">The assembly qualified name of the type for which we are requesting an IInputConverter instance.</param>
+        /// <exception cref="ArgumentNullException">Throws when the converterTypeName param is null.</exception>
+        /// <returns>IConverter instance of the requested type.</returns>
         public IInputConverter GetOrCreateConverterInstance(Type converterType)
         {
             return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);

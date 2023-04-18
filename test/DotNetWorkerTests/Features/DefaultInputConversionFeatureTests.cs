@@ -206,7 +206,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [SupportsDeferredBinding]
-        [SupportedConverterTypes(typeof(string), typeof(Stream))]
+        [SupportedConverterTypes(typeof(string), supportsCollection: false)]
+        [SupportedConverterTypes(typeof(Stream), supportsCollection: false)]
         internal class MySimpleSyncInputConverter : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)

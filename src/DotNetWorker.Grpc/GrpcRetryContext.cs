@@ -14,8 +14,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             _retryContext = retryContext;
         }
 
-        public override int RetryCount => _retryContext != null? _retryContext.RetryCount: -1;
+        public override int RetryCount => _retryContext?.RetryCount ?? -1;
 
-        public override int MaxRetryCount => _retryContext != null? _retryContext.MaxRetryCount: -1;
+        public override int MaxRetryCount => _retryContext?.MaxRetryCount ?? -1;
     }
 }

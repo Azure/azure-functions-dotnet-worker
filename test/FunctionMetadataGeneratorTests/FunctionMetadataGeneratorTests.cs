@@ -253,8 +253,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            /*
-            Assert.Equal(7, functions.Count());
+            Assert.Equal(9, functions.Count());
 
             var blobStringToBlobStringFunction = functions.Single(p => p.Name == "BlobStringToBlobStringFunction");
 
@@ -379,14 +378,13 @@ namespace Microsoft.Azure.Functions.SdkTests
                 });
             }
 
-
             var blobStringToBlobClientEnumerable = functions.Single(p => p.Name == "BlobStringToBlobClientEnumerable");
 
             ValidateFunction(blobStringToBlobClientEnumerable, "BlobStringToBlobClientEnumerable", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobStringToBlobClientEnumerable)),
                 b => ValidateBlobTrigger(b),
                 b => ValidateBlobInputForEnumerable(b),
                 b => ValidateBlobOutput(b));
-            */
+            
             void ValidateBlobInputForEnumerable(ExpandoObject b)
             {
                 AssertExpandoObject(b, new Dictionary<string, object>
@@ -403,18 +401,46 @@ namespace Microsoft.Azure.Functions.SdkTests
             var blobStringToBlobStringArray = functions.Single(p => p.Name == "BlobStringToBlobStringArray");
 
             ValidateFunction(blobStringToBlobStringArray, "BlobStringToBlobStringArray", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobStringToBlobStringArray)),
-                //  b => ValidateBlobTrigger(b),
-                b => ValidateBlobInputForEnumerable(b));
-            //    b => ValidateBlobOutput(b));
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInputForStringArray(b),
+                b => ValidateBlobOutput(b));
 
-            /*
+            void ValidateBlobInputForStringArray(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "Direction", "In" },
+                    { "blobPath", "container2" },
+                    { "Cardinality", "Many" },
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
+                });
+            }
+
             var blobStringToBlobPocoEnumerable = functions.Single(p => p.Name == "BlobStringToBlobPocoEnumerable");
 
             ValidateFunction(blobStringToBlobPocoEnumerable, "BlobStringToBlobPocoEnumerable", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobStringToBlobPocoEnumerable)),
                 b => ValidateBlobTrigger(b),
                 b => ValidateBlobInputForEnumerable(b),
                 b => ValidateBlobOutput(b));
-            */
+
+
+            var blobStringToBlobPocoArray = functions.Single(p => p.Name == "BlobStringToBlobPocoArray");
+
+            ValidateFunction(blobStringToBlobPocoArray, "BlobStringToBlobPocoArray", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobStringToBlobPocoArray)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInputForEnumerable(b),
+                b => ValidateBlobOutput(b));
+
+
+            var blobByteArrayToBlobByteArrayFunction = functions.Single(p => p.Name == "BlobByteArrayToBlobByteArrayFunction");
+
+            ValidateFunction(blobByteArrayToBlobByteArrayFunction, "BlobByteArrayToBlobByteArrayFunction", GetEntryPoint(nameof(SDKTypeBindings), nameof(SDKTypeBindings.BlobByteArrayToBlobByteArrayFunction)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
         }
 
         [Fact]
@@ -925,7 +951,6 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         private class SDKTypeBindings
         {
-            /*
             [Function("BlobStringToBlobStringFunction")]
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobStringToBlobStringFunction(
@@ -941,6 +966,15 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobClientToBlobStringFunction(
                 [BlobTrigger("container2/%file%")] BlobClient blob,
                 [BlobInput("container2/%file%")] string blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobByteArrayToBlobByteArrayFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobByteArrayToBlobByteArrayFunction(
+                [BlobTrigger("container2/%file%")] byte[] blob,
+                [BlobInput("container2/%file%")] byte[] blobinput)
             {
                 throw new NotImplementedException();
             }
@@ -962,7 +996,6 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
                 throw new NotImplementedException();
             }
-            */
 
             [Function("BlobStringToBlobStringArray")]
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
@@ -972,6 +1005,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             {
                 throw new NotImplementedException();
             }
+
 
             [Function("BlobStringToBlobClientEnumerable")]
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
@@ -987,6 +1021,15 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobStringToBlobPocoEnumerable(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2", IsBatched = true)] IEnumerable<Poco> blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobStringToBlobPocoArray")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobStringToBlobPocoArray(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2", IsBatched = true)] Poco[] blobinput)
             {
                 throw new NotImplementedException();
             }

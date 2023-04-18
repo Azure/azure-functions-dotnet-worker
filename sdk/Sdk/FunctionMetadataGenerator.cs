@@ -384,7 +384,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     if (IsFunctionBindingType(parameterAttribute))
                     {
                         AddExtensionInfo(_extensions, parameterAttribute);
-                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
+
+                        if (parameter.ParameterType.IsGenericInstance)
+                        {
+                            var p = parameter.ParameterType as GenericInstanceType;
+                            var q = p.GenericArguments.FirstOrDefault();
+                            AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
+                        }
+                        else {
+                            AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
+                        }
                     }
                 }
             }
@@ -575,11 +584,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return binding;
         }
 
-        private static bool IsIterableCollection(TypeReference type, out DataType dataType)
+        private static bool IsArray(TypeReference type)
         {
             // Array and not byte array
             bool isArray = type.IsArray && !string.Equals(type.FullName, Constants.ByteArrayType, StringComparison.Ordinal);
-            if (isArray)
+            return isArray;
+        }
+
+        private static bool IsIterableCollection(TypeReference type, out DataType dataType)
+        {
+            if (IsArray(type))
             {
                 if (type is TypeSpecification typeSpecification)
                 {
@@ -862,11 +876,38 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
                     {
-                        var b = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-                        if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                        if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
                         {
-                            return true;
+                            var tm = bindingType;
+
+                            var genericEnumerableInterface = bindingType;
+
+                            var p = bindingType as GenericInstanceType;
+                            var q = p.GenericArguments.FirstOrDefault();
+                            var b = q.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+                            if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                            {
+                                return true;
+                            }
+
+                        }
+                        if (IsArray(bindingType))
+                        {
+                            var a = bindingType.GetElementType().Resolve().GetConstructors().Where(a => a.Parameters.Any());
+
+                            if (a.Count() == 0 && isSupportsDeferredBindingAttribute)
+                            {
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            var b = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+
+                            if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                            {
+                                return true;
+                            }
                         }
                     }
                 }
@@ -915,17 +956,29 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         return true;
                     }
 
-                    var c = bindingType.Resolve();
-
-                    if (c.IsArray)
+                    if (IsArray(bindingType))
                     {
                         if (bindingTypeElement != null &&
                             supportsCollection == true &&
-                            string.Equals(bindingTypeElement.FullName, c.GetElementType().FullName, StringComparison.Ordinal))
+                            string.Equals(bindingTypeElement.FullName, bindingType.GetElementType().FullName, StringComparison.Ordinal))
                         {
                             return true;
                         }
                     }
+
+                    if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
+                    {
+                        var p = bindingType as GenericInstanceType;
+                        var q = p.GenericArguments.FirstOrDefault();
+
+                        if (bindingTypeElement != null &&
+                            supportsCollection == true &&
+                            string.Equals(bindingTypeElement.FullName, q.FullName, StringComparison.Ordinal))
+                        {
+                            return true;
+                        }
+                    }
+
                 }
             }
 

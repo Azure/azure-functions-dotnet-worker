@@ -20,10 +20,12 @@ namespace Microsoft.Azure.Functions.Worker
     internal class QueueMessageConverter : IInputConverter
     {
         private readonly ILogger<QueueMessageConverter> _logger;
+        private readonly JsonSerializerOptions _jsonOptions;
 
         public QueueMessageConverter(ILogger<QueueMessageConverter> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _jsonOptions = new() { Converters = { new QueueMessageJsonConverter() } };
         }
 
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -60,7 +62,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return ConversionResult.Unhandled();
-
         }
 
         private bool IsQueueExtension(ModelBindingData bindingData)
@@ -91,8 +92,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                JsonSerializerOptions options = new() { Converters = { new QueueMessageJsonConverter() } };
-                return modelBindingData.Content.ToObjectFromJson<QueueMessage>(options);
+                return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions);
             }
             catch (JsonException ex)
             {

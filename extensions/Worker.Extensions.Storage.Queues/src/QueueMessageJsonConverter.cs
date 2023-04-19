@@ -17,23 +17,74 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
 
         public override QueueMessage? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            JsonElement root = JsonDocument.ParseValue(ref reader).RootElement;
+            string messageId = "";
+            string popReceipt = "";
+            string messageText = "";
+            long dequeueCount = 1;
+            DateTime? nextVisibleOn = null;
+            DateTime? insertedOn = null;
+            DateTime? expiresOn = null;
 
-            root.TryGetProperty("MessageId", out var messageId);
-            root.TryGetProperty("PopReceipt", out var popReceipt);
-            root.TryGetProperty("DequeueCount", out var dequeueCount);
-            root.TryGetProperty("NextVisibleOn", out var nextVisibleOn);
-            root.TryGetProperty("ExpiresOn", out var expiresOn);
-            root.TryGetProperty("MessageText", out var messageText);
+            if (reader.TokenType != JsonTokenType.StartObject)
+            {
+                throw new JsonException("JSON payload expected to start with StartObject token.");
+            }
 
-            return QueuesModelFactory.QueueMessage(
-                messageId.GetString(),
-                popReceipt.GetString(),
-                messageText.GetString(),
-                dequeueCount.GetInt64(),
-                nextVisibleOn.GetDateTimeOffset(),
-                expiresOn.GetDateTimeOffset()
-            );
+            var startDepth = reader.CurrentDepth;
+
+            while (reader.Read())
+            {
+                if (reader.TokenType is JsonTokenType.EndObject && reader.CurrentDepth == startDepth)
+                {
+                    return QueuesModelFactory.QueueMessage(
+                        messageId,
+                        popReceipt,
+                        messageText,
+                        dequeueCount,
+                        nextVisibleOn,
+                        insertedOn,
+                        expiresOn
+                    );
+                }
+
+                if (reader.TokenType is not JsonTokenType.PropertyName)
+                {
+                    continue;
+                }
+
+                var propertyName = reader.GetString();
+                reader.Read();
+
+                switch (propertyName)
+                {
+                    // We're not expecting these three values to be null. If they are, should we throw or just return an empty string?
+                    case "MessageId":
+                        messageId = reader.GetString() ?? throw new ArgumentNullException("MessageId");
+                        break;
+                    case "PopReceipt":
+                        popReceipt = reader.GetString() ?? throw new ArgumentNullException("PopReceipt");
+                        break;
+                    case "MessageText":
+                        messageText = reader.GetString() ?? throw new ArgumentNullException("MessageText");
+                        break;
+                    case "DequeueCount":
+                        dequeueCount = reader.GetInt64();
+                        break;
+                    case "NextVisibleOn":
+                        nextVisibleOn = reader.GetDateTime();
+                        break;
+                    case "InsertedOn":
+                        insertedOn = reader.GetDateTime();
+                        break;
+                    case "ExpiresOn":
+                        expiresOn = reader.GetDateTime();
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            throw new JsonException("JSON payload expected to start with EndObject token.");
         }
 
         public override void Write(Utf8JsonWriter writer, QueueMessage value, JsonSerializerOptions options)

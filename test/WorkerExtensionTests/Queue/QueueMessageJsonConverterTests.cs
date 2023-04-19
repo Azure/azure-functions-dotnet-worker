@@ -22,13 +22,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(typeof(QueueMessage), result.GetType());
         }
 
-        private BinaryData GetTestBinaryData(string messageId = "fbb84c41-9f1f-4c75-950c-72d0541fb8ae", string message = "hello world", string body = "{}")
+        private BinaryData GetTestBinaryData(string messageId = "fbb84c41-9f1f-4c75-950c-72d0541fb8ae", string message = "hello world")
         {
             string jsonData = $@"{{
                                 ""MessageId"" : ""{messageId}"",
                                 ""PopReceipt"" : ""AgAAAAMAAAAAAAAASm\u002B7xBZv2QE="",
                                 ""MessageText"" : ""{message}"",
-                                ""Body"" : {body},
+                                ""Body"" : {{}},
                                 ""NextVisibleOn"" : ""2023-04-14T21:19:16+00:00"",
                                 ""InsertedOn"" : ""2023-04-14T21:09:14+00:00"",
                                 ""ExpiresOn"" : ""2023-04-21T21:09:14+00:00"",

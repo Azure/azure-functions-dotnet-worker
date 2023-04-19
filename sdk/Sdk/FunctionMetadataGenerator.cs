@@ -848,82 +848,84 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, TypeReference bindingType)
         {
             // Check if converter supports deferred binding for the binding type
-
-            CustomAttributeArgument[] customAttributeArguments = (CustomAttributeArgument[])customAttribute.Value;
-
-            if (customAttributeArguments is null)
+            if (customAttribute.Value.GetType() == typeof(CustomAttributeArgument[]))
             {
-                return false;
-            }
+                CustomAttributeArgument[] customAttributeArguments = (CustomAttributeArgument[])customAttribute.Value;
 
-            foreach (var element in customAttributeArguments)
-            {
-                bool isSupportsDeferredBindingAttribute = false;
-
-                var typeReferenceValue = (TypeReference)element.Value;
-                var typeReferenceCustomAttributes = typeReferenceValue.Resolve().CustomAttributes;
-
-                foreach (var attribute in typeReferenceCustomAttributes)
+                if (customAttributeArguments is null)
                 {
-                    if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
-                    {
-                        isSupportsDeferredBindingAttribute = true;
-                        break;
-                    }
+                    return false;
                 }
 
-                foreach (var attribute in typeReferenceCustomAttributes)
+                foreach (var element in customAttributeArguments)
                 {
-                    if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
-                    {
-                        if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
-                        {
-                            var tm = bindingType;
+                    bool isSupportsDeferredBindingAttribute = false;
 
-                            var genericEnumerableInterface = bindingType;
+                    var typeReferenceValue = (TypeReference)element.Value;
+                    var typeReferenceCustomAttributes = typeReferenceValue.Resolve().CustomAttributes;
 
-                            var p = bindingType as GenericInstanceType;
-                            var q = p.GenericArguments.FirstOrDefault();
-                            var b = q.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-                            if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
-                            {
-                                return true;
-                            }
-
-                        }
-                        if (IsArray(bindingType))
-                        {
-                            var a = bindingType.GetElementType().Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-                            if (a.Count() == 0 && isSupportsDeferredBindingAttribute)
-                            {
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            var b = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-                            if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
-                            {
-                                return true;
-                            }
-                        }
-                    }
-                }
-
-
-                if (isSupportsDeferredBindingAttribute)
-                {
                     foreach (var attribute in typeReferenceCustomAttributes)
                     {
-                        if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypesAttributeType, StringComparison.Ordinal))
+                        if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
                         {
-                            bool result =  CheckConverterTypes(attribute, bindingType);
+                            isSupportsDeferredBindingAttribute = true;
+                            break;
+                        }
+                    }
 
-                            if (result)
+                    foreach (var attribute in typeReferenceCustomAttributes)
+                    {
+                        if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
+                        {
+                            if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
                             {
-                                return true;
+                                var tm = bindingType;
+
+                                var genericEnumerableInterface = bindingType;
+
+                                var p = bindingType as GenericInstanceType;
+                                var q = p.GenericArguments.FirstOrDefault();
+                                var b = q.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+                                if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                                {
+                                    return true;
+                                }
+
+                            }
+                            if (IsArray(bindingType))
+                            {
+                                var a = bindingType.GetElementType().Resolve().GetConstructors().Where(a => a.Parameters.Any());
+
+                                if (a.Count() == 0 && isSupportsDeferredBindingAttribute)
+                                {
+                                    return true;
+                                }
+                            }
+                            else
+                            {
+                                var b = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+
+                                if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+
+
+                    if (isSupportsDeferredBindingAttribute)
+                    {
+                        foreach (var attribute in typeReferenceCustomAttributes)
+                        {
+                            if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypesAttributeType, StringComparison.Ordinal))
+                            {
+                                bool result = CheckConverterTypes(attribute, bindingType);
+
+                                if (result)
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }
@@ -978,10 +980,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             return true;
                         }
                     }
-
                 }
             }
-
+            
             return false;
         }
 

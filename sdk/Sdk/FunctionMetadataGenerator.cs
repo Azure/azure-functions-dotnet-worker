@@ -384,16 +384,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     if (IsFunctionBindingType(parameterAttribute))
                     {
                         AddExtensionInfo(_extensions, parameterAttribute);
-
-                        if (parameter.ParameterType.IsGenericInstance)
-                        {
-                            var p = parameter.ParameterType as GenericInstanceType;
-                            var q = p.GenericArguments.FirstOrDefault();
-                            AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
-                        }
-                        else {
-                            AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
-                        }
+                        AddBindingMetadata(bindingMetadata, parameterAttribute, parameter.ParameterType, parameter.Name);
                     }
                 }
             }
@@ -879,14 +870,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         {
                             if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
                             {
-                                var tm = bindingType;
+                                var genericBindingCollectionType = bindingType as GenericInstanceType;
+                                var genericBindingType = genericBindingCollectionType.GenericArguments.FirstOrDefault();
+                                var constructors = genericBindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
 
-                                var genericEnumerableInterface = bindingType;
-
-                                var p = bindingType as GenericInstanceType;
-                                var q = p.GenericArguments.FirstOrDefault();
-                                var b = q.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-                                if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                                if (constructors.Count() == 0 && isSupportsDeferredBindingAttribute)
                                 {
                                     return true;
                                 }
@@ -894,18 +882,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             }
                             if (IsArray(bindingType))
                             {
-                                var a = bindingType.GetElementType().Resolve().GetConstructors().Where(a => a.Parameters.Any());
+                                var constructors = bindingType.GetElementType().Resolve().GetConstructors().Where(a => a.Parameters.Any());
 
-                                if (a.Count() == 0 && isSupportsDeferredBindingAttribute)
+                                if (constructors.Count() == 0 && isSupportsDeferredBindingAttribute)
                                 {
                                     return true;
                                 }
                             }
                             else
                             {
-                                var b = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+                                var constructors = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
 
-                                if (b.Count() == 0 && isSupportsDeferredBindingAttribute)
+                                if (constructors.Count() == 0 && isSupportsDeferredBindingAttribute)
                                 {
                                     return true;
                                 }
@@ -970,12 +958,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                     if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
                     {
-                        var p = bindingType as GenericInstanceType;
-                        var q = p.GenericArguments.FirstOrDefault();
+                        var genericBindingType = bindingType as GenericInstanceType;
+                        var genericBindingTypeArgument = genericBindingType.GenericArguments.FirstOrDefault();
 
                         if (bindingTypeElement != null &&
                             supportsCollection == true &&
-                            string.Equals(bindingTypeElement.FullName, q.FullName, StringComparison.Ordinal))
+                            string.Equals(bindingTypeElement.FullName, genericBindingTypeArgument.FullName, StringComparison.Ordinal))
                         {
                             return true;
                         }

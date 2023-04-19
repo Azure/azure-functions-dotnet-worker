@@ -100,7 +100,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         private ImmutableDictionary<string, object> GetBindingAttributePropertiesDictionary(IEnumerable<Attribute> customAttributes)
         {
             var result = new Dictionary<string, object>();
-            var converterTypesDictionary = new Dictionary<Type, List<Type>>();
+            var converterTypesDictionary = new Dictionary<Type, Tuple<bool, List<Type>>>();
 
             foreach (var element in customAttributes)
             {
@@ -122,9 +122,10 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             return result.ToImmutableDictionary();
         }
 
-        private List<Type> GetTypesSupportedByConverter(IEnumerable<CustomAttributeData> converterAttributes)
+        private Tuple<bool, List<Type>> GetTypesSupportedByConverter(IEnumerable<CustomAttributeData> converterAttributes)
         {
             var types = new List<Type>();
+            bool supportsJsonDeserialization = false;
 
             foreach (var converterAttribute in converterAttributes)
             {
@@ -135,33 +136,16 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                         if (supportedTypes.ArgumentType == typeof(Type))
                         {
                             types.Add(supportedTypes.ArgumentType);
-                            /*
-                            object supportedTypesObject = supportedTypes.Value;
-                            var supportedTypesArray = supportedTypesObject as System.Collections.ObjectModel.ReadOnlyCollection<CustomAttributeTypedArgument>;
-
-                            if (supportedTypesArray is not null)
-                            {
-                                foreach (var type in supportedTypesArray)
-                                {
-                                    if (type.ArgumentType == typeof(Type))
-                                    {
-                                        object obj = type.Value;
-                                        Type? supportedType = obj as Type;
-
-                                        if (supportedType != null)
-                                        {
-                                            types.Add(supportedType);
-                                        }
-                                    }
-                                }
-                            }
-                            */
                         }
                     }
                 }
+                else if (converterAttribute.AttributeType == typeof(SupportsJsonDeserialization))
+                {
+                    supportsJsonDeserialization = true;
+                }
             }
 
-            return types;
+            return new Tuple<bool, List<Type>>(supportsJsonDeserialization, types);
         }
     }
 }

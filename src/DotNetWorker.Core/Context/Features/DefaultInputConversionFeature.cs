@@ -49,18 +49,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             // Get list of converters advertised by the Binding Attribute
-            Dictionary<IInputConverter, List<Type>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
+            Dictionary<IInputConverter, Tuple<bool, List<Type>>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    if (converterType.Value.Any(a => a.IsAssignableFrom(converterContext.TargetType)))
+                    if (converterType.Value.Item2.Any(a => a.IsAssignableFrom(converterContext.TargetType)) ||
+                        converterType.Value.Item1 == true &&
+                        converterContext.TargetType.IsClass && !converterContext.TargetType.GetConstructors().Any(a => a.GetParameters().Any()))
                     { 
-                    //    bool res = converterType.Value.Any(a => a == converterContext.TargetType.FullName);
-
-//                    if (res)
-  //                  {
                         var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
                         if (conversionResult.Status != ConversionStatus.Unhandled)
@@ -139,15 +137,15 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
 
-        private Dictionary<IInputConverter, List<Type>>? GetExplicitConverterTypes(ConverterContext context)
+        private Dictionary<IInputConverter, Tuple<bool, List<Type>>>? GetExplicitConverterTypes(ConverterContext context)
         {
-            var result = new Dictionary<IInputConverter, List<Type>>();
+            var result = new Dictionary<IInputConverter, Tuple<bool, List<Type>>>();
 
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
-                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, List<Type>>))
+                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, Tuple<bool, List<Type>>>))
                 {
-                    var converters = (Dictionary<Type, List<Type>>)converterTypes;
+                    var converters = (Dictionary<Type, Tuple<bool, List<Type>>>)converterTypes;
                     var interfaceType = typeof(IInputConverter);
 
                     foreach (var converterTypesPair in converters)

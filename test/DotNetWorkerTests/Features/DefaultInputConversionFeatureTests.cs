@@ -156,6 +156,21 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal(ConversionStatus.Succeeded, actual.Status);
         }
 
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Poco_Works()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, Tuple<bool, List<Type>>>() { { typeof(MySimpleSyncInputConverter), new Tuple<bool, List<Type>>(true, new List<Type>(){ typeof(string), typeof(Stream) } ) } } },
+                { PropertyBagKeys.DisableConverterFallback, true }
+            };
+            var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+        }
 
         [Fact]
         public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties2()
@@ -206,6 +221,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [SupportsDeferredBinding]
+        [SupportsJsonDeserialization]
         [SupportedConverterTypes(typeof(string), supportsCollection: false)]
         [SupportedConverterTypes(typeof(Stream), supportsCollection: false)]
         internal class MySimpleSyncInputConverter : IInputConverter
@@ -216,6 +232,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
                 return new ValueTask<ConversionResult>(result);
             }
+        }
+
+        internal class Poco
+        {
+            string id;
+            string name;
         }
 
         private DefaultConverterContext CreateConverterContext(Type targetType, object source, IReadOnlyDictionary<string, object> properties = null)

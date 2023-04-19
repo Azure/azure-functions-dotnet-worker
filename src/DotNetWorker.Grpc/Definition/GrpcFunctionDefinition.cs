@@ -135,7 +135,11 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                     {
                         if (supportedTypes.ArgumentType == typeof(Type))
                         {
-                            types.Add(supportedTypes.ArgumentType);
+                            var b = supportedTypes.Value as Type;
+                            if (b is not null)
+                            {
+                                types.Add(b);
+                            }
                         }
                     }
                 }

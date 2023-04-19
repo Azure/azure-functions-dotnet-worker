@@ -315,8 +315,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
             Assert.True(_context.IsDisposed);
-            Assert.Equal(-1, _context.RetryContext.RetryCount);
-            Assert.Equal(-1, _context.RetryContext.MaxRetryCount);
+            Assert.Null(_context.RetryContext);
         }
 
         [Fact]

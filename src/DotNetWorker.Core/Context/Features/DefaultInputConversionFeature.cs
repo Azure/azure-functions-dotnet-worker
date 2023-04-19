@@ -55,9 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    if (converterType.Value.Item2.Any(a => a.IsAssignableFrom(converterContext.TargetType)) ||
-                        converterType.Value.Item1 == true &&
-                        converterContext.TargetType.IsClass && !converterContext.TargetType.GetConstructors().Any(a => a.GetParameters().Any()))
+                    if (converterType.Value.Item2.Any(a => a.AssemblyQualifiedName == converterContext.TargetType.AssemblyQualifiedName || a.IsAssignableFrom(converterContext.TargetType)) || IsPocoSupported(converterType.Value.Item1, converterContext) || IsPocoCollectionSupported(converterType.Value.Item1, converterContext))
                     { 
                         var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
@@ -87,6 +85,29 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             return ConversionResult.Unhandled();
         }
+
+        private bool IsPocoSupported(bool converterSupports, ConverterContext converterContext)
+        {
+            return converterSupports == true &&
+                        converterContext.TargetType.IsClass && !converterContext.TargetType.GetConstructors().Any(a => a.GetParameters().Any());
+        }
+
+        private bool IsPocoCollectionSupported(bool converterSupports, ConverterContext converterContext)
+        {
+            if (converterContext.TargetType.IsArray && converterContext.TargetType.FullName != typeof(byte[]).FullName)
+            {
+                return converterSupports == true &&
+                converterContext.TargetType.GetElementType().IsClass && !converterContext.TargetType.GetElementType().GetConstructors().Any(a => a.GetParameters().Any());
+            }
+            else if (converterContext.TargetType.IsGenericType)
+            {
+                return converterSupports == true &&
+                    converterContext.TargetType.GetGenericArguments().FirstOrDefault().IsClass && !converterContext.TargetType.GetGenericArguments().FirstOrDefault().GetConstructors().Any(a => a.GetParameters().Any());
+            }
+
+            return false;
+        }
+
 
         private ValueTask<ConversionResult> ConvertAsyncUsingConverter(IInputConverter converter, ConverterContext context)
         {

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Invocation;
@@ -123,7 +124,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     Assert.Contains(PropertyBagKeys.DisableConverterFallback, q.Properties.Keys);
                     Assert.Contains(PropertyBagKeys.BindingAttributeConverters, q.Properties.Keys);
                     Assert.True(true, q.Properties[PropertyBagKeys.DisableConverterFallback].ToString());
-                    Assert.Contains(new Dictionary<Type, Tuple<bool, List<Type>>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeConverters].ToString());
+                    Assert.Contains(new Dictionary<Type, ConverterProperties>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeConverters].ToString());
                 });
 
             // InputBindings

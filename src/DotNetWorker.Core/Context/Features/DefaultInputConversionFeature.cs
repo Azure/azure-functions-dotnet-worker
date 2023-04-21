@@ -55,7 +55,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    if (converterType.Value.Item2.Any(a => a.AssemblyQualifiedName == converterContext.TargetType.AssemblyQualifiedName || a.IsAssignableFrom(converterContext.TargetType)) || IsPocoSupported(converterType.Value.Item1, converterContext) || IsPocoCollectionSupported(converterType.Value.Item1, converterContext))
+                    if (IsTypeSupported(converterType, converterContext) ||
+                        IsTypeCollectionSupported(converterType, converterContext) ||
+                        IsPocoSupported(converterType.Value.Item1, converterContext) || 
+                        IsPocoCollectionSupported(converterType.Value.Item1, converterContext))
                     { 
                         var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
@@ -84,6 +87,34 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             return ConversionResult.Unhandled();
+        }
+
+        private bool IsTypeSupported(KeyValuePair<IInputConverter, Tuple<bool, List<Type>>> converterType,
+                                    ConverterContext converterContext)
+        {
+            return converterType.Value.Item2.Any(a =>
+                                a.AssemblyQualifiedName == converterContext.TargetType.AssemblyQualifiedName ||
+                                a.IsAssignableFrom(converterContext.TargetType));
+        }
+
+        private bool IsTypeCollectionSupported(KeyValuePair<IInputConverter, Tuple<bool, List<Type>>> converterType, ConverterContext converterContext)
+        {
+            if (converterContext.TargetType.IsArray && converterContext.TargetType.FullName != typeof(byte[]).FullName)
+            {
+                return converterType.Value.Item1 == true &&
+                    converterType.Value.Item2.Any(a =>
+                                a.AssemblyQualifiedName == converterContext.TargetType.GetElementType().AssemblyQualifiedName ||
+                                a.IsAssignableFrom(converterContext.TargetType));
+            }
+            else if (converterContext.TargetType.IsGenericType)
+            {
+                return converterType.Value.Item1 == true &&
+                                    converterType.Value.Item2.Any(a =>
+                                a.AssemblyQualifiedName == converterContext.TargetType.GetGenericArguments().FirstOrDefault().AssemblyQualifiedName ||
+                                a.IsAssignableFrom(converterContext.TargetType));
+            }
+
+            return false;
         }
 
         private bool IsPocoSupported(bool converterSupports, ConverterContext converterContext)

@@ -20,9 +20,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <summary>
         /// Gets an instance of the converter for the type requested.
         /// </summary>
-        /// <param name="converterTypeName">The assembly qualified name of the type for which we are requesting an IInputConverter instance.</param>
+        /// <param name="converterType">The type for which we are requesting an IInputConverter instance.</param>
         /// <returns>IInputConverter instance of the requested type.</returns>
-        IInputConverter GetOrCreateConverterInstance(Type converterTypeName);
+        IInputConverter GetOrCreateConverterInstance(Type converterType);
 
         /// <summary>
         /// Gets an instance of the converter for the type requested.

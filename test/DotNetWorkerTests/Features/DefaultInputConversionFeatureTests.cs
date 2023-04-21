@@ -238,8 +238,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
         [SupportsDeferredBinding]
         [SupportsJsonDeserialization]
-        [SupportedConverterTypes(typeof(string), supportsCollection: false)]
-        [SupportedConverterTypes(typeof(Stream), supportsCollection: false)]
+        [SupportedConverterType(typeof(string), supportsCollection: false)]
+        [SupportedConverterType(typeof(Stream), supportsCollection: false)]
         internal class MySimpleSyncInputConverter : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -251,8 +251,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [SupportsDeferredBinding]
-        [SupportedConverterTypes(typeof(string), supportsCollection: false)]
-        [SupportedConverterTypes(typeof(Stream), supportsCollection: false)]
+        [SupportedConverterType(typeof(string), supportsCollection: false)]
+        [SupportedConverterType(typeof(Stream), supportsCollection: false)]
         internal class MySimpleSyncInputConverter2 : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)

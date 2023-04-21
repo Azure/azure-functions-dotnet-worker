@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Core;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
@@ -49,16 +50,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             // Get list of converters advertised by the Binding Attribute
-            Dictionary<IInputConverter, Tuple<bool, List<Type>>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
+            Dictionary<IInputConverter, ConverterProperties>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    if (IsTypeSupported(converterType, converterContext) ||
-                        IsTypeCollectionSupported(converterType, converterContext) ||
-                        IsPocoSupported(converterType.Value.Item1, converterContext) || 
-                        IsPocoCollectionSupported(converterType.Value.Item1, converterContext))
+                    if (IsTypeSupported(converterType.Value, converterContext.TargetType) ||
+                        IsTypeCollectionSupported(converterType.Value, converterContext.TargetType) ||
+                        IsJsonDeserializedObjectsSupported(converterType.Value.SupportsJsonDeserialization, converterContext.TargetType) ||
+                        IsJsonDeserializedObjectCollectionSupported(converterType.Value.SupportsJsonDeserialization, converterContext.TargetType))
                     { 
                         var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
@@ -88,57 +89,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             return ConversionResult.Unhandled();
         }
-
-        private bool IsTypeSupported(KeyValuePair<IInputConverter, Tuple<bool, List<Type>>> converterType,
-                                    ConverterContext converterContext)
-        {
-            return converterType.Value.Item2.Any(a =>
-                                a.AssemblyQualifiedName == converterContext.TargetType.AssemblyQualifiedName ||
-                                a.IsAssignableFrom(converterContext.TargetType));
-        }
-
-        private bool IsTypeCollectionSupported(KeyValuePair<IInputConverter, Tuple<bool, List<Type>>> converterType, ConverterContext converterContext)
-        {
-            if (converterContext.TargetType.IsArray && converterContext.TargetType.FullName != typeof(byte[]).FullName)
-            {
-                return converterType.Value.Item1 == true &&
-                    converterType.Value.Item2.Any(a =>
-                                a.AssemblyQualifiedName == converterContext.TargetType.GetElementType().AssemblyQualifiedName ||
-                                a.IsAssignableFrom(converterContext.TargetType));
-            }
-            else if (converterContext.TargetType.IsGenericType)
-            {
-                return converterType.Value.Item1 == true &&
-                                    converterType.Value.Item2.Any(a =>
-                                a.AssemblyQualifiedName == converterContext.TargetType.GetGenericArguments().FirstOrDefault().AssemblyQualifiedName ||
-                                a.IsAssignableFrom(converterContext.TargetType));
-            }
-
-            return false;
-        }
-
-        private bool IsPocoSupported(bool converterSupports, ConverterContext converterContext)
-        {
-            return converterSupports == true &&
-                        converterContext.TargetType.IsClass && !converterContext.TargetType.GetConstructors().Any(a => a.GetParameters().Any());
-        }
-
-        private bool IsPocoCollectionSupported(bool converterSupports, ConverterContext converterContext)
-        {
-            if (converterContext.TargetType.IsArray && converterContext.TargetType.FullName != typeof(byte[]).FullName)
-            {
-                return converterSupports == true &&
-                converterContext.TargetType.GetElementType().IsClass && !converterContext.TargetType.GetElementType().GetConstructors().Any(a => a.GetParameters().Any());
-            }
-            else if (converterContext.TargetType.IsGenericType)
-            {
-                return converterSupports == true &&
-                    converterContext.TargetType.GetGenericArguments().FirstOrDefault().IsClass && !converterContext.TargetType.GetGenericArguments().FirstOrDefault().GetConstructors().Any(a => a.GetParameters().Any());
-            }
-
-            return false;
-        }
-
 
         private ValueTask<ConversionResult> ConvertAsyncUsingConverter(IInputConverter converter, ConverterContext context)
         {
@@ -189,32 +139,24 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
 
-        private Dictionary<IInputConverter, Tuple<bool, List<Type>>>? GetExplicitConverterTypes(ConverterContext context)
+        private Dictionary<IInputConverter, ConverterProperties>? GetExplicitConverterTypes(ConverterContext context)
         {
-            var result = new Dictionary<IInputConverter, Tuple<bool, List<Type>>>();
+            var result = new Dictionary<IInputConverter, ConverterProperties>();
 
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
             {
-                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, Tuple<bool, List<Type>>>))
+                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, ConverterProperties>))
                 {
-                    var converters = (Dictionary<Type, Tuple<bool, List<Type>>>)converterTypes;
+                    var converters = (Dictionary<Type, ConverterProperties>)converterTypes;
                     var interfaceType = typeof(IInputConverter);
 
                     foreach (var converterTypesPair in converters)
                     {
                         var converterType = converterTypesPair.Key;
-                       // Type converterType = _inputConverterProvider.GetOrCreateConverterInstance(converter).GetType();
 
                         if (interfaceType.IsAssignableFrom(converterType))
                         {
                             result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), converterTypesPair.Value);
-                            /*
-                            string? converterTypeFullName = converterType.AssemblyQualifiedName;
-                            if (converter is not null)
-                            {
-                                result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterTypeFullName), converterTypesPair.Value);
-                            }
-                            */
                         }
                     }
                     
@@ -224,20 +166,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             return null;
         }
-
-        private bool IsConvertersFallbackDisabled(ConverterContext context)
-        {
-            if (context.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallback, out var res))
-            {
-                if (res is not null && res.GetType() == typeof(bool))
-                {
-                    return (bool)res;
-                }
-            }
-
-            return false;
-        }
-
 
         /// <summary>
         /// Checks a type has an "InputConverter" attribute decoration present
@@ -260,6 +188,69 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 return converterType.AssemblyQualifiedName!;
 
             }, targetType);
+        }
+
+        private bool IsConvertersFallbackDisabled(ConverterContext context)
+        {
+            if (context.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallback, out var res))
+            {
+                if (res is not null && res.GetType() == typeof(bool))
+                {
+                    return (bool)res;
+                }
+            }
+
+            return false;
+        }
+
+        private bool IsTypeSupported(ConverterProperties converterType, Type TargetType)
+        {
+            return converterType.SupportedTypes.Any(a =>
+                                a.SupportedType.AssemblyQualifiedName == TargetType.AssemblyQualifiedName ||
+                                a.SupportedType.IsAssignableFrom(TargetType));
+        }
+
+        private bool IsTypeCollectionSupported(ConverterProperties converterType, Type TargetType)
+        {
+            if (TargetType.IsArray && TargetType.FullName != typeof(byte[]).FullName)
+            {
+                return converterType.SupportedTypes.Any(a =>
+                                a.SupportedType.AssemblyQualifiedName == TargetType.GetElementType().AssemblyQualifiedName ||
+                                a.SupportedType.IsAssignableFrom(TargetType) &&
+                                a.SupportsCollection == true);
+            }
+            else if (TargetType.IsGenericType)
+            {
+                return converterType.SupportedTypes.Any(a =>
+                                a.SupportedType.AssemblyQualifiedName == TargetType.GetGenericArguments().FirstOrDefault().AssemblyQualifiedName ||
+                                a.SupportedType.IsAssignableFrom(TargetType) &&
+                                a.SupportsCollection == true);
+            }
+
+            return false;
+        }
+
+        private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type TargetType)
+        {
+            return converterSupports == true && TargetType.IsClass && !TargetType.GetConstructors().Any(a => a.GetParameters().Any());
+        }
+
+        private bool IsJsonDeserializedObjectCollectionSupported(bool converterSupports, Type TargetType)
+        {
+            if (TargetType.IsArray && TargetType.FullName != typeof(byte[]).FullName)
+            {
+                return converterSupports == true &&
+                       TargetType.GetElementType().IsClass &&
+                       !TargetType.GetElementType().GetConstructors().Any(a => a.GetParameters().Any());
+            }
+            else if (TargetType.IsGenericType)
+            {
+                return converterSupports == true &&
+                       TargetType.GetGenericArguments().FirstOrDefault().IsClass &&
+                       !TargetType.GetGenericArguments().FirstOrDefault().GetConstructors().Any(a => a.GetParameters().Any());
+            }
+
+            return false;
         }
     }
 }

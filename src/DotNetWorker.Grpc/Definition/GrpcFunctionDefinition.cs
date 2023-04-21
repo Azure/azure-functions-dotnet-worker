@@ -11,6 +11,8 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -77,40 +79,43 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             {
                 return new Dictionary<string, object>()
                 {
-                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterTypes.FirstOrDefault().AssemblyQualifiedName! }
+                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterTypes?.FirstOrDefault()?.AssemblyQualifiedName! }
                 }.ToImmutableDictionary();
             }
             else {
                 var inputAttribute = parameterInfo?.GetCustomAttribute<InputBindingAttribute>();
                 var triggerAttribute = parameterInfo?.GetCustomAttribute<TriggerBindingAttribute>();
 
-                if (inputAttribute != null)
-                {
-                    return GetBindingAttributePropertiesDictionary(inputAttribute.GetType().GetCustomAttributes());
-                }
-                else if (triggerAttribute != null)
-                {
-                    return GetBindingAttributePropertiesDictionary(triggerAttribute.GetType().GetCustomAttributes());
-                }
+                return GetBindingAttributePropertiesDictionary(inputAttribute) ??
+                       GetBindingAttributePropertiesDictionary(triggerAttribute) ??
+                       ImmutableDictionary<string, object>.Empty;
             }
-
-            return ImmutableDictionary<string, object>.Empty;
         }
 
-        private ImmutableDictionary<string, object> GetBindingAttributePropertiesDictionary(IEnumerable<Attribute> customAttributes)
+        private ImmutableDictionary<string, object>? GetBindingAttributePropertiesDictionary(BindingAttribute? bindingAttribute)
         {
-            var result = new Dictionary<string, object>();
-            var converterTypesDictionary = new Dictionary<Type, Tuple<bool, List<Type>>>();
-
-            foreach (var element in customAttributes)
+            if (bindingAttribute is null)
             {
-                if (element.GetType() == typeof(InputConverterAttribute))
-                {
-                    var attribute = (InputConverterAttribute)element;
+                return null;
+            }
 
+            IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
+            var result = new Dictionary<string, object>();
+
+            // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
+            // The dictionary has key of type IInputConverter and value as ConverterProperties which will have
+            // List of types supported by the converter, collection support for each type and support for Json deserialization
+            var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
+
+            foreach (Attribute element in customAttributes)
+            {
+                var attribute = element as InputConverterAttribute;
+
+                if (attribute is not null)
+                {
                     foreach (var converter in attribute.ConverterTypes)
                     {
-                        var types = GetTypesSupportedByConverter(converter.CustomAttributes);
+                        ConverterProperties types = GetTypesSupportedByConverter(converter);
                         converterTypesDictionary.Add(converter, types);
                     }
 
@@ -122,24 +127,35 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             return result.ToImmutableDictionary();
         }
 
-        private Tuple<bool, List<Type>> GetTypesSupportedByConverter(IEnumerable<CustomAttributeData> converterAttributes)
+        private ConverterProperties GetTypesSupportedByConverter(Type converter)
         {
-            var types = new List<Type>();
             bool supportsJsonDeserialization = false;
+            var types = new List<ConverterTypeProperties>();
 
-            foreach (var converterAttribute in converterAttributes)
+            foreach (var converterAttribute in converter.CustomAttributes)
             {
-                if (converterAttribute.AttributeType == typeof(SupportedConverterTypesAttribute))
+                if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
                 {
-                    foreach (var supportedTypes in converterAttribute.ConstructorArguments)
+                    foreach (var supportedType in converterAttribute.ConstructorArguments)
                     {
-                        if (supportedTypes.ArgumentType == typeof(Type))
+                        Type? supportedTypeValue = null;
+                        bool? supportsCollectionValue = null;
+
+                        if (supportedType.Value is not null)
                         {
-                            var b = supportedTypes.Value as Type;
-                            if (b is not null)
+                            if (supportedType.Value.GetType() == typeof(Type))
                             {
-                                types.Add(b);
+                                supportedTypeValue = supportedType.Value as Type;
                             }
+                            if (supportedType.Value.GetType() == typeof(bool))
+                            {
+                                supportsCollectionValue = (bool)supportedType.Value;
+                            }
+                        }
+
+                        if (supportsCollectionValue != null && supportedTypeValue != null)
+                        {
+                            types.Add(new ConverterTypeProperties() { SupportedType = supportedTypeValue, SupportsCollection = (bool)supportsCollectionValue });
                         }
                     }
                 }
@@ -149,7 +165,11 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 }
             }
 
-            return new Tuple<bool, List<Type>>(supportsJsonDeserialization, types);
+            return new ConverterProperties()
+            {
+                SupportsJsonDeserialization = supportsJsonDeserialization,
+                SupportedTypes = types
+            };
         }
     }
 }

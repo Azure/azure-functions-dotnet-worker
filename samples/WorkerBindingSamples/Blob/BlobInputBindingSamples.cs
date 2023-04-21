@@ -21,7 +21,7 @@ namespace SampleApp
 
         [Function(nameof(BlobInputClientFunction))]
         public async Task<HttpResponseData> BlobInputClientFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("input-container/sample1.txt")] BlobClient client)
         {
             var downloadResult = await client.DownloadContentAsync();

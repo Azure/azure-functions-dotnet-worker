@@ -24,15 +24,15 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     [SupportsDeferredBinding]
     [SupportsJsonDeserialization]
-    [SupportedConverterTypes(typeof(string), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(Stream), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(byte[]), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(BlobBaseClient), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(BlobClient), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(BlockBlobClient), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(PageBlobClient), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(AppendBlobClient), supportsCollection: true)]
-    [SupportedConverterTypes(typeof(BlobContainerClient), supportsCollection: true)]
+    [SupportedConverterType(typeof(string), supportsCollection: true)]
+    [SupportedConverterType(typeof(Stream), supportsCollection: true)]
+    [SupportedConverterType(typeof(byte[]), supportsCollection: true)]
+    [SupportedConverterType(typeof(BlobBaseClient), supportsCollection: true)]
+    [SupportedConverterType(typeof(BlobClient), supportsCollection: true)]
+    [SupportedConverterType(typeof(BlockBlobClient), supportsCollection: true)]
+    [SupportedConverterType(typeof(PageBlobClient), supportsCollection: true)]
+    [SupportedConverterType(typeof(AppendBlobClient), supportsCollection: true)]
+    [SupportedConverterType(typeof(BlobContainerClient), supportsCollection: true)]
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;

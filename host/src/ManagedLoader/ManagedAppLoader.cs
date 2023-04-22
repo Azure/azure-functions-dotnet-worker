@@ -7,6 +7,8 @@ using System.Text;
 using FunctionsNetHost.ManagedLoader;
 using FunctionsNetHost.ManagedLoader.NativeHostIntegration;
 using System.Reflection;
+using System.Diagnostics;
+using System.Runtime.Loader;
 
 namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 {
@@ -73,32 +75,38 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
         [UnmanagedCallersOnly]
         private static unsafe IntPtr HandleAppLoaderRequest(byte** nativeMessage, int nativeMessageSize, IntPtr grpcHandler)
         {
-            // As of today, we have only one message (load customer assembly) from managed to apploader.
+            // As of today, we have only one message (load worker assembly) from managed to apploader.
             var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
-            var customerAssemblyPath = Encoding.UTF8.GetString(span);
-            Logger.Log($"~~~ HandleAppLoaderRequest. Customer assembly path: {customerAssemblyPath} ~~~");
+            var workerAssemblyPath = Encoding.UTF8.GetString(span);
+            Logger.Log($"~~~ HandleAppLoaderRequest. Worker assembly path: {workerAssemblyPath} ~~~");
 
-            // TO DO: Call the method which loads customer assembly.
-            TempMethodForLoading(customerAssemblyPath);
+            _ = Task.Run(() => LoadWorker(workerAssemblyPath));
 
             return IntPtr.Zero;
         }
 
-        // Temp method I tried. Fabio will replace this.
-        private static void TempMethodForLoading(string customerAssemblyPath)
+        private static void LoadWorker(string workerAssemblyPath)
         {
-            Logger.Log($"~~~~  TempMethodForLoading customerAssemblyPath:{customerAssemblyPath}~~~~");
+            Logger.Log($"~~~~  TempMethodForLoading customerAssemblyPath:{workerAssemblyPath}~~~~");
 
-            var customerAssembly = Assembly.LoadFrom(customerAssemblyPath);
-            if (customerAssembly.EntryPoint is null)
+            // Initialize the assembly resolver to ensure we can load worker dependencies
+            WorkerAssemblyResolver.Initialize(AssemblyLoadContext.Default, workerAssemblyPath);
+
+            Assembly customerAssembly = Assembly.LoadFrom(workerAssemblyPath);
+            MethodInfo? entryPoint = customerAssembly.EntryPoint 
+                ?? throw new MissingMethodException($"Assembly ('{customerAssembly.FullName}') missing entry point.");
+
+            var parameters = entryPoint.GetParameters().Length > 0 ? new object[] { Environment.GetCommandLineArgs() } : null;
+
+            object? result = entryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null,  parameters, null);
+
+            int exitCode = 0;
+            if (result is not null)
             {
-                return;
+                exitCode = (int) result;
             }
 
-            var entryPointTypeInstance = Activator.CreateInstance(customerAssembly.EntryPoint.DeclaringType);
-            customerAssembly.EntryPoint.Invoke(entryPointTypeInstance, new object[] { Array.Empty<string>() });
-
-            // Tested this version and getting exception about dependencies not loaded/found.Ex: 'Microsoft.Extensions.Hosting.Abstractions.
+            Environment.Exit(exitCode);
         }
 
         /// <summary>

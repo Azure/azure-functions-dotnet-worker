@@ -136,27 +136,27 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             {
                 if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
                 {
+                    Type? supportedTypeValue = null;
+                    bool? supportsCollectionValue = null;
+
                     foreach (var supportedType in converterAttribute.ConstructorArguments)
                     {
-                        Type? supportedTypeValue = null;
-                        bool? supportsCollectionValue = null;
-
-                        if (supportedType.Value is not null)
+                        if (supportedType.ArgumentType is not null && supportedType.Value is not null)
                         {
-                            if (supportedType.Value.GetType() == typeof(Type))
+                            if (supportedType.ArgumentType == typeof(Type))
                             {
-                                supportedTypeValue = supportedType.Value as Type;
+                                supportedTypeValue = (Type)supportedType.Value;
                             }
-                            if (supportedType.Value.GetType() == typeof(bool))
+                            if (supportedType.ArgumentType == typeof(bool))
                             {
                                 supportsCollectionValue = (bool)supportedType.Value;
                             }
                         }
+                    }
 
-                        if (supportsCollectionValue != null && supportedTypeValue != null)
-                        {
-                            types.Add(new ConverterTypeProperties() { SupportedType = supportedTypeValue, SupportsCollection = (bool)supportsCollectionValue });
-                        }
+                    if (supportsCollectionValue != null && supportedTypeValue != null)
+                    {
+                        types.Add(new ConverterTypeProperties() { SupportedType = supportedTypeValue, SupportsCollection = (bool)supportsCollectionValue });
                     }
                 }
                 else if (converterAttribute.AttributeType == typeof(SupportsJsonDeserialization))

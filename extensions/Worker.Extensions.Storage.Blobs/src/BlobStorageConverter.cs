@@ -32,7 +32,6 @@ namespace Microsoft.Azure.Functions.Worker
     [SupportedConverterType(typeof(BlockBlobClient), supportsCollection: true)]
     [SupportedConverterType(typeof(PageBlobClient), supportsCollection: true)]
     [SupportedConverterType(typeof(AppendBlobClient), supportsCollection: true)]
-    [SupportedConverterType(typeof(BlobContainerClient), supportsCollection: true)]
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;

@@ -59,13 +59,13 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
                 {
                     // We're not expecting these three values to be null. If they are, should we throw or just return an empty string?
                     case "MessageId":
-                        messageId = reader.GetString() ?? throw new ArgumentNullException("MessageId");
+                        messageId = reader.GetString() ?? throw new JsonException("MessageId");
                         break;
                     case "PopReceipt":
-                        popReceipt = reader.GetString() ?? throw new ArgumentNullException("PopReceipt");
+                        popReceipt = reader.GetString() ?? throw new JsonException("PopReceipt");
                         break;
                     case "MessageText":
-                        messageText = reader.GetString() ?? throw new ArgumentNullException("MessageText");
+                        messageText = reader.GetString() ?? throw new JsonException("MessageText");
                         break;
                     case "DequeueCount":
                         dequeueCount = reader.GetInt64();

@@ -3,27 +3,35 @@
 
 using System;
 using System.Globalization;
+using System.IO;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Storage.Queues;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     [SupportsDeferredBinding]
-    [SupportedConverterTypes(typeof(QueueMessage), typeof(BinaryData), typeof(JObject))]
+    [SupportsJsonDeserialization]
+    [SupportedConverterType(typeof(QueueMessage))]
+    [SupportedConverterType(typeof(BinaryData))]
+    [SupportedConverterType(typeof(JsonElement))]
     internal class QueueMessageConverter : IInputConverter
     {
+        private readonly ObjectSerializer _serializer;
         private readonly ILogger<QueueMessageConverter> _logger;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public QueueMessageConverter(ILogger<QueueMessageConverter> logger)
+        public QueueMessageConverter(IOptions<WorkerOptions> workerOptions, ILogger<QueueMessageConverter> logger)
         {
+            _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _jsonOptions = new() { Converters = { new QueueMessageJsonConverter() } };
         }
@@ -79,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             Type _ when targetType == typeof(QueueMessage) => queueMessage,
             Type _ when targetType == typeof(BinaryData) => ConvertMessageContentToBinaryData(queueMessage),
-            Type _ when targetType == typeof(JObject) => ConvertMessageContentToJObject(queueMessage),
+            Type _ when targetType == typeof(JsonElement) =>  ConvertMessageContentToJsonElement(queueMessage, targetType),
             _ => null
         };
 
@@ -109,7 +117,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         private BinaryData ConvertMessageContentToBinaryData(QueueMessage queueMessage)
         {
-            if (queueMessage == null)
+            if (queueMessage is null)
             {
                 throw new ArgumentNullException(nameof(queueMessage));
             }
@@ -117,14 +125,15 @@ namespace Microsoft.Azure.Functions.Worker
             return queueMessage.Body;
         }
 
-        private JObject ConvertMessageContentToJObject(QueueMessage queueMessage)
+        private object ConvertMessageContentToJsonElement(QueueMessage queueMessage, Type targetType)
         {
-            if (queueMessage == null)
+            if (queueMessage is null)
             {
                 throw new ArgumentNullException(nameof(queueMessage));
             }
 
-            return JObject.Parse(queueMessage.Body.ToString());
+            Stream? bodyStream = queueMessage.Body.ToStream();
+            return _serializer.Deserialize(bodyStream, targetType, CancellationToken.None)!;
         }
     }
 }

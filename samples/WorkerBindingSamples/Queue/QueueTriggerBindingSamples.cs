@@ -4,7 +4,7 @@
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
+using System.Text.Json;
 
 namespace SampleApp
 {
@@ -24,13 +24,13 @@ namespace SampleApp
         }
 
         [Function(nameof(BinaryDataSample))]
-        public void BinaryDataSample([QueueTrigger("input-queue-bd")] BinaryData message)
+        public void BinaryDataSample([QueueTrigger("input-queue-binarydata")] BinaryData message)
         {
             _logger.LogInformation(message.ToString());
         }
 
-        [Function(nameof(JObjectSample))]
-        public void JObjectSample([QueueTrigger("input-queue-jo")] JObject message)
+        [Function(nameof(JsonSample))]
+        public void JsonSample([QueueTrigger("input-queue-json")] JsonElement message)
         {
             _logger.LogInformation(message.ToString());
         }

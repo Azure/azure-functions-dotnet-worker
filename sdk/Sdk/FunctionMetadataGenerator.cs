@@ -582,6 +582,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return isArray;
         }
 
+
+        private static bool IsEnumerableCollection(TypeReference type)
+        {
+            bool isEnumerableOfT = IsOrDerivedFrom(type, Constants.IEnumerableOfT);
+            bool isEnumerableCollection =
+                !IsStringType(type.FullName)
+                && (IsOrDerivedFrom(type, Constants.IEnumerableType)
+                    || IsOrDerivedFrom(type, Constants.IEnumerableGenericType)
+                    || isEnumerableOfT);
+
+            return isEnumerableCollection;
+        }
+
         private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
             if (IsArray(type))
@@ -604,12 +617,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // IEnumerable and not string or dictionary
             bool isEnumerableOfT = IsOrDerivedFrom(type, Constants.IEnumerableOfT);
-            bool isEnumerableCollection =
-                !IsStringType(type.FullName)
-                && (IsOrDerivedFrom(type, Constants.IEnumerableType)
-                    || IsOrDerivedFrom(type, Constants.IEnumerableGenericType)
-                    || isEnumerableOfT);
-            if (isEnumerableCollection)
+            if (IsEnumerableCollection(type))
             {
                 dataType = DataType.Undefined;
                 if (IsOrDerivedFrom(type, Constants.IEnumerableOfStringType))
@@ -870,7 +878,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             }
                         }
 
-                        // Check for supported converter Types and JsonDeserializable objects
+                        // Check for supported converter Types and support for JsonDeserializable objects
                         if (supportsDeferredBindingAttribute)
                         {
                             if (CheckForJsonDeserializableTypes(typeReferenceCustomAttributes, bindingType) ||
@@ -886,51 +894,68 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool CheckForJsonDeserializableTypes(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes, TypeReference bindingType)
+        private static bool IsBindingTypeupportedByConverter(TypeReference converterType, TypeReference bindingType)
+        {
+            if (converterType != null && string.Equals(converterType.FullName, bindingType.FullName, StringComparison.Ordinal))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        private static bool IsBindingTypeJsonDeserializable(TypeReference bindingType)
+        {
+            var constructors = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
+
+            if (constructors.Count() == 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool ConverterSupportsJsonDeserialization(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes)
         {
             foreach (var attribute in customAttributes)
             {
                 // Converter supports Json Deserializable types
                 if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
                 {
-                    // Check for IEnumerable<T> case
-                    if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
-                    {
-                        var genericBindingCollectionType = bindingType as GenericInstanceType;
-                        var genericBindingType = genericBindingCollectionType?.GenericArguments.FirstOrDefault();
-                        var constructors = genericBindingType?.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-                        if (constructors.Count() == 0)
-                        {
-                            return true;
-                        }
-
-                    }
-                    // check for Array type
-                    else if (IsArray(bindingType))
-                    {
-                        var constructors = bindingType.GetElementType().Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-                        if (constructors.Count() == 0)
-                        {
-                            return true;
-                        }
-                    }
-                    // Check for Poco type
-                    else
-                    {
-                        var constructors = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-                        if (constructors.Count() == 0)
-                        {
-                            return true;
-                        }
-                    }
-
+                    return true;
                 }
             }
 
             return false;
+        }
+
+        private static bool CheckForJsonDeserializableTypes(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes, TypeReference bindingType)
+        {
+            bool result = false;
+
+            if (ConverterSupportsJsonDeserialization(customAttributes))
+            {
+                if (IsArray(bindingType))
+                {
+                    result = IsBindingTypeJsonDeserializable(bindingType.GetElementType());
+                }
+                else if (IsEnumerableCollection(bindingType))
+                {
+                    var genericBindingCollectionType = bindingType as GenericInstanceType;
+                    var genericBindingType = genericBindingCollectionType?.GenericArguments.FirstOrDefault();
+
+                    if (genericBindingType != null)
+                    {
+                        result = IsBindingTypeJsonDeserializable(genericBindingType);
+                    }
+                }
+                else
+                {
+                    result = IsBindingTypeJsonDeserializable(bindingType);
+                }
+            }
+
+            return result;
         }
 
         private static bool CheckConverterTypes(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes, TypeReference bindingType)
@@ -957,33 +982,34 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         {
                             var bindingTypeElement = bindingTypes.Value as TypeReference;
 
-                            // return true if type is supported
-                            if (bindingTypeElement != null && string.Equals(bindingTypeElement.FullName, bindingType.FullName, StringComparison.Ordinal))
-                            {
-                                return true;
-                            }
                             // check for array
-                            else if (IsArray(bindingType))
+                            if (IsArray(bindingType))
                             {
                                 if (bindingTypeElement != null &&
                                     supportsCollection == true &&
-                                    string.Equals(bindingTypeElement.FullName, bindingType.GetElementType().FullName, StringComparison.Ordinal))
+                                    IsBindingTypeupportedByConverter(bindingTypeElement, bindingType.GetElementType()))
                                 {
                                     return true;
                                 }
                             }
                             // check for IEnumerable<T>
-                            else if (string.Equals(bindingType.Namespace, "System.Collections.Generic", StringComparison.Ordinal))
+                            else if (IsEnumerableCollection(bindingType))
                             {
                                 var genericBindingType = bindingType as GenericInstanceType;
-                                var genericBindingTypeArgument = genericBindingType.GenericArguments.FirstOrDefault();
+                                var genericBindingTypeArgument = genericBindingType?.GenericArguments.FirstOrDefault();
 
                                 if (bindingTypeElement != null &&
+                                    genericBindingTypeArgument != null &&
                                     supportsCollection == true &&
-                                    string.Equals(bindingTypeElement.FullName, genericBindingTypeArgument.FullName, StringComparison.Ordinal))
+                                    IsBindingTypeupportedByConverter(bindingTypeElement, genericBindingTypeArgument))
                                 {
                                     return true;
                                 }
+                            }
+                            // return true if type is supported
+                            else if (bindingTypeElement != null && IsBindingTypeupportedByConverter(bindingTypeElement, bindingType))
+                            {
+                                return true;
                             }
                         }
                     }

@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.RegisterAt<HttpContextConverter>(0);
-                workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.HttpUriString.Value); // testing host side, remove this const later
+                workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.HttpUriString);
             });
 
             return builder;

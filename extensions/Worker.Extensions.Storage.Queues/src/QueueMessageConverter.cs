@@ -65,6 +65,16 @@ namespace Microsoft.Azure.Functions.Worker
                     _ => ConversionResult.Unhandled(),
                 };
             }
+            catch (JsonException ex)
+            {
+                string msg = String.Format(CultureInfo.CurrentCulture,
+                    @"Binding parameters to complex objects uses Json.NET serialization.
+                    1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
+                    2. Change the queue payload to be valid json. The JSON parser failed: {0}",
+                    ex.Message);
+
+                return ConversionResult.Failed(new InvalidOperationException(msg, ex));
+            }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
@@ -90,21 +100,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
             }
 
-            try
-            {
-                return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions);
-            }
-            catch (JsonException ex)
-            {
-                // Easy to have the queue payload not deserialize properly. So give a useful error.
-                string msg = String.Format(CultureInfo.CurrentCulture,
-                                @"Binding parameters to complex objects uses Json.NET serialization.
-                                1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
-                                2. Change the queue payload to be valid json. The JSON parser failed: {0}",
-                                ex.Message);
-
-                throw new InvalidOperationException(msg);
-            }
+            return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions);
         }
 
         private BinaryData ConvertMessageContentToBinaryData(QueueMessage queueMessage)

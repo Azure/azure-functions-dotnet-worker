@@ -3,7 +3,6 @@
 
 using System;
 using System.Globalization;
-using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,39 +56,32 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 QueueMessage queueMessage = ExtractQueueMessageFromBindingData(modelBindingData);
-                var result = ToTargetType(context.TargetType, queueMessage);
 
-                if (result is not null)
+                return context.TargetType switch
                 {
-                    return ConversionResult.Success(result);
-                }
+                    Type _ when context.TargetType == typeof(QueueMessage) => ConversionResult.Success(queueMessage),
+                    Type _ when context.TargetType == typeof(BinaryData) => ConversionResult.Success(ConvertMessageContentToBinaryData(queueMessage)),
+                    Type _ when context.TargetType == typeof(JsonElement) => ConversionResult.Success(ConvertMessageContentToJsonElement(queueMessage, context.TargetType)),
+                    _ => ConversionResult.Unhandled(),
+                };
             }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
             }
-
-            return ConversionResult.Unhandled();
         }
 
         private bool IsQueueExtension(ModelBindingData bindingData)
         {
-            if (bindingData?.Source is not Constants.QueueExtensionName)
+            bool isQueueExtension = bindingData.Source is Constants.QueueExtensionName;
+
+            if (!isQueueExtension)
             {
                 _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData?.Source, nameof(QueueMessageConverter));
-                return false;
             }
 
-            return true;
+            return isQueueExtension;
         }
-
-        private object? ToTargetType(Type targetType, QueueMessage queueMessage) => targetType switch
-        {
-            Type _ when targetType == typeof(QueueMessage) => queueMessage,
-            Type _ when targetType == typeof(BinaryData) => ConvertMessageContentToBinaryData(queueMessage),
-            Type _ when targetType == typeof(JsonElement) =>  ConvertMessageContentToJsonElement(queueMessage, targetType),
-            _ => null
-        };
 
         private QueueMessage ExtractQueueMessageFromBindingData(ModelBindingData modelBindingData)
         {
@@ -117,23 +109,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         private BinaryData ConvertMessageContentToBinaryData(QueueMessage queueMessage)
         {
-            if (queueMessage is null)
-            {
-                throw new ArgumentNullException(nameof(queueMessage));
-            }
-
             return queueMessage.Body;
         }
 
-        private object ConvertMessageContentToJsonElement(QueueMessage queueMessage, Type targetType)
+        private async ValueTask<object?> ConvertMessageContentToJsonElement(QueueMessage queueMessage, Type targetType)
         {
-            if (queueMessage is null)
-            {
-                throw new ArgumentNullException(nameof(queueMessage));
-            }
-
-            Stream? bodyStream = queueMessage.Body.ToStream();
-            return _serializer.Deserialize(bodyStream, targetType, CancellationToken.None)!;
+            using var bodyStream = queueMessage.Body.ToStream();
+            return await _serializer.DeserializeAsync(bodyStream, targetType, CancellationToken.None).ConfigureAwait(false);
         }
     }
 }

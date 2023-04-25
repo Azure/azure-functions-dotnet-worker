@@ -10,25 +10,22 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
 {
     internal class QueueMessageJsonConverter : JsonConverter<QueueMessage>
     {
-        public override bool CanConvert(Type objectType)
-        {
-            return objectType == typeof(QueueMessage);
-        }
+        public override bool CanConvert(Type objectType) => objectType == typeof(QueueMessage);
 
         public override QueueMessage? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            string messageId = "";
-            string popReceipt = "";
-            string messageText = "";
+            if (reader.TokenType is not JsonTokenType.StartObject)
+            {
+                throw new JsonException("JSON payload expected to start with StartObject token.");
+            }
+
+            string messageId = String.Empty;
+            string popReceipt = String.Empty;
+            string messageText = String.Empty;
             long dequeueCount = 1;
             DateTime? nextVisibleOn = null;
             DateTime? insertedOn = null;
             DateTime? expiresOn = null;
-
-            if (reader.TokenType != JsonTokenType.StartObject)
-            {
-                throw new JsonException("JSON payload expected to start with StartObject token.");
-            }
 
             var startDepth = reader.CurrentDepth;
 

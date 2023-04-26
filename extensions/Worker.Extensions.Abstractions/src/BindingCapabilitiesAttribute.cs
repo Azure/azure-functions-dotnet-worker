@@ -1,13 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-
 using System;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
     [AttributeUsage(AttributeTargets.Class)]
-    public class BindingCapabilitiesAttribute : Attribute
+    public sealed class BindingCapabilitiesAttribute : Attribute
     {
         /// <summary>
         /// Initializes a new instance of <see cref="BindingCapabilitiesAttribute"/> with the specified list of capabilities.

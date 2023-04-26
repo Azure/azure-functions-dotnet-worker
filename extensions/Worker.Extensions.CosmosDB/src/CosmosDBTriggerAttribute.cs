@@ -6,7 +6,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [SupportsFunctionLevelRetry]
+    [BindingCapabilities("FunctionLevelRetry")]
     public sealed class CosmosDBTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>

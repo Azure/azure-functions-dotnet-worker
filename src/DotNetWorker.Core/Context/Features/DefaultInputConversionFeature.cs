@@ -57,7 +57,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 foreach (var converterType in advertisedConverterTypes)
                 {
                     if (IsTypeSupported(converterType.Value, converterContext.TargetType) ||
-                        IsTypeCollectionSupported(converterType.Value, converterContext.TargetType) ||
                         IsJsonDeserializedObjectsSupported(converterType.Value.SupportsJsonDeserialization, converterContext.TargetType) ||
                         IsJsonDeserializedObjectCollectionSupported(converterType.Value.SupportsJsonDeserialization, converterContext.TargetType))
                     { 
@@ -184,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     return null;
                 }
 
-                Type converterType = ((InputConverterAttribute)converterAttribute).ConverterTypes.FirstOrDefault();
+                Type converterType = ((InputConverterAttribute)converterAttribute).ConverterType;
                 return converterType.AssemblyQualifiedName!;
 
             }, targetType);
@@ -206,18 +205,18 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         private bool IsTypeSupported(ConverterProperties converterType, Type TargetType)
         {
             return converterType.SupportedTypes.Any(a =>
-                                a.SupportedType.AssemblyQualifiedName == TargetType.AssemblyQualifiedName ||
-                                a.SupportedType.IsAssignableFrom(TargetType));
+                                a.AssemblyQualifiedName == TargetType.AssemblyQualifiedName ||
+                                a.IsAssignableFrom(TargetType));
         }
 
+        /*
         private bool IsTypeCollectionSupported(ConverterProperties converterType, Type TargetType)
         {
             if (TargetType.IsArray && TargetType.FullName != typeof(byte[]).FullName)
             {
                 return converterType.SupportedTypes.Any(a =>
-                                a.SupportedType.AssemblyQualifiedName == TargetType.GetElementType().AssemblyQualifiedName ||
-                                a.SupportedType.IsAssignableFrom(TargetType) &&
-                                a.SupportsCollection == true);
+                                a.AssemblyQualifiedName == TargetType.AssemblyQualifiedName ||
+                                a.IsAssignableFrom(TargetType));
             }
             else if (TargetType.IsGenericType)
             {
@@ -229,6 +228,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             return false;
         }
+        */
 
         private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type TargetType)
         {

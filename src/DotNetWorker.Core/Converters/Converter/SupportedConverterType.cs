@@ -17,17 +17,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         public Type Type { get; }
 
         /// <summary>
-        /// Boolean to indicate if collection <see cref="Type"/> is supported i.e Type[] or IEnumerable of Type.
-        /// </summary>
-        public bool SupportsCollection { get; }
-
-        /// <summary>
         /// Creates a new instance of <see cref="SupportedConverterTypeAttribute"/>
         /// </summary>
         /// <param name="type">Input converter type.</param>
-        /// <param name="supportsCollection">Supports collection of param type.</param>
         /// <exception cref="ArgumentNullException">Thrown when type is null</exception>
-        public SupportedConverterTypeAttribute(Type type, bool supportsCollection = false)
+        public SupportedConverterTypeAttribute(Type type)
         {
             if (type == null)
             {
@@ -35,7 +29,6 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
 
             Type = type;
-            SupportsCollection = supportsCollection;
         }
     }
 }

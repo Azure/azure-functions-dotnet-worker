@@ -19,6 +19,6 @@ namespace Microsoft.Azure.Functions.Worker.Core
         /// <summary>
         /// Gets the extension source of the binding data i.e CosmosDB, AzureStorageBlobs
         /// </summary>
-        public List<ConverterTypeProperties> SupportedTypes { get; set; }
+        public List<Type> SupportedTypes { get; set; }
     }
 }

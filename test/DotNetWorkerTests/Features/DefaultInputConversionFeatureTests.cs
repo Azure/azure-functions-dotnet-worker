@@ -116,9 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
                                                                     typeof(MySimpleSyncInputConverter),
                                                                     new ConverterProperties() {SupportsJsonDeserialization = false,
-                                                                        SupportedTypes = new List<ConverterTypeProperties>() {
-                                                                        new ConverterTypeProperties()
-                                                                            { SupportedType = typeof(string), SupportsCollection = true} } } } } },
+                                                                        SupportedTypes = new List<Type>() { typeof(string), typeof(string[])} } } } },
                 { PropertyBagKeys.DisableConverterFallback, true }
             };
 
@@ -138,12 +136,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
-                                                                    typeof(MySimpleSyncInputConverter),
-                                                                    new ConverterProperties() {SupportsJsonDeserialization = false,
-                                                                        SupportedTypes = new List<ConverterTypeProperties>() {
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(string), SupportsCollection = true},
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(Stream), SupportsCollection = true},
-                                                                        } } } } },
+                                                        typeof(MySimpleSyncInputConverter),
+                                                        new ConverterProperties() {SupportsJsonDeserialization = false,
+                                                        SupportedTypes = new List<Type>() { 
+                                                            typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
                 { PropertyBagKeys.DisableConverterFallback, true }
             };
 
@@ -161,12 +157,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
-                                                                    typeof(MySimpleSyncInputConverter),
-                                                                    new ConverterProperties() {SupportsJsonDeserialization = false,
-                                                                        SupportedTypes = new List<ConverterTypeProperties>() {
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(string), SupportsCollection = true},
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(Stream), SupportsCollection = true},
-                                                                        } } } } },
+                                                            typeof(MySimpleSyncInputConverter),
+                                                            new ConverterProperties() {SupportsJsonDeserialization = false,
+                                                            SupportedTypes = new List<Type>() { 
+                                                                typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
                 { PropertyBagKeys.DisableConverterFallback, true }
             };
 
@@ -184,12 +178,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
-                                                                    typeof(MySimpleSyncInputConverter),
-                                                                    new ConverterProperties() {SupportsJsonDeserialization = true,
-                                                                        SupportedTypes = new List<ConverterTypeProperties>() {
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(string), SupportsCollection = true},
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(Stream), SupportsCollection = true},
-                                                                        } } } } },
+                                                           typeof(MySimpleSyncInputConverter),
+                                                            new ConverterProperties() {SupportsJsonDeserialization = true,
+                                                            SupportedTypes = new List<Type>() {
+                                                                typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
                 { PropertyBagKeys.DisableConverterFallback, true }
             };
 
@@ -207,12 +199,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
-                                                                    typeof(MySimpleSyncInputConverter),
-                                                                    new ConverterProperties() {SupportsJsonDeserialization = false,
-                                                                        SupportedTypes = new List<ConverterTypeProperties>() {
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(string), SupportsCollection = true},
-                                                                        new ConverterTypeProperties() { SupportedType = typeof(Stream), SupportsCollection = true},
-                                                                        } } } } },
+                                                           typeof(MySimpleSyncInputConverter),
+                                                            new ConverterProperties() {SupportsJsonDeserialization = false,
+                                                            SupportedTypes = new List<Type>() {
+                                                                typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
                 { PropertyBagKeys.DisableConverterFallback, true }
             };
             var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -231,7 +221,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
                                                                     typeof(MySimpleSyncInputConverter),
                                                                     new ConverterProperties() {SupportsJsonDeserialization = false,
-                                                                        SupportedTypes = new List<ConverterTypeProperties>() { } } } } },
+                                                                        SupportedTypes = new List<Type>() { } } } } },
                 { PropertyBagKeys.DisableConverterFallback, false }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -259,7 +249,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal(ConversionStatus.Unhandled, actual.Status);
         }
 
-        [InputConverter(false, typeof(MyCustomerAsyncInputConverter))]
+        [InputConverter(typeof(MyCustomerAsyncInputConverter))]
         internal record Customer(string Id, string Name);
 
         internal class MyCustomerAsyncInputConverter : IInputConverter
@@ -275,8 +265,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
         [SupportsDeferredBinding]
         [SupportsJsonDeserialization]
-        [SupportedConverterType(typeof(string), supportsCollection: false)]
-        [SupportedConverterType(typeof(Stream), supportsCollection: false)]
+        [SupportedConverterType(typeof(string))]
+        [SupportedConverterType(typeof(Stream))]
         internal class MySimpleSyncInputConverter : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -288,8 +278,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [SupportsDeferredBinding]
-        [SupportedConverterType(typeof(string), supportsCollection: false)]
-        [SupportedConverterType(typeof(Stream), supportsCollection: false)]
+        [SupportedConverterType(typeof(string))]
+        [SupportedConverterType(typeof(Stream))]
         internal class MySimpleSyncInputConverter2 : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)

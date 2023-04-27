@@ -13,6 +13,7 @@ using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
+using System.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -74,21 +75,21 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         {
             // Get the input converter attribute information, if present on the parameter.
             var inputConverterAttribute = parameterInfo?.GetCustomAttribute<InputConverterAttribute>();
-
-            if (inputConverterAttribute != null && inputConverterAttribute.ConverterTypes != null && inputConverterAttribute.ConverterTypes.Any())
+            if (inputConverterAttribute != null)
             {
                 return new Dictionary<string, object>()
                 {
-                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterTypes?.FirstOrDefault()?.AssemblyQualifiedName! }
-                }.ToImmutableDictionary();
+                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }}
+                .ToImmutableDictionary();
             }
-            else {
+            else
+            {
                 var inputAttribute = parameterInfo?.GetCustomAttribute<InputBindingAttribute>();
                 var triggerAttribute = parameterInfo?.GetCustomAttribute<TriggerBindingAttribute>();
 
                 return GetBindingAttributePropertiesDictionary(inputAttribute) ??
-                       GetBindingAttributePropertiesDictionary(triggerAttribute) ??
-                       ImmutableDictionary<string, object>.Empty;
+                        GetBindingAttributePropertiesDictionary(triggerAttribute) ??
+                        ImmutableDictionary<string, object>.Empty;
             }
         }
 
@@ -99,30 +100,44 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 return null;
             }
 
+            var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
             IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
-            var result = new Dictionary<string, object>();
+            var result = new Dictionary<string, object>
+            {
+                { PropertyBagKeys.DisableConverterFallback, false }
+            };
 
             // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
             // The dictionary has key of type IInputConverter and value as ConverterProperties which will have
             // List of types supported by the converter, collection support for each type and support for Json deserialization
-            var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
 
             foreach (Attribute element in customAttributes)
             {
-                var attribute = element as InputConverterAttribute;
 
-                if (attribute is not null)
+                if (element.GetType() == typeof(InputConverterAttribute))
                 {
-                    foreach (var converter in attribute.ConverterTypes)
+                    var attribute = element as InputConverterAttribute;
+
+                    if (attribute is not null)
                     {
+                        var converter = attribute.ConverterType;
                         ConverterProperties types = GetTypesSupportedByConverter(converter);
                         converterTypesDictionary.Add(converter, types);
                     }
-
-                    result.Add(PropertyBagKeys.DisableConverterFallback, attribute.DisableConverterFallback);
-                    result.Add(PropertyBagKeys.BindingAttributeConverters, converterTypesDictionary);
                 }
+                else if(element.GetType() == typeof(EnableConvertersFallbackAttribute))
+                {
+                    var attribute2 = element as EnableConvertersFallbackAttribute;
+                    if (attribute2 is not null)
+                    {
+                        //converterfallback = true;
+                        result[PropertyBagKeys.DisableConverterFallback] = true;
+                    }
+                }
+
             }
+
+            result.Add(PropertyBagKeys.BindingAttributeConverters, converterTypesDictionary);
 
             return result.ToImmutableDictionary();
         }
@@ -130,14 +145,14 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         private ConverterProperties GetTypesSupportedByConverter(Type converter)
         {
             bool supportsJsonDeserialization = false;
-            var types = new List<ConverterTypeProperties>();
+            var types = new List<Type>();
 
             foreach (var converterAttribute in converter.CustomAttributes)
             {
                 if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
                 {
                     Type? supportedTypeValue = null;
-                    bool? supportsCollectionValue = null;
+                    //bool? supportsCollectionValue = null;
 
                     foreach (var supportedType in converterAttribute.ConstructorArguments)
                     {
@@ -147,19 +162,15 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                             {
                                 supportedTypeValue = (Type)supportedType.Value;
                             }
-                            if (supportedType.ArgumentType == typeof(bool))
-                            {
-                                supportsCollectionValue = (bool)supportedType.Value;
-                            }
                         }
                     }
 
-                    if (supportsCollectionValue != null && supportedTypeValue != null)
+                    if (supportedTypeValue != null)
                     {
-                        types.Add(new ConverterTypeProperties() { SupportedType = supportedTypeValue, SupportsCollection = (bool)supportsCollectionValue });
+                        types.Add(supportedTypeValue);
                     }
                 }
-                else if (converterAttribute.AttributeType == typeof(SupportsJsonDeserialization))
+                else if (converterAttribute.AttributeType == typeof(SupportsJsonDeserializationAttribute))
                 {
                     supportsJsonDeserialization = true;
                 }

@@ -2,10 +2,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [EnableConvertersFallback]
+    [InputConverter(typeof(CosmosDBConverter))]
     public sealed class CosmosDBTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>

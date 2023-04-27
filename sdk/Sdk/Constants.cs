@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string SupportsDeferredBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
         internal const string InputConverterAttributeType = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
         internal const string SupportedConverterTypeAttributeType = "Microsoft.Azure.Functions.Worker.Converters.SupportedConverterTypeAttribute";
-        internal const string SupportsJsonDeserializationAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsJsonDeserialization";
+        internal const string SupportsJsonDeserializationAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsJsonDeserializationAttribute";
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
     /// This is to be used on converters that support Json Deserialization.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
-    public class SupportsJsonDeserialization : Attribute
+    public class SupportsJsonDeserializationAttribute : Attribute
     {
     }
 }

@@ -821,18 +821,42 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (CustomAttribute bindingAttribute in typeDefinition.CustomAttributes)
             {
+                // Converters advertised by Binding attribute will be checked for supporting deferred binding
                 if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
                 {
-                    return CheckBindingAttributeForAdvertisedConverters(bindingAttribute, bindingType);
+                    // InputConverterAttribute can have multiple supported converter types
+                    foreach (var customAttribute in bindingAttribute.ConstructorArguments)
+                    {
+                        /*
+                        if (string.Equals(customAttribute.Type.FullName, typeof(Type).FullName) &&
+                            customAttribute.Value.GetType() == typeof(CustomAttributeArgument))
+                        {
+                        */
+                            bool output = CheckSupportedConverters(customAttribute, bindingType);
+                            if (output)
+                            {
+                                return true;
+                            }
+                       // }
+                    }
                 }
             }
 
             return false;
         }
 
+        /*
         // Converters advertised by Binding attribute will be checked for supporting deferred binding
         private static bool CheckBindingAttributeForAdvertisedConverters(CustomAttribute bindingAttribute, TypeReference bindingType)
         {
+            foreach (CustomAttribute bindingAttribute in typeDefinition.CustomAttributes)
+            {
+                if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
+                {
+                    return CheckBindingAttributeForAdvertisedConverters(bindingAttribute, bindingType);
+                }
+            }
+
             // InputConverterAttribute can have multiple supported converter types
             foreach (var customAttribute in bindingAttribute.ConstructorArguments)
             {
@@ -845,25 +869,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             return false;
         }
+        */
 
         private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, TypeReference bindingType)
         {
             // Check if converter supports deferred binding for the binding type
-            if (customAttribute.Value.GetType() == typeof(CustomAttributeArgument[]))
-            {
-                CustomAttributeArgument[] customAttributeArguments = (CustomAttributeArgument[])customAttribute.Value;
+    //        if (customAttribute.Value.GetType() == typeof(CustomAttributeArgument))
+      ////      {
+//                CustomAttributeArgument customAttributeArgument = (CustomAttributeArgument)customAttribute.Value;
 
+                /*
                 if (customAttributeArguments is null)
                 {
                     return false;
                 }
-
+                */
                 // Loop through advertised converters
-                foreach (var element in customAttributeArguments)
-                {
+             //   foreach (var element in customAttributeArguments)
+             //   {
                     bool supportsDeferredBindingAttribute = false;
 
-                    var typeReferenceValue = element.Value as TypeReference;
+                    var typeReferenceValue = customAttribute.Value as TypeReference;
                     var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
 
                     if (typeReferenceCustomAttributes is not null)
@@ -887,8 +913,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                                 return true;
                             }
                         }
-                    }
-                }
+                //    }
+                //}
             }
 
             return false;
@@ -960,21 +986,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static bool CheckConverterTypes(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes, TypeReference bindingType)
         {
-            bool supportsCollection = false;
 
             foreach (var attribute in customAttributes)
             {
                 if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
                 {
-                    // Check if collection is supported
-                    foreach (var bindingTypes in attribute.ConstructorArguments)
-                    {
-                        if (bindingTypes.Type.FullName == typeof(bool).FullName)
-                        {
-                            supportsCollection = (bool)bindingTypes.Value;
-                        }
-                    }
-
                     // Check if type is supported
                     foreach (var bindingTypes in attribute.ConstructorArguments)
                     {
@@ -986,7 +1002,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             if (IsArray(bindingType))
                             {
                                 if (bindingTypeElement != null &&
-                                    supportsCollection == true &&
                                     IsBindingTypeupportedByConverter(bindingTypeElement, bindingType.GetElementType()))
                                 {
                                     return true;
@@ -1000,7 +1015,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                                 if (bindingTypeElement != null &&
                                     genericBindingTypeArgument != null &&
-                                    supportsCollection == true &&
                                     IsBindingTypeupportedByConverter(bindingTypeElement, genericBindingTypeArgument))
                                 {
                                     return true;

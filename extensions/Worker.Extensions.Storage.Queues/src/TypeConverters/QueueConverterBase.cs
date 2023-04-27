@@ -4,7 +4,6 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Storage.Queues;
@@ -15,12 +14,10 @@ namespace Microsoft.Azure.Functions.Worker
     internal abstract class QueueConverterBase<T>  : IInputConverter
     {
         private readonly ILogger<QueueConverterBase<T>> _logger;
-        private readonly JsonSerializerOptions _jsonOptions;
 
         public QueueConverterBase(ILogger<QueueConverterBase<T>> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _jsonOptions = new() { Converters = { new QueueMessageJsonConverter() } };
         }
 
         public bool CanConvert(ConverterContext context)
@@ -50,15 +47,18 @@ namespace Microsoft.Azure.Functions.Worker
 
         public abstract ValueTask<ConversionResult> ConvertAsync(ConverterContext context);
 
-        protected QueueMessage ExtractQueueMessageFromBindingData(ModelBindingData modelBindingData)
+        protected async Task<string> ExtractQueueMessageTextAsStringAsync(ModelBindingData modelBindingData)
         {
             if (modelBindingData.ContentType is not Constants.JsonContentType)
             {
                 throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
             }
 
-            return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions);
-        }
+            using var contentStream = modelBindingData.Content.ToStream();
+            var contentElement = await JsonSerializer.DeserializeAsync<JsonElement>(contentStream).ConfigureAwait(false);
 
+            return contentElement.GetProperty(Constants.QueueMessageText).ToString()
+                                ?? throw new InvalidOperationException($"The '{Constants.QueueMessageText}' property is missing or null.");
+        }
     }
 }

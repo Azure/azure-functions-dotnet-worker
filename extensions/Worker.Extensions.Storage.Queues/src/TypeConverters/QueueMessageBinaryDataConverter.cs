@@ -5,7 +5,6 @@ using System;
 using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
@@ -22,18 +21,20 @@ namespace Microsoft.Azure.Functions.Worker
         {
         }
 
-        public override ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public override async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (!CanConvert(context))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return ConversionResult.Unhandled();
             }
 
             try
             {
                 var modelBindingData = (ModelBindingData)context.Source!;
-                QueueMessage queueMessage = ExtractQueueMessageFromBindingData(modelBindingData);
-                return new ValueTask<ConversionResult>(ConversionResult.Success(queueMessage.Body));
+                var messageText = await ExtractQueueMessageTextAsStringAsync(modelBindingData);
+                var result = new BinaryData(messageText);
+
+                return ConversionResult.Success(result);
             }
             catch (JsonException ex)
             {
@@ -43,13 +44,12 @@ namespace Microsoft.Azure.Functions.Worker
                     2. Change the queue payload to be valid json. The JSON parser failed: {0}",
                     ex.Message);
 
-                return new ValueTask<ConversionResult>(ConversionResult.Failed(new InvalidOperationException(msg)));
+                return ConversionResult.Failed(new InvalidOperationException(msg));
             }
             catch (Exception ex)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Failed(ex));
+                return ConversionResult.Failed(ex);
             }
-
         }
     }
 }

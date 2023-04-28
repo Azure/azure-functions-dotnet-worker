@@ -102,6 +102,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
             IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
+
             var result = new Dictionary<string, object>
             {
                 { PropertyBagKeys.DisableConverterFallback, false }
@@ -127,10 +128,9 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 }
                 else if(element.GetType() == typeof(EnableConvertersFallbackAttribute))
                 {
-                    var attribute2 = element as EnableConvertersFallbackAttribute;
-                    if (attribute2 is not null)
+                    var attribute = element as EnableConvertersFallbackAttribute;
+                    if (attribute is not null)
                     {
-                        //converterfallback = true;
                         result[PropertyBagKeys.DisableConverterFallback] = true;
                     }
                 }
@@ -152,7 +152,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
                 {
                     Type? supportedTypeValue = null;
-                    //bool? supportsCollectionValue = null;
 
                     foreach (var supportedType in converterAttribute.ConstructorArguments)
                     {

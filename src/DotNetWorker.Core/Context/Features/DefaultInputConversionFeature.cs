@@ -209,27 +209,6 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                                 a.IsAssignableFrom(TargetType));
         }
 
-        /*
-        private bool IsTypeCollectionSupported(ConverterProperties converterType, Type TargetType)
-        {
-            if (TargetType.IsArray && TargetType.FullName != typeof(byte[]).FullName)
-            {
-                return converterType.SupportedTypes.Any(a =>
-                                a.AssemblyQualifiedName == TargetType.AssemblyQualifiedName ||
-                                a.IsAssignableFrom(TargetType));
-            }
-            else if (TargetType.IsGenericType)
-            {
-                return converterType.SupportedTypes.Any(a =>
-                                a.SupportedType.AssemblyQualifiedName == TargetType.GetGenericArguments().FirstOrDefault().AssemblyQualifiedName ||
-                                a.SupportedType.IsAssignableFrom(TargetType) &&
-                                a.SupportsCollection == true);
-            }
-
-            return false;
-        }
-        */
-
         private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type TargetType)
         {
             return converterSupports == true && TargetType.IsClass && !TargetType.GetConstructors().Any(a => a.GetParameters().Any());

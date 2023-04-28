@@ -827,17 +827,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     // InputConverterAttribute can have multiple supported converter types
                     foreach (var customAttribute in bindingAttribute.ConstructorArguments)
                     {
-                        /*
-                        if (string.Equals(customAttribute.Type.FullName, typeof(Type).FullName) &&
-                            customAttribute.Value.GetType() == typeof(CustomAttributeArgument))
+                        bool output = CheckSupportedConverters(customAttribute, bindingType);
+                        if (output)
                         {
-                        */
-                            bool output = CheckSupportedConverters(customAttribute, bindingType);
-                            if (output)
-                            {
-                                return true;
-                            }
-                       // }
+                            return true;
+                        }
                     }
                 }
             }
@@ -845,76 +839,34 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        /*
-        // Converters advertised by Binding attribute will be checked for supporting deferred binding
-        private static bool CheckBindingAttributeForAdvertisedConverters(CustomAttribute bindingAttribute, TypeReference bindingType)
-        {
-            foreach (CustomAttribute bindingAttribute in typeDefinition.CustomAttributes)
-            {
-                if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
-                {
-                    return CheckBindingAttributeForAdvertisedConverters(bindingAttribute, bindingType);
-                }
-            }
-
-            // InputConverterAttribute can have multiple supported converter types
-            foreach (var customAttribute in bindingAttribute.ConstructorArguments)
-            {
-                if (string.Equals(customAttribute.Type.GetElementType().FullName, typeof(Type).FullName) &&
-                    customAttribute.Value.GetType() == typeof(CustomAttributeArgument[]))
-                {
-                    return CheckSupportedConverters(customAttribute, bindingType);
-                }
-            }
-
-            return false;
-        }
-        */
-
         private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, TypeReference bindingType)
         {
-            // Check if converter supports deferred binding for the binding type
-    //        if (customAttribute.Value.GetType() == typeof(CustomAttributeArgument))
-      ////      {
-//                CustomAttributeArgument customAttributeArgument = (CustomAttributeArgument)customAttribute.Value;
+            bool supportsDeferredBindingAttribute = false;
 
-                /*
-                if (customAttributeArguments is null)
+            var typeReferenceValue = customAttribute.Value as TypeReference;
+            var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
+
+            if (typeReferenceCustomAttributes is not null)
+            {
+                // Find if converter supports Deferred Binding
+                foreach (var attribute in typeReferenceCustomAttributes)
                 {
-                    return false;
-                }
-                */
-                // Loop through advertised converters
-             //   foreach (var element in customAttributeArguments)
-             //   {
-                    bool supportsDeferredBindingAttribute = false;
-
-                    var typeReferenceValue = customAttribute.Value as TypeReference;
-                    var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
-
-                    if (typeReferenceCustomAttributes is not null)
+                    if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
                     {
-                        // Find if converter supports Deferred Binding
-                        foreach (var attribute in typeReferenceCustomAttributes)
-                        {
-                            if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
-                            {
-                                supportsDeferredBindingAttribute = true;
-                                break;
-                            }
-                        }
+                        supportsDeferredBindingAttribute = true;
+                        break;
+                    }
+                }
 
-                        // Check for supported converter Types and support for JsonDeserializable objects
-                        if (supportsDeferredBindingAttribute)
-                        {
-                            if (CheckForJsonDeserializableTypes(typeReferenceCustomAttributes, bindingType) ||
-                                CheckConverterTypes(typeReferenceCustomAttributes, bindingType))
-                            {
-                                return true;
-                            }
-                        }
-                //    }
-                //}
+                // Check for supported converter Types and support for JsonDeserializable objects
+                if (supportsDeferredBindingAttribute)
+                {
+                    if (CheckForJsonDeserializableTypes(typeReferenceCustomAttributes, bindingType) ||
+                        CheckConverterTypes(typeReferenceCustomAttributes, bindingType))
+                    {
+                        return true;
+                    }
+                }
             }
 
             return false;

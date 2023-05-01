@@ -101,17 +101,14 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 return null;
             }
 
+            var output = new Dictionary<string, object>();
+            bool isInputConverterAttributeAdvertised = false;
+
             // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
             // The dictionary has key of type IInputConverter and value as Properties of that converter (specifies supported types and support for Json Deserialization)
             var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
 
             IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
-
-            var output = new Dictionary<string, object>
-            {
-                { PropertyBagKeys.EnableFallbackConverters, false }
-            };
-
 
             foreach (Attribute element in customAttributes)
             {
@@ -121,23 +118,33 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
                     if (attribute is not null)
                     {
+                        isInputConverterAttributeAdvertised = true;
                         Type converter = attribute.ConverterType;
                         ConverterProperties supportedTypes = GetTypesSupportedByConverter(converter);
                         converterTypesDictionary.Add(converter, supportedTypes);
                     }
                 }
-                else if(element.GetType() == typeof(EnableConvertersFallbackAttribute))
-                {
-                    var attribute = element as EnableConvertersFallbackAttribute;
-                    if (attribute is not null)
-                    {
-                        output[PropertyBagKeys.EnableFallbackConverters] = true;
-                    }
-                }
-
             }
 
             output.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converterTypesDictionary);
+
+            if (isInputConverterAttributeAdvertised)
+            {
+                output.Add(PropertyBagKeys.EnableFallbackConverters, false);
+
+                foreach (Attribute element in customAttributes)
+                {
+                    if (element.GetType() == typeof(EnableConvertersFallbackAttribute))
+                    {
+                        var attribute = element as EnableConvertersFallbackAttribute;
+
+                        if (attribute is not null)
+                        {
+                            output[PropertyBagKeys.EnableFallbackConverters] = true;
+                        }
+                    }
+                }
+            }
 
             return output.ToImmutableDictionary();
         }

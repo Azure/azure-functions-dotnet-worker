@@ -785,9 +785,7 @@
         "containerName": "TriggerItems",
         "connection": "CosmosDBConnection",
         "createLeaseContainerIfNotExists": true,
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
+        "properties": {}
       }
     ]
   }

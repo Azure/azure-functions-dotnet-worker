@@ -10,6 +10,7 @@ namespace SampleApp
 {
     public static class CosmosDBFunction
     {
+        //<docsnippet_exponential_backoff_retry_example>
         [Function("CosmosDBFunction")]
         [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
         [CosmosDBOutput("%CosmosDb%", "%CosmosCollOut%", ConnectionStringSetting = "CosmosConnection", CreateIfNotExists = true)]
@@ -33,6 +34,7 @@ namespace SampleApp
 
             return null;
         }
+        //</docsnippet_exponential_backoff_retry_example>
     }
 
     public class MyDocument

@@ -201,7 +201,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            return false;
+            return true;
         }
 
         /// <summary>

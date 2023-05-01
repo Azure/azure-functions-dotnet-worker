@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using Mono.Cecil;
 using Mono.Cecil.Rocks;
+using Mono.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -824,11 +825,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 // Converters advertised by Binding attribute will be checked for supporting deferred binding
                 if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
                 {
-                    // InputConverterAttribute can have multiple supported converter types
+                    // InputConverterAttribute will have supported converter type
                     foreach (var customAttribute in bindingAttribute.ConstructorArguments)
                     {
-                        bool output = CheckSupportedConverters(customAttribute, bindingType);
-                        if (output)
+                        if (DoesConverterSupportDeferredBinding(customAttribute, bindingType))
                         {
                             return true;
                         }
@@ -839,30 +839,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool CheckSupportedConverters(CustomAttributeArgument customAttribute, TypeReference bindingType)
+        private static bool DoesConverterSupportDeferredBinding(CustomAttributeArgument customAttribute, TypeReference bindingType)
         {
-            bool supportsDeferredBindingAttribute = false;
-
             var typeReferenceValue = customAttribute.Value as TypeReference;
             var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
-
+            
+            // Attributes advertised by converter
             if (typeReferenceCustomAttributes is not null)
             {
-                // Find if converter supports Deferred Binding
-                foreach (var attribute in typeReferenceCustomAttributes)
+                if (DoesConverterAdvertisesDeferredBindingSupport(typeReferenceCustomAttributes))
                 {
-                    if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
-                    {
-                        supportsDeferredBindingAttribute = true;
-                        break;
-                    }
-                }
-
-                // Check for supported converter Types and support for JsonDeserializable objects
-                if (supportsDeferredBindingAttribute)
-                {
-                    if (CheckForJsonDeserializableTypes(typeReferenceCustomAttributes, bindingType) ||
-                        CheckConverterTypes(typeReferenceCustomAttributes, bindingType))
+                    if (CheckSupportForJsonDeserializableTypes(typeReferenceCustomAttributes, bindingType)
+                        || CheckSupportForConverterTypes(typeReferenceCustomAttributes, bindingType))
                     {
                         return true;
                     }
@@ -872,33 +860,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool IsBindingTypeupportedByConverter(TypeReference converterType, TypeReference bindingType)
+        private static bool DoesConverterAdvertisesDeferredBindingSupport(Collection<CustomAttribute> typeReferenceCustomAttributes)
         {
-            if (converterType != null && string.Equals(converterType.FullName, bindingType.FullName, StringComparison.Ordinal))
+            // Check if converter advertises support for Deferred Binding
+            foreach (var attribute in typeReferenceCustomAttributes)
             {
-                return true;
-            }
-
-            return false;
-        }
-        private static bool IsBindingTypeJsonDeserializable(TypeReference bindingType)
-        {
-            var constructors = bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any());
-
-            if (constructors.Count() == 0)
-            {
-                return true;
-            }
-
-            return false;
-        }
-
-        private static bool ConverterSupportsJsonDeserialization(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes)
-        {
-            foreach (var attribute in customAttributes)
-            {
-                // Converter supports Json Deserializable types
-                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
+                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
                 {
                     return true;
                 }
@@ -907,7 +874,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return false;
         }
 
-        private static bool CheckForJsonDeserializableTypes(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes, TypeReference bindingType)
+        private static bool CheckSupportForJsonDeserializableTypes(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
         {
             bool result = false;
 
@@ -919,9 +886,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
                 else if (IsEnumerableCollection(bindingType))
                 {
-                    var genericBindingCollectionType = bindingType as GenericInstanceType;
-                    var genericBindingType = genericBindingCollectionType?.GenericArguments.FirstOrDefault();
-
+                    var genericBindingType = GetElementTypeOfEnumerable(bindingType);
                     if (genericBindingType != null)
                     {
                         result = IsBindingTypeJsonDeserializable(genericBindingType);
@@ -936,53 +901,60 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return result;
         }
 
-        private static bool CheckConverterTypes(Mono.Collections.Generic.Collection<CustomAttribute> customAttributes, TypeReference bindingType)
+        private static bool CheckSupportForConverterTypes(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
         {
-
+            // Parse advertised attributes by converter
             foreach (var attribute in customAttributes)
             {
                 if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
                 {
-                    // Check if type is supported
-                    foreach (var bindingTypes in attribute.ConstructorArguments)
+                    foreach (var element in attribute.ConstructorArguments)
                     {
-                        if (bindingTypes.Type.FullName == typeof(Type).FullName)
+                        if (element.Type.FullName == typeof(Type).FullName)
                         {
-                            var bindingTypeElement = bindingTypes.Value as TypeReference;
+                            var supportedType = element.Value as TypeReference;
 
-                            // check for array
-                            if (IsArray(bindingType))
-                            {
-                                if (bindingTypeElement != null &&
-                                    IsBindingTypeupportedByConverter(bindingTypeElement, bindingType.GetElementType()))
-                                {
-                                    return true;
-                                }
-                            }
-                            // check for IEnumerable<T>
-                            else if (IsEnumerableCollection(bindingType))
-                            {
-                                var genericBindingType = bindingType as GenericInstanceType;
-                                var genericBindingTypeArgument = genericBindingType?.GenericArguments.FirstOrDefault();
-
-                                if (bindingTypeElement != null &&
-                                    genericBindingTypeArgument != null &&
-                                    IsBindingTypeupportedByConverter(bindingTypeElement, genericBindingTypeArgument))
-                                {
-                                    return true;
-                                }
-                            }
-                            // return true if type is supported
-                            else if (bindingTypeElement != null && IsBindingTypeupportedByConverter(bindingTypeElement, bindingType))
+                            if (supportedType is not null && IsBindingTypeSupportedByConverter(supportedType, bindingType))
                             {
                                 return true;
-                            }
+                            }                                
                         }
                     }
                 }
             }
 
             return false;
+        }
+
+        private static bool IsBindingTypeSupportedByConverter(TypeReference converterType, TypeReference bindingType)
+        {
+            return (converterType != null && string.Equals(converterType.FullName, bindingType.FullName, StringComparison.Ordinal)) ? true : false;
+        }
+        private static bool IsBindingTypeJsonDeserializable(TypeReference bindingType)
+        {
+            return (bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any()).Count() == 0) ? true : false;
+        }
+
+        private static bool ConverterSupportsJsonDeserialization(Collection<CustomAttribute> customAttributes)
+        {
+            foreach (var attribute in customAttributes)
+            {
+                // Converter supports Json Deserializable types
+                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static TypeReference? GetElementTypeOfEnumerable(TypeReference bindingType)
+        {
+            var genericBindingType = bindingType as GenericInstanceType;
+            var genericBindingTypeArgument = genericBindingType?.GenericArguments.FirstOrDefault();
+
+            return genericBindingTypeArgument;
         }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)

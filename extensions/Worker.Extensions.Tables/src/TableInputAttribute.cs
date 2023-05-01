@@ -8,8 +8,10 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Attribute used to configure a parameter as the input target for the Azure Storage Tables binding.
     /// </summary>
+    [SupportsDeferredBinding]
     public class TableInputAttribute : InputBindingAttribute
     {
+        private bool _isBatched = false;
         /// <summary>Initializes a new instance of the <see cref="TableInputAttribute"/> class.</summary>
         /// <param name="tableName">The name of the table to which to bind.</param>
         public TableInputAttribute(string tableName)
@@ -35,6 +37,16 @@ namespace Microsoft.Azure.Functions.Worker
             TableName = tableName;
             PartitionKey = partitionKey;
             RowKey = rowKey;
+        }
+
+        /// <summary>
+        /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
+        /// </summary>
+        [DefaultValue(false)]
+        public bool IsBatched
+        {
+            get => _isBatched;
+            set => _isBatched = value;
         }
 
         /// <summary>Gets the name of the table to which to bind.</summary>

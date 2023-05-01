@@ -113,11 +113,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, ConverterProperties>() { {
                                                                     typeof(MySimpleSyncInputConverter),
                                                                     new ConverterProperties() {SupportsJsonDeserialization = false,
                                                                         SupportedTypes = new List<Type>() { typeof(string), typeof(string[])} } } } },
-                { PropertyBagKeys.DisableConverterFallback, true }
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
 
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -135,12 +135,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, ConverterProperties>() { {
                                                         typeof(MySimpleSyncInputConverter),
                                                         new ConverterProperties() {SupportsJsonDeserialization = false,
                                                         SupportedTypes = new List<Type>() { 
                                                             typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
-                { PropertyBagKeys.DisableConverterFallback, true }
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
 
             var converterContext = CreateConverterContext(typeof(object), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -156,12 +156,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, ConverterProperties>() { {
                                                             typeof(MySimpleSyncInputConverter),
                                                             new ConverterProperties() {SupportsJsonDeserialization = false,
                                                             SupportedTypes = new List<Type>() { 
                                                                 typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
-                { PropertyBagKeys.DisableConverterFallback, true }
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
 
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -177,12 +177,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, ConverterProperties>() { {
                                                            typeof(MySimpleSyncInputConverter),
                                                             new ConverterProperties() {SupportsJsonDeserialization = true,
                                                             SupportedTypes = new List<Type>() {
                                                                 typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
-                { PropertyBagKeys.DisableConverterFallback, true }
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
 
             var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -198,12 +198,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, ConverterProperties>() { {
                                                            typeof(MySimpleSyncInputConverter),
                                                             new ConverterProperties() {SupportsJsonDeserialization = false,
                                                             SupportedTypes = new List<Type>() {
                                                                 typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } } },
-                { PropertyBagKeys.DisableConverterFallback, true }
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
             var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -218,11 +218,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Dictionary<Type, ConverterProperties>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, ConverterProperties>() { {
                                                                     typeof(MySimpleSyncInputConverter),
                                                                     new ConverterProperties() {SupportsJsonDeserialization = false,
                                                                         SupportedTypes = new List<Type>() { } } } } },
-                { PropertyBagKeys.DisableConverterFallback, false }
+                { PropertyBagKeys.EnableFallbackConverters, true }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -239,8 +239,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeConverters, new Tuple<bool, List<Type>>(false, new List<Type>() { })  },
-                { PropertyBagKeys.DisableConverterFallback, true }
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Tuple<bool, List<Type>>(false, new List<Type>() { })  },
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 

@@ -23,12 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// <exception cref="ArgumentNullException">Thrown when type is null</exception>
         public SupportedConverterTypeAttribute(Type type)
         {
-            if (type == null)
-            {
-                throw new ArgumentNullException(nameof(type));
-            }
-
-            Type = type;
+            Type = type ?? throw new ArgumentNullException(nameof(type));
         }
     }
 }

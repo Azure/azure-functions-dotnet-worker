@@ -49,16 +49,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            // Get list of converters advertised by the Binding Attribute
+            // Get information of all converters advertised by the Binding Attribute
             Dictionary<IInputConverter, ConverterProperties>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
             {
                 foreach (var converterType in advertisedConverterTypes)
                 {
-                    if (IsTypeSupported(converterType.Value, converterContext.TargetType) ||
-                        IsJsonDeserializedObjectsSupported(converterType.Value.SupportsJsonDeserialization, converterContext.TargetType) ||
-                        IsJsonDeserializedObjectCollectionSupported(converterType.Value.SupportsJsonDeserialization, converterContext.TargetType))
+                    if (IsTargetTypeSupportedByConverter(converterType.Value, converterContext.TargetType))
                     { 
                         var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
@@ -70,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            if (!IsConvertersFallbackDisabled(converterContext))
+            if (AreFallbackConvertersEnabled(converterContext))
             {
                 // Use the registered converters. The first converter which can handle the conversion wins.
                 foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
@@ -138,27 +136,28 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
 
+        /// <summary>
+        /// Gets information of all converters advertised by the Binding Attribute
+        /// </summary>
         private Dictionary<IInputConverter, ConverterProperties>? GetExplicitConverterTypes(ConverterContext context)
         {
             var result = new Dictionary<IInputConverter, ConverterProperties>();
 
-            if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var converterTypes))
+            if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeSupportedConverters, out var converterTypes))
             {
                 if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, ConverterProperties>))
                 {
-                    var converters = (Dictionary<Type, ConverterProperties>)converterTypes;
+                    var converters = converterTypes as Dictionary<Type, ConverterProperties>;
                     var interfaceType = typeof(IInputConverter);
 
-                    foreach (var converterTypesPair in converters)
+                    foreach (var (converterTypesPair, converterType) in from converterTypesPair in converters
+                                                                        let converterType = converterTypesPair.Key
+                                                                        where interfaceType.IsAssignableFrom(converterType)
+                                                                        select (converterTypesPair, converterType))
                     {
-                        var converterType = converterTypesPair.Key;
-
-                        if (interfaceType.IsAssignableFrom(converterType))
-                        {
-                            result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), converterTypesPair.Value);
-                        }
+                        result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), converterTypesPair.Value);
                     }
-                    
+
                     return result;
                 }
             }
@@ -189,9 +188,12 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }, targetType);
         }
 
-        private bool IsConvertersFallbackDisabled(ConverterContext context)
+        /// <summary>
+        /// Returns boolean value indicating whether fallback to registered converters enabled by the converter
+        /// </summary>
+        private bool AreFallbackConvertersEnabled(ConverterContext context)
         {
-            if (context.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallback, out var res))
+            if (context.Properties.TryGetValue(PropertyBagKeys.EnableFallbackConverters, out var res))
             {
                 if (res is not null && res.GetType() == typeof(bool))
                 {
@@ -202,34 +204,43 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return false;
         }
 
-        private bool IsTypeSupported(ConverterProperties converterType, Type TargetType)
+        /// <summary>
+        /// Returns boolean value indicating whether Target type is supported by the converter
+        /// </summary>
+        private bool IsTargetTypeSupportedByConverter(ConverterProperties converterTypeProperties, Type targetType)
+        {
+            return IsTypeSupportedByConverter(converterTypeProperties, targetType)
+                    || IsJsonDeserializedObjectsSupported(converterTypeProperties.SupportsJsonDeserialization, targetType);
+        }
+
+        private bool IsTypeSupportedByConverter(ConverterProperties converterType, Type targetType)
         {
             return converterType.SupportedTypes.Any(a =>
-                                a.AssemblyQualifiedName == TargetType.AssemblyQualifiedName ||
-                                a.IsAssignableFrom(TargetType));
+                                a.AssemblyQualifiedName == targetType.AssemblyQualifiedName ||
+                                a.IsAssignableFrom(targetType));
         }
 
-        private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type TargetType)
+        private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type targetType)
         {
-            return converterSupports == true && TargetType.IsClass && !TargetType.GetConstructors().Any(a => a.GetParameters().Any());
-        }
-
-        private bool IsJsonDeserializedObjectCollectionSupported(bool converterSupports, Type TargetType)
-        {
-            if (TargetType.IsArray && TargetType.FullName != typeof(byte[]).FullName)
+            if (converterSupports == true && IsJsonDeserializedObject(targetType))
             {
-                return converterSupports == true &&
-                       TargetType.GetElementType().IsClass &&
-                       !TargetType.GetElementType().GetConstructors().Any(a => a.GetParameters().Any());
+                return true;
             }
-            else if (TargetType.IsGenericType)
+            else if (targetType.IsArray && targetType.FullName != typeof(byte[]).FullName)
             {
-                return converterSupports == true &&
-                       TargetType.GetGenericArguments().FirstOrDefault().IsClass &&
-                       !TargetType.GetGenericArguments().FirstOrDefault().GetConstructors().Any(a => a.GetParameters().Any());
+                return converterSupports == true && IsJsonDeserializedObject(targetType.GetElementType());
+            }
+            else if (targetType.IsGenericType)
+            {
+                return converterSupports == true && IsJsonDeserializedObject(targetType.GetGenericArguments().FirstOrDefault());
             }
 
             return false;
+        }
+
+        private bool IsJsonDeserializedObject(Type type)
+        { 
+            return type.IsClass && !type.GetConstructors().Any(a => a.GetParameters().Any());
         }
     }
 }

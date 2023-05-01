@@ -14,6 +14,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
 using System.Text;
+using System.Xml.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
@@ -79,8 +80,8 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             {
                 return new Dictionary<string, object>()
                 {
-                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }}
-                .ToImmutableDictionary();
+                    { PropertyBagKeys.ConverterType, inputConverterAttribute.ConverterType.AssemblyQualifiedName! }
+                }.ToImmutableDictionary();
             }
             else
             {
@@ -100,30 +101,29 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 return null;
             }
 
+            // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
+            // The dictionary has key of type IInputConverter and value as Properties of that converter (specifies supported types and support for Json Deserialization)
             var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
+
             IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
 
-            var result = new Dictionary<string, object>
+            var output = new Dictionary<string, object>
             {
-                { PropertyBagKeys.DisableConverterFallback, false }
+                { PropertyBagKeys.EnableFallbackConverters, false }
             };
 
-            // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
-            // The dictionary has key of type IInputConverter and value as ConverterProperties which will have
-            // List of types supported by the converter, collection support for each type and support for Json deserialization
 
             foreach (Attribute element in customAttributes)
             {
-
                 if (element.GetType() == typeof(InputConverterAttribute))
                 {
                     var attribute = element as InputConverterAttribute;
 
                     if (attribute is not null)
                     {
-                        var converter = attribute.ConverterType;
-                        ConverterProperties types = GetTypesSupportedByConverter(converter);
-                        converterTypesDictionary.Add(converter, types);
+                        Type converter = attribute.ConverterType;
+                        ConverterProperties supportedTypes = GetTypesSupportedByConverter(converter);
+                        converterTypesDictionary.Add(converter, supportedTypes);
                     }
                 }
                 else if(element.GetType() == typeof(EnableConvertersFallbackAttribute))
@@ -131,15 +131,15 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                     var attribute = element as EnableConvertersFallbackAttribute;
                     if (attribute is not null)
                     {
-                        result[PropertyBagKeys.DisableConverterFallback] = true;
+                        output[PropertyBagKeys.EnableFallbackConverters] = true;
                     }
                 }
 
             }
 
-            result.Add(PropertyBagKeys.BindingAttributeConverters, converterTypesDictionary);
+            output.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converterTypesDictionary);
 
-            return result.ToImmutableDictionary();
+            return output.ToImmutableDictionary();
         }
 
         private ConverterProperties GetTypesSupportedByConverter(Type converter)
@@ -155,18 +155,17 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
                     foreach (var supportedType in converterAttribute.ConstructorArguments)
                     {
-                        if (supportedType.ArgumentType is not null && supportedType.Value is not null)
+                        if (supportedType.ArgumentType is not null
+                            && supportedType.Value is not null
+                            && supportedType.ArgumentType == typeof(Type))
                         {
-                            if (supportedType.ArgumentType == typeof(Type))
+                            supportedTypeValue = supportedType.Value as Type;
+
+                            if (supportedTypeValue is not null)
                             {
-                                supportedTypeValue = (Type)supportedType.Value;
+                                types.Add(supportedTypeValue);
                             }
                         }
-                    }
-
-                    if (supportedTypeValue != null)
-                    {
-                        types.Add(supportedTypeValue);
                     }
                 }
                 else if (converterAttribute.AttributeType == typeof(SupportsJsonDeserializationAttribute))

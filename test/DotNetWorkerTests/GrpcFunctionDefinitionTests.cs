@@ -121,10 +121,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 {
                     Assert.Equal("myBlob", q.Name);
                     Assert.Equal(typeof(string), q.Type);
-                    Assert.Contains(PropertyBagKeys.DisableConverterFallback, q.Properties.Keys);
-                    Assert.Contains(PropertyBagKeys.BindingAttributeConverters, q.Properties.Keys);
-                    Assert.True(true, q.Properties[PropertyBagKeys.DisableConverterFallback].ToString());
-                    Assert.Contains(new Dictionary<Type, ConverterProperties>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeConverters].ToString());
+                    Assert.Contains(PropertyBagKeys.EnableFallbackConverters, q.Properties.Keys);
+                    Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
+                    Assert.True(true, q.Properties[PropertyBagKeys.EnableFallbackConverters].ToString());
+                    Assert.Contains(new Dictionary<Type, ConverterProperties>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
                 });
 
             // InputBindings

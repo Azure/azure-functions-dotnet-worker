@@ -7,18 +7,18 @@ using System.Collections.Generic;
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     /// <summary>
-    /// A representation of a Microsoft.Azure.WebJobs.ParameterBindingData
+    /// Information about converter
     /// </summary>
-    public class ConverterProperties
+    internal class ConverterProperties
     {
         /// <summary>
-        /// Gets the version of the binding data content
+        /// Support for Json Deserialization by converter
         /// </summary>
-        public bool SupportsJsonDeserialization { get; set; }
+        internal bool SupportsJsonDeserialization { get; set; }
 
         /// <summary>
-        /// Gets the extension source of the binding data i.e CosmosDB, AzureStorageBlobs
+        /// List of types supported by the converter
         /// </summary>
-        public List<Type> SupportedTypes { get; set; }
+        internal List<Type> SupportedTypes { get; set; }
     }
 }

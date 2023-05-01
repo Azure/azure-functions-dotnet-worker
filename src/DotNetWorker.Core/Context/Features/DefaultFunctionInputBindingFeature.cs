@@ -78,16 +78,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                             properties.Add(PropertyBagKeys.ConverterType, converterTypeAssemblyFullName);
                         }
 
-                        // Pass info about the flag to disable fallback to default converters defined for this parameter, if present.
-                        if (param.Properties.TryGetValue(PropertyBagKeys.DisableConverterFallback, out var flag))
+                        // Pass info about the flag to enable fallback to default converters defined for this parameter, if present.
+                        if (param.Properties.TryGetValue(PropertyBagKeys.EnableFallbackConverters, out var flag))
                         {
-                            properties.Add(PropertyBagKeys.DisableConverterFallback, flag);
+                            properties.Add(PropertyBagKeys.EnableFallbackConverters, flag);
                         }
 
-                        // Pass info about specific input converter type defined for this parameter, if present.
-                        if (param.Properties.TryGetValue(PropertyBagKeys.BindingAttributeConverters, out var input))
+                        // Pass info about input converter types defined for this parameter, if present.
+                        if (param.Properties.TryGetValue(PropertyBagKeys.BindingAttributeSupportedConverters, out var converters))
                         {
-                            properties.Add(PropertyBagKeys.BindingAttributeConverters, input);
+                            properties.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converters);
                         }
 
                         var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0 ? properties.ToImmutableDictionary() : ImmutableDictionary<string, object>.Empty);

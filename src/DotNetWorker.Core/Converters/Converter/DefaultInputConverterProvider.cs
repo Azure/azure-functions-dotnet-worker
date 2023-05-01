@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         /// Gets an instance of the converter for the type requested.
         /// </summary>
         /// <param name="converterType">The type for which we are requesting an IInputConverter instance.</param>
-        /// <exception cref="ArgumentNullException">Throws when the converterTypeName param is null.</exception>
+        /// <exception cref="InvalidOperationException">Throws when the converterType param is null.</exception>
         /// <returns>IConverter instance of the requested type.</returns>
         public IInputConverter GetOrCreateConverterInstance(Type converterType)
         {

@@ -7,16 +7,12 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.9.0-preview1-local" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-    <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
-  </ItemGroup>
-    <ItemGroup>
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
-    <ProjectReference Include="..\..\src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />
-    <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+      <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.12.1-preview1" />
+      <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.9.0-preview1" />
+      <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
+      <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="5.1.0-preview1" />
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+      <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />

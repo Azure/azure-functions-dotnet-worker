@@ -7,8 +7,6 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [EnableConvertersFallback]
-    [InputConverter(typeof(CosmosDBConverter))]
     public sealed class CosmosDBTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>

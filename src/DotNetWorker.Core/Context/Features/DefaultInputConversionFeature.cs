@@ -215,9 +215,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         private bool IsTypeSupportedByConverter(ConverterProperties converterType, Type targetType)
         {
-            return converterType.SupportedTypes.Any(a =>
-                                a.AssemblyQualifiedName == targetType.AssemblyQualifiedName ||
-                                a.IsAssignableFrom(targetType));
+            return converterType.SupportedTypes.Any(a => a.AssemblyQualifiedName == targetType.AssemblyQualifiedName);
         }
 
         private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type targetType)

@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public void CreatesBlob()
+        public void GrpcFunctionDefinition_BlobInput_Creates()
         {
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
 
@@ -162,6 +162,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 return req.CreateResponse();
             }
         }
+
         private class MyBlobFunctionClass
         {
             public HttpResponseData Run(

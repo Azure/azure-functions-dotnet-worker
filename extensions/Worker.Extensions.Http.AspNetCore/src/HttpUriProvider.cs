@@ -7,7 +7,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal static class HttpUriProvider
     {
-        public static Lazy<Uri> HttpUri = new Lazy<Uri>(() => new Uri("http://localhost:" + Utilities.GetUnusedTcpPort().ToString()));
+        private static Lazy<Uri> HttpUri = new Lazy<Uri>(() => new Uri("http://localhost:" + Utilities.GetUnusedTcpPort().ToString()));
 
         public static string HttpUriString { get; } = HttpUri.Value.ToString();
     }

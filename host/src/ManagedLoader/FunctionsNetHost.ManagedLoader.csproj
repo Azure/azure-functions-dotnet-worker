@@ -10,6 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
     <None Remove="PreJIT\coldstart.jittrace" />
     <None Remove="PreJIT\net7.0\coldstart.jittrace" />
   </ItemGroup>

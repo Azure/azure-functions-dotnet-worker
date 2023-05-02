@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
         {
             Logger.Log("Initializing...");
 
-            var nativeHostData = NativeMethods.GetNativeHostData();
+            var nativeHostData = AppLoaderNativeMethods.GetNativeHostData();
             _application = new NativeSafeHandle(nativeHostData.pNativeApplication);
 
             Logger.Log("Initialization finished.");
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
         public unsafe void Start()
         {
             _gcHandle = GCHandle.Alloc(this);
-            NativeMethods.RegisterAppLoaderCallbacks(_application, &HandleAppLoaderRequest, (IntPtr)_gcHandle);
+            AppLoaderNativeMethods.RegisterAppLoaderCallbacks(_application, &HandleAppLoaderRequest, (IntPtr)_gcHandle);
 
             var appTargetFramework = GetApplicationTargetFramework();
             PreJitPrepare(appTargetFramework);
@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 
         private static void LoadWorker(string workerAssemblyPath)
         {
-            Logger.Log($"~~~~  TempMethodForLoading customerAssemblyPath:{workerAssemblyPath}~~~~");
+            Logger.Log($"~~~~  LoadWorker customerAssemblyPath:{workerAssemblyPath}~~~~");
 
             // Initialize the assembly resolver to ensure we can load worker dependencies
             WorkerAssemblyResolver.Initialize(AssemblyLoadContext.Default, workerAssemblyPath);
@@ -98,12 +98,20 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 
             var parameters = entryPoint.GetParameters().Length > 0 ? new object[] { Environment.GetCommandLineArgs() } : null;
 
-            object? result = entryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null,  parameters, null);
-
             int exitCode = 0;
-            if (result is not null)
+
+            try
             {
-                exitCode = (int) result;
+                object? result = entryPoint.Invoke(null, BindingFlags.DoNotWrapExceptions, null, parameters, null);
+
+                if (result is not null)
+                {
+                    exitCode = (int)result;
+                }
+            }
+            catch ( Exception ex )
+            {
+                Logger.Log($"~~~~  Error in LoadWorker:{ex}~~~~");
             }
 
             Environment.Exit(exitCode);

@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 
 namespace FunctionsNetHost.ManagedLoader.NativeHostIntegration
 {
-    internal static unsafe partial class NativeMethods
+    internal static unsafe class AppLoaderNativeMethods
     {
         private const string NativeWorkerDll = "FunctionsNetHost.exe";
 

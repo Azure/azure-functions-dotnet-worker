@@ -70,6 +70,7 @@ class NativeHostApplication
 
     PFN_REQUEST_HANDLER callback;
     void *handle;
+    void *workerPayloadHandle;
 
     thread clrThread_;
     HANDLE initMutex_;

@@ -26,7 +26,7 @@ NativeHostApplication::~NativeHostApplication()
 
 void NativeHostApplication::LoadCustomerAssembly(string assemblyPath)
 {
-    FUNC_LOG_INFO("NativeHostApplication::LoadManangedLoader1 invoked with assemblyPath: {}", assemblyPath);
+    FUNC_LOG_INFO("NativeHostApplication::LoadCustomerAssembly invoked with assemblyPath: {}", assemblyPath);
 
     auto size = assemblyPath.length();
     auto charArr = assemblyPath.c_str();
@@ -75,9 +75,9 @@ void NativeHostApplication::LoadManagedLoader(string dllPath)
 
 void NativeHostApplication::HandleIncomingMessage(unsigned char *buffer, int size)
 {
-    WaitForSingleObject(initMutex_, INFINITE);
+    FUNC_LOG_INFO("NativeHostApplication.HandleIncomingMessage invoked.");
 
-    callback(&buffer, size, handle);
+    callback(&buffer, size, workerPayloadHandle);
 }
 
 void NativeHostApplication::SendOutgoingMessage(_In_ ByteBuffer *msg)
@@ -87,31 +87,36 @@ void NativeHostApplication::SendOutgoingMessage(_In_ ByteBuffer *msg)
     outboundChannel.push(*msg);
 }
 
+// Gets called when customer payload is loaded.
 void NativeHostApplication::SetCallbackHandles(_In_ PFN_REQUEST_HANDLER request_callback, _In_ void *grpcHandle)
 {
-    FUNC_LOG_INFO("SetCallbackHandles called.");
+    FUNC_LOG_INFO("SetCallbackHandles invoked. Will unblock cv_workerLoaded.");
 
     callback = request_callback;
-    handle = grpcHandle;
+    workerPayloadHandle = grpcHandle;
 
-    //ReleaseMutex(initMutex_);
-}
-
-void NativeHostApplication::SetAppLoaderCallbackHandles(_In_ PFN_REQUEST_HANDLER apploader_request_callback, _In_ void *grpcHandle)
-{
-    FUNC_LOG_INFO("SetAppLoaderCallbackHandles called.");
-
-    appLoaderCallback = apploader_request_callback;
-    handle = grpcHandle;
-
-    ReleaseMutex(initMutex_);
-
+    // Signal that worker has loaded.
+    // Handler has blocked the env reload req and waiting for this signal.
     {
         std::lock_guard lk(mtx_workerLoaded);
         hasWorkerLoaded = true;
     }
 
     cv_workerLoaded.notify_one();
+    //ReleaseMutex(initMutex_);
+}
+
+// Gets called when manager apploader is loaded.
+void NativeHostApplication::SetAppLoaderCallbackHandles(_In_ PFN_REQUEST_HANDLER apploader_request_callback, _In_ void *grpcHandle)
+{
+    FUNC_LOG_INFO("SetAppLoaderCallbackHandles invoked.");
+
+    appLoaderCallback = apploader_request_callback;
+    handle = grpcHandle;
+
+    ReleaseMutex(initMutex_);
+
+
 }
 
 bool NativeHostApplication::load_hostfxr()

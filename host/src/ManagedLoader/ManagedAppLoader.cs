@@ -35,17 +35,17 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             var appTargetFramework = GetApplicationTargetFramework();
             PreJitPrepare(appTargetFramework);
 
-            int ranForSeconds = 0;
+            //int ranForSeconds = 0;
             while (true)
             {
-                // TEMP Heartbeat printing so we know this process is still up
-                if (ranForSeconds % 15 == 0)
-                {
-                    Logger.Log($"ManagedAppLoader is running for last {ranForSeconds} seconds.");
-                }
+                //// TEMP Heartbeat printing so we know this process is still up
+                //if (ranForSeconds % 15 == 0)
+                //{
+                //    Logger.Log($"ManagedAppLoader is running for last {ranForSeconds} seconds.");
+                //}
 
-                Thread.Sleep(1000);
-                ranForSeconds++;
+                //Thread.Sleep(1000);
+                //ranForSeconds++;
             }
         }
 

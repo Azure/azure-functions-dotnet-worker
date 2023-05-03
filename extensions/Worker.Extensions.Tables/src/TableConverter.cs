@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Converter to bind Blob Storage type parameters.
     /// </summary>
-    public class TableConverter : IInputConverter
+    internal class TableConverter : IInputConverter
     {
         private readonly ILogger<TableConverter> _logger;
         private readonly IOptionsSnapshot<TablesBindingOptions> _tableOptions;
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        public virtual async Task<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        public virtual async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsTableExtension(modelBindingData))
             {
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        public virtual async Task<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
+        internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
             var tableCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
             Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker
             return await ToTargetTypeAsync(targetType, connection?.ToString(), tableName.ToString(), partitionKey?.ToString(), rowKey?.ToString());
         }
 
-        public Dictionary<string, object> GetBindingDataContent(ModelBindingData bindingData)
+        internal Dictionary<string, object> GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
@@ -138,7 +138,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        public virtual async Task<object?> ToTargetTypeAsync(Type targetType, string connection, string tableName, string partitionKey, string rowKey) => targetType switch
+        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string connection, string tableName, string partitionKey, string rowKey) => targetType switch
         {
             Type _ when targetType == typeof(TableClient) => GetTableClient(connection, tableName),
             Type _ when targetType == typeof(TableEntity) => GetTableEntity(connection, tableName, partitionKey, rowKey),
@@ -154,14 +154,14 @@ namespace Microsoft.Azure.Functions.Worker
             return genericMethod.Invoke(null, new[] { tableCollection.ToList() });
         }
 
-        internal TableClient GetTableClient(string connection, string tableName)
+        internal virtual TableClient GetTableClient(string connection, string tableName)
         {
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();
             return tableServiceClient.GetTableClient(tableName);
         }
 
-        internal TableEntity GetTableEntity(string connection, string tableName, string partitionKey, string rowKey)
+        internal virtual TableEntity GetTableEntity(string connection, string tableName, string partitionKey, string rowKey)
         {
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();

@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Net;
 using System.Text;
+using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -11,7 +13,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
-namespace WorkerBindingSamples.Table
+namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 {
     public class TableInputBindingSamples
     {
@@ -25,7 +27,7 @@ namespace WorkerBindingSamples.Table
         [Function(nameof(TableInputClientFunction))]
         public HttpResponseData TableInputClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{partitionKey}/{rowKey}/{value}")] HttpRequestData req,
-            [TableInput("TableName") ]  TableClient table)
+            [TableInput("TableName")] TableClient table)
 
         {
             var entity = new TableEntity("{partitionKey}", "{rowKey}")
@@ -44,7 +46,7 @@ namespace WorkerBindingSamples.Table
 
         {
             table.TryGetValue("Text", out var text);
-            var response =  req.CreateResponse(HttpStatusCode.OK);
+            var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(text.ToString());
             return response;
         }
@@ -52,7 +54,7 @@ namespace WorkerBindingSamples.Table
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{rowKey}")] HttpRequestData req,
-            [TableInput("TableName", Filter = "RowKey eq '"+ "{rowKey}'")] TableEntity table)
+            [TableInput("TableName", Filter = "RowKey eq '" + "{rowKey}'")] TableEntity table)
 
         {
             table.TryGetValue("Text", out var text);

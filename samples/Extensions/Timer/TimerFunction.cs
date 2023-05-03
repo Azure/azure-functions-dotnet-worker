@@ -8,6 +8,7 @@ namespace SampleApp
 {
     public static class TimerFunction
     {
+        //<docsnippet_fixed_delay_retry_example>
         [Function("TimerFunction")]
         [FixedDelayRetry(5, "00:00:10")]
         public static void Run([TimerTrigger("0 */5 * * * *")] TimerInfo timerInfo,
@@ -16,5 +17,6 @@ namespace SampleApp
             var logger = context.GetLogger("TimerFunction");
             logger.LogInformation($"Function Ran. Next timer schedule = {timerInfo.ScheduleStatus.Next}");
         }
+        //</docsnippet_fixed_delay_retry_example>
     }
 }

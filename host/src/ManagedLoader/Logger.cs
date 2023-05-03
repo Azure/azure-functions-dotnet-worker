@@ -7,7 +7,7 @@ namespace FunctionsNetHost.ManagedLoader
         public static void Log(string message)
         {
             string ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Console.WriteLine($"{ts} [FunctionsNetHost.ManagedAppLoader] { message}");
+            Console.WriteLine($"LanguageWorkerConsoleLog [{ts}] [FunctionsNetHost.ManagedAppLoader] { message}");
         }
     }
 }

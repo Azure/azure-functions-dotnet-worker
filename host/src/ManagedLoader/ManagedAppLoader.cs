@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             var assemblyLocalPath = Path.GetDirectoryName(new Uri(typeof(ManagedAppLoader).Assembly.Location).LocalPath);
             var filePath = Path.Combine(assemblyLocalPath!, Constants.PreJitFolderName, targetFramework, Constants.JitTraceFileName);
 
-            Logger.Log($"JI file path: {filePath}");
+            Logger.Log($"JIT file path: {filePath}");
 
             var file = new FileInfo(filePath);
 
@@ -70,7 +70,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             // Native host calls this method during specialization. 
             var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
             var workerAssemblyPath = Encoding.UTF8.GetString(span);
-            Logger.Log($"~~~ HandleAppLoaderRequest. Worker assembly path: {workerAssemblyPath} ~~~");
+            //Logger.Log($"~~~ HandleAppLoaderRequest. Worker assembly path: {workerAssemblyPath} ~~~");
 
             _ = Task.Run(() => LoadWorker(workerAssemblyPath));
 
@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
 
         private static void LoadWorker(string workerAssemblyPath)
         {
-            Logger.Log($"~~~~  LoadWorker customerAssemblyPath:{workerAssemblyPath}~~~~");
+            Logger.Log($"~~~~  LoadWorker workerAssemblyPath:{workerAssemblyPath}~~~~");
 
             // Initialize the assembly resolver to ensure we can load worker dependencies
             WorkerAssemblyResolver.Initialize(AssemblyLoadContext.Default, workerAssemblyPath);

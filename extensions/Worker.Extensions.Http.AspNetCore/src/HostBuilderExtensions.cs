@@ -24,7 +24,7 @@ namespace Microsoft.Extensions.Hosting
         {
             builder.ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.UseUrls(HttpUriProvider.GetHttpUri().ToString());
+                webBuilder.UseUrls(HttpUriProvider.HttpUriString);
                 webBuilder.Configure(b =>
                 {
                     b.UseMiddleware<WorkerRequestServicesMiddleware>();

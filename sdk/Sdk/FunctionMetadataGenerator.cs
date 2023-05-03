@@ -583,7 +583,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return isArray;
         }
 
-
         private static bool IsEnumerableCollection(TypeReference type)
         {
             bool isEnumerableOfT = IsOrDerivedFrom(type, Constants.IEnumerableOfT);
@@ -930,6 +929,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             return (converterType != null && string.Equals(converterType.FullName, bindingType.FullName, StringComparison.Ordinal)) ? true : false;
         }
+
         private static bool IsBindingTypeJsonDeserializable(TypeReference bindingType)
         {
             return (bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any()).Count() == 0) ? true : false;

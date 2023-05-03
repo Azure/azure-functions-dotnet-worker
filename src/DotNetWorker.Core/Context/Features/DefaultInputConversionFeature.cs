@@ -238,7 +238,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         private bool IsJsonDeserializedObject(Type type)
         { 
-            return type.IsClass && !type.GetConstructors().Any(a => a.GetParameters().Any());
+            return !type.GetConstructors().Any(a => a.GetParameters().Any());
         }
     }
 }

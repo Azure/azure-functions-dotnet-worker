@@ -90,7 +90,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                             properties.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converters);
                         }
 
-                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0 ? properties.ToImmutableDictionary() : ImmutableDictionary<string, object>.Empty);
+                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0 
+                                                                                                ? properties.ToImmutableDictionary()
+                                                                                                : ImmutableDictionary<string, object>.Empty);
 
                         bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
                         inputBindingCache[cacheKey] = bindingResult;

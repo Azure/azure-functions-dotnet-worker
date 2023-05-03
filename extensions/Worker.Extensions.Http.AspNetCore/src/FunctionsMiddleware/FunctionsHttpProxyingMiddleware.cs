@@ -3,6 +3,9 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
@@ -26,6 +29,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             AddHttpContextToFunctionContext(context, httpContext);
 
             await next(context);
+
+            if (context.GetInvocationResult()?.Value is IActionResult actionResult)
+            {
+                ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
+
+                await actionResult.ExecuteResultAsync(actionContext);
+            }
 
             // allows asp.net middleware to continue
             _coordinator.CompleteFunctionInvocation(invocationId);

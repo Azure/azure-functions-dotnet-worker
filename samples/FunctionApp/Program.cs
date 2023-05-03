@@ -4,6 +4,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.ApplicationInsights;
@@ -14,8 +15,10 @@ namespace FunctionApp
     {
         static async Task Main(string[] args)
         {
-            //Debugger.Launch();
-
+            // #if DEBUG
+            //     Debugger.Launch();
+            // #endif
+            //<docsnippet_startup>
             var host = new HostBuilder()
                 //<docsnippet_configure_defaults>
                 .ConfigureFunctionsWorkerDefaults(builder =>
@@ -51,7 +54,9 @@ namespace FunctionApp
                 .Build();
             //</docsnippet_startup>
 
+            //<docsnippet_host_run>
             await host.RunAsync();
+            //</docsnippet_host_run>
         }
     }
 }

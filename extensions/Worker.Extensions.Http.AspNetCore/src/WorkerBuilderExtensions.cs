@@ -31,12 +31,12 @@ namespace Microsoft.Azure.Functions.Worker
 
             builder.Services.AddSingleton<IHttpCoordinator, DefaultHttpCoordinator>();
 
-            var port = Utilities.GetUnusedTcpPort().ToString();
+            builder.Services.AddMvc();
 
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.RegisterAt<HttpContextConverter>(0);
-                workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.GetHttpUri().ToString()); // testing host side, remove this const later
+                workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.HttpUriString);
             });
 
             return builder;

@@ -67,9 +67,10 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
         }
 
-        public async Task StartAsync(CancellationToken token)
+        public Task StartAsync(CancellationToken token)
         {
-            _workerClient = await _workerClientFactory.StartClientAsync(this, token);
+            _workerClient = _workerClientFactory.CreateClient(this);
+            return _workerClient.StartAsync(token);
         }
 
         public Task StopAsync(CancellationToken token) => Task.CompletedTask;

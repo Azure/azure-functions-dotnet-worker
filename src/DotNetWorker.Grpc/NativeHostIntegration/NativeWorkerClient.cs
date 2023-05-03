@@ -3,12 +3,10 @@
 
 using System;
 using System.Runtime.InteropServices;
-using System.Text.Json;
+using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
 {
@@ -28,6 +26,12 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             _outputChannelReader = outputChannel.Channel.Reader;
             _outputChannelWriter = outputChannel.Channel.Writer;
             _application = new NativeSafeHandle(nativeHostData.pNativeApplication);
+        }
+
+        public Task StartAsync(CancellationToken cancellationToken)
+        {
+            Start();
+            return Task.CompletedTask;
         }
 
         public unsafe void Start()

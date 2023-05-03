@@ -29,8 +29,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions), "gRPC Services are not correctly registered.");
         }
 
-        public Task<IWorkerClient> StartClientAsync(IMessageProcessor messageProcessor, CancellationToken token) 
-            => GrpcWorkerClient.CreateAndStartAsync(_outputChannel, _startupOptions, messageProcessor, token);
+        public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
+            => new GrpcWorkerClient(_outputChannel, _startupOptions, messageProcessor);
 
         private class GrpcWorkerClient : IWorkerClient
         {
@@ -41,9 +41,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private bool _running;
             private IMessageProcessor? _processor;
 
-            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions)
+            public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor)
             {
                 _startupOptions = startupOptions ?? throw new ArgumentNullException(nameof(startupOptions));
+                _processor = processor ?? throw new ArgumentNullException(nameof(processor));
 
                 _outputReader = outputChannel.Channel.Reader;
                 _outputWriter = outputChannel.Channel.Writer;
@@ -51,23 +52,14 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                 _grpcClient = CreateClient();
             }
 
-            internal static async Task<IWorkerClient> CreateAndStartAsync(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor, CancellationToken token)
-            {
-                var client = new GrpcWorkerClient(outputChannel, startupOptions);
-               
-                await client.StartAsync(processor, token);
-
-                return client;
-            }
-
-            private async Task StartAsync(IMessageProcessor processor, CancellationToken token)
+            public async Task StartAsync(CancellationToken token)
             {
                 if (_running)
                 {
                     throw new InvalidOperationException($"The client is already running. Multiple calls to {nameof(StartAsync)} are not supported.");
                 }
+
                 _running = true;
-                _processor = processor ?? throw new ArgumentNullException(nameof(processor));
 
                 var eventStream = _grpcClient.EventStream(cancellationToken: token);
 

@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             Logger.Log("Initialization finished.");
         }
 
-        public unsafe void Start()
+        public unsafe void StartAndWait()
         {
             _gcHandle = GCHandle.Alloc(this);
             AppLoaderNativeMethods.RegisterAppLoaderCallbacks(_application, &HandleAppLoaderRequest, (IntPtr)_gcHandle);
@@ -35,18 +35,9 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             var appTargetFramework = GetApplicationTargetFramework();
             PreJitPrepare(appTargetFramework);
 
-            //int ranForSeconds = 0;
-            while (true)
-            {
-                //// TEMP Heartbeat printing so we know this process is still up
-                //if (ranForSeconds % 15 == 0)
-                //{
-                //    Logger.Log($"ManagedAppLoader is running for last {ranForSeconds} seconds.");
-                //}
-
-                //Thread.Sleep(1000);
-                //ranForSeconds++;
-            }
+            // We want this process to not exit.
+            ManualResetEvent resetEvent = new ManualResetEvent(false);
+            resetEvent.WaitOne();
         }
 
         private void PreJitPrepare(string targetFramework)
@@ -76,6 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
         private static unsafe IntPtr HandleAppLoaderRequest(byte** nativeMessage, int nativeMessageSize, IntPtr grpcHandler)
         {
             // As of today, we have only one message (load worker assembly) from managed to apploader.
+            // Native host calls this method during specialization. 
             var span = new ReadOnlySpan<byte>(*nativeMessage, nativeMessageSize);
             var workerAssemblyPath = Encoding.UTF8.GetString(span);
             Logger.Log($"~~~ HandleAppLoaderRequest. Worker assembly path: {workerAssemblyPath} ~~~");

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.ManagedLoader
             Logger.Log("Starting FunctionsNetHost ManagedAppLoader");
 
             var loader = new ManagedAppLoader();
-            loader.Start();
+            loader.StartAndWait();
         }
     }
 }

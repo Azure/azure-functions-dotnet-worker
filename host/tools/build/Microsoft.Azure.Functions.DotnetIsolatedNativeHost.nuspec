@@ -4,7 +4,7 @@
     <id>Microsoft.Azure.Functions.DotNetIsolatedNativeHost</id>
     <title>Microsoft Azure Functions dotnet-isolated native host</title>
     <tags>dotnet-isolated azure-functions azure</tags>
-    <version>1.0.0-preview12</version>
+    <version>1.0.0-preview13</version>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
     <projectUrl>https://github.com/Azure/azure-functions-dotnet-worker</projectUrl>
@@ -15,6 +15,7 @@
     <contentFiles>
       <files include="**/*" buildAction="None" copyToOutput="true" flatten="false" />
     </contentFiles>
+    <releaseNotes>Replace infinite loop which was consuming all CPU with ManualResetEvent WaitOne.</releaseNotes>
   </metadata>
   <files>
     <file src="..\..\build\win-x64\FunctionsNetHost\Release\**" target="contentFiles/any/any/workers/dotnet-isolated/bin" />

@@ -22,19 +22,25 @@ namespace WorkerBindingSamples.Table
             _logger = logger;
         }
 
-        [Function(nameof(TableInputClientFunction))]
-        public HttpResponseData TableInputClientFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{partitionKey}/{rowKey}/{value}")] HttpRequestData req,
-            [TableInput("TableName") ]  TableClient table)
+        [Function(nameof(TableClientFunction))]
+        public async Task<HttpResponseData> TableClientFunction(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [TableInput("TableName")] TableClient table)
 
         {
-            var entity = new TableEntity("{partitionKey}", "{rowKey}")
-            {
-                { "Text", "{value}" }
-            };
-            var response = table.AddEntity(entity);
-            return req.CreateResponse((HttpStatusCode)response.Status);
+            var tableEntity = table.QueryAsync<TableEntity>();
+            var response = req.CreateResponse(HttpStatusCode.OK);
 
+            List<string> tableList = new();
+            await foreach (TableEntity val in tableEntity)
+            {
+                val.TryGetValue("Text", out var text);
+                _logger.LogInformation("Value of text: " + text);
+
+                await response.WriteStringAsync(text?.ToString() ?? "");
+            }
+
+            return response;
         }
 
         [Function(nameof(ReadTableDataFunction))]
@@ -45,21 +51,28 @@ namespace WorkerBindingSamples.Table
         {
             table.TryGetValue("Text", out var text);
             var response =  req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteStringAsync(text.ToString());
+            await response.WriteStringAsync(text?.ToString() ?? "");
             return response;
         }
 
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{rowKey}")] HttpRequestData req,
-            [TableInput("TableName", Filter = "RowKey eq '"+ "{rowKey}'")] TableEntity table)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [TableInput("TableName", "My Partition", Filter = "RowKey ne 'value'", Take = 2, IsBatched = true)] IEnumerable<TableEntity> table)
 
         {
-            table.TryGetValue("Text", out var text);
+            List<string> tableList = new();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteStringAsync(text.ToString());
+            foreach (TableEntity tableEntity in table)
+            {
+                tableEntity.TryGetValue("Text", out var text);
+                _logger.LogInformation("Value of text: " + text);
+                tableList.Add(text?.ToString() ?? "");
+            }
+            await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
+
 
         [Function(nameof(EnumerableFunction))]
         public async Task<HttpResponseData> EnumerableFunction(
@@ -73,9 +86,10 @@ namespace WorkerBindingSamples.Table
             {
                 tableEntity.TryGetValue("Text", out var text);
                 _logger.LogInformation("Value of text: " + text);
-                tableList.Add(text.ToString());
+                tableList.Add((text?.ToString()) ?? "");
+                
             }
-            await response.WriteStringAsync(tableList.ToString());
+            await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
     }

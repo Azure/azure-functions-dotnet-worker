@@ -90,7 +90,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         // Tables tests
         public static class Tables
         {
-            public const string EmulatorConnectionString = "";
+            public const string EmulatorConnectionString = "UseDevelopmentStorage=true";
             public const string TablesConnectionStringSetting = EmulatorConnectionString;
             public const string TableName = "TableName";
         }

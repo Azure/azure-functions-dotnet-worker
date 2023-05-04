@@ -8,7 +8,9 @@ using System.Net;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Azure.Documents;
 using Microsoft.Azure.Functions.Worker.E2ETests.Helpers;
+using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -19,6 +21,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
     {
         private readonly IDisposable _disposeLog;
         private FunctionAppFixture _fixture;
+        private const string partitionKey = "Partition";
+        private const string firstRowKey = "FirstRowKey";
+        private const string firstValue = "FirstValue";
+        private const string secondRowKey = "SecondRowKey";
+        private const string secondValue = "SecondValue";
+        private const string thirdRowKey = "ThirdRowKey";
+        private const string thirdValue = "ThirdValue";
 
         public TablesEndToEndTests(FunctionAppFixture fixture, ITestOutputHelper testOutput)
         {
@@ -27,82 +36,104 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
         }
 
         [Fact]
-        public async Task TableInput_Succeeds()
+        public async Task Read_TableClient_Data_Succeeds()
         {
-            var partitionKey = "Partition";
-            var rowKey = "First Row Key";
+            // Create the table if it doesn't exist
+            await TableHelpers.CreateTable();
+
+            // Add table entity
+            await TableHelpers.CreateTableEntity(partitionKey, firstRowKey, firstValue);
+
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("TableInputClientFunction", $"/items/{partitionKey}/{rowKey}/firstValue");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("TableClientFunction");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal(firstValue, actualMessage);
 
-            // Add another row to same partition
-            var secondRowKey = "Second Row Key";
-            //Trigger
-            HttpResponseMessage secondResponse = await HttpHelpers.InvokeHttpTrigger("TableInputClientFunction", $"items/{partitionKey}/{secondRowKey}/secondValue");
-            string secondActualMessage = await response.Content.ReadAsStringAsync();
-
-            //Verify
-            HttpStatusCode secondExpectedStatusCode = HttpStatusCode.OK;
-
-            Assert.Equal(secondExpectedStatusCode, response.StatusCode);
+            // Delete table
+            await TableHelpers.DeleteTable();
         }
 
         [Fact]
         public async Task Read_TableData_Succeeds()
         {
-            var partitionKey = "Partition";
-            var rowKey = "First Row Key";
+            // Create the table if it doesn't exist
+            await TableHelpers.CreateTable();
+
+            // Add table entity
+            await TableHelpers.CreateTableEntity(partitionKey, firstRowKey, firstValue);
+
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("ReadTableDataFunction", $"/items/{partitionKey}/{rowKey}");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger($"ReadTableDataFunction/items/{partitionKey}/{firstRowKey}");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Equal("FirstValue", actualMessage);
+            Assert.Equal(firstValue, actualMessage);
+
+            // Delete table
+            await TableHelpers.DeleteTable();
         }
 
         [Fact]
-        public async Task Read_TableData_With_Filter()
+        public async Task Read_TableData_With_Filter_And_Take()
         {
-            var rowKey = "Second Row Key";
+            // Create table
+            await TableHelpers.CreateTable();
+
+            // Add table entity
+            await TableHelpers.CreateTableEntity(partitionKey, firstRowKey, firstValue);
+            await TableHelpers.CreateTableEntity(partitionKey, secondRowKey, secondValue);
+            await TableHelpers.CreateTableEntity(partitionKey, thirdRowKey, thirdValue);
+
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("ReadTableDataFunctionWithFilter", $"items/{rowKey}");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger($"ReadTableDataFunctionWithFilter/items/{partitionKey}/{secondRowKey}");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Equal("SecondValue", actualMessage);
+            Assert.Equal($"{firstValue},{thirdValue}", actualMessage);
+
+            // Delete table
+            await TableHelpers.DeleteTable();
         }
 
         [Fact]
         public async Task EnumerableFunction_Succeeds()
         {
-            var partitionKey = "Partition";
+            // Create table
+            await TableHelpers.CreateTable();
+
+            // Add table entity
+            await TableHelpers.CreateTableEntity(partitionKey, firstRowKey, firstValue);
+            await TableHelpers.CreateTableEntity(partitionKey, secondRowKey, secondValue);
+
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("EnumerableFunction", $"items/{partitionKey}");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger($"EnumerableFunction/items/{partitionKey}");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Equal("FirstValue, SecondValue", actualMessage);
+            Assert.Equal($"{firstValue},{secondValue}", actualMessage);
+
+            // Delete table
+            await TableHelpers.DeleteTable();
         }
 
         public async void Dispose()
         {
             // Cleanup
-            await TableHelpers.DeleteTableEntity("Partition", "FirstRowKey");
-            await TableHelpers.DeleteTableEntity("Partition", "SecondRowKey");
+            await TableHelpers.DeleteTable();
             _disposeLog?.Dispose();
         }
     }

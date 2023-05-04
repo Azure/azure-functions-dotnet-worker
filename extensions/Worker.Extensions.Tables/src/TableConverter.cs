@@ -126,7 +126,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException("'TableName' cannot be null or empty");
             }
 
-            return await ToTargetTypeAsync(targetType, connection?.ToString(), tableName.ToString(), partitionKey?.ToString(), rowKey?.ToString());
+            return await ToTargetTypeAsync(targetType, connection?.ToString() ?? null, tableName!.ToString(), partitionKey?.ToString() ?? null, rowKey?.ToString() ?? null);
         }
 
         internal Dictionary<string, object> GetBindingDataContent(ModelBindingData bindingData)
@@ -138,7 +138,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string connection, string tableName, string partitionKey, string rowKey) => targetType switch
+        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string? connection, string tableName, string? partitionKey, string? rowKey) => targetType switch
         {
             Type _ when targetType == typeof(TableClient) => GetTableClient(connection, tableName),
             Type _ when targetType == typeof(TableEntity) => GetTableEntity(connection, tableName, partitionKey, rowKey),
@@ -154,14 +154,14 @@ namespace Microsoft.Azure.Functions.Worker
             return genericMethod.Invoke(null, new[] { tableCollection.ToList() });
         }
 
-        internal virtual TableClient GetTableClient(string connection, string tableName)
+        internal virtual TableClient GetTableClient(string? connection, string tableName)
         {
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();
             return tableServiceClient.GetTableClient(tableName);
         }
 
-        internal virtual TableEntity GetTableEntity(string connection, string tableName, string partitionKey, string rowKey)
+        internal virtual TableEntity GetTableEntity(string? connection, string tableName, string? partitionKey, string? rowKey)
         {
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();

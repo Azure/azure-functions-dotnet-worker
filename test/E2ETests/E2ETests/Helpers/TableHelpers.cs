@@ -24,6 +24,25 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
             _tableClient = new TableClient(Constants.Tables.TablesConnectionStringSetting, tableName);
 
         }
+
+        public async static Task CreateTable()
+        {
+            _ = await _tableClient.CreateIfNotExistsAsync();
+        }
+
+        public async static Task DeleteTable()
+        {
+            _ = await _tableClient.DeleteAsync();
+        }
+
+        // keep
+        public async static Task CreateTableEntity(string partitionKey, string rowKey, string value)
+        {
+            var tableEntity = new TableEntity(partitionKey, rowKey);
+            tableEntity.Add("Text", value);
+            _ = await _tableClient.AddEntityAsync(tableEntity);
+        }
+
         // keep
         public async static Task DeleteTableEntity(string partitionKey, string rowKey)
         {

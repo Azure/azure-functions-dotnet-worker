@@ -7,6 +7,7 @@
     <LangVersion>preview</LangVersion>
     <Nullable Condition="$(Nullable) == ''">enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PublishReadyToRun>true</PublishReadyToRun>
   </PropertyGroup>
 
   <ItemGroup>

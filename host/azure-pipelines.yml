@@ -52,7 +52,7 @@ steps:
       command: 'publish'
       publishWebProjects: false
       zipAfterPublish: false
-      arguments: '-c Release -f net6.0 -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release/net6.0/loader'
+      arguments: '-c Release -f net6.0 -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release/net6.0/loader -r win-x64 --no-self-contained'
       workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
 
   - task: DotNetCoreCLI@2
@@ -61,7 +61,7 @@ steps:
       command: 'publish'
       publishWebProjects: false
       zipAfterPublish: false
-      arguments: '-c Release -f net7.0 -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release/net7.0/loader'
+      arguments: '-c Release -f net7.0 -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost/Release/net7.0/loader -r win-x64 --no-self-contained'
       workingDirectory: $(Build.SourcesDirectory)/host/src/ManagedLoader
 
   - task: NuGetCommand@2

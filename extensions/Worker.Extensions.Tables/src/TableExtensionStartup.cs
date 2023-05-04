@@ -13,8 +13,14 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Table extension startup.
+    /// </summary>
     public class TableExtensionStartup : WorkerExtensionStartup
     {
+        /// <summary>
+        /// Configure table extension startup.
+        /// </summary>
         public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
             if (applicationBuilder == null)

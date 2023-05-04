@@ -8,7 +8,7 @@ using Azure.Storage.Blobs;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 {
-    public class TablesBindingOptions
+    internal class TablesBindingOptions
     {
         public string? ConnectionString { get; set; }
 

@@ -3,5 +3,12 @@
 - My change description (#PR/#issue)
 -->
 
-- Logging an error on a function invocation exception. This error will also be logged by the host, but this allows for richer telemetry coming directly from the worker. See #1421 for details on how to disable this log if desired.
-- Add query as property to HttpRequestData (#1408)
+### Microsoft.Azure.Functions.Worker 1.14.0 (meta package)
+- Update Microsoft.Azure.Functions.Worker.Core dependency to 1.12.0
+- Update Microsoft.Azure.Functions.Worker.Grpc dependency to 1.10.0
+### Microsoft.Azure.Functions.Worker.Core 1.12.0
+- Fix `ArgumentOutOfRangeException` when using `HttpDataRequestDataExtensions.ReadAsStringAsync` in .NET Framework (#1466)
+### Microsoft.Azure.Functions.Worker.Grpc 1.10.0
+- Including worker metadata & capabilities in env reload response (#1425)
+- Fix race condition causing GrpcWorker initialization failure (#1508)
+- Fix `null` reference exception when retry context is not set (#1476)

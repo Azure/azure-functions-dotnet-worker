@@ -130,17 +130,17 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             if (isInputConverterAttributeAdvertised)
             {
-                output.Add(PropertyBagKeys.EnableFallbackConverters, false);
+                output.Add(PropertyBagKeys.AllowConverterFallback, false);
 
                 foreach (Attribute element in customAttributes)
                 {
-                    if (element.GetType() == typeof(EnableConvertersFallbackAttribute))
+                    if (element.GetType() == typeof(AllowConverterFallbackAttribute))
                     {
-                        var attribute = element as EnableConvertersFallbackAttribute;
+                        var attribute = element as AllowConverterFallbackAttribute;
 
                         if (attribute is not null)
                         {
-                            output[PropertyBagKeys.EnableFallbackConverters] = true;
+                            output[PropertyBagKeys.AllowConverterFallback] = attribute.AllowConverterFallback;
                         }
                     }
                 }

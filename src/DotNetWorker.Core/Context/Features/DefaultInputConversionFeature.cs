@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            if (AreFallbackConvertersEnabled(converterContext))
+            if (AreFallbackConvertersAllowed(converterContext))
             {
                 // Use the registered converters. The first converter which can handle the conversion wins.
                 foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
@@ -191,9 +191,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <summary>
         /// Returns boolean value indicating whether fallback to registered converters enabled by the converter
         /// </summary>
-        private bool AreFallbackConvertersEnabled(ConverterContext context)
+        private bool AreFallbackConvertersAllowed(ConverterContext context)
         {
-            if (context.Properties.TryGetValue(PropertyBagKeys.EnableFallbackConverters, out var res))
+            if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var res))
             {
                 if (res is not null && res.GetType() == typeof(bool))
                 {

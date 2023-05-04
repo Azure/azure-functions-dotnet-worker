@@ -116,7 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                             typeof(MySimpleSyncInputConverter),
                                                             new List<Type>() { typeof(string), typeof(string[])} } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
 
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                 typeof(MySimpleSyncInputConverter),
                                                 new List<Type>() { typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
 
             var converterContext = CreateConverterContext(typeof(object), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -156,7 +156,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                     typeof(MySimpleSyncInputConverter),
                                                     new List<Type>() { typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
 
             var converterContext = CreateConverterContext(typeof(string[]), new string[] { "val1", "val2" }, properties);
@@ -175,7 +175,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                             typeof(MySimpleSyncInputConverter),
                                                             new List<Type>() { typeof(string), typeof(Stream) } } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
 
             var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                             typeof(MySimpleSyncInputConverter2), new List<Type>() } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
 
             var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
@@ -212,7 +212,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                            typeof(MySimpleSyncInputConverter2), new List<Type>() } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
             var converterContext = CreateConverterContext(typeof(Poco[]), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -229,7 +229,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
                                                            typeof(MySimpleSyncInputConverter2), null } } },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
             var converterContext = CreateConverterContext(typeof(IEnumerable<string>), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -246,7 +246,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List < Type >>() { {
                                                                     typeof(MySimpleSyncInputConverter), new List<Type>() { } } } },
-                { PropertyBagKeys.EnableFallbackConverters, true }
+                { PropertyBagKeys.AllowConverterFallback, true }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 
@@ -264,7 +264,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Tuple<bool, List<Type>>(false, new List<Type>() { })  },
-                { PropertyBagKeys.EnableFallbackConverters, false }
+                { PropertyBagKeys.AllowConverterFallback, false }
             };
             var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
 

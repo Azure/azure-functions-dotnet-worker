@@ -121,9 +121,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 {
                     Assert.Equal("myBlob", q.Name);
                     Assert.Equal(typeof(string), q.Type);
-                    Assert.Contains(PropertyBagKeys.EnableFallbackConverters, q.Properties.Keys);
+                    Assert.Contains(PropertyBagKeys.AllowConverterFallback, q.Properties.Keys);
                     Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
-                    Assert.True(true, q.Properties[PropertyBagKeys.EnableFallbackConverters].ToString());
+                    Assert.True(true, q.Properties[PropertyBagKeys.AllowConverterFallback].ToString());
                     Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
                 });
 

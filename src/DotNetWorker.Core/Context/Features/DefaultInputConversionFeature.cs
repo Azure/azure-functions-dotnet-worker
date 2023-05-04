@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             }
 
             // Get information of all converters advertised by the Binding Attribute
-            Dictionary<IInputConverter, ConverterProperties>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
+            Dictionary<IInputConverter, List<Type>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
             {
@@ -139,15 +139,15 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <summary>
         /// Gets information of all converters advertised by the Binding Attribute
         /// </summary>
-        private Dictionary<IInputConverter, ConverterProperties>? GetExplicitConverterTypes(ConverterContext context)
+        private Dictionary<IInputConverter, List<Type>>? GetExplicitConverterTypes(ConverterContext context)
         {
-            var result = new Dictionary<IInputConverter, ConverterProperties>();
+            var result = new Dictionary<IInputConverter, List<Type>>();
 
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeSupportedConverters, out var converterTypes))
             {
-                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, ConverterProperties>))
+                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, List<Type>>))
                 {
-                    var converters = converterTypes as Dictionary<Type, ConverterProperties>;
+                    var converters = converterTypes as Dictionary<Type, List<Type>>;
                     var interfaceType = typeof(IInputConverter);
 
                     foreach (var (converterTypesPair, converterType) in from converterTypesPair in converters
@@ -207,38 +207,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// <summary>
         /// Returns boolean value indicating whether Target type is supported by the converter
         /// </summary>
-        private bool IsTargetTypeSupportedByConverter(ConverterProperties converterTypeProperties, Type targetType)
+        private bool IsTargetTypeSupportedByConverter(List<Type> supportedTypes, Type targetType)
         {
-            return IsTypeSupportedByConverter(converterTypeProperties, targetType)
-                    || IsJsonDeserializedObjectsSupported(converterTypeProperties.SupportsJsonDeserialization, targetType);
-        }
-
-        private bool IsTypeSupportedByConverter(ConverterProperties converterType, Type targetType)
-        {
-            return converterType.SupportedTypes.Any(a => a.AssemblyQualifiedName == targetType.AssemblyQualifiedName);
-        }
-
-        private bool IsJsonDeserializedObjectsSupported(bool converterSupports, Type targetType)
-        {
-            if (converterSupports == true && IsJsonDeserializedObject(targetType))
+            if (supportedTypes == null || supportedTypes.Count() == 0)
             {
                 return true;
             }
-            else if (targetType.IsArray && targetType.FullName != typeof(byte[]).FullName)
-            {
-                return converterSupports == true && IsJsonDeserializedObject(targetType.GetElementType());
-            }
-            else if (targetType.IsGenericType)
-            {
-                return converterSupports == true && IsJsonDeserializedObject(targetType.GetGenericArguments().FirstOrDefault());
-            }
 
-            return false;
-        }
-
-        private bool IsJsonDeserializedObject(Type type)
-        { 
-            return !type.GetConstructors().Any(a => a.GetParameters().Any());
+            return supportedTypes.Any(a => a.AssemblyQualifiedName == targetType.AssemblyQualifiedName);
         }
     }
 }

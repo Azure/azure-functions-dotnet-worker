@@ -848,11 +848,31 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 if (DoesConverterAdvertisesDeferredBindingSupport(typeReferenceCustomAttributes))
                 {
-                    if (CheckSupportForJsonDeserializableTypes(typeReferenceCustomAttributes, bindingType)
-                        || CheckSupportForConverterTypes(typeReferenceCustomAttributes, bindingType))
+                    if (!DoesConverterAdvertisesTypes(typeReferenceCustomAttributes))
                     {
                         return true;
                     }
+                    else
+                    {
+                        if (CheckSupportForConverterTypes(typeReferenceCustomAttributes, bindingType))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool DoesConverterAdvertisesTypes(Collection<CustomAttribute> typeReferenceCustomAttributes)
+        {
+            // Check if converter advertises support for Deferred Binding
+            foreach (var attribute in typeReferenceCustomAttributes)
+            {
+                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                {
+                    return true;
                 }
             }
 
@@ -871,33 +891,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return false;
-        }
-
-        private static bool CheckSupportForJsonDeserializableTypes(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
-        {
-            bool result = false;
-
-            if (ConverterSupportsJsonDeserialization(customAttributes))
-            {
-                if (IsArray(bindingType))
-                {
-                    result = IsBindingTypeJsonDeserializable(bindingType.GetElementType());
-                }
-                else if (IsEnumerableCollection(bindingType))
-                {
-                    var genericBindingType = GetElementTypeOfEnumerable(bindingType);
-                    if (genericBindingType != null)
-                    {
-                        result = IsBindingTypeJsonDeserializable(genericBindingType);
-                    }
-                }
-                else
-                {
-                    result = IsBindingTypeJsonDeserializable(bindingType);
-                }
-            }
-
-            return result;
         }
 
         private static bool CheckSupportForConverterTypes(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
@@ -930,32 +923,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return (converterType != null && string.Equals(converterType.FullName, bindingType.FullName, StringComparison.Ordinal)) ? true : false;
         }
 
-        private static bool IsBindingTypeJsonDeserializable(TypeReference bindingType)
-        {
-            return (bindingType.Resolve().GetConstructors().Where(a => a.Parameters.Any()).Count() == 0) ? true : false;
-        }
-
-        private static bool ConverterSupportsJsonDeserialization(Collection<CustomAttribute> customAttributes)
-        {
-            foreach (var attribute in customAttributes)
-            {
-                // Converter supports Json Deserializable types
-                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsJsonDeserializationAttributeType, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static TypeReference? GetElementTypeOfEnumerable(TypeReference bindingType)
-        {
-            var genericBindingType = bindingType as GenericInstanceType;
-            var genericBindingTypeArgument = genericBindingType?.GenericArguments.FirstOrDefault();
-
-            return genericBindingTypeArgument;
-        }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)
         {

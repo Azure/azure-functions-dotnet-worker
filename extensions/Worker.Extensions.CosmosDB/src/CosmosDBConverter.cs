@@ -21,10 +21,6 @@ namespace Microsoft.Azure.Functions.Worker
     /// Converter to bind Cosmos DB type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportsJsonDeserialization]
-    [SupportedConverterType(typeof(CosmosClient))]
-    [SupportedConverterType(typeof(Database))]
-    [SupportedConverterType(typeof(Container))]
     internal class CosmosDBConverter : IInputConverter
     {
         private readonly IOptionsSnapshot<CosmosDBBindingOptions> _cosmosOptions;

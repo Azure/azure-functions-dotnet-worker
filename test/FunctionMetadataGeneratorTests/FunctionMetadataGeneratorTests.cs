@@ -342,7 +342,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
                     { "path", "container2/%file%" },
-                    { "Properties", new Dictionary<String, Object>( ) { } }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
                 });
             }
 
@@ -362,7 +362,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "blobPath", "container2/%file%" },
                     { "Cardinality", "One" },
-                    { "Properties", new Dictionary<String, Object>( ) { } }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
                 });
             }
 

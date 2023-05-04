@@ -106,7 +106,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
             // The dictionary has key of type IInputConverter and value as Properties of that converter (specifies supported types and support for Json Deserialization)
-            var converterTypesDictionary = new Dictionary<Type, ConverterProperties>();
+            var converterTypesDictionary = new Dictionary<Type, List<Type>>();
 
             IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
 
@@ -120,7 +120,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                     {
                         isInputConverterAttributeAdvertised = true;
                         Type converter = attribute.ConverterType;
-                        ConverterProperties supportedTypes = GetTypesSupportedByConverter(converter);
+                        List<Type> supportedTypes = GetTypesSupportedByConverter(converter);
                         converterTypesDictionary.Add(converter, supportedTypes);
                     }
                 }
@@ -149,9 +149,8 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             return output.ToImmutableDictionary();
         }
 
-        private ConverterProperties GetTypesSupportedByConverter(Type converter)
+        private List<Type> GetTypesSupportedByConverter(Type converter)
         {
-            bool supportsJsonDeserialization = false;
             var types = new List<Type>();
 
             foreach (var converterAttribute in converter.CustomAttributes)
@@ -175,17 +174,9 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                         }
                     }
                 }
-                else if (converterAttribute.AttributeType == typeof(SupportsJsonDeserializationAttribute))
-                {
-                    supportsJsonDeserialization = true;
-                }
             }
 
-            return new ConverterProperties()
-            {
-                SupportsJsonDeserialization = supportsJsonDeserialization,
-                SupportedTypes = types
-            };
+            return types;
         }
     }
 }

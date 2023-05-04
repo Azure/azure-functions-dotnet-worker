@@ -23,32 +23,6 @@ namespace Microsoft.Azure.Functions.Worker
     /// Converter to bind Blob Storage type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportsJsonDeserialization]
-    [SupportedConverterType(typeof(string))]
-    [SupportedConverterType(typeof(string[]))]
-    [SupportedConverterType(typeof(IEnumerable<string>))]
-    [SupportedConverterType(typeof(Stream))]
-    [SupportedConverterType(typeof(Stream[]))]
-    [SupportedConverterType(typeof(IEnumerable<Stream>))]
-    [SupportedConverterType(typeof(byte[]))]
-    [SupportedConverterType(typeof(byte[][]))]
-    [SupportedConverterType(typeof(IEnumerable<byte[]>))]
-    [SupportedConverterType(typeof(BlobBaseClient))]
-    [SupportedConverterType(typeof(BlobBaseClient[]))]
-    [SupportedConverterType(typeof(IEnumerable<BlobBaseClient>))]
-    [SupportedConverterType(typeof(BlobClient))]
-    [SupportedConverterType(typeof(BlobClient[]))]
-    [SupportedConverterType(typeof(IEnumerable<BlobClient>))]
-    [SupportedConverterType(typeof(BlockBlobClient))]
-    [SupportedConverterType(typeof(BlockBlobClient[]))]
-    [SupportedConverterType(typeof(IEnumerable<BlockBlobClient>))]
-    [SupportedConverterType(typeof(PageBlobClient))]
-    [SupportedConverterType(typeof(PageBlobClient[]))]
-    [SupportedConverterType(typeof(IEnumerable<PageBlobClient>))]
-    [SupportedConverterType(typeof(AppendBlobClient))]
-    [SupportedConverterType(typeof(AppendBlobClient[]))]
-    [SupportedConverterType(typeof(IEnumerable<AppendBlobClient>))]
-    [SupportedConverterType(typeof(BlobContainerClient))]
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;

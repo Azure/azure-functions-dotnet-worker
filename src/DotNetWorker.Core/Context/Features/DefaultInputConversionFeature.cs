@@ -194,7 +194,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var result))
             {
-                if (result is not null && result.GetType() == typeof(bool))
+                if (result is not null && result is bool)
                 {
                     return (bool)result;
                 }
@@ -208,7 +208,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// </summary>
         private bool IsTargetTypeSupportedByConverter(List<Type> supportedTypes, Type targetType)
         {
-            if (supportedTypes == null || supportedTypes.Count() == 0)
+            if (supportedTypes is { Count: > 0 })
             {
                 return true;
             }

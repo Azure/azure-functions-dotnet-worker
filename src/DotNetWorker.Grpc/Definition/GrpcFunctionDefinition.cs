@@ -145,15 +145,11 @@ namespace Microsoft.Azure.Functions.Worker.Definition
                 {
                     foreach (CustomAttributeTypedArgument supportedType in converterAttribute.ConstructorArguments)
                     {
-                        if (supportedType.ArgumentType is not null
-                            && supportedType.Value is not null
-                            && supportedType.ArgumentType == typeof(Type))
+                        if (supportedType is { ArgumentType: not null, Value: not null } && supportedType.ArgumentType == typeof(Type))
                         {
-                            Type? supportedTypeValue = supportedType.Value as Type;
-
-                            if (supportedTypeValue is not null)
+                            if (supportedType.Value is Type type)
                             {
-                                types.Add(supportedTypeValue);
+                                types.Add(type);
                             }
                         }
                     }

@@ -111,12 +111,18 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
 
             Type type = bindingAttribute.GetType();
-            if (type.GetCustomAttribute<InputConverterAttribute>() is { } attribute)
+            var attributes = type.GetCustomAttributes<InputConverterAttribute>();
+
+            if (attributes.Any())
             {
                 isInputConverterAttributeAdvertised = true;
-                Type converter = attribute.ConverterType;
-                List<Type> supportedTypes = GetTypesSupportedByConverter(converter);
-                converterTypesDictionary.Add(converter, supportedTypes);
+
+                foreach (var attribute in attributes)
+                {
+                    Type converter = attribute.ConverterType;
+                    List<Type> supportedTypes = GetTypesSupportedByConverter(converter);
+                    converterTypesDictionary.Add(converter, supportedTypes);
+                }
             }
 
             output.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converterTypesDictionary);

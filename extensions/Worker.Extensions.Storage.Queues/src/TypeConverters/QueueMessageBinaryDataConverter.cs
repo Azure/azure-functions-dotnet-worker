@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Storage.Queues;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     [SupportsDeferredBinding]
-    [SupportsJsonDeserialization]
     [SupportedConverterType(typeof(BinaryData))]
     internal sealed class QueueMessageBinaryDataConverter : QueueConverterBase<BinaryData>
     {
@@ -50,6 +50,20 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 return ConversionResult.Failed(ex);
             }
+        }
+
+        private async Task<string> ExtractQueueMessageTextAsStringAsync(ModelBindingData modelBindingData)
+        {
+            if (modelBindingData.ContentType is not Constants.JsonContentType)
+            {
+                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
+            }
+
+            using var contentStream = modelBindingData.Content.ToStream();
+            var contentElement = await JsonSerializer.DeserializeAsync<JsonElement>(contentStream).ConfigureAwait(false);
+
+            return contentElement.GetProperty(Constants.QueueMessageText).ToString()
+                                ?? throw new InvalidOperationException($"The '{Constants.QueueMessageText}' property is missing or null.");
         }
     }
 }

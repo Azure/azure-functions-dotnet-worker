@@ -15,7 +15,6 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Azure.Functions.Worker
 {
     [SupportsDeferredBinding]
-    [SupportsJsonDeserialization]
     [SupportedConverterType(typeof(QueueMessage))]
     internal sealed class QueueMessageConverter : QueueConverterBase<QueueMessage>
     {

@@ -7,11 +7,7 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.12.1-preview1" /> -->
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.9.0-dev638179695473485390-local" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
-    <!-- <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="5.1.0-preview1" /> -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.9.0-dev638188837983296340-local" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>

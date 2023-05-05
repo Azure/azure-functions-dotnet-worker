@@ -148,12 +148,12 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 {
                     var interfaceType = typeof(IInputConverter);
 
-                    foreach (var (converterTypesPair, converterType) in from converterTypesPair in converters
-                                                                        let converterType = converterTypesPair.Key
-                                                                        where interfaceType.IsAssignableFrom(converterType)
-                                                                        select (converterTypesPair, converterType))
+                    foreach (var (converterType, supportedTypes) in converters)
                     {
-                        result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), converterTypesPair.Value);
+                        if (converterType is not null && interfaceType.IsAssignableFrom(converterType))
+                        {
+                            result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), supportedTypes);
+                        }
                     }
 
                     return result;

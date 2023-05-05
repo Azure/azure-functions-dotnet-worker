@@ -144,9 +144,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
             if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeSupportedConverters, out var converterTypes))
             {
-                if (converterTypes is not null && converterTypes.GetType() == typeof(Dictionary<Type, List<Type>>))
+                if (converterTypes is Dictionary<Type, List<Type>> converters)
                 {
-                    var converters = converterTypes as Dictionary<Type, List<Type>>;
                     var interfaceType = typeof(IInputConverter);
 
                     foreach (var (converterTypesPair, converterType) in from converterTypesPair in converters
@@ -194,9 +193,9 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var result))
             {
-                if (result is not null && result is bool)
+                if (result is not null && result is bool res)
                 {
-                    return (bool)result;
+                    return res;
                 }
             }
 
@@ -208,7 +207,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// </summary>
         private bool IsTargetTypeSupportedByConverter(List<Type> supportedTypes, Type targetType)
         {
-            if (supportedTypes is { Count: > 0 })
+            if (supportedTypes is null or { Count: 0 })
             {
                 return true;
             }

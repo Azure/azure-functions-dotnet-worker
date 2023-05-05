@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core;
 
 namespace Microsoft.Azure.Functions.Worker.Context.Features
 {
@@ -49,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            // Get information of all converters advertised by the Binding Attribute
+            // Get all converters advertised by the Binding Attribute along with supported types by each converter
             Dictionary<IInputConverter, List<Type>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
 
             if (advertisedConverterTypes is not null)
@@ -68,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            if (AreFallbackConvertersAllowed(converterContext))
+            if (IsConverterFallbackAllowed(converterContext))
             {
                 // Use the registered converters. The first converter which can handle the conversion wins.
                 foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
@@ -137,7 +136,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
 
         /// <summary>
-        /// Gets information of all converters advertised by the Binding Attribute
+        /// Gets all converters advertised by the Binding Attribute along with supported types by each converter
         /// </summary>
         private Dictionary<IInputConverter, List<Type>>? GetExplicitConverterTypes(ConverterContext context)
         {
@@ -189,15 +188,15 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         }
 
         /// <summary>
-        /// Returns boolean value indicating whether fallback to registered converters enabled by the converter
+        /// Returns boolean value indicating whether fallback to registered converters allowed by the binding attribute
         /// </summary>
-        private bool AreFallbackConvertersAllowed(ConverterContext context)
+        private bool IsConverterFallbackAllowed(ConverterContext context)
         {
-            if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var res))
+            if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var result))
             {
-                if (res is not null && res.GetType() == typeof(bool))
+                if (result is not null && result.GetType() == typeof(bool))
                 {
-                    return (bool)res;
+                    return (bool)result;
                 }
             }
 
@@ -214,6 +213,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 return true;
             }
 
+            // If types are explicitly advertised by the converter then we should send only those types for conversion.
             return supportedTypes.Any(a => a.AssemblyQualifiedName == targetType.AssemblyQualifiedName);
         }
     }

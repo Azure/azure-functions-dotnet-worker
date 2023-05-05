@@ -76,6 +76,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         {
             // Get the input converter attribute information, if present on the parameter.
             var inputConverterAttribute = parameterInfo?.GetCustomAttribute<InputConverterAttribute>();
+
             if (inputConverterAttribute != null)
             {
                 return new Dictionary<string, object>()
@@ -104,46 +105,25 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             var output = new Dictionary<string, object>();
             bool isInputConverterAttributeAdvertised = false;
 
-            // ConverterTypesDictionary will be "object" part of the return value of this method - ImmutableDictionary<string, object>
-            // The dictionary has key of type IInputConverter and value as Properties of that converter (specifies supported types and support for Json Deserialization)
+            // ConverterTypesDictionary will be "object" part of the return value - ImmutableDictionary<string, object>
+            // The dictionary has key of type IInputConverter and value as List of Types supported by the converter.
             var converterTypesDictionary = new Dictionary<Type, List<Type>>();
 
-            IEnumerable<Attribute> customAttributes = bindingAttribute.GetType().GetCustomAttributes();
 
-            foreach (Attribute element in customAttributes)
+            Type type = bindingAttribute.GetType();
+            if (type.GetCustomAttribute<InputConverterAttribute>() is { } attribute)
             {
-                if (element.GetType() == typeof(InputConverterAttribute))
-                {
-                    var attribute = element as InputConverterAttribute;
-
-                    if (attribute is not null)
-                    {
-                        isInputConverterAttributeAdvertised = true;
-                        Type converter = attribute.ConverterType;
-                        List<Type> supportedTypes = GetTypesSupportedByConverter(converter);
-                        converterTypesDictionary.Add(converter, supportedTypes);
-                    }
-                }
+                isInputConverterAttributeAdvertised = true;
+                Type converter = attribute.ConverterType;
+                List<Type> supportedTypes = GetTypesSupportedByConverter(converter);
+                converterTypesDictionary.Add(converter, supportedTypes);
             }
 
             output.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converterTypesDictionary);
 
             if (isInputConverterAttributeAdvertised)
             {
-                output.Add(PropertyBagKeys.AllowConverterFallback, false);
-
-                foreach (Attribute element in customAttributes)
-                {
-                    if (element.GetType() == typeof(AllowConverterFallbackAttribute))
-                    {
-                        var attribute = element as AllowConverterFallbackAttribute;
-
-                        if (attribute is not null)
-                        {
-                            output[PropertyBagKeys.AllowConverterFallback] = attribute.AllowConverterFallback;
-                        }
-                    }
-                }
+                output[PropertyBagKeys.AllowConverterFallback] = type.GetCustomAttribute<AllowConverterFallbackAttribute>()?.AllowConverterFallback ?? true;
             }
 
             return output.ToImmutableDictionary();
@@ -153,19 +133,17 @@ namespace Microsoft.Azure.Functions.Worker.Definition
         {
             var types = new List<Type>();
 
-            foreach (var converterAttribute in converter.CustomAttributes)
+            foreach (CustomAttributeData converterAttribute in converter.CustomAttributes)
             {
                 if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
                 {
-                    Type? supportedTypeValue = null;
-
-                    foreach (var supportedType in converterAttribute.ConstructorArguments)
+                    foreach (CustomAttributeTypedArgument supportedType in converterAttribute.ConstructorArguments)
                     {
                         if (supportedType.ArgumentType is not null
                             && supportedType.Value is not null
                             && supportedType.ArgumentType == typeof(Type))
                         {
-                            supportedTypeValue = supportedType.Value as Type;
+                            Type? supportedTypeValue = supportedType.Value as Type;
 
                             if (supportedTypeValue is not null)
                             {

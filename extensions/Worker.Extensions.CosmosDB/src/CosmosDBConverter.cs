@@ -13,7 +13,6 @@ using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using System.IO;
 
 namespace Microsoft.Azure.Functions.Worker
 {

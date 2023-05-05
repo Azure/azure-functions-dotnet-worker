@@ -576,28 +576,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return binding;
         }
 
-        private static bool IsArray(TypeReference type)
+        private static bool IsIterableCollection(TypeReference type, out DataType dataType)
         {
             // Array and not byte array
             bool isArray = type.IsArray && !string.Equals(type.FullName, Constants.ByteArrayType, StringComparison.Ordinal);
-            return isArray;
-        }
-
-        private static bool IsEnumerableCollection(TypeReference type)
-        {
-            bool isEnumerableOfT = IsOrDerivedFrom(type, Constants.IEnumerableOfT);
-            bool isEnumerableCollection =
-                !IsStringType(type.FullName)
-                && (IsOrDerivedFrom(type, Constants.IEnumerableType)
-                    || IsOrDerivedFrom(type, Constants.IEnumerableGenericType)
-                    || isEnumerableOfT);
-
-            return isEnumerableCollection;
-        }
-
-        private static bool IsIterableCollection(TypeReference type, out DataType dataType)
-        {
-            if (IsArray(type))
+            if (isArray)
             {
                 if (type is TypeSpecification typeSpecification)
                 {
@@ -617,7 +600,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // IEnumerable and not string or dictionary
             bool isEnumerableOfT = IsOrDerivedFrom(type, Constants.IEnumerableOfT);
-            if (IsEnumerableCollection(type))
+            bool isEnumerableCollection =
+                !IsStringType(type.FullName)
+                && (IsOrDerivedFrom(type, Constants.IEnumerableType)
+                    || IsOrDerivedFrom(type, Constants.IEnumerableGenericType)
+                    || isEnumerableOfT);
+            if(isEnumerableCollection)
             {
                 dataType = DataType.Undefined;
                 if (IsOrDerivedFrom(type, Constants.IEnumerableOfStringType))

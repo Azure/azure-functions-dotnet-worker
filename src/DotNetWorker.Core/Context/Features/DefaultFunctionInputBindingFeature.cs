@@ -78,7 +78,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                             properties.Add(PropertyBagKeys.ConverterType, converterTypeAssemblyFullName);
                         }
 
-                        // Pass info about the flag to enable fallback to default converters defined for this parameter, if present.
+                        // Pass info about the flag to allow fallback to default converters defined for this parameter, if present.
                         if (param.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var flag))
                         {
                             properties.Add(PropertyBagKeys.AllowConverterFallback, flag);

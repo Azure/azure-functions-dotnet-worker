@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
-    /// An attribute that specifies if Converters fallback is allowed
+    /// An attribute that specifies if Converter fallback is allowed
     /// </summary>
     [AttributeUsage(
         AttributeTargets.Parameter |
@@ -17,14 +17,14 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     public sealed class AllowConverterFallbackAttribute : Attribute
     {
         /// <summary>
-        /// Gets the value if Converter fallback is allowed.
+        /// Gets the value of whether Converter fallback is allowed.
         /// </summary>
         public bool AllowConverterFallback { get; }
 
         /// <summary>
         /// Creates a new instance of <see cref="AllowConverterFallbackAttribute"/>
         /// </summary>
-        /// <param name="allowConverterFallback">The value that allows converter fallback.</param>
+        /// <param name="allowConverterFallback">The value to indicate if converter fallback is allowed.</param>
         public AllowConverterFallbackAttribute(bool allowConverterFallback)
         {
             AllowConverterFallback = allowConverterFallback;

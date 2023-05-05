@@ -313,8 +313,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
         internal class Poco
         {
-            string id;
-            string name;
         }
 
         private DefaultConverterContext CreateConverterContext(Type targetType, object source, IReadOnlyDictionary<string, object> properties = null)

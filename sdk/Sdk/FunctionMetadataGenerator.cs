@@ -8,7 +8,6 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
-using Mono.Cecil.Rocks;
 using Mono.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
@@ -605,7 +604,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 && (IsOrDerivedFrom(type, Constants.IEnumerableType)
                     || IsOrDerivedFrom(type, Constants.IEnumerableGenericType)
                     || isEnumerableOfT);
-            if(isEnumerableCollection)
+            if (isEnumerableCollection)
             {
                 dataType = DataType.Undefined;
                 if (IsOrDerivedFrom(type, Constants.IEnumerableOfStringType))
@@ -807,9 +806,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 return false;
             }
 
+            // checking attributes advertised by the binding attribute
             foreach (CustomAttribute bindingAttribute in typeDefinition.CustomAttributes)
             {
-                // Converters advertised by Binding attribute will be checked for supporting deferred binding
                 if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
                 {
                     // InputConverterAttribute will have supported converter type
@@ -834,67 +833,42 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // Attributes advertised by converter
             if (typeReferenceCustomAttributes is not null)
             {
-                if (DoesConverterAdvertisesDeferredBindingSupport(typeReferenceCustomAttributes))
+                bool converterAdvertisesDeferredBindingSupport = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
+
+                if (converterAdvertisesDeferredBindingSupport)
                 {
-                    if (!DoesConverterAdvertisesTypes(typeReferenceCustomAttributes))
+                    bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+
+                    if (!converterAdvertisesTypes)
+                    {
+                        // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
+                        return true;
+                    }
+                    else if (DoesConverterSupportTargetType(typeReferenceCustomAttributes, bindingType))
                     {
                         return true;
                     }
-                    else
-                    {
-                        if (CheckSupportForConverterTypes(typeReferenceCustomAttributes, bindingType))
-                        {
-                            return true;
-                        }
-                    }
                 }
             }
 
             return false;
         }
 
-        private static bool DoesConverterAdvertisesTypes(Collection<CustomAttribute> typeReferenceCustomAttributes)
+        private static bool DoesConverterSupportTargetType(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
         {
-            // Check if converter advertises support for Deferred Binding
-            foreach (var attribute in typeReferenceCustomAttributes)
-            {
-                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool DoesConverterAdvertisesDeferredBindingSupport(Collection<CustomAttribute> typeReferenceCustomAttributes)
-        {
-            // Check if converter advertises support for Deferred Binding
-            foreach (var attribute in typeReferenceCustomAttributes)
-            {
-                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        private static bool CheckSupportForConverterTypes(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
-        {
-            // Parse advertised attributes by converter
+            // Parse attributes advertised by converter
             foreach (var attribute in customAttributes)
             {
                 if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
                 {
-                    foreach (var element in attribute.ConstructorArguments)
+                    foreach (CustomAttributeArgument element in attribute.ConstructorArguments)
                     {
                         if (element.Type.FullName == typeof(Type).FullName)
                         {
                             var supportedType = element.Value as TypeReference;
 
-                            if (supportedType is not null && IsBindingTypeSupportedByConverter(supportedType, bindingType))
+                            if (supportedType is not null
+                                && supportedType != null && string.Equals(supportedType.FullName, bindingType.FullName, StringComparison.Ordinal))
                             {
                                 return true;
                             }                                
@@ -905,12 +879,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             return false;
         }
-
-        private static bool IsBindingTypeSupportedByConverter(TypeReference converterType, TypeReference bindingType)
-        {
-            return (converterType != null && string.Equals(converterType.FullName, bindingType.FullName, StringComparison.Ordinal)) ? true : false;
-        }
-
 
         private static bool IsOutputBindingType(CustomAttribute attribute)
         {

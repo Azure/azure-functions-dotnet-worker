@@ -857,7 +857,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private static bool DoesConverterSupportTargetType(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
         {
             // Parse attributes advertised by converter
-            foreach (var attribute in customAttributes)
+            foreach (CustomAttribute attribute in customAttributes)
             {
                 if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
                 {

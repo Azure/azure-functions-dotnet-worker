@@ -108,9 +108,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [Fact]
-        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties()
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Works()
         {
-            // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
@@ -131,7 +130,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         [Fact]
         public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Unhandled()
         {
-            // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
@@ -150,7 +148,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         [Fact]
         public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_ArrayType_Unhandled()
         {
-            // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
@@ -188,7 +185,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         [Fact]
         public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Poco_Works()
         {
-            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            // No explicit type advertised and converter supports deferred binding so all the types will be supported
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
@@ -205,9 +202,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
 
         [Fact]
-        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_PocoNotSupported_Unhandled()
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Poco_Succeeded()
         {
-            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            // No explicit type advertised and converter supports deferred binding so all the types will be supported
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
@@ -222,9 +219,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
         }
 
         [Fact]
-        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_StringCollectionSupported_Works()
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_StringCollection_Works()
         {
-            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            // No explicit type advertised and converter supports deferred binding so all the types will be supported
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
                 { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {

@@ -5,6 +5,9 @@ using System;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
 {
+    /// <summary>
+    /// Specifies a binding type's capabilities. Intended for use on binding attribute classes only.
+    /// </summary>
     [AttributeUsage(AttributeTargets.Class)]
     public sealed class BindingCapabilitiesAttribute : Attribute
     {
@@ -20,6 +23,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         /// <summary>
         /// Lists the capabilities of a binding type.
         /// </summary>
-        public string[]? Capabilities { get; private set; }
+        public string[] Capabilities { get; private set; } = Array.Empty<string>();
     }
 }

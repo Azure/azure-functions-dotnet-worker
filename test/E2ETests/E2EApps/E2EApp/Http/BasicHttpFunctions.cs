@@ -3,8 +3,8 @@
 
 using System.Net;
 using System.Text.Json;
-using System.Web;
-using Microsoft.Azure.Functions.Worker;
+using System.Threading.Tasks;
+using Azure;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
@@ -70,6 +70,59 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             logger.LogInformation(".NET Worker HTTP trigger function processed a request");
 
             return new MyResponse { Name = "Test" };
+        }
+
+        [Function(nameof(HelloWithNoResponse))]
+        public static Task HelloWithNoResponse(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)][FromBody] HttpRequestData req,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(HelloWithNoResponse));
+            logger.LogInformation($".NET Worker HTTP trigger function processed a request");
+
+            return Task.CompletedTask;
+        }
+
+        [Function(nameof(PocoFromBody))]
+        public static HttpResponseData PocoFromBody(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
+            [FromBody] CallerName caller,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(PocoFromBody));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString($"Greetings {caller.Name}");
+            return response;
+        }
+
+        [Function(nameof(PocoBeforeRouteParameters))]
+        public static Task PocoBeforeRouteParameters(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{region}/{category}/" + nameof(PocoBeforeRouteParameters))] [FromBody] CallerName caller,
+            string region,
+            string category,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(PocoBeforeRouteParameters));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+            return Task.CompletedTask;
+        }
+
+        [Function(nameof(PocoAfterRouteParameters))]
+        public static HttpResponseData PocoAfterRouteParameters(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "{region}/{category}/" + nameof(PocoAfterRouteParameters))] HttpRequestData req,
+            string region,
+            string category,
+            [FromBody] CallerName caller,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(PocoAfterRouteParameters));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString($"{region} {category} {caller.Name}");
+            return response;
         }
 
         public class MyResponse

@@ -4,7 +4,6 @@
 using System.Net;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Azure;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 

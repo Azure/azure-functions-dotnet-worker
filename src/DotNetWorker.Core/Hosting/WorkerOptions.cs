@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker
         };
 
         /// <summary>
-        /// Gets and sets the flag for opting in to unwrapping user-code-thrown
+        /// Gets or sets the flag for opting in to unwrapping user-code-thrown
         /// exceptions when they are surfaced to the Host. 
         /// </summary>
         public bool EnableUserCodeException

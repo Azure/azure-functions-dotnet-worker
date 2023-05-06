@@ -8,15 +8,12 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core.Serialization;
-using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -28,12 +25,8 @@ namespace Microsoft.Azure.Functions.Worker
     internal class GrpcWorker : IWorker, IMessageProcessor
     {
         private readonly IFunctionsApplication _application;
-        private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
-        private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
-        private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly WorkerOptions _workerOptions;
-        private readonly ObjectSerializer _serializer;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
@@ -42,29 +35,20 @@ namespace Microsoft.Azure.Functions.Worker
 
         public GrpcWorker(IFunctionsApplication application,
                           IWorkerClientFactory workerClientFactory,
-                          IInvocationFeaturesFactory invocationFeaturesFactory,
-                          IOutputBindingsInfoProvider outputBindingsInfoProvider,
                           IMethodInfoLocator methodInfoLocator,
                           IOptions<WorkerOptions> workerOptions,
-                          IInputConversionFeatureProvider inputConversionFeatureProvider,
                           IFunctionMetadataProvider functionMetadataProvider,
                           IHostApplicationLifetime hostApplicationLifetime,
-                          ILogger<GrpcWorker> logger)
+                          IInvocationHandler invocationHandler)
         {
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
-            _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
-            _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
-            _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
-            _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
 
-            // Handlers (TODO: dependency inject handlers instead of creating here)
-            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
+            _invocationHandler = invocationHandler;
         }
 
         public Task StartAsync(CancellationToken token)
@@ -78,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker
         Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
             // Dispatch and return.
-            _ = ProcessRequestCoreAsync(message);
+            Task.Run(() => ProcessRequestCoreAsync(message));
 
             return Task.CompletedTask;
         }
@@ -134,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            return _invocationHandler.InvokeAsync(request, _workerOptions);
+            return _invocationHandler.InvokeAsync(request);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)

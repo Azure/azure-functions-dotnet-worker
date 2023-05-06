@@ -24,45 +24,9 @@ The Azure Functions .NET Isolated supports middleware registration, following a 
 
 You can find samples on how to use different features of the .NET Worker under `samples` ([link](https://github.com/Azure/azure-functions-dotnet-worker/tree/main/samples)).
 
-## Create and run .NET Isolated functions
+## Create and run .NET Isolated Worker functions
 
-**Note: Visual Studio and Visual Studio Code support is on the way. In the meantime, please use `azure-functions-core-tools` or the sample projects as a starting point.**
-
-### Install .NET 7.0
-Download .NET 7.0 [from here](https://dotnet.microsoft.com/download/dotnet/7.0)
-
-### Install the Azure Functions Core Tools
-
-To download Core Tools, please check out our docs at [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools)
-
-### Create a .NET Isolated project
-In an empty directory, run `func init` and select `dotnet (Isolated Process)`.
-
-### Add a function
-Run `func new` and select any trigger (`HttpTrigger` is a good one to start). Fill in the function name.
-
-### Run functions locally
-Run `func host start` in the sample app directory.
-
-**Note:** If you selected a trigger different from `HttpTrigger`, you may need to setup local connection strings or emulator for the trigger service.
-
-### Debugging
-
-#### Visual Studio
-
-Debugging for the Isolated model is supported in Visual Studio 2019 and 2022 with the Azure Development workloads support installed.
-
-#### JetBrains Rider
-
-> NOTE: To debug your Worker, you must be using the Azure Functions Core Tools version 3.0.3381 or higher. You must also have the [Azure Toolkit for Rider](https://plugins.jetbrains.com/plugin/11220-azure-toolkit-for-rider) installed.
-
-In Rider, make sure a Run Configuration is generated for your Azure Functions project is active. You can also create a custom Run Configuration from the **Run \| Edit Configurations...** menu.
-
-To start debugging, select the run configuration and start debugging. This will compile your project, run the Core Tools, and attach the debugger to your project.
-
-Under the hood, Rider launches the Core Tools with the `--dotnet-isolated-debug` argument, and attached to the process ID for your worker process.
-
-You can place a breakpoint in any function, and inspect your code as it is running. Note that [debugging startup code may timeout (#434)](https://github.com/Azure/azure-functions-dotnet-worker/issues/434).
+Please see our [Guide for running C# Azure Functions in an isolated worker process](https://learn.microsoft.com/en-us/azure/azure-functions/dotnet-isolated-process-guide) for information on how to develop, debug and deploy using the Isolated Worker model.
 
 ## Running E2E Tests
 

@@ -69,6 +69,17 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.Equal(expectedBody, responseBody);
         }
 
+
+        [Fact]
+        public async Task HttpTriggerTests_PocoWithoutBindingSource()
+        {
+            const HttpStatusCode expectedStatusCode = HttpStatusCode.InternalServerError;
+
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("PocoWithoutBindingSource", "{ \"Name\": \"John\" }", expectedStatusCode, "application/json");
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+        }
+
         [Fact]
         public async Task HttpTriggerTestsPocoResult()
         {

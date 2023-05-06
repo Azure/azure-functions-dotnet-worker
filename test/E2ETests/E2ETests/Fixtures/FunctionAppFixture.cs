@@ -60,6 +60,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     _funcProcess.StartInfo.ArgumentList.Add("PocoBeforeRouteParameters");
                     _funcProcess.StartInfo.ArgumentList.Add("PocoAfterRouteParameters");
                     _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
+                    _funcProcess.StartInfo.ArgumentList.Add("PocoWithoutBindingSource");
                 }
 
                 await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);

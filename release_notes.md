@@ -10,4 +10,4 @@
 ### Microsoft.Azure.Functions.Worker.Core <version>
 - <entry>
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
-- <entry>
+- Fixed an issue causing throughput degradation and for synchronous functions, blocked the execution pipeline. (#1516)

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         /// <summary>
         /// Initializes a new instance of <see cref="BindingCapabilitiesAttribute"/> with the specified list of capabilities.
         /// </summary>
-        /// <param name="capabilities">The list of capabilities</param>
+        /// <param name="capabilities">The list of capabilities.</param>
         public BindingCapabilitiesAttribute(params string[] capabilities)
         {
             Capabilities = capabilities;
@@ -23,6 +23,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
         /// <summary>
         /// Lists the capabilities of a binding type.
         /// </summary>
-        public string[] Capabilities { get; private set; } = Array.Empty<string>();
+        public string[] Capabilities { get; private set; }
     }
 }

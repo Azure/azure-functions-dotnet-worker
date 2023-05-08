@@ -8,6 +8,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Abstractions
     /// </summary>
     public static class KnownBindingCapabilities
     {
+        /// <summary>
+        /// Signals that a binding has function level retry support.
+        /// </summary>
         public const string FunctionLevelRetry = "FunctionLevelRetry";
     }
 }

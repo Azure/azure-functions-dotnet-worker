@@ -17,6 +17,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
+using Azure;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -141,7 +142,7 @@ namespace Microsoft.Azure.Functions.Worker
         internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string? connection, string tableName, string? partitionKey, string? rowKey) => targetType switch
         {
             Type _ when targetType == typeof(TableClient) => GetTableClient(connection, tableName),
-            Type _ when targetType == typeof(TableEntity) => GetTableEntity(connection, tableName, partitionKey, rowKey),
+            Type _ when targetType == typeof(TableEntity) => await GetTableEntity(connection, tableName, partitionKey, rowKey),
             _ => null
         };
 
@@ -161,12 +162,14 @@ namespace Microsoft.Azure.Functions.Worker
             return tableServiceClient.GetTableClient(tableName);
         }
 
-        internal virtual TableEntity GetTableEntity(string? connection, string tableName, string? partitionKey, string? rowKey)
+        internal virtual async Task<TableEntity> GetTableEntity(string? connection, string tableName, string? partitionKey, string? rowKey)
         {
-            var tableOptions = _tableOptions.Get(connection);
-            TableServiceClient tableServiceClient = tableOptions.CreateClient();
-            var tableClient = tableServiceClient.GetTableClient(tableName);
-            return tableClient.GetEntity<TableEntity>(partitionKey, rowKey);
+            if (partitionKey == null || rowKey == null)
+            {
+                throw new ArgumentNullException($"Partition key {partitionKey} and row key {rowKey} cannot be null");
+            }
+            var tableClient = GetTableClient(connection, tableName);
+            return await tableClient.GetEntityAsync<TableEntity>(partitionKey, rowKey);
         }
 
         internal static IEnumerable<T> CloneToEnumerable<T>(IEnumerable<object> source)

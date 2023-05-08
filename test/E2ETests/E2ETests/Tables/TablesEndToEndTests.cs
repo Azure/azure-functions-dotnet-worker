@@ -2,15 +2,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Azure.Documents;
 using Microsoft.Azure.Functions.Worker.E2ETests.Helpers;
-using Newtonsoft.Json;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -21,13 +16,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
     {
         private readonly IDisposable _disposeLog;
         private FunctionAppFixture _fixture;
-        private const string partitionKey = "Partition";
-        private const string firstRowKey = "FirstRowKey";
-        private const string firstValue = "FirstValue";
-        private const string secondRowKey = "SecondRowKey";
-        private const string secondValue = "SecondValue";
-        private const string thirdRowKey = "ThirdRowKey";
-        private const string thirdValue = "ThirdValue";
 
         public TablesEndToEndTests(FunctionAppFixture fixture, ITestOutputHelper testOutput)
         {
@@ -38,6 +26,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
         [Fact]
         public async Task Read_TableClient_Data_Succeeds()
         {
+            const string partitionKey = "Partition";
+            const string firstRowKey = "FirstRowKey";
+            const string firstValue = "FirstValue";
+
             // Create the table if it doesn't exist
             await TableHelpers.CreateTable();
 
@@ -61,6 +53,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
         [Fact]
         public async Task Read_TableData_Succeeds()
         {
+            const string partitionKey = "Partition";
+            const string firstRowKey = "FirstRowKey";
+            const string firstValue = "FirstValue";
+
             // Create the table if it doesn't exist
             await TableHelpers.CreateTable();
 
@@ -84,6 +80,14 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
         [Fact]
         public async Task Read_TableData_With_Filter_And_Take()
         {
+            const string partitionKey = "Partition";
+            const string firstRowKey = "FirstRowKey";
+            const string firstValue = "FirstValue";
+            const string secondRowKey = "SecondRowKey";
+            const string secondValue = "SecondValue";
+            const string thirdRowKey = "ThirdRowKey";
+            const string thirdValue = "ThirdValue";
+
             // Create table
             await TableHelpers.CreateTable();
 
@@ -109,6 +113,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
         [Fact]
         public async Task EnumerableFunction_Succeeds()
         {
+            const string partitionKey = "Partition";
+            const string firstRowKey = "FirstRowKey";
+            const string firstValue = "FirstValue";
+            const string secondRowKey = "SecondRowKey";
+            const string secondValue = "SecondValue";
+
             // Create table
             await TableHelpers.CreateTable();
 

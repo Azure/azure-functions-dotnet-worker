@@ -18,11 +18,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 
         public TableClientOptions? TableClientOptions { get; set; }
 
-        internal TableServiceClient CreateClient()
+        internal ConcurrentDictionary<string, TableServiceClient> ClientCache { get; } = new ConcurrentDictionary<string, TableServiceClient>();
+
+        internal virtual TableServiceClient CreateClient()
         {
-            return string.IsNullOrEmpty(ConnectionString)
-                    ? new TableServiceClient(ServiceUri, Credential, TableClientOptions) // AAD auth
-                    : new TableServiceClient(ConnectionString, TableClientOptions); // Connection string based auth
+            if (ConnectionString == null && ServiceUri == null)
+            {
+                throw new ArgumentNullException(nameof(ConnectionString) + " " + nameof(ServiceUri));
+            }
+            return !string.IsNullOrEmpty(ConnectionString)
+                ? (ClientCache.GetOrAdd(ConnectionString!, (c) => new TableServiceClient(ConnectionString, TableClientOptions))) // Connection string based auth;
+                : (ClientCache.GetOrAdd(ServiceUri!.ToString(), (c) => new TableServiceClient(ServiceUri, Credential, TableClientOptions))); // AAD auth
         }
     }
 }

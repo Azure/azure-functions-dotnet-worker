@@ -56,7 +56,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
             [TableInput("TableName", "{partition}", Filter = "RowKey ne '" + "{rowKey}'", Take =2, IsBatched = true)] IEnumerable<TableEntity> table)
-
         {
             List<string> tableList = new();
             var response = req.CreateResponse(HttpStatusCode.OK);

@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker;
@@ -19,22 +18,33 @@ using Xunit;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables;
 using Azure.Data.Tables;
-using System.Linq;
+using Azure;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 {
     public class TableConverterTests
     {
-        private Mock<TableConverter> _mockTableConverter;
+        private TableConverter _tableConverter;
+        private Mock<TableServiceClient> _mockTableServiceClient;
 
         public TableConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
-            var tableOptions = host.Services.GetService<IOptionsSnapshot<TablesBindingOptions>>();
             var logger = host.Services.GetService<ILogger<TableConverter>>();
 
-            _mockTableConverter = new Mock<TableConverter>(tableOptions, logger);
-            _mockTableConverter.CallBase = true;
+            _mockTableServiceClient = new Mock<TableServiceClient>();
+
+            var mockTableOptions = new Mock<TablesBindingOptions>();
+            mockTableOptions
+                .Setup(m => m.CreateClient())
+                .Returns(_mockTableServiceClient.Object);
+
+            var mockTablesOptionsSnapshot = new Mock<IOptionsSnapshot<TablesBindingOptions>>();
+            mockTablesOptionsSnapshot
+                .Setup(m => m.Get(It.IsAny<string>()))
+                .Returns(mockTableOptions.Object);
+
+            _tableConverter = new TableConverter(mockTablesOptionsSnapshot.Object, logger);
         }
 
         [Fact]
@@ -42,163 +52,215 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         {
             var context = new TestConverterContext(typeof(string), new object());
 
-            var conversionResult = await _mockTableConverter.Object.ConvertAsync(context);
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
-
+        
         [Fact]
         public async Task ConvertAsync_SourceAsModelBindingData_ReturnsSuccess()
         {
-            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
+            object source = GetTestGrpcModelBindingData(GetTableClientBinaryData());
             var result = new Mock<TableClient>();
             var context = new TestConverterContext(typeof(TableClient), source);
-            _mockTableConverter
-                .Setup(c => c.ToTargetTypeAsync(typeof(TableClient), Constants.Connection, Constants.TableName, Constants.PartitionKey, Constants.RowKey))
-                .ReturnsAsync(result.Object);
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns((TableClient)result.Object);
 
-            var conversionResult = await _mockTableConverter.Object.ConvertAsync(context);
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+
         }
 
         [Fact]
         public async Task ConvertAsync_SourceAsCollectionModelBindingData_ReturnsSuccess()
         {
             object source = GetTestGrpcCollectionModelBindingData();
-            var context = new TestConverterContext(typeof(TableEntity), source);
-            var result = new Mock<IEnumerable<TableEntity>>();
-            _mockTableConverter
-                .Setup(c => c.ConvertFromCollectionBindingDataAsync(context, (Worker.Core.CollectionModelBindingData)source))
-                .Returns(new ValueTask<ConversionResult>(ConversionResult.Success(result.Object)));
+            var context = new TestConverterContext(typeof(IEnumerable<TableEntity>), source);
+            var mockResponse = new Mock<Response>();
+            var tableClient = new Mock<TableClient>();
+            tableClient
+               .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
+               .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns(tableClient.Object);
 
-            var conversionResult = await _mockTableConverter.Object.ConvertAsync(context);
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
         }
 
+        [Fact]
+        public async Task ConvertAsync_SourceAsCollectionModelBindingData_TableEntity_ReturnsSuccess()
+        {
+            object source = GetTestGrpcModelBindingData(GetTableEntityBinaryData());
+            var context = new TestConverterContext(typeof(TableEntity), source);
+            var mockResponse = new Mock<Response>();
+            var tableClient = new Mock<TableClient>();
+            tableClient
+               .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
+               .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns(tableClient.Object);
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.Equal(typeof(TableEntity), conversionResult.Value.GetType());    
+        }
 
         [Fact]
-        public async Task ConvertAsync_SourceAsModelBindingData_ReturnsUnhandled()
+        public async Task ConvertAsync_SourceAsModelBindingData_ReturnsFailed()
         {
-            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
+            object source = GetTestGrpcModelBindingData(GetTableClientBinaryData());
+            var result = new Mock<TableClient>();
             var context = new TestConverterContext(typeof(TableClient), source);
-            _mockTableConverter
-                .Setup(c => c.ToTargetTypeAsync(typeof(TableClient), Constants.Connection, Constants.TableName, Constants.PartitionKey, Constants.RowKey))
-                .ThrowsAsync(new Exception());
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Throws(new Exception());
 
-            var conversionResult = await _mockTableConverter.Object.ConvertAsync(context);
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
-        [Theory]
-        [InlineData(Constants.TablesExtensionName, true)]
-        [InlineData(" ", false)]
-        [InlineData("incorrect-value", false)]
-        public void IsTableExtension_MatchesExpectedOutput(string sourceVal, bool expectedResult)
+        [Fact]
+        public async Task ConvertAsync_WrongModelBindingData_ReturnsFailed()
         {
-            var grpcModelBindingData = new GrpcModelBindingData(new ModelBindingData()
-            {
-                Version = "1.0",
-                Source = sourceVal,
-                Content = ByteString.CopyFrom(GetFullTestBinaryData()),
-                ContentType = "application/json"
-            });
+            object source = GetTestGrpcModelBindingData(GetWrongBinaryData());
+            var result = new Mock<TableClient>();
+            var context = new TestConverterContext(typeof(TableClient), source);
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns(result.Object);
 
-            var result = _mockTableConverter.Object.IsTableExtension(grpcModelBindingData);
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
-            Assert.Equal(result, expectedResult);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
-        public void GetBindingDataContent_IncompleteGrpcModelBindingData_ReturnsNull()
+        public async Task ConvertAsync_SourceAsCollectionModelBindingData_BadTableEntity_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            object source = GetTestGrpcModelBindingData(GetBadEntityBinaryData());
+            var context = new TestConverterContext(typeof(TableEntity), source);
+            var mockResponse = new Mock<Response>();
+            var tableClient = new Mock<TableClient>();
+            tableClient
+               .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
+               .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns(tableClient.Object);
 
-            var result = _mockTableConverter.Object.GetBindingDataContent(grpcModelBindingData);
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
-            result.TryGetValue(Constants.TableName, out var tableName);
-
-            Assert.Single(result);
-            Assert.True(tableName is null);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
-        public void GetBindingDataContent_UnSupportedContentType_Throws()
+        public async Task ConvertAsync_ContentSource_AsObject_ReturnsUnhandled()
         {
-            var grpcModelBindingData = new GrpcModelBindingData(new ModelBindingData()
-            {
-                Version = "1.0",
-                Source = Constants.TablesExtensionName,
-                Content = ByteString.CopyFrom(GetFullTestBinaryData()),
-                ContentType = "NotSupported"
-            });
+            var context = new TestConverterContext(typeof(TableClient), new Object());
 
-            try
-            {
-                var dict = _mockTableConverter.Object.GetBindingDataContent(grpcModelBindingData);
-                Assert.Fail("Test fails as the expected exception not thrown");
-            }
-            catch (Exception ex)
-            {
-                Assert.Equal(typeof(NotSupportedException), ex.GetType());
-            }
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
         [Fact]
-        public async Task ToTargetTypeAsync_Works()
+        public async Task ConvertAsync_ModelBindingData_Null_ReturnsUnhandled()
         {
-            object source = GetTestGrpcModelBindingData(GetFullTestBinaryData());
-            var byteArray = Encoding.UTF8.GetBytes("test");
+            var context = new TestConverterContext(typeof(TableClient), null);
 
-            _mockTableConverter.Setup(c => c.GetTableClient(Constants.Connection, Constants.TableName)).Returns(new Mock<TableClient>().Object);
-            _mockTableConverter.Setup(c => c.GetTableEntity(Constants.Connection, Constants.TableName, Constants.PartitionKey, Constants.RowKey)).Returns(new TableEntity());
+            var conversionResult = await _tableConverter.ConvertAsync(context);
 
-            var tableClientResult = await _mockTableConverter.Object.ToTargetTypeAsync(typeof(TableClient), Constants.Connection, Constants.TableName, Constants.PartitionKey, Constants.RowKey);
-            var tableEntityResult = await _mockTableConverter.Object.ToTargetTypeAsync(typeof(TableEntity), Constants.Connection, Constants.TableName, Constants.PartitionKey, Constants.RowKey);
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+        }
 
-            Assert.Equal(typeof(TableClient), tableClientResult.GetType().BaseType);
-            Assert.Equal(typeof(TableEntity), tableEntityResult.GetType());
+        [Fact] // Should we fail if the result is ever null?
+        public async Task ConvertAsync_ResultIsNull_ReturnsUnhandled()
+        {
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableClientBinaryData());
+            var context = new TestConverterContext(typeof(TableClient), grpcModelBindingData);
+
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns((TableClient)null);
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
         [Fact]
-        public void ToTargetTypeCollection_CloneToEnumerable_Works()
+        public async Task ConvertAsync_ModelBindingDataSource_NotCosmosExtension_ReturnsUnhandled()
         {
-            IEnumerable<object> tableCollection = new List<object>() { new TableEntity(), new TableEntity() };
-            var tableCollectionResult = (IEnumerable<TableEntity>)_mockTableConverter.Object.ToTargetTypeCollection(tableCollection, nameof(TableConverter.CloneToEnumerable), typeof(TableEntity));
-            var result = tableCollectionResult.ToList();
-            Assert.Equal(2, tableCollectionResult.Count());
-            Assert.Equal(typeof(List<TableEntity>), result.GetType());
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableClientBinaryData(), source: "anotherExtensions");
+            var context = new TestConverterContext(typeof(TableClient), grpcModelBindingData);
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
-        private BinaryData GetTestBinaryData()
+        [Fact]
+        public async Task ConvertAsync_ModelBindingDataContentType_Unsupported_ReturnsFailed()
+        {
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableClientBinaryData(), contentType: "binary");
+            var context = new TestConverterContext(typeof(TableClient), grpcModelBindingData);
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Unexpected content-type. Currently only 'application/json' is supported.", conversionResult.Error.Message);
+        }
+
+
+        private BinaryData GetWrongBinaryData()
         {
             return new BinaryData("{" + "\"Connection\" : \"Connection\"" + "}");
         }
 
-        private BinaryData GetFullTestBinaryData()
+        private BinaryData GetTableClientBinaryData()
+        {
+            return new BinaryData("{" +
+                "\"TableName\" : \"TableName\"" +
+                "}");
+        }
+
+        private BinaryData GetTableEntityBinaryData()
         {
             return new BinaryData("{" +
                 "\"Connection\" : \"Connection\"," +
                 "\"TableName\" : \"TableName\"," +
                 "\"PartitionKey\" : \"PartitionKey\"," +
-                 "\"RowKey\" : \"RowKey\"," +
-                 "\"Filter\" : \"Filter\"," +
-                 "\"Take\" : 0" +
+                "\"RowKey\" : \"RowKey\"" +
+                "}");
+        }
+
+        private BinaryData GetBadEntityBinaryData()
+        {
+            return new BinaryData("{" +
+                "\"Connection\" : \"Connection\"," +
+                "\"TableName\" : \"TableName\"," +
+                "\"PartitionKey\" : \"PartitionKey\"" +
                 "}");
         }
 
 
-        private GrpcModelBindingData GetTestGrpcModelBindingData(BinaryData binaryData)
+        private GrpcModelBindingData GetTestGrpcModelBindingData(BinaryData binaryData, string source = "AzureStorageTables", string contentType = "application/json")
         {
             return new GrpcModelBindingData(new ModelBindingData()
             {
                 Version = "1.0",
                 Source = "AzureStorageTables",
                 Content = ByteString.CopyFrom(binaryData),
-                ContentType = "application/json"
+                ContentType = contentType
             });
         }
 
@@ -208,7 +270,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             {
                 Version = "1.0",
                 Source = "AzureStorageTables",
-                Content = ByteString.CopyFrom(GetFullTestBinaryData()),
+                Content = ByteString.CopyFrom(GetTableEntityBinaryData()),
                 ContentType = "application/json"
             };
 

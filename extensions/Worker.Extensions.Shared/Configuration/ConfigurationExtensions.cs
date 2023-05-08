@@ -1,7 +1,9 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Extensions.Configuration;
+using System;
+using System.Globalization;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions
 {
@@ -28,6 +30,40 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             }
 
             return section;
+        }
+
+        /// <summary>
+        /// Either constructs the serviceUri from the provided accountName
+        /// or retrieves the serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)
+        /// </summary>
+        internal static bool TryGetServiceUri(this IConfiguration configuration, string subDomain, out Uri serviceUri)
+        {
+            var serviceUriConfig = string.Format(CultureInfo.InvariantCulture, "{0}ServiceUri", subDomain);
+
+            string accountName;
+            string uriStr;
+            if ((accountName = configuration.GetValue<string>("accountName")) is not null)
+            {
+                serviceUri = FormatServiceUri(accountName, subDomain);
+                return true;
+            }
+            else if ((uriStr = configuration.GetValue<string>(serviceUriConfig)) is not null)
+            {
+                serviceUri = new Uri(uriStr);
+                return true;
+            }
+
+            serviceUri = default(Uri)!;
+            return false;
+        }
+
+        /// <summary>
+        /// Generates the serviceUri for a particular storage resource
+        /// </summary>
+        private static Uri FormatServiceUri(string accountName, string subDomain, string defaultProtocol = "https", string endpointSuffix = "core.windows.net")
+        {
+            var uri = string.Format(CultureInfo.InvariantCulture, "{0}://{1}.{2}.{3}", defaultProtocol, accountName, subDomain, endpointSuffix);
+            return new Uri(uri);
         }
 
         /// <summary>

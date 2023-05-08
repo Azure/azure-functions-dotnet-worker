@@ -4,10 +4,10 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker <version> (meta package)
-- Update Microsoft.Azure.Functions.Worker.Core dependency to <version> (delete if not updated)
-- Update Microsoft.Azure.Functions.Worker.Grpc dependency to <version> (delete if not updated)
-### Microsoft.Azure.Functions.Worker.Core <version>
-- <entry>
-### Microsoft.Azure.Functions.Worker.Grpc <version>
+### Microsoft.Azure.Functions.Worker 1.14.1 (meta package)
+- Update Microsoft.Azure.Functions.Worker.Core dependency to 1.12.1
+- Update Microsoft.Azure.Functions.Worker.Grpc dependency to 1.10.1
+### Microsoft.Azure.Functions.Worker.Core 1.12.1
+- Minor documentation updates (no functional changes)
+### Microsoft.Azure.Functions.Worker.Grpc 1.10.1
 - Fixed an issue causing throughput degradation and for synchronous functions, blocked the execution pipeline. (#1516)

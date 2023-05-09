@@ -3,13 +3,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
-using Azure.Storage.Blobs;
-using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Options;
@@ -17,13 +13,17 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
-using Azure;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind Blob Storage type parameters.
+    /// Converter to bind Table type parameters.
     /// </summary>
+    [SupportsDeferredBinding]
+    [SupportedConverterType(typeof(TableClient))]
+    [SupportedConverterType(typeof(TableEntity))]
+    [SupportedConverterType(typeof(IEnumerable<TableEntity>))]
     internal class TableConverter : IInputConverter
     {
         private readonly ILogger<TableConverter> _logger;

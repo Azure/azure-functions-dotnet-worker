@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -8,7 +9,8 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Attribute used to configure a parameter as the input target for the Azure Storage Tables binding.
     /// </summary>
-    [SupportsDeferredBinding]
+    [AllowConverterFallback(true)]
+    [InputConverter(typeof(TableConverter))]
     public class TableInputAttribute : InputBindingAttribute
     {
         private bool _isBatched = false;

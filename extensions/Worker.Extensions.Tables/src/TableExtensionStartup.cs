@@ -31,11 +31,6 @@ namespace Microsoft.Azure.Functions.Worker
             applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             applicationBuilder.Services.AddOptions<TablesBindingOptions>();
             applicationBuilder.Services.AddSingleton<IConfigureOptions<TablesBindingOptions>, TablesBindingOptionsSetup>();
-
-            applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
-            {
-                workerOption.InputConverters.RegisterAt<TableConverter>(0);
-            });
         }
     }
 }

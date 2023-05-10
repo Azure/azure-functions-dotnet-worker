@@ -9,7 +9,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
-    internal static class IConfigurationExtensions
+    internal static class ConfigurationExtensions
     {
         public const string ServiceUriKey = "serviceUri";
         public const string ServerEndpointKey = "serverEndpoint";
@@ -41,14 +41,14 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
                 yield return new ServiceEndpoint(section.Key, section.Value);
             }
 
-            if (section["primary"] != null)
+            if (section["primary"] is string primary)
             {
-                yield return new ServiceEndpoint(section["primary"], EndpointType.Primary, endpointName);
+                yield return new ServiceEndpoint(primary, EndpointType.Primary, endpointName);
             }
 
-            if (section["secondary"] != null)
+            if (section["secondary"] is string secondary)
             {
-                yield return new ServiceEndpoint(section["secondary"], EndpointType.Secondary, endpointName);
+                yield return new ServiceEndpoint(secondary, EndpointType.Secondary, endpointName);
             }
         }
 

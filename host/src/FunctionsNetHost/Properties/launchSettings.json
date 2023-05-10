@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "FunctionsNetHost": {
+      "commandName": "Project",
+      "commandLineArgs": "--host 127.0.0.1 --port 5139 --workerId baz"
+    }
+  }
+}

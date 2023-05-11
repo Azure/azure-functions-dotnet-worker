@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)
         {
-            funcContext.Items.Add("HttpRequestContext", httpContext);
+            funcContext.Items.Add(Constants.HttpContextKey, httpContext);
         }
     }
 }

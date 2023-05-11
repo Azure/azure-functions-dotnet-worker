@@ -9,5 +9,6 @@
 - Update Microsoft.Azure.Functions.Worker.Grpc dependency to 1.10.1
 ### Microsoft.Azure.Functions.Worker.Core 1.12.1
 - Minor documentation updates (no functional changes)
+- Fixed issue spawning child process while debugging due to "DOTNET_STARTUP_HOOKS" always containing "Microsoft.Azure.Functions.Worker.Core". (#1539)
 ### Microsoft.Azure.Functions.Worker.Grpc 1.10.1
 - Fixed an issue causing throughput degradation and for synchronous functions, blocked the execution pipeline. (#1516)

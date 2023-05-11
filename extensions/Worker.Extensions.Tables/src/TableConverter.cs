@@ -71,9 +71,8 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
-            var tableCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
             Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
-            
+
             try
             {
                 foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
@@ -84,17 +83,23 @@ namespace Microsoft.Azure.Functions.Worker
                     }
 
                     Dictionary<string, object> content = GetBindingDataContent(modelBindingData);
-                    var element = await ConvertModelBindingDataAsync(content, elementType, modelBindingData);
+                    content.TryGetValue(Constants.Connection, out var connection);
+                    content.TryGetValue(Constants.TableName, out var tableName);
+                    content.TryGetValue(Constants.PartitionKey, out var partitionKey);
+                    content.TryGetValue(Constants.RowKey, out var rowKey);
+                    content.TryGetValue(Constants.Take, out var take);
+                    content.TryGetValue(Constants.Filter, out var filter);
 
-                    if (element is not null)
+
+                    if (string.IsNullOrEmpty(tableName?.ToString()))
                     {
-                        tableCollection.Add(element);
+                        throw new ArgumentNullException("'TableName' cannot be null or empty");
                     }
+                    var element = await GetEnumerableTableEntity(connection?.ToString() ?? null, tableName!.ToString(), partitionKey?.ToString() ?? null, rowKey?.ToString() ?? null, Convert.ToInt32(take?.ToString()), filter?.ToString() ?? null);
+
+                    return ConversionResult.Success(element);
                 }
-
-                var result = ToTargetTypeCollection(tableCollection, "CloneToEnumerable", elementType);
-
-                return ConversionResult.Success(result);
+                return ConversionResult.Unhandled();
             }
             catch (Exception ex)
             {
@@ -120,6 +125,8 @@ namespace Microsoft.Azure.Functions.Worker
             content.TryGetValue(Constants.TableName, out var tableName);
             content.TryGetValue(Constants.PartitionKey, out var partitionKey);
             content.TryGetValue(Constants.RowKey, out var rowKey);
+            content.TryGetValue(Constants.Take, out var take);
+            content.TryGetValue(Constants.Filter, out var filter);
 
 
             if (string.IsNullOrEmpty(tableName?.ToString()))
@@ -127,7 +134,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException("'TableName' cannot be null or empty");
             }
 
-            return await ToTargetTypeAsync(targetType, connection?.ToString() ?? null, tableName!.ToString(), partitionKey?.ToString() ?? null, rowKey?.ToString() ?? null);
+            return await ToTargetTypeAsync(targetType, connection?.ToString() ?? null, tableName!.ToString(), partitionKey?.ToString() ?? null, rowKey?.ToString() ?? null, Convert.ToInt32(take?.ToString()), filter?.ToString() ?? null);
         }
 
         internal Dictionary<string, object> GetBindingDataContent(ModelBindingData bindingData)
@@ -139,10 +146,11 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string? connection, string tableName, string? partitionKey, string? rowKey) => targetType switch
+        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string? connection, string tableName, string? partitionKey, string? rowKey, int take, string? filter) => targetType switch
         {
             Type _ when targetType == typeof(TableClient) => GetTableClient(connection, tableName),
             Type _ when targetType == typeof(TableEntity) => await GetTableEntity(connection, tableName, partitionKey, rowKey),
+            Type _ when targetType == typeof(IEnumerable<TableEntity>) => await GetEnumerableTableEntity(connection, tableName, partitionKey, rowKey, take, filter),
             _ => null
         };
 
@@ -162,6 +170,47 @@ namespace Microsoft.Azure.Functions.Worker
             return tableServiceClient.GetTableClient(tableName);
         }
 
+        internal virtual async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(string? connection, string tableName, string? partitionKey, string? rowKey, int take, string? filter)
+        {
+            if (rowKey != null && (take > 0 || filter != null))
+            {
+                throw new ArgumentNullException($"Row key {rowKey} cannot have a value if {take} or {filter} are defined");
+            }
+            var tableClient = GetTableClient(connection, tableName);
+
+            if (!string.IsNullOrEmpty(partitionKey))
+            {
+                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {partitionKey}");
+                filter = !string.IsNullOrEmpty(filter) ? $"{partitionKeyPredicate} and {filter}" : partitionKeyPredicate;
+            }
+
+            int? maxPerPage = null;
+            if (take > 0)
+            {
+                maxPerPage = take;
+            }
+
+            int countRemaining = take;
+
+            var entities = tableClient.QueryAsync<TableEntity>(
+               filter: filter,
+               maxPerPage: maxPerPage).ConfigureAwait(false);
+
+            List<TableEntity> bindingDataContent = new List<TableEntity>();
+
+
+            await foreach (var entity in entities)
+            {
+                countRemaining--;
+                bindingDataContent.Add(entity);
+                if (countRemaining == 0)
+                {
+                    break;
+                }
+            }
+            return bindingDataContent;
+        }
+
         internal virtual async Task<TableEntity> GetTableEntity(string? connection, string tableName, string? partitionKey, string? rowKey)
         {
             if (partitionKey == null || rowKey == null)
@@ -170,6 +219,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             var tableClient = GetTableClient(connection, tableName);
             return await tableClient.GetEntityAsync<TableEntity>(partitionKey, rowKey);
+
         }
 
         internal static IEnumerable<T> CloneToEnumerable<T>(IEnumerable<object> source)
@@ -178,4 +228,3 @@ namespace Microsoft.Azure.Functions.Worker
         }
     }
 }
-

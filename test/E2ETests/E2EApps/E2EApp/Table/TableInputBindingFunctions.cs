@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
-            [TableInput("TableName", "{partition}", Filter = "RowKey ne '" + "{rowKey}'", Take =2, IsBatched = true)] IEnumerable<TableEntity> table)
+            [TableInput("TableName", "{partition}", Filter = "RowKey ne '" + "{rowKey}'", Take =2)] IEnumerable<TableEntity> table)
         {
             List<string> tableList = new();
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function(nameof(EnumerableFunction))]
         public async Task<HttpResponseData> EnumerableFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "EnumerableFunction/items/{partitionKey}")] HttpRequestData req,
-            [TableInput("TableName", "{partitionKey}", IsBatched = true)] IEnumerable<TableEntity> tables)
+            [TableInput("TableName", "{partitionKey}")] IEnumerable<TableEntity> tables)
 
         {
             var response = req.CreateResponse(HttpStatusCode.OK);

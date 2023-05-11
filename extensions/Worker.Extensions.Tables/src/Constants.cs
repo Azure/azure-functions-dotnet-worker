@@ -12,6 +12,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables
         internal const string PartitionKey = "PartitionKey";
         internal const string RowKey = "RowKey";
         internal const string Connection = "Connection";
+        internal const string Take = "Take";
+        internal const string Filter = "Filter";
         // Media content types
         internal const string JsonContentType = "application/json";
     }

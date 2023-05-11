@@ -53,7 +53,7 @@ namespace WorkerBindingSamples.Table
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-            [TableInput("TableName", "My Partition", Filter = "RowKey ne 'value'", Take = 2, IsBatched = true)] IEnumerable<TableEntity> table)
+            [TableInput("TableName", "My Partition", Filter = "RowKey ne 'value'", Take = 2)] IEnumerable<TableEntity> table)
 
         {
             List<string> tableList = new();
@@ -72,7 +72,7 @@ namespace WorkerBindingSamples.Table
         [Function(nameof(EnumerableFunction))]
         public async Task<HttpResponseData> EnumerableFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{partitionKey}")] HttpRequestData req,
-            [TableInput("TableName", "{partitionKey}", IsBatched = true)] IEnumerable<TableEntity> tables)
+            [TableInput("TableName", "{partitionKey}")] IEnumerable<TableEntity> tables)
 
         {
             var response = req.CreateResponse(HttpStatusCode.OK);

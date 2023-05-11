@@ -34,36 +34,42 @@ namespace FunctionsNetHost
                 await InboundMessageChannel.Instance.SendAsync(msg);
                 return;
             }
-            
+
             StreamingMessage responseMessage = new StreamingMessage();
 
             switch (msg.ContentCase)
             {
                 case StreamingMessage.ContentOneofCase.WorkerInitRequest:
-                {
-                    var response = BuildWorkerInitResponse();
-                    responseMessage.WorkerInitResponse = response;
-                    break;
-                }
+                    {
+                        responseMessage.WorkerInitResponse = BuildWorkerInitResponse();
+                        break;
+                    }
                 case StreamingMessage.ContentOneofCase.FunctionsMetadataRequest:
-                {
-                    var response = new FunctionMetadataResponse {  UseDefaultMetadataIndexing = true , Result = new StatusResult { Status = StatusResult.Types.Status.Success } };
-                    responseMessage.FunctionMetadataResponse = response;
-                    break;
-                }
+                    {
+                        var metadataResponse = new FunctionMetadataResponse
+                        {
+                            UseDefaultMetadataIndexing = true,
+                            Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                        }
+                        ;
+                        responseMessage.FunctionMetadataResponse = metadataResponse;
+                        break;
+                    }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
-                {
-                    var exePath = msg.FunctionEnvironmentReloadRequest.FunctionAppDirectory;
-                    Logger.Log($"exePath: {exePath}");
+                    {
+                        var functionAppDirectory = msg.FunctionEnvironmentReloadRequest.FunctionAppDirectory;
 
-                    // to do: call method to load hostfxr.
-                    // wait until we get a signal that it is loaded.
-                    _specializationDone = true;
-                    
-                    // Forward the env reload request to customer payload.
-                    await InboundMessageChannel.Instance.SendAsync(msg);
-                    break;
-                }
+                        var applicationExePath = PathUtils.GetApplicationExePath(functionAppDirectory);
+                        Logger.Log($"applicationExePath: {applicationExePath}");
+
+                        // to do: call method to load hostfxr.
+                        // wait until we get a signal that it is loaded.
+                        _specializationDone = true;
+
+                        // Forward the env reload request to customer payload.
+                        await InboundMessageChannel.Instance.SendAsync(msg);
+                        break; 
+                    }
             }
 
             await _outgoingMessageChannel.Writer.WriteAsync(responseMessage);

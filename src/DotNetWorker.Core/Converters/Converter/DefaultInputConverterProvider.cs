@@ -71,7 +71,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             EnsureTypeCanBeAssigned(converterType);
 
-            return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+            return (IInputConverter)ActivatorUtilities.GetServiceOrCreateInstance(_serviceProvider, converterType);
         }
 
         /// <summary>
@@ -98,9 +98,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                     throw new InvalidOperationException($"Could not create an instance of {converterTypeAssemblyQualifiedName}.");
                 }
 
-                EnsureTypeCanBeAssigned(converterType);
-
-                return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+                return GetOrCreateConverterInstance(converterType);
 
             }, converterTypeName);
         }

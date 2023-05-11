@@ -6,7 +6,7 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Converters
 {
     /// <summary>
-    /// An attribute that can specify a type of <see cref="Type"/> supported by function input conversion.
+    /// An attribute that can specify a type supported by function input conversion.
     /// </summary>
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public sealed class SupportedConverterTypeAttribute : Attribute

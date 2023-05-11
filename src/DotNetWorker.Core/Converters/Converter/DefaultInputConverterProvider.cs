@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (converterType is null)
             {
-                throw new InvalidOperationException($"Could not create an instance of {(nameof(converterType))}.");
+                throw new ArgumentNullException($"Could not create an instance of {(nameof(converterType))}.");
             }
 
             EnsureTypeCanBeAssigned(converterType);

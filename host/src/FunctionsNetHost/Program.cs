@@ -1,4 +1,7 @@
-﻿using System.CommandLine;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.CommandLine;
 
 namespace FunctionsNetHost
 {
@@ -6,34 +9,45 @@ namespace FunctionsNetHost
     {
         static async Task Main(string[] args)
         {
-            Logger.Log("Starting FunctionsNetHost V2v 1138");
+            Logger.Log("Starting FunctionsNetHost V2 700");
 
-            GrpcWorkerStartupOptions grpcOptions = new GrpcWorkerStartupOptions() ;
+            GrpcWorkerStartupOptions workerStartupOptions = new();
 
+            await ParseCommandLineArgs(args, workerStartupOptions);
 
-            var hostOption = new Option<string>( "--host");
+            var client = new GrpcClient(workerStartupOptions);
+
+            await client.InitAsync();
+        }
+
+        private static async Task ParseCommandLineArgs(string[] args, GrpcWorkerStartupOptions grpcOptions)
+        {
+            var hostOption = new Option<string>("--host");
             var portOption = new Option<int>("--port");
             var workerOption = new Option<string>("--workerId");
+            var grpcMsgLengthOption = new Option<int>("--grpcMaxMessageLength");
+            var requestIdOption = new Option<string>("--requestId");
 
             var rootCommand = new RootCommand();
             rootCommand.AddOption(portOption);
             rootCommand.AddOption(hostOption);
             rootCommand.AddOption(workerOption);
+            rootCommand.AddOption(grpcMsgLengthOption);
+            rootCommand.AddOption(requestIdOption);
 
-            rootCommand.SetHandler((host, port, workerId) =>
+            rootCommand.SetHandler((host, port, workerId, grpcMsgLength, requestId) =>
             {
                 grpcOptions.Host = host;
                 grpcOptions.Port = port;
                 grpcOptions.WorkerId = workerId;
-                grpcOptions.GrpcMaxMessageLength = int.MaxValue;
+                grpcOptions.GrpcMaxMessageLength = grpcMsgLength;
+                grpcOptions.RequestId = requestId;
             },
-            hostOption, portOption, workerOption);
+            hostOption, portOption, workerOption, grpcMsgLengthOption, requestIdOption);
 
-            await rootCommand.InvokeAsync(args);
-
-            var client = new MyClient(grpcOptions);
-
-            await client.InitAsync();
+            // If the first arg(exe name) has a .exe suffix, parsing fails. So exclude that.
+            var cmdArgsString = string.Join(" ", args, startIndex: 1, count: args.Length - 1);
+            await rootCommand.InvokeAsync(cmdArgsString);
         }
     }
 }

@@ -1,55 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost
 {
-    internal class InboundMessageChannel
-    {
-        private Channel<StreamingMessage> _inboundChannel;
-
-        private static readonly InboundMessageChannel instance = new InboundMessageChannel();
-
-        // Explicit static constructor to tell C# compiler
-        // not to mark type as beforefieldinit
-        static InboundMessageChannel()
-        {
-        }
-
-        private InboundMessageChannel()
-        {
-        }
-
-        public static InboundMessageChannel Instance
-        {
-            get
-            {
-                return instance;
-            }
-        }
-
-        public Channel<StreamingMessage> InboundChannel { get { return _inboundChannel; } }
-    }
 
     internal class IncomingMessageHandler
     {
-        private Channel<StreamingMessage> outgoingMessageChannel;
-
+        private readonly Channel<StreamingMessage> _outgoingMessageChannel;
+        private bool _specializationDone;
         public IncomingMessageHandler(Channel<StreamingMessage> outgoingMessageChannel)
         {
-            this.outgoingMessageChannel = outgoingMessageChannel;
+            this._outgoingMessageChannel = outgoingMessageChannel;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
         {
-            Task.Run(() =>
-            {
-                Process(message);
-            });
+            Task.Run(() => Process(message));
 
             return Task.CompletedTask;
         }
@@ -58,32 +27,46 @@ namespace FunctionsNetHost
         {
             Logger.Log($"New message received in client:{msg.ContentCase}");
 
-            StreamingMessage responseMessage = new StreamingMessage
+            if (_specializationDone)
             {
-            };
-
-            if (msg.ContentCase == StreamingMessage.ContentOneofCase.WorkerInitRequest)
-            {
-                var response = BuildWorkerInitResponse();
-                responseMessage.WorkerInitResponse = response;
+                // Specialization done. So we will simply forward all messages to customer payload.
+                Logger.Log($"Specialization done. Forwarding messages to customer payload:{msg.ContentCase}");
+                await InboundMessageChannel.Instance.SendAsync(msg);
+                return;
             }
-            if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionsMetadataRequest)
-            {
-               
-                var response = new FunctionMetadataResponse {  UseDefaultMetadataIndexing = true , Result = new StatusResult { Status = StatusResult.Types.Status.Success } };
-                responseMessage.FunctionMetadataResponse = response;
-            }
-            else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest)
-            {
-                var exePath = msg.FunctionEnvironmentReloadRequest.FunctionAppDirectory;
-                Logger.Log($"exePath: {exePath}");
+            
+            StreamingMessage responseMessage = new StreamingMessage();
 
-                // load customer assembly
-                // wait until we get a signal that it is loaded.
-                await InboundMessageChannel.Instance.InboundChannel.Writer.WriteAsync(msg);
+            switch (msg.ContentCase)
+            {
+                case StreamingMessage.ContentOneofCase.WorkerInitRequest:
+                {
+                    var response = BuildWorkerInitResponse();
+                    responseMessage.WorkerInitResponse = response;
+                    break;
+                }
+                case StreamingMessage.ContentOneofCase.FunctionsMetadataRequest:
+                {
+                    var response = new FunctionMetadataResponse {  UseDefaultMetadataIndexing = true , Result = new StatusResult { Status = StatusResult.Types.Status.Success } };
+                    responseMessage.FunctionMetadataResponse = response;
+                    break;
+                }
+                case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
+                {
+                    var exePath = msg.FunctionEnvironmentReloadRequest.FunctionAppDirectory;
+                    Logger.Log($"exePath: {exePath}");
+
+                    // to do: call method to load hostfxr.
+                    // wait until we get a signal that it is loaded.
+                    _specializationDone = true;
+                    
+                    // Forward the env reload request to customer payload.
+                    await InboundMessageChannel.Instance.SendAsync(msg);
+                    break;
+                }
             }
 
-            await outgoingMessageChannel.Writer.WriteAsync(responseMessage);
+            await _outgoingMessageChannel.Writer.WriteAsync(responseMessage);
         }
 
         private static WorkerInitResponse BuildWorkerInitResponse()

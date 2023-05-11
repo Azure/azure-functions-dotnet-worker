@@ -2,7 +2,7 @@
   "profiles": {
     "FunctionsNetHost": {
       "commandName": "Project",
-      "commandLineArgs": "--host 127.0.0.1 --port 5139 --workerId baz"
+      "commandLineArgs": "FunctionsNetHost.exe --host 127.0.0.1 --port 503 --workerId 13a2c943-ee61-449b-97ea-7c2577cbb1db --requestId 78522dbc-3bef-4ced-8988-bb3761c94e00 --grpcMaxMessageLength 2147483647"
     }
   }
 }

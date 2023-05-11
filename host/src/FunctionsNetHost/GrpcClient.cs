@@ -1,4 +1,7 @@
-﻿using System.Threading.Channels;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Threading.Channels;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -6,55 +9,51 @@ using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace FunctionsNetHost
 {
-    internal class MyClient
+    internal class GrpcClient
     {
-        public Channel<StreamingMessage> _outgoingMessageChannel;
+        private readonly Channel<StreamingMessage> _outgoingMessageChannel;
+        private readonly IncomingMessageHandler _processor;
+        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
 
-        private IncomingMessageHandler _processor;
-        private GrpcWorkerStartupOptions grpcWorkerStartupOptions;
-
-        public MyClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions)
+        public GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions)
         {
-            this.grpcWorkerStartupOptions = grpcWorkerStartupOptions;
-            UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
+            this._grpcWorkerStartupOptions = grpcWorkerStartupOptions;
+            UnboundedChannelOptions channelOptions = new UnboundedChannelOptions
             {
                 SingleWriter = false,
                 SingleReader = false,
                 AllowSynchronousContinuations = true
             };
 
-            _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(outputOptions);
+            _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
 
             _processor = new IncomingMessageHandler(_outgoingMessageChannel);
         }
 
         public async Task InitAsync()
         {
-            var endpoint = $"http://{grpcWorkerStartupOptions.Host}:{grpcWorkerStartupOptions.Port}";
+            var endpoint = $"http://{_grpcWorkerStartupOptions.Host}:{_grpcWorkerStartupOptions.Port}";
             Logger.Log($"Grpc server endpoint:{endpoint}");
 
-            var client = CreateClient(endpoint);
+            var client = CreateFunctionRpcClient(endpoint);
 
             var eventStream = client.EventStream(cancellationToken: CancellationToken.None);
 
             await SendStartStreamMessageAsync(eventStream.RequestStream);
 
-            var r = StartReaderAsync(eventStream.ResponseStream);
-            var w = StartWriterAsync(eventStream.RequestStream);
+            var readerTask = StartReaderAsync(eventStream.ResponseStream);
+            var writerTask = StartWriterAsync(eventStream.RequestStream);
+            var inboundForwardTask = StartInboundMessageForwarding();
 
-            await Task.WhenAll(r, w);
-        }
+            await Task.WhenAll(readerTask, writerTask, inboundForwardTask);
 
-        public async Task SendAsync(StreamingMessage message)
-        {
-            await _outgoingMessageChannel.Writer.WriteAsync(message);
         }
 
         private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
         {
             while (await responseStream.MoveNext())
             {
-                await _processor!.ProcessMessageAsync(responseStream.Current);
+                await _processor.ProcessMessageAsync(responseStream.Current);
             }
         }
         private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
@@ -68,34 +67,53 @@ namespace FunctionsNetHost
 
         private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
-            StartStream str = new StartStream()
+            StartStream startStreamMsg = new StartStream()
             {
-                WorkerId = grpcWorkerStartupOptions.WorkerId
+                WorkerId = _grpcWorkerStartupOptions.WorkerId
             };
 
             StreamingMessage startStream = new StreamingMessage()
             {
-                StartStream = str
+                StartStream = startStreamMsg
             };
 
             await requestStream.WriteAsync(startStream);
         }
-        private FunctionRpcClient CreateClient(string endpoint)
+        
+        private FunctionRpcClient CreateFunctionRpcClient(string endpoint)
         {
-            string uriString = endpoint;
-            if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
+            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? grpcUri))
             {
-                throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
+                throw new InvalidOperationException($"The gRPC channel URI '{endpoint}' could not be parsed.");
             }
 
             GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
             {
-                MaxReceiveMessageSize = grpcWorkerStartupOptions.GrpcMaxMessageLength,
-                MaxSendMessageSize = grpcWorkerStartupOptions.GrpcMaxMessageLength,
+                MaxReceiveMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
+                MaxSendMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
                 Credentials = ChannelCredentials.Insecure
             });
 
             return new FunctionRpcClient(grpcChannel);
+        }
+
+        /// <summary>
+        /// Listens to messages in the inbound message channel and forward them the customer payload via interop layer.
+        /// </summary>
+        private async Task StartInboundMessageForwarding()
+        {
+            await foreach (StreamingMessage inboundMessage in InboundMessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
+            {
+                Logger.Log($"Inbound message to customer payload: {inboundMessage.ContentCase}");
+
+                await SendToInteropLayer(inboundMessage);
+            }
+        }
+
+        private Task SendToInteropLayer(StreamingMessage inboundMessage)
+        {
+            // TO DO: Send to interop layer in a new Task.
+            return Task.CompletedTask;
         }
     }
 }

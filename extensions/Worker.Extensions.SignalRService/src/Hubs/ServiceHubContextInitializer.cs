@@ -15,38 +15,37 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
-    internal class ServiceHubContextProvider<THub> : IHostedService
+    internal class ServiceHubContextInitializer<THub> : IHostedService
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _azureComponentFactory;
         private readonly ILoggerFactory _loggerFactory;
         private readonly Action<ServiceManagerBuilder>? _configure;
+        private ServiceHubContext? _serviceHubContext;
 
-        internal ServiceHubContext? ServiceHubContext { get; set; }
-
-        public ServiceHubContextProvider(IConfiguration configuration, AzureComponentFactory azureComponentFactory, ILoggerFactory loggerFactory, Action<ServiceManagerBuilder>? configure = null)
+        public ServiceHubContextInitializer(IConfiguration configuration, AzureComponentFactory azureComponentFactory, ILoggerFactory loggerFactory, HubContextProvider hubContextProvider, Action<ServiceManagerBuilder>? configure = null)
         {
             _configuration = configuration;
             _azureComponentFactory = azureComponentFactory;
             _loggerFactory = loggerFactory;
             _configure = configure;
+            HubContextProvider = hubContextProvider;
         }
+
+        protected HubContextProvider HubContextProvider { get; }
 
         public virtual async Task StartAsync(CancellationToken cancellationToken)
         {
             using var serviceManager = CreateServiceManager();
-            ServiceHubContext = await serviceManager.CreateHubContextAsync(typeof(THub).Name, cancellationToken);
+            _serviceHubContext = await serviceManager.CreateHubContextAsync(typeof(THub).Name, cancellationToken);
+            HubContextProvider.Add(typeof(THub), _serviceHubContext);
         }
 
-        public virtual Task StopAsync(CancellationToken cancellationToken)
+        public virtual async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (ServiceHubContext != null)
+            if (_serviceHubContext != null)
             {
-                return ServiceHubContext.DisposeAsync();
-            }
-            else
-            {
-                return Task.CompletedTask;
+                await _serviceHubContext.DisposeAsync();
             }
         }
 

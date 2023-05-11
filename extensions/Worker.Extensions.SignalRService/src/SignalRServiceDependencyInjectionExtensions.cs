@@ -21,9 +21,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             services.AddAzureClientsCore();
-            services.TryAddSingleton<HubContextCache>();
-            services.TryAddSingleton(sp => ActivatorUtilities.CreateInstance<ServiceHubContextProvider<THub>>(sp, configure));
-            return services.AddHostedService(sp => sp.GetRequiredService<ServiceHubContextProvider<THub>>());
+            services.TryAddSingleton<HubContextProvider>();
+            return services.AddHostedService(sp => ActivatorUtilities.CreateInstance<ServiceHubContextInitializer<THub>>(sp, configure));
         }
 
         public static IServiceCollection AddServerlessHub<THub, T>(this IServiceCollection services) where THub : ServerlessHub<T> where T : class => services.AddServerlessHub<THub, T>(_ => { });
@@ -36,9 +35,8 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             services.AddAzureClientsCore();
-            services.TryAddSingleton<HubContextCache>();
-            services.TryAddSingleton(sp => ActivatorUtilities.CreateInstance<ServiceHubContextProvider<THub, T>>(sp, configure));
-            return services.AddHostedService(sp => sp.GetRequiredService<ServiceHubContextProvider<THub, T>>());
+            services.TryAddSingleton<HubContextProvider>();
+            return services.AddHostedService(sp => ActivatorUtilities.CreateInstance<ServiceHubContextInitializer<THub, T>>(sp, configure));
         }
     }
 }

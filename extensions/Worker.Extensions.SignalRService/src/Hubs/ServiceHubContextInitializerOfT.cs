@@ -13,30 +13,27 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
-    internal class ServiceHubContextProvider<THub, T> : ServiceHubContextProvider<THub> where THub : ServerlessHub<T>
+    internal class ServiceHubContextInitializer<THub, T> : ServiceHubContextInitializer<THub> where THub : ServerlessHub<T>
         where T : class
     {
-        public ServiceHubContextProvider(IConfiguration configuration, AzureComponentFactory azureComponentFactory, ILoggerFactory loggerFactory, Action<ServiceManagerBuilder>? configure = null) : base(configuration, azureComponentFactory, loggerFactory, configure)
+        private ServiceHubContext<T>? _serviceHubContext;
+
+        public ServiceHubContextInitializer(IConfiguration configuration, AzureComponentFactory azureComponentFactory, ILoggerFactory loggerFactory, HubContextProvider hubContextProvider, Action<ServiceManagerBuilder>? configure = null) : base(configuration, azureComponentFactory, loggerFactory, hubContextProvider, configure)
         {
         }
-
-        internal new ServiceHubContext<T>? ServiceHubContext { get; set; }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             using var serviceManager = CreateServiceManager();
-            ServiceHubContext = await serviceManager.CreateHubContextAsync<T>(typeof(THub).Name, cancellationToken);
+            _serviceHubContext = await serviceManager.CreateHubContextAsync<T>(typeof(THub).Name, cancellationToken);
+            HubContextProvider.Add(typeof(THub), _serviceHubContext);
         }
 
         public override async Task StopAsync(CancellationToken cancellationToken)
         {
-            if (ServiceHubContext != null)
+            if (_serviceHubContext != null)
             {
-                await ServiceHubContext.DisposeAsync();
-            }
-            else
-            {
-                return;
+                await _serviceHubContext.DisposeAsync();
             }
         }
     }

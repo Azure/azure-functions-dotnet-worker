@@ -1,9 +1,12 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Concurrent;
 
 namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
-    internal class HubContextCache
+    internal class HubContextProvider
     {
         private static readonly ConcurrentDictionary<Type, object> Cache = new();
 

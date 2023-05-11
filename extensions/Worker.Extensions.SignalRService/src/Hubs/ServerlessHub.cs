@@ -15,26 +15,29 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
     public abstract class ServerlessHub
     {
-        private static readonly ObjectSerializer JsonObjectSerializer = new JsonObjectSerializer(new(JsonSerializerDefaults.Web));
-        private static readonly NegotiationOptions DefaultNegotiateOptiosn = new();
-        private readonly IServiceProvider _serviceProvider;
+        protected ServerlessHub(IServiceProvider serviceProvider)
+        {
+            ServiceProvider = serviceProvider;
+        }
 
-        internal virtual ServiceHubContext HubContext
+        internal static readonly ObjectSerializer ObjectSerializer = new JsonObjectSerializer(new(JsonSerializerDefaults.Web));
+        internal readonly NegotiationOptions DefaultNegotiateOptiosn = new();
+        internal IServiceProvider ServiceProvider { get; }
+
+        private ServiceHubContext HubContext
         {
             get
             {
                 var type = GetType();
-                var hubContextCache = _serviceProvider.GetRequiredService<HubContextCache>();
+                var hubContextCache = ServiceProvider.GetRequiredService<HubContextProvider>();
                 if (hubContextCache.TryGetValue(type, out var hubContext))
                 {
                     return (ServiceHubContext)hubContext;
                 }
-                var hubContextProviderType = typeof(ServiceHubContextProvider<>).MakeGenericType(type);
-                var provider = _serviceProvider.GetRequiredService(hubContextProviderType);
-                var property = hubContextProviderType.GetProperty("ServiceHubContext", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-                var value = property.GetValue(provider);
-                hubContextCache.Add(type, value);
-                return (ServiceHubContext)value;
+                else
+                {
+                    throw new InvalidOperationException($"The serverlesshub {type.Name} is not registered using services.AddServerlessHub().");
+                }
             }
         }
 
@@ -64,12 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         protected async Task<BinaryData> NegotiateAsync(NegotiationOptions? options = null)
         {
             var negotiateResponse = await HubContext.NegotiateAsync(options ?? DefaultNegotiateOptiosn);
-            return JsonObjectSerializer.Serialize(negotiateResponse);
-        }
-
-        protected ServerlessHub(IServiceProvider serviceProvider)
-        {
-            _serviceProvider = serviceProvider;
+            return ObjectSerializer.Serialize(negotiateResponse);
         }
 
         [AttributeUsage(AttributeTargets.Class)]

@@ -2,11 +2,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [SupportsDeferredBinding]
+    [AllowConverterFallback(false)]
+    [InputConverter(typeof(CosmosDBConverter))]
     public sealed class CosmosDBInputAttribute : InputBindingAttribute
     {
         /// <summary>

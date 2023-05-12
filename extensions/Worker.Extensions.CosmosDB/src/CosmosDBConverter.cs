@@ -12,12 +12,14 @@ using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
     /// Converter to bind Cosmos DB type parameters.
     /// </summary>
+    [SupportsDeferredBinding]
     internal class CosmosDBConverter : IInputConverter
     {
         private readonly IOptionsSnapshot<CosmosDBBindingOptions> _cosmosOptions;

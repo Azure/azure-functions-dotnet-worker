@@ -20,3 +20,4 @@
 ### Microsoft.Azure.Functions.Worker.Sdk
 
 - Added retries on `IOException` when writing `function.metadata` file as part of `GenerateFunctionMetadata` msbuild task. This is to allow builds to continue (with warnings) when another process has the file momentarily locked. If the file continues to be locked the task (and build) will fail after 10 retries with a 1 second delay each. (#1532)
+- Implementation for bypass deferred binding (#1462/#1495)

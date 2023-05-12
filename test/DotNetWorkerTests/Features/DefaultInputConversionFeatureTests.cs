@@ -4,11 +4,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Features
@@ -104,6 +107,169 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             Assert.Equal("16-converted customer", customer.Name);
         }
 
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Works()
+        {
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                            typeof(MySimpleSyncInputConverter),
+                                                            new List<Type>() { typeof(string), typeof(string[])} } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d-converted value", actual.Value);
+            TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Unhandled()
+        {
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                typeof(MySimpleSyncInputConverter),
+                                                new List<Type>() { typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+
+            var converterContext = CreateConverterContext(typeof(object), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Unhandled, actual.Status);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_ArrayType_Unhandled()
+        {
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                    typeof(MySimpleSyncInputConverter),
+                                                    new List<Type>() { typeof(string), typeof(Stream), typeof(IEnumerable<string>), typeof(Stream[]) } } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+
+            var converterContext = CreateConverterContext(typeof(string[]), new string[] { "val1", "val2" }, properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Unhandled, actual.Status);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Poco_Unhandled()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                            typeof(MySimpleSyncInputConverter),
+                                                            new List<Type>() { typeof(string), typeof(Stream) } } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+
+            var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Unhandled, actual.Status);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Poco_Works()
+        {
+            // No explicit type advertised and converter supports deferred binding so all the types will be supported
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                            typeof(MySimpleSyncInputConverter2), new List<Type>() } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+
+            var converterContext = CreateConverterContext(typeof(Poco), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+        }
+
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_Poco_Succeeded()
+        {
+            // No explicit type advertised and converter supports deferred binding so all the types will be supported
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                           typeof(MySimpleSyncInputConverter2), new List<Type>() } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+            var converterContext = CreateConverterContext(typeof(Poco[]), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_StringCollection_Works()
+        {
+            // No explicit type advertised and converter supports deferred binding so all the types will be supported
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List<Type>>() { {
+                                                           typeof(MySimpleSyncInputConverter2), null } } },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+            var converterContext = CreateConverterContext(typeof(IEnumerable<string>), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_FallbackEnabled_Works()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List <Type>>() { {
+                                                                    typeof(MySimpleSyncInputConverter), new List<Type>() { } } } },
+                { PropertyBagKeys.AllowConverterFallback, true }
+            };
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Succeeded, actual.Status);
+            Assert.Equal("0c67c078-7213-4e91-ad41-f8747c865f3d-converted value", actual.Value);
+            TestUtility.AssertIsTypeAndConvert<string>(actual.Value);
+        }
+
+        [Fact]
+        public async Task Convert_Using_Advertised_Converter_Specified_In_ConverterContext_Properties_DisableFallback_Unhandled()
+        {
+            // Explicitly specify a converter to be used via ConverterContext.Properties.
+            IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
+            {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Tuple<bool, List<Type>>(false, new List<Type>() { })  },
+                { PropertyBagKeys.AllowConverterFallback, false }
+            };
+            var converterContext = CreateConverterContext(typeof(string), "0c67c078-7213-4e91-ad41-f8747c865f3d", properties);
+
+            var actual = await _defaultInputConversionFeature.ConvertAsync(converterContext);
+
+            Assert.Equal(ConversionStatus.Unhandled, actual.Status);
+        }
+
         [InputConverter(typeof(MyCustomerAsyncInputConverter))]
         internal record Customer(string Id, string Name);
 
@@ -118,6 +284,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             }
         }
 
+        [SupportsDeferredBinding]
+        [SupportedConverterType(typeof(string))]
+        [SupportedConverterType(typeof(Stream))]
         internal class MySimpleSyncInputConverter : IInputConverter
         {
             public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -126,6 +295,21 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
 
                 return new ValueTask<ConversionResult>(result);
             }
+        }
+
+        [SupportsDeferredBinding]
+        internal class MySimpleSyncInputConverter2 : IInputConverter
+        {
+            public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+            {
+                var result = ConversionResult.Success(value: context.Source + "-converted value");
+
+                return new ValueTask<ConversionResult>(result);
+            }
+        }
+
+        internal class Poco
+        {
         }
 
         private DefaultConverterContext CreateConverterContext(Type targetType, object source, IReadOnlyDictionary<string, object> properties = null)

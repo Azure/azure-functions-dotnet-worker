@@ -50,10 +50,28 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 {
                     yield return _converterCache.GetOrAdd(converterType.AssemblyQualifiedName!, (key) =>
                     {
-                        return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+                        return GetOrCreateConverterInstance(converterType);
                     });
                 }
             }
+        }
+
+        /// <summary>
+        /// Gets an instance of the converter for the type requested.
+        /// </summary>
+        /// <param name="converterType">The type for which we are requesting an IInputConverter instance.</param>
+        /// <exception cref="InvalidOperationException">Throws when the converterType param is null.</exception>
+        /// <returns>IConverter instance of the requested type.</returns>
+        public IInputConverter GetOrCreateConverterInstance(Type converterType)
+        {
+            if (converterType is null)
+            {
+                throw new ArgumentNullException($"Could not create an instance of {(nameof(converterType))}.");
+            }
+
+            EnsureTypeCanBeAssigned(converterType);
+
+            return (IInputConverter)ActivatorUtilities.GetServiceOrCreateInstance(_serviceProvider, converterType);
         }
 
         /// <summary>
@@ -80,9 +98,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                     throw new InvalidOperationException($"Could not create an instance of {converterTypeAssemblyQualifiedName}.");
                 }
 
-                EnsureTypeCanBeAssigned(converterType);
-
-                return (IInputConverter)ActivatorUtilities.CreateInstance(_serviceProvider, converterType);
+                return GetOrCreateConverterInstance(converterType);
 
             }, converterTypeName);
         }

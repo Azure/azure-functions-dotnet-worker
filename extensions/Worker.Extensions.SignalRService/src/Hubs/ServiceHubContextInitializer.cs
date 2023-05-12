@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.SignalR.Management;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -18,18 +17,17 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
     internal class ServiceHubContextInitializer<THub> : IHostedService
     {
         private readonly IConfiguration _configuration;
-        private readonly AzureComponentFactory _azureComponentFactory;
         private readonly ILoggerFactory _loggerFactory;
+        private readonly ServiceManagerOptionsSetup _optionsSetup;
         private readonly Action<ServiceManagerBuilder>? _configure;
         private ServiceHubContext? _serviceHubContext;
 
-        public ServiceHubContextInitializer(IConfiguration configuration, AzureComponentFactory azureComponentFactory, ILoggerFactory loggerFactory, HubContextProvider hubContextProvider, Action<ServiceManagerBuilder>? configure = null)
+        public ServiceHubContextInitializer(IConfiguration configuration, ILoggerFactory loggerFactory, HubContextProvider hubContextProvider, ServiceManagerOptionsSetup optionsSetup)
         {
             _configuration = configuration;
-            _azureComponentFactory = azureComponentFactory;
             _loggerFactory = loggerFactory;
-            _configure = configure;
             HubContextProvider = hubContextProvider;
+            _optionsSetup = optionsSetup;
         }
 
         protected HubContextProvider HubContextProvider { get; }
@@ -51,9 +49,8 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
 
         protected ServiceManager CreateServiceManager()
         {
-            var optionsSetup = new ServiceManagerOptionsSetup(_configuration, _azureComponentFactory, typeof(THub).GetCustomAttribute<ServerlessHub.SignalRConnectionAttribute>(true)?.ConnectionName ?? Constants.AzureSignalRConnectionStringName);
             var serviceManagerBuilder = new ServiceManagerBuilder()
-                .WithOptions(optionsSetup.Configure)
+                .WithOptions(_optionsSetup.Configure(typeof(THub).GetCustomAttribute<ServerlessHub.SignalRConnectionAttribute>(true)?.ConnectionName ?? Constants.DefaultConnectionStringName))
                 .WithLoggerFactory(_loggerFactory)
                 .WithConfiguration(_configuration)
                 .WithCallingAssembly()

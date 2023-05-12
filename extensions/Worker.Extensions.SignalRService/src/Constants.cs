@@ -3,13 +3,13 @@
 
 namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
-    internal class Constants
+    public class Constants
     {
-        public const string AzureSignalRConnectionStringName = "AzureSignalRConnectionString";
-        public const string ServiceTransportTypeName = "AzureSignalRServiceTransportType";
-        public const string AzureSignalREndpoints = "Azure:SignalR:Endpoints";
+        public const string DefaultConnectionStringName = "AzureSignalRConnectionString";
+        internal const string ServiceTransportTypeName = "AzureSignalRServiceTransportType";
+        internal const string AzureSignalREndpoints = "Azure:SignalR:Endpoints";
 
-        public const string FunctionsWorkerProductInfoKey = "func";
-        public const string DotnetIsolatedWorker = "dotnet-isolated";
+        internal const string FunctionsWorkerProductInfoKey = "func";
+        internal const string DotnetIsolatedWorker = "dotnet-isolated";
     }
 }

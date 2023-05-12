@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         [AttributeUsage(AttributeTargets.Class)]
         protected internal class SignalRConnectionAttribute : Attribute
         {
-            public SignalRConnectionAttribute(string connectionName = Constants.AzureSignalRConnectionStringName)
+            public SignalRConnectionAttribute(string connectionName = Constants.DefaultConnectionStringName)
             {
                 ConnectionName = connectionName;
             }

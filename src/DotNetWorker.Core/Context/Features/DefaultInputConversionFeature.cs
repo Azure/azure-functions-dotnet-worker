@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -47,17 +48,39 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 }
             }
 
-            // Use the registered converters. The first converter which can handle the conversion wins.
-            foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
+            // Get all converters advertised by the Binding Attribute along with supported types by each converter
+            Dictionary<IInputConverter, List<Type>>? advertisedConverterTypes = GetExplicitConverterTypes(converterContext);
+
+            if (advertisedConverterTypes is not null)
             {
-                var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
-
-                if (conversionResult.Status != ConversionStatus.Unhandled)
+                foreach (var converterType in advertisedConverterTypes)
                 {
-                    return conversionResult;
-                }
+                    if (IsTargetTypeSupportedByConverter(converterType.Value, converterContext.TargetType))
+                    { 
+                        var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
-                // If "Status" is Unhandled, we move on to the next converter and try to convert with that.
+                        if (conversionResult.Status != ConversionStatus.Unhandled)
+                        {
+                            return conversionResult;
+                        }
+                    }
+                }
+            }
+
+            if (IsConverterFallbackAllowed(converterContext))
+            {
+                // Use the registered converters. The first converter which can handle the conversion wins.
+                foreach (var converter in _inputConverterProvider.RegisteredInputConverters)
+                {
+                    var conversionResult = await ConvertAsyncUsingConverter(converter, converterContext);
+
+                    if (conversionResult.Status != ConversionStatus.Unhandled)
+                    {
+                        return conversionResult;
+                    }
+
+                    // If "Status" is Unhandled, we move on to the next converter and try to convert with that.
+                }
             }
 
             return ConversionResult.Unhandled();
@@ -111,6 +134,35 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             return null;
         }
 
+
+        /// <summary>
+        /// Gets all converters advertised by the Binding Attribute along with supported types by each converter
+        /// </summary>
+        private Dictionary<IInputConverter, List<Type>>? GetExplicitConverterTypes(ConverterContext context)
+        {
+            var result = new Dictionary<IInputConverter, List<Type>>();
+
+            if (context.Properties.TryGetValue(PropertyBagKeys.BindingAttributeSupportedConverters, out var converterTypes))
+            {
+                if (converterTypes is Dictionary<Type, List<Type>> converters)
+                {
+                    var interfaceType = typeof(IInputConverter);
+
+                    foreach (var (converterType, supportedTypes) in converters)
+                    {
+                        if (converterType is not null && interfaceType.IsAssignableFrom(converterType))
+                        {
+                            result.Add(_inputConverterProvider.GetOrCreateConverterInstance(converterType), supportedTypes);
+                        }
+                    }
+
+                    return result;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Checks a type has an "InputConverter" attribute decoration present
         /// and if present, return the assembly qualified name of the "ConverterType" property.
@@ -132,6 +184,36 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 return converterType.AssemblyQualifiedName!;
 
             }, targetType);
+        }
+
+        /// <summary>
+        /// Returns boolean value indicating whether fallback to registered converters allowed by the binding attribute
+        /// </summary>
+        private bool IsConverterFallbackAllowed(ConverterContext context)
+        {
+            if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var result))
+            {
+                if (result is not null && result is bool res)
+                {
+                    return res;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Returns boolean value indicating whether Target type is supported by the converter
+        /// </summary>
+        private bool IsTargetTypeSupportedByConverter(List<Type> supportedTypes, Type targetType)
+        {
+            if (supportedTypes is null or { Count: 0 })
+            {
+                return true;
+            }
+
+            // If types are explicitly advertised by the converter then we should send only those types for conversion.
+            return supportedTypes.Any(a => a.AssemblyQualifiedName == targetType.AssemblyQualifiedName);
         }
     }
 }

@@ -6,7 +6,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(false)]
+    [AllowConverterFallback(true)]
     [InputConverter(typeof(BlobStorageConverter))]
     public sealed class BlobTriggerAttribute : TriggerBindingAttribute
     {

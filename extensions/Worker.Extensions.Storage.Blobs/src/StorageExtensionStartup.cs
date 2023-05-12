@@ -24,11 +24,6 @@ namespace Microsoft.Azure.Functions.Worker
             applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             applicationBuilder.Services.AddOptions<BlobStorageBindingOptions>();
             applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
-
-            applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
-            {
-                workerOption.InputConverters.RegisterAt<BlobStorageConverter>(0);
-            });
         }
     }
 }

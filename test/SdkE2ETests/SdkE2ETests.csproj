@@ -10,10 +10,12 @@
 
   <ItemGroup>
     <None Remove="Contents\functions.metadata" />
+    <None Remove="Contents\WorkerBindingSamplesOutput\functions.metadata" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Contents\functions.metadata" />
+    <EmbeddedResource Include="Contents\WorkerBindingSamplesOutput\functions.metadata" />
   </ItemGroup>
 
   <ItemGroup>

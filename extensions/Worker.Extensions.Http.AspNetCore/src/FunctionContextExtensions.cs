@@ -17,17 +17,15 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="context">The <see cref="FunctionContext"/>.</param>
         /// <returns></returns>
-        public static HttpContext GetHttpContext(this FunctionContext context)
+        public static HttpContext? GetHttpContext(this FunctionContext context)
         {
             if (context.Items.TryGetValue(Constants.HttpContextKey, out var requestContext)
                 && requestContext is HttpContext httpContext)
             {
                 return httpContext;
             }
-            else
-            {
-                throw new InvalidOperationException($"{nameof(context)} does not have an {nameof(httpContext)} item.");
-            }
+
+            return null;
         }
     }
 }

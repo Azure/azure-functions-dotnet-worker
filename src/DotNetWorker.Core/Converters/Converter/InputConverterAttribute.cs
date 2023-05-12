@@ -13,7 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         AttributeTargets.Class |
         AttributeTargets.Interface |
         AttributeTargets.Enum |
-        AttributeTargets.Struct)]
+        AttributeTargets.Struct,
+        AllowMultiple = true)]
     public sealed class InputConverterAttribute : Attribute
     {
         /// <summary>

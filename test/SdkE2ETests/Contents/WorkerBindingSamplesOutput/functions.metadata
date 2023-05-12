@@ -1,0 +1,792 @@
+[
+  {
+    "name": "BlobInputClientFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputClientFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "client",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/sample1.txt",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputStreamFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStreamFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "stream",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/sample1.txt",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputByteArrayFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputByteArrayFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "data",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/sample1.txt",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputStringFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStringFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "data",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/{filename}",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputBookFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputBookFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "data",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/book.json",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputCollectionFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputCollectionFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "blobs",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container",
+        "cardinality": "Many",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputStringArrayFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStringArrayFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "blobContent",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container",
+        "cardinality": "Many",
+        "dataType": "String",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobInputBookArrayFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputBookArrayFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "books",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container",
+        "cardinality": "Many",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "BlobClientFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobTriggerBindingSamples.BlobClientFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "client",
+        "direction": "In",
+        "type": "blobTrigger",
+        "path": "client-trigger/{name}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "BlobStreamFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobTriggerBindingSamples.BlobStreamFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "stream",
+        "direction": "In",
+        "type": "blobTrigger",
+        "path": "stream-trigger/{name}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "BlobByteArrayFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobTriggerBindingSamples.BlobByteArrayFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "data",
+        "direction": "In",
+        "type": "blobTrigger",
+        "path": "byte-trigger",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "BlobStringFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobTriggerBindingSamples.BlobStringFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "data",
+        "direction": "In",
+        "type": "blobTrigger",
+        "path": "string-trigger",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "BlobBookFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobTriggerBindingSamples.BlobBookFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "data",
+        "direction": "In",
+        "type": "blobTrigger",
+        "path": "book-trigger",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "ExpressionFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.ExpressionFunction.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "book",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "expression-trigger",
+        "properties": {}
+      },
+      {
+        "name": "myBlob",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/{id}.txt",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "DocsByUsingCosmosClient",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocsByUsingCosmosClient",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "client",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "",
+        "containerName": "",
+        "connection": "CosmosDBConnection",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocsByUsingDatabaseClient",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocsByUsingDatabaseClient",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "database",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "",
+        "connection": "CosmosDBConnection",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocsByUsingContainerClient",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocsByUsingContainerClient",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "container",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocByIdFromQueryString",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocByIdFromQueryString",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "toDoItem",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "id": "{Query.id}",
+        "partitionKey": "{Query.partitionKey}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocByIdFromRouteData",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocByIdFromRouteData",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "todoitems/{partitionKey}/{id}",
+        "properties": {}
+      },
+      {
+        "name": "toDoItem",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "id": "{id}",
+        "partitionKey": "{partitionKey}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocByIdFromRouteDataUsingSqlQuery",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocByIdFromRouteDataUsingSqlQuery",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "todoitems2/{id}",
+        "properties": {}
+      },
+      {
+        "name": "toDoItems",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "sqlQuery": "SELECT * FROM ToDoItems t where t.id = {id}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocByIdFromQueryStringUsingSqlQuery",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocByIdFromQueryStringUsingSqlQuery",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "toDoItems",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "sqlQuery": "SELECT * FROM ToDoItems t where t.id = {id}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocsBySqlQuery",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocsBySqlQuery",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "toDoItems",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "sqlQuery": "SELECT * FROM ToDoItems t WHERE CONTAINS(t.description, 'cat')",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "DocByIdFromJSON",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosInputBindingFunctions.DocByIdFromJSON",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "toDoItemLookup",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "todoqueueforlookup",
+        "properties": {}
+      },
+      {
+        "name": "toDoItem",
+        "direction": "In",
+        "type": "cosmosDB",
+        "databaseName": "ToDoItems",
+        "containerName": "Items",
+        "connection": "CosmosDBConnection",
+        "id": "{ToDoItemId}",
+        "partitionKey": "{ToDoItemPartitionKeyValue}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "CosmosTriggerFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CosmosTriggerFunction.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "todoItems",
+        "direction": "In",
+        "type": "cosmosDBTrigger",
+        "databaseName": "ToDoItems",
+        "containerName": "TriggerItems",
+        "connection": "CosmosDBConnection",
+        "createLeaseContainerIfNotExists": true,
+        "properties": {}
+      }
+    ]
+  }
+]

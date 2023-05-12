@@ -241,7 +241,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Features
             // Explicitly specify a converter to be used via ConverterContext.Properties.
             IReadOnlyDictionary<string, object> properties = new Dictionary<string, object>()
             {
-                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List < Type >>() { {
+                { PropertyBagKeys.BindingAttributeSupportedConverters, new Dictionary<Type, List <Type>>() { {
                                                                     typeof(MySimpleSyncInputConverter), new List<Type>() { } } } },
                 { PropertyBagKeys.AllowConverterFallback, true }
             };

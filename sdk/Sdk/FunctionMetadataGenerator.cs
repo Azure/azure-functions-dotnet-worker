@@ -844,10 +844,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                         // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
                         return true;
                     }
-                    else if (DoesConverterSupportTargetType(typeReferenceCustomAttributes, bindingType))
-                    {
-                        return true;
-                    }
+
+                    return DoesConverterSupportTargetType(typeReferenceCustomAttributes, bindingType);
                 }
             }
 
@@ -863,15 +861,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     foreach (CustomAttributeArgument element in attribute.ConstructorArguments)
                     {
-                        if (element.Type.FullName == typeof(Type).FullName)
+                        if (string.Equals(element.Type.FullName, typeof(Type).FullName, StringComparison.Ordinal))
                         {
                             var supportedType = element.Value as TypeReference;
 
-                            if (supportedType is not null
-                                && supportedType != null && string.Equals(supportedType.FullName, bindingType.FullName, StringComparison.Ordinal))
+                            if (supportedType is not null && string.Equals(supportedType.FullName, bindingType.FullName, StringComparison.Ordinal))
                             {
                                 return true;
-                            }                                
+                            }         
                         }
                     }
                 }

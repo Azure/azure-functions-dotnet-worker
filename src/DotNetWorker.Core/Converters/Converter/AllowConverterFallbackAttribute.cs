@@ -8,12 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     /// <summary>
     /// An attribute that specifies if Converter fallback is allowed
     /// </summary>
-    [AttributeUsage(
-        AttributeTargets.Parameter |
-        AttributeTargets.Class |
-        AttributeTargets.Interface |
-        AttributeTargets.Enum |
-        AttributeTargets.Struct)]
+    [AttributeUsage(AttributeTargets.Class)]
     public sealed class AllowConverterFallbackAttribute : Attribute
     {
         /// <summary>

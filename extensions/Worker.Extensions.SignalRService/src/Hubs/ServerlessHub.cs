@@ -15,56 +15,41 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
     public abstract class ServerlessHub
     {
+        internal static readonly ObjectSerializer ObjectSerializer = new JsonObjectSerializer(new(JsonSerializerDefaults.Web));
+        internal static readonly NegotiationOptions DefaultNegotiateOptiosn = new();
+        internal readonly object? _hubContext;
+
         protected ServerlessHub(IServiceProvider serviceProvider)
         {
-            ServiceProvider = serviceProvider;
+            serviceProvider.GetService<HubContextProvider>()?.TryGetValue(GetType(), out _hubContext);
         }
 
-        internal static readonly ObjectSerializer ObjectSerializer = new JsonObjectSerializer(new(JsonSerializerDefaults.Web));
-        internal readonly NegotiationOptions DefaultNegotiateOptiosn = new();
-        internal IServiceProvider ServiceProvider { get; }
-
-        private ServiceHubContext HubContext
-        {
-            get
-            {
-                var type = GetType();
-                var hubContextCache = ServiceProvider.GetRequiredService<HubContextProvider>();
-                if (hubContextCache.TryGetValue(type, out var hubContext))
-                {
-                    return (ServiceHubContext)hubContext;
-                }
-                else
-                {
-                    throw new InvalidOperationException($"The serverlesshub {type.Name} is not registered using services.AddServerlessHub().");
-                }
-            }
-        }
+        private ServiceHubContext HubContext => _hubContext as ServiceHubContext ?? throw new InvalidOperationException($"The serverlesshub {GetType().Name} is not registered correctly using services.AddServerlessHub().");
 
         /// <summary>
-        /// Gets an object that can be used to invoke methods on the clients connected to this hub.
+        /// Gets an abstraction that provides access to client connections.
         /// </summary>
-        protected IHubClients Clients => HubContext.Clients;
+        protected virtual IHubClients Clients => HubContext.Clients;
 
         /// <summary>
-        /// Get the group manager of this hub.
+        /// Gets the group manager of this hub.
         /// </summary>
-        protected GroupManager Groups => HubContext.Groups;
+        protected virtual GroupManager Groups => HubContext.Groups;
 
         /// <summary>
-        /// Get the user group manager of this hub.
+        /// Gets the user group manager of this hub.
         /// </summary>
-        protected UserGroupManager UserGroups => HubContext.UserGroups;
+        protected virtual UserGroupManager UserGroups => HubContext.UserGroups;
 
         /// <summary>
-        /// Get the client manager of this hub.
+        /// Gets the client manager of this hub.
         /// </summary>
-        protected ClientManager ClientManager => HubContext.ClientManager;
+        protected virtual ClientManager ClientManager => HubContext.ClientManager;
 
         /// <summary>
         /// Gets client endpoint access information object for SignalR hub connections to connect to Azure SignalR Service
         /// </summary>
-        protected async Task<BinaryData> NegotiateAsync(NegotiationOptions? options = null)
+        protected virtual async Task<BinaryData> NegotiateAsync(NegotiationOptions? options = null)
         {
             var negotiateResponse = await HubContext.NegotiateAsync(options ?? DefaultNegotiateOptiosn);
             return ObjectSerializer.Serialize(negotiateResponse);

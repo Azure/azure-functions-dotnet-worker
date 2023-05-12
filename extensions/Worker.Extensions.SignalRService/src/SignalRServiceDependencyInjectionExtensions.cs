@@ -2,41 +2,54 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.SignalRService;
-using Microsoft.Azure.SignalR.Management;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class SignalRServiceDependencyInjectionExtensions
     {
-        public static IServiceCollection AddServerlessHub<THub>(this IServiceCollection services) where THub : ServerlessHub => services.AddServerlessHub<THub>(_ => { });
-
-        public static IServiceCollection AddServerlessHub<THub>(this IServiceCollection services, Action<ServiceManagerBuilder> configure) where THub : ServerlessHub
+        public static IServiceCollection AddServerlessHub<THub>(this IServiceCollection services) where THub : ServerlessHub
         {
-            if (configure is null)
-            {
-                throw new ArgumentNullException(nameof(configure));
-            }
-
             services.AddAzureClientsCore();
             services.TryAddSingleton<HubContextProvider>();
-            return services.AddHostedService(sp => ActivatorUtilities.CreateInstance<ServiceHubContextInitializer<THub>>(sp, configure));
+            services.TryAddSingleton<ServiceManagerOptionsSetup>();
+            if (TryGetClientType(typeof(THub), out var clientType))
+            {
+                var genericDefinition = typeof(ServiceHubContextInitializer<,>);
+                var genericType = genericDefinition.MakeGenericType(typeof(THub), clientType);
+                return services.AddSingleton(sp => (IHostedService)ActivatorUtilities.CreateInstance(sp, genericType) as IHostedService);
+            }
+            else
+            {
+                return services.AddHostedService(sp => ActivatorUtilities.CreateInstance<ServiceHubContextInitializer<THub>>(sp));
+            }
         }
 
-        public static IServiceCollection AddServerlessHub<THub, T>(this IServiceCollection services) where THub : ServerlessHub<T> where T : class => services.AddServerlessHub<THub, T>(_ => { });
-
-        public static IServiceCollection AddServerlessHub<THub, T>(this IServiceCollection services, Action<ServiceManagerBuilder> configure) where THub : ServerlessHub<T> where T : class
+        private static bool TryGetClientType(Type hubType, out Type clientType)
         {
-            if (configure is null)
+            var serverlessHubOfTType = hubType.AllBaseTypes().FirstOrDefault(baseType => baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(ServerlessHub<>));
+            if (serverlessHubOfTType != null)
             {
-                throw new ArgumentNullException(nameof(configure));
+                clientType = serverlessHubOfTType.GetGenericArguments()[0];
+                return true;
             }
+            clientType = null;
+            return false;
+        }
 
-            services.AddAzureClientsCore();
-            services.TryAddSingleton<HubContextProvider>();
-            return services.AddHostedService(sp => ActivatorUtilities.CreateInstance<ServiceHubContextInitializer<THub, T>>(sp, configure));
+        private static IEnumerable<Type> AllBaseTypes(this Type type)
+        {
+            Type current = type;
+            while (current != null)
+            {
+                yield return current;
+                current = current.BaseType;
+            }
         }
     }
 }

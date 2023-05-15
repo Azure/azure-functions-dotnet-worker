@@ -12,6 +12,7 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+
         /// <summary>
         /// Adds the core set of services for the Azure Functions worker.
         /// This call also adds the default set of binding converters and gRPC support.
@@ -21,6 +22,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <param name="configure">The action used to configure <see cref="WorkerOptions"/>.</param>
         /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerDefaults(this IServiceCollection services, Action<WorkerOptions>? configure = null)
+        {
+            return AddFunctionsWorkerDefaults(services, null, configure);
+        }
+
+        internal static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerDefaults(this IServiceCollection services, FunctionsWorkerApplicationBuilderContext? context, Action<WorkerOptions>? configure = null)
         {
             if (services == null)
             {
@@ -36,12 +42,13 @@ namespace Microsoft.Extensions.DependencyInjection
             });
 
             // Core services registration
-            var builder = services.AddFunctionsWorkerCore(configure);
+            var builder = services.AddFunctionsWorkerCore(context, configure);
 
             // gRPC support
             services.AddGrpc();
 
             return builder;
+
         }
     }
 }

@@ -39,6 +39,9 @@ namespace Microsoft.Azure.Functions.Worker
                 workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.HttpUriString);
             });
 
+            FunctionsWorkerApplicationBuilderContext context = builder.GetContext();
+            context.HostBuilder.ConfigureAspNetCoreIntegration();
+
             return builder;
         }
     }

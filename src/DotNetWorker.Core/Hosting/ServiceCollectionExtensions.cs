@@ -35,6 +35,11 @@ namespace Microsoft.Extensions.DependencyInjection
         /// <returns>The same <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
         public static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerCore(this IServiceCollection services, Action<WorkerOptions>? configure = null)
         {
+            return AddFunctionsWorkerCore(services, null, configure);
+        }
+
+        internal static IFunctionsWorkerApplicationBuilder AddFunctionsWorkerCore(this IServiceCollection services, FunctionsWorkerApplicationBuilderContext? context, Action<WorkerOptions>? configure = null)
+        {
             if (services is null)
             {
                 throw new ArgumentNullException(nameof(services));
@@ -93,7 +98,17 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            var builder = new FunctionsWorkerApplicationBuilder(services);
+            IFunctionsWorkerApplicationBuilder builder;
+
+            if (context is null)
+            {
+                builder = new FunctionsWorkerApplicationBuilder(services);
+            }
+            else
+            {
+                builder = new FunctionsWorkerApplicationBuilderExt(services, context);
+            }
+
             // Execute startup code from worker extensions if present.
             RunExtensionStartupCode(builder);
 

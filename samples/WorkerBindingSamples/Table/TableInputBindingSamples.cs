@@ -53,7 +53,7 @@ namespace WorkerBindingSamples.Table
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-            [TableInput("TableName", "My Partition", Filter = "RowKey ne 'value'", Take = 2)] IEnumerable<TableEntity> table)
+            [TableInput("TableName", "My Partition", 2, Filter = "RowKey ne 'value'")] IEnumerable<TableEntity> table)
 
         {
             List<string> tableList = new();

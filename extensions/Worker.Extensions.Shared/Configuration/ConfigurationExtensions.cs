@@ -36,18 +36,23 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         /// Either constructs the serviceUri from the provided accountName
         /// or retrieves the serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)
         /// </summary>
-        internal static bool TryGetServiceUri(this IConfiguration configuration, string subDomain, out Uri serviceUri)
+        /// <param name="configuration">configuration section for a given connection name </param>
+        /// <param name="subDomain">The subdomain of the serviceUri (i.e. blob, queue, table)</param>
+        /// <param name="serviceUri">The serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)</param>
+        internal static bool TryGetServiceUriForStorageAccounts(this IConfiguration configuration, string subDomain, out Uri serviceUri)
         {
+            if (subDomain is null)
+            {
+                throw new ArgumentNullException(nameof(subDomain));
+            }   
             var serviceUriConfig = string.Format(CultureInfo.InvariantCulture, "{0}ServiceUri", subDomain);
 
-            string accountName;
-            string uriStr;
-            if ((accountName = configuration.GetValue<string>("accountName")) is not null)
+            if (configuration.GetValue<string>("accountName") is { } accountName)
             {
                 serviceUri = FormatServiceUri(accountName, subDomain);
                 return true;
             }
-            else if ((uriStr = configuration.GetValue<string>(serviceUriConfig)) is not null)
+            else if (configuration.GetValue<string>($"{subDomain}ServiceUri") is { } uriStr)
             {
                 serviceUri = new Uri(uriStr);
                 return true;

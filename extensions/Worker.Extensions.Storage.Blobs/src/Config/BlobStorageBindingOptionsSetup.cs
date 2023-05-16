@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                if (connectionSection.TryGetServiceUri(BlobServiceUriSubDomain, out Uri serviceUri))
+                if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
                 {
                     options.ServiceUri = serviceUri;
                 }

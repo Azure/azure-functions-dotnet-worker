@@ -1,10 +1,10 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Text;
 using Azure.Core;
 using Azure.Data.Tables;
-using Azure.Storage.Blobs;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 {
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 
         internal virtual TableServiceClient CreateClient()
         {
-            if (ConnectionString == null && ServiceUri == null)
+            if (ConnectionString is null && ServiceUri is null)
             {
                 throw new ArgumentNullException(nameof(ConnectionString) + " " + nameof(ServiceUri));
             }

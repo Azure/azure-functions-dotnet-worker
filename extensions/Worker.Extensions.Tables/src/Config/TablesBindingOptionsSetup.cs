@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 {
-    internal class TablesBindingOptionsSetup: IConfigureNamedOptions<TablesBindingOptions>
+    internal class TablesBindingOptionsSetup : IConfigureNamedOptions<TablesBindingOptions>
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
             }
             else
             {
-                if (connectionSection.TryGetServiceUri(TablesServiceUriSubDomain, out Uri serviceUri))
+                if (connectionSection.TryGetServiceUriForStorageAccounts(TablesServiceUriSubDomain, out Uri serviceUri))
                 {
                     options.ServiceUri = serviceUri;
                 }

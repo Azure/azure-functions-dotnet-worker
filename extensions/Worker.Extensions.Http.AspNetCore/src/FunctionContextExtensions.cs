@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Retrieve the <see cref="HttpContext"/> for the function execution.
         /// </summary>
         /// <param name="context">The <see cref="FunctionContext"/>.</param>
-        /// <returns></returns>
+        /// <returns>The <see cref="HttpContext"/> for the function execution or null if it does not exist.</returns>
         public static HttpContext? GetHttpContext(this FunctionContext context)
         {
             if (context.Items.TryGetValue(Constants.HttpContextKey, out var requestContext)

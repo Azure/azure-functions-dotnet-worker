@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Azure.Functions.Worker.Middleware;
@@ -36,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
         }
 
         [Fact]
-        public async void MiddlewareAddsHttpContextToFunctionContext_Sucess()
+        public async Task MiddlewareAddsHttpContextToFunctionContext_Sucess()
         {
             var funcMiddleware = new FunctionsHttpProxyingMiddleware(_mockCoordinator.Object);
 

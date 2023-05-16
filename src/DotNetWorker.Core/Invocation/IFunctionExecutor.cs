@@ -1,13 +1,20 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Pipeline;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    internal interface IFunctionExecutor
+    /// <summary>
+    /// Provides a mechanism to execute function code.
+    /// </summary>
+    public interface IFunctionExecutor
     {
-        Task ExecuteAsync(FunctionContext context);
+        /// <summary>
+        /// Asynchronously executes the function code.
+        /// </summary>
+        /// <param name="context">The <see cref="FunctionContext"/> instance.</param>
+        /// <returns>A <see cref="ValueTask"/> representing the completion of the operation.</returns>
+        ValueTask ExecuteAsync(FunctionContext context);
     }
 }

@@ -2,4 +2,5 @@
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->
-- Fixed incorrect type of CosmosDBTriggerAttribute's `StartFromTime` property.
+
+- Add support for SDK-type bindings via deferred binding feature (#1406)

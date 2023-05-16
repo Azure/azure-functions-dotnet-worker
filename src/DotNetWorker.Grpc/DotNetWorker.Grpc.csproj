@@ -45,11 +45,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" 
-              ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" 
-              GrpcServices="Client" 
-              Access="internal" />
-
+      <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" GrpcServices="Client" Access="internal" />
+      
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
@@ -57,6 +54,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
 

@@ -22,26 +22,27 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task ExecuteAsync(FunctionContext context)
+        public async ValueTask ExecuteAsync(FunctionContext context)
         {
             var invoker = _invokerCache.GetOrAdd(context.FunctionId,
                 _ => _invokerFactory.Create(context.FunctionDefinition));
 
             object? instance = invoker.CreateInstance(context);
-            var modelBindingFeature = context.Features.Get<IModelBindingFeature>();
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
 
-            object?[] inputArguments;
-            if (modelBindingFeature is null)
+            FunctionInputBindingResult inputBindingResult;
+            if (inputBindingFeature is null)
             {
-                Log.ModelBindingFeatureUnavailable(_logger, context);
-                inputArguments = new object?[context.FunctionDefinition.Parameters.Length];
+                Log.FunctionInputFeatureUnavailable(_logger, context);
+                var emptyArgsArray = new object?[context.FunctionDefinition.Parameters.Length];
+                inputBindingResult = new(emptyArgsArray);
             }
             else
             {
-                inputArguments = await modelBindingFeature.BindFunctionInputAsync(context);
+                inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             }
 
-            context.GetBindings().InvocationResult = await invoker.InvokeAsync(instance, inputArguments);
+            context.GetBindings().InvocationResult = await invoker.InvokeAsync(instance, inputBindingResult.Values);
         }
     }
 }

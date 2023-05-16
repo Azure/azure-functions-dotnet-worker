@@ -11,15 +11,15 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    public class DefaultModelBindingFeatureTests
+    public class DefaultModelBindingFeatureTests : IDisposable
     {
         private readonly ServiceProvider _serviceProvider;
-        private readonly DefaultModelBindingFeature _modelBindingFeature;
+        private readonly DefaultFunctionInputBindingFeature _functionInputBindingFeature;
         public DefaultModelBindingFeatureTests()
         {
             var serializer = new JsonObjectSerializer(new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
             _serviceProvider = TestUtility.GetServiceProviderWithInputBindingServices(o => o.Serializer = serializer);
-            _modelBindingFeature = _serviceProvider.GetService<DefaultModelBindingFeature>();
+            _functionInputBindingFeature = _serviceProvider.GetService<DefaultFunctionInputBindingFeature>();
         }
 
         [Fact]
@@ -50,8 +50,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
 
             // Act
-            var parameterValuesArray = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
-
+            var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
+            var parameterValuesArray = bindingResult.Values;
             // Assert
             var book = TestUtility.AssertIsTypeAndConvert<Book>(parameterValuesArray[0]);
             Assert.Equal("foo", book.Id);
@@ -59,9 +59,47 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
         }
 
+        [Fact]
+        public async void BindFunctionInputAsync_Returns_Cached_Value_When_Called_SecondTime()
+        {
+            // Arrange
+            var parameters = new List<FunctionParameter>()
+            {
+                new("myQueueItem",typeof(Book))
+            };
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+            features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature()
+            {
+                InputData = new Dictionary<string, object>
+                {
+                    { "myQueueItem","{\"id\":\"foo\"}" }
+                }
+            });
+
+            var definition = new TestFunctionDefinition(parameters: parameters, inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) }
+            });
+            var functionContext = new TestFunctionContext(definition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
+
+            // Act
+            var bindingResult1 = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
+            var parameterValuesArray = bindingResult1.Values;
+            // Assert
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(parameterValuesArray[0]);
+            Assert.Equal("foo", book.Id);
+
+            // Update the result from caller side.
+            bindingResult1.Values[0] = new Book { Id = "bar" };
+            // Call Bind again. This should return the same result(bindingResult1) instead of rebinding everything from scratch.
+            var bindingResult2 = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
+            Assert.Same(bindingResult1, bindingResult2);
+        }
+
         /// <summary>
         /// This UT simulates a case where the input binding entry is being updated (could be in a middleware) using the
-        /// BindInputAsync extension method result and that change is reflected when the ModelBindingFeature
+        /// BindInputAsync extension method result and that change is reflected when the FunctionInputBindingFeature
         /// returns the parameter values array for the function definition.
         /// </summary>
         [Fact]
@@ -108,9 +146,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var bookInputBindingData2 = await functionContext.BindInputAsync<Book>(queueBindingMetaData);
             Assert.Same(otherBook, bookInputBindingData2.Value);
 
-            // Get all parameters from ModelBindingFeature. This should also reflect what we set above.
-            var parameterValuesArray = await _modelBindingFeature.BindFunctionInputAsync(functionContext);
-            Assert.Same(otherBook, parameterValuesArray[0] as Book);
+            // Get all parameters from FunctionInputBindingFeature. This should also reflect what we set above.
+            var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
+            Assert.Same(otherBook, bindingResult.Values[0] as Book);
+        }
+
+        public void Dispose()
+        {
+            _serviceProvider?.Dispose();
+            _functionInputBindingFeature?.Dispose();
         }
     }
 }

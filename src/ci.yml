@@ -3,6 +3,7 @@ trigger:
     include:
     - main
     - release/*
+    - feature/*
   paths:
     include:
     - src/
@@ -12,10 +13,12 @@ pr:
     include:
     - main
     - release/*
+    - feature/*
   paths:
     include:
     - src/
     - test/DotNetWorkerTests
+    - test/WorkerExtensionTests
     - test/E2ETests
     - test/TestUtility
     - sdk/
@@ -43,6 +46,7 @@ jobs:
     displayName: "Start emulators (-NoWait)"
 
   - template: ../build/install-dotnet.yml
+  
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:
@@ -57,7 +61,8 @@ jobs:
         throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
       }
       ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
-                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools
+                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
+                            -SkipBuildOnPack
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2
@@ -175,7 +180,7 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      arguments: '--no-build -c Release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: |
         **\DotNetWorker.Core.slnf
 
@@ -243,7 +248,8 @@ jobs:
         }
         ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
                               -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                              -SkipCosmosDBEmulator
+                              -SkipCosmosDBEmulator `
+                              -SkipBuildOnPack
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)

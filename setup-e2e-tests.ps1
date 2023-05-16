@@ -15,7 +15,10 @@ param(
     $SkipCoreTools,
 
     [Switch]
-    $UseCoreToolsBuildFromIntegrationTests
+    $UseCoreToolsBuildFromIntegrationTests,
+
+    [Switch]
+    $SkipBuildOnPack
 )
 
 # A function that checks exit codes and fails script if an error is found 
@@ -97,7 +100,14 @@ if (Test-Path $output)
   Remove-Item $output -Recurse -Force -ErrorAction Ignore
 }
 
-.\tools\devpack.ps1 -E2E -AdditionalPackArgs @("-c","Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion")
+$AdditionalPackArgs = @("-c", "Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion")
+
+if ($SkipBuildOnPack -eq $true)
+{
+    $AdditionalPackArgs += "--no-build"
+}
+
+.\tools\devpack.ps1 -E2E -AdditionalPackArgs $AdditionalPackArgs
 
 if ($SkipStorageEmulator -And $SkipCosmosDBEmulator)
 {

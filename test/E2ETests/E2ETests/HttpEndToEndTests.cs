@@ -41,6 +41,15 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
         }
 
+        [Fact]
+        public async Task TablesOutputTest()
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("TablesOutputBinding");
+            string actualMessage = await response.Content.ReadAsStringAsync();
+            await HttpHelpers.InvokeHttpTrigger("TablesInputBinding");
+
+        }
+
         [Theory]
         [InlineData("HelloFromJsonBody", "{\"Name\": \"Whitney\"}", "application/json", HttpStatusCode.OK, "Hello Whitney")]
         [InlineData("HelloFromJsonBody", "{\"Name\": \"麵🍜\"}", "application/json", HttpStatusCode.OK, "Hello 麵🍜")]

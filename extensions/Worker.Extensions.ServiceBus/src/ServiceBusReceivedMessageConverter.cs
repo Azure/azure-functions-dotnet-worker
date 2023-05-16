@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Primitives;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -39,6 +40,6 @@ internal class ServiceBusReceivedMessageConverter : IInputConverter
         ReadOnlyMemory<byte> bytes = binding.Content.ToMemory();
         ReadOnlyMemory<byte> lockTokenBytes = bytes.Slice(0, lockTokenLength);
         ReadOnlyMemory<byte> messageBytes = bytes.Slice(lockTokenLength, bytes.Length - lockTokenLength);
-        return ServiceBusAmqpExtensions.FromAmqpBytes(BinaryData.FromBytes(messageBytes), BinaryData.FromBytes(lockTokenBytes));
+        return ServiceBusReceivedMessage.FromAmqpMessage(AmqpAnnotatedMessage.FromBytes(BinaryData.FromBytes(messageBytes)), BinaryData.FromBytes(lockTokenBytes));
     }
 }

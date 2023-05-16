@@ -1,8 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
@@ -38,6 +43,32 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return triggerBlob;
         }
 
+        [Function(nameof(TablesOutputBinding))]
+        [TableOutput("TablesPoco")]
+        public TablesPoco TablesOutputBinding(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            FunctionContext context)
+        {
+            // _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + triggerBlob.BlobText);
+            return new TablesPoco
+            {
+                PartitionKey = "foo",
+                RowKey = Guid.NewGuid().ToString(),
+                YearlySetupId = "bar",
+                TenantId = Guid.NewGuid(),
+            };
+        }
+
+        [Function(nameof(TablesInputBinding))]
+        public void TablesInputBinding(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            [TableInput(nameof(TablesPoco), "foo", Take = 1)] IEnumerable<TablesPoco> entity,
+            FunctionContext context)
+        {
+            // _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + triggerBlob.BlobText);
+            _logger.LogInformation(entity.ToString());
+        }
+
         [Function(nameof(BlobTriggerStringTest))]
         [BlobOutput("test-outputstring-dotnet-isolated/{name}")]
         public string BlobTriggerStringTest(
@@ -52,6 +83,14 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             [JsonPropertyName("text")]
             public string BlobText { get; set; }
+        }
+
+        public class TablesPoco
+        {
+            public string PartitionKey { get; set; }
+            public string RowKey { get; set; }
+            public string YearlySetupId { get; set; }
+            public Guid TenantId { get; set; }
         }
     }
 }

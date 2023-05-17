@@ -4,12 +4,18 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker 1.14.1 (meta package)
-- Update Microsoft.Azure.Functions.Worker.Core dependency to 1.12.1
-- Update Microsoft.Azure.Functions.Worker.Grpc dependency to 1.10.1
-### Microsoft.Azure.Functions.Worker.Core 1.12.1
-- Minor documentation updates (no functional changes)
-### Microsoft.Azure.Functions.Worker.Grpc 1.10.1
-- Fixed an issue causing throughput degradation and for synchronous functions, blocked the execution pipeline. (#1516)
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
+
+- Update protobuf to v1.9.0-protofile, which includes gRPC messages for retry-options in worker-indexing scenarios. (#1545)
+
+### Microsoft.Azure.Functions.Worker.Core <version>
+
+- <event>
+
+### Microsoft.Azure.Functions.Worker.Grpc <version>
+
+- <event>
+
 ### Microsoft.Azure.Functions.Worker.Sdk
-- Added retries on `IOException` when writing `function.metadata` file as part of `GenerateFunctionMetadata` msbuild task. This is to allow builds to continue (with warnings) when another process has the file momentarily locked. If the file continues to be locked the task (and build) will fail after 10 retries with a 1 second delay each.
+
+- Added retries on `IOException` when writing `function.metadata` file as part of `GenerateFunctionMetadata` msbuild task. This is to allow builds to continue (with warnings) when another process has the file momentarily locked. If the file continues to be locked the task (and build) will fail after 10 retries with a 1 second delay each. (#1532)

@@ -10,9 +10,13 @@ using Azure.Messaging.ServiceBus;
 using Azure.Messaging.ServiceBus.Primitives;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker;
 
+[SupportsDeferredBinding]
+[SupportedConverterType(typeof(ServiceBusReceivedMessage))]
+[SupportedConverterType(typeof(IList<ServiceBusReceivedMessage>))]
 internal class ServiceBusReceivedMessageConverter : IInputConverter
 {
     public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)

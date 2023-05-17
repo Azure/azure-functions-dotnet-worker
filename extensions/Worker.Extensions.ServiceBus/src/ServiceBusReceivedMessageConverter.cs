@@ -16,6 +16,8 @@ namespace Microsoft.Azure.Functions.Worker;
 
 [SupportsDeferredBinding]
 [SupportedConverterType(typeof(ServiceBusReceivedMessage))]
+[SupportedConverterType(typeof(ServiceBusReceivedMessage[]))]
+[SupportedConverterType(typeof(IEnumerable<ServiceBusReceivedMessage>))]
 [SupportedConverterType(typeof(IList<ServiceBusReceivedMessage>))]
 internal class ServiceBusReceivedMessageConverter : IInputConverter
 {

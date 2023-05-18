@@ -86,6 +86,22 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
+
+        public class MyPoco
+        {
+            public string PartitionKey { get; set; }
+            public string RowKey { get; set; }
+            public string Text { get; set; }
+        }
+
+        [Function("DoesNotSupportDeferredBinding")]
+        public static void TableInput(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [TableInput("MyTable", "MyPartition", "yo")] MyPoco poco,
+            ILogger log)
+        {
+            log.LogInformation($"PK={poco.PartitionKey}, RK={poco.RowKey}, Text={poco.Text}");
+        }
     }
 }
 

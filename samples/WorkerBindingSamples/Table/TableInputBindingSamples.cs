@@ -87,6 +87,34 @@ namespace WorkerBindingSamples.Table
             await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
+
+        [Function(nameof(PocoFunction))]
+        public async Task<HttpResponseData> PocoFunction(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get","post", Route = null)] HttpRequestData req,
+            [TableInput("TableName")] IEnumerable<MyEntity> entities,
+            FunctionContext executionContext)
+        {
+            var logger = executionContext.GetLogger(nameof(PocoFunction));
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            List<string> entityList = new();
+            foreach (MyEntity entity in entities)
+            {
+                logger.LogInformation($"Text: {entity.Text}");
+                entityList.Add((entity.Text ?? "").ToString());
+            }
+            await response.WriteStringAsync(string.Join(",", entityList));
+            return response;
+        }
+
+    }
+
+    public class MyEntity
+    {
+        public string Text { get; set; }
+
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
     }
 }
 

@@ -140,10 +140,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             await TableHelpers.DeleteTable();
         }
 
-        public async void Dispose()
+        public void Dispose()
         {
             // Cleanup
-            await TableHelpers.DeleteTable();
+            TableHelpers.DeleteTable().GetAwaiter().GetResult();
             _disposeLog?.Dispose();
         }
     }

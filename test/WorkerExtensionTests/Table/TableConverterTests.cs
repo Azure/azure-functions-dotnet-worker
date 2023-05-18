@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         [Fact]
         public async Task ConvertAsync_SourceAsCollectionModelBindingData_ReturnsSuccess()
         {
-            object source = GetTestGrpcCollectionModelBindingData();
+            object source = GetTestGrpcModelBindingData(GetTableEntityBinaryData());
             var context = new TestConverterContext(typeof(IEnumerable<TableEntity>), source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
@@ -87,6 +87,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             _mockTableServiceClient
                 .Setup(c => c.GetTableClient(Constants.TableName))
                 .Returns(tableClient.Object);
+            var expectedOutput = Page<TableEntity>.FromValues(new List<TableEntity>{ new TableEntity("partitionKey", "rowKey") }, continuationToken: null, mockResponse.Object);
+            
+            tableClient
+                .Setup(c => c.QueryAsync<TableEntity>(It.IsAny<string>(), It.IsAny<int>(), null, default))
+                .Returns(AsyncPageable<TableEntity>.FromPages(new List<Page<TableEntity>> { expectedOutput }));
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
@@ -243,6 +248,21 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
                 "}");
         }
 
+        private BinaryData GetEnumerableTableEntityBinaryData()
+        {
+            return new BinaryData("[{" +
+                "\"Connection\" : \"Connection\"," +
+                "\"TableName\" : \"TableName\"," +
+                "\"PartitionKey\" : \"PartitionKey\"," +
+                "\"RowKey\" : \"RowKey\"" +
+                "},{" +
+                "\"Connection\" : \"Connection2\"," +
+                "\"TableName\" : \"TableName2\"," +
+                "\"PartitionKey\" : \"PartitionKey2\"," +
+                "\"RowKey\" : \"RowKey2\"" +
+                "}]");
+        }
+
         private BinaryData GetBadEntityBinaryData()
         {
             return new BinaryData("{" +
@@ -262,22 +282,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
                 Content = ByteString.CopyFrom(binaryData),
                 ContentType = contentType
             });
-        }
-
-        private GrpcCollectionModelBindingData GetTestGrpcCollectionModelBindingData()
-        {
-            var modelBindingData = new ModelBindingData()
-            {
-                Version = "1.0",
-                Source = "AzureStorageTables",
-                Content = ByteString.CopyFrom(GetTableEntityBinaryData()),
-                ContentType = "application/json"
-            };
-
-            var array = new CollectionModelBindingData();
-            array.ModelBindingData.Add(modelBindingData);
-
-            return new GrpcCollectionModelBindingData(array);
         }
     }
 }

@@ -60,8 +60,11 @@ namespace SampleApp
         {
             // The MessageId property and the messageId parameter are the same.
             _logger.LogInformation("Message ID: {id}", message.MessageId);
-            _logger.LogInformation("Message ID: {id}", message.MessageId);
+            _logger.LogInformation("Message ID: {id}", messageId);
 
+            // Similarly the DeliveryCount property and the deliveryCount parameter are the same.
+            _logger.LogInformation("Delivery Count: {count}", message.DeliveryCount);
+            _logger.LogInformation("Delivery Count: {count}", deliveryCount);
         }
     }
 }

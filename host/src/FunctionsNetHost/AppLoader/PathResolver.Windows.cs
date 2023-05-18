@@ -1,9 +1,7 @@
 ﻿namespace FunctionsNetHost
 {
-
     internal partial class PathResolver
     {
-
         private static string GetWindowsDotnetRootPath()
         {
             return Path.Combine(

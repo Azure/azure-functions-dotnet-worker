@@ -15,7 +15,7 @@ namespace FunctionsNetHost.Grpc
         private readonly IncomingMessageHandler _processor;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
 
-        public GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions)
+        public GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions, AppLoader appLoader)
         {
             _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
             var channelOptions = new UnboundedChannelOptions
@@ -27,7 +27,7 @@ namespace FunctionsNetHost.Grpc
 
             _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
 
-            _processor = new IncomingMessageHandler(_outgoingMessageChannel);
+            _processor = new IncomingMessageHandler(_outgoingMessageChannel, appLoader);
         }
 
         public async Task InitAsync()

@@ -27,6 +27,5 @@
 
             return Path.GetFullPath(hostfxrPath);
         }
-
     }
 }

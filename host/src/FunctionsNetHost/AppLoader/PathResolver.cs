@@ -2,41 +2,41 @@
 {
     internal static partial class PathResolver
     {
-        private static string? dotnetRootPath;
-        private static string? hostFxrPath;
+        private static string? _dotnetRootPath;
+        private static string? _hostFxrPath;
 
         internal static string GetDotnetRootPath()
         {
-            if (dotnetRootPath == null)
+            if (_dotnetRootPath == null)
             {
 #if LINUX
             dotnetRootPath = GetUnixDotnetRootPath();
 #else
-                dotnetRootPath = GetWindowsDotnetRootPath();
+                _dotnetRootPath = GetWindowsDotnetRootPath();
 #endif
             }
 
-            return dotnetRootPath;
+            return _dotnetRootPath;
         }
 
 
 
         internal static string GetHostFxrPath()
         {
-            if (hostFxrPath == null)
+            if (_hostFxrPath == null)
             {
 #if LINUX
             hostFxrPath = GetUnixHostFxrPath();
 #else
-                hostFxrPath = GetWindowsHostFxrPath();
+                _hostFxrPath = GetWindowsHostFxrPath();
 #endif
-                if (!File.Exists(hostFxrPath))
+                if (!File.Exists(_hostFxrPath))
                 {
-                    throw new FileNotFoundException(hostFxrPath);
+                    throw new FileNotFoundException(_hostFxrPath);
                 }
             }
 
-            return hostFxrPath;
+            return _hostFxrPath;
         }
 
         private static string GetLatestVersion(string hostFxrVersionsDirPath)

@@ -10,15 +10,18 @@ namespace FunctionsNetHost
     {
         static async Task Main(string[] args)
         {
-            Logger.Log("Starting FunctionsNetHost V2 700");
+            Logger.Log("Starting FunctionsNetHost 518");
 
             GrpcWorkerStartupOptions workerStartupOptions = new();
 
             await ParseCommandLineArgs(args, workerStartupOptions);
 
-            var client = new GrpcClient(workerStartupOptions);
+            using (var appLoader = AppLoader.Instance)
+            {
+                var client = new GrpcClient(workerStartupOptions, appLoader);
 
-            await client.InitAsync();
+                await client.InitAsync();
+            }
         }
 
         private static async Task ParseCommandLineArgs(string[] args, GrpcWorkerStartupOptions grpcOptions)

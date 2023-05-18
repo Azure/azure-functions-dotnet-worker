@@ -11,9 +11,11 @@ namespace FunctionsNetHost.Grpc
     {
         private readonly Channel<StreamingMessage> _outgoingMessageChannel;
         private bool _specializationDone;
-        public IncomingMessageHandler(Channel<StreamingMessage> outgoingMessageChannel)
+        AppLoader _appLoader;
+        public IncomingMessageHandler(Channel<StreamingMessage> outgoingMessageChannel, AppLoader appLoader)
         {
             _outgoingMessageChannel = outgoingMessageChannel;
+            _appLoader = appLoader;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -62,7 +64,7 @@ namespace FunctionsNetHost.Grpc
                         var applicationExePath = PathUtils.GetApplicationExePath(functionAppDirectory);
                         Logger.Log($"applicationExePath: {applicationExePath}");
 
-                        AppLoader.RunApplication(applicationExePath);
+                        _appLoader.RunApplication(applicationExePath);
 
                         // TO DO:  wait until we get a signal that it is loaded.
                         _specializationDone = true;

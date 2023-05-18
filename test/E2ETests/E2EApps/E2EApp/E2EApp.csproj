@@ -25,7 +25,7 @@
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
-    <ProjectReference Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
   <ItemGroup>

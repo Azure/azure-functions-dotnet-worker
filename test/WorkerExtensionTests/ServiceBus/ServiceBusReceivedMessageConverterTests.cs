@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var data = new ModelBindingData
             {
                 Version = "1.0",
-                Source = "AzureStorageBlobs",
+                Source = "AzureServiceBusReceivedMessage",
                 Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
                 ContentType = Constants.BinaryContentType
             };

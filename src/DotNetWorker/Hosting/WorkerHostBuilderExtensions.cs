@@ -163,7 +163,11 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    var functionsBuilderContext = new DefaultFunctionsWorkerApplicationBuilderContext(builder, context);
+                    var functionsBuilderContext = new FunctionsWorkerApplicationBuilderContext
+                    {
+                        HostBuilder = builder,
+                        HostBuilderContext = context
+                    };
 
                     IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults(functionsBuilderContext, configureOptions);
 

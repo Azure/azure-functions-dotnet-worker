@@ -27,5 +27,34 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.True(configureBuilderCalled);
             Assert.True(configureWorkerOptionsCalled);
         }
+
+        [Fact]
+        public void GetContext_SetsHostBuilderAndContext_WhenConfigureIsCalled()
+        {
+            bool configureBuilderCalled = false;
+
+            _ = new HostBuilder()
+                .ConfigureFunctionsWorkerDefaults(b =>
+                {
+                    var context = b.GetContext();
+                    Assert.NotNull(context.HostBuilderContext);
+                    Assert.NotNull(context.HostBuilder);
+                    configureBuilderCalled = true;
+                })
+                .Build();
+
+            Assert.True(configureBuilderCalled);
+        }
+
+        [Fact]
+        public void GetContext_NullHostBuilderAndContext_WhenAddIsCalled()
+        {
+            var services = new ServiceCollection();
+
+            var builder = services.AddFunctionsWorkerDefaults();
+            var context = builder.GetContext();
+            Assert.Null(context.HostBuilderContext);
+            Assert.Null(context.HostBuilder);
+        }
     }
 }

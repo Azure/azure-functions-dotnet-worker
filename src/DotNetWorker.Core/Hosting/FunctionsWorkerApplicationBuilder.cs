@@ -8,15 +8,16 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Configuration
 {
-    internal class FunctionsWorkerApplicationBuilder : IFunctionsWorkerApplicationBuilder
+    internal class FunctionsWorkerApplicationBuilder : IFunctionsWorkerApplicationBuilder, IFunctionsWorkerApplicationBuilderContextProvider
     {
         private readonly IInvocationPipelineBuilder<FunctionContext> _pipelineBuilder;
 
         public IServiceCollection Services { get; private set; }
 
-        public FunctionsWorkerApplicationBuilder(IServiceCollection services)
+        public FunctionsWorkerApplicationBuilder(IServiceCollection services, FunctionsWorkerApplicationBuilderContext context)
         {
             Services = services;
+            Context = context;
             _pipelineBuilder = new DefaultInvocationPipelineBuilder<FunctionContext>();
             Services.AddSingleton<FunctionExecutionDelegate>(sp =>
             {
@@ -29,5 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Configuration
             _pipelineBuilder.Use(middleware);
             return this;
         }
+
+        public FunctionsWorkerApplicationBuilderContext Context { get; private set; }
     }
 }

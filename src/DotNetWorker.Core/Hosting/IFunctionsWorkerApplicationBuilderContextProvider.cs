@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.Azure.Functions.Worker
 {
-    internal interface IFunctionsWorkerApplicationBuilderExt
+    internal interface IFunctionsWorkerApplicationBuilderContextProvider
     {
         FunctionsWorkerApplicationBuilderContext Context { get; }
     }

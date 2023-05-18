@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void InlineMiddleware_RunsInExpectedOrder()
         {
             var services = new ServiceCollection();
-            IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services);
+            IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services, new FunctionsWorkerApplicationBuilderContext());
 
             builder.Use(next => context =>
             {
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public void InlineMiddleware_RunsInExpectedOrder_With_UseWhen_Predicate_ReturnValue()
         {
             var services = new ServiceCollection();
-            IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services);
+            IFunctionsWorkerApplicationBuilder builder = new FunctionsWorkerApplicationBuilder(services, new FunctionsWorkerApplicationBuilderContext());
 
             builder.Use(next => context =>
             {

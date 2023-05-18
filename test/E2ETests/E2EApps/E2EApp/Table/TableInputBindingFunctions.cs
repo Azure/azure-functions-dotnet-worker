@@ -23,7 +23,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         public async Task<HttpResponseData> TableClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             [TableInput("TableName")] TableClient table)
-
         {
             var tableEntity = table.QueryAsync<TableEntity>();
             var response = req.CreateResponse(HttpStatusCode.OK);

@@ -2,12 +2,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
-using Azure.Messaging.ServiceBus.Primitives;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
@@ -17,8 +15,6 @@ namespace Microsoft.Azure.Functions.Worker;
 [SupportsDeferredBinding]
 [SupportedConverterType(typeof(ServiceBusReceivedMessage))]
 [SupportedConverterType(typeof(ServiceBusReceivedMessage[]))]
-[SupportedConverterType(typeof(IEnumerable<ServiceBusReceivedMessage>))]
-[SupportedConverterType(typeof(IList<ServiceBusReceivedMessage>))]
 internal class ServiceBusReceivedMessageConverter : IInputConverter
 {
     public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -26,8 +22,8 @@ internal class ServiceBusReceivedMessageConverter : IInputConverter
         ConversionResult result = context?.Source switch
         {
             ModelBindingData binding => ConversionResult.Success(ConvertToServiceBusReceivedMessage(binding)),
-            CollectionModelBindingData collection when context.TargetType.IsArray => ConversionResult.Success(collection.ModelBindingDataArray.Select(ConvertToServiceBusReceivedMessage).ToArray()),
-            CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray.Select(ConvertToServiceBusReceivedMessage).ToList()),
+            // Only array collections are currently supported, which matches the behavior of the in-proc extension.
+            CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray.Select(ConvertToServiceBusReceivedMessage).ToArray()),
             _ => ConversionResult.Unhandled()
         };
         return new ValueTask<ConversionResult>(result);

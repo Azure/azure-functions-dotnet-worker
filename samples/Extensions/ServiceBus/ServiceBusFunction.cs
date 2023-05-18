@@ -22,17 +22,5 @@ namespace SampleApp
             var message = $"Output message created at {DateTime.Now}";
             return message;
         }
-
-        [Function("ServiceBusSdkTypeBindingFunction")]
-        [ServiceBusOutput("outputQueue", Connection = "ServiceBusConnection")]
-        public static string Run([ServiceBusTrigger("queue", Connection = "ServiceBusConnection")] ServiceBusReceivedMessage message, FunctionContext context)
-        {
-            var logger = context.GetLogger("ServiceBusFunction");
-
-            logger.LogInformation($"Message body: {message.Body}");
-            logger.LogInformation($"Message ID: {message.MessageId}");
-
-            return $"Output message created at {DateTime.Now}";
-        }
     }
 }

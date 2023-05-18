@@ -23,6 +23,7 @@ pr:
     - test/TestUtility
     - sdk/
     - samples/FunctionApp
+    - samples/WorkerBindingSamples
     - tools/
 
 jobs:

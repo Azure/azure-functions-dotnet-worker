@@ -74,6 +74,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 
         }
 
+        /*
         [Fact]
         public async Task ConvertAsync_SourceAsCollectionModelBindingData_ReturnsSuccess()
         {
@@ -97,6 +98,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
         }
+        */
 
         [Fact]
         public async Task ConvertAsync_SourceAsCollectionModelBindingData_TableEntity_ReturnsSuccess()

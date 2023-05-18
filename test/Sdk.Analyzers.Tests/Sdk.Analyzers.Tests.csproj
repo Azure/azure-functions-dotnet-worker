@@ -4,8 +4,6 @@
     <TargetFramework>net7.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <NoWarn>$(NoWarn);NU1701;RS1014</NoWarn>
-      <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
-      <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
   </PropertyGroup>
 
   <ItemGroup>

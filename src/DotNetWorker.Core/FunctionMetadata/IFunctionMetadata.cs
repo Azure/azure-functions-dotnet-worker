@@ -49,5 +49,10 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         /// The function app assembly (ex. FunctionApp.dll).
         /// </summary>
         string? ScriptFile { get; }
+
+        /// <summary>
+        /// The optional function execution retry strategy to use on invocation failures.
+        /// </summary>
+        IRetryOptions? Retry { get; }
     }
 }

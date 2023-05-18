@@ -4,8 +4,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -64,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ScriptFile = scriptFile
                     };
 
-                    if (!TryGetBindings(method, model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger))
+                    if (!TryGetBindings(method, model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? retryOptions))
                     {
                         continue;
                     }
@@ -72,6 +74,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (hasHttpTrigger)
                     {
                         newFunction.IsHttpTrigger = true;
+                    }
+
+                    if (retryOptions is not null)
+                    {
+                        newFunction.Retry = retryOptions;
                     }
 
                     newFunction.RawBindings = bindings!; // won't be null b/c TryGetBindings would've failed and this line wouldn't be reached
@@ -82,12 +89,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return result;
             }
 
-            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger)
+            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? validatedRetryOptions)
             {
                 hasHttpTrigger = false;
+                validatedRetryOptions = null;
 
-                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, object>>? methodOutputBindings)
-                    || !TryGetParameterInputAndTriggerBindings(method, model, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
+                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
+                    || !TryGetParameterInputAndTriggerBindings(method, model, out bool retryOptionsValid, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
                     || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
                 {
                     bindings = null;
@@ -102,13 +110,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 result.AddRange(returnTypeBindings);
                 bindings = result;
 
+                if (retryOptionsValid)
+                {
+                    validatedRetryOptions = retryOptions;
+                }
+
                 return true;
             }
 
             /// <summary>
             /// Checks for and returns any OutputBinding attributes associated with the method.
             /// </summary>
-            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var bindingLocation = method.Identifier.GetLocation();
 
@@ -117,9 +130,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 AttributeData? outputBindingAttribute = null;
                 hasOutputBinding = false;
+                retryOptions = null;
 
                 foreach (var attribute in attributes)
                 {
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
+                    {
+                        if (TryGetRetryOptionsFromAtttribute(attribute, out GeneratorRetryOptions? retryOptionsFromAttr))
+                        {
+                            retryOptions = retryOptionsFromAttr;
+                        }
+                    }
+
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
                     {
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
@@ -157,11 +179,70 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
+            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, out GeneratorRetryOptions? retryOptions)
+            {
+                retryOptions = null;
+
+                if (TryGetAttributeProperties(attribute, null, out IDictionary<string, object?>? attrProperties))
+                {
+                    if (attrProperties is null)
+                    {
+                        //_context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
+                        return false;
+                    }
+
+                    retryOptions = new GeneratorRetryOptions();
+
+                    // Would not expect this to fail since you can't add a retry attribute to a method without this
+                    if (attrProperties.TryGetValue(Constants.RetryConstants.MaxRetryCountKey, out object? maxRetryCount))
+                    {
+                        retryOptions.MaxRetryCount = maxRetryCount!.ToString();
+                    }
+
+                    // Check which strategy is being used by checking the attribute class
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.FixedDelayRetryAttribute))
+                    {
+                        retryOptions.Strategy = Constants.RetryConstants.FixedDelayRetryName;
+
+                        if (attrProperties.TryGetValue(Constants.RetryConstants.DelayIntervalKey, out object? delayInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
+                        {
+                            retryOptions.DelayInterval = delayInterval!.ToString();
+                        }
+                        
+                    }
+                    else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.ExponentialBackoffRetryAttribute))
+                    {
+                        retryOptions.Strategy = Constants.RetryConstants.ExponentialBackoffRetryName;
+
+                        if (attrProperties.TryGetValue(Constants.RetryConstants.MinimumIntervalKey, out object? minimumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
+                        {
+                            retryOptions.MinimumInterval = minimumInterval!.ToString();
+                        }
+
+                        if (attrProperties.TryGetValue(Constants.RetryConstants.MaximumIntervalKey, out object? maximumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
+                        {
+                            retryOptions.MinimumInterval = maximumInterval!.ToString();
+                        }
+                    }
+                    else
+                    {
+                        //_context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
+
+                        return false;
+                    }
+                    
+                    return true;
+                }
+
+                return false;
+            }
+
             /// <summary>
             /// Checks for and returns input and trigger bindings found in the parameters of the Azure Function method.
             /// </summary>
-            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool retryOptionsValid, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
             {
+                retryOptionsValid = false;
                 hasHttpTrigger = false;
                 bindingsList = new List<IDictionary<string, object>>();
 
@@ -221,6 +302,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             if (dataType is not DataType.Undefined)
                             {
                                 bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
+                            }
+
+                            // check for binding capabilities
+                            var bindingCapabilitiesAttr = attribute?.AttributeClass?.GetAttributes().Where(a => (SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.BindingCapabilitiesAttribute)));
+                            if (bindingCapabilitiesAttr.FirstOrDefault() is not null)
+                            {
+                                var bindingCapabilities = bindingCapabilitiesAttr.FirstOrDefault().ConstructorArguments;
+                                
+                                if (bindingCapabilities.Any(s => string.Equals(s.Values.FirstOrDefault().Value?.ToString(), Constants.BindingCapabilities.FunctionLevelRetry, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    retryOptionsValid = true;
+                                }
                             }
 
                             bindingsList.Add(bindingDict!);

@@ -7,7 +7,7 @@ using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
-namespace FunctionsNetHost
+namespace FunctionsNetHost.Grpc
 {
     internal class GrpcClient
     {
@@ -17,8 +17,8 @@ namespace FunctionsNetHost
 
         public GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions)
         {
-            this._grpcWorkerStartupOptions = grpcWorkerStartupOptions;
-            UnboundedChannelOptions channelOptions = new UnboundedChannelOptions
+            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
+            var channelOptions = new UnboundedChannelOptions
             {
                 SingleWriter = false,
                 SingleReader = false,
@@ -58,7 +58,7 @@ namespace FunctionsNetHost
         }
         private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
-            await foreach (StreamingMessage rpcWriteMsg in _outgoingMessageChannel.Reader.ReadAllAsync())
+            await foreach (var rpcWriteMsg in _outgoingMessageChannel.Reader.ReadAllAsync())
             {
                 Logger.Log("Outgoing message : " + rpcWriteMsg.ContentCase);
                 await requestStream.WriteAsync(rpcWriteMsg);
@@ -67,27 +67,27 @@ namespace FunctionsNetHost
 
         private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
-            StartStream startStreamMsg = new StartStream()
+            var startStreamMsg = new StartStream()
             {
                 WorkerId = _grpcWorkerStartupOptions.WorkerId
             };
 
-            StreamingMessage startStream = new StreamingMessage()
+            var startStream = new StreamingMessage()
             {
                 StartStream = startStreamMsg
             };
 
             await requestStream.WriteAsync(startStream);
         }
-        
+
         private FunctionRpcClient CreateFunctionRpcClient(string endpoint)
         {
-            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out Uri? grpcUri))
+            if (!Uri.TryCreate(endpoint, UriKind.Absolute, out var grpcUri))
             {
                 throw new InvalidOperationException($"The gRPC channel URI '{endpoint}' could not be parsed.");
             }
 
-            GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
+            var grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
             {
                 MaxReceiveMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
                 MaxSendMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
@@ -102,7 +102,7 @@ namespace FunctionsNetHost
         /// </summary>
         private async Task StartInboundMessageForwarding()
         {
-            await foreach (StreamingMessage inboundMessage in InboundMessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
+            await foreach (var inboundMessage in InboundMessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
             {
                 Logger.Log($"Inbound message to customer payload: {inboundMessage.ContentCase}");
 

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
-namespace FunctionsNetHost
+namespace FunctionsNetHost.Grpc
 {
     internal class InboundMessageChannel
     {
@@ -18,7 +18,7 @@ namespace FunctionsNetHost
 
         private InboundMessageChannel()
         {
-            UnboundedChannelOptions channelOptions = new UnboundedChannelOptions
+            var channelOptions = new UnboundedChannelOptions
             {
                 SingleWriter = false,
                 SingleReader = false,

@@ -7,7 +7,11 @@ namespace FunctionsNetHost
 {
     internal static class Logger
     {
-        const string logPrefix = ""; //"LanguageWorkerConsoleLog";
+#if DEBUG
+        const string logPrefix = ""; 
+#else
+        const string logPrefix = "LanguageWorkerConsoleLog";
+#endif
 
         internal static void Log(string message)
         {

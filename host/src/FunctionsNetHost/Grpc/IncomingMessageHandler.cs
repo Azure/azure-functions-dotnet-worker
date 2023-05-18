@@ -4,7 +4,7 @@
 using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
-namespace FunctionsNetHost
+namespace FunctionsNetHost.Grpc
 {
 
     internal class IncomingMessageHandler
@@ -13,7 +13,7 @@ namespace FunctionsNetHost
         private bool _specializationDone;
         public IncomingMessageHandler(Channel<StreamingMessage> outgoingMessageChannel)
         {
-            this._outgoingMessageChannel = outgoingMessageChannel;
+            _outgoingMessageChannel = outgoingMessageChannel;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -35,7 +35,7 @@ namespace FunctionsNetHost
                 return;
             }
 
-            StreamingMessage responseMessage = new StreamingMessage();
+            var responseMessage = new StreamingMessage();
 
             switch (msg.ContentCase)
             {
@@ -62,13 +62,14 @@ namespace FunctionsNetHost
                         var applicationExePath = PathUtils.GetApplicationExePath(functionAppDirectory);
                         Logger.Log($"applicationExePath: {applicationExePath}");
 
-                        // to do: call method to load hostfxr.
-                        // wait until we get a signal that it is loaded.
+                        AppLoader.RunApplication(applicationExePath);
+
+                        // TO DO:  wait until we get a signal that it is loaded.
                         _specializationDone = true;
 
                         // Forward the env reload request to customer payload.
                         await InboundMessageChannel.Instance.SendAsync(msg);
-                        break; 
+                        break;
                     }
             }
 

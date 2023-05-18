@@ -3,7 +3,7 @@
 
 using System.Text.Json.Nodes;
 
-namespace FunctionsNetHost
+namespace FunctionsNetHost.Grpc
 {
     internal class PathUtils
     {
@@ -19,7 +19,7 @@ namespace FunctionsNetHost
             Logger.Log($"workerConfigPath:{workerConfigPath}");
 
             var jsonString = File.ReadAllText(workerConfigPath);
-            JsonNode workerConfigJsonNode = JsonNode.Parse(jsonString)!;
+            var workerConfigJsonNode = JsonNode.Parse(jsonString)!;
             var executableName = workerConfigJsonNode["description"]!["defaultWorkerPath"]!.ToString();
 
             return Path.Combine(applicationDirectory, executableName);

@@ -24,7 +24,7 @@
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
-      <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
     <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
@@ -43,7 +43,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.13.0-preview1-local202305171511" />
+    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.10.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.9.0-preview1-20230512.2" />
   
     <PackageReference Condition="$(FunctionsRuntimeVersion) != '3'" Include="System.Text.Json" Version="6.0.5" />

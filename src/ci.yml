@@ -46,6 +46,19 @@ jobs:
     displayName: "Start emulators (-NoWait)"
 
   - template: ../build/install-dotnet.yml
+
+  - task: PowerShell@2
+    # Temporary script to install required nuget packages for the dotnet isolated sample project
+    # that is being used for E2E tests. This script should be deleted and removed from the AzDO
+    # pipeline when these packages are published to nuget.
+    # Issue tracking removal of this task: https://github.com/Azure/azure-functions-host/issues/8910
+    displayName: 'Install myget packages for dotnet isolated sample'
+    inputs:
+      targetType: 'inline'
+      workingDirectory: '$(Build.Repository.LocalPath)\sample\DotNetIsolated'
+      script: |
+        dotnet add package Microsoft.Azure.WebJobs.Extensions.Tables --version 1.2.0-alpha.20230517.1 --source https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-net/nuget/v3/index.json
+        dotnet add package Microsoft.Azure.Functions.Worker.Sdk --version 1.9.0-preview1-20230512.2 --source https://azfunc.pkgs.visualstudio.com/e6a70c92-4128-439f-8012-382fe78d6396/_packaging/AzureFunctionsTempStaging/nuget/v3/index.json
   
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'

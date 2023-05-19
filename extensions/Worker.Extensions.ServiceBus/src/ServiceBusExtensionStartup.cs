@@ -5,8 +5,6 @@ using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 
 [assembly: WorkerExtensionStartup(typeof(ServiceBusExtensionStartup))]
 
@@ -22,11 +20,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-
-            applicationBuilder.Services.Configure<WorkerOptions>((workerOption) =>
-            {
-                workerOption.InputConverters.RegisterAt<ServiceBusReceivedMessageConverter>(0);
-            });
         }
     }
 }

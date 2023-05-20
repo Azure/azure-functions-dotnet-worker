@@ -9,8 +9,31 @@ namespace FunctionsNetHost
 {
     public unsafe delegate void RequestHandlerDelegate(byte** buffer, int size, IntPtr handle);
 
+    public class SignalManager
+    {
+        private static readonly SignalManager instance = new SignalManager();
+        private ManualResetEvent signal;
+
+        private SignalManager()
+        {
+            signal = new ManualResetEvent(false);
+        }
+
+        public static SignalManager Instance
+        {
+            get { return instance; }
+        }
+
+        public ManualResetEvent Signal
+        {
+            get { return signal; }
+        }
+    }
+
     public class NativeHostApplication
     {
+       // public static ManualResetEvent signal = new ManualResetEvent(false);
+
         static readonly NativeHostApplication instance = new NativeHostApplication();
 
         static NativeHostApplication()
@@ -59,6 +82,8 @@ namespace FunctionsNetHost
 
             requestHandlerCallback = callback;
             handle = grpcHandle;
+
+            SignalManager.Instance.Signal.Set();
         }
     }
 

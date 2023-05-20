@@ -15,6 +15,8 @@ namespace FunctionsNetHost
 
     public class NativeExports
     {
+        
+
         // https://github.com/dotnet/runtime/issues/78663
 
 
@@ -44,7 +46,7 @@ namespace FunctionsNetHost
 
             NativeHostApplication.Instance.SetCallbackHandles(requestCallback, grpcHandler);
 
-
+            
             return 1;
         }
 
@@ -56,7 +58,7 @@ namespace FunctionsNetHost
 
             var span = new ReadOnlySpan<byte>(streamingMessage, streamingMessageSize);
             var outboundMessageToHost = StreamingMessage.Parser.ParseFrom(span);
-            Logger.Log($"outboundMessageToHost ContentCase: {outboundMessageToHost.ContentCase}");
+           // Logger.Log($"outboundMessageToHost ContentCase: {outboundMessageToHost.ContentCase}");
 
             _ = MessageChannel.Instance.SendOutboundAsync(outboundMessageToHost);
 

@@ -59,32 +59,39 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
                     {
+                        IDictionary<string, string> environmentVariables = msg.FunctionEnvironmentReloadRequest.EnvironmentVariables;
+                        foreach(var  kv in environmentVariables)
+                        {
+                            Environment.SetEnvironmentVariable(kv.Key, kv.Value);
+                        }
+                        Logger.Log($"Set {environmentVariables.Keys.Count()} EnvironmentVariables");
+
                         var functionAppDirectory = msg.FunctionEnvironmentReloadRequest.FunctionAppDirectory;
 
                         var applicationExePath = PathUtils.GetApplicationExePath(functionAppDirectory);
-                        Logger.Log($"applicationExePath: {applicationExePath}");
+                        //Logger.Log($"applicationExePath: {applicationExePath}");
 
                         Logger.Log($"Before calling RunApplication");
 
                         Thread newThread = new Thread(() =>
                         {
-                            Logger.Log($"Before calling RunApplication Inside Thread");
+                            //Logger.Log($"Before calling RunApplication Inside Thread");
                             _ = _appLoader.RunApplication(applicationExePath);
-                            Logger.Log($"After calling RunApplication inside Thread");
+                            //Logger.Log($"After calling RunApplication inside Thread");
                         });
                         newThread.Start();
 
-                        //await Task.Run(() =>
+                        //Task.Run(() =>
                         //{
                         //    Logger.Log($"Before calling RunApplication Inside Task1");
                         //    _ = _appLoader.RunApplication(applicationExePath);
                         //    Logger.Log($"After calling RunApplication inside Task");
                         //});
                         
-                        Logger.Log($"After calling RunApplication11");
-
-                        await Task.Delay(5000);
-                        Logger.Log($"Waited 5 seconds after calling RunApplication. Will forrward env reload req");
+                        Logger.Log($"After calling RunApplication11. Will WaitOne until signlated");
+                        
+                        SignalManager.Instance.Signal.WaitOne();
+                        Logger.Log($"signlated. Will forrward env reload req");
 
                         // TO DO:  wait until we get a signal that it is loaded.
                         _specializationDone = true;

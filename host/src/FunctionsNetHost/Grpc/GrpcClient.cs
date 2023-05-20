@@ -63,7 +63,6 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var rpcWriteMsg in _outgoingMessageChannel.Reader.ReadAllAsync())
             {
-                Logger.Log("Outgoing message : " + rpcWriteMsg.ContentCase);
                 await requestStream.WriteAsync(rpcWriteMsg);
             }
         }
@@ -107,7 +106,7 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var inboundMessage in MessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
             {
-                Logger.Log($"Inbound message to customer payload: {inboundMessage.ContentCase}");
+                Logger.Log($"Inbound message to worker payload: {inboundMessage.ContentCase}");
 
                 await SendToInteropLayer(inboundMessage);
             }

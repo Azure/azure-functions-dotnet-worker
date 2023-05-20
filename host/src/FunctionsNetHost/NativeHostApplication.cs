@@ -1,40 +1,51 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace FunctionsNetHost
 {
-    using System;
-    using System.Runtime.InteropServices;
-
-    public delegate void RequestHandlerDelegate(ref byte buffer, int size, IntPtr handle);
+    public unsafe delegate void RequestHandlerDelegate(byte** buffer, int size, IntPtr handle);
 
     public class NativeHostApplication
     {
-        private static NativeHostApplication s_Application;
+        static readonly NativeHostApplication instance = new NativeHostApplication();
+
+        static NativeHostApplication()
+        {
+        }
+
+        NativeHostApplication()
+        {
+        }
+
+        public static NativeHostApplication Instance
+        {
+            get
+            {
+                return instance;
+            }
+        }
+
         private IntPtr handle;
-        private RequestHandlerDelegate callback;
+        unsafe delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestHandlerCallback;
 
-        public NativeHostApplication()
-        {
-        }
 
-        ~NativeHostApplication()
-        {
-        }
 
-        public void HandleIncomingMessage(byte[] buffer, int size)
+
+        public unsafe void HandleInboundMessage(byte[] buffer, int size)
         {
-            Logger.Log("HandleIncomingMessage");
+            Logger.Log($"HandleInboundMessage. length:{size}");
 
             GCHandle bufferHandle = GCHandle.Alloc(buffer, GCHandleType.Pinned);
             try
             {
                 IntPtr bufferPtr = bufferHandle.AddrOfPinnedObject();
-                
-               // callback(ref bufferPtr, size, handle);
+
+                requestHandlerCallback((byte**)&bufferPtr, size, handle);
+                // requestHandlerCallback(buffer, size, handle);
             }
             finally
             {
@@ -42,37 +53,12 @@ namespace FunctionsNetHost
             }
         }
 
-        public void SetCallbackHandles(RequestHandlerDelegate requestCallback, IntPtr grpcHandle)
+        public unsafe void SetCallbackHandles(delegate* unmanaged<byte**, int, IntPtr, IntPtr> callback, IntPtr grpcHandle)
         {
-            Logger.Log("SetCallbackHandles");
+            Logger.Log("NativeApplications.SetCallbackHandles invoked");
 
-            callback = requestCallback;
+            requestHandlerCallback = callback;
             handle = grpcHandle;
-        }
-
-        private IntPtr load_library(string path)
-        {
-            IntPtr h = NativeMethods.LoadLibraryW(path);
-            if (h == IntPtr.Zero)
-                throw new Exception("Failed to load library: " + path);
-            return h;
-        }
-
-        private IntPtr get_export(IntPtr h, string name)
-        {
-            IntPtr f = NativeMethods.GetProcAddress(h, name);
-            if (f == IntPtr.Zero)
-                throw new Exception("Failed to get export: " + name);
-            return f;
-        }
-
-        private static class NativeMethods
-        {
-            [DllImport("kernel32", CharSet = CharSet.Unicode)]
-            public static extern IntPtr LoadLibraryW(string fileName);
-
-            [DllImport("kernel32", CharSet = CharSet.Ansi)]
-            public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
         }
     }
 

@@ -3,20 +3,23 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost.Grpc
 {
-    internal class InboundMessageChannel
+    internal class MessageChannel
     {
         /// <summary>
         /// This channel holds messages meant to be send to the customer payload.
         /// </summary>
         private readonly Channel<StreamingMessage> _inboundChannel;
 
-        private static readonly InboundMessageChannel _instance = new();
+        private readonly Channel<StreamingMessage> _outChannel;
 
-        static InboundMessageChannel()
+
+        private static readonly MessageChannel _instance = new();
+
+        static MessageChannel()
         {
         }
 
-        private InboundMessageChannel()
+        private MessageChannel()
         {
             var channelOptions = new UnboundedChannelOptions
             {
@@ -25,10 +28,18 @@ namespace FunctionsNetHost.Grpc
                 AllowSynchronousContinuations = true
             };
 
+            var channelOptions2 = new UnboundedChannelOptions
+            {
+                SingleWriter = false,
+                SingleReader = false,
+                AllowSynchronousContinuations = true
+            };
+
             _inboundChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
+            _outChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions2);
         }
 
-        public static InboundMessageChannel Instance
+        public static MessageChannel Instance
         {
             get
             {
@@ -41,12 +52,20 @@ namespace FunctionsNetHost.Grpc
         /// </summary>
         public Channel<StreamingMessage> InboundChannel => _inboundChannel;
 
+        public Channel<StreamingMessage> OutboundChannel => _outChannel;
+
+
         /// <summary>
         /// Pushes a message to the inbound channel.
         /// </summary>
-        public async Task SendAsync(StreamingMessage inboundMessage)
+        public async Task SendInboundAsync(StreamingMessage inboundMessage)
         {
             await _inboundChannel.Writer.WriteAsync(inboundMessage);
+        }
+
+        public async Task SendOutboundAsync(StreamingMessage outboundMessage)
+        {
+            await _outChannel.Writer.WriteAsync(outboundMessage);
         }
     }
 }

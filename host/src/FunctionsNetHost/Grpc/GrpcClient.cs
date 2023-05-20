@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Runtime.InteropServices;
 using System.Threading.Channels;
+using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Net.Client;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -43,9 +45,10 @@ namespace FunctionsNetHost.Grpc
 
             var readerTask = StartReaderAsync(eventStream.ResponseStream);
             var writerTask = StartWriterAsync(eventStream.RequestStream);
-            var inboundForwardTask = StartInboundMessageForwarding();
+            _ = StartInboundMessageForwarding();
+            _ = StartOutboundMessageForwarding();
 
-            await Task.WhenAll(readerTask, writerTask, inboundForwardTask);
+            await Task.WhenAll(readerTask, writerTask);
 
         }
 
@@ -76,7 +79,7 @@ namespace FunctionsNetHost.Grpc
             {
                 StartStream = startStreamMsg
             };
-
+            //_= MessageChannel.Instance.SendOutboundAsync(startStream);
             await requestStream.WriteAsync(startStream);
         }
 
@@ -102,7 +105,7 @@ namespace FunctionsNetHost.Grpc
         /// </summary>
         private async Task StartInboundMessageForwarding()
         {
-            await foreach (var inboundMessage in InboundMessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
+            await foreach (var inboundMessage in MessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
             {
                 Logger.Log($"Inbound message to customer payload: {inboundMessage.ContentCase}");
 
@@ -110,9 +113,23 @@ namespace FunctionsNetHost.Grpc
             }
         }
 
+        /// <summary>
+        /// Listens to messages in the inbound message channel and forward them the customer payload via interop layer.
+        /// </summary>
+        private async Task StartOutboundMessageForwarding()
+        {
+            await foreach (var outboundMessage in MessageChannel.Instance.OutboundChannel.Reader.ReadAllAsync())
+            {
+                Logger.Log($"Outbound message to host: {outboundMessage.ContentCase}");
+                await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
+            }
+        }
+
         private Task SendToInteropLayer(StreamingMessage inboundMessage)
         {
-            // TO DO: Send to interop layer in a new Task.
+            byte[] bytes = inboundMessage.ToByteArray();
+            NativeHostApplication.Instance.HandleInboundMessage(bytes, bytes.Length);
+
             return Task.CompletedTask;
         }
     }

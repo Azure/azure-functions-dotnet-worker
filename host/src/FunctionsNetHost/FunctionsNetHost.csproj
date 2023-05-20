@@ -12,6 +12,10 @@
   <PropertyGroup>
     <DefineConstants>$(FUNCTIONS_CONSTANTS)</DefineConstants>
   </PropertyGroup>
+
+  <PropertyGroup>
+    <ExportsFile>$(MSBuildThisFileDirectory)exports.def</ExportsFile>
+  </PropertyGroup>
   
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.23.0" />

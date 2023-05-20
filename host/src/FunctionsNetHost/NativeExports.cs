@@ -1,38 +1,66 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Runtime.InteropServices;
+using FunctionsNetHost.Grpc;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost
 {
     public struct NativeHostData
     {
         public IntPtr pNativeApplication;
+        //public CallbackDelegate Callback;
+        public IntPtr Callback;
     }
 
+    public delegate int CallbackDelegate(int value);
 
-    internal class NativeExports
+    public class NativeExports
     {
+        // https://github.com/dotnet/runtime/issues/78663
 
-        [DllImport("FunctionsNetHost", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int get_application_properties(ref NativeHostData pNativeHostData);
 
-        [DllImport("FunctionsNetHost", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int register_callbacks(
-    ref NativeHostApplication pInProcessApplication,
-    RequestHandlerDelegate requestHandler,
-    IntPtr grpcHandler);
-
-    }
-
-    internal class InteropLayer
-    {
-        public static int get_application_properties(IntPtr pNativeHostData)
+        [UnmanagedCallersOnly(EntryPoint = "get_application_properties")]
+        public static int get_application_properties(NativeHostData nativeHostData)
         {
             Logger.Log("get_application_properties was invoked");
-            return 0; // Return the appropriate result
+
+            var nativeHostApplication = NativeHostApplication.Instance;
+
+            GCHandle gch = GCHandle.Alloc(nativeHostApplication, GCHandleType.Pinned);
+            IntPtr pObj = gch.AddrOfPinnedObject();
+            nativeHostData.pNativeApplication = pObj;
+
+            Logger.Log($"nativeHostApplication ptr:{pObj}");
+
+            return 1;
+        }
+
+
+        [UnmanagedCallersOnly(EntryPoint = "register_callbacks")]
+        public unsafe static int register_callbacks(IntPtr pInProcessApplication,
+                                                delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
+            IntPtr grpcHandler)
+        {
+            Logger.Log("register_callbacks was invoked");
+
+            NativeHostApplication.Instance.SetCallbackHandles(requestCallback, grpcHandler);
+
+
+            return 1;
+        }
+
+        [UnmanagedCallersOnly(EntryPoint = "send_streaming_message")]
+        public unsafe static int send_streaming_message(IntPtr pInProcessApplication, byte* streamingMessage, int streamingMessageSize)
+        {
+
+            Logger.Log($"send_streaming_message was invoked. streamingMessageSize:{streamingMessageSize}");
+
+            var span = new ReadOnlySpan<byte>(streamingMessage, streamingMessageSize);
+            var outboundMessageToHost = StreamingMessage.Parser.ParseFrom(span);
+            Logger.Log($"outboundMessageToHost ContentCase: {outboundMessageToHost.ContentCase}");
+
+            _ = MessageChannel.Instance.SendOutboundAsync(outboundMessageToHost);
+
+            return 1;
         }
     }
 }

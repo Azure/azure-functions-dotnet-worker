@@ -10,7 +10,7 @@ namespace FunctionsNetHost
     {
         static async Task Main(string[] args)
         {
-            Logger.Log("Starting FunctionsNetHost 518");
+            Logger.Log("Starting FunctionsNetHost 5181024");
 
             GrpcWorkerStartupOptions workerStartupOptions = new();
 

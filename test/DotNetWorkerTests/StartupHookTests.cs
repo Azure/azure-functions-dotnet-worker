@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class StartupHookTests
     {
         [Fact]
-        public void ValidadeHookSetup()
+        public void ValidateHookSetup()
         {
             var hookType = typeof(StartupHook);
             var initializeMethod = hookType.GetMethod("Initialize", BindingFlags.Static | BindingFlags.Public);

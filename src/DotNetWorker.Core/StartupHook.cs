@@ -20,8 +20,8 @@ using System.Threading;
 internal class StartupHook
 {
     const string StartupHooksEnvVar = "DOTNET_STARTUP_HOOKS";
-    private static readonly char s_startupSeparator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ';' : ':';
-    private static readonly string? s_assemblyName = typeof(StartupHook).Assembly.GetName().Name;
+    private static readonly string _startupSeparator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ";" : ":";
+    private static readonly string? _assemblyName = typeof(StartupHook).Assembly.GetName().Name;
 
     public static void Initialize()
     {
@@ -82,10 +82,9 @@ internal class StartupHook
         }
 
         // netstandard2.0 has no StringSplitOptions overload.
-        IEnumerable<string> parts = startupHooks.Split(s_startupSeparator).Where(x => !string.IsNullOrEmpty(x));
-        string newValue = string.Join(
-            s_startupSeparator.ToString(), // netstandard2.0 only accepts string here.
-            parts.Where(x => !x.Equals(s_assemblyName, StringComparison.Ordinal)));
+        IEnumerable<string> parts = startupHooks.Split(_startupSeparator[0])
+            .Where(x => !string.Equals(x, _assemblyName, StringComparison.Ordinal));
+        string newValue = string.Join(_startupSeparator, parts);
         Environment.SetEnvironmentVariable(StartupHooksEnvVar, newValue);
     }
 }

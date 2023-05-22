@@ -46,6 +46,17 @@ jobs:
     displayName: "Start emulators (-NoWait)"
 
   - template: ../build/install-dotnet.yml
+  - task: PowerShell@2
+    # Temporary script to install required nuget packages for the dotnet isolated sample project
+    # that is being used for E2E tests. This script should be deleted and removed from the AzDO
+    # pipeline when these packages are published to nuget.
+    # Issue tracking removal of this task: https://github.com/Azure/azure-functions-host/issues/8910
+    displayName: 'Add package to source'
+    inputs:
+      targetType: 'inline'
+      script: |
+        dotnet nuget add source https://azfunc.pkgs.visualstudio.com/e6a70c92-4128-439f-8012-382fe78d6396/_packaging/AzureFunctionsTempStaging/nuget/v3/index.json --name func-staging
+        dotnet nuget add source https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-net/nuget/v3/index.json
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:

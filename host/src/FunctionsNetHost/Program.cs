@@ -10,7 +10,6 @@ namespace FunctionsNetHost
     {
         static async Task Main(string[] args)
         {
-            Environment.SetEnvironmentVariable(EnvironmentSettingNames.FunctionsNetHostTrace, "1");
             try
             {
                 Logger.LogInfo("Starting FunctionsNetHost");

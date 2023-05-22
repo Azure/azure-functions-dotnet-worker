@@ -1079,17 +1079,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                 throw new NotImplementedException();
             }
 
-
-            [Function("BlobClientToBlobStringFunction")]
-            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
-            public object BlobClientToBlobStringFunction(
-                [BlobTrigger("container2/%file%")] BlobClient blob,
-                [BlobInput("container2/%file%")] string blobinput)
-            {
-                throw new NotImplementedException();
-            }
-
-
             [Function("BlobClientToBlobStringFunction")]
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobClientToBlobStreamFunction(

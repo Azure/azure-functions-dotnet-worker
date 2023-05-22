@@ -1,12 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Core;
 using Azure.Data.Tables;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Extensions.Tables;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -29,17 +24,20 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         public async Task Configure_With_Default_Name()
         {
             var configSection = new Mock<IConfigurationSection>();
+
             configSection.Setup(c => c.Key).Returns("key");
             configSection.Setup(c => c.Value).Returns("connectionString");
             configuration.Setup(c => c.GetSection("AzureWebJobsStorage")).Returns(configSection.Object);
 
             var tableBindingOptions = new Mock<TablesBindingOptions>();
             var tokenCredential = new Mock<TokenCredential>();
+
             componentFactory.Setup(c => c.CreateClientOptions(typeof(TableClientOptions), null, configSection.Object)).Returns(null);
             componentFactory.Setup(c => c.CreateTokenCredential(configSection.Object)).Returns(tokenCredential.Object);
 
             var tablesBindingOptionsSetup = new Mock<TablesBindingOptionsSetup>(configuration.Object, componentFactory.Object);
             tablesBindingOptionsSetup.Object.Configure(tableBindingOptions.Object);
+
             Assert.Equal("connectionString", tableBindingOptions.Object.ConnectionString);
             Assert.NotNull(tableBindingOptions.Object.Credential);
         }
@@ -54,11 +52,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 
             var tableBindingOptions = new Mock<TablesBindingOptions>();
             var tokenCredential = new Mock<TokenCredential>();
+
             componentFactory.Setup(c => c.CreateClientOptions(typeof(TableClientOptions), null, configSection.Object)).Returns(null);
             componentFactory.Setup(c => c.CreateTokenCredential(configSection.Object)).Returns(tokenCredential.Object);
 
             var tablesBindingOptionsSetup = new Mock<TablesBindingOptionsSetup>(configuration.Object, componentFactory.Object);
             tablesBindingOptionsSetup.Object.Configure("Custom",tableBindingOptions.Object);
+
             Assert.Equal("connectionString", tableBindingOptions.Object.ConnectionString);
             Assert.NotNull(tableBindingOptions.Object.Credential);
         }
@@ -85,6 +85,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 
             var tablesBindingOptionsSetup = new Mock<TablesBindingOptionsSetup>(configurationReal, componentFactory.Object);
             tablesBindingOptionsSetup.Object.Configure(tableBindingOptions.Object);
+
             Assert.Null(tableBindingOptions.Object.ConnectionString);
             Assert.Equal("https://test.table.core.windows.net/", tableBindingOptions.Object.ServiceUri.ToString());
         }

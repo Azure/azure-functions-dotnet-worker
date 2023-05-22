@@ -3,8 +3,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -14,7 +12,6 @@ using Microsoft.Azure.Functions.Worker.Extensions.Tables;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using System.Collections.ObjectModel;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -88,7 +85,6 @@ namespace Microsoft.Azure.Functions.Worker
             content.TryGetValue(Constants.RowKey, out var rowKey);
             content.TryGetValue(Constants.Take, out var take);
             content.TryGetValue(Constants.Filter, out var filter);
-
 
             if (string.IsNullOrEmpty(tableName?.ToString()))
             {
@@ -174,7 +170,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
             var tableClient = GetTableClient(connection, tableName);
             return await tableClient.GetEntityAsync<TableEntity>(partitionKey, rowKey);
-
         }
     }
 }

@@ -26,7 +26,6 @@ namespace WorkerBindingSamples.Table
             var tableEntity = table.QueryAsync<TableEntity>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 
-            List<string> tableList = new();
             await foreach (TableEntity val in tableEntity)
             {
                 val.TryGetValue("Text", out var text);
@@ -58,12 +57,14 @@ namespace WorkerBindingSamples.Table
         {
             List<string> tableList = new();
             var response = req.CreateResponse(HttpStatusCode.OK);
+
             foreach (TableEntity tableEntity in table)
             {
                 tableEntity.TryGetValue("Text", out var text);
                 _logger.LogInformation("Value of text: " + text);
                 tableList.Add(text?.ToString() ?? "");
             }
+
             await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
@@ -77,6 +78,7 @@ namespace WorkerBindingSamples.Table
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             List<string> tableList = new();
+
             foreach (TableEntity tableEntity in tables)
             {
                 tableEntity.TryGetValue("Text", out var text);
@@ -84,6 +86,7 @@ namespace WorkerBindingSamples.Table
                 tableList.Add((text?.ToString()) ?? "");
                 
             }
+
             await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
@@ -98,11 +101,13 @@ namespace WorkerBindingSamples.Table
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             List<string> entityList = new();
+
             foreach (MyEntity entity in entities)
             {
                 logger.LogInformation($"Text: {entity.Text}");
                 entityList.Add((entity.Text ?? "").ToString());
             }
+
             await response.WriteStringAsync(string.Join(",", entityList));
             return response;
         }
@@ -111,10 +116,8 @@ namespace WorkerBindingSamples.Table
 
     public class MyEntity
     {
-        public string Text { get; set; }
-
-        public string PartitionKey { get; set; }
-        public string RowKey { get; set; }
+        public string? Text { get; set; }
+        public string? PartitionKey { get; set; }
+        public string? RowKey { get; set; }
     }
 }
-

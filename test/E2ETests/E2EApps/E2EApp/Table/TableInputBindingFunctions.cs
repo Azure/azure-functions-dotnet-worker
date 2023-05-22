@@ -27,7 +27,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             var tableEntity = table.QueryAsync<TableEntity>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 
-            List<string> tableList = new();
             await foreach (TableEntity val in tableEntity)
             {
                 val.TryGetValue("Text", out var text);
@@ -58,12 +57,14 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         {
             List<string> tableList = new();
             var response = req.CreateResponse(HttpStatusCode.OK);
+
             foreach (TableEntity tableEntity in table)
             {
                 tableEntity.TryGetValue("Text", out var text);
                 _logger.LogInformation("Value of text: " + text);
                 tableList.Add(text?.ToString() ?? "");
             }
+
             await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }
@@ -76,12 +77,14 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             List<string> tableList = new();
+
             foreach (TableEntity tableEntity in tables)
             {
                 tableEntity.TryGetValue("Text", out var text);
                 _logger.LogInformation("Value of text: " + text);
                 tableList.Add(text?.ToString() ?? "");
             }
+
             await response.WriteStringAsync(string.Join(",", tableList));
             return response;
         }

@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         public string? ScriptFile { get => _scriptFile; set => ClearIdAndSet(value, ref _scriptFile); }
 
         /// <inheritdoc/>
-        public IRetryOptions? Retry{ get; set; }
+        public IRetryOptions? Retry { get; set; }
 
         private static string? HashFunctionId(DefaultFunctionMetadata function)
         {

@@ -6,23 +6,23 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
 {
     /// <summary>
-    /// 
+    /// Function execution retry policy to use on invocation failures.
     /// </summary>
     public class DefaultRetryOptions : IRetryOptions
     {
         /// <inheritdoc/>
-        public int? MaxRetryCount { get; set; }
+        public int MaxRetryCount { get; set; }
 
         /// <inheritdoc/>
-        public string? DelayInterval { get; set; }
+        public TimeSpan? DelayInterval { get; set; }
 
         /// <inheritdoc/>
-        public string? MinimumInterval { get; set; }
+        public TimeSpan? MinimumInterval { get; set; }
 
         /// <inheritdoc/>
-        public string? MaximumInterval { get; set; }
+        public TimeSpan? MaximumInterval { get; set; }
 
         /// <inheritdoc/>
-        public string? Strategy { get; set; }
+        public RetryStrategy? Strategy => DelayInterval is null ? RetryStrategy.ExponentialBackoff : RetryStrategy.FixedDelay;
     }
 }

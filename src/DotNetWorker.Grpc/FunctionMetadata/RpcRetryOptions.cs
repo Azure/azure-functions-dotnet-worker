@@ -8,14 +8,19 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
 {
     internal sealed partial class RpcRetryOptions : IRetryOptions
     {
-        int? IRetryOptions.MaxRetryCount => MaxRetryCount;
+        int IRetryOptions.MaxRetryCount => MaxRetryCount;
 
-        string? IRetryOptions.DelayInterval => DelayInterval.ToTimeSpan().ToString();
+        TimeSpan? IRetryOptions.DelayInterval => DelayInterval.ToTimeSpan();
 
-        string? IRetryOptions.MinimumInterval => MinimumInterval.ToTimeSpan().ToString();
+        TimeSpan? IRetryOptions.MinimumInterval => MinimumInterval.ToTimeSpan();
 
-        string? IRetryOptions.MaximumInterval => MaximumInterval.ToString();
+        TimeSpan? IRetryOptions.MaximumInterval => MaximumInterval.ToTimeSpan();
 
-        string IRetryOptions.Strategy => RetryStrategy.ToString();
+        RetryStrategy? IRetryOptions.Strategy => RetryStrategy switch
+        {
+            Types.RetryStrategy.FixedDelay => Core.FunctionMetadata.RetryStrategy.FixedDelay,
+            Types.RetryStrategy.ExponentialBackoff => Core.FunctionMetadata.RetryStrategy.ExponentialBackoff,
+            _ => throw new InvalidOperationException($"Unknown RpcDataType: {RetryStrategy}")
+        };
     }
 }

@@ -91,10 +91,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     RawBindings = {{functionBindingsListVarName}},
                     """);
 
-                    if (TryBuildRetryOptions(function.Retry, out string? retryOptionsAsString))
-                    {
-                        builder.Append(retryOptionsAsString);
-                    }
+                    builder.Append(BuildRetryOptions(function.Retry));
 
                     builder.AppendLine($$"""                
                                     ScriptFile = "{{function.ScriptFile}}"
@@ -120,50 +117,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return builder.ToString();
             }
 
-            private bool TryBuildRetryOptions(GeneratorRetryOptions? retry, out string? retryOptionsAsString)
+            private StringBuilder BuildRetryOptions(GeneratorRetryOptions? retry)
             {
-                retryOptionsAsString = null;
-
-                if (retry is null)
-                {
-                    return false;
-                }
-
                 var builder = new StringBuilder();
 
-                if (string.Equals(retry.Strategy, Constants.RetryConstants.FixedDelayRetryName, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(retry?.Strategy, Constants.RetryConstants.FixedDelayRetryName, StringComparison.OrdinalIgnoreCase))
                 {
                     builder.AppendLine($$"""
                                     Retry = new DefaultRetryOptions
                                     {
-                                        MaxRetryCount = {{retry.MaxRetryCount}},
-                                        Strategy = "{{retry.Strategy}}",
-                                        DelayInterval = "{{retry.DelayInterval}}"
+                                        MaxRetryCount = {{retry!.MaxRetryCount}},
+                                        DelayInterval = TimeSpan.Parse("{{retry.DelayInterval}}")
                                     },
                     """);
-
-                    retryOptionsAsString = builder.ToString();
-
-                    return true;
                 }
-                else if (string.Equals(retry!.Strategy, Constants.RetryConstants.ExponentialBackoffRetryName, StringComparison.OrdinalIgnoreCase))
+                else if (string.Equals(retry?.Strategy, Constants.RetryConstants.ExponentialBackoffRetryName, StringComparison.OrdinalIgnoreCase))
                 {
                     builder.AppendLine($$"""
                                     Retry = new DefaultRetryOptions
                                     {
-                                        MaxRetryCount = {{retry.MaxRetryCount}},
-                                        Strategy = {{retry.Strategy}},
-                                        MinimumInterval = {{retry.MinimumInterval}}",
-                                        MaximumInterval = "{{retry.MaximumInterval}}"
+                                        MaxRetryCount = {{retry!.MaxRetryCount}},
+                                        MinimumInterval = TimeSpan.Parse("{{retry.MinimumInterval}}"),
+                                        MaximumInterval = TimeSpan.Parse("{{retry.MaximumInterval}}")
                                     },
                      """);
-
-                    retryOptionsAsString = builder.ToString();
-
-                    return true;
                 }
-
-                return false;
+                return builder;
             }
         }
 

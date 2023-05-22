@@ -10,6 +10,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Messages
     {
         IList<string> IFunctionMetadata.RawBindings => RawBindings;
 
-        IRetryOptions IFunctionMetadata.RetryOptions => RetryOptions;
+        IRetryOptions IFunctionMetadata.Retry => RetryOptions;
     }
 }

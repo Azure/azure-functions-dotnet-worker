@@ -13,26 +13,26 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         /// <summary>
         /// The maximum number of retries allowed per function execution. -1 means to retry indefinitely.
         /// </summary>
-        public int? MaxRetryCount { get; }
+        public int MaxRetryCount { get; }
 
         /// <summary>
         /// The delay used between retries when using a fixed delay strategy.
         /// </summary>
-        public string? DelayInterval { get; }
+        public TimeSpan? DelayInterval { get; }
 
         /// <summary>
         /// The minimum retry delay when using an exponential backoff strategy.
         /// </summary>
-        public string? MinimumInterval { get; }
+        public TimeSpan? MinimumInterval { get; }
 
         /// <summary>
         /// The maximum retry delay when using an exponential backoff strategy.
         /// </summary>
-        public string? MaximumInterval { get; }
+        public TimeSpan? MaximumInterval { get; }
 
         /// <summary>
         /// The retry strategy being used (fixed delay or exponential backoff).
         /// </summary>
-        public string? Strategy { get; }
+        public RetryStrategy? Strategy { get; }
     }
 }

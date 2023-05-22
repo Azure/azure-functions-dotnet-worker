@@ -1,71 +1,61 @@
-﻿using System.Threading.Channels;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost.Grpc
 {
-    internal class MessageChannel
+    /// <summary>
+    /// Bidirectional message channel meant to store inbound(to worker) and outbound(to host) messages.
+    /// </summary>
+    internal sealed class MessageChannel
     {
-        /// <summary>
-        /// This channel holds messages meant to be send to the customer payload.
-        /// </summary>
-        private readonly Channel<StreamingMessage> _inboundChannel;
-
-        private readonly Channel<StreamingMessage> _outChannel;
-
-
-        private static readonly MessageChannel _instance = new();
-
-        static MessageChannel()
-        {
-        }
-
         private MessageChannel()
         {
-            var channelOptions = new UnboundedChannelOptions
+            InboundChannel = Channel.CreateUnbounded<StreamingMessage>(CreateUnboundedChannelOptions());
+            OutboundChannel = Channel.CreateUnbounded<StreamingMessage>(CreateUnboundedChannelOptions());
+        }
+
+        /// <summary>
+        /// Gets the instances of the messaging channel.
+        /// </summary>
+        internal static MessageChannel Instance { get; } = new();
+
+        /// <summary>
+        /// Messages which needs to go to worker payload gets pushed to this channel.
+        /// </summary>
+        internal Channel<StreamingMessage> InboundChannel { get; }
+
+        /// <summary>
+        /// Messages which needs to go to host gets pushed to this channel.
+        /// </summary>
+        internal Channel<StreamingMessage> OutboundChannel { get; }
+
+        /// <summary>
+        /// Pushes a message to the inbound channel(to worker).
+        /// </summary>
+        internal async Task SendInboundAsync(StreamingMessage inboundMessage)
+        {
+            await InboundChannel.Writer.WriteAsync(inboundMessage);
+        }
+
+        /// <summary>
+        /// Pushes a messages to the outbound channel(to host)
+        /// </summary>
+        internal async Task SendOutboundAsync(StreamingMessage outboundMessage)
+        {
+            await OutboundChannel.Writer.WriteAsync(outboundMessage);
+        }
+        
+        private static UnboundedChannelOptions CreateUnboundedChannelOptions()
+        {
+            return new UnboundedChannelOptions
             {
                 SingleWriter = false,
                 SingleReader = false,
                 AllowSynchronousContinuations = true
             };
-
-            var channelOptions2 = new UnboundedChannelOptions
-            {
-                SingleWriter = false,
-                SingleReader = false,
-                AllowSynchronousContinuations = true
-            };
-
-            _inboundChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
-            _outChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions2);
-        }
-
-        public static MessageChannel Instance
-        {
-            get
-            {
-                return _instance;
-            }
-        }
-
-        /// <summary>
-        /// Messages which needs to go to customer payload gets pushed to this channel.
-        /// </summary>
-        public Channel<StreamingMessage> InboundChannel => _inboundChannel;
-
-        public Channel<StreamingMessage> OutboundChannel => _outChannel;
-
-
-        /// <summary>
-        /// Pushes a message to the inbound channel.
-        /// </summary>
-        public async Task SendInboundAsync(StreamingMessage inboundMessage)
-        {
-            await _inboundChannel.Writer.WriteAsync(inboundMessage);
-        }
-
-        public async Task SendOutboundAsync(StreamingMessage outboundMessage)
-        {
-            await _outChannel.Writer.WriteAsync(outboundMessage);
         }
     }
 }

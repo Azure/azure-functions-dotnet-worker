@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Runtime.InteropServices;
 using System.Threading.Channels;
 using Google.Protobuf;
 using Grpc.Core;
@@ -11,13 +10,13 @@ using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 
 namespace FunctionsNetHost.Grpc
 {
-    internal class GrpcClient
+    internal sealed class GrpcClient
     {
         private readonly Channel<StreamingMessage> _outgoingMessageChannel;
-        private readonly IncomingMessageHandler _processor;
+        private readonly IncomingGrpcMessageHandler _messageHandler;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
 
-        public GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions, AppLoader appLoader)
+        internal GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions, AppLoader appLoader)
         {
             _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
             var channelOptions = new UnboundedChannelOptions
@@ -29,17 +28,16 @@ namespace FunctionsNetHost.Grpc
 
             _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
 
-            _processor = new IncomingMessageHandler(_outgoingMessageChannel, appLoader);
+            _messageHandler = new IncomingGrpcMessageHandler(appLoader);
         }
 
-        public async Task InitAsync()
+        internal async Task InitAsync()
         {
             var endpoint = $"http://{_grpcWorkerStartupOptions.Host}:{_grpcWorkerStartupOptions.Port}";
-            Logger.Log($"Grpc server endpoint:{endpoint}");
+            Logger.LogDebug($"Grpc service endpoint:{endpoint}");
 
-            var client = CreateFunctionRpcClient(endpoint);
-
-            var eventStream = client.EventStream(cancellationToken: CancellationToken.None);
+            var functionRpcClient = CreateFunctionRpcClient(endpoint);
+            var eventStream = functionRpcClient.EventStream();
 
             await SendStartStreamMessageAsync(eventStream.RequestStream);
 
@@ -49,14 +47,13 @@ namespace FunctionsNetHost.Grpc
             _ = StartOutboundMessageForwarding();
 
             await Task.WhenAll(readerTask, writerTask);
-
         }
 
         private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
         {
             while (await responseStream.MoveNext())
             {
-                await _processor.ProcessMessageAsync(responseStream.Current);
+                await _messageHandler.ProcessMessageAsync(responseStream.Current);
             }
         }
         private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
@@ -78,7 +75,7 @@ namespace FunctionsNetHost.Grpc
             {
                 StartStream = startStreamMsg
             };
-            //_= MessageChannel.Instance.SendOutboundAsync(startStream);
+
             await requestStream.WriteAsync(startStream);
         }
 
@@ -106,9 +103,7 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var inboundMessage in MessageChannel.Instance.InboundChannel.Reader.ReadAllAsync())
             {
-                Logger.Log($"Inbound message to worker payload: {inboundMessage.ContentCase}");
-
-                await SendToInteropLayer(inboundMessage);
+                await HandleIncomingMessage(inboundMessage);
             }
         }
 
@@ -119,16 +114,19 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var outboundMessage in MessageChannel.Instance.OutboundChannel.Reader.ReadAllAsync())
             {
-                Logger.Log($"Outbound message to host: {outboundMessage.ContentCase}");
                 await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
             }
         }
 
-        private Task SendToInteropLayer(StreamingMessage inboundMessage)
+        private static Task HandleIncomingMessage(StreamingMessage inboundMessage)
         {
-            byte[] bytes = inboundMessage.ToByteArray();
-            NativeHostApplication.Instance.HandleInboundMessage(bytes, bytes.Length);
-
+            // Queue the work to another thread.
+            Task.Run(() =>
+            {
+                byte[] inboundMessageBytes = inboundMessage.ToByteArray();
+                NativeHostApplication.Instance.HandleInboundMessage(inboundMessageBytes, inboundMessageBytes.Length);
+            });
+            
             return Task.CompletedTask;
         }
     }

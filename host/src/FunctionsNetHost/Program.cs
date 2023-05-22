@@ -10,21 +10,25 @@ namespace FunctionsNetHost
     {
         static async Task Main(string[] args)
         {
-            Logger.Log("Starting FunctionsNetHost 5181024");
-
-            GrpcWorkerStartupOptions workerStartupOptions = new();
-
-            await ParseCommandLineArgs(args, workerStartupOptions);
-
-            using (var appLoader = AppLoader.Instance)
+            Environment.SetEnvironmentVariable(EnvironmentSettingNames.FunctionsNetHostTrace, "1");
+            try
             {
-                var client = new GrpcClient(workerStartupOptions, appLoader);
+                Logger.LogInfo("Starting FunctionsNetHost");
 
-                await client.InitAsync();
+                var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
+
+                using var appLoader = AppLoader.Instance;
+                var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
+
+                await grpcClient.InitAsync();
+            }
+            catch (Exception exception)
+            {
+                Logger.LogInfo($"An error occurred while running FunctionsNetHost.{exception}");
             }
         }
 
-        private static async Task ParseCommandLineArgs(string[] args, GrpcWorkerStartupOptions grpcOptions)
+        private static async Task<GrpcWorkerStartupOptions> GetStartupOptionsFromCmdLineArgs(string[] args)
         {
             var hostOption = new Option<string>("--host");
             var portOption = new Option<int>("--port");
@@ -39,19 +43,22 @@ namespace FunctionsNetHost
             rootCommand.AddOption(grpcMsgLengthOption);
             rootCommand.AddOption(requestIdOption);
 
-            rootCommand.SetHandler((host, port, workerId, grpcMsgLength, requestId) =>
-            {
-                grpcOptions.Host = host;
-                grpcOptions.Port = port;
-                grpcOptions.WorkerId = workerId;
-                grpcOptions.GrpcMaxMessageLength = grpcMsgLength;
-                grpcOptions.RequestId = requestId;
-            },
-            hostOption, portOption, workerOption, grpcMsgLengthOption, requestIdOption);
+            var workerStartupOptions = new GrpcWorkerStartupOptions();
 
-            // If the first arg(exe name) has a .exe suffix, parsing fails. So exclude that.
-            var cmdArgsString = string.Join(" ", args, startIndex: 1, count: args.Length - 1);
-            await rootCommand.InvokeAsync(cmdArgsString);
+            rootCommand.SetHandler((host, port, workerId, grpcMsgLength, requestId) =>
+                {
+                    workerStartupOptions.Host = host;
+                    workerStartupOptions.Port = port;
+                    workerStartupOptions.WorkerId = workerId;
+                    workerStartupOptions.GrpcMaxMessageLength = grpcMsgLength;
+                    workerStartupOptions.RequestId = requestId;
+                },
+                hostOption, portOption, workerOption, grpcMsgLengthOption, requestIdOption);
+
+            var argsWithoutExecutableName = args.Skip(1).ToArray();
+            await rootCommand.InvokeAsync(argsWithoutExecutableName);
+
+            return workerStartupOptions;
         }
     }
 }

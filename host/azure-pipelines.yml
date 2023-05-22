@@ -23,7 +23,7 @@ steps:
   - task: NuGetAuthenticate@1
 
   - task: DotNetCoreCLI@2
-    displayName: 'Publish FunctionsNetHost'
+    displayName: 'Publish win-x64 FunctionsNetHost'
     inputs:
       command: 'publish'
       publishWebProjects: false

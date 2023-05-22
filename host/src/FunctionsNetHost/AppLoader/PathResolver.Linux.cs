@@ -1,6 +1,8 @@
-﻿namespace FunctionsNetHost
-{
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
 
+namespace FunctionsNetHost
+{
     internal static partial class PathResolver
     {
         private static string GetUnixDotnetRootPath()
@@ -13,7 +15,6 @@
         ///Example path: usr/share/dotnet/host/fxr/7.0.5
         private static string GetUnixHostFxrPath()
         {
-            char directorySeparatorChar = Path.DirectorySeparatorChar;
             string hostFxrVersionsDirPath = Path.Combine(GetUnixDotnetRootPath(),
                                                "host",
                                                "fxr");

@@ -3,7 +3,7 @@
 
 namespace FunctionsNetHost.Grpc
 {
-    internal class GrpcWorkerStartupOptions
+    internal sealed class GrpcWorkerStartupOptions
     {
         public string? Host { get; set; }
 

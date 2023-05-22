@@ -55,7 +55,6 @@ jobs:
     inputs:
       targetType: 'inline'
       script: |
-        dotnet nuget add source https://azfunc.pkgs.visualstudio.com/e6a70c92-4128-439f-8012-382fe78d6396/_packaging/AzureFunctionsTempStaging/nuget/v3/index.json --name func-staging
         dotnet nuget add source https://pkgs.dev.azure.com/azure-sdk/public/_packaging/azure-sdk-for-net/nuget/v3/index.json
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'

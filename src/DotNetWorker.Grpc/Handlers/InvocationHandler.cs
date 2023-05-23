@@ -5,7 +5,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
@@ -23,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
         private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
         private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
-        private readonly ObjectSerializer _serializer;
+        private readonly WorkerOptions _workerOptions;
         private readonly ILogger _logger;
 
         private ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
@@ -31,30 +30,34 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         public InvocationHandler(
             IFunctionsApplication application,
             IInvocationFeaturesFactory invocationFeaturesFactory,
-            ObjectSerializer serializer,
             IOutputBindingsInfoProvider outputBindingsInfoProvider,
             IInputConversionFeatureProvider inputConversionFeatureProvider,
-            ILogger logger)
+            IOptions<WorkerOptions> workerOptions,
+            ILogger<InvocationHandler> logger)
         {
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
-            _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
+            _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
+
+            if (_workerOptions.Serializer is null)
+            {
+                throw new InvalidOperationException($"The {nameof(WorkerOptions)}.{nameof(WorkerOptions.Serializer)} is null");
+            }
         }
 
-        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request, WorkerOptions? workerOptions = null)
+        public async Task<InvocationResponse> InvokeAsync(InvocationRequest request)
         {
-            bool enableUserCodeException = workerOptions is not null && workerOptions.EnableUserCodeException;
             using CancellationTokenSource cancellationTokenSource = new();
             FunctionContext? context = null;
             InvocationResponse response = new()
             {
                 InvocationId = request.InvocationId,
-                Result       = new StatusResult()
+                Result = new StatusResult()
             };
 
             if (!_inflightInvocations.TryAdd(request.InvocationId, cancellationTokenSource))
@@ -62,6 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 var exception = new InvalidOperationException("Unable to track CancellationTokenSource");
                 response.Result.Status = StatusResult.Types.Status.Failure;
                 response.Result.Exception = exception.ToRpcException();
+
                 return response;
             }
 
@@ -83,6 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                 await _application.InvokeFunctionAsync(context);
 
+                var serializer = _workerOptions.Serializer!;
                 var functionBindings = context.GetBindings();
 
                 foreach (var binding in functionBindings.OutputBindingData)
@@ -94,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                     if (binding.Value is not null)
                     {
-                        parameterBinding.Data = await binding.Value.ToRpcAsync(_serializer);
+                        parameterBinding.Data = await binding.Value.ToRpcAsync(serializer);
                     }
 
                     response.OutputData.Add(parameterBinding);
@@ -102,7 +107,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                 if (functionBindings.InvocationResult is not null)
                 {
-                    TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(_serializer);
+                    TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(serializer);
                     response.ReturnValue = returnVal;
                 }
 
@@ -110,7 +115,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex)
             {
-                response.Result.Exception = enableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
+                response.Result.Exception = _workerOptions.EnableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
                 response.Result.Status = StatusResult.Types.Status.Failure;
 
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)

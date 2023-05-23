@@ -214,6 +214,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
         }
 
+
         private class MyFunctionClass
         {
             public HttpResponseData Run(HttpRequestData req)

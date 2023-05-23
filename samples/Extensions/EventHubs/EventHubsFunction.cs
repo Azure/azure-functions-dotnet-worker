@@ -10,6 +10,7 @@ namespace SampleApp
     public static class EventHubsFunction
     {
         [Function("EventHubsFunction")]
+        [FixedDelayRetry(5, "00:00:10")]
         [EventHubOutput("dest", Connection = "EventHubConnectionAppSetting")]
         public static string Run([EventHubTrigger("src", Connection = "EventHubConnectionAppSetting")] string[] input,
             FunctionContext context)

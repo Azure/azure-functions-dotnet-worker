@@ -74,7 +74,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Used with filter. RowKey should be null. 
         /// </summary>
-        public int? Take
+        public int Take
         {
             get; set;
         }

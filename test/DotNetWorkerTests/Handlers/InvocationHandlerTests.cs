@@ -24,6 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private readonly Mock<IOutputBindingsInfoProvider> _mockOutputBindingsInfoProvider = new(MockBehavior.Strict);
         private readonly Mock<IInputConversionFeatureProvider> _mockInputConversionFeatureProvider = new(MockBehavior.Strict);
         private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
+        private readonly Mock<IInvocationFeaturesFactory> _mockFeaturesFactory = new(MockBehavior.Strict);
         private TestFunctionContext _context = new();
         private ILogger<InvocationHandler> _testLogger;
 
@@ -45,6 +46,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Setup(m => m.Create())
                 .Returns(new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>()));
 
+            _mockFeaturesFactory
+                .Setup(m => m.Create())
+                .Returns(new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>()));
+
             IInputConversionFeature conversionFeature = mockConversionFeature.Object;
             _mockInputConversionFeatureProvider
                 .Setup(m => m.TryCreate(typeof(DefaultInputConversionFeature), out conversionFeature))
@@ -58,11 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var request = TestUtility.CreateInvocationRequest(invocationId);
-
-            var handler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
+            var handler = CreateInvocationHandler();
             var response = await handler.InvokeAsync(request);
 
             // InvokeAsync should create a real cancellation token which can be cancelled,
@@ -79,11 +80,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Throws(new AggregateException(new Exception[] { new TaskCanceledException() }));
 
             var request = TestUtility.CreateInvocationRequest("abc");
-
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
+            var invocationHandler = CreateInvocationHandler();
             var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Cancelled, response.Result.Status);
@@ -97,26 +94,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var request = TestUtility.CreateInvocationRequest(invocationId);
             var cts = new CancellationTokenSource();
 
-            var handler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
             // Mock delay in InvokeFunctionAsync so that we can cancel mid invocation
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Callback(() => Thread.Sleep(1000))
                 .Returns(Task.CompletedTask);
 
+            var invocationHandler = CreateInvocationHandler();
+
             // Don't wait for InvokeAsync so we can cancel whilst it's in progress
             _ = Task.Run(async () =>
             {
-                await handler.InvokeAsync(request);
+                await invocationHandler.InvokeAsync(request);
             });
 
             // Buffer to ensure the cancellation token source was created before we try to cancel
             Thread.Sleep(500);
 
-            var result = handler.TryCancel(invocationId);
+            var result = invocationHandler.TryCancel(invocationId);
             Assert.True(result);
         }
 
@@ -125,14 +120,11 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var invocationId = "5fb3a9b4-0b38-450a-9d46-35946e7edea7";
             var request = TestUtility.CreateInvocationRequest(invocationId);
+            var invocationHandler = CreateInvocationHandler();
 
-            var handler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
+            _ = await invocationHandler.InvokeAsync(request);
 
-            _ = await handler.InvokeAsync(request);
-
-            var result = handler.TryCancel(invocationId);
+            var result = invocationHandler.TryCancel(invocationId);
             Assert.False(result);
         }
 
@@ -143,21 +135,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_UserCodeThrowsException_OptionEnabled()
         {
             var exceptionMessage = "user code exception";
-            var mockOptions = new WorkerOptions()
+            var mockOptions = new OptionsWrapper<WorkerOptions>(new()
             {
-                EnableUserCodeException = true
-            };
+                EnableUserCodeException = true,
+                Serializer = new JsonObjectSerializer()
+            });
 
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Throws(new Exception(exceptionMessage));
+
             var request = TestUtility.CreateInvocationRequest("abc");
-
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
-            var response = await invocationHandler.InvokeAsync(request, mockOptions);
+            var invocationHandler = CreateInvocationHandler(workerOptions: mockOptions);
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.Equal("System.Exception", response.Result.Exception.Type.ToString());
@@ -180,18 +170,106 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Throws(new Exception(exceptionMessage));
+
             var request = TestUtility.CreateInvocationRequest("abc");
-
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockInvocationFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
-            var response = await invocationHandler.InvokeAsync(request, mockOptions);
+            var invocationHandler = CreateInvocationHandler();
+            var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
             Assert.NotEqual("System.Exception", response.Result.Exception.Type.ToString());
             Assert.NotEqual(exceptionMessage, response.Result.Exception.Message);
             Assert.False(response.Result.Exception.IsUserException);
+        }
+
+        [Fact]
+        public async Task Invoke_ReturnsSuccess_AsyncFunctionContext()
+        {
+            var request = TestUtility.CreateInvocationRequest();
+
+            // Mock IFunctionApplication.CreateContext to return TestAsyncFunctionContext instance.
+            _mockApplication
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
+                .Returns<IInvocationFeatures, CancellationToken>((f, ct) =>
+                {
+                    _context = new TestAsyncFunctionContext(f);
+                    return _context;
+                });
+
+            var invocationHandler = CreateInvocationHandler();
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True((_context as TestAsyncFunctionContext).IsAsyncDisposed);
+            Assert.True(_context.IsDisposed);
+        }
+
+        [Fact]
+        public async Task Invoke_ReturnsSuccess()
+        {
+            var request = TestUtility.CreateInvocationRequest();
+            var invocationHandler = CreateInvocationHandler();
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True(_context.IsDisposed);
+        }
+
+        [Fact]
+        public async Task Invoke_SetsRetryContext()
+        {
+            var request = TestUtility.CreateInvocationRequest();
+            var invocationHandler = CreateInvocationHandler();
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True(_context.IsDisposed);
+            Assert.Equal(request.RetryContext.RetryCount, _context.RetryContext.RetryCount);
+            Assert.Equal(request.RetryContext.MaxRetryCount, _context.RetryContext.MaxRetryCount);
+        }
+
+        [Fact]
+        public async Task Invoke_CreateContextThrows_ReturnsFailure()
+        {
+            _mockApplication
+                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
+                .Throws(new InvalidOperationException("whoops"));
+
+            var request = TestUtility.CreateInvocationRequest();
+            var invocationHandler = CreateInvocationHandler();
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
+            Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
+            Assert.Contains("CreateContext", response.Result.Exception.Message);
+        }
+
+        [Fact]
+        public async Task SetRetryContextToNull()
+        {
+            var request = TestUtility.CreateInvocationRequestWithNullRetryContext();
+            var invocationHandler = CreateInvocationHandler();
+            var response = await invocationHandler.InvokeAsync(request);
+
+            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
+            Assert.True(_context.IsDisposed);
+            Assert.Null(_context.RetryContext);
+        }
+
+        private InvocationHandler CreateInvocationHandler(IFunctionsApplication application = null,
+                                                          IOptions<WorkerOptions> workerOptions = null)
+        {
+            workerOptions ??= CreateDefaultWorkerOptions();
+
+            return new InvocationHandler(application ?? _mockApplication.Object,
+                _mockFeaturesFactory.Object, _mockOutputBindingsInfoProvider.Object,
+                _mockInputConversionFeatureProvider.Object, workerOptions, _testLogger);
+        }
+        private static IOptions<WorkerOptions> CreateDefaultWorkerOptions()
+        {
+            return new OptionsWrapper<WorkerOptions>(new()
+            {
+                Serializer = new JsonObjectSerializer()
+            });
         }
     }
 }

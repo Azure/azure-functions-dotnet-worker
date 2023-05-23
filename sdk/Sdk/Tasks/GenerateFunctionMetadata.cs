@@ -1,8 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -48,8 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
                 var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!, TargetFrameworkIdentifier!, TargetFrameworkVersion!);
 
                 extensionsCsProjGenerator.Generate();
-
-                FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
+                WriteMetadataWithRetry(functions);
             }
             catch (FunctionsMetadataGenerationException)
             {
@@ -58,6 +60,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
             }
 
             return true;
+        }
+
+        private void WriteMetadataWithRetry(IEnumerable<SdkFunctionMetadata> functions)
+        {
+            int attempt = 0;
+            while (attempt < 10)
+            {
+                try
+                {
+                    FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
+                    break;
+                }
+                catch (IOException ex)
+                {
+                    attempt++;
+                    if (attempt == 10)
+                    {
+                        Log.LogErrorFromException(ex);
+                        throw new FunctionsMetadataGenerationException();
+                    }
+
+                    string message = $"Could not write function metadata. Error: '{ex.Message}'. Begining retry {attempt} of 10 in 1000ms.";
+                    Log.LogWarning(message);
+                    Thread.Sleep(1000);
+                }
+            }
         }
 
         private void MSBuildLogger(TraceLevel level, string message, string path)

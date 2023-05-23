@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using Azure.Core;
 using Azure.Data.Tables;
 
@@ -18,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 
         public TableClientOptions? TableClientOptions { get; set; }
 
-        internal ConcurrentDictionary<string, TableServiceClient> ClientCache { get; } = new ConcurrentDictionary<string, TableServiceClient>();
+        private TableServiceClient? TableServiceClient { get; set; }
 
         internal virtual TableServiceClient CreateClient()
         {
@@ -26,9 +25,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
             {
                 throw new ArgumentNullException(nameof(ConnectionString) + " " + nameof(ServiceUri));
             }
+
+            if (TableServiceClient != null)
+            {
+                return TableServiceClient;
+            }
+
             return !string.IsNullOrEmpty(ConnectionString)
-                ? (ClientCache.GetOrAdd(ConnectionString!, (c) => new TableServiceClient(ConnectionString, TableClientOptions))) // Connection string based auth;
-                : (ClientCache.GetOrAdd(ServiceUri!.ToString(), (c) => new TableServiceClient(ServiceUri, Credential, TableClientOptions))); // AAD auth
+                ? new TableServiceClient(ConnectionString, TableClientOptions) // Connection string based auth;
+                : new TableServiceClient(ServiceUri, Credential, TableClientOptions); // AAD auth
         }
     }
 }

@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker.Handlers;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -49,6 +50,7 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();
+            services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
 
 #if NET5_0_OR_GREATER
             // If we are running in the native host process, use the native client

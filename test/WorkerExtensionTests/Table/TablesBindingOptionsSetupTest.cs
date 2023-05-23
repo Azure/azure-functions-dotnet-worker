@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         }
 
         [Fact]
-        public async Task Configure_With_Default_Name()
+        public void Configure_With_Default_Name()
         {
             var configSection = new Mock<IConfigurationSection>();
 
@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         }
 
         [Fact]
-        public async Task Configure_With_Given_Name()
+        public void Configure_With_Given_Name()
         {
             var configSection = new Mock<IConfigurationSection>();
             configSection.Setup(c => c.Key).Returns("key");
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         }
 
         [Fact]
-        public async Task Configure_With_ServiceUri()
+        public void Configure_With_ServiceUri()
         {
             var configSection = new Mock<IConfigurationSection>();
             configSection.Setup(c => c.Key).Returns("key");

@@ -159,13 +159,7 @@ namespace Microsoft.Azure.Functions.Worker
                                         ? PartitionKey.None
                                         : new PartitionKey(cosmosAttribute.PartitionKey);
 
-            // Workaround until bug in Cosmos SDK is fixed
-            // Currently pending release: https://github.com/Azure/azure-cosmos-dotnet-v3/commit/d6e04a92f8778565eb1d1452738d37c7faf3c47a
-            QueryRequestOptions queryRequestOptions = new();
-            if (partitionKey != PartitionKey.None)
-            {
-                queryRequestOptions = new() { PartitionKey = partitionKey };
-            }
+            QueryRequestOptions queryRequestOptions = new() { PartitionKey = partitionKey };
 
             using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {

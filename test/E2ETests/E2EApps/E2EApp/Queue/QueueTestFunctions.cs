@@ -75,8 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
         {
             context.GetLogger<QueueTestFunctions>().LogInformation(".NET HTTP trigger processed a request.");
 
-            var query = QueryHelpers.ParseQuery(request.Url.Query);
-            string queueMessageId = query["queueMessageId"];
+            string queueMessageId = request.Query["queueMessageId"];
             var outputItems = new List<TestData>();
 
             if (queueMessageId != null)

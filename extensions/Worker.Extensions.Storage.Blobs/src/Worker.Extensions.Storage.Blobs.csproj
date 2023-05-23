@@ -6,7 +6,7 @@
     <Description>Azure Blob Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.1.0</VersionPrefix>
+    <VersionPrefix>5.1.1</VersionPrefix>
     <VersionSuffix>-preview1</VersionSuffix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->

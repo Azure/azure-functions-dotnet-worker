@@ -8,6 +8,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
     public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         private bool _isBatched = false;

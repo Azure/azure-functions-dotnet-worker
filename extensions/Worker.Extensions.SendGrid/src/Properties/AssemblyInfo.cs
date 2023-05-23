@@ -3,4 +3,4 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.SendGrid", "3.0.2")]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.SendGrid", "3.0.3")]

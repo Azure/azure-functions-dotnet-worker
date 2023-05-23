@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (context.TargetType == typeof(HttpRequest))
             {
-                if (context.FunctionContext.Items.TryGetValue("HttpRequestContext", out var requestContext)
+                if (context.FunctionContext.Items.TryGetValue(Constants.HttpContextKey, out var requestContext)
                     && requestContext is HttpContext httpContext)
                 {
                     target = httpContext.Request;

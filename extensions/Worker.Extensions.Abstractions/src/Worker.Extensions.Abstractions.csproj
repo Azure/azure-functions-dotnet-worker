@@ -6,8 +6,9 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Abstractions</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Abstractions</RootNamespace>
     <Description>Abstractions for Azure Functions .NET Worker</Description>
-    <MinorProductVersion>1</MinorProductVersion>
-    <PatchProductVersion>1</PatchProductVersion>
+    <MinorProductVersion>2</MinorProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix>-preview2</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Common.props" />

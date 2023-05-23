@@ -10,5 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         // Header constants
         internal const string CorrelationHeader = "x-ms-invocation-id";
+
+        internal const string HttpContextKey = "HttpRequestContext";
     }
 }

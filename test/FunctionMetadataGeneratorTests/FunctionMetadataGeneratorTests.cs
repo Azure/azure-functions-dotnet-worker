@@ -267,7 +267,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.1" },
             });
 
             var blobClientToBlobStringFunction = functions.Single(p => p.Name == "BlobClientToBlobStringFunction");
@@ -354,7 +354,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.1" },
             });
 
             var blobStringToBlobClientEnumerable = functions.Single(p => p.Name == "BlobStringToBlobClientEnumerable");

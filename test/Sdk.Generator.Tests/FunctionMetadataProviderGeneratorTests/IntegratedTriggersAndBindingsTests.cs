@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -12,7 +14,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class IntegratedTriggersAndBindingsTests
         {
-            private Assembly[] referencedExtensionAssemblies;
+            private readonly Assembly[] _referencedExtensionAssemblies;
 
             public IntegratedTriggersAndBindingsTests()
             {
@@ -31,7 +33,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
 
-                referencedExtensionAssemblies = new[]
+                _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,
                     httpExtension,
@@ -110,7 +112,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "HttpTriggerWithMultipleOutputBindings",
-                                EntryPoint = "TestProject.HttpTriggerWithMultipleOutputBindings.Run",
+                                EntryPoint = "FunctionApp.HttpTriggerWithMultipleOutputBindings.Run",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -139,7 +141,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -224,7 +226,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "HttpTriggerWithBlobInput",
-                                EntryPoint = "TestProject.HttpTriggerWithBlobInput.Run",
+                                EntryPoint = "FunctionApp.HttpTriggerWithBlobInput.Run",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -253,7 +255,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -323,7 +325,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "Products",
-                                EntryPoint = "TestProject.HttpTriggerWithBlobInput.Run",
+                                EntryPoint = "FunctionApp.HttpTriggerWithBlobInput.Run",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -352,7 +354,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -408,7 +410,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "TimerFunction",
-                                EntryPoint = "TestProject.Timer.RunTimer",
+                                EntryPoint = "FunctionApp.Timer.RunTimer",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -437,7 +439,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -494,7 +496,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "FunctionName",
-                                EntryPoint = "TestProject.BasicHttp.Http",
+                                EntryPoint = "FunctionApp.BasicHttp.Http",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -523,44 +525,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
-                    inputCode,
-                    expectedGeneratedFileName,
-                    expectedOutput);
-            }
-
-            [Fact (Skip = "Depends on source gen description cleanup, issue #1323")]
-            public async void MultipleOutputOnMethodFails()
-            {
-                var inputCode = @"using System;
-                using System.Net;
-                using System.Collections;
-                using System.Collections.Generic;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
-                using System.Linq;
-                using System.Threading.Tasks;
-
-                namespace FunctionApp
-                {
-                    public class EventHubsInput
-                    {
-                        [Function(""QueueToBlobFunction"")]
-                        [BlobOutput(""container1/hello.txt"", Connection = ""MyOtherConnection"")]
-                        [QueueOutput(""queue2"")]
-                        public string QueueToBlob(
-                            [QueueTrigger(""queueName"", Connection = ""MyConnection"")] string queuePayload)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }";
-
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
-
-                await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);

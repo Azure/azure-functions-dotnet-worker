@@ -3,4 +3,4 @@
 
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.1.0")]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.3.0")]

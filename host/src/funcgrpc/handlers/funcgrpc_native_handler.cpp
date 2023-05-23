@@ -85,9 +85,6 @@ void AzureFunctionsRpc::NativeHostMessageHandler::HandleMessage(ByteBuffer *rece
 
                         _putenv(envString.c_str());
                     }
-
-                    string scriptRootEnvVar("AzureWebJobsScriptRoot=" + dir);
-                    _putenv(scriptRootEnvVar.c_str());
                 }
 
                 string exePath = funcgrpc::WorkerConfigHandle().GetApplicationExePath(dir);
@@ -96,15 +93,12 @@ void AzureFunctionsRpc::NativeHostMessageHandler::HandleMessage(ByteBuffer *rece
                     application_->ExecuteApplication(exePath);
                 }
 
-                StreamingMessage streamingMsg;
-                streamingMsg.mutable_function_environment_reload_response()->mutable_result()->set_status(
-                    AzureFunctionsRpcMessages::StatusResult::Success);
+                FUNC_LOG_INFO("Waiting for worker initialization.");
+                std::unique_lock lk(application_->mtx_workerLoaded);
+                application_->cv_workerLoaded.wait(lk, [this] { return application_->hasWorkerLoaded; });
+                FUNC_LOG_INFO("Worker payload loaded. Forwarding env reload request to worker.");
 
-                auto uPtrBb = funcgrpc::SerializeToByteBuffer(&streamingMsg);
-                auto byteBuffer = uPtrBb.get();
-
-                FUNC_LOG_DEBUG("Pushing response to outbound channel.contentCase: {}", streamingMsg.content_case());
-                funcgrpc::MessageChannel::GetInstance().GetOutboundChannel().push(*byteBuffer);
+                funcgrpc::MessageChannel::GetInstance().GetInboundChannel().push(*receivedMessageBb);
                 specializationRequestReceived = true;
             }
             catch (const std::exception &ex)

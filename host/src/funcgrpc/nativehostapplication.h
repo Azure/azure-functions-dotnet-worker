@@ -42,6 +42,12 @@ class NativeHostApplication
         return s_Application;
     }
 
+    // Indicates whether the worker payload(managed code) loaded.
+    bool hasWorkerLoaded = false;
+
+    std::condition_variable cv_workerLoaded;
+
+    std::mutex mtx_workerLoaded;
   private:
     static NativeHostApplication *s_Application;
 

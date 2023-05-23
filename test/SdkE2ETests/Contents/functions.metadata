@@ -70,13 +70,7 @@
         "type": "http",
         "direction": "Out"
       }
-    ],
-    "retry": {
-      "strategy": "exponentialBackoff",
-      "maxRetryCount": 5,
-      "minimumInterval": "00:00:04",
-      "maximumInterval": "00:15:00"
-    }
+    ]
   },
   {
     "name": "HttpTriggerWithCancellation",
@@ -196,11 +190,6 @@
           "supportsDeferredBinding": "True"
         }
       }
-    ],
-    "retry": {
-      "strategy": "fixedDelay",
-      "maxRetryCount": 5,
-      "delayInterval": "00:00:10"
-    }
+    ]
   }
 ]

@@ -73,5 +73,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 }
             };
         }
+
+        public static InvocationRequest CreateInvocationRequestWithNullRetryContext(string invocationId = "")
+        {
+            return new InvocationRequest
+            {
+                InvocationId = invocationId,
+                TraceContext = new RpcTraceContext
+                {
+                    TraceParent = Guid.NewGuid().ToString(),
+                    TraceState = Guid.NewGuid().ToString()
+                },
+                RetryContext = null
+            };
+        }
     }
 }

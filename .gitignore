@@ -361,3 +361,4 @@ MigrationBackup/
 # Entity framework sample
 Migrations/
 local.settings.json
+/tools/localpack.ps1

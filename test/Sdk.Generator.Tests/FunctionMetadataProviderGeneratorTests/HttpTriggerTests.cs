@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class HttpTriggerTests
         {
-            private Assembly[] _referencedExtensionAssemblies;
+            private readonly Assembly[] _referencedExtensionAssemblies;
 
             public HttpTriggerTests()
             {
@@ -41,7 +41,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 string inputCode = """
                 using System;
                 using System.Collections.Generic;
-                using System.Net;
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
 
@@ -85,7 +84,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "HttpTriggerSimple",
-                                EntryPoint = "TestProject.HttpTriggerSimple.Run",
+                                EntryPoint = "FunctionApp.HttpTriggerSimple.Run",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -126,7 +125,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 string inputCode = """
                 using System;
                 using System.Collections.Generic;
-                using System.Net;
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
 
@@ -170,7 +168,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "HttpTrigger",
-                                EntryPoint = "TestProject.HttpTriggerSimple.HttpTrigger",
+                                EntryPoint = "FunctionApp.HttpTriggerSimple.HttpTrigger",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -211,11 +209,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 string inputCode = """
                 using System;
                 using System.Collections.Generic;
-                using System.Net;
                 using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.Azure.Functions.Worker;
 
-                namespace FunctionApp
+                namespace Foo
                 {
                     public class HttpTriggerSimple
                     {
@@ -261,7 +258,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "JustHtt",
-                                EntryPoint = "TestProject.HttpTriggerSimple.Justhtt",
+                                EntryPoint = "Foo.HttpTriggerSimple.Justhtt",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };

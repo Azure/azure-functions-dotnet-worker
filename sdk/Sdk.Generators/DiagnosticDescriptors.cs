@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public static DiagnosticDescriptor MultipleBindingsGroupedTogether { get; }
                 = Create(id: "AZFW0005",
                     title: "Multiple bindings are grouped together on one property, method, or parameter syntax.",
-                    messageFormat: "'{0}' must have only one binding attribute.",
+                    messageFormat: "{0} '{1}' must have only one binding attribute.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
@@ -45,14 +45,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public static DiagnosticDescriptor MultipleHttpResponseTypes { get; }
                   = Create(id: "AZFW0007",
                     title: "Symbol could not be found in user compilation.",
-                    messageFormat: "Found multiple public properties with type '{0}' defined in output type '{1}'.Only one HTTP response binding type is supported in your return type definition.",
+                    messageFormat: "Found multiple public properties of type HttpResponseData defined in return type '{0}'. Only one HTTP response binding type is supported in your return type definition.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 
-        public static DiagnosticDescriptor InvalidEventHubsTrigger { get; }
+        public static DiagnosticDescriptor InvalidCardinality { get; }
                   = Create(id: "AZFW0008",
-                    title: "EventHub Trigger invalid.",
-                    messageFormat: "The EventHub trigger on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
+                    title: "Input or Trigger Binding Cardinality is invalid.",
+                    messageFormat: "The Cardinality of the Input or Trigger Binding on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
     }

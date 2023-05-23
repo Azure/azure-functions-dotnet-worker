@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
+using System.Collections.Generic;
 using System.Reflection;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -13,14 +13,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class StorageBindingTests
         {
-            private Assembly[] referencedExtensionAssemblies;
+            private readonly Assembly[] _referencedExtensionAssemblies;
 
             public StorageBindingTests()
             {
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");            
+                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
                 var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
 
-                referencedExtensionAssemblies = new[]
+                _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,
                     blobExtension,
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "QueueTriggerFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.QueueTriggerAndOutputFunction",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.QueueTriggerAndOutputFunction",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -123,7 +123,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -199,7 +199,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "QueueToBlobFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.QueueToBlob",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.QueueToBlob",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -212,20 +212,20 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "BlobToQueueFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobToQueue",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.BlobToQueue",
                                 RawBindings = Function1RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
                             Function2RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""blobPath"":""container2"",""cardinality"":""Many""}");
+                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""blobPath"":""container2"",""cardinality"":""Many"",""dataType"":""String""}");
                 
                             var Function2 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
                                 Name = "BlobsToQueueFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobsToQueue",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.BlobsToQueue",
                                 RawBindings = Function2RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };
@@ -254,10 +254,55 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
+            }
+
+            [Fact]
+            public async void TestInvalidBlobCardinalityMany()
+            {
+                string inputCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Net;
+                using System.Text.Json.Serialization;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class BlobTest
+                    {                
+                        [Function("Function1")]
+                        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+                            [BlobInput("input-container", Connection = "AzureWebJobsStorage", IsBatched = true)] string blobs)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """;
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.InvalidCardinality)
+                    .WithSpan(15, 105, 15, 110)
+                    // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
+                    .WithArguments("blobs")
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    _referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults);
             }
         }
     }

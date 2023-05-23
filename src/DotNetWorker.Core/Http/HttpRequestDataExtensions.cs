@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 return null;
             }
 
-            using (var reader = new StreamReader(request.Body, bufferSize: -1, detectEncodingFromByteOrderMarks: true, encoding: encoding, leaveOpen: true))
+            using (var reader = new StreamReader(request.Body, bufferSize: 1024, detectEncodingFromByteOrderMarks: true, encoding: encoding, leaveOpen: true))
             {
                 return await reader.ReadToEndAsync();
             }
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 return null;
             }
 
-            using (var reader = new StreamReader(request.Body, bufferSize: -1, detectEncodingFromByteOrderMarks: true, encoding: encoding, leaveOpen: true))
+            using (var reader = new StreamReader(request.Body, bufferSize: 1024, detectEncodingFromByteOrderMarks: true, encoding: encoding, leaveOpen: true))
             {
                 return reader.ReadToEnd();
             }

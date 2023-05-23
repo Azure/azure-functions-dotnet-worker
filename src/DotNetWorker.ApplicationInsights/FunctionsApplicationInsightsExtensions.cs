@@ -2,11 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.WorkerService;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
-using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -25,6 +23,7 @@ namespace Microsoft.Azure.Functions.Worker
         public static IFunctionsWorkerApplicationBuilder AddApplicationInsights(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsServiceOptions>? configureOptions = null)
         {
             builder.AddCommonServices();
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());
 
             builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
             {
@@ -44,11 +43,13 @@ namespace Microsoft.Azure.Functions.Worker
         {
             builder.AddCommonServices();
 
+            // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
+            builder.Services.Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerApplicationInsightsLoggingEnabled"] = bool.TrueString);
+
             builder.Services.AddLogging(logging =>
             {
                 logging.AddApplicationInsights(options =>
                 {
-                    options.IncludeScopes = false;
                     configureOptions?.Invoke(options);
                 });
             });
@@ -58,26 +59,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         private static IFunctionsWorkerApplicationBuilder AddCommonServices(this IFunctionsWorkerApplicationBuilder builder)
         {
-            builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryInitializer), typeof(FunctionsTelemetryInitializer), ServiceLifetime.Singleton));
-            builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryModule), typeof(FunctionsTelemetryModule), ServiceLifetime.Singleton));
-
-            // User logs will be written directly to Application Insights; this prevents duplicate logging.
-            builder.Services.AddSingleton<IUserLogWriter>(_ => NullUserLogWriter.Instance);
-
-            // This middleware is temporary for the preview. Eventually this behavior will move into the
-            // core worker assembly.
-            if (!builder.Services.Any(p => p.ImplementationType == typeof(FunctionActivitySourceMiddleware)))
-            {
-                builder.Services.AddSingleton<FunctionActivitySourceMiddleware>();
-                builder.Use(next =>
-                {
-                    return async context =>
-                    {
-                        var middleware = context.InstanceServices.GetRequiredService<FunctionActivitySourceMiddleware>();
-                        await middleware.Invoke(context, next);
-                    };
-                });
-            }
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryInitializer, FunctionsTelemetryInitializer>());
 
             return builder;
         }

@@ -73,6 +73,13 @@ void NativeHostApplication::SetCallbackHandles(_In_ PFN_REQUEST_HANDLER request_
     handle = grpcHandle;
 
     ReleaseMutex(initMutex_);
+
+    {
+        std::lock_guard lk(mtx_workerLoaded);
+        hasWorkerLoaded = true;
+    }
+
+    cv_workerLoaded.notify_one();
 }
 
 bool NativeHostApplication::load_hostfxr()

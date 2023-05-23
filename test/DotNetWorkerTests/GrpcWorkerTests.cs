@@ -12,12 +12,15 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Hosting.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -28,7 +31,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class GrpcWorkerTests
     {
         private readonly Mock<IFunctionsApplication> _mockApplication = new(MockBehavior.Strict);
-        private readonly Mock<IInvocationFeaturesFactory> _mockFeaturesFactory = new(MockBehavior.Strict);
         private readonly Mock<IInputConversionFeatureProvider> _mockInputConversionFeatureProvider = new(MockBehavior.Strict);
         private readonly Mock<IInputConversionFeature> mockConversionFeature = new(MockBehavior.Strict);
         private readonly Mock<IOutputBindingsInfoProvider> _mockOutputBindingsInfoProvider = new(MockBehavior.Strict);
@@ -53,10 +55,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Returns(Task.CompletedTask);
-
-            _mockFeaturesFactory
-                .Setup(m => m.Create())
-                .Returns(new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>()));
 
             _mockMethodInfoLocator
                 .Setup(m => m.GetMethod(It.IsAny<string>(), It.IsAny<string>()))
@@ -246,80 +244,90 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async Task Invoke_ReturnsSuccess()
+        public void EnvironmentReloadRequestHandler_ReturnsExpected()
         {
-            var request = TestUtility.CreateInvocationRequest();
+            var actual = GrpcWorker.EnvironmentReloadRequestHandler(new WorkerOptions()); ;
 
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
-            var response = await invocationHandler.InvokeAsync(request);
-
-            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
-            Assert.True(_context.IsDisposed);
+            Assert.Equal(StatusResult.Success, actual.Result);
+            Assert.NotNull(actual.WorkerMetadata);
+            Assert.NotEmpty(actual.Capabilities);
         }
 
         [Fact]
-        public async Task Invoke_ReturnsSuccess_AsyncFunctionContext()
+        public async Task Invocation_WhenSynchronous_DoesNotBlock()
         {
-            var request = TestUtility.CreateInvocationRequest();
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
-            // Mock IFunctionApplication.CreateContext to return TestAsyncFunctionContext instance.
-            _mockApplication
-                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Returns<IInvocationFeatures, CancellationToken>((f, ct) =>
+            var blockingFunctionEvent = new ManualResetEventSlim();
+            var releaseFunctionEvent = new ManualResetEventSlim();
+
+            var clientFactoryMock = new Mock<IWorkerClientFactory>();
+            var clientMock = new Mock<IWorkerClient>();
+            var metadataProvider = new Mock<IFunctionMetadataProvider>();
+            var invocationHandlerMock = new Mock<IInvocationHandler>();
+
+            InvocationResponse ValueFunction(InvocationRequest request)
+            {
+                if (string.Equals(request.FunctionId, "a"))
                 {
-                    _context = new TestAsyncFunctionContext(f);
-                    return _context;
+                    blockingFunctionEvent.Set();
+                    releaseFunctionEvent.Wait();
+                }
+                else
+                {
+                    releaseFunctionEvent.Set();
+                }
+
+                return new InvocationResponse();
+            }
+
+            invocationHandlerMock.Setup(h => h.InvokeAsync(It.IsAny<InvocationRequest>()))
+              .ReturnsAsync<InvocationRequest, IInvocationHandler, InvocationResponse>(ValueFunction);
+
+            clientMock.Setup(c => c.SendMessageAsync(It.IsAny<StreamingMessage>()))
+                .Returns(ValueTask.CompletedTask);
+
+            clientFactoryMock.Setup(f=>f.CreateClient(It.IsAny<IMessageProcessor>()))
+                .Returns(clientMock.Object);
+
+            var worker = new GrpcWorker(_mockApplication.Object,
+                                        clientFactoryMock.Object,
+                                        _mockMethodInfoLocator.Object,
+                                        new OptionsWrapper<WorkerOptions>(new WorkerOptions()),
+                                        metadataProvider.Object,
+                                        new ApplicationLifetime(TestLogger<ApplicationLifetime>.Create()),
+                                        invocationHandlerMock.Object);
+
+            await worker.StartAsync(CancellationToken.None);
+
+
+            void ProcessMessage(IMessageProcessor processor, string functionId = null)
+            {
+                processor.ProcessMessageAsync(new StreamingMessage
+                {
+                    InvocationRequest = new InvocationRequest { FunctionId = functionId }
                 });
+            }
 
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
+            _ = Task.Run(() =>
+            {
+                ProcessMessage(worker, "a");
 
-            var response = await invocationHandler.InvokeAsync(request);
+                // Ensure we're executing the blocking function before invoking
+                // the release function
+                if (!blockingFunctionEvent.Wait(5000))
+                {
+                    Assert.Fail("Blocking function event was not set.");
+                }
 
-            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
-            Assert.True((_context as TestAsyncFunctionContext).IsAsyncDisposed);
-            Assert.True(_context.IsDisposed);
-        }
+                ProcessMessage(worker, "b");
+            });
 
-        [Fact]
-        public async Task Invoke_SetsRetryContext()
-        {
-            var request = TestUtility.CreateInvocationRequest();
-
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
-            var response = await invocationHandler.InvokeAsync(request);
-
-            Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
-            Assert.True(_context.IsDisposed);
-            Assert.Equal(request.RetryContext.RetryCount, _context.RetryContext.RetryCount);
-            Assert.Equal(request.RetryContext.MaxRetryCount, _context.RetryContext.MaxRetryCount);
-        }
-
-        [Fact]
-        public async Task Invoke_CreateContextThrows_ReturnsFailure()
-        {
-            _mockApplication
-                .Setup(m => m.CreateContext(It.IsAny<IInvocationFeatures>(), It.IsAny<CancellationToken>()))
-                .Throws(new InvalidOperationException("whoops"));
-
-            var request = TestUtility.CreateInvocationRequest();
-
-            var invocationHandler = new InvocationHandler(_mockApplication.Object,
-                _mockFeaturesFactory.Object, new JsonObjectSerializer(), _mockOutputBindingsInfoProvider.Object,
-                _mockInputConversionFeatureProvider.Object, _testLogger);
-
-            var response = await invocationHandler.InvokeAsync(request);
-
-            Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
-            Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
-            Assert.Contains("CreateContext", response.Result.Exception.Message);
+            releaseFunctionEvent.Wait(5000);
+            
+            Assert.True(releaseFunctionEvent.IsSet,
+                "Release function was never called. " +
+                "This indicates the blocking function prevented execution flow.");
         }
 
         private static FunctionLoadRequest CreateFunctionLoadRequest()

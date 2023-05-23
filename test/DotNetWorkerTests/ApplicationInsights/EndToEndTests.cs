@@ -22,7 +22,8 @@ public class EndToEndTests : IDisposable
     private readonly TestTelemetryChannel _channel;
     private readonly IHost _host;
     private readonly IFunctionsApplication _application;
-    private readonly IInvocationFeaturesFactory _invocationFeatures;
+    private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
+    private readonly AppInsightsFunctionDefinition _funcDefinition = new();
 
     public EndToEndTests()
     {
@@ -55,72 +56,108 @@ public class EndToEndTests : IDisposable
             .Build();
 
         _application = _host.Services.GetService<IFunctionsApplication>();
-        _invocationFeatures = _host.Services.GetService<IInvocationFeaturesFactory>();
+        _invocationFeaturesFactory = _host.Services.GetService<IInvocationFeaturesFactory>();
+
+        _application.LoadFunction(_funcDefinition);
     }
 
-    [Fact]
-    public async Task Logger_SendsTraceAndDependencyTelemetry()
+    private FunctionContext CreateContext()
     {
-        var def = new AppInsightsFunctionDefinition();
-        _application.LoadFunction(def);
-        var invocation = new TestFunctionInvocation(functionId: def.Id);
+        var invocation = new TestFunctionInvocation(functionId: _funcDefinition.Id);
 
-        var features = _invocationFeatures.Create();
+        var features = _invocationFeaturesFactory.Create();
         features.Set<FunctionInvocation>(invocation);
         var inputConversionProvider = _host.Services.GetRequiredService<IInputConversionFeatureProvider>();
         inputConversionProvider.TryCreate(typeof(DefaultInputConversionFeature), out var inputConversion);
         features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature());
         features.Set<IInputConversionFeature>(inputConversion);
 
-        var context = _application.CreateContext(features);
+        return _application.CreateContext(features);
+    }
+
+    [Fact]
+    public async Task Logger_SendsTraceAndDependencyTelemetry()
+    {
+        var context = CreateContext();
 
         await _application.InvokeFunctionAsync(context);
 
-        void ValidateProperties(ISupportProperties props)
-        {
-            Assert.Equal(invocation.Id, props.Properties["InvocationId"]);
-            Assert.Contains("ProcessId", props.Properties.Keys);
-        }
+        var activity = AppInsightsFunctionDefinition.LastActivity;
+
+        IEnumerable<ITelemetry> telemetries = await WaitForTelemetries(expectedCount: 2);
+
+        Assert.Collection(telemetries,
+            t => ValidateDependencyTelemetry((DependencyTelemetry)t, context, activity),
+            t => ValidateTraceTelemetry((TraceTelemetry)t, context, activity));
+    }
+
+    [Fact]
+    public async Task Logger_Exception_SendsTraceAndExceptionAndDependencyTelemetry()
+    {
+        var context = CreateContext();
+        context.Items["_throw"] = true;
+
+        await Assert.ThrowsAsync<InvalidOperationException>(() => _application.InvokeFunctionAsync(context));
 
         var activity = AppInsightsFunctionDefinition.LastActivity;
+
+        IEnumerable<ITelemetry> telemetries = await WaitForTelemetries(expectedCount: 3);
+
+        Assert.Collection(telemetries,
+            t => ValidateDependencyTelemetry((DependencyTelemetry)t, context, activity),
+            t => ValidateExceptionTelemetry((ExceptionTelemetry)t, context, activity),
+            t => ValidateTraceTelemetry((TraceTelemetry)t, context, activity));
+    }
+
+    private async Task<IEnumerable<ITelemetry>> WaitForTelemetries(int expectedCount)
+    {
         IEnumerable<ITelemetry> telemetries = null;
 
-        // There can be a race while telemetry is flushed. Explicitly wait for what we're looking for.
         await Functions.Tests.TestUtility.RetryAsync(() =>
         {
             // App Insights can potentially log this, which causes tests to be flaky. Explicitly ignore.
             var aiTelemetry = _channel.Telemetries.Where(p => p is TraceTelemetry t && t.Message.Contains("AI: TelemetryChannel found a telemetry item"));
             telemetries = _channel.Telemetries.Except(aiTelemetry);
-            return Task.FromResult(telemetries.Count() == 2);
-        }, timeout: 5000, pollingInterval: 500, userMessageCallback: () => $"Expected 2 telemetries. Found [{string.Join(", ", telemetries.Select(t => t.GetType().Name))}].");
+            return Task.FromResult(telemetries.Count() >= expectedCount);
+        }, timeout: 5000, pollingInterval: 50, userMessageCallback: () => $"Expected {expectedCount} telemetries. Found [{string.Join(", ", telemetries.Select(t => t.GetType().Name))}].");
 
-        // Log written in test function should go to App Insights directly        
-        Assert.Collection(telemetries,
-            t =>
-            {
-                var dependency = (DependencyTelemetry)t;
-
-                Assert.Equal("TestName", dependency.Context.Operation.Name);
-                Assert.Equal(activity.RootId, dependency.Context.Operation.Id);
-
-                ValidateProperties(dependency);
-            },
-            t =>
-            {
-                var trace = (TraceTelemetry)t;
-                Assert.Equal("Test", trace.Message);
-                Assert.Equal(SeverityLevel.Warning, trace.SeverityLevel);
-
-                // This ensures we've disabled scopes by default
-                Assert.DoesNotContain("AzureFunctions_InvocationId", trace.Properties.Keys);
-
-                Assert.Equal("TestName", trace.Context.Operation.Name);
-                Assert.Equal(activity.RootId, trace.Context.Operation.Id);
-
-                ValidateProperties(trace);
-            });
+        return telemetries;
     }
 
+    private static void ValidateDependencyTelemetry(DependencyTelemetry dependency, FunctionContext context, Activity activity)
+    {
+        Assert.Equal("CustomValue", dependency.Properties["CustomKey"]);
+
+        Assert.Equal(TraceConstants.FunctionsInvokeActivityName, dependency.Name);
+        Assert.Equal(activity.RootId, dependency.Context.Operation.Id);
+
+        Assert.Equal(context.InvocationId, dependency.Properties[TraceConstants.AttributeFaasExecution]);
+        Assert.Contains(TraceConstants.AttributeSchemaUrl, dependency.Properties.Keys);
+    }
+
+    private static void ValidateTraceTelemetry(TraceTelemetry trace, FunctionContext context, Activity activity)
+    {
+        Assert.Equal("Test", trace.Message);
+        Assert.Equal(SeverityLevel.Warning, trace.SeverityLevel);
+
+        // Check that scopes show up by default                
+        Assert.Equal("TestName", trace.Properties[FunctionInvocationScope.FunctionNameKey]);
+        Assert.Equal(context.InvocationId, trace.Properties[FunctionInvocationScope.FunctionInvocationIdKey]);
+
+        Assert.Equal(activity.RootId, trace.Context.Operation.Id);
+    }
+
+    private static void ValidateExceptionTelemetry(ExceptionTelemetry exception, FunctionContext context, Activity activity)
+    {
+        Assert.Equal("boom!", exception.Message);
+        var edi = exception.ExceptionDetailsInfoList.Single();
+
+        // stack trace is stored internally and not available to verify
+        Assert.Contains(nameof(InvalidOperationException), edi.TypeName);
+        Assert.Contains("boom!", edi.Message);
+
+        Assert.Equal(activity.RootId, exception.Context.Operation.Id);
+    }
     public void Dispose()
     {
         _host?.Dispose();
@@ -157,8 +194,15 @@ public class EndToEndTests : IDisposable
         public void TestFunction(FunctionContext context)
         {
             LastActivity = Activity.Current;
+            Activity.Current.AddTag("CustomKey", "CustomValue");
+
             var logger = context.GetLogger("TestFunction");
             logger.LogWarning("Test");
+
+            if (context.Items.ContainsKey("_throw"))
+            {
+                throw new InvalidOperationException("boom!");
+            }
         }
     }
 }

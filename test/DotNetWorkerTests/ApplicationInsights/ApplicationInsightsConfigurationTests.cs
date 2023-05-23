@@ -61,9 +61,6 @@ public class ApplicationInsightsConfigurationTests
                 t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
         }
     }
 
@@ -88,9 +85,6 @@ public class ApplicationInsightsConfigurationTests
             var provider = host.Services;
             var options = provider.GetRequiredService<IOptions<ApplicationInsightsServiceOptions>>();
             Assert.NotNull(options.Value);
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
 
             Assert.True(called);
         }
@@ -118,9 +112,9 @@ public class ApplicationInsightsConfigurationTests
             Assert.Collection(initializers,
                 t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType));
 
+            // Do not register the Module with Logging.
             var modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
-            Assert.Collection(modules,
-                t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType));
+            Assert.Empty(modules);
 
             called = true;
         });
@@ -130,16 +124,9 @@ public class ApplicationInsightsConfigurationTests
             var serviceProvider = host.Services;
 
             var appInsightsOptions = serviceProvider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
-            Assert.False(appInsightsOptions.Value.IncludeScopes);
-
-            var userWriter = serviceProvider.GetRequiredService<IUserLogWriter>();
-            Assert.IsType<NullUserLogWriter>(userWriter);
 
             var systemWriter = serviceProvider.GetRequiredService<ISystemLogWriter>();
             Assert.IsNotType<NullLogWriter>(systemWriter);
-
-            var middleware = serviceProvider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
 
             Assert.True(called);
         }
@@ -166,9 +153,6 @@ public class ApplicationInsightsConfigurationTests
             var provider = host.Services;
             var options = provider.GetRequiredService<IOptions<ApplicationInsightsLoggerOptions>>();
             Assert.NotNull(options.Value);
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
 
             Assert.True(called);
         }
@@ -215,9 +199,6 @@ public class ApplicationInsightsConfigurationTests
                 t => Assert.Equal(typeof(QuickPulseTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(DependencyTrackingTelemetryModule), t.ImplementationType),
                 t => Assert.Equal(typeof(EventCounterCollectionModule), t.ImplementationType));
-
-            var middleware = provider.GetRequiredService<FunctionActivitySourceMiddleware>();
-            Assert.NotNull(middleware);
         }
     }
 }

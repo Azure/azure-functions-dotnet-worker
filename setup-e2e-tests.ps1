@@ -1,3 +1,5 @@
+#Requires -Version 6
+
 param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]

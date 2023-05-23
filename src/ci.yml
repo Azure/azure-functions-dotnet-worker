@@ -22,7 +22,9 @@ pr:
     - test/E2ETests
     - test/TestUtility
     - sdk/
+    - samples/FunctionApp
     - samples/WorkerBindingSamples
+    - tools/
 
 jobs:
 - job: "Build_And_Test_Windows"
@@ -43,7 +45,7 @@ jobs:
     buildConfiguration: 'Release'
 
   steps:
-  - pwsh: . "tools/start-emulators.ps1" -NoWait
+  - pwsh: . "tools/start-emulators.ps1" -NoWait -SkipCosmosDBEmulator
     displayName: "Start emulators (-NoWait)"
 
   - template: ../build/install-dotnet.yml
@@ -63,7 +65,8 @@ jobs:
       }
       ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                            -SkipBuildOnPack
+                            -SkipBuildOnPack `
+                            -SkipCosmosDBEmulator
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2

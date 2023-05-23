@@ -10,6 +10,7 @@ namespace SampleApp
     public static class KafkaFunction
     {
         [Function("KafkaFunction")]
+        [FixedDelayRetry(5, "00:00:10")]
         [KafkaOutput("LocalBroker", "stringTopicTenPartitions")]
         public static string Run([KafkaTrigger("LocalBroker", "stringTopicTenPartitions",
             ConsumerGroup = "$Default", AuthenticationMode = BrokerAuthenticationMode.Plain)] string input,

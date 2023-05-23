@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
@@ -689,7 +690,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.1.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.3.0" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)
@@ -846,6 +847,58 @@ namespace Microsoft.Azure.Functions.SdkTests
             // invalid interval that can't be parsed
             Assert.Throws<ArgumentOutOfRangeException>(() => new FixedDelayRetryAttribute(5, "something_bad"));
             Assert.Throws<ArgumentOutOfRangeException>(() => new ExponentialBackoffRetryAttribute(5, "something_bad", "00:01:00"));
+        }
+
+        [Fact]
+        public void ServiceBus_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_ServiceBus));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.10.0" },
+            });
+
+            var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));
+
+            ValidateFunction(serviceBusTriggerFunction, nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_ServiceBus), nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction)),
+                ValidateServiceBusTrigger);
+
+            var serviceBusBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction));
+
+            ValidateFunction(serviceBusBatchTriggerFunction, nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_ServiceBus), nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction)),
+                ValidateServiceBusBatchTrigger);
+
+            void ValidateServiceBusTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateServiceBusBatchTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "messages" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Cardinality", "Many" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
         }
 
         private class EventHubNotBatched
@@ -1029,6 +1082,23 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobStringToBlobPocoArray(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2", IsBatched = true)] Poco[] blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_ServiceBus
+        {
+            [Function(nameof(ServiceBusTriggerFunction))]
+            public static void ServiceBusTriggerFunction(
+                [ServiceBusTrigger("queue")] ServiceBusReceivedMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(ServiceBusBatchTriggerFunction))]
+            public static void ServiceBusBatchTriggerFunction(
+                [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)
             {
                 throw new NotImplementedException();
             }

@@ -8,6 +8,7 @@
     <Description>Abstractions for Azure Functions .NET Worker</Description>
     <MinorProductVersion>2</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix>-preview2</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Common.props" />

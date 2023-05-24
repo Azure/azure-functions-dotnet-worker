@@ -1,9 +1,3 @@
-variables:
-  - name: VCPKG_BINARY_SOURCES
-    value: "clear;nuget,https://azfunc.pkgs.visualstudio.com/e6a70c92-4128-439f-8012-382fe78d6396/_packaging/FunctionsNetHostBinaryCache/nuget/v3/index.json,readwrite"
-  - name: VCPKG_USE_NUGET_CACHE
-    value: 1
-
 trigger:
   branches:
     include:
@@ -28,17 +22,14 @@ steps:
   # Remember to add this task to allow vcpkg to upload archives via NuGet
   - task: NuGetAuthenticate@1
 
-  # Run Cmake and output goes to /build dir.
-  - task: CMake@1
-    displayName: "CMake generation"
+  - task: DotNetCoreCLI@2
+    displayName: 'Publish win-x64 FunctionsNetHost'
     inputs:
-      cmakeArgs: "-S $(Build.SourcesDirectory)/host/src -B $(Build.SourcesDirectory)/host/build/win-x64"
-
-  # Run Cmake --build which produces the native binaries.
-  - task: CMake@1
-    displayName: "CMake build"
-    inputs:
-      cmakeArgs: "--build $(Build.SourcesDirectory)/host/build/win-x64 --config Release"
+      command: 'publish'
+      publishWebProjects: false
+      zipAfterPublish: false
+      arguments: '-c Release -r win-x64 -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost'
+      workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
 
   - task: NuGetCommand@2
     displayName: "Nuget pack"

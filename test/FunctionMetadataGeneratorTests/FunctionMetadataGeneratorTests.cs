@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
+using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -463,6 +464,57 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "schedule", "0 0 0 * * *" },
                     { "RunOnStartup", false },
                     { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void QueueStorageFunctions_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Queue));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.3.0-alpha.20230329.1" },
+            });
+
+            var queueMessageTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_Queue.QueueMessageTrigger));
+
+            ValidateFunction(queueMessageTriggerFunction, nameof(SDKTypeBindings_Queue.QueueMessageTrigger), GetEntryPoint(nameof(SDKTypeBindings_Queue), nameof(SDKTypeBindings_Queue.QueueMessageTrigger)),
+                ValidateQueueMessageTrigger);
+
+            var queueBinaryDataTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_Queue.QueueBinaryDataTrigger));
+
+            ValidateFunction(queueBinaryDataTriggerFunction, nameof(SDKTypeBindings_Queue.QueueBinaryDataTrigger), GetEntryPoint(nameof(SDKTypeBindings_Queue), nameof(SDKTypeBindings_Queue.QueueBinaryDataTrigger)),
+                ValidateQueueBinaryDataTrigger);
+
+            void ValidateQueueMessageTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "queueTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateQueueBinaryDataTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "queueTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
         }
@@ -1081,6 +1133,23 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobStringToBlobPocoArray(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2", IsBatched = true)] Poco[] blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_Queue
+        {
+            [Function(nameof(QueueMessageTrigger))]
+            public static void QueueMessageTrigger(
+                [QueueTrigger("queue")] QueueMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(QueueBinaryDataTrigger))]
+            public static void QueueBinaryDataTrigger(
+                [QueueTrigger("queue")] BinaryData message)
             {
                 throw new NotImplementedException();
             }

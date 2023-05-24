@@ -66,6 +66,16 @@ namespace MyCompany
         
         private int Foo(int x) => x * x;
     }
+    public class MyHttpTriggers2
+    {
+        [Function(""FunctionB"")]
+        public HttpResponseData Bar([HttpTrigger(AuthorizationLevel.User, ""get"")] HttpRequestData r)
+        {
+            return r.CreateResponse(System.Net.HttpStatusCode.OK);
+        }
+        
+        private int Foo(int x) => x * x;
+    }
     public static class Foo
     {
         [Function(""ProcessOrder2"")]
@@ -89,6 +99,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly Dictionary<string, Type> types = new()
         {{
             {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }},
+            {{ ""MyCompany.MyHttpTriggers2"", Type.GetType(""MyCompany.MyHttpTriggers2"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -107,6 +118,12 @@ namespace Microsoft.Azure.Functions.Worker
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers;
                 context.GetInvocationResult().Value = i.Foo((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+            }}
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers2.Bar"", StringComparison.OrdinalIgnoreCase))
+            {{
+                var instanceType = types[""MyCompany.MyHttpTriggers2""];
+                var i = _functionActivator.CreateInstance(instanceType, context) as MyCompany.MyHttpTriggers2;
+                context.GetInvocationResult().Value = i.Bar((Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
             }}
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.Foo.MyAsyncStaticMethod"", StringComparison.OrdinalIgnoreCase))
             {{
@@ -174,7 +191,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }},
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)

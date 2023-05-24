@@ -6,16 +6,16 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
-    public class ExpressionFunction
+    public class BlobExpressionFunction
     {
-        private readonly ILogger<ExpressionFunction> _logger;
+        private readonly ILogger<BlobExpressionFunction> _logger;
 
-        public ExpressionFunction(ILogger<ExpressionFunction> logger)
+        public BlobExpressionFunction(ILogger<BlobExpressionFunction> logger)
         {
             _logger = logger;
         }
 
-        [Function(nameof(ExpressionFunction))]
+        [Function(nameof(BlobExpressionFunction))]
         public void Run(
             [QueueTrigger("expression-trigger")] Book book,
             [BlobInput("input-container/{id}.txt")] string myBlob,

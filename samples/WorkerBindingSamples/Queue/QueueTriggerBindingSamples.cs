@@ -17,20 +17,20 @@ namespace SampleApp
             _logger = logger;
         }
 
-        [Function(nameof(QueueMessageSample))]
-        public void QueueMessageSample([QueueTrigger("input-queue")] QueueMessage message)
+        [Function(nameof(QueueMessageFunction))]
+        public void QueueMessageFunction([QueueTrigger("input-queue")] QueueMessage message)
         {
             _logger.LogInformation(message.MessageText);
         }
 
-        [Function(nameof(BinaryDataSample))]
-        public void BinaryDataSample([QueueTrigger("input-queue-binarydata")] BinaryData message)
+        [Function(nameof(QueueBinaryDataFunction))]
+        public void QueueBinaryDataFunction([QueueTrigger("input-queue-binarydata")] BinaryData message)
         {
             _logger.LogInformation(message.ToString());
         }
 
-        [Function(nameof(JsonSample))]
-        public void JsonSample([QueueTrigger("input-queue-json")] JsonElement message)
+        [Function(nameof(QueueJsonFunction))]
+        public void QueueJsonFunction([QueueTrigger("input-queue-json")] JsonElement message)
         {
             _logger.LogInformation(message.ToString());
         }

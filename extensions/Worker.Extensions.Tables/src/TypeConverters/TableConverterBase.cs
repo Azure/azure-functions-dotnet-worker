@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     internal abstract class TableConverterBase<T> : IInputConverter
     {
         private readonly ILogger<TableConverterBase<T>> _logger;
-        internal readonly IOptionsSnapshot<TablesBindingOptions> _tableOptions;
+        protected readonly IOptionsSnapshot<TablesBindingOptions> _tableOptions;
 
         public TableConverterBase(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableConverterBase<T>> logger)
         {
@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             _tableOptions = tableOptions ?? throw new ArgumentNullException(nameof(tableOptions));
         }
         
-        internal bool CanConvert(ConverterContext context)
+        protected bool CanConvert(ConverterContext context)
         {
             if (context is null)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         public abstract ValueTask<ConversionResult> ConvertAsync(ConverterContext context);
 
-        internal Dictionary<string, object> GetBindingDataContent(ModelBindingData? bindingData)
+        protected Dictionary<string, object> GetBindingDataContent(ModelBindingData? bindingData)
         {
             return bindingData?.ContentType switch
             {
@@ -60,14 +60,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             };
         }
 
-        internal TableClient GetTableClient(string? connection, string tableName)
+        protected TableClient GetTableClient(string? connection, string tableName)
         {
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();
             return tableServiceClient.GetTableClient(tableName);
         }
         
-        internal TableData GetTableData(Dictionary<string, object> content)
+        protected TableData GetTableData(Dictionary<string, object> content)
         {
             // Parse through dictionary
             content.TryGetValue(Constants.Connection, out var connection);
@@ -77,15 +77,27 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             content.TryGetValue(Constants.Take, out var take);
             content.TryGetValue(Constants.Filter, out var filter);
 
-            TableData tableData = new TableData();
-            tableData.Connection = connection?.ToString();
-            tableData.TableName = tableName?.ToString();
-            tableData.PartitionKey = partitionKey?.ToString();
-            tableData.RowKey = rowKey?.ToString();
-            tableData.Take = Convert.ToInt32(take?.ToString());
-            tableData.Filter = filter?.ToString();
+            TableData tableData = new()
+            {
+                Connection = connection?.ToString(),
+                TableName = tableName?.ToString(),
+                PartitionKey = partitionKey?.ToString(),
+                RowKey = rowKey?.ToString(),
+                Take = Convert.ToInt32(take?.ToString()),
+                Filter = filter?.ToString()
+            };
 
             return tableData;
+        }
+
+        protected class TableData
+        {
+            public string? TableName { get; set; }
+            public string? Connection { get; set; }
+            public string? PartitionKey { get; set; }
+            public string? RowKey { get; set; }
+            public int Take { get; set; }
+            public string? Filter { get; set; }
         }
     }
 }

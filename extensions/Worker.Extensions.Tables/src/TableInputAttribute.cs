@@ -3,6 +3,7 @@
 
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -10,7 +11,9 @@ namespace Microsoft.Azure.Functions.Worker
     /// Attribute used to configure a parameter as the input target for the Azure Storage Tables binding.
     /// </summary>
     [AllowConverterFallback(true)]
-    [InputConverter(typeof(TableConverter))]
+    [InputConverter(typeof(TableClientConverter))]
+    [InputConverter(typeof(TableEntityConverter))]
+    [InputConverter(typeof(TableEntityEnumerableConverter))]
     public class TableInputAttribute : InputBindingAttribute
     {
         /// <summary>Initializes a new instance of the <see cref="TableInputAttribute"/> class.</summary>

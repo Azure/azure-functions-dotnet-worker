@@ -23,7 +23,6 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
             await _tableClient.DeleteAsync();
         }
 
-        // keep
         public async static Task CreateTableEntity(string partitionKey, string rowKey, string value)
         {
             var tableEntity = new TableEntity(partitionKey, rowKey);

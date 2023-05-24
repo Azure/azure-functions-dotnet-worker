@@ -4,8 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Azure;
+using Azure.Data.Tables;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
+using Microsoft.Azure.Functions.Worker.Extensions.Tables;
+using Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
@@ -15,22 +20,18 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
-using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
-using Microsoft.Azure.Functions.Worker.Extensions.Tables;
-using Azure.Data.Tables;
-using Azure;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 {
-    public class TableConverterTests
+    public class TableEntityConverterTests
     {
-        private TableConverter _tableConverter;
+        private TableEntityConverter _tableConverter;
         private Mock<TableServiceClient> _mockTableServiceClient;
 
-        public TableConverterTests()
+        public TableEntityConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
-            var logger = host.Services.GetService<ILogger<TableConverter>>();
+            var logger = host.Services.GetService<ILogger<TableEntityConverter>>();
 
             _mockTableServiceClient = new Mock<TableServiceClient>();
 
@@ -44,7 +45,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockTableOptions.Object);
 
-            _tableConverter = new TableConverter(mockTablesOptionsSnapshot.Object, logger);
+            _tableConverter = new TableEntityConverter(mockTablesOptionsSnapshot.Object, logger);
         }
 
         [Fact]
@@ -57,9 +58,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
-        
+
         [Fact]
-        public async Task ConvertAsync_SourceAsModelBindingData_ReturnsSuccess()
+        public async Task ConvertAsync_SourceAsModelBindingData_ReturnsUnhandled()
         {
             object source = GetTestGrpcModelBindingData(GetTableClientBinaryData());
             var result = new Mock<TableClient>();
@@ -71,7 +72,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
 
         }
 
@@ -86,22 +87,22 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             tableClient
                .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
                .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
-            
+
             _mockTableServiceClient
                 .Setup(c => c.GetTableClient(Constants.TableName))
                 .Returns(tableClient.Object);
 
-            var expectedOutput = Page<TableEntity>.FromValues(new List<TableEntity>{ new TableEntity("partitionKey", "rowKey") }, continuationToken: null, mockResponse.Object);
-            
+            var expectedOutput = Page<TableEntity>.FromValues(new List<TableEntity> { new TableEntity("partitionKey", "rowKey") }, continuationToken: null, mockResponse.Object);
+
             tableClient
                 .Setup(c => c.QueryAsync<TableEntity>(It.IsAny<string>(), null, null, default))
                 .Returns(AsyncPageable<TableEntity>.FromPages(new List<Page<TableEntity>> { expectedOutput }));
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
-        
+
 
         [Fact]
         public async Task ConvertAsync_SourceAsCollectionModelBindingData_TableEntity_ReturnsSuccess()
@@ -114,7 +115,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             tableClient
                .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
                .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
-            
+
             _mockTableServiceClient
                 .Setup(c => c.GetTableClient(Constants.TableName))
                 .Returns(tableClient.Object);
@@ -122,39 +123,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal(typeof(TableEntity), conversionResult.Value.GetType());    
-        }
-
-        [Fact]
-        public async Task ConvertAsync_SourceAsModelBindingData_ReturnsFailed()
-        {
-            object source = GetTestGrpcModelBindingData(GetTableClientBinaryData());
-            var result = new Mock<TableClient>();
-            var context = new TestConverterContext(typeof(TableClient), source);
-
-            _mockTableServiceClient
-                .Setup(c => c.GetTableClient(Constants.TableName))
-                .Throws(new Exception());
-
-            var conversionResult = await _tableConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_WrongModelBindingData_ReturnsFailed()
-        {
-            object source = GetTestGrpcModelBindingData(GetWrongBinaryData());
-            var result = new Mock<TableClient>();
-            var context = new TestConverterContext(typeof(TableClient), source);
-
-            _mockTableServiceClient
-                .Setup(c => c.GetTableClient(Constants.TableName))
-                .Returns(result.Object);
-
-            var conversionResult = await _tableConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal(typeof(TableEntity), conversionResult.Value.GetType());
         }
 
         [Fact]
@@ -168,7 +137,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             tableClient
                .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
                .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
-            
+
             _mockTableServiceClient
                 .Setup(c => c.GetTableClient(Constants.TableName))
                 .Returns(tableClient.Object);
@@ -181,7 +150,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         [Fact]
         public async Task ConvertAsync_ContentSource_AsObject_ReturnsUnhandled()
         {
-            var context = new TestConverterContext(typeof(TableClient), new Object());
+            var context = new TestConverterContext(typeof(TableEntity), new Object());
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
@@ -191,7 +160,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         [Fact]
         public async Task ConvertAsync_ModelBindingData_Null_ReturnsUnhandled()
         {
-            var context = new TestConverterContext(typeof(TableClient), null);
+            var context = new TestConverterContext(typeof(TableEntity), null);
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
@@ -201,12 +170,19 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         [Fact] // Should we fail if the result is ever null?
         public async Task ConvertAsync_ResultIsNull_ReturnsUnhandled()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableClientBinaryData());
-            var context = new TestConverterContext(typeof(TableClient), grpcModelBindingData);
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableEntityBinaryData());
+            var context = new TestConverterContext(typeof(TableEntity), grpcModelBindingData);
+
+            var tableClient = new Mock<TableClient>();
+            var mockResponse = new Mock<Response>();
+
+            tableClient
+               .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
+               .ReturnsAsync(Response.FromValue((TableEntity)null, mockResponse.Object));
 
             _mockTableServiceClient
                 .Setup(c => c.GetTableClient(Constants.TableName))
-                .Returns((TableClient)null);
+                .Returns(tableClient.Object);
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
@@ -216,8 +192,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         [Fact]
         public async Task ConvertAsync_ModelBindingDataSource_NotCosmosExtension_ReturnsUnhandled()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableClientBinaryData(), source: "anotherExtensions");
-            var context = new TestConverterContext(typeof(TableClient), grpcModelBindingData);
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableEntityBinaryData(), source: "anotherExtensions");
+            var context = new TestConverterContext(typeof(TableEntity), grpcModelBindingData);
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
@@ -227,8 +203,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
         [Fact]
         public async Task ConvertAsync_ModelBindingDataContentType_Unsupported_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableClientBinaryData(), contentType: "binary");
-            var context = new TestConverterContext(typeof(TableClient), grpcModelBindingData);
+            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTableEntityBinaryData(), contentType: "binary");
+            var context = new TestConverterContext(typeof(TableEntity), grpcModelBindingData);
 
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
@@ -274,7 +250,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Table
             return new GrpcModelBindingData(new ModelBindingData()
             {
                 Version = "1.0",
-                Source = "AzureStorageTables",
+                Source = source,
                 Content = ByteString.CopyFrom(binaryData),
                 ContentType = contentType
             });

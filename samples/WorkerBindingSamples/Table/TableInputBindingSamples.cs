@@ -69,7 +69,6 @@ namespace WorkerBindingSamples.Table
             return response;
         }
 
-
         [Function(nameof(EnumerableFunction))]
         public async Task<HttpResponseData> EnumerableFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{partitionKey}")] HttpRequestData req,
@@ -84,7 +83,6 @@ namespace WorkerBindingSamples.Table
                 tableEntity.TryGetValue("Text", out var text);
                 _logger.LogInformation("Value of text: " + text);
                 tableList.Add((text?.ToString()) ?? "");
-                
             }
 
             await response.WriteStringAsync(string.Join(",", tableList));
@@ -97,21 +95,18 @@ namespace WorkerBindingSamples.Table
             [TableInput("TableName")] IEnumerable<MyEntity> entities,
             FunctionContext executionContext)
         {
-            var logger = executionContext.GetLogger(nameof(PocoFunction));
-
             var response = req.CreateResponse(HttpStatusCode.OK);
             List<string> entityList = new();
 
             foreach (MyEntity entity in entities)
             {
-                logger.LogInformation($"Text: {entity.Text}");
+                _logger.LogInformation($"Text: {entity.Text}");
                 entityList.Add((entity.Text ?? "").ToString());
             }
 
             await response.WriteStringAsync(string.Join(",", entityList));
             return response;
         }
-
     }
 
     public class MyEntity

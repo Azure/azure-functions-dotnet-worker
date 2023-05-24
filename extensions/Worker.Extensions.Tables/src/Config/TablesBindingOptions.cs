@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
                 throw new ArgumentNullException(nameof(ConnectionString) + " " + nameof(ServiceUri));
             }
 
-            if (TableServiceClient != null)
+            if (TableServiceClient is not null)
             {
                 return TableServiceClient;
             }

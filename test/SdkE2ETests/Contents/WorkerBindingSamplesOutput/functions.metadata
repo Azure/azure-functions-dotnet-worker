@@ -1,5 +1,191 @@
 [
   {
+    "name": "TableClientFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.TableClientFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "table",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "ReadTableDataFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.ReadTableDataFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "items/{partitionKey}/{rowKey}",
+        "properties": {}
+      },
+      {
+        "name": "table",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "partitionKey": "{partitionKey}",
+        "rowKey": "{rowKey}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "ReadTableDataFunctionWithFilter",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.ReadTableDataFunctionWithFilter",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "table",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "partitionKey": "My Partition",
+        "take": 2,
+        "filter": "RowKey ne 'value'",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "EnumerableFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.EnumerableFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "items/{partitionKey}",
+        "properties": {}
+      },
+      {
+        "name": "tables",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "partitionKey": "{partitionKey}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
+    "name": "PocoFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.PocoFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "entities",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "BlobInputClientFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputClientFunction",

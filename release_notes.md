@@ -10,7 +10,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- <event>
+- Fixed issue spawning child process while debugging due to "DOTNET_STARTUP_HOOKS" always containing "Microsoft.Azure.Functions.Worker.Core". (#1539)
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 

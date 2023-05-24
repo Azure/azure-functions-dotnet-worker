@@ -134,7 +134,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Blobs.dll"),
                     new Extension("AzureStorageQueues",
                         "Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageQueuesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Queues, Version=5.0.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8",
-                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll")
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll"),
+                    new Extension("AzureTables",
+                        "Microsoft.Azure.WebJobs.Extensions.Tables.AzureTablesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Tables, Version=1.2.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Tables.dll")
                 }
             });
             Assert.True(JToken.DeepEquals(extensionsJsonContents, expected), $"Actual: {extensionsJsonContents}{Environment.NewLine}Expected: {expected}");

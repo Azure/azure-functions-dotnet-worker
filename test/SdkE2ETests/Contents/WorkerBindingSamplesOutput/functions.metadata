@@ -12,7 +12,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"
@@ -48,7 +48,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"
@@ -87,7 +87,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"
@@ -126,7 +126,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"
@@ -164,7 +164,7 @@
         "name": "req",
         "direction": "In",
         "type": "httpTrigger",
-        "authLevel": "Anonymous",
+        "authLevel": "Function",
         "methods": [
           "get",
           "post"

@@ -8,10 +8,10 @@
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Core <version>
+### Microsoft.Azure.Functions.Worker.Core <version> (delete if not updated)
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Grpc <version>
+### Microsoft.Azure.Functions.Worker.Grpc <version> (delete if not updated)
 
 - <entry>

@@ -51,11 +51,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         public abstract ValueTask<ConversionResult> ConvertAsync(ConverterContext context);
 
-        protected Dictionary<string, object> GetBindingDataContent(ModelBindingData? bindingData)
+        protected TableData GetBindingDataContent(ModelBindingData? bindingData)
         {
             return bindingData?.ContentType switch
             {
-                Constants.JsonContentType => new Dictionary<string, object>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, object>>(), StringComparer.OrdinalIgnoreCase),
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>(),
                 _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
             };
         }
@@ -65,29 +65,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();
             return tableServiceClient.GetTableClient(tableName);
-        }
-        
-        protected TableData GetTableData(Dictionary<string, object> content)
-        {
-            // Parse through dictionary
-            content.TryGetValue(Constants.Connection, out var connection);
-            content.TryGetValue(Constants.TableName, out var tableName);
-            content.TryGetValue(Constants.PartitionKey, out var partitionKey);
-            content.TryGetValue(Constants.RowKey, out var rowKey);
-            content.TryGetValue(Constants.Take, out var take);
-            content.TryGetValue(Constants.Filter, out var filter);
-
-            TableData tableData = new()
-            {
-                Connection = connection?.ToString(),
-                TableName = tableName?.ToString(),
-                PartitionKey = partitionKey?.ToString(),
-                RowKey = rowKey?.ToString(),
-                Take = Convert.ToInt32(take?.ToString()),
-                Filter = filter?.ToString()
-            };
-
-            return tableData;
         }
 
         protected class TableData

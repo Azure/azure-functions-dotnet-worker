@@ -20,7 +20,7 @@ namespace WorkerBindingSamples.Table
 
         [Function(nameof(TableClientFunction))]
         public async Task<HttpResponseData> TableClientFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [TableInput("TableName")] TableClient table)
         {
             var tableEntity = table.QueryAsync<TableEntity>();
@@ -39,7 +39,7 @@ namespace WorkerBindingSamples.Table
 
         [Function(nameof(ReadTableDataFunction))]
         public async Task<HttpResponseData> ReadTableDataFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{partitionKey}/{rowKey}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "items/{partitionKey}/{rowKey}")] HttpRequestData req,
             [TableInput("TableName", "{partitionKey}", "{rowKey}")] TableEntity table)
 
         {
@@ -51,7 +51,7 @@ namespace WorkerBindingSamples.Table
 
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [TableInput("TableName", "My Partition", 2, Filter = "RowKey ne 'value'")] IEnumerable<TableEntity> table)
 
         {
@@ -71,7 +71,7 @@ namespace WorkerBindingSamples.Table
 
         [Function(nameof(EnumerableFunction))]
         public async Task<HttpResponseData> EnumerableFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "items/{partitionKey}")] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "items/{partitionKey}")] HttpRequestData req,
             [TableInput("TableName", "{partitionKey}")] IEnumerable<TableEntity> tables)
 
         {
@@ -91,7 +91,7 @@ namespace WorkerBindingSamples.Table
 
         [Function(nameof(PocoFunction))]
         public async Task<HttpResponseData> PocoFunction(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get","post", Route = null)] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Function, "get","post", Route = null)] HttpRequestData req,
             [TableInput("TableName")] IEnumerable<MyEntity> entities,
             FunctionContext executionContext)
         {

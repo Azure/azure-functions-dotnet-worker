@@ -35,9 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             try
             {
                 var modelBindingData = context?.Source as ModelBindingData;
-                Dictionary<string, object> content = GetBindingDataContent(modelBindingData);
-
-                var tableData = GetTableData(content);
+                var tableData = GetBindingDataContent(modelBindingData);
 
                 var result = await ConvertModelBindingData(tableData);
 
@@ -72,7 +70,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
         private async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
         {
             var tableClient = GetTableClient(content.Connection, content.TableName!);
-            string filter;
+            string? filter = content.Filter;
 
             if (!string.IsNullOrEmpty(content.PartitionKey))
             {
@@ -89,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             int countRemaining = content.Take;
 
             var entities = tableClient.QueryAsync<TableEntity>(
-               filter: content.Filter,
+               filter: filter,
                maxPerPage: maxPerPage).ConfigureAwait(false);
 
             List<TableEntity> bindingDataContent = new List<TableEntity>();

@@ -36,9 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             try
             {
                 var modelBindingData = context?.Source as ModelBindingData;
-                Dictionary<string, object> content = GetBindingDataContent(modelBindingData);
-
-                var tableData = GetTableData(content);
+                var tableData = GetBindingDataContent(modelBindingData);
 
                 var result = await ConvertModelBindingData(tableData);
 

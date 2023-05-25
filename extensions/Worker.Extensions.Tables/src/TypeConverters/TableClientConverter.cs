@@ -26,42 +26,40 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
         {
         }
 
-        public override async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public override ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (!CanConvert(context))
             {
-                return ConversionResult.Unhandled();
+                return new(ConversionResult.Unhandled());
             }
             try
             {
                 var modelBindingData = context?.Source as ModelBindingData;
-                Dictionary<string, object> content = GetBindingDataContent(modelBindingData);
+                var tableData = GetBindingDataContent(modelBindingData);
 
-                var tableData = GetTableData(content);
-
-                var result = await ConvertModelBindingData(tableData);
+                var result = ConvertModelBindingData(tableData);
 
                 if (result is not null)
                 {
-                    return ConversionResult.Success(result);
+                    return new(ConversionResult.Success(result));
                 }
             }
             catch (Exception ex)
             {
-                return ConversionResult.Failed(ex);
+                return new(ConversionResult.Failed(ex));
             }
 
-            return ConversionResult.Unhandled();
+            return new(ConversionResult.Unhandled());
         }
 
-        private Task<TableClient> ConvertModelBindingData(TableData content)
+        private TableClient ConvertModelBindingData(TableData content)
         {
             if (string.IsNullOrEmpty(content.TableName))
             {
                 throw new ArgumentNullException(nameof(content.TableName));
             }
 
-            return Task.FromResult(GetTableClient(content.Connection, content.TableName!));
+            return GetTableClient(content.Connection, content.TableName!);
         }
     }
 }

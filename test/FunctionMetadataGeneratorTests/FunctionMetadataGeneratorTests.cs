@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
+using Azure.Data.Tables;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues.Models;
@@ -431,6 +432,75 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "blobPath", "container1/hello.txt" },
                     { "Connection", "MyOtherConnection" },
                     { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void TableFunctions_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Table));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(5, functions.Count());
+
+            var tableClientFunction = functions.Single(p => p.Name == "TableClientFunction");
+
+            ValidateFunction(tableClientFunction, "TableClientFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableClientFunction)),
+                b => ValidateTableInput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.2.0-beta.1" },
+            });
+
+            var tableEntityFunction = functions.Single(p => p.Name == "TableEntityFunction");
+
+            ValidateFunction(tableEntityFunction, "TableEntityFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableEntityFunction)),
+                b => ValidateTableInput(b));
+
+
+            var enumerableTableEntityFunction = functions.Single(p => p.Name == "EnumerableTableEntityFunction");
+
+            ValidateFunction(enumerableTableEntityFunction, "EnumerableTableEntityFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.EnumerableTableEntityFunction)),
+                b => ValidateTableInput(b));
+
+
+            var tableUnsupportedTypeFunction = functions.Single(p => p.Name == "TableUnsupportedTypeFunction");
+
+            ValidateFunction(tableUnsupportedTypeFunction, "TableUnsupportedTypeFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableUnsupportedTypeFunction)),
+                b => ValidateTableInputBypassDeferredBinding(b));
+
+
+            var tablePocoFunction = functions.Single(p => p.Name == "TablePocoFunction");
+
+            ValidateFunction(tablePocoFunction, "TablePocoFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TablePocoFunction)),
+                b => ValidateTableInputBypassDeferredBinding(b));
+
+            void ValidateTableInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "tableInput" },
+                    { "Type", "table" },
+                    { "Direction", "In" },
+                    { "tableName", "tableName" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateTableInputBypassDeferredBinding(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "tableInput" },
+                    { "Type", "table" },
+                    { "Direction", "In" },
+                    { "tableName", "tableName" },
+                    { "Properties", new Dictionary<String, Object>( ) { } }
                 });
             }
         }
@@ -1141,6 +1211,46 @@ namespace Microsoft.Azure.Functions.SdkTests
             public object BlobPocoToBlobUnsupportedType(
                 [BlobTrigger("container2/%file%")] Poco blob,
                 [BlobInput("container2/%file%")] BinaryData blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_Table
+        {
+            [Function("TableClientFunction")]
+            public object TableClientFunction(
+                [TableInput("tableName")] TableClient tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+
+            [Function("TableEntityFunction")]
+            public object TableEntityFunction(
+                [TableInput("tableName")] TableEntity tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+
+            [Function("EnumerableTableEntityFunction")]
+            public object EnumerableTableEntityFunction(
+                [TableInput("tableName")] IEnumerable<TableEntity> tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("TableUnsupportedTypeFunction")]
+            public object TableUnsupportedTypeFunction(
+                [TableInput("tableName")] BinaryData tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("TablePocoFunction")]
+            public object TablePocoFunction(
+                [TableInput("tableName")] Poco tableInput)
             {
                 throw new NotImplementedException();
             }

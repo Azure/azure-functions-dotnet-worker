@@ -53,8 +53,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             return ConversionResult.Unhandled();
         }
-
-        internal async Task<IEnumerable<TableEntity>> ConvertModelBindingData(TableData content)
+        
+        private async Task<IEnumerable<TableEntity>> ConvertModelBindingData(TableData content)
         {
             if (string.IsNullOrEmpty(content.TableName))
             {

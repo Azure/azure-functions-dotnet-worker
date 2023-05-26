@@ -52,28 +52,27 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
                 var propertyName = reader.GetString();
                 reader.Read();
 
-                switch (propertyName)
+                switch (propertyName?.ToLowerInvariant())
                 {
-                    // We're not expecting these three values to be null. If they are, should we throw or just return an empty string?
-                    case "MessageId":
-                        messageId = reader.GetString() ?? throw new JsonException("MessageId");
+                    case "messageid":
+                        messageId = reader.GetString() ?? throw new JsonException("JSON payload must contain a MessageId.");
                         break;
-                    case "PopReceipt":
-                        popReceipt = reader.GetString() ?? throw new JsonException("PopReceipt");
+                    case "popreceipt":
+                        popReceipt = reader.GetString() ?? throw new JsonException("JSON payload must contain a PopReceipt.");
                         break;
-                    case "MessageText":
-                        messageText = reader.GetString() ?? throw new JsonException("MessageText");
+                    case "messagetext":
+                        messageText = reader.GetString() ?? throw new JsonException("JSOn payload must contain a MessageText.");
                         break;
-                    case "DequeueCount":
+                    case "dequeuecount":
                         dequeueCount = reader.GetInt64();
                         break;
-                    case "NextVisibleOn":
+                    case "nextvisibleon":
                         nextVisibleOn = reader.GetDateTime();
                         break;
-                    case "InsertedOn":
+                    case "insertedon":
                         insertedOn = reader.GetDateTime();
                         break;
-                    case "ExpiresOn":
+                    case "expireson":
                         expiresOn = reader.GetDateTime();
                         break;
                     default:
@@ -81,12 +80,12 @@ namespace Microsoft.Azure.Functions.Worker.Storage.Queues
                 }
             }
 
-            throw new JsonException("JSON payload expected to start with EndObject token.");
+            throw new JsonException("JSON payload expected to end with EndObject token.");
         }
 
         public override void Write(Utf8JsonWriter writer, QueueMessage value, JsonSerializerOptions options)
         {
-            throw new NotImplementedException();
+            throw new JsonException($"Serialization is not supported by the {nameof(QueueMessageJsonConverter)}.");
         }
     }
 }

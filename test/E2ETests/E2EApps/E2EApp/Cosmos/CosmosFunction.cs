@@ -139,7 +139,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 databaseName: "%CosmosDb%",
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
-                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.Id = {id}")]
+                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.id = {id}")]
                 IEnumerable<MyDocument> myDocs)
         {
             var output = myDocs.FirstOrDefault().Text;
@@ -155,7 +155,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 databaseName: "%CosmosDb%",
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
-                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.Id = {id}")]
+                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.id = {id}")]
                 IEnumerable<MyDocument> myDocs)
         {
             var output = myDocs.FirstOrDefault().Text;

@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.id}, ";
+                    output += $"{(string)d.Id}, ";
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.id}, ";
+                    output += $"{(string)d.Id}, ";
                 }
             }
 
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.id}, ";
+                    output += $"{(string)d.Id}, ";
                 }
             }
 

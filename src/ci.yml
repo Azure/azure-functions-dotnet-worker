@@ -43,8 +43,8 @@ jobs:
     buildConfiguration: 'Release'
 
   steps:
-  - pwsh: . "tools/start-emulators.ps1" -NoWait
-    displayName: "Start emulators (-NoWait)"
+  - pwsh: . "tools/start-emulators.ps1"
+    displayName: "Start emulators"
 
   - template: ../build/install-dotnet.yml
 

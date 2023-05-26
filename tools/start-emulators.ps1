@@ -17,6 +17,7 @@ Write-Host "Skip Storage Emulator: $SkipStorageEmulator"
 
 if (!$SkipCosmosDBEmulator)
 {
+    Add-MpPreference -ExclusionPath "$env:ProgramFiles\Azure Cosmos DB Emulator"
     Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
 }
 
@@ -54,23 +55,54 @@ if (!$SkipCosmosDBEmulator)
 {
     Write-Host ""
     Write-Host "---Starting CosmosDB emulator---"
-    $cosmosStatus = Get-CosmosDbEmulatorStatus
-    Write-Host "CosmosDB emulator status: $cosmosStatus"
+    # $cosmosStatus = Get-CosmosDbEmulatorStatus
+    # Write-Host "CosmosDB emulator status: $cosmosStatus"
 
-    if ($cosmosStatus -eq "StartPending")
-    {        
-        $startedCosmos = $true
+
+    for ($j=0; $j -lt 3; $j++) {
+        Write-Host "Attempt $j"
+        Start-Process "$env:ProgramFiles\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe" "/NoExplorer /NoUI /DisableRateLimiting /PartitionCount=50 /Consistency=Strong /EnablePreview /EnableSqlComputeEndpoint" -Verb RunAs
+
+        for ($i=0; $i -lt 5; $i++) {
+            $status = Get-CosmosDbEmulatorStatus
+            Write-Host "Cosmos DB Emulator Status: $status"
+
+            if ($status -ne "Running") {
+                sleep 30;
+            }
+            else {
+                break;
+            }
+        }
+
+        if ($status -ne "Running") {
+            Write-Host "Shutting down and restarting"
+            Start-Process "$env:ProgramFiles\Azure Cosmos DB Emulator\CosmosDB.Emulator.exe" "/Shutdown" -Verb RunAs
+            sleep 30;
+        }
+        else {
+            break;
+        }
     }
-    elseif ($cosmosStatus -ne "Running")
-    {
-        Write-Host "CosmosDB emulator is not running. Starting emulator."
-        Start-CosmosDbEmulator -NoWait -NoUI
-        $startedCosmos = $true
+
+    if ($status -ne "Running") {
+        Write-Error "Emulator failed to start"
     }
-    else
-    {    
-        Write-Host "CosmosDB emulator is already running."
-    }
+
+    # if ($cosmosStatus -eq "StartPending")
+    # {
+    #     $startedCosmos = $true
+    # }
+    # elseif ($cosmosStatus -ne "Running")
+    # {
+    #     Write-Host "CosmosDB emulator is not running. Starting emulator."
+    #     Start-CosmosDbEmulator -NoWait -NoUI
+    #     $startedCosmos = $true
+    # }
+    # else
+    # {
+    #     Write-Host "CosmosDB emulator is already running."
+    # }
 }
 
 if (!$SkipStorageEmulator)
@@ -112,25 +144,25 @@ if ($NoWait -eq $true)
     exit 0
 }
 
-if (!$SkipCosmosDBEmulator -and $startedCosmos -eq $true)
-{
-    Write-Host "---Waiting for CosmosDB emulator to be running---"
-    $cosmosStatus = Get-CosmosDbEmulatorStatus
-    Write-Host "CosmosDB emulator status: $cosmosStatus"
+# if (!$SkipCosmosDBEmulator -and $startedCosmos -eq $true)
+# {
+#     Write-Host "---Waiting for CosmosDB emulator to be running---"
+#     $cosmosStatus = Get-CosmosDbEmulatorStatus
+#     Write-Host "CosmosDB emulator status: $cosmosStatus"
 
-    $waitSuccess = Wait-CosmosDbEmulator -Status Running -Timeout 60 -ErrorAction Continue
+#     $waitSuccess = Wait-CosmosDbEmulator -Status Running -Timeout 60 -ErrorAction Continue
 
-    if ($waitSuccess -ne $true)
-    {
-        Write-Host "CosmosDB emulator not yet running after waiting 60 seconds. Restarting."
-        Stop-CosmosDbEmulator
-        Write-Host "Restarting CosmosDB emulator"
-        Start-CosmosDbEmulator -NoUI
-    }
+#     if ($waitSuccess -ne $true)
+#     {
+#         Write-Host "CosmosDB emulator not yet running after waiting 60 seconds. Restarting."
+#         Stop-CosmosDbEmulator
+#         Write-Host "Restarting CosmosDB emulator"
+#         Start-CosmosDbEmulator -NoUI
+#     }
 
-    Write-Host "------"
-    Write-Host
-}
+#     Write-Host "------"
+#     Write-Host
+# }
 
 if (!$SkipStorageEmulator -and $startedStorage -eq $true)
 {

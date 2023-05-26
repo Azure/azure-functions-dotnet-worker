@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
-        [Fact(Skip = "Need to debug why Cosmos emulator does not always start.")]
+        [Fact]
         public async Task CosmosDBTriggerAndOutput_Succeeds()
         {
             string expectedDocId = Guid.NewGuid().ToString();

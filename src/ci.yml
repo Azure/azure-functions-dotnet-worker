@@ -43,11 +43,11 @@ jobs:
     buildConfiguration: 'Release'
 
   steps:
-  - pwsh: . "tools/start-emulators.ps1" -NoWait -SkipCosmosDBEmulator
-    displayName: "Start emulators (-NoWait)"
+  - pwsh: . "tools/start-emulators.ps1"
+    displayName: "Start emulators"
 
   - template: ../build/install-dotnet.yml
-  
+
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:
@@ -63,8 +63,7 @@ jobs:
       }
       ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                            -SkipBuildOnPack `
-                            -SkipCosmosDBEmulator
+                            -SkipBuildOnPack
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2

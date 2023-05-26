@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                     EventId = nameof(OnFunctionLoaded),
                     Level = RpcLog.Types.Level.Debug,
                     LogCategory = RpcLog.Types.RpcLogCategory.System,
-                    Message = JsonSerializer.Serialize(definition, SerializerOptions)
+                    Message = definition.Name
                 }
             };
         }

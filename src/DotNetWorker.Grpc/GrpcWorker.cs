@@ -2,20 +2,18 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core.Serialization;
-using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -27,12 +25,8 @@ namespace Microsoft.Azure.Functions.Worker
     internal class GrpcWorker : IWorker, IMessageProcessor
     {
         private readonly IFunctionsApplication _application;
-        private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
-        private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
-        private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
         private readonly WorkerOptions _workerOptions;
-        private readonly ObjectSerializer _serializer;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
@@ -41,34 +35,26 @@ namespace Microsoft.Azure.Functions.Worker
 
         public GrpcWorker(IFunctionsApplication application,
                           IWorkerClientFactory workerClientFactory,
-                          IInvocationFeaturesFactory invocationFeaturesFactory,
-                          IOutputBindingsInfoProvider outputBindingsInfoProvider,
                           IMethodInfoLocator methodInfoLocator,
                           IOptions<WorkerOptions> workerOptions,
-                          IInputConversionFeatureProvider inputConversionFeatureProvider,
                           IFunctionMetadataProvider functionMetadataProvider,
                           IHostApplicationLifetime hostApplicationLifetime,
-                          ILogger<GrpcWorker> logger)
+                          IInvocationHandler invocationHandler)
         {
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
-            _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
-            _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-            
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
-            _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
-            _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
 
-            // Handlers (TODO: dependency inject handlers instead of creating here)
-            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
+            _invocationHandler = invocationHandler;
         }
 
-        public async Task StartAsync(CancellationToken token)
+        public Task StartAsync(CancellationToken token)
         {
-            _workerClient = await _workerClientFactory.StartClientAsync(this, token);
+            _workerClient = _workerClientFactory.CreateClient(this);
+            return _workerClient.StartAsync(token);
         }
 
         public Task StopAsync(CancellationToken token) => Task.CompletedTask;
@@ -76,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker
         Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
             // Dispatch and return.
-            _ = ProcessRequestCoreAsync(message);
+            Task.Run(() => ProcessRequestCoreAsync(message));
 
             return Task.CompletedTask;
         }
@@ -115,11 +101,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionEnvironmentReloadRequest:
-                    // No-op for now, but return a response.
-                    responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
-                    {
-                        Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                    };
+                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions);
                     break;
 
                 case MsgType.InvocationCancel:
@@ -136,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            return _invocationHandler.InvokeAsync(request, _workerOptions);
+            return _invocationHandler.InvokeAsync(request);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)
@@ -146,36 +128,14 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
         {
-            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
-
             var response = new WorkerInitResponse
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
-                WorkerMetadata = new WorkerMetadata
-                {
-                    RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
-                    RuntimeVersion = Environment.Version.ToString(),
-                    WorkerVersion = WorkerInformation.Instance.WorkerVersion,
-                    WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
-                }
+                WorkerMetadata = GetWorkerMetadata()
             };
 
-            response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
-
-            // Add additional capabilities defined by WorkerOptions
-            foreach ((string key, string value) in workerOptions.Capabilities)
-            {
-                response.Capabilities[key] = value;
-            }
-
-            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
-            response.Capabilities["RpcHttpBodyOnly"] = bool.TrueString;
-            response.Capabilities["RawHttpBodyBytes"] = bool.TrueString;
-            response.Capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
-            response.Capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
-            response.Capabilities["TypedDataCollection"] = bool.TrueString;
-            response.Capabilities["WorkerStatus"] = bool.TrueString;
+            response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return response;
         }
@@ -283,6 +243,55 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
+        }
+
+        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions)
+        {
+            var envReloadResponse = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success },
+                WorkerMetadata = GetWorkerMetadata()
+            };
+            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+
+            return envReloadResponse;
+        }
+
+        private static WorkerMetadata GetWorkerMetadata()
+        {
+            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
+
+            var workerMetadata = new WorkerMetadata
+            {
+                RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
+                RuntimeVersion = Environment.Version.ToString(),
+                WorkerVersion = WorkerInformation.Instance.WorkerVersion,
+                WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
+            };
+            workerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
+
+            return workerMetadata;
+        }
+
+        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions)
+        {
+            var capabilities = new Dictionary<string, string>();
+
+            // Add additional capabilities defined by WorkerOptions
+            foreach ((string key, string value) in workerOptions.Capabilities)
+            {
+                capabilities[key] = value;
+            }
+
+            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
+            capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            capabilities["TypedDataCollection"] = bool.TrueString;
+            capabilities["WorkerStatus"] = bool.TrueString;
+
+            return capabilities;
         }
     }
 }

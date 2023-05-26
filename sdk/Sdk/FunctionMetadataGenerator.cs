@@ -8,6 +8,7 @@ using System.Dynamic;
 using System.IO;
 using System.Linq;
 using Mono.Cecil;
+using Mono.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -487,7 +488,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             // For extensions that support deferred binding, set the supportsDeferredBinding property so parameters are bound by the worker
             // Only use deferred binding for input and trigger bindings, output is out not currently supported
-            if (SupportsDeferredBinding(attribute) && direction != Constants.OutputBindingDirection)
+            if (SupportsDeferredBinding(attribute, parameterType) && direction != Constants.OutputBindingDirection)
             {
                 bindingProperties.Add(Constants.SupportsDeferredBindingProperty, Boolean.TrueString);
             }
@@ -795,7 +796,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return Constants.InputBindingDirection;
         }
 
-        private static bool SupportsDeferredBinding(CustomAttribute attribute)
+        // Input and Trigger Binding Attribute will be checked for supporting deferred binding
+        private static bool SupportsDeferredBinding(CustomAttribute attribute, TypeReference bindingType)
         {
             var typeDefinition = attribute?.AttributeType?.Resolve();
 
@@ -804,8 +806,75 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 return false;
             }
 
-            return typeDefinition.CustomAttributes
-                                 .Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
+            // checking attributes advertised by the binding attribute
+            foreach (CustomAttribute bindingAttribute in typeDefinition.CustomAttributes)
+            {
+                if (string.Equals(bindingAttribute.AttributeType.FullName, Constants.InputConverterAttributeType, StringComparison.Ordinal))
+                {
+                    // InputConverterAttribute will have supported converter type
+                    foreach (var customAttribute in bindingAttribute.ConstructorArguments)
+                    {
+                        if (DoesConverterSupportDeferredBinding(customAttribute, bindingType))
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        private static bool DoesConverterSupportDeferredBinding(CustomAttributeArgument customAttribute, TypeReference bindingType)
+        {
+            var typeReferenceValue = customAttribute.Value as TypeReference;
+            var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
+            
+            // Attributes advertised by converter
+            if (typeReferenceCustomAttributes is not null)
+            {
+                bool converterAdvertisesDeferredBindingSupport = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
+
+                if (converterAdvertisesDeferredBindingSupport)
+                {
+                    bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+
+                    if (!converterAdvertisesTypes)
+                    {
+                        // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
+                        return true;
+                    }
+
+                    return DoesConverterSupportTargetType(typeReferenceCustomAttributes, bindingType);
+                }
+            }
+
+            return false;
+        }
+
+        private static bool DoesConverterSupportTargetType(Collection<CustomAttribute> customAttributes, TypeReference bindingType)
+        {
+            // Parse attributes advertised by converter
+            foreach (CustomAttribute attribute in customAttributes)
+            {
+                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                {
+                    foreach (CustomAttributeArgument element in attribute.ConstructorArguments)
+                    {
+                        if (string.Equals(element.Type.FullName, typeof(Type).FullName, StringComparison.Ordinal))
+                        {
+                            var supportedType = element.Value as TypeReference;
+
+                            if (supportedType is not null && string.Equals(supportedType.FullName, bindingType.FullName, StringComparison.Ordinal))
+                            {
+                                return true;
+                            }         
+                        }
+                    }
+                }
+            }
+
+            return false;
         }
 
         private static bool IsOutputBindingType(CustomAttribute attribute)

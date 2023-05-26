@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -21,19 +22,22 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly ILogger<FunctionsApplication> _logger;
         private readonly IWorkerDiagnostics _diagnostics;
+        private readonly FunctionActivitySourceFactory _functionActivitySourceFactory;
 
         public FunctionsApplication(
             FunctionExecutionDelegate functionExecutionDelegate,
             IFunctionContextFactory functionContextFactory,
             IOptions<WorkerOptions> workerOptions,
             ILogger<FunctionsApplication> logger,
-            IWorkerDiagnostics diagnostics)
+            IWorkerDiagnostics diagnostics,
+            FunctionActivitySourceFactory functionActivitySourceFactory)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
+            _functionActivitySourceFactory = functionActivitySourceFactory ?? throw new ArgumentNullException(nameof(functionActivitySourceFactory));
         }
 
         public FunctionContext CreateContext(IInvocationFeatures features, CancellationToken token = default)
@@ -61,12 +65,24 @@ namespace Microsoft.Azure.Functions.Worker
             _diagnostics.OnFunctionLoaded(definition);
         }
 
-        public Task InvokeFunctionAsync(FunctionContext context)
+        public async Task InvokeFunctionAsync(FunctionContext context)
         {
             var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);
-            using (_logger.BeginScope(scope))
+
+            using var logScope = _logger.BeginScope(scope);
+            using Activity? invokeActivity = _functionActivitySourceFactory.StartInvoke(context);
+
+            try
             {
-                return _functionExecutionDelegate(context);
+                await _functionExecutionDelegate(context);
+            }
+            catch (Exception ex)
+            {
+                invokeActivity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+
+                Log.InvocationError(_logger, context.FunctionDefinition.Name, context.InvocationId, ex);
+
+                throw;
             }
         }
     }

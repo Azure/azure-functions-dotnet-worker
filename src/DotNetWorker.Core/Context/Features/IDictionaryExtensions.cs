@@ -63,4 +63,17 @@ internal static class KeyValuePairExtensions
     }
 }
 
+internal static class IReadOnlyDictionaryExtensions
+{
+    internal static TValue GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key, TValue defaultValue)
+    {
+        if (key is null)
+        {
+            throw new ArgumentNullException(nameof(key));
+        }
+
+        return dictionary.TryGetValue(key, out TValue? value) ? value : defaultValue;
+    }
+}
+
 #endif

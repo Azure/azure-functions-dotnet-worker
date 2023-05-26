@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -34,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker
         };
 
         /// <summary>
-        /// Gets and sets the flag for opting in to unwrapping user-code-thrown
+        /// Gets or sets the flag for opting in to unwrapping user-code-thrown
         /// exceptions when they are surfaced to the Host. 
         /// </summary>
         public bool EnableUserCodeException
@@ -55,6 +56,12 @@ namespace Microsoft.Azure.Functions.Worker
             get => GetBoolCapability(nameof(IncludeEmptyEntriesInMessagePayload));
             set => SetBoolCapability(nameof(IncludeEmptyEntriesInMessagePayload), value);
         }
+
+        /// <summary>
+        /// Gets or sets a value that determines the schema to use when generating Activities. Currently internal as there is only
+        /// one schema, but stubbing this out for future use.
+        /// </summary>
+        internal OpenTelemetrySchemaVersion OpenTelemetrySchemaVersion { get; set; } = OpenTelemetrySchemaVersion.v1_17_0;
 
         private bool GetBoolCapability(string name)
         {

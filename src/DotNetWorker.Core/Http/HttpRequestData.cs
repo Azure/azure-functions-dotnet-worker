@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.IO;
 using System.Security.Claims;
+using System.Web;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
@@ -13,6 +15,8 @@ namespace Microsoft.Azure.Functions.Worker.Http
     /// </summary>
     public abstract class HttpRequestData
     {
+        private NameValueCollection? _query;
+
         /// <summary>
         /// Initializes a new instance of the <see cref="HttpRequestData"/> class.
         /// </summary>
@@ -62,5 +66,10 @@ namespace Microsoft.Azure.Functions.Worker.Http
         /// </summary>
         /// <returns>The response instance.</returns>
         public abstract HttpResponseData CreateResponse();
+
+        /// <summary>
+        /// Gets the <see cref="NameValueCollection"/> containing the request query. 
+        /// </summary>
+        public virtual NameValueCollection Query => _query ??= HttpUtility.ParseQueryString(Url.Query);
     }
 }

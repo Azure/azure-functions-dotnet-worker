@@ -1,6 +1,9 @@
-## Release notes
+## What's Changed
+
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->
 
-- Publishing Worker.Extension.Tables package v 1.0.0 (#1173)
+### Microsoft.Azure.Functions.Worker.Extensions.Tables <version>
+
+- Add abiility to bind table input to TableClient, TableEntity, and IEnumerable<TableEntity> (#1470)

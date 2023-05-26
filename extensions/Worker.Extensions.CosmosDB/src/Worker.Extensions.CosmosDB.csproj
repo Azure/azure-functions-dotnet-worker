@@ -6,8 +6,8 @@
     <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.1.0</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionPrefix>4.2.0</VersionPrefix>
+    <VersionSuffix>-preview2</VersionSuffix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -17,7 +17,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.8.0" />
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.32.2" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.34.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.1.0" />
   </ItemGroup>
 

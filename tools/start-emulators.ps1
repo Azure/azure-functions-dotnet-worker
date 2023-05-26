@@ -15,6 +15,12 @@ $DebugPreference = 'Continue'
 Write-Host "Skip CosmosDB Emulator: $SkipCosmosDBEmulator"
 Write-Host "Skip Storage Emulator: $SkipStorageEmulator"
 
+if (!$SkipCosmosDBEmulator)
+{
+    Add-MpPreference -ExclusionPath "$env:ProgramFiles\Azure Cosmos DB Emulator"
+    Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+}
+
 $startedCosmos = $false
 $startedStorage = $false
 

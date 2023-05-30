@@ -7,7 +7,7 @@ using Azure.Storage.Blobs;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class BlobStorageBindingOptions
+    internal class BlobStorageBindingOptions : IBindingOptions
     {
         public string? ConnectionString { get; set; }
 

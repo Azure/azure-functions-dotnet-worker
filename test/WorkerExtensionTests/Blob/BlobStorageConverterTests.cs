@@ -24,10 +24,8 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
-using Constants = Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.Constants;
-
 // Tests missing for BlobBaseClient; BlockBlobClient; PageBlobClient; AppendBlobClient
-// Unable to mock extension methods
+// Moq does not support mocking extension methods directly
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 {
     public class BlobStorageConverterTests

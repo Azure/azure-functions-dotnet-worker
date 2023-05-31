@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [InlineData("HelloFromJsonBody", "{\"Name\": \"Bob\"}", "application/octet-stream", HttpStatusCode.OK, "Hello Bob")]
         public async Task HttpTriggerTestsMediaTypeDoNotMatter(string functionName, string body, string mediaType, HttpStatusCode expectedStatusCode, string expectedBody)
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody(functionName, body, expectedStatusCode, mediaType);
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody(functionName, body, mediaType);
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -62,7 +62,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [InlineData("PocoAfterRouteParameters", "eu/caller/", "{ \"Name\": \"c\" }", "application/json", HttpStatusCode.OK, "eu caller c")]
         public async Task HttpTriggerTests_PocoFromBody(string functionName, string route, string body, string mediaType, HttpStatusCode expectedStatusCode, string expectedBody)
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody($"{route}{functionName}", body, expectedStatusCode, mediaType);
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody($"{route}{functionName}", body, mediaType);
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             const HttpStatusCode expectedStatusCode = HttpStatusCode.InternalServerError;
 
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("PocoWithoutBindingSource", "{ \"Name\": \"John\" }", expectedStatusCode, "application/json");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("PocoWithoutBindingSource", "{ \"Name\": \"John\" }", "application/json");
 
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [Fact]
         public async Task HttpTriggerTestsPocoResult()
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("HelloUsingPoco", string.Empty, HttpStatusCode.OK, "application/json");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("HelloUsingPoco", string.Empty, "application/json");
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -92,7 +92,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         [Fact(Skip = "Proxies not currently supported in V4 but will be coming back.")]
         public async Task HttpProxy()
         {
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("proxytest", string.Empty, HttpStatusCode.OK, "application/json");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTriggerWithBody("proxytest", string.Empty, "application/json");
             string responseBody = await response.Content.ReadAsStringAsync();
 
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);

@@ -37,10 +37,10 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             {
                 foreach (var doc in input)
                 {
-                    context.GetLogger("Function.CosmosTrigger").LogInformation($"id: {doc.Id}");
+                    context.GetLogger("Function.CosmosTrigger").LogInformation($"id: {doc.DocId}");
                 }
 
-                return input.Select(p => new { id = p.Id });
+                return input.Select(p => new { id = p.DocId });
             }
 
             return null;
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 databaseName: "%CosmosDb%",
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
-                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.id = {id}")]
+                SqlQuery = "SELECT * FROM ItemDb t where t.id = {id}")]
                 IEnumerable<MyDocument> myDocs)
         {
             var output = myDocs.FirstOrDefault().Text;
@@ -155,7 +155,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 databaseName: "%CosmosDb%",
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
-                SqlQuery = "SELECT * FROM ItemCollectionIn t where t.id = {id}")]
+                SqlQuery = "SELECT * FROM ItemDb t where t.id = {id}")]
                 IEnumerable<MyDocument> myDocs)
         {
             var output = myDocs.FirstOrDefault().Text;
@@ -166,7 +166,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
         public class MyDocument
         {
-            public string Id { get; set; }
+            public string DocId { get; set; }
 
             public string Text { get; set; }
         }

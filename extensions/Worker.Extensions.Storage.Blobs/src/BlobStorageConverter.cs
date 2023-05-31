@@ -26,10 +26,10 @@ namespace Microsoft.Azure.Functions.Worker
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;
-        private readonly IOptionsSnapshot<IBindingOptions> _blobOptions;
+        private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
         private readonly ILogger<BlobStorageConverter> _logger;
 
-        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<IBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
+        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));

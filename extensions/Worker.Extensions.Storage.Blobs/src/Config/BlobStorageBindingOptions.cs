@@ -7,7 +7,7 @@ using Azure.Storage.Blobs;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class BlobStorageBindingOptions : IBindingOptions
+    internal class BlobStorageBindingOptions
     {
         public string? ConnectionString { get; set; }
 
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public BlobClientOptions? BlobClientOptions { get; set; }
 
-        public BlobServiceClient CreateClient()
+        internal virtual BlobServiceClient CreateClient()
         {
             if (ServiceUri is not null && Credential is not null)
             {

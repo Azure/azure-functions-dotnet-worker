@@ -42,12 +42,12 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             _mockBlobServiceClient = new Mock<BlobServiceClient>();
 
-            var mockBlobOptions = new Mock<IBindingOptions>();
+            var mockBlobOptions = new Mock<BlobStorageBindingOptions>();
             mockBlobOptions
                 .Setup(m => m.CreateClient())
                 .Returns(_mockBlobServiceClient.Object);
 
-            var mockBlobOptionsSnapshot = new Mock<IOptionsSnapshot<IBindingOptions>>();
+            var mockBlobOptionsSnapshot = new Mock<IOptionsSnapshot<BlobStorageBindingOptions>>();
             mockBlobOptionsSnapshot
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockBlobOptions.Object);

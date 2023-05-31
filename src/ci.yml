@@ -34,9 +34,9 @@ jobs:
       - ImageOverride -equals MMS2022TLS
 
   variables:
-    ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
+    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
       buildNumberTemp: $(Build.BuildNumber)
-    ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
+    ${{ if or( contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags') ) }}:
       isReleaseBuildTemp: true
     buildNumber: $[variables.buildNumberTemp]
     isReleaseBuild: $[variables.isReleaseBuildTemp]
@@ -45,11 +45,11 @@ jobs:
     buildConfiguration: 'Release'
 
   steps:
-  - pwsh: . "tools/start-emulators.ps1" -NoWait -SkipCosmosDBEmulator
-    displayName: "Start emulators (-NoWait)"
+  - pwsh: . "tools/start-emulators.ps1"
+    displayName: "Start emulators"
 
   - template: ../build/install-dotnet.yml
-  
+
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:
@@ -65,8 +65,7 @@ jobs:
       }
       ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                            -SkipBuildOnPack `
-                            -SkipCosmosDBEmulator
+                            -SkipBuildOnPack
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2

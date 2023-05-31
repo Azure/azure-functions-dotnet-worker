@@ -10,9 +10,9 @@
         <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.15.0-preview1" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.11.0-preview1" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.ApplicationInsights" Version="1.0.0-preview4" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.CosmosDB" Version="4.2.0-preview1" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.10.0-preview1" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="5.1.1-preview1" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.CosmosDB" Version="4.2.0-preview2" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.10.0-preview2" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="5.1.1-preview2" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
         <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
     </ItemGroup>

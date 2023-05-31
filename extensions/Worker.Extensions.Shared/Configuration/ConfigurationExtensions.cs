@@ -1,6 +1,8 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+using System.Globalization;
 using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions
@@ -28,6 +30,45 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             }
 
             return section;
+        }
+
+        /// <summary>
+        /// Either constructs the serviceUri from the provided accountName
+        /// or retrieves the serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)
+        /// </summary>
+        /// <param name="configuration">configuration section for a given connection name </param>
+        /// <param name="subDomain">The subdomain of the serviceUri (i.e. blob, queue, table)</param>
+        /// <param name="serviceUri">The serviceUri for the specific resource (i.e. blobServiceUri or queueServiceUri)</param>
+        internal static bool TryGetServiceUriForStorageAccounts(this IConfiguration configuration, string subDomain, out Uri serviceUri)
+        {
+            if (subDomain is null)
+            {
+                throw new ArgumentNullException(nameof(subDomain));
+            }   
+            var serviceUriConfig = string.Format(CultureInfo.InvariantCulture, "{0}ServiceUri", subDomain);
+
+            if (configuration.GetValue<string>("accountName") is { } accountName)
+            {
+                serviceUri = FormatServiceUri(accountName, subDomain);
+                return true;
+            }
+            else if (configuration.GetValue<string>($"{subDomain}ServiceUri") is { } uriStr)
+            {
+                serviceUri = new Uri(uriStr);
+                return true;
+            }
+
+            serviceUri = default(Uri)!;
+            return false;
+        }
+
+        /// <summary>
+        /// Generates the serviceUri for a particular storage resource
+        /// </summary>
+        private static Uri FormatServiceUri(string accountName, string subDomain, string defaultProtocol = "https", string endpointSuffix = "core.windows.net")
+        {
+            var uri = string.Format(CultureInfo.InvariantCulture, "{0}://{1}.{2}.{3}", defaultProtocol, accountName, subDomain, endpointSuffix);
+            return new Uri(uri);
         }
 
         /// <summary>

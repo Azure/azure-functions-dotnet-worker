@@ -37,10 +37,10 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             {
                 foreach (var doc in input)
                 {
-                    context.GetLogger("Function.CosmosTrigger").LogInformation($"id: {doc.DocId}");
+                    context.GetLogger("Function.CosmosTrigger").LogInformation($"id: {doc.Text}");
                 }
 
-                return input.Select(p => new { id = p.DocId });
+                return input.Select(p => new { id = p.Text });
             }
 
             return null;
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.Id}, ";
+                    output += $"{(string)d.Text}, ";
                 }
             }
 
@@ -85,7 +85,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.Id}, ";
+                    output += $"{(string)d.Text}, ";
                 }
             }
 
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 var documents = await iterator.ReadNextAsync();
                 foreach (dynamic d in documents)
                 {
-                    output += $"{(string)d.Id}, ";
+                    output += $"{(string)d.Text}, ";
                 }
             }
 
@@ -166,8 +166,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
         public class MyDocument
         {
-            public string DocId { get; set; }
-
             public string Text { get; set; }
         }
     }

@@ -155,11 +155,12 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }
 
-            PartitionKey partitionKey = String.IsNullOrEmpty(cosmosAttribute.PartitionKey)
-                                        ? PartitionKey.None
-                                        : new PartitionKey(cosmosAttribute.PartitionKey);
-
-            QueryRequestOptions queryRequestOptions = new() { PartitionKey = partitionKey };
+            QueryRequestOptions queryRequestOptions = new();
+            if (!String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
+            {
+                var partitionKey =  new PartitionKey(cosmosAttribute.PartitionKey);
+                queryRequestOptions = new() { PartitionKey = partitionKey };
+            }
 
             using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {

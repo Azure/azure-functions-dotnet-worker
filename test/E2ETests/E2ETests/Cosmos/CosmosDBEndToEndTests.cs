@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
             try
             {
                 //Trigger
-                await CosmosDBHelpers.CreateDocument(expectedDocId);
+                await CosmosDBHelpers.CreateDocument(expectedDocId, expectedDocId);
 
                 //Read
                 var documentId = await CosmosDBHelpers.ReadDocument(expectedDocId);
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
             try
             {
                 //Setup
-                await CosmosDBHelpers.CreateDocument(expectedDocId);
+                await CosmosDBHelpers.CreateDocument(expectedDocId, expectedDocId);
 
                 //Trigger
                 HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);

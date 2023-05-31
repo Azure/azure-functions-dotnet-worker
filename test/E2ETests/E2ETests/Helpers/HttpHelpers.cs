@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return await GetResponseMessage(request);
         }
 
-        public static async Task<HttpResponseMessage> InvokeHttpTriggerWithBody(string functionName, string body, HttpStatusCode expectedStatusCode, string mediaType, int expectedCode = 0)
+        public static async Task<HttpResponseMessage> InvokeHttpTriggerWithBody(string functionName, string body, string mediaType)
         {
             HttpRequestMessage request = GetTestRequest(functionName);
             request.Content = new StringContent(body);

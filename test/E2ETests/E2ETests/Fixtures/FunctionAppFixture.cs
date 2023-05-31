@@ -90,6 +90,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     }
                     catch
                     {
+                        if (_funcProcess.HasExited)
+                        {
+                            // Something went wrong starting the host - check the logs
+                            _logger.LogInformation($"  Current state: process exited - something may have gone wrong.");
+                            return false;
+                        }
+
                         // Can get exceptions before host is running.
                         _logger.LogInformation($"  Current state: process starting");
                         return false;

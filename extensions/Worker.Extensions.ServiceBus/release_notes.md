@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
 
-- Support binding to ServiceBusReceivedMessage (#1313)
+- <entry>

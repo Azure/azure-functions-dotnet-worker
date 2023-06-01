@@ -6,14 +6,14 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Update protobuf to v1.9.0-protofile, which includes gRPC messages for retry-options in worker-indexing scenarios. (#1545)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Core <version>
+### Microsoft.Azure.Functions.Worker.Core <version> (delete if not updated)
 
 - Fixed issue spawning child process while debugging due to "DOTNET_STARTUP_HOOKS" always containing "Microsoft.Azure.Functions.Worker.Core". (#1539)
 - Add retry options support to `IFunctionMetadata` (#1548)
 
-### Microsoft.Azure.Functions.Worker.Grpc <version>
+### Microsoft.Azure.Functions.Worker.Grpc <version> (delete if not updated)
 
 - Add handling for retry options in worker-indexing grpc communication path (#1548)
 

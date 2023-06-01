@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -33,26 +32,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
             foreach (var attribute in attributes)
             {
-                if (attribute.IsSupportsDeferredBindingAttribute() && !IsInputOrTriggerBinding(symbol))
+                if (attribute.IsSupportsDeferredBindingAttribute() && !symbol.IsInputOrTriggerBinding())
                 {
                     var location = Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
                     var diagnostic = Diagnostic.Create(DiagnosticDescriptors.DeferredBindingAttributeNotSupported, location, attribute.AttributeClass.Name);
                     symbolAnalysisContext.ReportDiagnostic(diagnostic);
                 }
             }
-        }
-
-        private static bool IsInputOrTriggerBinding(INamedTypeSymbol symbol)
-        {
-            var baseType = symbol.BaseType?.ToDisplayString();
-
-            if (string.Equals(baseType,Constants.Types.InputBindingAttribute, StringComparison.Ordinal)
-                || string.Equals(baseType,Constants.Types.TriggerBindingAttribute, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 }

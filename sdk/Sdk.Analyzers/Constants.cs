@@ -12,9 +12,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             public const string SupportsDeferredBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
             public const string InputBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.InputBindingAttribute";
             public const string TriggerBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.TriggerBindingAttribute";
+            public const string InputConverterAttribute = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
+            public const string AllowConverterFallbackAttribute = "Microsoft.Azure.Functions.Worker.Converters.AllowConverterFallbackAttribute";
 
             // System types
             internal const string TaskType = "System.Threading.Tasks.Task";
+        }
+
+        internal static class Names
+        {
+            public const string SupportedConverterTypeAttribute = "SupportedConverterTypeAttribute";
         }
 
         internal static class DiagnosticsCategories

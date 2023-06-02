@@ -9,43 +9,39 @@ using System.Composition;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
 using System.Threading;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 {
 
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(BindingTypeCodeFixProvider)), Shared]
-    public sealed class BindingTypeCodeFixProvider : CodeFixProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(BindingTypeCodeFixProvider)), Shared]
+    public sealed class BindingTypeCodeFixProvider : CodeRefactoringProvider
     {
-        public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(DiagnosticDescriptors.SupportedBindingType.Id);
-
-        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
-
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            Diagnostic diagnostic = context.Diagnostics.First();
-            TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
+            // Diagnostic diagnostic = context.Diagnostics.First();
+            // TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
 
             SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            MethodDeclarationSyntax methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
+            // MethodDeclarationSyntax methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
 
-            var parameters = methodDeclaration.ParameterList.Parameters;
+            var parameters = root.DescendantNodes().OfType<ParameterSyntax>();
+
+            // var parameters = methodDeclaration.ParameterList.Parameters;
 
             foreach (var parameter in parameters)
             {
-                await AnalyzeForCodeFix(diagnostic, context, parameter);
+                await AnalyzeForCodeFix(context, parameter);
             }
         }
 
-        private async Task AnalyzeForCodeFix(Diagnostic diagnostic, CodeFixContext context, ParameterSyntax parameter)
+        private async Task AnalyzeForCodeFix(CodeRefactoringContext context, ParameterSyntax parameter)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync().ConfigureAwait(false);
             var parameterSymbol = semanticModel.GetDeclaredSymbol(parameter);
@@ -77,9 +73,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     }
 
                     // Create a code action for each potential supported type
-                    context.RegisterCodeFix(
-                        new SupportedBindingTypeCodeAction(context.Document, diagnostic, parameter, name),
-                        diagnostic);
+                    context.RegisterRefactoring(
+                        new SupportedBindingTypeCodeAction(context.Document, parameter, name));
                 }
             }
         }
@@ -117,14 +112,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         private sealed class SupportedBindingTypeCodeAction : CodeAction
         {
             private readonly Document _document;
-            private readonly Diagnostic _diagnostic;
             private readonly ParameterSyntax _parameterSyntax;
             private readonly string _supportedType;
 
-            internal SupportedBindingTypeCodeAction(Document document, Diagnostic diagnostic, ParameterSyntax parameterSyntax, string supportedType)
+            internal SupportedBindingTypeCodeAction(Document document, ParameterSyntax parameterSyntax, string supportedType)
             {
                 this._document = document;
-                this._diagnostic = diagnostic;
                 this._parameterSyntax = parameterSyntax;
                 this._supportedType = supportedType;
             }

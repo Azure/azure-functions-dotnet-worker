@@ -112,7 +112,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
                 supportedTypes.AddRange(converterAttributes
                     .Where(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute)
-                    .SelectMany(a => a.ConstructorArguments.Select(arg => arg.Value))
+                    .Select(a => a.ConstructorArguments.FirstOrDefault().Value)
                     .ToList());
             }
 

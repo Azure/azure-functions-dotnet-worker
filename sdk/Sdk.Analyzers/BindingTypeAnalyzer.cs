@@ -2,19 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
-using System.Composition;
-using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Simplification;
-using System.Threading;
 using System.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
-using System;
 using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
@@ -53,7 +43,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
         }
 
-
         private static void AnalyzeParameter(SymbolAnalysisContext context, IParameterSymbol parameter)
         {
             foreach (var attribute in parameter.GetAttributes())
@@ -70,8 +59,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     continue;
                 }
 
-                var supportedTypes = GetSupportedTypes(context, inputConverterAttributes);
-                if (supportedTypes.Count <= 0)
+                var hasSupportedTypes = ConverterAdvertisesSupportedTypes(context, inputConverterAttributes);
+                if (!hasSupportedTypes)
                 {
                     continue;
                 }
@@ -88,31 +77,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 .ToList();
         }
 
-        private static List<object> GetSupportedTypes(SymbolAnalysisContext context, List<AttributeData> inputConverterAttributes)
+        private static bool ConverterAdvertisesSupportedTypes(SymbolAnalysisContext context, List<AttributeData> inputConverterAttributes)
         {
-            var supportedTypes = new List<object>();
-
-            foreach (var inputConverterAttribute in inputConverterAttributes)
-            {
-                var converterName = inputConverterAttribute.ConstructorArguments.FirstOrDefault().Value.ToString();
-                var converter = context.Compilation.GetTypeByMetadataName(converterName);
-
-                var converterAttributes = converter.GetAttributes();
-
-                var converterHasSupportedTypeAttribute = converterAttributes.Any(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute);
-                if (!converterHasSupportedTypeAttribute)
+            return inputConverterAttributes
+                .Select(inputConverterAttribute =>
                 {
-                    // If a converter does not have the `SupportedConverterTypeAttribute`, we don't need to check for supported types
-                    continue;
-                }
-
-                supportedTypes.AddRange(converterAttributes
-                    .Where(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute)
-                    .SelectMany(a => a.ConstructorArguments.Select(arg => arg.Value))
-                    .ToList());
-            }
-
-            return supportedTypes;
+                    var converterName = inputConverterAttribute.ConstructorArguments.FirstOrDefault().Value.ToString();
+                    var converter = context.Compilation.GetTypeByMetadataName(converterName);
+                    return converter.GetAttributes();
+                })
+                .Any(converters => converters.Any(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute));
         }
 
         private static void ReportDiagnostic(SymbolAnalysisContext context, IParameterSymbol parameter, ITypeSymbol attributeType)

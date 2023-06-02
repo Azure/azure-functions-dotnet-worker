@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Warning);
 
         public static DiagnosticDescriptor SupportedBindingType { get; }
-            = Create(id: "AZFW0011", title: "Supported binding types", messageFormat: "'{0}' supports other types.",
+            = Create(id: "AZFW0011", title: "Supported binding types", messageFormat: "'{0}' supports the following types.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Info);
     }
 }

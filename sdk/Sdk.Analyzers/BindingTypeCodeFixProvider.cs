@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using System;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 {
@@ -31,10 +32,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Diagnostic diagnostic = context.Diagnostics.First();
-
             TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
-            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
 
+            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             MethodDeclarationSyntax methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
 
             var parameters = methodDeclaration.ParameterList.Parameters;
@@ -67,11 +67,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     continue;
                 }
 
-                foreach (var supportedType in supportedTypes)
+                foreach (ITypeSymbol supportedType in supportedTypes)
                 {
+                    string name = supportedType.Name;
+
+                    if (String.IsNullOrEmpty(name))
+                    {
+                        if (supportedType.TypeKind == TypeKind.Array)
+                        {
+                            name = Regex.Match(supportedType.ToDisplayString(), @"(?<=\.)[^.]+$").Value;
+                        }
+                        else
+                        {
+                            name = Regex.Match(supportedType.ToDisplayString(), @"IEnumerable<[^>]+>").Value;
+                        }
+                    }
+
                     // Create a code action for each potential supported type
                     context.RegisterCodeFix(
-                        new SupportedBindingTypeCodeAction(context.Document, diagnostic, parameter, supportedType),
+                        new SupportedBindingTypeCodeAction(context.Document, diagnostic, parameter, name),
                         diagnostic);
                 }
             }
@@ -85,27 +99,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 .ToList();
         }
 
-        private static List<string> GetSupportedTypes(SemanticModel model, List<AttributeData> inputConverterAttributes)
+        private static List<ITypeSymbol> GetSupportedTypes(SemanticModel model, List<AttributeData> inputConverterAttributes)
         {
-            var supportedTypes = new List<string>();
+            var supportedTypes = new List<ITypeSymbol>();
 
             foreach (var inputConverterAttribute in inputConverterAttributes)
             {
                 var converterName = inputConverterAttribute.ConstructorArguments.FirstOrDefault().Value.ToString();
                 var converter = model.Compilation.GetTypeByMetadataName(converterName);
-
                 var converterAttributes = converter.GetAttributes();
-
-                var converterHasSupportedTypeAttribute = converterAttributes.Any(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute);
-                if (!converterHasSupportedTypeAttribute)
-                {
-                    // If a converter does not have the `SupportedConverterTypeAttribute`, we don't need to check for supported types
-                    continue;
-                }
 
                 supportedTypes.AddRange(converterAttributes
                     .Where(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute)
-                    .SelectMany(a => a.ConstructorArguments.Select(arg => arg.Value.ToString()))
+                    .Select(a => (ITypeSymbol) a.ConstructorArguments.FirstOrDefault().Value)
                     .ToList());
             }
 
@@ -140,8 +146,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             /// </summary>
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
+                SyntaxTrivia spaceTrivia = SyntaxFactory.Whitespace(" ");
+
                 TypeSyntax newTypeSyntax = SyntaxFactory.ParseTypeName(_supportedType);
-                ParameterSyntax newParameterSyntax = _parameterSyntax.WithType(newTypeSyntax);
+                ParameterSyntax newParameterSyntax = _parameterSyntax
+                    .WithType(newTypeSyntax)
+                    .WithIdentifier(_parameterSyntax.Identifier.WithLeadingTrivia(spaceTrivia));
 
                 SyntaxNode root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 SyntaxNode newRoot = root.ReplaceNode(_parameterSyntax, newParameterSyntax);

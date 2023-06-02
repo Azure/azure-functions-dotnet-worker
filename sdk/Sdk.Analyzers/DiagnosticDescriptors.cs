@@ -28,5 +28,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static DiagnosticDescriptor BindingTypeNotSupported{ get; }
             = Create(id: "AZFW0010", title: "Invalid binding type", messageFormat: "The binding type '{0}' is not supported by '{1}'.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Warning);
+
+        public static DiagnosticDescriptor SupportedBindingType { get; }
+            = Create(id: "AZFW0011", title: "Supported binding types", messageFormat: "'{0}' supports other types.",
+                category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Info);
     }
 }

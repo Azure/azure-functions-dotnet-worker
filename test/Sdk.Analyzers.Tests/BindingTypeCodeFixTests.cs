@@ -1,4 +1,4 @@
-using Xunit;
+﻿using Xunit;
 using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.BindingTypeAnalyzer, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using AnalyzerVerifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.BindingTypeAnalyzer>;
 using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.BindingTypeAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.BindingTypeCodeFixProvider, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
@@ -104,21 +104,21 @@ namespace Sdk.Analyzers.Tests
                     }}
                 }}";
 
-            string fixedCode = $@"
+            string fixedCode = @"
                 using System;
                 using Azure.Storage.Queues.Models;
                 using Microsoft.Azure.Functions.Worker;
 
                 namespace FunctionApp
-                {{
+                {
                     public static class SomeFunction
-                    {{
+                    {
                         [Function(nameof(SomeFunction))]
                         public static void Run([QueueTrigger(""input-queue"")] QueueMessage message)
-                        {{
-                        }}
-                    }}
-                }}";
+                        {
+                        }
+                    }
+                }";
 
             var test = new CodeFixTest
             {

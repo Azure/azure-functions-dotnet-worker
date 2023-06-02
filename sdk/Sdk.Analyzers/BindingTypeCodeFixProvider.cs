@@ -69,18 +69,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
                 foreach (ITypeSymbol supportedType in supportedTypes)
                 {
-                    string name = supportedType.Name;
+                    string name = supportedType.ToMinimalDisplayString(semanticModel, 0);
 
-                    if (String.IsNullOrEmpty(name))
+                    if (name.Contains("IEnumerable"))
                     {
-                        if (supportedType.TypeKind == TypeKind.Array)
-                        {
-                            name = Regex.Match(supportedType.ToDisplayString(), @"(?<=\.)[^.]+$").Value;
-                        }
-                        else
-                        {
-                            name = Regex.Match(supportedType.ToDisplayString(), @"IEnumerable<[^>]+>").Value;
-                        }
+                        name = Regex.Match(name, @"IEnumerable<[^>]+>").Value;
                     }
 
                     // Create a code action for each potential supported type

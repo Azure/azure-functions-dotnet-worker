@@ -163,6 +163,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 
         [Theory]
         [InlineData("BlobInputClientTest")]
+        [InlineData("BlobInputBlockClientTest")]
+        [InlineData("BlobInputAppendClientTest")]
+        [InlineData("BlobInputPageClientTest")]
+        [InlineData("BlobInputBaseClientTest")]
         [InlineData("BlobInputContainerClientTest")]
         [InlineData("BlobInputStreamTest")]
         [InlineData("BlobInputByteTest")]
@@ -210,10 +214,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Contains(expectedMessage, actualMessage);
         }
 
-        [Fact(Skip = "Collection support released in host version 4.16+")]
+        [Fact]
         public async Task BlobInput_BlobClientCollection_Succeeds()
         {
-            string expectedMessage = "testFile1, testFile2, testFile3";
+            string expectedMessage = "testFile1.txt, testFile2.txt, testFile3.txt";
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
 
             //Cleanup
@@ -230,10 +234,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 
             //Verify
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Contains(expectedMessage, actualMessage);
+            Assert.Equal(expectedMessage, actualMessage);
         }
 
-        [Fact(Skip = "Collection support released in host version 4.16+")]
+        [Fact]
         public async Task BlobInput_StringCollection_Succeeds()
         {
             string expectedMessage = "ABC, DEF, GHI";
@@ -248,15 +252,15 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile3", "GHI");
 
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputCollectionTest");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputStringArrayTest");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Contains(expectedMessage, actualMessage);
+            Assert.Equal(expectedMessage, actualMessage);
         }
 
-        [Fact(Skip = "Collection support released in host version 4.16+")]
+        [Fact]
         public async Task BlobInput_PocoCollection_Succeeds()
         {
             string book1 = $@"{{ ""id"": ""1"", ""name"": ""To Kill a Mockingbird""}}";
@@ -281,7 +285,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 
             //Verify
             Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Contains(expectedMessage, actualMessage);
+            Assert.Equal(expectedMessage, actualMessage);
         }
 
         public void Dispose()

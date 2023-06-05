@@ -95,7 +95,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 validatedRetryOptions = null;
 
                 if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
-                    || !TryGetParameterInputAndTriggerBindings(method, model, out bool retryOptionsValid, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
+                    || !TryGetParameterInputAndTriggerBindings(method, model, out bool supportsRetryOptions, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
                     || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
                 {
                     bindings = null;
@@ -110,9 +110,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 result.AddRange(returnTypeBindings);
                 bindings = result;
 
-                if (retryOptionsValid)
+                if (retryOptions is not null)
                 {
-                    validatedRetryOptions = retryOptions;
+                    if (supportsRetryOptions && retryOptions is not null)
+                    {
+                        validatedRetryOptions = retryOptions;
+                    }
+                    else if (!supportsRetryOptions && retryOptions is not null)
+                    {
+                        // TODO: Log retry options related diagnostic error here
+                    }
                 }
 
                 return true;
@@ -185,16 +192,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (TryGetAttributeProperties(attribute, null, out IDictionary<string, object?>? attrProperties))
                 {
-                    if (attrProperties is null)
-                    {
-                        //_context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
-                        return false;
-                    }
-
                     retryOptions = new GeneratorRetryOptions();
 
-                    // Would not expect this to fail since you can't add a retry attribute to a method without this
-                    if (attrProperties.TryGetValue(Constants.RetryConstants.MaxRetryCountKey, out object? maxRetryCount))
+                    // Would not expect this to fail since MaxRetryCount is a required value of a retry policy attribute
+                    if (attrProperties!.TryGetValue(Constants.RetryConstants.MaxRetryCountKey, out object? maxRetryCount))
                     {
                         retryOptions.MaxRetryCount = maxRetryCount!.ToString();
                     }
@@ -226,8 +227,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        //_context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
-
+                        // TODO: Diagnostic error for retry options parsing failure
                         return false;
                     }
                     
@@ -240,9 +240,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns input and trigger bindings found in the parameters of the Azure Function method.
             /// </summary>
-            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool retryOptionsValid, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool supportsRetryOptions, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
             {
-                retryOptionsValid = false;
+                supportsRetryOptions = false;
                 hasHttpTrigger = false;
                 bindingsList = new List<IDictionary<string, object>>();
 
@@ -312,7 +312,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 
                                 if (bindingCapabilities.Any(s => string.Equals(s.Values.FirstOrDefault().Value?.ToString(), Constants.BindingCapabilities.FunctionLevelRetry, StringComparison.OrdinalIgnoreCase)))
                                 {
-                                    retryOptionsValid = true;
+                                    supportsRetryOptions = true;
                                 }
                             }
 

@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -137,7 +139,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, false, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
@@ -192,6 +194,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
 
                             DataType dataType = GetDataType(parameterSymbol.Type);
+                            bool supportsDeferredBinding = false;
+
+                            if (SupportsDeferredBinding(attribute, parameter.Type))
+                            {
+                                supportsDeferredBinding = true;
+                                // var c = bindingAttrData.AttributeClass.GetAttributes();
+                            }
+
 
                             if (IsCardinalitySupported(attribute))
                             {
@@ -212,7 +222,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Identifier.ValueText;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, object>? bindingDict))
+                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), supportsDeferredBinding, out IDictionary<string, object>? bindingDict))
                             {
                                 bindingsList = null;
                                 return false;
@@ -229,6 +239,80 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private bool SupportsDeferredBinding(AttributeData attribute, TypeSyntax type)
+            {
+                var advertisedAttributes = attribute?.AttributeClass?.GetAttributes();
+
+                if (advertisedAttributes != null)
+                {
+                    foreach (var advertisedAttribute in advertisedAttributes)
+                    {
+                        if (string.Equals(advertisedAttribute.AttributeClass?.GetFullName(), Constants.Types.InputConverterAttributeType, StringComparison.Ordinal))
+                        {
+                            foreach (var converter in advertisedAttribute.ConstructorArguments)
+                            {
+                                if (DoesConverterSupportDeferredBinding(converter, type))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                return false;
+            }
+
+            private bool DoesConverterSupportDeferredBinding(TypedConstant converter, TypeSyntax type)
+            {
+                var typeReferenceCustomAttributes = converter.GetType().GetCustomAttributesData();
+
+                if (typeReferenceCustomAttributes is not null)
+                {
+                    bool converterAdvertisesDeferredBindingSupport = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+
+                    if (converterAdvertisesDeferredBindingSupport)
+                    {
+                        bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+
+                        if (!converterAdvertisesTypes)
+                        {
+                            // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
+                            return true;
+                        }
+
+                        return DoesConverterSupportTargetType(typeReferenceCustomAttributes, type);
+                    }
+                }
+
+
+                return false;
+            }
+
+            private bool DoesConverterSupportTargetType(IList<CustomAttributeData> customAttributes, TypeSyntax type)
+            {
+                // Parse attributes advertised by converter
+                foreach (CustomAttributeData attribute in customAttributes)
+                {
+                    if (string.Equals(attribute.AttributeType.FullName, Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                    {
+                        foreach (var element in attribute.ConstructorArguments)
+                        {
+                            if (string.Equals(element.ArgumentType.FullName, typeof(Type).FullName, StringComparison.Ordinal))
+                            {
+                                var supportedType = element.Value;
+
+                                if (supportedType is not null && string.Equals(supportedType.ToString(), type.ToString(), StringComparison.Ordinal))
+                                {
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return false;
             }
 
             /// <summary>
@@ -326,7 +410,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     return false;
                                 }
 
-                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
+                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), false, out IDictionary<string, object>? bindingDict))
                                 {
                                     bindingsList = null;
                                     return false;
@@ -368,7 +452,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return httpBinding;
             }
 
-            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings)
+            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, bool supportsDeferredBinding, out IDictionary<string, object>? bindings)
             {
                 // Get binding info as a dictionary with keys as the property name and value as the property value
                 if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object?>? attributeProperties))
@@ -393,6 +477,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     { "type", bindingType },
                     { "direction", bindingDirection }
                 };
+
+                if (supportsDeferredBinding) //(bindingAttrData, parameter.Type))
+                {
+                   // var c = bindingAttrData.AttributeClass.GetAttributes();
+                    bindings.Add("Properties", new Dictionary<string, string>() { { "SupportsDeferredBinding", "True" } });
+                }
 
                 // Add additional bindingInfo to the anonymous type because some functions have more properties than others
                 foreach (var prop in attributeProperties!) // attributeProperties won't be null here b/c we would've exited this method earlier if it was during TryGetAttributeProperties check

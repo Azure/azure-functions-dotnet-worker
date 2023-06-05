@@ -8,6 +8,7 @@ using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +27,50 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         public async Task<HttpResponseData> BlobInputClientTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/testFile.txt")] BlobClient client)
+        {
+            var downloadResult = await client.DownloadContentAsync();
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
+            return response;
+        }
+
+        [Function(nameof(BlobInputBlockClientTest))]
+        public async Task<HttpResponseData> BlobInputBlockClientTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] BlockBlobClient client)
+        {
+            var downloadResult = await client.DownloadContentAsync();
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
+            return response;
+        }
+
+        [Function(nameof(BlobInputAppendClientTest))]
+        public async Task<HttpResponseData> BlobInputAppendClientTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] AppendBlobClient client)
+        {
+            var downloadResult = await client.DownloadContentAsync();
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
+            return response;
+        }
+
+        [Function(nameof(BlobInputPageClientTest))]
+        public async Task<HttpResponseData> BlobInputPageClientTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] PageBlobClient client)
+        {
+            var downloadResult = await client.DownloadContentAsync();
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
+            return response;
+        }
+
+        [Function(nameof(BlobInputBaseClientTest))]
+        public async Task<HttpResponseData> BlobInputBaseClientTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] BlobBaseClient client)
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -100,7 +145,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteStringAsync(blobList.ToString());
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
             return response;
         }
 
@@ -110,7 +156,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [BlobInput("test-input-dotnet-isolated", IsBatched = true)] string[] blobContent)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteStringAsync(blobContent.ToString());
+            string contentAsString = string.Join(", ", blobContent);
+            await response.WriteStringAsync(contentAsString);
             return response;
         }
 
@@ -127,7 +174,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.WriteStringAsync(bookNames.ToString());
+            string contentAsString = string.Join(", ", bookNames.ToArray());
+            await response.WriteStringAsync(contentAsString);
             return response;
         }
     }

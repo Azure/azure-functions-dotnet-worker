@@ -14,5 +14,7 @@ namespace FunctionsNetHost.Grpc
         public string? RequestId { get; set; }
 
         public int GrpcMaxMessageLength { get; set; }
+
+        public override string ToString() => $"Host:{Host}, Port:{Port}, WorkerId:{WorkerId}, RequestId:{RequestId}, GrpcMaxMessageLength:{GrpcMaxMessageLength}";
     }
 }

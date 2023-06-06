@@ -127,7 +127,7 @@ namespace Microsoft.Azure.Functions.Worker
             return new GrpcHttpResponseData(FunctionContext, System.Net.HttpStatusCode.OK);
         }
 
-#if NET5_0
+#if NET5_0_OR_GREATER
         public ValueTask DisposeAsync()
         {
             return _bodyStream?.DisposeAsync() ?? ValueTask.CompletedTask;

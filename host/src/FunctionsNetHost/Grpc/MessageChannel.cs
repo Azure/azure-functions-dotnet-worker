@@ -47,7 +47,7 @@ namespace FunctionsNetHost.Grpc
         {
             await OutboundChannel.Writer.WriteAsync(outboundMessage);
         }
-        
+
         private static UnboundedChannelOptions CreateUnboundedChannelOptions()
         {
             return new UnboundedChannelOptions

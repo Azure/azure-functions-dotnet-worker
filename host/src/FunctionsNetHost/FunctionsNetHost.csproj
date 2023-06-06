@@ -16,7 +16,13 @@
   <PropertyGroup>
     <ExportsFile>$(MSBuildThisFileDirectory)exports.def</ExportsFile>
   </PropertyGroup>
-  
+
+  <!--Below is needed to tell linker to include our exported functions in net7.0.-->
+  <!--Use IlcExportUnmanagedEntrypoints when adopting .net8.0-->
+  <ItemGroup>
+    <CustomLinkerArg Include="-Wl,--export-dynamic" Condition=" '$([MSBuild]::IsOSPlatform(`Windows`))' == 'false' " />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.23.0" />
     <PackageReference Include="Grpc.Net.Client" Version="2.53.0" />
@@ -32,6 +38,5 @@
   <ItemGroup>
     <Protobuf Include="..\..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" ProtoRoot="..\..\..\protos\azure-functions-language-worker-protobuf\src\proto" GrpcServices="Client" Access="internal" />
   </ItemGroup>
-  
 
 </Project>

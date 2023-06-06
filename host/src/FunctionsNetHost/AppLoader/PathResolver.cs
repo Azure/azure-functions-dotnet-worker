@@ -14,7 +14,7 @@ namespace FunctionsNetHost
                 return _hostFxrPath;
             }
 #if LINUX
-            hostFxrPath = GetUnixHostFxrPath();
+            _hostFxrPath = GetUnixHostFxrPath();
 #else
             _hostFxrPath = FunctionsNetHost.PathResolver.GetWindowsHostFxrPath();
 #endif
@@ -34,12 +34,12 @@ namespace FunctionsNetHost
         /// <returns></returns>
         private static string GetLatestVersion(string hostFxrVersionsDirPath)
         {
-            var versions = Directory.GetDirectories(hostFxrVersionsDirPath,"*", SearchOption.TopDirectoryOnly);
+            var versions = Directory.GetDirectories(hostFxrVersionsDirPath, "*", SearchOption.TopDirectoryOnly);
             if (!ShouldUseDotNetPreviewVersions())
             {
                 versions = versions.Where(f => !f.Contains("-preview", StringComparison.OrdinalIgnoreCase)).ToArray();
             }
-            
+
             Array.Sort(versions);
             var latestVersion = Path.GetFileName(versions[^1]);
 
@@ -49,8 +49,8 @@ namespace FunctionsNetHost
         private static bool ShouldUseDotNetPreviewVersions()
         {
             var value = EnvironmentUtils.GetValue(EnvironmentSettingNames.UsePreviewNetSdk);
-            Logger.LogDebug($"{EnvironmentSettingNames.UsePreviewNetSdk} environment variable value:{value}");
-            
+            Logger.LogTrace($"{EnvironmentSettingNames.UsePreviewNetSdk} environment variable value:{value}");
+
             return !string.IsNullOrEmpty(value);
         }
     }

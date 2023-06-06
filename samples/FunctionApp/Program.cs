@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace FunctionApp
 {
@@ -21,10 +23,16 @@ namespace FunctionApp
                 .ConfigureFunctionsWorkerDefaults(builder =>
                 {
                     builder
-                        .AddApplicationInsights()
-                            // Configure the underlying ApplicationInsightsServiceOptions options
+                        .AddApplicationInsights(options =>
+                        {
+                            // Configure the underlying ApplicationInsightsServiceOptions
+                            options.EnableAdaptiveSampling = false;
+                        })
                         .AddApplicationInsightsLogger();
                 })
+                // Application Insights collects these ILogger logs, with a severity of Warning or above by default, and dependencies.
+                .ConfigureLogging(logging => logging
+                    .AddFilter<ApplicationInsightsLoggerProvider>(null, LogLevel.Information))
                 //</docsnippet_configure_defaults>
                 //<docsnippet_dependency_injection>
                 .ConfigureServices(s =>

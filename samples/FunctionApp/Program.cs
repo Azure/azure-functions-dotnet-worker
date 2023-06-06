@@ -22,6 +22,7 @@ namespace FunctionApp
                 {
                     builder
                         .AddApplicationInsights()
+                            // Configure the underlying ApplicationInsightsServiceOptions options
                         .AddApplicationInsightsLogger();
                 })
                 //</docsnippet_configure_defaults>

@@ -31,6 +31,7 @@ namespace FunctionApp
                         .AddApplicationInsightsLogger();
                 })
                 // Application Insights collects these ILogger logs, with a severity of Warning or above by default, and dependencies.
+                // https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service#ilogger-logs
                 .ConfigureLogging(logging => logging
                     .AddFilter<ApplicationInsightsLoggerProvider>(null, LogLevel.Information))
                 //</docsnippet_configure_defaults>

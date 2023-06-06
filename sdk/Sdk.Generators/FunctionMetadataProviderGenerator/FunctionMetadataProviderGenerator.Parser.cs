@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
@@ -199,7 +200,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             if (SupportsDeferredBinding(attribute, parameter.Type))
                             {
                                 supportsDeferredBinding = true;
-                                // var c = bindingAttrData.AttributeClass.GetAttributes();
                             }
 
 
@@ -266,15 +266,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool DoesConverterSupportDeferredBinding(TypedConstant converter, TypeSyntax type)
             {
-                var typeReferenceCustomAttributes = converter.GetType().GetCustomAttributesData();
+                var converterType = converter.Value as ITypeSymbol;
+                var typeReferenceCustomAttributes = converterType?.GetAttributes().ToList();
 
                 if (typeReferenceCustomAttributes is not null)
                 {
-                    bool converterAdvertisesDeferredBindingSupport = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+                    bool converterAdvertisesDeferredBindingSupport = typeReferenceCustomAttributes.Any(a => string.Equals(a.ToString(), Constants.Types.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
 
                     if (converterAdvertisesDeferredBindingSupport)
                     {
-                        bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+                        bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
 
                         if (!converterAdvertisesTypes)
                         {
@@ -286,26 +287,30 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-
                 return false;
             }
 
-            private bool DoesConverterSupportTargetType(IList<CustomAttributeData> customAttributes, TypeSyntax type)
+            private bool DoesConverterSupportTargetType(List<AttributeData> customAttributes, TypeSyntax type)
             {
                 // Parse attributes advertised by converter
-                foreach (CustomAttributeData attribute in customAttributes)
+                foreach (AttributeData attribute in customAttributes)
                 {
-                    if (string.Equals(attribute.AttributeType.FullName, Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                    if (string.Equals(attribute.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
                     {
                         foreach (var element in attribute.ConstructorArguments)
                         {
-                            if (string.Equals(element.ArgumentType.FullName, typeof(Type).FullName, StringComparison.Ordinal))
+                            if (string.Equals(element.Type?.GetFullName(), typeof(Type).FullName, StringComparison.Ordinal))
                             {
                                 var supportedType = element.Value;
 
-                                if (supportedType is not null && string.Equals(supportedType.ToString(), type.ToString(), StringComparison.Ordinal))
+                                var res = type.GetText().ToString().Trim();
+                                var i = supportedType?.ToString();
+                                if (supportedType is not null)
                                 {
-                                    return true;
+                                    if (i.Contains(res))
+                                    {
+                                        return true;
+                                    }
                                 }
                             }
                         }

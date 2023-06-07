@@ -73,6 +73,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
         /// </summary>
+        [DefaultValue(false)]
         public bool IsBatched
         {
             get => _isBatched;

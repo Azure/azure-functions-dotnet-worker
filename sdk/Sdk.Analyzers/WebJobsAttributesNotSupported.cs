@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class WebJobsAttributesNotSupported : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(DiagnosticDescriptors.WebJobsAttributesAreNotSupported); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.WebJobsAttributesAreNotSupported);
 
         public override void Initialize(AnalysisContext context)
         {

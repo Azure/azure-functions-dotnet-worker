@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         {
             Diagnostic diagnostic = context.Diagnostics.First();
             context.RegisterCodeFix(new VoidToTaskCodeAction(context.Document, diagnostic), diagnostic);
-            
+
             return Task.CompletedTask;
         }
 

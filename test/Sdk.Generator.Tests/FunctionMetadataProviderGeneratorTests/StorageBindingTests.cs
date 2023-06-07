@@ -332,7 +332,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {                
                             [Function("Function1")]
                             public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-                                [TableInput("TableName")] TableClient table)
+                                [TableInput("TableName")] IEnumerable<TableEntity> table)
                             {
                                 throw new NotImplementedException();
                             }

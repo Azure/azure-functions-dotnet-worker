@@ -197,7 +197,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             DataType dataType = GetDataType(parameterSymbol.Type);
                             bool supportsDeferredBinding = false;
 
-                            if (SupportsDeferredBinding(attribute, parameter.Type))
+                            if (parameter != null && SupportsDeferredBinding(attribute, parameterSymbol.Type.ToString()))
                             {
                                 supportsDeferredBinding = true;
                             }
@@ -241,7 +241,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool SupportsDeferredBinding(AttributeData attribute, TypeSyntax type)
+            private bool SupportsDeferredBinding(AttributeData attribute, string type)
             {
                 var advertisedAttributes = attribute?.AttributeClass?.GetAttributes();
 
@@ -264,7 +264,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            private bool DoesConverterSupportDeferredBinding(TypedConstant converter, TypeSyntax type)
+            private bool DoesConverterSupportDeferredBinding(TypedConstant converter, string type)
             {
                 var converterType = converter.Value as ITypeSymbol;
                 var typeReferenceCustomAttributes = converterType?.GetAttributes().ToList();
@@ -290,7 +290,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            private bool DoesConverterSupportTargetType(List<AttributeData> customAttributes, TypeSyntax type)
+            private bool DoesConverterSupportTargetType(List<AttributeData> customAttributes, string type)
             {
                 // Parse attributes advertised by converter
                 foreach (AttributeData attribute in customAttributes)
@@ -302,12 +302,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             if (string.Equals(element.Type?.GetFullName(), typeof(Type).FullName, StringComparison.Ordinal))
                             {
                                 var supportedType = element.Value;
-
-                                var res = type.GetText().ToString().Trim();
                                 var i = supportedType?.ToString();
                                 if (supportedType is not null)
                                 {
-                                    if (i.Contains(res))
+                                    if (string.Equals(i, type, StringComparison.Ordinal))
                                     {
                                         return true;
                                     }

@@ -43,9 +43,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             _mockBlobServiceClient = new Mock<BlobServiceClient>();
 
             var mockBlobOptions = new Mock<BlobStorageBindingOptions>();
-            mockBlobOptions
-                .Setup(m => m.CreateClient())
-                .Returns(_mockBlobServiceClient.Object);
+            mockBlobOptions.Object.Client = _mockBlobServiceClient.Object;
 
             var mockBlobOptionsSnapshot = new Mock<IOptionsSnapshot<BlobStorageBindingOptions>>();
             mockBlobOptionsSnapshot
@@ -803,6 +801,10 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public class Book
         {
             public string Name { get; set; }
+        }
+
+        public interface TMock
+        {
         }
     }
 }

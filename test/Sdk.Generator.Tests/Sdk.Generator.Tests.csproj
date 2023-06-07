@@ -39,6 +39,7 @@
     <ProjectReference Include="..\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj" />
     <ProjectReference Include="..\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
+      <ProjectReference Include="..\..\extensions\Worker.Extensions.ServiceBus\src\Worker.Extensions.ServiceBus.csproj" />
       <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />

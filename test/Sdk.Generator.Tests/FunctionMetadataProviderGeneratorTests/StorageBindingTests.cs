@@ -21,6 +21,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
+                var serviceBusExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var tableExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Tables.dll");
                 var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
@@ -29,6 +30,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var AzureTableExtension = Assembly.LoadFrom("Azure.Data.Tables.dll");
+                var AzureServiceBusExtension = Assembly.LoadFrom("Azure.Messaging.ServiceBus.dll");
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -42,7 +44,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     hostingAbExtension,
                     diExtension,
                     diAbExtension,
-                    AzureTableExtension
+                    AzureTableExtension,
+                    serviceBusExtension,
+                    AzureServiceBusExtension
                 };
             }
 
@@ -397,6 +401,132 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                     ScriptFile = "TestProject.dll"
                                 };
                                 metadataList.Add(Function1);
+
+                                return Task.FromResult(metadataList.ToImmutableArray());
+                            }
+                        }
+
+                        public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                        {
+                            ///<summary>
+                            /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                            /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                            ///</summary>
+                            public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                            {
+                                builder.ConfigureServices(s => 
+                                {
+                                    s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                                });
+                                return builder;
+                            }
+                        }
+                    }
+                    """;
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                        _referencedExtensionAssemblies,
+                        inputCode,
+                        expectedGeneratedFileName,
+                        expectedOutput);
+            }
+
+            [Fact]
+            public async void TestServiceBus()
+            {
+                string inputCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.Linq;
+                using System.Net;
+                using System.Text.Json.Serialization;
+                using Azure.Messaging.ServiceBus;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class BlobTest
+                    {                
+                        [Function("Function1")]
+                        public void Run([ServiceBusTrigger("queue", Connection = "ServiceBusConnection", IsBatched = false)] ServiceBusReceivedMessage message)
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        [Function(nameof(ServiceBusReceivedMessageBatchFunction))]
+                        public void ServiceBusReceivedMessageBatchFunction(
+                            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", IsBatched = true)] ServiceBusReceivedMessage[] messages)
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        [Function(nameof(ServiceBusReceivedMessageWithStringProperties))]
+                        public void ServiceBusReceivedMessageWithStringProperties(
+                            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", IsBatched = false)]
+                            ServiceBusReceivedMessage message, string messageId, int deliveryCount)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """;
+
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string? expectedOutput = """
+                    // <auto-generated/>
+                    using System;
+                    using System.Collections.Generic;
+                    using System.Collections.Immutable;
+                    using System.Text.Json;
+                    using System.Threading.Tasks;
+                    using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                    using Microsoft.Extensions.DependencyInjection;
+                    using Microsoft.Extensions.Hosting;
+
+                    namespace Microsoft.Azure.Functions.Worker
+                    {
+                        public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                        {
+                            public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                            {
+                                var metadataList = new List<IFunctionMetadata>();
+                                var Function0RawBindings = new List<string>();
+                                Function0RawBindings.Add(@"{""name"":""message"",""type"":""ServiceBusTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""queueName"":""queue"",""connection"":""ServiceBusConnection"",""cardinality"":""One""}");
+
+                                var Function0 = new DefaultFunctionMetadata
+                                {
+                                    Language = "dotnet-isolated",
+                                    Name = "Function1",
+                                    EntryPoint = "FunctionApp.BlobTest.Run",
+                                    RawBindings = Function0RawBindings,
+                                    ScriptFile = "TestProject.dll"
+                                };
+                                metadataList.Add(Function0);
+                                var Function1RawBindings = new List<string>();
+                                Function1RawBindings.Add(@"{""name"":""messages"",""type"":""ServiceBusTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""queueName"":""queue"",""connection"":""ServiceBusConnection"",""cardinality"":""Many""}");
+
+                                var Function1 = new DefaultFunctionMetadata
+                                {
+                                    Language = "dotnet-isolated",
+                                    Name = "ServiceBusReceivedMessageBatchFunction",
+                                    EntryPoint = "FunctionApp.BlobTest.ServiceBusReceivedMessageBatchFunction",
+                                    RawBindings = Function1RawBindings,
+                                    ScriptFile = "TestProject.dll"
+                                };
+                                metadataList.Add(Function1);
+                                var Function2RawBindings = new List<string>();
+                                Function2RawBindings.Add(@"{""name"":""message"",""type"":""ServiceBusTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""queueName"":""queue"",""connection"":""ServiceBusConnection"",""cardinality"":""One""}");
+
+                                var Function2 = new DefaultFunctionMetadata
+                                {
+                                    Language = "dotnet-isolated",
+                                    Name = "ServiceBusReceivedMessageWithStringProperties",
+                                    EntryPoint = "FunctionApp.BlobTest.ServiceBusReceivedMessageWithStringProperties",
+                                    RawBindings = Function2RawBindings,
+                                    ScriptFile = "TestProject.dll"
+                                };
+                                metadataList.Add(Function2);
 
                                 return Task.FromResult(metadataList.ToImmutableArray());
                             }

@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var builder = new StringBuilder();
 
-                if (string.Equals(retry?.Strategy, Constants.RetryConstants.FixedDelayRetryName, StringComparison.OrdinalIgnoreCase))
+                if (retry?.Strategy is RetryStrategy.FixedDelay)
                 {
                     builder.AppendLine($$"""
                                     Retry = new DefaultRetryOptions
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     },
                     """);
                 }
-                else if (string.Equals(retry?.Strategy, Constants.RetryConstants.ExponentialBackoffRetryName, StringComparison.OrdinalIgnoreCase))
+                else if (retry?.Strategy is RetryStrategy.ExponentialBackoff)
                 {
                     builder.AppendLine($$"""
                                     Retry = new DefaultRetryOptions
@@ -142,6 +142,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     },
                      """);
                 }
+
                 return builder;
             }
         }

@@ -203,7 +203,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     // Check which strategy is being used by checking the attribute class
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.FixedDelayRetryAttribute))
                     {
-                        retryOptions.Strategy = Constants.RetryConstants.FixedDelayRetryName;
+                        retryOptions.Strategy = RetryStrategy.FixedDelay;
 
                         if (attrProperties.TryGetValue(Constants.RetryConstants.DelayIntervalKey, out object? delayInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
                         {
@@ -213,7 +213,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.ExponentialBackoffRetryAttribute))
                     {
-                        retryOptions.Strategy = Constants.RetryConstants.ExponentialBackoffRetryName;
+                        retryOptions.Strategy = RetryStrategy.ExponentialBackoff;
 
                         if (attrProperties.TryGetValue(Constants.RetryConstants.MinimumIntervalKey, out object? minimumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
                         {

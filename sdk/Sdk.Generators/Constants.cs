@@ -51,8 +51,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         internal static class RetryConstants
         {
-            internal const string FixedDelayRetryName = "fixedDelay";
-            internal const string ExponentialBackoffRetryName = "exponentialBackoff";
             internal const string MaxRetryCountKey = "maxRetryCount";
             internal const string MinimumIntervalKey = "minimumInterval";
             internal const string MaximumIntervalKey = "maximumInterval";

@@ -5,7 +5,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal class GeneratorRetryOptions
     {
-        public string? Strategy { get; set; }
+        public RetryStrategy Strategy { get; set; }
 
         public string? MaxRetryCount { get; set; }
 

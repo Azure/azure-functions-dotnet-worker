@@ -15,7 +15,6 @@ namespace Microsoft.Azure.Functions.Worker
     [InputConverter(typeof(EventGridBinaryDataConverter))]
     [InputConverter(typeof(EventGridBinaryDataArrayConverter))]
     [InputConverter(typeof(EventGridStringArrayConverter))]
-    [InputConverter(typeof(EventGridJObjectConverter))]
     public sealed class EventGridTriggerAttribute : TriggerBindingAttribute
     {
         private bool _isBatched = false;

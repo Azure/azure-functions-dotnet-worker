@@ -9,8 +9,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public sealed class AsyncVoidAnalyzer : DiagnosticAnalyzer
-    {    
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.AsyncVoidReturnType);
+    {
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.AsyncVoidReturnType);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             if (symbol.IsAsync && symbol.ReturnsVoid)
             {
                 // This symbol is a method symbol and will have only one item in Locations property.
-                var location = symbol.Locations[0]; 
+                var location = symbol.Locations[0];
                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.AsyncVoidReturnType, location);
                 symbolAnalysisContext.ReportDiagnostic(diagnostic);
             }

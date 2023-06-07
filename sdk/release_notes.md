@@ -8,9 +8,9 @@
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
 
-- <entry>
+- Added an analyzer that will show a warning for types not supported by a binding attribute (#1505)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version> (delete if not updated)
 

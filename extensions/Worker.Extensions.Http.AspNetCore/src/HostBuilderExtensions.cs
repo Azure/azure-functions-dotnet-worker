@@ -20,9 +20,9 @@ namespace Microsoft.Extensions.Hosting
         /// </summary>
         /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
         /// <returns>The same instance of the <see cref="IHostBuilder"/> for chaining.</returns>
-        public static IHostBuilder ConfigureWebFunctionsWorker(this IHostBuilder builder)
+        public static IHostBuilder ConfigureFunctionsWebApplication(this IHostBuilder builder)
         {
-            return builder.ConfigureWebFunctionsWorker(_ => { });
+            return builder.ConfigureFunctionsWebApplication(_ => { });
         }
 
         /// <summary>
@@ -31,7 +31,7 @@ namespace Microsoft.Extensions.Hosting
         /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
         /// <param name="configureWorker">The worker configure callback.</param>
         /// <returns>The same instance of the <see cref="IHostBuilder"/> for chaining.</returns>
-        public static IHostBuilder ConfigureWebFunctionsWorker(this IHostBuilder builder, Action<IFunctionsWorkerApplicationBuilder> configureWorker)
+        public static IHostBuilder ConfigureFunctionsWebApplication(this IHostBuilder builder, Action<IFunctionsWorkerApplicationBuilder> configureWorker)
         {
             builder.ConfigureFunctionsWorkerDefaults(workerAppBuilder =>
             {

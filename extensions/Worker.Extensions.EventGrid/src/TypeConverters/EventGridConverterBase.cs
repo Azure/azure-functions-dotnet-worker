@@ -2,13 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
@@ -33,28 +29,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                 return false;
             }
 
-            if (!(context.Source is ModelBindingData bindingData))
-            {
-                return false;
-            }
-
-            if (bindingData.Source is not Constants.EventGridExtensionName)
-            {
-                return false;
-            }
-
             return true;
         }
 
         public abstract ValueTask<ConversionResult> ConvertAsync(ConverterContext context);
-
-        protected Dictionary<string, string> GetBindingDataContent(ModelBindingData? bindingData)
-        {
-            return bindingData?.ContentType switch
-            {
-                Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
-            };
-        }
     }
 }

@@ -2,21 +2,21 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Text.Json;
+using System.Collections.Generic;
 using System.Threading.Tasks;
-using Azure.Messaging;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     /// <summary>
-    /// Converter to bind to CloudEvent parameter.
+    /// Converter to bind to string[] parameter.
     /// </summary>
-    [SupportedConverterType(typeof(CloudEvent))]
-    internal class EventGridCloudEventConverter: EventGridConverterBase<CloudEvent>
+    [SupportedConverterType(typeof(string[]))]
+    internal class EventGridStringArrayConverter : EventGridConverterBase<string[]>
     {
-        public EventGridCloudEventConverter(ILogger<EventGridCloudEventConverter> logger)
+        public EventGridStringArrayConverter(ILogger<EventGridStringArrayConverter> logger)
             : base(logger)
         {
         }
@@ -33,8 +33,21 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is not null)
                 {
-                    var cloudEvent = JsonSerializer.Deserialize<CloudEvent>(contextSource);
-                    return new(ConversionResult.Success(cloudEvent));
+                    var jsonData = JsonConvert.DeserializeObject<List<object>>(contextSource);
+                    List<string> stringList = new List<string>();
+
+                    if (jsonData is not null)
+                    {
+                        foreach (var item in jsonData)
+                        {
+                            if (item is not null)
+                            {
+                                var data = JsonConvert.SerializeObject(item);
+                                stringList.Add(data);
+                            }
+                        }
+                        return new(ConversionResult.Success(stringList.ToArray()));
+                    }
                 }
             }
             catch (Exception ex)

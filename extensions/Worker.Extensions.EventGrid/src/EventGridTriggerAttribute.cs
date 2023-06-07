@@ -9,7 +9,26 @@ namespace Microsoft.Azure.Functions.Worker
 {
     [AllowConverterFallback(true)]
     [InputConverter(typeof(EventGridCloudEventConverter))]
+    [InputConverter(typeof(EventGridMultipleCloudEventConverter))]
+    [InputConverter(typeof(EventGridEventConverter))]
+    [InputConverter(typeof(EventGridEventArrayConverter))]
+    [InputConverter(typeof(EventGridBinaryDataConverter))]
+    [InputConverter(typeof(EventGridBinaryDataArrayConverter))]
+    [InputConverter(typeof(EventGridStringArrayConverter))]
+    [InputConverter(typeof(EventGridJObjectConverter))]
     public sealed class EventGridTriggerAttribute : TriggerBindingAttribute
     {
+        private bool _isBatched = false;
+
+        /// <summary>
+        /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
+        /// </summary>
+        [DefaultValue(false)]
+        public bool IsBatched
+        {
+            get => _isBatched;
+            set => _isBatched = value;
+        }
+
     }
 }

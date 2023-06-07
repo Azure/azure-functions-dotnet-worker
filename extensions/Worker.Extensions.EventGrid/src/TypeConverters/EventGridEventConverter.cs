@@ -4,19 +4,19 @@
 using System;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Azure.Messaging;
+using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     /// <summary>
-    /// Converter to bind to CloudEvent parameter.
+    /// Converter to bind to EventGridEvent parameter.
     /// </summary>
-    [SupportedConverterType(typeof(CloudEvent))]
-    internal class EventGridCloudEventConverter: EventGridConverterBase<CloudEvent>
+    [SupportedConverterType(typeof(EventGridEvent))]
+    internal class EventGridEventConverter : EventGridConverterBase<EventGridEvent>
     {
-        public EventGridCloudEventConverter(ILogger<EventGridCloudEventConverter> logger)
+        public EventGridEventConverter(ILogger<EventGridEventConverter> logger)
             : base(logger)
         {
         }
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is not null)
                 {
-                    var cloudEvent = JsonSerializer.Deserialize<CloudEvent>(contextSource);
+                    var cloudEvent = JsonSerializer.Deserialize<EventGridEvent>(contextSource);
                     return new(ConversionResult.Success(cloudEvent));
                 }
             }

@@ -13,10 +13,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     /// <summary>
     /// Converter to bind to CloudEvent parameter.
     /// </summary>
-    [SupportedConverterType(typeof(CloudEvent))]
-    internal class EventGridCloudEventConverter: EventGridConverterBase<CloudEvent>
+    [SupportedConverterType(typeof(CloudEvent[]))]
+    internal class EventGridMultipleCloudEventConverter : EventGridConverterBase<CloudEvent[]>
     {
-        public EventGridCloudEventConverter(ILogger<EventGridCloudEventConverter> logger)
+        public EventGridMultipleCloudEventConverter(ILogger<EventGridMultipleCloudEventConverter> logger)
             : base(logger)
         {
         }
@@ -33,8 +33,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is not null)
                 {
-                    var cloudEvent = JsonSerializer.Deserialize<CloudEvent>(contextSource);
-                    return new(ConversionResult.Success(cloudEvent));
+                    var cloudEvents = JsonSerializer.Deserialize<CloudEvent[]>(contextSource);
+                    
+                    return new(ConversionResult.Success(cloudEvents));
                 }
             }
             catch (Exception ex)

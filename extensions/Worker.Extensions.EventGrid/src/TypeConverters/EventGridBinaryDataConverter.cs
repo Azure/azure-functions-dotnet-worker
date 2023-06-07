@@ -2,21 +2,19 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Text.Json;
 using System.Threading.Tasks;
-using Azure.Messaging;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     /// <summary>
-    /// Converter to bind to CloudEvent parameter.
+    /// Converter to bind to BinaryData parameter.
     /// </summary>
-    [SupportedConverterType(typeof(CloudEvent))]
-    internal class EventGridCloudEventConverter: EventGridConverterBase<CloudEvent>
+    [SupportedConverterType(typeof(BinaryData))]
+    internal class EventGridBinaryDataConverter : EventGridConverterBase<BinaryData>
     {
-        public EventGridCloudEventConverter(ILogger<EventGridCloudEventConverter> logger)
+        public EventGridBinaryDataConverter(ILogger<EventGridBinaryDataConverter> logger)
             : base(logger)
         {
         }
@@ -33,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is not null)
                 {
-                    var cloudEvent = JsonSerializer.Deserialize<CloudEvent>(contextSource);
+                    var cloudEvent = BinaryData.FromObjectAsJson<string>(contextSource);
                     return new(ConversionResult.Success(cloudEvent));
                 }
             }

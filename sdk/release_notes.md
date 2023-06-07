@@ -11,6 +11,7 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
 
 - Add analyzer for SupportsDeferredBindingAttribute #1367
+- Added an analyzer that will show a warning for types not supported by a binding attribute (#1505)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

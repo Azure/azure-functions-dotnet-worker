@@ -197,11 +197,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             DataType dataType = GetDataType(parameterSymbol.Type);
                             bool supportsDeferredBinding = false;
 
-                            if (parameter != null && SupportsDeferredBinding(attribute, parameterSymbol.Type.ToString()))
+                            if (SupportsDeferredBinding(attribute, parameterSymbol.Type.ToString()))
                             {
                                 supportsDeferredBinding = true;
                             }
-
 
                             if (IsCardinalitySupported(attribute))
                             {

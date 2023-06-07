@@ -20,7 +20,7 @@
   <!--Below is needed to tell linker to include our exported functions in net7.0.-->
   <!--Use IlcExportUnmanagedEntrypoints when adopting .net8.0-->
   <ItemGroup>
-    <CustomLinkerArg Include="-Wl,--export-dynamic" Condition=" '$([MSBuild]::IsOSPlatform(`Windows`))' == 'false' " />
+    <CustomLinkerArg Include="-Wl,--export-dynamic" />
   </ItemGroup>
 
   <ItemGroup>
@@ -33,6 +33,7 @@
     </PackageReference>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
     <PackageReference Include="System.Text.Json" Version="7.0.2" />
+    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="7.0.5" />
   </ItemGroup>
 
   <ItemGroup>

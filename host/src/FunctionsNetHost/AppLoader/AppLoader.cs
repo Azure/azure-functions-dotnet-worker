@@ -25,7 +25,7 @@ namespace FunctionsNetHost
             // In Unix environment, you need to run the below command in the terminal to set the environment variable.
             // export COREHOST_TRACE=1
 
-            var hostfxrFullPath = PathResolver.GetHostFxrPath();
+            var hostfxrFullPath = NetHost.GetHostFxrPath();
             Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
 
             _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
@@ -68,6 +68,7 @@ namespace FunctionsNetHost
                     return error;
                 }
 
+                Logger.LogTrace($"hostfxr initialized with {assemblyPath}");
                 HostFxr.SetAppContextData(hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
 
                 return HostFxr.Run(hostContextHandle);

@@ -140,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, false, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, supportsDeferredBinding: false, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
@@ -240,9 +240,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool SupportsDeferredBinding(AttributeData attribute, string type)
+            private bool SupportsDeferredBinding(AttributeData bindingAttribute, string bindingType)
             {
-                var advertisedAttributes = attribute?.AttributeClass?.GetAttributes();
+                var advertisedAttributes = bindingAttribute?.AttributeClass?.GetAttributes();
 
                 if (advertisedAttributes != null)
                 {
@@ -252,7 +252,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         {
                             foreach (var converter in advertisedAttribute.ConstructorArguments)
                             {
-                                if (DoesConverterSupportDeferredBinding(converter, type))
+                                if (DoesConverterSupportDeferredBinding(converter, bindingType))
                                 {
                                     return true;
                                 }
@@ -263,18 +263,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            private bool DoesConverterSupportDeferredBinding(TypedConstant converter, string type)
+            private bool DoesConverterSupportDeferredBinding(TypedConstant converter, string bindingType)
             {
                 var converterType = converter.Value as ITypeSymbol;
-                var typeReferenceCustomAttributes = converterType?.GetAttributes().ToList();
+                var converterAdvertisedAttributes = converterType?.GetAttributes().ToList();
 
-                if (typeReferenceCustomAttributes is not null)
+                if (converterAdvertisedAttributes is not null)
                 {
-                    bool converterAdvertisesDeferredBindingSupport = typeReferenceCustomAttributes.Any(a => string.Equals(a.ToString(), Constants.Types.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
+                    bool converterAdvertisesDeferredBindingSupport = converterAdvertisedAttributes.Any(a => string.Equals(a.ToString(), Constants.Types.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
 
                     if (converterAdvertisesDeferredBindingSupport)
                     {
-                        bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+                        bool converterAdvertisesTypes = converterAdvertisedAttributes.Any(a => string.Equals(a.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
 
                         if (!converterAdvertisesTypes)
                         {
@@ -282,33 +282,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             return true;
                         }
 
-                        return DoesConverterSupportTargetType(typeReferenceCustomAttributes, type);
+                        return DoesConverterSupportTargetType(converterAdvertisedAttributes, bindingType);
                     }
                 }
 
                 return false;
             }
 
-            private bool DoesConverterSupportTargetType(List<AttributeData> customAttributes, string type)
+            private bool DoesConverterSupportTargetType(List<AttributeData> converterAdvertisedAttributes, string bindingType)
             {
-                // Parse attributes advertised by converter
-                foreach (AttributeData attribute in customAttributes)
+                foreach (AttributeData attribute in converterAdvertisedAttributes)
                 {
                     if (string.Equals(attribute.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
                     {
                         foreach (var element in attribute.ConstructorArguments)
                         {
-                            if (string.Equals(element.Type?.GetFullName(), typeof(Type).FullName, StringComparison.Ordinal))
+                            if (string.Equals(element.Type?.GetFullName(), typeof(Type).FullName, StringComparison.Ordinal)
+                                && string.Equals(element.Value?.ToString(), bindingType, StringComparison.Ordinal))
                             {
-                                var supportedType = element.Value;
-                                var i = supportedType?.ToString();
-                                if (supportedType is not null)
-                                {
-                                    if (string.Equals(i, type, StringComparison.Ordinal))
-                                    {
-                                        return true;
-                                    }
-                                }
+                                return true;
                             }
                         }
                     }
@@ -412,7 +404,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     return false;
                                 }
 
-                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), false, out IDictionary<string, object>? bindingDict))
+                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), supportsDeferredBinding: false, out IDictionary<string, object>? bindingDict))
                                 {
                                     bindingsList = null;
                                     return false;
@@ -480,10 +472,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     { "direction", bindingDirection }
                 };
 
-                if (supportsDeferredBinding) //(bindingAttrData, parameter.Type))
+                if (supportsDeferredBinding)
                 {
-                   // var c = bindingAttrData.AttributeClass.GetAttributes();
-                    bindings.Add("Properties", new Dictionary<string, string>() { { "SupportsDeferredBinding", "True" } });
+                    bindings.Add("properties", new Dictionary<string, string>() { { "SupportsDeferredBinding", "True" } });
                 }
 
                 // Add additional bindingInfo to the anonymous type because some functions have more properties than others

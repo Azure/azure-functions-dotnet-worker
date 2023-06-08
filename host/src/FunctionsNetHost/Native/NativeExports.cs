@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
-using FunctionsNetHost.Grpc;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost
 {
@@ -32,14 +30,16 @@ namespace FunctionsNetHost
 
         [UnmanagedCallersOnly(EntryPoint = "register_callbacks")]
         public static unsafe int RegisterCallbacks(IntPtr pInProcessApplication,
-                                                delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
+            delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
             IntPtr grpcHandler)
         {
             Logger.LogTrace("NativeExports.RegisterCallbacks method invoked.");
 
             try
             {
-                NativeHostApplication.Instance.SetCallbackHandles(requestCallback, grpcHandler);
+                var nativeHostApplication = GCHandle.FromIntPtr(pInProcessApplication).Target as NativeHostApplication;
+                nativeHostApplication!.SetCallbackHandles(requestCallback, grpcHandler);
+
                 return 1;
             }
             catch (Exception ex)
@@ -50,16 +50,15 @@ namespace FunctionsNetHost
         }
 
         [UnmanagedCallersOnly(EntryPoint = "send_streaming_message")]
-        public static unsafe int SendStreamingMessage(IntPtr pInProcessApplication, byte* streamingMessage, int streamingMessageSize)
+        public static unsafe int SendStreamingMessage(IntPtr pInProcessApplication, byte* streamingMessage,
+            int streamingMessageSize)
         {
             Logger.LogTrace($"NativeExports.SendStreamingMessage method invoked.");
 
             try
             {
-                var span = new ReadOnlySpan<byte>(streamingMessage, streamingMessageSize);
-                var outboundMessageToHost = StreamingMessage.Parser.ParseFrom(span);
-
-                _ = MessageChannel.Instance.SendOutboundAsync(outboundMessageToHost);
+                var nativeHostApplication = GCHandle.FromIntPtr(pInProcessApplication).Target as NativeHostApplication;
+                nativeHostApplication!.SendOutgoingMessage(streamingMessage, streamingMessageSize);
 
                 return 1;
             }

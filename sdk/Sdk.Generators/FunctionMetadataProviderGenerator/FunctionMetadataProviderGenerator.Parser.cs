@@ -194,6 +194,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             DataType dataType = GetDataType(parameterSymbol.Type);
 
+                            var cardinalityValidated = false;
+
                             if (IsCardinalitySupported(attribute))
                             {
                                 DataType updatedDataType = DataType.Undefined;
@@ -209,6 +211,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 // ex. IList<String> would be evaluated as "Undefined" by the call to GetDataType
                                 // but it would be correctly evaluated as "String" during the call to IsCardinalityValid which parses iterable collections
                                 dataType = updatedDataType;
+                                cardinalityValidated = true;
                             }
 
                             string bindingName = parameter.Identifier.ValueText;
@@ -217,6 +220,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 bindingsList = null;
                                 return false;
+                            }
+
+                            // If cardinality is supported and validated, but was not found in named args, constructor args, or default value attributes
+                            // default to Cardinality: One to stay in sync with legacy generator.
+                            if (cardinalityValidated && !bindingDict!.Keys.Contains("cardinality"))
+                            {
+                               bindingDict!.Add("cardinality", "One");
                             }
 
                             if (dataType is not DataType.Undefined)
@@ -643,8 +653,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            ///
-            public bool IsIterableCollection(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, out DataType dataType)
+            /// <summary>
+            /// Checks if a paramter is an iterable collection.
+            /// </summary>
+            private bool IsIterableCollection(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, out DataType dataType)
             {
                 dataType = DataType.Undefined;
 

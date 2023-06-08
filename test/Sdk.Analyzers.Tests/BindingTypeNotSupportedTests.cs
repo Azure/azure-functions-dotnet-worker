@@ -289,23 +289,23 @@ namespace Sdk.Analyzers.Tests
         }
 
         [Theory]
-        [InlineData("string")]
-        [InlineData("ToDoItem")]
-        [InlineData("QueueMessage")]
-        [InlineData("BinaryData")]
-        public async Task QueueTriggerAttribute_ValidBindingTypes_DiagnosticsNotExpected(string supportedType)
+        [InlineData("TableClient")]
+        [InlineData("TableEntity")]
+        public async Task TableInputAttribute_ValidBindingTypes_DiagnosticsNotExpected(string supportedType)
         {
             string testCode = $@"
                 using System;
-                using Azure.Storage.Queues.Models;
+                using Azure.Data.Tables;
                 using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
 
                 namespace FunctionApp
                 {{
                     public static class SomeFunction
                     {{
                         [Function(nameof(SomeFunction))]
-                        public static void Run([QueueTrigger(""input-queue"")] {supportedType} message)
+                        public static void Run([HttpTrigger(AuthorizationLevel.Anonymous, ""get"")] HttpRequestData req,
+                        [TableInput(""input"")] {supportedType} message)
                         {{
                         }}
                     }}
@@ -323,7 +323,8 @@ namespace Sdk.Analyzers.Tests
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
                                         ImmutableArray.Create(
                                             new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues", "5.1.0-dev638205624203226170-local")
+                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.13"),
+                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Tables", "1.2.0-preview1")
                                         )),
                 TestCode = testCode
             };

@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        internal virtual async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
+        private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
             if (!IsBlobExtension(modelBindingData))
             {
@@ -71,7 +71,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ConversionResult.Unhandled();
         }
 
-        internal virtual async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
+        private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
             var blobCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
             Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        internal bool IsBlobExtension(ModelBindingData bindingData)
+        private bool IsBlobExtension(ModelBindingData bindingData)
         {
             if (bindingData?.Source is not Constants.BlobExtensionName)
             {
@@ -116,30 +116,35 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        internal Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
+        private Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only {Constants.JsonContentType} is supported.")
+                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
             };
         }
 
-        internal virtual async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
+        private async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
         {
             content.TryGetValue(Constants.Connection, out var connectionName);
             content.TryGetValue(Constants.ContainerName, out var containerName);
             content.TryGetValue(Constants.BlobName, out var blobName);
 
-            if (string.IsNullOrEmpty(connectionName) || string.IsNullOrEmpty(containerName))
+            if (string.IsNullOrEmpty(connectionName))
             {
-                throw new ArgumentNullException("'Connection' and 'ContainerName' cannot be null or empty");
+                throw new ArgumentNullException(nameof(connectionName));
+            }
+
+            if (string.IsNullOrEmpty(containerName))
+            {
+                throw new ArgumentNullException(nameof(containerName));
             }
 
             return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);
         }
 
-        internal virtual async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
+        private async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
         {
             Type _ when targetType == typeof(String) => await GetBlobStringAsync(connectionName, containerName, blobName),
             Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(connectionName, containerName, blobName),
@@ -153,13 +158,13 @@ namespace Microsoft.Azure.Functions.Worker
             _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
         };
 
-        internal async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
+        private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
         {
             var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
         }
 
-        internal object? ToTargetTypeCollection(IEnumerable<object> blobCollection, string methodName, Type type)
+        private object? ToTargetTypeCollection(IEnumerable<object> blobCollection, string methodName, Type type)
         {
             blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
             MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
@@ -168,44 +173,39 @@ namespace Microsoft.Azure.Functions.Worker
             return genericMethod.Invoke(null, new[] { blobCollection.ToList() });
         }
 
-        internal static T[] CloneToArray<T>(IList<object> source)
+        private static T[] CloneToArray<T>(IList<object> source)
         {
             return source.Cast<T>().ToArray();
         }
 
-        internal static IEnumerable<T> CloneToList<T>(IList<object> source)
+        private static IEnumerable<T> CloneToList<T>(IList<object> source)
         {
             return source.Cast<T>();
         }
 
-        internal virtual async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
+        private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
-            return await GetBlobContentStringAsync(client);
-        }
-
-        private async Task<string> GetBlobContentStringAsync(BlobClient client)
-        {
             var download = await client.DownloadContentAsync();
             return download.Value.Content.ToString();
         }
 
-        internal virtual async Task<Byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
+        private async Task<Byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
         {
             using MemoryStream stream = new();
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
-            await client.DownloadToAsync(stream);
+            var res = await client.DownloadToAsync(stream);
             return stream.ToArray();
         }
 
-        internal virtual async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
+        private async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
             var download = await client.DownloadStreamingAsync();
             return download.Value.Content;
         }
 
-        internal virtual BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
+        private BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
         {
             var blobStorageOptions = _blobOptions.Get(connectionName);
             BlobServiceClient blobServiceClient = blobStorageOptions.CreateClient();
@@ -213,7 +213,7 @@ namespace Microsoft.Azure.Functions.Worker
             return container;
         }
 
-        internal virtual T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
+        private T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
         {
             if (string.IsNullOrEmpty(blobName))
             {

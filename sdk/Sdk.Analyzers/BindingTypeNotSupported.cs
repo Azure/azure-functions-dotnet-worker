@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class BindingTypeNotSupported : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get { return ImmutableArray.Create(DiagnosticDescriptors.BindingTypeNotSupported); } }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.BindingTypeNotSupported);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -32,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
             var methodParameters = method.Parameters;
 
-            if (method.Parameters.Length == 0)
+            if (method.Parameters.Length <= 0)
             {
                 return;
             }
@@ -54,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 }
 
                 var inputConverterAttributes = GetInputConverterAttributes(context, attributeType);
-                if (inputConverterAttributes.Count == 0)
+                if (inputConverterAttributes.Count <= 0)
                 {
                     continue;
                 }
@@ -81,14 +82,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         {
             var inputConverterAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttribute);
             return attributeType.GetAttributes()
-                .Where(attr => attr.AttributeClass.Equals(inputConverterAttributeType))
+                .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, inputConverterAttributeType))
                 .ToList();
         }
 
         private static object GetAllowConverterFallbackParameterValue(SymbolAnalysisContext context, ITypeSymbol attributeType)
         {
             var allowConverterFallbackAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.AllowConverterFallbackAttribute);
-            var allowConverterFallbackAttribute = attributeType.GetAttributes().FirstOrDefault(attr => attr.AttributeClass.Equals(allowConverterFallbackAttributeType));
+            var allowConverterFallbackAttribute = attributeType.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, allowConverterFallbackAttributeType));
             return allowConverterFallbackAttribute.ConstructorArguments.FirstOrDefault().Value;
         }
 
@@ -103,7 +104,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
                 var converterAttributes = converter.GetAttributes();
 
-                var converterHasSupportedTypeAttribute = converterAttributes.Any(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute);
+                var supportedConverterTypeAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttribute);
+                var converterHasSupportedTypeAttribute = converterAttributes.Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedConverterTypeAttributeType));
                 if (!converterHasSupportedTypeAttribute)
                 {
                     // If a converter does not have the `SupportedConverterTypeAttribute`, we don't need to check for supported types
@@ -111,8 +113,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 }
 
                 supportedTypes.AddRange(converterAttributes
-                    .Where(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute)
-                    .Select(a => a.ConstructorArguments.FirstOrDefault().Value)
+                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedConverterTypeAttributeType))
+                    .SelectMany(a => a.ConstructorArguments.Select(arg => arg.Value))
                     .ToList());
             }
 

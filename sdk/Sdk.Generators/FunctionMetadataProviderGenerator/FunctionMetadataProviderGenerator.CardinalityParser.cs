@@ -16,6 +16,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private readonly KnownFunctionMetadataTypes _knownFunctionMetadataTypes;
             private DataTypeParser _dataTypeParser;
 
+            /// <summary>
+            /// Provides support for validating and parsing cardinality scenarios when generating function metadata.
+            /// </summary>
+            /// <param name="knownTypes">A collection of known types, used for symbol comparison.</param>
+            /// <param name="knownFunctionMetadataTypes">A collection of known types from Azure Functions packages, used for symbol comparison.</param>
+            /// <param name="dataTypeParser"><see cref="DataTypeParser"/> used to aid in parsing data types used in function metadata generation.</param>
             public CardinalityParser(KnownTypes knownTypes, KnownFunctionMetadataTypes knownFunctionMetadataTypes, DataTypeParser dataTypeParser)
             {
                 _knownTypes = knownTypes;
@@ -23,11 +29,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 _dataTypeParser = dataTypeParser;
             }
 
+            /// <summary>
+            /// Checks if an attribute has cardinality.
+            /// </summary>
+            /// <param name="attribute">The attribute to check.</param>
+            /// <returns>Returns true if cardinality is supported, else returns false.</returns>
             public bool IsCardinalitySupported(AttributeData attribute)
             {
                 return TryGetIsBatchedProp(attribute, out var isBatchedProp);
             }
 
+            /// <summary>
+            /// Checks if an attribute contains a property called "IsBatched", which indicates that cardinality is supported.
+            /// </summary>
+            /// <param name="attribute">The attribute to check.</param>
+            /// <param name="isBatchedProp">The attribute's IsBatched property represented as an <see cref="ISymbol"/> or <see cref="null""/> if no IsBatched property is found.</param>
+            /// <returns></returns>
             private bool TryGetIsBatchedProp(AttributeData attribute, out ISymbol? isBatchedProp)
             {
                 var attrClass = attribute.AttributeClass;
@@ -39,10 +56,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             /// <summary>
-            /// This method verifies that a binding that has Cardinality (isBatched property) is valid. If isBatched is set to true, the parameter with the
-            /// attribute must be an enumerable type.
+            /// Verifies that a binding that has Cardinality (isBatched property) is valid. If isBatched is set to true, the parameter with the
+            /// attribute must be an iterable collection.
             /// </summary>
-            public bool IsCardinalityValid(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, AttributeData attribute, out DataType dataType)
+            /// <param name="parameterSymbol">The parameter associated with a binding attribute that supports cardinality represented as an <see cref="IParameterSymbol"/>.</param>
+            /// <param name="parameterTypeSyntax">The <see cref="TypeSyntax"/> representation of the paramter's type if it exists.</param>
+            /// <param name="attribute">The binding attribute that supports cardinality.</param>
+            /// <param name="dataType">The <see cref="DataType"/> that best represents the parameter.</param>
+            /// <returns>Returns true if the parameter is compatible with the cardinality defined by the attribute, else returns false.</returns>
+            public bool IsCardinalityValid(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, AttributeData attribute, out DataType dataType)
             {
                 dataType = DataType.Undefined;
                 var cardinalityIsNamedArg = false;
@@ -122,7 +144,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             return false;
                         }
 
-                        dataType = ResolveIEnumerableOfT(parameterSymbol, parameterTypeSyntax, model, out bool hasError);
+                        dataType = ResolveIEnumerableOfT(parameterSymbol, parameterTypeSyntax, out bool hasError);
 
                         if (hasError)
                         {
@@ -142,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// Find the underlying data type of an IEnumerableOfT (String, Binary, Undefined)
             /// ex. IEnumerable<byte[]> would return DataType.Binary
             /// </summary>
-            private DataType ResolveIEnumerableOfT(IParameterSymbol parameterSymbol, TypeSyntax parameterSyntax, SemanticModel model, out bool hasError)
+            private DataType ResolveIEnumerableOfT(IParameterSymbol parameterSymbol, TypeSyntax parameterSyntax, out bool hasError)
             {
                 var result = DataType.Undefined;
                 var currentSyntax = parameterSyntax;

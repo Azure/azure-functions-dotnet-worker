@@ -285,7 +285,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 DataType updatedDataType = DataType.Undefined;
 
-                                if (!_cardinalityParser.IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out updatedDataType))
+                                if (!_cardinalityParser.IsCardinalityValid(parameterSymbol, parameter.Type, attribute, out updatedDataType))
                                 {
                                     _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), parameterSymbol.Name));
                                     bindingsList = null;

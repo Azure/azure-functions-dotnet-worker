@@ -22,6 +22,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private readonly ImmutableArray<string> _functionsStringNamesToRemove;
             private readonly KnownTypes _knownTypes;
             private readonly KnownFunctionMetadataTypes _knownFunctionMetadataTypes;
+            private DataTypeParser _dataTypeParser;
+            private CardinalityParser _cardinalityParser;
 
             public Parser(GeneratorExecutionContext context)
             {
@@ -29,6 +31,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 _functionsStringNamesToRemove = ImmutableArray.Create("Attribute", "Input", "Output");
                 _knownTypes = new KnownTypes(context.Compilation);
                 _knownFunctionMetadataTypes = new KnownFunctionMetadataTypes(context.Compilation);
+                _dataTypeParser = new DataTypeParser(_knownTypes);
+                _cardinalityParser = new CardinalityParser(_knownTypes, _knownFunctionMetadataTypes, _dataTypeParser);
+                _cardinalityParser = new CardinalityParser(_knownTypes, _knownFunctionMetadataTypes, _dataTypeParser);
             }
 
             private Compilation Compilation => _context.Compilation;
@@ -209,7 +214,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         {
                             retryOptions.DelayInterval = delayInterval!.ToString();
                         }
-                        
+
                     }
                     else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.ExponentialBackoffRetryAttribute))
                     {
@@ -230,7 +235,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         // TODO: Diagnostic error for retry options parsing failure
                         return false;
                     }
-                    
+
                     return true;
                 }
 
@@ -272,7 +277,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 hasHttpTrigger = true;
                             }
 
-                            DataType dataType = GetDataType(parameterSymbol.Type);
+                            DataType dataType = _dataTypeParser.GetDataType(parameterSymbol.Type);
 
                             bool cardinalityValidated = false;
 
@@ -280,7 +285,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 DataType updatedDataType = DataType.Undefined;
 
-                                if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out updatedDataType))
+                                if (!_cardinalityParser.IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out updatedDataType))
                                 {
                                     _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), parameterSymbol.Name));
                                     bindingsList = null;
@@ -306,7 +311,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             // default to Cardinality: One to stay in sync with legacy generator.
                             if (cardinalityValidated && !bindingDict!.Keys.Contains("cardinality"))
                             {
-                               bindingDict!.Add("cardinality", "One");
+                                bindingDict!.Add("cardinality", "One");
                             }
 
                             if (dataType is not DataType.Undefined)
@@ -319,7 +324,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             if (bindingCapabilitiesAttr.FirstOrDefault() is not null)
                             {
                                 var bindingCapabilities = bindingCapabilitiesAttr.FirstOrDefault().ConstructorArguments;
-                                
+
                                 if (bindingCapabilities.Any(s => string.Equals(s.Values.FirstOrDefault().Value?.ToString(), Constants.BindingCapabilities.FunctionLevelRetry, StringComparison.OrdinalIgnoreCase)))
                                 {
                                     supportsRetryOptions = true;
@@ -582,7 +587,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     return false;
                 }
 
-                // It's fair to assume than constructor arguments appear before named arguments, and
+                // It's fair to assume that constructor arguments appear before named arguments, and
                 // that the constructor names would match the property names
                 for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
                 {
@@ -602,9 +607,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         case TypedConstantKind.Enum:
                             var enumValue = arg.Type!.GetMembers()
-                              .FirstOrDefault(m => m is IFieldSymbol field
-                                              && field.ConstantValue is object value
-                                              && value.Equals(arg.Value));
+                                .FirstOrDefault(m => m is IFieldSymbol field
+                                    && field.ConstantValue is object value
+                                    && value.Equals(arg.Value));
 
                             if (enumValue is null)
                             {
@@ -631,6 +636,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
+            /// <summary>
+            /// This method handles cases where an attribute property has a different function metadata binding name.
+            /// </summary>
+            /// <remarks>
+            /// For example, in the BlobTriggerAttribute type, the "BlobPath" property is decorated with "MetadataBindingPropertyName" attribute
+            /// where "path" is provided as the value to be used when generating metadata binding data, as shown below.
+            ///
+            ///     [MetadataBindingPropertyName("path")]
+            ///     public string BlobPath { get; set; }
+            ///
+            /// </remarks>
+            /// <param name="attributeClass">The attribute type represented as an <see cref="INamedTypeSymbol"/></param>
+            /// <param name="argumentName">The argument's name as represented in the constructor. This may be overriden by the MetadataBindingPropertyName.</param>
             private void OverrideBindingName(INamedTypeSymbol attributeClass, ref string argumentName)
             {
                 foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
@@ -670,7 +688,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 dataType = DataType.Undefined;
                 var cardinalityIsNamedArg = false;
-                var isCardinalityMany = false;
 
                 // check if IsBatched is defined in the NamedArguments
                 foreach (var arg in attribute.NamedArguments)
@@ -686,14 +703,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             dataType = GetDataType(parameterSymbol.Type);
                             return true;
                         }
-                        else
-                        {
-                            isCardinalityMany = true;
-                        }
                     }
                 }
 
-                // When "IsBatched" is not a named arg, we have to check for the default value
+                // When "IsBatched" is not a named arg, we have to check the default value
                 if (!cardinalityIsNamedArg)
                 {
                     if (!TryGetIsBatchedProp(attribute, out var isBatchedProp))
@@ -702,55 +715,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
-                    dataType = GetDataType(parameterSymbol.Type);
-
                     var defaultValAttr = isBatchedProp!
                         .GetAttributes()
                         .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.DefaultValue));
-                    
-                    if (defaultValAttr != null)
-                    {
-                        var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
 
-                        // If IsBatched is false, we return here. Else, continue.
-                        if (!bool.TryParse(defaultVal, out bool b) || !b)
-                        {
-                            return true;
-                        }
-                        else
-                        {
-                            isCardinalityMany = true;
-                        }
-                    }
-                    else
-                    {
-                        return true; // If DefaultValue attribute not found, we assume that IsBatched is false and return instead of continuing with iterable collection validation for IsBatched = true. This behavior is in sync with the legacy generator.
-                    }
-                }
+                    var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
 
-                if (isCardinalityMany)
-                {
-                    if (IsIterableCollection(parameterSymbol, parameterTypeSyntax, model, out DataType iterableDataType))
+                    if (!bool.TryParse(defaultVal, out bool b) || !b)
                     {
-                        dataType = iterableDataType;
+                        dataType = GetDataType(parameterSymbol.Type);
                         return true;
                     }
-                    else
-                    {
-                        return false;
-                    }
                 }
-
-                // trigger input type doesn't match any of the valid cases so return false
-                return false;
-            }
-
-            /// <summary>
-            /// Checks if a paramter is an iterable collection.
-            /// </summary>
-            private bool IsIterableCollection(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, out DataType dataType)
-            {
-                dataType = DataType.Undefined;
 
                 // we check if the param is an array type
                 // we exclude byte arrays (byte[]) b/c we handle that as Cardinality.One (we handle this similar to how a char[] is basically a string)

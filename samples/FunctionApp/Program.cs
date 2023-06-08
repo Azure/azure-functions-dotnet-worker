@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,20 +27,28 @@ namespace FunctionApp
                         .AddApplicationInsights(options =>
                         {
                             // Configure the underlying ApplicationInsightsServiceOptions
-                            options.EnableAdaptiveSampling = false;
+                            options.ApplicationVersion = "v1";
                         })
                         .AddApplicationInsightsLogger();
                 })
-                // The Application Insights SDK adds a default logging filter that instructs ILogger to capture only Warning and more severe logs. Application Insights requires an explicit override.
-                // Log levels can also be configured using appsettings.json. For more information, see https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service#ilogger-logs
-                .ConfigureLogging(logging => logging
-                    .AddFilter<ApplicationInsightsLoggerProvider>(null, LogLevel.Information))
                 //</docsnippet_configure_defaults>
                 //<docsnippet_dependency_injection>
                 .ConfigureServices(s =>
                 {
                     s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
-                })
+                    s.Configure<LoggerFilterOptions>(options =>
+                    {
+                        // The Application Insights SDK adds a default logging filter that instructs ILogger to capture only Warning and more severe logs. Application Insights requires an explicit override.
+                        // Log levels can also be configured using appsettings.json. For more information, see https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service#ilogger-logs
+                        LoggerFilterRule toRemove = options.Rules.FirstOrDefault(rule => rule.ProviderName
+                            == "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider");
+
+                        if (toRemove is not null)
+                        {
+                            options.Rules.Remove(toRemove);
+                        }
+                    });
+                })               
                 //</docsnippet_dependency_injection>
                 .Build();
             //</docsnippet_startup>

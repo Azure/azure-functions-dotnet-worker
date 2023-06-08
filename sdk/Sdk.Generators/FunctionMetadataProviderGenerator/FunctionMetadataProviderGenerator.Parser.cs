@@ -594,17 +594,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
+                    dataType = GetDataType(parameterSymbol.Type);
+
                     var defaultValAttr = isBatchedProp!
                         .GetAttributes()
                         .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.DefaultValue));
                     
-                    var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
-                    
-                    if (!bool.TryParse(defaultVal, out bool b) || !b)
+                    if (defaultValAttr != null)
                     {
-                        dataType = GetDataType(parameterSymbol.Type);
-                        return true;
+                        var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
+
+                        if (!bool.TryParse(defaultVal, out bool b) || !b)
+                        {
+                            return true;
+                        }
                     }
+                    else
+                    {
+                        return false; // If DefaultValue attribute not found, default to false. This behavior is in sync with the legacy generator.
+                    }
+
                 }
 
                 // we check if the param is an array type

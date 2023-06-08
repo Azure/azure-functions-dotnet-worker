@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     continue;
                 }
 
-                var inputConverterAttributes = GetInputConverterAttributes(context, attributeType);
+                var inputConverterAttributes = attributeType.GetInputConverterAttributes(context);
                 if (inputConverterAttributes.Count <= 0)
                 {
                     continue;
@@ -76,14 +76,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
                 ReportDiagnostic(context, parameter, attributeType);
             }
-        }
-
-        private static List<AttributeData> GetInputConverterAttributes(SymbolAnalysisContext context, ITypeSymbol attributeType)
-        {
-            var inputConverterAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttribute);
-            return attributeType.GetAttributes()
-                .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, inputConverterAttributeType))
-                .ToList();
         }
 
         private static object GetAllowConverterFallbackParameterValue(SymbolAnalysisContext context, ITypeSymbol attributeType)

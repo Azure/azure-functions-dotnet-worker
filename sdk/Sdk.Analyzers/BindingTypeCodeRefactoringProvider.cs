@@ -1,47 +1,37 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeFixes;
-using System.Collections.Immutable;
-using System.Threading.Tasks;
+using System;
 using System.Composition;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using System.Threading;
-using System.Linq;
-using Microsoft.CodeAnalysis.Text;
-using System;
-using System.Collections.Generic;
-using System.Text.RegularExpressions;
+
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 {
-
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(BindingTypeCodeFixProvider)), Shared]
-    public sealed class BindingTypeCodeFixProvider : CodeRefactoringProvider
+    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(BindingTypeCodeRefactoringProvider)), Shared]
+    public sealed class BindingTypeCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            // Diagnostic diagnostic = context.Diagnostics.First();
-            // TextSpan diagnosticSpan = diagnostic.Location.SourceSpan;
-
             SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            // MethodDeclarationSyntax methodDeclaration = root.FindToken(diagnosticSpan.Start).Parent.AncestorsAndSelf().OfType<MethodDeclarationSyntax>().First();
 
             var parameters = root.DescendantNodes().OfType<ParameterSyntax>();
 
-            // var parameters = methodDeclaration.ParameterList.Parameters;
-
             foreach (var parameter in parameters)
             {
-                await AnalyzeForCodeFix(context, parameter);
+                await AnalyzeForCodeRefactor(context, parameter);
             }
         }
 
-        private async Task AnalyzeForCodeFix(CodeRefactoringContext context, ParameterSyntax parameter)
+        private async Task AnalyzeForCodeRefactor(CodeRefactoringContext context, ParameterSyntax parameter)
         {
             var semanticModel = await context.Document.GetSemanticModelAsync().ConfigureAwait(false);
             var parameterSymbol = semanticModel.GetDeclaredSymbol(parameter);
@@ -49,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             foreach (var attribute in parameterSymbol.GetAttributes())
             {
                 var attributeType = attribute?.AttributeClass;
-                var inputConverterAttributes = GetInputConverterAttributes(semanticModel, attributeType);
+                var inputConverterAttributes = attributeType.GetInputConverterAttributes(semanticModel);
 
                 if (inputConverterAttributes.Count <= 0)
                 {
@@ -65,26 +55,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
                 foreach (ITypeSymbol supportedType in supportedTypes)
                 {
-                    string name = supportedType.ToMinimalDisplayString(semanticModel, 0);
-
-                    if (name.Contains("IEnumerable"))
-                    {
-                        name = Regex.Match(name, @"IEnumerable<[^>]+>").Value;
-                    }
+                    string supportedTypeName = supportedType.GetMinimalDisplayName(semanticModel);
 
                     // Create a code action for each potential supported type
                     context.RegisterRefactoring(
-                        new SupportedBindingTypeCodeAction(context.Document, parameter, name));
+                        new SupportedBindingTypeCodeAction(context.Document, parameter, supportedTypeName));
                 }
             }
-        }
-
-        private static List<AttributeData> GetInputConverterAttributes(SemanticModel model, ITypeSymbol attributeType)
-        {
-            var inputConverterAttributeType = model.Compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttribute);
-            return attributeType.GetAttributes()
-                .Where(attr => attr.AttributeClass.Equals(inputConverterAttributeType))
-                .ToList();
         }
 
         private static List<ITypeSymbol> GetSupportedTypes(SemanticModel model, List<AttributeData> inputConverterAttributes)
@@ -97,9 +74,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 var converter = model.Compilation.GetTypeByMetadataName(converterName);
                 var converterAttributes = converter.GetAttributes();
 
+                var supportedConverterTypeAttributeType = model.Compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttribute);
+
                 supportedTypes.AddRange(converterAttributes
-                    .Where(a => a.AttributeClass.Name == Constants.Names.SupportedConverterTypeAttribute)
-                    .Select(a => (ITypeSymbol) a.ConstructorArguments.FirstOrDefault().Value)
+                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedConverterTypeAttributeType))
+                    .Select(a => (ITypeSymbol)a.ConstructorArguments.FirstOrDefault().Value)
                     .ToList());
             }
 

@@ -137,7 +137,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll"),
                     new Extension("AzureTables",
                         "Microsoft.Azure.WebJobs.Extensions.Tables.AzureTablesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Tables, Version=1.2.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8",
-                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Tables.dll")
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Tables.dll"),
+                    new Extension("EventGrid",
+                        "Microsoft.Azure.WebJobs.Extensions.EventGrid.EventGridWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventGrid, Version=3.2.1.0, Culture=neutral, PublicKeyToken=014045d636e89289",
+                        "./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.EventGrid.dll"),
                 }
             });
             Assert.True(JToken.DeepEquals(extensionsJsonContents, expected), $"Actual: {extensionsJsonContents}{Environment.NewLine}Expected: {expected}");

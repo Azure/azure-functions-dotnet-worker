@@ -89,12 +89,6 @@ namespace WorkerBindingSamples.EventGrid
         {
             _logger.LogInformation("Event received " + input);
         }
-
-        [Function("JObjectEvent")]
-        public void JObjectEvent([EventGridTrigger(IsBatched = true)] JObject input)
-        {
-            _logger.LogInformation("Event received " + input.ToString());
-        }
     }
 
     public class MyEvent

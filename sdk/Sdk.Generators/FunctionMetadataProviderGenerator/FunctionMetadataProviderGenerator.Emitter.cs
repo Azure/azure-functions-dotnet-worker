@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -76,22 +77,27 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     // we're going to base variable names on Function[Num] because some function names have characters we can't use for a dotnet variable
                     var functionVariableName = "Function" + functionCount.ToString();
                     var functionBindingsListVarName = functionVariableName + "RawBindings";
-                    var bindingInfo = AddBindingInfo(functionBindingsListVarName, function.RawBindings);
+                    var bindingInfo = BuildBindingInfo(functionBindingsListVarName, function.RawBindings);
 
                     builder.AppendLine(
                     $$"""
-                                 var {{functionBindingsListVarName}} = new List<string>();
-                     {{bindingInfo}}
-                                 var {{functionVariableName}} = new DefaultFunctionMetadata
-                                 {
-                                     Language = "{{Constants.Languages.DotnetIsolated}}",
-                                     Name = "{{function.Name}}",
-                                     EntryPoint = "{{function.EntryPoint}}",
-                                     RawBindings = {{functionBindingsListVarName}},
-                                     ScriptFile = "{{function.ScriptFile}}"
-                                 };
-                                 metadataList.Add({{functionVariableName}});
-                     """);
+                                var {{functionBindingsListVarName}} = new List<string>();
+                    {{bindingInfo}}
+                                var {{functionVariableName}} = new DefaultFunctionMetadata
+                                {
+                                    Language = "{{Constants.Languages.DotnetIsolated}}",
+                                    Name = "{{function.Name}}",
+                                    EntryPoint = "{{function.EntryPoint}}",
+                                    RawBindings = {{functionBindingsListVarName}},
+                    """);
+
+                    builder.Append(BuildRetryOptions(function.Retry));
+
+                    builder.AppendLine($$"""                
+                                    ScriptFile = "{{function.ScriptFile}}"
+                    """);
+                    builder.AppendLine($$"""            };""");
+                    builder.AppendLine($$"""            metadataList.Add({{functionVariableName}});""");
 
                     functionCount++;
                 }
@@ -99,7 +105,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return builder.ToString();
             }
 
-            private string AddBindingInfo(string bindingListVariableName, IList<IDictionary<string, object>> bindings)
+            private string BuildBindingInfo(string bindingListVariableName, IList<IDictionary<string, object>> bindings)
             {
                 var builder = new StringBuilder();
                 foreach (var binding in bindings)
@@ -109,6 +115,35 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return builder.ToString();
+            }
+
+            private StringBuilder BuildRetryOptions(GeneratorRetryOptions? retry)
+            {
+                var builder = new StringBuilder();
+
+                if (retry?.Strategy is RetryStrategy.FixedDelay)
+                {
+                    builder.AppendLine($$"""
+                                    Retry = new DefaultRetryOptions
+                                    {
+                                        MaxRetryCount = {{retry!.MaxRetryCount}},
+                                        DelayInterval = TimeSpan.Parse("{{retry.DelayInterval}}")
+                                    },
+                    """);
+                }
+                else if (retry?.Strategy is RetryStrategy.ExponentialBackoff)
+                {
+                    builder.AppendLine($$"""
+                                    Retry = new DefaultRetryOptions
+                                    {
+                                        MaxRetryCount = {{retry!.MaxRetryCount}},
+                                        MinimumInterval = TimeSpan.Parse("{{retry.MinimumInterval}}"),
+                                        MaximumInterval = TimeSpan.Parse("{{retry.MaximumInterval}}")
+                                    },
+                     """);
+                }
+
+                return builder;
             }
         }
 

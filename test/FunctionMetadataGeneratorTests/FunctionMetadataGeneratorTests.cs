@@ -988,14 +988,14 @@ namespace Microsoft.Azure.Functions.SdkTests
                 { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" },
             });
 
-            var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));
+            var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));
 
-            ValidateFunction(serviceBusTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction)),
+            ValidateFunction(eventHubTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction)),
                 ValidateEventHubTrigger);
 
-            var serviceBusBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction));
+            var eventHubBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction));
 
-            ValidateFunction(serviceBusBatchTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction)),
+            ValidateFunction(eventHubBatchTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction)),
                 ValidateEventHubBatchTrigger);
 
             void ValidateEventHubTrigger(ExpandoObject b)

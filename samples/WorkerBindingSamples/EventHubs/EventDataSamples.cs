@@ -37,7 +37,7 @@ namespace SampleApp
         /// </summary>
         [Function(nameof(EventDataBatchFunction))]
         public void EventDataBatchFunction(
-            [EventHubTrigger("queue", Connection = "ServiceBusConnection")] EventData[] events)
+            [EventHubTrigger("queue", Connection = "EventHubConnection")] EventData[] events)
         {
             foreach (EventData @event in events)
             {
@@ -53,7 +53,7 @@ namespace SampleApp
         /// </summary>
         [Function(nameof(EventDataWithStringPropertiesFunction))]
         public void EventDataWithStringPropertiesFunction(
-            [EventHubTrigger("queue", Connection = "ServiceBusConnection")]
+            [EventHubTrigger("queue", Connection = "EventHubConnection")]
             EventData @event, string contentType, long offset)
         {
             // The ContentType property and the contentType parameter are the same.

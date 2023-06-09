@@ -15,13 +15,30 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
 {
     public abstract class ServerlessHub
     {
+        public const string DefaultConnectionStringName = "AzureSignalRConnectionString";
+
         internal static readonly ObjectSerializer ObjectSerializer = new JsonObjectSerializer(new(JsonSerializerDefaults.Web));
         internal static readonly NegotiationOptions DefaultNegotiateOptiosn = new();
         internal readonly object? _hubContext;
 
+        [ActivatorUtilitiesConstructor]
         protected ServerlessHub(IServiceProvider serviceProvider)
         {
             serviceProvider.GetService<HubContextProvider>()?.TryGetValue(GetType(), out _hubContext);
+        }
+
+        /// <summary>
+        /// Constructor for unit test.
+        /// </summary>
+        /// <param name="serviceHubContext">A mocked service hub context object.</param>
+        protected ServerlessHub(ServiceHubContext serviceHubContext)
+        {
+            _hubContext = serviceHubContext;
+        }
+
+        internal ServerlessHub(object? hubContext)
+        {
+            _hubContext = hubContext;
         }
 
         private ServiceHubContext HubContext => _hubContext as ServiceHubContext ?? throw new InvalidOperationException($"The serverlesshub {GetType().Name} is not registered correctly using services.AddServerlessHub().");
@@ -58,7 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         [AttributeUsage(AttributeTargets.Class)]
         protected internal class SignalRConnectionAttribute : Attribute
         {
-            public SignalRConnectionAttribute(string connectionName = Constants.DefaultConnectionStringName)
+            public SignalRConnectionAttribute(string connectionName = DefaultConnectionStringName)
             {
                 ConnectionName = connectionName;
             }

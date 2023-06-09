@@ -22,12 +22,13 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         private readonly Action<ServiceManagerBuilder>? _configure;
         private ServiceHubContext? _serviceHubContext;
 
-        public ServiceHubContextInitializer(IConfiguration configuration, ILoggerFactory loggerFactory, HubContextProvider hubContextProvider, ServiceManagerOptionsSetup optionsSetup)
+        public ServiceHubContextInitializer(IConfiguration configuration, ILoggerFactory loggerFactory, HubContextProvider hubContextProvider, ServiceManagerOptionsSetup optionsSetup, Action<ServiceManagerBuilder>? configure)
         {
             _configuration = configuration;
             _loggerFactory = loggerFactory;
             HubContextProvider = hubContextProvider;
             _optionsSetup = optionsSetup;
+            _configure = configure;
         }
 
         protected HubContextProvider HubContextProvider { get; }
@@ -50,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         protected ServiceManager CreateServiceManager()
         {
             var serviceManagerBuilder = new ServiceManagerBuilder()
-                .WithOptions(_optionsSetup.Configure(typeof(THub).GetCustomAttribute<ServerlessHub.SignalRConnectionAttribute>(true)?.ConnectionName ?? Constants.DefaultConnectionStringName))
+                .WithOptions(_optionsSetup.Configure(typeof(THub).GetCustomAttribute<ServerlessHub.SignalRConnectionAttribute>(true)?.ConnectionName ?? ServerlessHub.DefaultConnectionStringName))
                 .WithLoggerFactory(_loggerFactory)
                 .WithConfiguration(_configuration)
                 .WithCallingAssembly()

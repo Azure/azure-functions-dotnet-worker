@@ -34,6 +34,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string HttpResponse = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
             internal const string HttpTriggerBinding = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
 
+            internal const string BindingCapabilitiesAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingCapabilitiesAttribute";
+            internal const string RetryAttribute = "Microsoft.Azure.Functions.Worker.RetryAttribute";
+            internal const string FixedDelayRetryAttribute = "Microsoft.Azure.Functions.Worker.FixedDelayRetryAttribute";
+            internal const string ExponentialBackoffRetryAttribute = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
 
             // System types
             internal const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
@@ -43,6 +47,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string ReturnBindingName = "$return";
             internal const string HttpResponseBindingName = "HttpResponse";
             internal const string IsBatchedKey = "IsBatched";
+        }
+
+        internal static class RetryConstants
+        {
+            internal const string MaxRetryCountKey = "maxRetryCount";
+            internal const string MinimumIntervalKey = "minimumInterval";
+            internal const string MaximumIntervalKey = "maximumInterval";
+            internal const string DelayIntervalKey = "delayInterval";
+        }
+
+        internal static class BindingCapabilities
+        {
+            public const string FunctionLevelRetry = "FunctionLevelRetry";
         }
     }
 }

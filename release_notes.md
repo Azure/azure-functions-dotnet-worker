@@ -11,10 +11,11 @@
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
 - Fixed issue spawning child process while debugging due to "DOTNET_STARTUP_HOOKS" always containing "Microsoft.Azure.Functions.Worker.Core". (#1539)
+- Add retry options support to `IFunctionMetadata` (#1548)
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <event>
+- Add handling for retry options in worker-indexing grpc communication path (#1548)
 
 ### Microsoft.Azure.Functions.Worker.Sdk
 

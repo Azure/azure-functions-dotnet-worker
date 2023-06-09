@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -9,6 +10,8 @@ namespace Microsoft.Azure.Functions.Worker
     /// Attribute used to mark a function that should be triggered by Event Hubs messages.
     /// </summary>
     [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
+    [AllowConverterFallback(true)]
+    [InputConverter(typeof(EventDataConverter))]
     public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         // Batch by default

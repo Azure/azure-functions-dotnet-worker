@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.10.0-preview3
 
-- <entry>
+- Make Constants class internal (#<PR>)

@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventHubs <version>
+### Microsoft.Azure.Functions.Worker.Extensions.EventHubs 5.4.0-preview1
 
-- Add `BindingCapabilities` attribute to EventHubTrigger to express function-level retry capabilities. (#1457)
+- Add support for binding to `EventData`(#<PR>)

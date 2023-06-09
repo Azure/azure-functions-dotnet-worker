@@ -6,14 +6,21 @@
     <Description>Azure Event Hubs extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.3.0</VersionPrefix>
+    <VersionPrefix>5.4.0</VersionPrefix>
+    <VersionSuffix>-preview1</VersionSuffix>
 
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.3" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.9.2" />
   </ItemGroup>
 
 </Project>

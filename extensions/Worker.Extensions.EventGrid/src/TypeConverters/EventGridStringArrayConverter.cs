@@ -3,9 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
@@ -14,16 +14,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     /// Converter to bind to string[] parameter.
     /// </summary>
     [SupportedConverterType(typeof(string[]))]
-    internal class EventGridStringArrayConverter : EventGridConverterBase<string[]>
+    internal class EventGridStringArrayConverter : IInputConverter
     {
-        public EventGridStringArrayConverter(ILogger<EventGridStringArrayConverter> logger)
-            : base(logger)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-        }
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-        public override ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
-        {
-            if (!CanConvert(context))
+            if (context.TargetType != typeof(string[]))
             {
                 return new(ConversionResult.Unhandled());
             }
@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             {
                 var contextSource = context?.Source as string;
 
-                if (contextSource is not null)
+                if (contextSource is null)
                 {
                     var jsonData = JsonConvert.DeserializeObject<List<object>>(contextSource);
                     List<string> stringList = new List<string>();
@@ -49,6 +49,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                         return new(ConversionResult.Success(stringList.ToArray()));
                     }
                 }
+            }
+            catch (JsonException ex)
+            {
+                string msg = String.Format(CultureInfo.CurrentCulture,
+                    @"Binding parameters to complex objects uses Json.NET serialization.
+                    1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
+                    2. Change the queue payload to be valid json.
+                    The JSON parser failed: {0}",
+                    ex.Message);
+
+                return new(ConversionResult.Failed(new InvalidOperationException(msg)));
             }
             catch (Exception ex)
             {

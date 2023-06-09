@@ -9,11 +9,8 @@ namespace Microsoft.Azure.Functions.Worker
 {
     [AllowConverterFallback(true)]
     [InputConverter(typeof(EventGridCloudEventConverter))]
-    [InputConverter(typeof(EventGridMultipleCloudEventConverter))]
     [InputConverter(typeof(EventGridEventConverter))]
-    [InputConverter(typeof(EventGridEventArrayConverter))]
     [InputConverter(typeof(EventGridBinaryDataConverter))]
-    [InputConverter(typeof(EventGridBinaryDataArrayConverter))]
     [InputConverter(typeof(EventGridStringArrayConverter))]
     public sealed class EventGridTriggerAttribute : TriggerBindingAttribute
     {

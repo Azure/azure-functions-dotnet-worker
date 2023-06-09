@@ -11,38 +11,25 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     /// <summary>
-    /// Converter to bind to CloudEvent parameter.
+    /// Converter to bind to CloudEvent or CloudEvent[] parameter.
     /// </summary>
     [SupportedConverterType(typeof(CloudEvent))]
-    internal class EventGridCloudEventConverter: EventGridConverterBase<CloudEvent>
+    [SupportedConverterType(typeof(CloudEvent[]))]
+    internal class EventGridCloudEventConverter: IInputConverter
     {
-        public EventGridCloudEventConverter(ILogger<EventGridCloudEventConverter> logger)
-            : base(logger)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-        }
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
 
-        public override ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
-        {
-            if (!CanConvert(context))
+            if (context.TargetType != typeof(CloudEvent) && context.TargetType != typeof(CloudEvent[]))
             {
                 return new(ConversionResult.Unhandled());
             }
-            try
-            {
-                var contextSource = context?.Source as string;
 
-                if (contextSource is not null)
-                {
-                    var cloudEvent = JsonSerializer.Deserialize<CloudEvent>(contextSource);
-                    return new(ConversionResult.Success(cloudEvent));
-                }
-            }
-            catch (Exception ex)
-            {
-                return new(ConversionResult.Failed(ex));
-            }
-
-            return new(ConversionResult.Unhandled());
+            return EventGridHelper.ConvertHelper(context);
         }
     }
 }

@@ -6,9 +6,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
@@ -20,9 +18,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         public EventGridStringArrayConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
-            var logger = host.Services.GetService<ILogger<EventGridStringArrayConverter>>();
 
-            _eventGridConverter = new EventGridStringArrayConverter(logger);
+            _eventGridConverter = new EventGridStringArrayConverter();
         }
 
         [Fact]

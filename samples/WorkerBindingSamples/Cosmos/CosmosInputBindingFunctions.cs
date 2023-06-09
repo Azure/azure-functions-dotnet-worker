@@ -21,7 +21,7 @@ namespace SampleApp
         [Function(nameof(DocsByUsingCosmosClient))]
         public async Task<HttpResponseData>  DocsByUsingCosmosClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [CosmosDBInput("", "", Connection = "CosmosDBConnection")] CosmosClient client)
+            [CosmosDBInput(Connection = "CosmosDBConnection")] CosmosClient client)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
@@ -43,7 +43,7 @@ namespace SampleApp
         [Function(nameof(DocsByUsingDatabaseClient))]
         public async Task<HttpResponseData> DocsByUsingDatabaseClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [CosmosDBInput("ToDoItems", "", Connection = "CosmosDBConnection")] Database database)
+            [CosmosDBInput("ToDoItems", Connection = "CosmosDBConnection")] Database database)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 

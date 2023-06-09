@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>HttpRequestData instance if the invocation is http, else null</returns>
         public static async ValueTask<HttpRequestData?> GetHttpRequestDataAsync(this FunctionContext context)
         {
-            IHttpRequestDataFeature? httpRequestDataFeature = context.Features.Get<IHttpRequestDataFeature>() ?? new DefaultHttpRequestDataFeature();
+            IHttpRequestDataFeature? httpRequestDataFeature = context.Features.Get<IHttpRequestDataFeature>() ?? DefaultHttpRequestDataFeature.Instance;
 
             return await httpRequestDataFeature.GetHttpRequestDataAsync(context);
         }

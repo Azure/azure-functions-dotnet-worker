@@ -11,6 +11,12 @@ namespace Microsoft.Azure.Functions.Worker.Http
     {
         private const string httpTriggerString = "httpTrigger";
 
+        private DefaultHttpRequestDataFeature()
+        {
+        }
+
+        public static DefaultHttpRequestDataFeature Instance { get; } = new DefaultHttpRequestDataFeature();
+
         public async ValueTask<HttpRequestData?> GetHttpRequestDataAsync(FunctionContext context)
         {
             var httpTriggerBinding = context.FunctionDefinition.InputBindings.Values

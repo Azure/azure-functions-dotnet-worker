@@ -27,6 +27,7 @@ namespace FunctionApp
                         .AddApplicationInsights(options =>
                         {
                             // Configure the underlying ApplicationInsightsServiceOptions
+                            // This property configuration serves solely for demonstration purposes, and it is not mandatory to replicate the same property and its associated value in your own application.
                             options.ApplicationVersion = "v1";
                         })
                         .AddApplicationInsightsLogger();

@@ -27,7 +27,8 @@ stages:
         steps:
           - task: UseDotNet@2
             inputs:
-              version: "7.x"
+              version: "8.x"
+              includePreviewVersions: true
 
           - script: |
               sudo apt-get install clang zlib1g-dev
@@ -63,7 +64,8 @@ stages:
         steps:
           - task: UseDotNet@2
             inputs:
-              version: "7.x"
+              version: "8.x"
+              includePreviewVersions: true
 
           - task: DotnetCoreCLI@2
             displayName: "Dotnet Publish"

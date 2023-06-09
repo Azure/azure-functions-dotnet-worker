@@ -2,11 +2,12 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PublishAot>true</PublishAot>
+    <OptimizationPreference>Speed</OptimizationPreference>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -32,8 +33,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Text.Json" Version="7.0.2" />
-    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="7.0.5" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0-preview.4.23259.5" />
+    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="8.0.0-preview.4.23259.5" />
   </ItemGroup>
 
   <ItemGroup>

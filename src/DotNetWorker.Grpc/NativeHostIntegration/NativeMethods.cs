@@ -29,8 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
                 return hostData;
             }
 
-            throw new InvalidOperationException(
-                $"Invoking get_application_properties method failed. Expected result:1, Actual result:{result}");
+            throw new InvalidOperationException($"Invalid result returned from get_application_properties: {result}");
         }
 
         public static void RegisterCallbacks(NativeSafeHandle nativeApplication,

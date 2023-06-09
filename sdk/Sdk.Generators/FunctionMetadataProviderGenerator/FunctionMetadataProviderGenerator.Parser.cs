@@ -194,7 +194,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             DataType dataType = GetDataType(parameterSymbol.Type);
 
-                            var cardinalityValidated = false;
+                            bool cardinalityValidated = false;
 
                             if (IsCardinalitySupported(attribute))
                             {

@@ -10,6 +10,9 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
 
+- <entry>
+
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - Add support for retry options (#1548)
+- Bug fix for when DefaultValue is not present on an IsBatched prop (#1602).

@@ -274,6 +274,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             DataType dataType = GetDataType(parameterSymbol.Type);
 
+                            bool cardinalityValidated = false;
+
                             if (IsCardinalitySupported(attribute))
                             {
                                 DataType updatedDataType = DataType.Undefined;
@@ -289,6 +291,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 // ex. IList<String> would be evaluated as "Undefined" by the call to GetDataType
                                 // but it would be correctly evaluated as "String" during the call to IsCardinalityValid which parses iterable collections
                                 dataType = updatedDataType;
+                                cardinalityValidated = true;
                             }
 
                             string bindingName = parameter.Identifier.ValueText;
@@ -297,6 +300,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 bindingsList = null;
                                 return false;
+                            }
+
+                            // If cardinality is supported and validated, but was not found in named args, constructor args, or default value attributes
+                            // default to Cardinality: One to stay in sync with legacy generator.
+                            if (cardinalityValidated && !bindingDict!.Keys.Contains("cardinality"))
+                            {
+                               bindingDict!.Add("cardinality", "One");
                             }
 
                             if (dataType is not DataType.Undefined)
@@ -660,6 +670,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 dataType = DataType.Undefined;
                 var cardinalityIsNamedArg = false;
+                var isCardinalityMany = false;
 
                 // check if IsBatched is defined in the NamedArguments
                 foreach (var arg in attribute.NamedArguments)
@@ -675,10 +686,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             dataType = GetDataType(parameterSymbol.Type);
                             return true;
                         }
+                        else
+                        {
+                            isCardinalityMany = true;
+                        }
                     }
                 }
 
-                // When "IsBatched" is not a named arg, we have to check the default value
+                // When "IsBatched" is not a named arg, we have to check for the default value
                 if (!cardinalityIsNamedArg)
                 {
                     if (!TryGetIsBatchedProp(attribute, out var isBatchedProp))
@@ -687,18 +702,55 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
+                    dataType = GetDataType(parameterSymbol.Type);
+
                     var defaultValAttr = isBatchedProp!
                         .GetAttributes()
                         .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.DefaultValue));
                     
-                    var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
-                    
-                    if (!bool.TryParse(defaultVal, out bool b) || !b)
+                    if (defaultValAttr != null)
                     {
-                        dataType = GetDataType(parameterSymbol.Type);
-                        return true;
+                        var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
+
+                        // If IsBatched is false, we return here. Else, continue.
+                        if (!bool.TryParse(defaultVal, out bool b) || !b)
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            isCardinalityMany = true;
+                        }
+                    }
+                    else
+                    {
+                        return true; // If DefaultValue attribute not found, we assume that IsBatched is false and return instead of continuing with iterable collection validation for IsBatched = true. This behavior is in sync with the legacy generator.
                     }
                 }
+
+                if (isCardinalityMany)
+                {
+                    if (IsIterableCollection(parameterSymbol, parameterTypeSyntax, model, out DataType iterableDataType))
+                    {
+                        dataType = iterableDataType;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+
+                // trigger input type doesn't match any of the valid cases so return false
+                return false;
+            }
+
+            /// <summary>
+            /// Checks if a paramter is an iterable collection.
+            /// </summary>
+            private bool IsIterableCollection(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, out DataType dataType)
+            {
+                dataType = DataType.Undefined;
 
                 // we check if the param is an array type
                 // we exclude byte arrays (byte[]) b/c we handle that as Cardinality.One (we handle this similar to how a char[] is basically a string)

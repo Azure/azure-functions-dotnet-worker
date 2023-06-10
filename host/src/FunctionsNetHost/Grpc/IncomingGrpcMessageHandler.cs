@@ -54,7 +54,6 @@ namespace FunctionsNetHost.Grpc
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
-                    Logger.LogTrace($"Set {envReloadRequest.EnvironmentVariables.Count} environment variables.");
 
                     var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
                     Logger.LogTrace($"applicationExePath {applicationExePath}");
@@ -66,7 +65,6 @@ namespace FunctionsNetHost.Grpc
                         _ = _appLoader.RunApplication(applicationExePath);
                     });
 
-                    Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
                     Logger.LogTrace($"Received worker loaded signal. Forwarding environment reload request to worker.");
 

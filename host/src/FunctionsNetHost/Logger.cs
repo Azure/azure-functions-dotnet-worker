@@ -22,7 +22,8 @@ namespace FunctionsNetHost
         {
             get
             {
-                return string.Equals(EnvironmentUtils.GetValue(EnvironmentSettingNames.FunctionsNetHostTrace), "1");
+                return true;
+                // return string.Equals(EnvironmentUtils.GetValue(EnvironmentSettingNames.FunctionsNetHostTrace), "1");
             }
         }
 

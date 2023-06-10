@@ -42,11 +42,6 @@ namespace FunctionsNetHost
         {
             ArgumentNullException.ThrowIfNull(assemblyPath, nameof(assemblyPath));
 
-            if (Logger.IsTraceLogEnabled)
-            {
-                Logger.Log($"Assembly path to run:{assemblyPath}. File exists:{File.Exists(assemblyPath)}");
-            }
-
             unsafe
             {
                 var parameters = new HostFxr.hostfxr_initialize_parameters

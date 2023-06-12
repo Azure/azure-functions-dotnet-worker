@@ -270,11 +270,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (converterAdvertisedAttributes is not null)
                 {
-                    bool converterAdvertisesDeferredBindingSupport = converterAdvertisedAttributes.Any(a => string.Equals(a.ToString(), Constants.Types.SupportsDeferredBindingAttributeType, StringComparison.Ordinal));
+                    bool converterAdvertisesDeferredBindingSupport = converterAdvertisedAttributes.Any(
+                        a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.SupportsDeferredBindingAttributeType));
 
                     if (converterAdvertisesDeferredBindingSupport)
                     {
-                        bool converterAdvertisesTypes = converterAdvertisedAttributes.Any(a => string.Equals(a.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+                        bool converterAdvertisesTypes = converterAdvertisedAttributes.Any(
+                            a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.SupportedConverterTypeAttributeType));
 
                         if (!converterAdvertisesTypes)
                         {

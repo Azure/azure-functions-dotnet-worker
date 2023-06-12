@@ -295,7 +295,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 foreach (AttributeData attribute in converterAdvertisedAttributes)
                 {
-                    if (string.Equals(attribute.AttributeClass?.GetFullName(), Constants.Types.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.SupportedConverterTypeAttributeType))
                     {
                         foreach (var element in attribute.ConstructorArguments)
                         {

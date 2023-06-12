@@ -30,8 +30,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 {
     public class BlobStorageConverterTests
     {
-        private BlobStorageConverter _blobStorageConverter;
-        private Mock<BlobServiceClient> _mockBlobServiceClient;
+        private readonly BlobStorageConverter _blobStorageConverter;
+        private readonly Mock<BlobServiceClient> _mockBlobServiceClient;
 
         public BlobStorageConverterTests()
         {
@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyBlob", clientResult.Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_List_ReturnsSuccess()
         {
             // Arrange
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyBlob", clientResult.First().Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_Array_ReturnsSuccess()
         {
             // Arrange
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyContainer", clientResult.Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobContainerClientCollection_List_ReturnsSuccess()
         {
             // Arrange
@@ -170,7 +170,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyContainer", clientResult.First().Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobContainerClientCollection_Array_ReturnsSuccess()
         {
             // Arrange
@@ -197,7 +197,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
-            var context = new TestConverterContext(typeof(String), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(string), grpcModelBindingData);
 
             var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(new BinaryData("MyBlobString"));
             var mockResponse = new Mock<Response<BlobDownloadResult>>();
@@ -213,7 +213,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var stringResult = (String)conversionResult.Value;
+            var stringResult = (string)conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
@@ -225,7 +225,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             // Arrange
             var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(IEnumerable<String>), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(IEnumerable<string>), grpcModelBindingData);
 
             var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(new BinaryData("MyBlobString"));
             var mockResponse = new Mock<Response<BlobDownloadResult>>();
@@ -241,11 +241,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var stringResult = (IEnumerable<String>)conversionResult.Value;
+            var stringResult = (IEnumerable<string>)conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsAssignableFrom<IEnumerable<String>>(stringResult);
+            Assert.IsAssignableFrom<IEnumerable<string>>(stringResult);
             Assert.Equal("MyBlobString", stringResult.First().ToString());
         }
 
@@ -254,7 +254,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             // Arrange
             var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(String[]), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(string[]), grpcModelBindingData);
 
             var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(new BinaryData("MyBlobString"));
             var mockResponse = new Mock<Response<BlobDownloadResult>>();
@@ -270,11 +270,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var stringResult = (String[])conversionResult.Value;
+            var stringResult = (string[])conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsType<String[]>(stringResult);
+            Assert.IsType<string[]>(stringResult);
             Assert.Equal("MyBlobString", stringResult.First().ToString());
         }
 
@@ -309,7 +309,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(expectedStream, streamResult);
         }
 
-        [Fact (Skip = "Fails - broken scenario. ChangeType fails trying to convert MemoryStream to Stream) - 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_StreamCollection_List_ReturnsSuccess()
         {
             // Arrange
@@ -342,7 +342,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(expectedStream.ToString(), streamResult.First().ToString());
         }
 
-        [Fact (Skip = "Fails - broken scenario. ChangeType fails trying to convert MemoryStream to Stream) - 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_StreamCollection_Array_ReturnsSuccess()
         {
             // Arrange
@@ -371,8 +371,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsType<Book[]>(streamResult);
-            Assert.Equal(expectedStream.ToString(), streamResult.First().ToString());
             Assert.Equal(expectedStream.ToString(), streamResult.First().ToString());
         }
 
@@ -381,11 +379,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
-            var context = new TestConverterContext(typeof(Byte[]), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(byte[]), grpcModelBindingData);
 
             var expectedByteArray = Encoding.UTF8.GetBytes("MyBlobByteArray");
-            var testStream = new MemoryStream(expectedByteArray);
-            testStream.Position = 0;
+            var testStream = new MemoryStream(expectedByteArray)
+            {
+                Position = 0
+            };
 
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
@@ -400,11 +400,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var byteResult = (Byte[])conversionResult.Value;
+            var byteResult = (byte[])conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsType<Byte[]>(byteResult);
+            Assert.IsType<byte[]>(byteResult);
             Assert.Equal(new byte[0], byteResult);
             // Assert.Equal(expectedByteArray, byteResult); // Running into issues mocking DownloadToAsync stream update
         }
@@ -414,7 +414,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             // Arrange
             var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(IEnumerable<Byte[]>), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(IEnumerable<byte[]>), grpcModelBindingData);
 
             var expectedByteArray = Encoding.UTF8.GetBytes("MyBlobByteArray");
             var testStream = new MemoryStream(expectedByteArray);
@@ -433,11 +433,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var byteResult = (IEnumerable<Byte[]>)conversionResult.Value;
+            var byteResult = (IEnumerable<byte[]>)conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsAssignableFrom<IEnumerable<Byte[]>>(byteResult);
+            Assert.IsAssignableFrom<IEnumerable<byte[]>>(byteResult);
             // Assert.Equal(expectedByteArray, byteResult.First()); // Running into issues mocking DownloadToAsync stream update
         }
 
@@ -446,7 +446,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             // Arrange
             var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(Byte[][]), grpcModelBindingData);
+            var context = new TestConverterContext(typeof(byte[][]), grpcModelBindingData);
 
             var expectedByteArray = Encoding.UTF8.GetBytes("MyBlobByteArray");
             var testStream = new MemoryStream(expectedByteArray);
@@ -465,11 +465,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var byteResult = (Byte[][])conversionResult.Value;
+            var byteResult = (byte[][])conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsType<Byte[][]>(byteResult);
+            Assert.IsType<byte[][]>(byteResult);
             // Assert.Equal(expectedByteArray, byteResult.First()); // Running into issues mocking DownloadToAsync steam update
         }
 
@@ -581,7 +581,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ContentSource_AsObject_ReturnsUnhandled()
         {
             // Arrange
-            var context = new TestConverterContext(typeof(BlobClient), new Object());
+            var context = new TestConverterContext(typeof(BlobClient), new object());
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);

@@ -4,8 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -16,6 +14,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using System.Collections;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -73,13 +72,17 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
         {
-            var blobCollection = new List<object>(collectionModelBindingData.ModelBindingDataArray.Length);
-            Type elementType = context.TargetType.IsArray ? context.TargetType.GetElementType() : context.TargetType.GenericTypeArguments[0];
+            Type elementType = context.TargetType.IsArray
+                ? context.TargetType.GetElementType()
+                : context.TargetType.GenericTypeArguments[0];
+
+            IList result = Array.CreateInstance(elementType, collectionModelBindingData.ModelBindingDataArray.Length);
 
             try
             {
-                foreach (ModelBindingData modelBindingData in collectionModelBindingData.ModelBindingDataArray)
+                for (var i = 0; i < collectionModelBindingData.ModelBindingDataArray.Length; i++)
                 {
+                    var modelBindingData = collectionModelBindingData.ModelBindingDataArray[i];
                     if (!IsBlobExtension(modelBindingData))
                     {
                         return ConversionResult.Unhandled();
@@ -90,12 +93,15 @@ namespace Microsoft.Azure.Functions.Worker
 
                     if (element is not null)
                     {
-                        blobCollection.Add(element);
+                        result[i] = element;
                     }
                 }
 
-                var methodName = context.TargetType.IsArray ? nameof(CloneToArray) : nameof(CloneToList);
-                var result = ToTargetTypeCollection(blobCollection, methodName, elementType);
+                if (!context.TargetType.IsArray)
+                {
+                    var resultType = typeof(List<>).MakeGenericType(elementType);
+                    result = (IList)Activator.CreateInstance(resultType, result);
+                }
 
                 return ConversionResult.Success(result);
             }
@@ -146,9 +152,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
         {
-            Type _ when targetType == typeof(String) => await GetBlobStringAsync(connectionName, containerName, blobName),
+            Type _ when targetType == typeof(string) => await GetBlobStringAsync(connectionName, containerName, blobName),
             Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(Byte[]) => await GetBlobBinaryDataAsync(connectionName, containerName, blobName),
+            Type _ when targetType == typeof(byte[]) => await GetBlobBinaryDataAsync(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlobBaseClient) => CreateBlobClient<BlobBaseClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlobClient) => CreateBlobClient<BlobClient>(connectionName, containerName, blobName),
             Type _ when targetType == typeof(BlockBlobClient) => CreateBlobClient<BlockBlobClient>(connectionName, containerName, blobName),
@@ -164,25 +170,6 @@ namespace Microsoft.Azure.Functions.Worker
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
         }
 
-        private object? ToTargetTypeCollection(IEnumerable<object> blobCollection, string methodName, Type type)
-        {
-            blobCollection = blobCollection.Select(b => Convert.ChangeType(b, type));
-            MethodInfo method = typeof(BlobStorageConverter).GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
-            MethodInfo genericMethod = method.MakeGenericMethod(type);
-
-            return genericMethod.Invoke(null, new[] { blobCollection.ToList() });
-        }
-
-        private static T[] CloneToArray<T>(IList<object> source)
-        {
-            return source.Cast<T>().ToArray();
-        }
-
-        private static IEnumerable<T> CloneToList<T>(IList<object> source)
-        {
-            return source.Cast<T>();
-        }
-
         private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
@@ -190,7 +177,7 @@ namespace Microsoft.Azure.Functions.Worker
             return download.Value.Content.ToString();
         }
 
-        private async Task<Byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
+        private async Task<byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
         {
             using MemoryStream stream = new();
             var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);

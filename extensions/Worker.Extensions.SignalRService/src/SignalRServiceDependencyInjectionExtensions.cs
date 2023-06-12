@@ -27,15 +27,14 @@ namespace Microsoft.Extensions.DependencyInjection
 
         public static IServiceCollection AddServerlessHub(this IServiceCollection services, Type hubType, Action<ServiceManagerBuilder> configure)
         {
-            var allBaseTypes = hubType.AllBaseTypes().ToArray();
-            if (!allBaseTypes.Any(t => t == typeof(ServerlessHub)))
+            if (!typeof(ServerlessHub).IsAssignableFrom(hubType))
             {
                 throw new ArgumentException($"{nameof(hubType)} is not derived from Microsoft.Azure.Functions.Worker.SignalRService.ServerlessHub.");
             }
             services.AddAzureClientsCore();
             services.TryAddSingleton<HubContextProvider>();
             services.TryAddSingleton<ServiceManagerOptionsSetup>();
-            if (TryGetClientType(allBaseTypes, out var clientType))
+            if (TryGetClientType(hubType, out var clientType))
             {
                 var genericDefinition = typeof(ServiceHubContextInitializer<,>);
                 var genericType = genericDefinition.MakeGenericType(hubType, clientType);
@@ -49,9 +48,9 @@ namespace Microsoft.Extensions.DependencyInjection
             }
         }
 
-        private static bool TryGetClientType(Type[] baseTypes, out Type clientType)
+        private static bool TryGetClientType(Type hubType, out Type clientType)
         {
-            var serverlessHubOfTType = baseTypes.FirstOrDefault(baseType => baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(ServerlessHub<>));
+            var serverlessHubOfTType = hubType.AllBaseTypes().FirstOrDefault(baseType => baseType.IsGenericType && baseType.GetGenericTypeDefinition() == typeof(ServerlessHub<>));
             if (serverlessHubOfTType != null)
             {
                 clientType = serverlessHubOfTType.GetGenericArguments()[0];

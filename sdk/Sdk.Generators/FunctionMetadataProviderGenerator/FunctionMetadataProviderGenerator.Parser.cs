@@ -140,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, supportsDeferredBinding: false, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
@@ -221,7 +221,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Identifier.ValueText;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), supportsDeferredBinding, out IDictionary<string, object>? bindingDict))
+                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
                             {
                                 bindingsList = null;
                                 return false;
@@ -248,7 +248,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     foreach (var advertisedAttribute in advertisedAttributes)
                     {
-                        if (string.Equals(advertisedAttribute.AttributeClass?.GetFullName(), Constants.Types.InputConverterAttributeType, StringComparison.Ordinal))
+                        if (SymbolEqualityComparer.Default.Equals(advertisedAttribute.AttributeClass, _knownFunctionMetadataTypes.InputConverterAttributeType))
                         {
                             foreach (var converter in advertisedAttribute.ConstructorArguments)
                             {
@@ -404,7 +404,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     return false;
                                 }
 
-                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), supportsDeferredBinding: false, out IDictionary<string, object>? bindingDict))
+                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
                                 {
                                     bindingsList = null;
                                     return false;
@@ -446,7 +446,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return httpBinding;
             }
 
-            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, bool supportsDeferredBinding, out IDictionary<string, object>? bindings)
+            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings, bool supportsDeferredBinding = false)
             {
                 // Get binding info as a dictionary with keys as the property name and value as the property value
                 if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object?>? attributeProperties))

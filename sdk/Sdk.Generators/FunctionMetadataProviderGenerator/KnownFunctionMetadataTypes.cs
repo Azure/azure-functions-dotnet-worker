@@ -20,7 +20,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _supportedConverterTypeAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
 
-
         internal KnownFunctionMetadataTypes(Compilation compilation)
         {
             _bindingAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.BindingAttribute)); // TODO: Find appropriate exception and/or error message.

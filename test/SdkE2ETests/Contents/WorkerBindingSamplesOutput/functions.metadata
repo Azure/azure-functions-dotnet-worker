@@ -101,7 +101,7 @@
         "tableName": "TableName",
         "partitionKey": "My Partition",
         "take": 2,
-        "filter": "RowKey ne \u0027value\u0027",
+        "filter": "RowKey ne 'value'",
         "properties": {
           "supportsDeferredBinding": "True"
         }
@@ -1075,7 +1075,7 @@
         "databaseName": "ToDoItems",
         "containerName": "Items",
         "connection": "CosmosDBConnection",
-        "sqlQuery": "SELECT * FROM ToDoItems t WHERE CONTAINS(t.description, \u0027cat\u0027)",
+        "sqlQuery": "SELECT * FROM ToDoItems t WHERE CONTAINS(t.description, 'cat')",
         "properties": {
           "supportsDeferredBinding": "True"
         }

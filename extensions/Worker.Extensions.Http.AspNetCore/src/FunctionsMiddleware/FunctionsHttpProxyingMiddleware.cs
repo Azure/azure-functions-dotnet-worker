@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             funcContext.Items.Add(Constants.HttpContextKey, httpContext);
 
             // add asp net version of httprequestdata feature
-            funcContext.Features.Set<IHttpRequestDataFeature>(new AspNetExtensionHttpRequestDataFeature());
+            funcContext.Features.Set<IHttpRequestDataFeature>(AspNetExtensionHttpRequestDataFeature.Instance);
         }
     }
 }

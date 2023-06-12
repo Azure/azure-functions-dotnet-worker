@@ -9,10 +9,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class AspNetExtensionHttpRequestDataFeature : IHttpRequestDataFeature
     {
+        private AspNetExtensionHttpRequestDataFeature()
+        {
+        }
+
+        public static AspNetExtensionHttpRequestDataFeature Instance { get; } = new AspNetExtensionHttpRequestDataFeature();
+
         public ValueTask<HttpRequestData?> GetHttpRequestDataAsync(FunctionContext context)
         {
             throw new NotSupportedException($"The method {nameof(GetHttpRequestDataAsync)} " +
-                $"is not supported under the dotnet-isolated ASP.NET core integration model.");
+                $"is not supported when using the ASP.NET Core integration. Use the GetHttpContext method of {nameof(FunctionContext)} to access the HttpContext for the request.");
         }
     }
 }

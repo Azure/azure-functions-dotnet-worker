@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.10.0-preview3
 
-- Make Constants class internal (#<PR>)
+- Make Constants class internal (#1609)

@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.EventHubs 5.4.0-preview1
 
-- Add support for binding to `EventData`(#<PR>)
+- Add support for binding to `EventData`(#1609)

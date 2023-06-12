@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMiddleware;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.Hosting
@@ -13,7 +14,7 @@ namespace Microsoft.Extensions.Hosting
     /// <summary>
     /// Provides extension methods to work with a <see cref="IHostBuilder"/>.
     /// </summary>
-    public static class HostBuilderExtensions
+    public static class FunctionsHostBuilderExtensions
     {
         /// <summary>
         /// Configures the worker to use the ASP.NET Core integration, enabling advanced HTTP features.
@@ -51,9 +52,14 @@ namespace Microsoft.Extensions.Hosting
                 webBuilder.UseUrls(HttpUriProvider.HttpUriString);
                 webBuilder.Configure(b =>
                 {
+                    b.UseRouting();
                     b.UseMiddleware<WorkerRequestServicesMiddleware>();
-                    // TODO: provide a way for customers to configure their middleware pipeline here
-                    b.UseMiddleware<InvokeFunctionMiddleware>();
+                    // TODO: provide a way for customers to configure their middleware pipeline here                   
+                    b.UseEndpoints(endpoints =>
+                    {
+                        var dataSource = endpoints.ServiceProvider.GetRequiredService<FunctionsEndpointDataSource>();
+                        endpoints.DataSources.Add(dataSource);
+                    });
                 });
             });
 

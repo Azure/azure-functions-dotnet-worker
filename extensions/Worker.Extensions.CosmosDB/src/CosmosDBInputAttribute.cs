@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker
     [InputConverter(typeof(CosmosDBConverter))]
     public sealed class CosmosDBInputAttribute : InputBindingAttribute
     {
-        /// <Summary>
+        /// <summary>
         /// Constructs a new instance.
         /// Use this constructor when binding to a CosmosClient.
         /// </summary>
@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker
             ContainerName = string.Empty;
         }
 
-        /// <Summary>
+        /// <summary>
         /// Constructs a new instance with the specified database name.
         /// Use this constructor when binding to a Database.
         /// </summary>

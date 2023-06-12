@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Provides extension methods to work with a <see cref="IFunctionsWorkerApplicationBuilder"/>.
     /// </summary>
-    public static class WorkerBuilderExtensions
+    internal static class WorkerBuilderExtensions
     {
         /// <summary>
         /// Adds the services needed to integrate with AspNetCore

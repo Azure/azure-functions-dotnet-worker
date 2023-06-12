@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     continue;
                 }
 
-                var inputConverterAttributes = attributeType.GetInputConverterAttributes(context);
+                var inputConverterAttributes = attributeType.GetInputConverterAttributes(context.Compilation);
                 if (inputConverterAttributes.Count <= 0)
                 {
                     continue;

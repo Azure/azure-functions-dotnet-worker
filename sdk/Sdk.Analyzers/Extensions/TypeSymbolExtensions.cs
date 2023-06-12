@@ -39,17 +39,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             return false;
         }
 
-        internal static List<AttributeData> GetInputConverterAttributes(this ITypeSymbol attributeType, SymbolAnalysisContext context)
+        internal static List<AttributeData> GetInputConverterAttributes(this ITypeSymbol attributeType, Compilation compilation)
         {
-            var inputConverterAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttribute);
-            return attributeType.GetAttributes()
-                .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, inputConverterAttributeType))
-                .ToList();
-        }
-
-        internal static List<AttributeData> GetInputConverterAttributes(this ITypeSymbol attributeType, SemanticModel context)
-        {
-            var inputConverterAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttribute);
+            var inputConverterAttributeType = compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttribute);
             return attributeType.GetAttributes()
                 .Where(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, inputConverterAttributeType))
                 .ToList();

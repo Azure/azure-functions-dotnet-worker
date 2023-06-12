@@ -36,10 +36,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             var semanticModel = await context.Document.GetSemanticModelAsync().ConfigureAwait(false);
             var parameterSymbol = semanticModel.GetDeclaredSymbol(parameter);
 
+            // Here, parameterSymbol represents a BindingAttribute parameter
             foreach (var attribute in parameterSymbol.GetAttributes())
             {
                 var attributeType = attribute?.AttributeClass;
-                var inputConverterAttributes = attributeType.GetInputConverterAttributes(semanticModel);
+                var inputConverterAttributes = attributeType.GetInputConverterAttributes(semanticModel.Compilation);
 
                 if (inputConverterAttributes.Count <= 0)
                 {

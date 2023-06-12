@@ -8,24 +8,19 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <PublishAot>true</PublishAot>
     <OptimizationPreference>Speed</OptimizationPreference>
+    <IlcExportUnmanagedEntrypoints>true</IlcExportUnmanagedEntrypoints>
   </PropertyGroup>
 
   <PropertyGroup>
-    <DefineConstants>$(FUNCTIONS_CONSTANTS)</DefineConstants>
+    <DefineConstants Condition=" '$([MSBuild]::IsOSPlatform(`Linux`))' == 'true' ">OS_LINUX</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup>
     <ExportsFile>$(MSBuildThisFileDirectory)exports.def</ExportsFile>
   </PropertyGroup>
 
-  <!--Below is needed to tell linker to include our exported functions in net7.0.-->
-  <!--Use IlcExportUnmanagedEntrypoints when adopting .net8.0-->
   <ItemGroup>
-    <CustomLinkerArg Include="-Wl,--export-dynamic" Condition=" '$([MSBuild]::IsOSPlatform(`Linux`))' == 'true' " />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.23.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.23.2" />
     <PackageReference Include="Grpc.Net.Client" Version="2.53.0" />
     <PackageReference Include="Grpc.Net.ClientFactory" Version="2.53.0" />
     <PackageReference Include="Grpc.Tools" Version="2.54.0">

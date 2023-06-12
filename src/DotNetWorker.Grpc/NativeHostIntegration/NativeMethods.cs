@@ -12,14 +12,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
     {
         private const string NativeWorkerDll = "FunctionsNetHost.exe";
 
-        // NET7.0 onwards, we use custom import resolver to get our native executable handle.
-        // which works for both Windows and Linux.
-#if NET7_0_OR_GREATER
         static NativeMethods()
         {
             NativeLibrary.SetDllImportResolver(typeof(NativeMethods).Assembly, ImportResolver);
         }
-#endif
 
         public static NativeHost GetNativeHostData()
         {
@@ -56,7 +52,6 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
             IntPtr grpcHandler);
 
-#if NET7_0_OR_GREATER
         /// <summary>
         /// Custom import resolve callback.
         /// When trying to resolve "FunctionsNetHost", we return the handle using GetMainProgramHandle API in this callback.
@@ -65,12 +60,28 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         {
             if (libraryName == NativeWorkerDll)
             {
+#if NET6_0
+                if (OperatingSystem.IsWindows())
+                {
+                    return NativeLibraryWindows.GetMainProgramHandle();
+                }
+                else if (OperatingSystem.IsLinux())
+                {
+                    return NativeLibraryLinux.GetMainProgramHandle();
+                }
+                else
+                {
+                    throw new PlatformNotSupportedException("Interop communication with FunctionsNetHost is not supported in the current platform. Consider upgrading your project to .NET 7.0 or later.");
+                }
+#elif NET7_0_OR_GREATER
                 return NativeLibrary.GetMainProgramHandle();
+#else
+                throw new PlatformNotSupportedException("Interop communication with FunctionsNetHost is not supported in the current platform. Consider upgrading your project to .NET 7.0 or later.");
+#endif
             }
 
             // Return 0 so that built-in resolving code will be executed.
             return IntPtr.Zero;
         }
-#endif
     }
 }

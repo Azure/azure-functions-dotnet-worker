@@ -39,7 +39,7 @@ stages:
               command: "publish"
               publishWebProjects: false
               zipAfterPublish: false
-              arguments: "-c Release -r linux-x64 -o $(Build.ArtifactStagingDirectory)/output/linux -p:FUNCTIONS_CONSTANTS=LINUX"
+              arguments: "-c Release -r linux-x64 -o $(Build.ArtifactStagingDirectory)/output/linux"
               workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
 
           - task: CopyFiles@2

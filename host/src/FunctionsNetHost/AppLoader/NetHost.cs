@@ -15,17 +15,17 @@ namespace FunctionsNetHost
 
         internal static string GetHostFxrPath()
         {
-            char[] buffer = new char[500];
-            int buffer_size = buffer.Length;
+            char[] buffer = new char[200];
+            int bufferSize = buffer.Length;
 
-            int rc = get_hostfxr_path(buffer, ref buffer_size, IntPtr.Zero);
+            int rc = get_hostfxr_path(buffer, ref bufferSize, IntPtr.Zero);
 
             if (rc != 0)
             {
                 throw new InvalidOperationException("Failed to get the hostfxr path.");
             }
 
-            return new string(buffer, 0, buffer_size - 1);
+            return new string(buffer, 0, bufferSize - 1);
         }
     }
 }

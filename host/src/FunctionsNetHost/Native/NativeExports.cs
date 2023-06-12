@@ -52,8 +52,6 @@ namespace FunctionsNetHost
         [UnmanagedCallersOnly(EntryPoint = "send_streaming_message")]
         public static unsafe int SendStreamingMessage(IntPtr pInProcessApplication, byte* streamingMessage, int streamingMessageSize)
         {
-            Logger.LogTrace($"NativeExports.SendStreamingMessage method invoked.");
-
             try
             {
                 var span = new ReadOnlySpan<byte>(streamingMessage, streamingMessageSize);

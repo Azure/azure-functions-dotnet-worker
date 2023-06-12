@@ -12,7 +12,7 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost455");
+                Logger.Log("Starting FunctionsNetHost");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
@@ -59,7 +59,6 @@ namespace FunctionsNetHost
 
             var argsWithoutExecutableName = args.Skip(1).ToArray();
             await rootCommand.InvokeAsync(argsWithoutExecutableName);
-            Logger.LogTrace($"workerStartupOptions:{workerStartupOptions}");
 
             return workerStartupOptions;
         }

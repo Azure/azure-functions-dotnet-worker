@@ -54,10 +54,9 @@ namespace FunctionsNetHost.Grpc
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
-                    Logger.LogTrace($"Set {envReloadRequest.EnvironmentVariables.Count} environment variables.");
 
                     var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
-                    Logger.LogTrace($"applicationExePath {applicationExePath}");
+                    Logger.LogTrace($"application path {applicationExePath}");
 
 #pragma warning disable CS4014
                     Task.Run(() =>

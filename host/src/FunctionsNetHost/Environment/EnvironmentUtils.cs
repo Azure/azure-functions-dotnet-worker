@@ -5,7 +5,7 @@ namespace FunctionsNetHost
 {
     internal static class EnvironmentUtils
     {
-#if LINUX
+#if OS_LINUX
         [System.Runtime.InteropServices.DllImport("libc")]
         private static extern int setenv(string name, string value, int overwrite);
 #endif
@@ -27,7 +27,7 @@ namespace FunctionsNetHost
              *  Environment.SetEnvironmentVariable is not setting the value of the parent process in Unix.
              *  So using the native method directly here.
              * */
-#if LINUX
+#if OS_LINUX
             setenv(name, value, 1);
 #else
             Environment.SetEnvironmentVariable(name, value);

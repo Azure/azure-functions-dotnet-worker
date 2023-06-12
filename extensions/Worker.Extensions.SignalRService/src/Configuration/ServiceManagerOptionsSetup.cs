@@ -48,6 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
                 options.ConnectionCount = 3;
             };
         }
+
         public Action<ServiceManagerOptions> Configure(string connectionStringKey) =>
             options => _configure(options, connectionStringKey);
     }

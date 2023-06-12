@@ -34,6 +34,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string HttpResponse = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
             internal const string HttpTriggerBinding = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
 
+            internal const string InputConverterAttributeType = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
+            internal const string SupportedConverterTypeAttributeType = "Microsoft.Azure.Functions.Worker.Converters.SupportedConverterTypeAttribute";
+            internal const string SupportsDeferredBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
 
             // System types
             internal const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";

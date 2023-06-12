@@ -16,6 +16,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _defaultValue;
         private readonly Lazy<INamedTypeSymbol?> _httpResponse;
         private readonly Lazy<INamedTypeSymbol?> _httpTriggerBinding;
+        private readonly Lazy<INamedTypeSymbol?> _inputConverterAttributeType;
+        private readonly Lazy<INamedTypeSymbol?> _supportedConverterTypeAttributeType;
+        private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
 
         internal KnownFunctionMetadataTypes(Compilation compilation)
         {
@@ -26,6 +29,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _defaultValue = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.DefaultValue));
             _httpResponse = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponse));
             _httpTriggerBinding = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpTriggerBinding));
+            _inputConverterAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttributeType));
+            _supportedConverterTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttributeType));
+            _supportsDeferredBindingAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportsDeferredBindingAttributeType));
         }
 
         public INamedTypeSymbol? BindingAttribute { get => _bindingAttribute.Value; }
@@ -41,5 +47,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public INamedTypeSymbol? HttpResponse { get => _httpResponse.Value; }
 
         public INamedTypeSymbol? HttpTriggerBinding { get => _httpTriggerBinding.Value; }
+
+        public INamedTypeSymbol? InputConverterAttributeType { get => _inputConverterAttributeType.Value; }
+
+        public INamedTypeSymbol? SupportedConverterTypeAttributeType { get => _supportedConverterTypeAttributeType.Value; }
+
+        public INamedTypeSymbol? SupportsDeferredBindingAttributeType { get => _supportsDeferredBindingAttributeType.Value; }
     }
 }

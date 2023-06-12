@@ -47,6 +47,11 @@ namespace Microsoft.Extensions.Hosting
 
         internal static IHostBuilder ConfigureAspNetCoreIntegration(this IHostBuilder builder)
         {
+            builder.ConfigureServices(services =>
+            {
+                services.AddSingleton<FunctionsEndpointDataSource>();
+            });
+
             builder.ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder.UseUrls(HttpUriProvider.HttpUriString);

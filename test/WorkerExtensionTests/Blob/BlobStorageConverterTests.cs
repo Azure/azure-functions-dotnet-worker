@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyBlob", clientResult.Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_List_ReturnsSuccess()
         {
             // Arrange
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyBlob", clientResult.First().Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_Array_ReturnsSuccess()
         {
             // Arrange
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyContainer", clientResult.Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobContainerClientCollection_List_ReturnsSuccess()
         {
             // Arrange
@@ -170,7 +170,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal("MyContainer", clientResult.First().Name);
         }
 
-        [Fact (Skip = "Fails: ChangeType doesn't work for mock objects 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_BlobContainerClientCollection_Array_ReturnsSuccess()
         {
             // Arrange
@@ -309,7 +309,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(expectedStream, streamResult);
         }
 
-        [Fact (Skip = "Fails - broken scenario. ChangeType fails trying to convert MemoryStream to Stream) - 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_StreamCollection_List_ReturnsSuccess()
         {
             // Arrange
@@ -342,7 +342,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(expectedStream.ToString(), streamResult.First().ToString());
         }
 
-        [Fact (Skip = "Fails - broken scenario. ChangeType fails trying to convert MemoryStream to Stream) - 'Object must implement IConvertible'")]
+        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_StreamCollection_Array_ReturnsSuccess()
         {
             // Arrange
@@ -371,8 +371,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsType<Book[]>(streamResult);
-            Assert.Equal(expectedStream.ToString(), streamResult.First().ToString());
             Assert.Equal(expectedStream.ToString(), streamResult.First().ToString());
         }
 

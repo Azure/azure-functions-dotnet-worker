@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB <version>
 
-- <entry>
+- Updated CosmosDBInputAttribute constructors to allow empty values for databaseName and containerName

@@ -4,6 +4,4 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.10.0
-
-- Add `DefaultValue` attribute to the `IsBatched` prop of the ServiceBus trigger (#1600).
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>

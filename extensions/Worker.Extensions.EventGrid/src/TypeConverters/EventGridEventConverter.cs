@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                 return new(ConversionResult.Unhandled());
             }
 
-            return EventGridHelper.ConvertHelper(context);
+            return EventGridHelper.DeserilizeToTargetType(context);
         }
     }
 }

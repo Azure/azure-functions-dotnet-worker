@@ -1,12 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
@@ -18,8 +21,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         public EventGridStringArrayConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
+            var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>();
 
-            _eventGridConverter = new EventGridStringArrayConverter();
+            _eventGridConverter = new EventGridStringArrayConverter(workerOptions);
         }
 
         [Fact]
@@ -40,6 +44,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.True(conversionResult.Value is string[]);
+            Assert.Equal(2, ((string[])conversionResult.Value).Length);
         }
 
         [Fact]
@@ -60,6 +66,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.True(conversionResult.Value is string[]);
+            Assert.Single((string[])conversionResult.Value);
         }
     }
 }

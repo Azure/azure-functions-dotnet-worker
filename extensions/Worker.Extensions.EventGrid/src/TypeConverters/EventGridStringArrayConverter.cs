@@ -4,9 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
@@ -16,6 +20,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     [SupportedConverterType(typeof(string[]))]
     internal class EventGridStringArrayConverter : IInputConverter
     {
+        private readonly IOptions<WorkerOptions> _workerOptions;
+
+        public EventGridStringArrayConverter(IOptions<WorkerOptions> workerOptions)
+        {
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
+        }
+
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (context is null)
@@ -33,21 +44,26 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is null)
                 {
-                    var jsonData = JsonConvert.DeserializeObject<List<object>>(contextSource);
-                    List<string> stringList = new List<string>();
+                    return new(ConversionResult.Unhandled());
+                }
 
-                    if (jsonData is not null)
+                byte[] byteArray = Encoding.UTF8.GetBytes(contextSource);
+                MemoryStream stream = new MemoryStream(byteArray);
+
+                var jsonData = (List<object>?)_workerOptions?.Value?.Serializer?.Deserialize(stream, typeof(List<object>), CancellationToken.None);
+                List<string> stringList = new List<string>();
+
+                if (jsonData is not null)
+                {
+                    foreach (var item in jsonData)
                     {
-                        foreach (var item in jsonData)
+                        if (item is not null)
                         {
-                            if (item is not null)
-                            {
-                                var data = JsonConvert.SerializeObject(item);
-                                stringList.Add(data);
-                            }
+                            var data = item.ToString();
+                            stringList.Add(data);
                         }
-                        return new(ConversionResult.Success(stringList.ToArray()));
                     }
+                    return new(ConversionResult.Success(stringList.ToArray()));
                 }
             }
             catch (JsonException ex)

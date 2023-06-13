@@ -4,9 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
@@ -17,6 +21,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     [SupportedConverterType(typeof(BinaryData[]))]
     internal class EventGridBinaryDataConverter : IInputConverter
     {
+        private readonly IOptions<WorkerOptions> _workerOptions;
+
+        public EventGridBinaryDataConverter(IOptions<WorkerOptions> workerOptions)
+        {
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
+        }
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (context is null)
@@ -33,31 +43,35 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             {
                 var contextSource = context?.Source as string;
 
-                if (contextSource is not null)
+                if (contextSource is null)
                 {
-                   if (context!.TargetType == typeof(BinaryData))
-                   {
-                        var binaryData = BinaryData.FromObjectAsJson<string>(contextSource);
-                        return new(ConversionResult.Success(binaryData));
-                   }
-                   else if (context!.TargetType == typeof(BinaryData[]))
-                   {
-                        var jsonData = JsonConvert.DeserializeObject<List<object>>(contextSource);
-                        List<BinaryData> binaryDataList = new List<BinaryData>();
+                    return new(ConversionResult.Unhandled());
+                }
 
-                        if (jsonData is not null)
+                if (context!.TargetType == typeof(BinaryData))
+                {
+                    var binaryData = BinaryData.FromObjectAsJson<string>(contextSource);
+                    return new(ConversionResult.Success(binaryData));
+                }
+                else if (context!.TargetType == typeof(BinaryData[]))
+                {
+                    byte[] byteArray = Encoding.UTF8.GetBytes(contextSource);
+                    MemoryStream stream = new MemoryStream(byteArray);
+
+                    var jsonData = (List<object>?)_workerOptions?.Value?.Serializer?.Deserialize(stream, typeof(List<object>), CancellationToken.None);
+                    List<BinaryData> binaryDataList = new List<BinaryData>();
+
+                    if (jsonData is not null)
+                    {
+                        foreach (var item in jsonData)
                         {
-                            foreach (var item in jsonData)
+                            if (item is not null)
                             {
-                                if (item is not null)
-                                {
-                                    var binaryData = new BinaryData(JsonConvert.SerializeObject(item));
-                                    binaryDataList.Add(binaryData);
-
-                                }
+                                var binaryData = new BinaryData(item);
+                                binaryDataList.Add(binaryData);
                             }
-                            return new(ConversionResult.Success(binaryDataList.ToArray()));
                         }
+                        return new(ConversionResult.Success(binaryDataList.ToArray()));
                     }
                 }
             }

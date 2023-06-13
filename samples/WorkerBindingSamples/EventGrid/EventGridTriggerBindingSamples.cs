@@ -5,7 +5,6 @@ using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace WorkerBindingSamples.EventGrid
 {
@@ -21,13 +20,13 @@ namespace WorkerBindingSamples.EventGrid
         [Function("MyEventFunction")]
         public void MyEventFunction([EventGridTrigger] MyEvent input)
         {
-            _logger.LogInformation(input.Data.ToString());
+            _logger.LogInformation(input.Data?.ToString());
         }
 
         [Function("CloudEventFunction")]
         public void CloudEventFunction([EventGridTrigger] CloudEvent input)
         {
-            _logger.LogInformation("Event received " + input.Type + " " + input.Subject);
+            _logger.LogInformation("Event type: {type}, Event subject: {subject}", input.Type, input.Subject);
         }
 
         [Function("MultipleCloudEventFunction")]
@@ -36,15 +35,14 @@ namespace WorkerBindingSamples.EventGrid
             for (var i = 0; i < input.Length; i++)
             {
                 var cloudEvent = input[i];
-                _logger.LogInformation("Event received " + cloudEvent.Type + " " + cloudEvent.Subject);
+                _logger.LogInformation("Event type: {type}, Event subject: {subject}", cloudEvent.Type, cloudEvent.Subject);
             }
         }
 
         [Function("EventGridEvent")]
         public void EventGridEvent([EventGridTrigger] EventGridEvent input)
         {
-            _logger.LogInformation("Event received " + input.Data.ToString());
-            
+            _logger.LogInformation("Event received: {event}", input.Data.ToString());
         }
 
         [Function("EventGridEventArray")]
@@ -53,15 +51,14 @@ namespace WorkerBindingSamples.EventGrid
             for (var i = 0; i < input.Length; i++)
             {
                 var eventGridEvent = input[i];
-                _logger.LogInformation("Event received " + eventGridEvent.Data.ToString());
+                _logger.LogInformation("Event received: {event}", eventGridEvent.Data.ToString());
             }
         }
 
         [Function("BinaryDataEvent")]
         public void BinaryDataEvent([EventGridTrigger] BinaryData input)
         {
-            _logger.LogInformation("Event received " + input.ToString());
-
+            _logger.LogInformation("Event received: {event}", input.ToString());
         }
 
         [Function("BinaryDataArrayEvent")]
@@ -70,7 +67,7 @@ namespace WorkerBindingSamples.EventGrid
             for (var i = 0; i < input.Length; i++)
             {
                 var binaryDataEvent = input[i];
-                _logger.LogInformation("Event received " + binaryDataEvent.ToString());
+                _logger.LogInformation("Event received: {event}", binaryDataEvent.ToString());
             }
         }
 
@@ -80,29 +77,29 @@ namespace WorkerBindingSamples.EventGrid
             for (var i = 0; i < input.Length; i++)
             {
                 var stringEventGrid = input[i];
-                _logger.LogInformation("Event received " + stringEventGrid);
+                _logger.LogInformation("Event received: {event}", stringEventGrid);
             }
         }
 
         [Function("StringEvent")]
         public void StringEvent([EventGridTrigger] string input)
         {
-            _logger.LogInformation("Event received " + input);
+            _logger.LogInformation("Event received: {event}", input);
         }
     }
 
     public class MyEvent
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Topic { get; set; }
+        public string? Topic { get; set; }
 
-        public string Subject { get; set; }
+        public string? Subject { get; set; }
 
-        public string EventType { get; set; }
+        public string? EventType { get; set; }
 
         public DateTime EventTime { get; set; }
 
-        public object Data { get; set; }
+        public object? Data { get; set; }
     }
 }

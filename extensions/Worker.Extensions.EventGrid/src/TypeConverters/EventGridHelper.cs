@@ -11,18 +11,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     internal static class EventGridHelper
     {
-        internal static ValueTask<ConversionResult> ConvertHelper(ConverterContext context)
+        internal static ValueTask<ConversionResult> DeserilizeToTargetType(ConverterContext context)
         {
             try
             {
                 var contextSource = context?.Source as string;
 
-                if (contextSource is not null)
+                if (contextSource is null)
                 {
-                    var targetType = context!.TargetType;
-                    var item = JsonSerializer.Deserialize(contextSource, targetType);
-                    return new(ConversionResult.Success(item));
+                    return new(ConversionResult.Unhandled());
                 }
+                
+                var targetType = context!.TargetType;
+                var item = JsonSerializer.Deserialize(contextSource, targetType);
+                return new(ConversionResult.Success(item));
             }
             catch (JsonException ex)
             {
@@ -39,9 +41,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             {
                 return new(ConversionResult.Failed(ex));
             }
-
-            return new(ConversionResult.Unhandled());
-
         }
     }
 }

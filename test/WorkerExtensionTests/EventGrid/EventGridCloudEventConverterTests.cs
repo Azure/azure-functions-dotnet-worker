@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Threading.Tasks;
 using Azure.Messaging;
+using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters;
@@ -41,6 +43,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.True(conversionResult.Value is CloudEvent);
         }
 
         [Fact]
@@ -71,6 +74,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.True(conversionResult.Value is CloudEvent[]);
+            Assert.Equal(2, ((CloudEvent[])conversionResult.Value).Length);
         }
 
         [Fact]
@@ -91,6 +96,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.Single((CloudEvent[])conversionResult.Value);
         }
     }
 }

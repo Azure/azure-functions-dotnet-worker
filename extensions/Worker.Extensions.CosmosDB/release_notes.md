@@ -6,4 +6,6 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB <version>
 
-- Add BindingCapabilities attribute to CosmosDb trigger to express function-level retry capabilities. (#1457)
+- Add `BindingCapabilities` attribute to CosmosDb trigger to express function-level retry capabilities. (#1457)
+- Update `Microsoft.Azure.Cosmos` to `3.34.0` (#1550)
+- Updated CosmosDBInputAttribute constructors to allow empty values for databaseName and containerName

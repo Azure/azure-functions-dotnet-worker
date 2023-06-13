@@ -13,11 +13,12 @@ using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind Cosmos DB type parameters.
+    /// Converter to bind CosmosDB type parameters.
     /// </summary>
     [SupportsDeferredBinding]
     internal class CosmosDBConverter : IInputConverter
@@ -42,46 +43,35 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
-            if (!IsCosmosExtension(modelBindingData))
-            {
-                return ConversionResult.Unhandled();
-            }
-
             try
             {
+                if (modelBindingData.Source is not Constants.CosmosExtensionName)
+                {
+                    throw new InvalidBindingSourceException(modelBindingData.Source, Constants.CosmosExtensionName);
+                }
+
                 var cosmosAttribute = GetBindingDataContent(modelBindingData);
                 object result = await ToTargetTypeAsync(context.TargetType, cosmosAttribute);
 
-                if (result is not null)
-                {
-                    return ConversionResult.Success(result);
-                }
+                return ConversionResult.Success(result);
             }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
             }
-
-            return ConversionResult.Unhandled();
-        }
-
-        private bool IsCosmosExtension(ModelBindingData bindingData)
-        {
-            if (bindingData?.Source is not Constants.CosmosExtensionName)
-            {
-                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData?.Source, nameof(CosmosDBConverter));
-                return false;
-            }
-
-            return true;
         }
 
         private CosmosDBInputAttribute GetBindingDataContent(ModelBindingData bindingData)
         {
-            return bindingData?.ContentType switch
+            if (bindingData is null)
+            {
+                throw new ArgumentNullException(nameof(bindingData));
+            }
+
+            return bindingData.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>(),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
+                _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }
 
@@ -186,14 +176,19 @@ namespace Microsoft.Azure.Functions.Worker
 
         private T CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
         {
-            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute?.Connection);
-            CosmosClient cosmosClient = cosmosDBOptions.GetClient(cosmosAttribute?.Connection!, cosmosAttribute?.PreferredLocations!);
+            if (cosmosAttribute is null)
+            {
+                throw new ArgumentNullException(nameof(cosmosAttribute));
+            }
+
+            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
+            CosmosClient cosmosClient = cosmosDBOptions.GetClient(cosmosAttribute.PreferredLocations!);
 
             Type targetType = typeof(T);
             object cosmosReference = targetType switch
             {
-                Type _ when targetType == typeof(Database) => cosmosClient.GetDatabase(cosmosAttribute?.DatabaseName),
-                Type _ when targetType == typeof(Container) => cosmosClient.GetContainer(cosmosAttribute?.DatabaseName, cosmosAttribute?.ContainerName),
+                Type _ when targetType == typeof(Database) => cosmosClient.GetDatabase(cosmosAttribute.DatabaseName),
+                Type _ when targetType == typeof(Container) => cosmosClient.GetContainer(cosmosAttribute.DatabaseName, cosmosAttribute.ContainerName),
                 _ => cosmosClient
             };
 

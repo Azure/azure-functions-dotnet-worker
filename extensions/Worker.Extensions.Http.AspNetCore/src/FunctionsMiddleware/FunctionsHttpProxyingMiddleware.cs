@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
@@ -56,6 +57,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)
         {
             funcContext.Items.Add(Constants.HttpContextKey, httpContext);
+
+            // add asp net version of httprequestdata feature
+            funcContext.Features.Set<IHttpRequestDataFeature>(AspNetCoreHttpRequestDataFeature.Instance);
         }
 
         private static bool IsHttpTriggerFunction(FunctionContext funcContext)

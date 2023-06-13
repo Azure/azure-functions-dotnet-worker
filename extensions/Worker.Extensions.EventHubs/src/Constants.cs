@@ -6,5 +6,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventHubs
     internal static class Constants
     {
         internal const string BinaryContentType = "application/octet-stream";
+
+        internal const string BindingSource = "AzureEventHubsEventData";
     }
 }

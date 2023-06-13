@@ -69,6 +69,108 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             AssertReceivedMessage(output[1], lockToken);
         }
 
+        [Fact]
+        public async Task ConvertAsync_ReturnsFailure_WrongContentType()
+        {
+            var lockToken = Guid.NewGuid();
+            var message = CreateReceivedMessage(lockToken);
+
+            var data = new GrpcModelBindingData(new ModelBindingData()
+            {
+                Version = "1.0",
+                Source = Constants.BindingSource,
+                Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
+                ContentType = "application/json"
+            });
+            var context = new TestConverterContext(typeof(string), data);
+            var converter = new ServiceBusReceivedMessageConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, result.Status);
+            var output = result.Value as ServiceBusReceivedMessage;
+            Assert.Null(output);
+            Assert.IsType<InvalidOperationException>(result.Error);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_Batch_ReturnsFailure_WrongContentType()
+        {
+            var lockToken = Guid.NewGuid();
+            var message = CreateReceivedMessage(lockToken);
+
+            var data = new ModelBindingData
+            {
+                Version = "1.0",
+                Source = Constants.BindingSource,
+                Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
+                ContentType = "application/json"
+            };
+
+            var array = new CollectionModelBindingData();
+            array.ModelBindingData.Add(data);
+            array.ModelBindingData.Add(data);
+
+            var context = new TestConverterContext(typeof(string), new GrpcCollectionModelBindingData(array));
+            var converter = new ServiceBusReceivedMessageConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, result.Status);
+            var output = result.Value as ServiceBusReceivedMessage[];
+            Assert.Null(output);
+            Assert.IsType<InvalidOperationException>(result.Error);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ReturnsFailure_WrongSource()
+        {
+            var lockToken = Guid.NewGuid();
+            var message = CreateReceivedMessage(lockToken);
+
+            var data = new GrpcModelBindingData(new ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "some-other-source",
+                Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
+                ContentType = Constants.BinaryContentType
+            });
+            var context = new TestConverterContext(typeof(string), data);
+            var converter = new ServiceBusReceivedMessageConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, result.Status);
+            var output = result.Value as ServiceBusReceivedMessage;
+            Assert.Null(output);
+            Assert.IsType<InvalidOperationException>(result.Error);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_Batch_ReturnsFailure_WrongSource()
+        {
+            var lockToken = Guid.NewGuid();
+            var message = CreateReceivedMessage(lockToken);
+
+            var data = new ModelBindingData
+            {
+                Version = "1.0",
+                Source = "some-other-source",
+                Content = ByteString.CopyFrom(ConvertReceivedMessageToBinaryData(message)),
+                ContentType = Constants.BinaryContentType
+            };
+
+            var array = new CollectionModelBindingData();
+            array.ModelBindingData.Add(data);
+            array.ModelBindingData.Add(data);
+
+            var context = new TestConverterContext(typeof(string), new GrpcCollectionModelBindingData(array));
+            var converter = new ServiceBusReceivedMessageConverter();
+            var result = await converter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, result.Status);
+            var output = result.Value as ServiceBusReceivedMessage[];
+            Assert.Null(output);
+            Assert.IsType<InvalidOperationException>(result.Error);
+        }
+
         private static void AssertReceivedMessage(ServiceBusReceivedMessage output, Guid lockToken)
         {
             Assert.Equal("body", output.Body.ToString());

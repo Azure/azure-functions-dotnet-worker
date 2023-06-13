@@ -634,8 +634,6 @@
         "name": "client",
         "direction": "In",
         "type": "cosmosDB",
-        "databaseName": "",
-        "containerName": "",
         "connection": "CosmosDBConnection",
         "properties": {
           "supportsDeferredBinding": "True"
@@ -673,7 +671,6 @@
         "direction": "In",
         "type": "cosmosDB",
         "databaseName": "ToDoItems",
-        "containerName": "",
         "connection": "CosmosDBConnection",
         "properties": {
           "supportsDeferredBinding": "True"

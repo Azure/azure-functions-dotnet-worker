@@ -14,39 +14,65 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 {
     public class FunctionsHttpProxyingMiddlewareTests
     {
-        private TestFunctionContext _functionContext;
-        private HttpContext _httpContext;
-        private Mock<IHttpCoordinator> _mockCoordinator;
-
-
-        public FunctionsHttpProxyingMiddlewareTests()
+        [Fact]
+        public async Task Middleware_AddsHttpContextToFunctionContext_Success()
         {
-            _functionContext = new TestFunctionContext(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None);
-            _functionContext.Items = new Dictionary<object, object>();
+            var test = SetupInputs("httpTrigger");
+            var mockDelegate = new Mock<FunctionExecutionDelegate>();
 
-            _httpContext = new DefaultHttpContext();
-            _httpContext.Request.Headers.Add(Constants.CorrelationHeader, _functionContext.InvocationId);
+            var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
+            await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
 
-            _mockCoordinator = new Mock<IHttpCoordinator>();
-            _mockCoordinator
-                .Setup(p => p.SetHttpContextAsync(_functionContext.InvocationId, _httpContext))
-                .ReturnsAsync(_functionContext);
-            _mockCoordinator
-                .Setup(p => p.SetFunctionContextAsync(_functionContext.InvocationId, _functionContext))
-                .ReturnsAsync(_httpContext);
+            Assert.NotNull(test.FunctionContext.GetHttpContext());
+            Assert.Equal(test.FunctionContext.GetHttpContext(), test.HttpContext);
+
+            mockDelegate.Verify(p => p.Invoke(test.FunctionContext), Times.Once());
+
+            test.MockCoordinator.Verify(p => p.SetFunctionContextAsync(It.IsAny<string>(), It.IsAny<FunctionContext>()), Times.Once());
+            test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
 
         [Fact]
-        public async Task MiddlewareAddsHttpContextToFunctionContext_Sucess()
+        public async Task Middleware_NoOpsOnNonHttpTriggers()
         {
-            var funcMiddleware = new FunctionsHttpProxyingMiddleware(_mockCoordinator.Object);
-
+            var test = SetupInputs("someTrigger");
             var mockDelegate = new Mock<FunctionExecutionDelegate>();
 
-            await funcMiddleware.Invoke(_functionContext, mockDelegate.Object);
+            var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
+            await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
 
-            Assert.NotNull(_functionContext.GetHttpContext());
-            Assert.Equal(_functionContext.GetHttpContext(), _httpContext);
+            mockDelegate.Verify(p => p.Invoke(test.FunctionContext), Times.Once());
+
+            test.MockCoordinator.Verify(p => p.SetFunctionContextAsync(It.IsAny<string>(), It.IsAny<FunctionContext>()), Times.Never());
+            test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Never());
+        }
+
+        private static (FunctionContext FunctionContext, HttpContext HttpContext, Mock<IHttpCoordinator> MockCoordinator) SetupInputs(string triggerType)
+        {
+            var inputBindings = new Dictionary<string, BindingMetadata>()
+            {
+                { "test", new TestBindingMetadata("test", triggerType, BindingDirection.In ) }
+            };
+
+            var functionDef = new TestFunctionDefinition(inputBindings: inputBindings);
+
+            var functionContext = new TestFunctionContext(functionDef, new TestFunctionInvocation(), CancellationToken.None)
+            {
+                Items = new Dictionary<object, object>()
+            };
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.Request.Headers.Add(Constants.CorrelationHeader, functionContext.InvocationId);
+
+            var mockCoordinator = new Mock<IHttpCoordinator>();
+            mockCoordinator
+                .Setup(p => p.SetHttpContextAsync(functionContext.InvocationId, httpContext))
+                .ReturnsAsync(functionContext);
+            mockCoordinator
+                .Setup(p => p.SetFunctionContextAsync(functionContext.InvocationId, functionContext))
+                .ReturnsAsync(httpContext);
+
+            return new(functionContext, httpContext, mockCoordinator);
         }
     }
 }

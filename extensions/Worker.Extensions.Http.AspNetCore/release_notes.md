@@ -8,3 +8,4 @@
 
 - Create FunctionContext extension to retrieve HttpContext (#1534)
 - `UseAspNetCoreIntegration()` and `ConfgigureAspNetCoreIntegration()` are now obsolete. Use `ConfigureFunctionsWebApplication()` to configure services for AspNetCore integration. Details can be found in PR #1601.
+- `GetHttpRequestDataAsync` throws error in ASP.NET integration model (#1612)

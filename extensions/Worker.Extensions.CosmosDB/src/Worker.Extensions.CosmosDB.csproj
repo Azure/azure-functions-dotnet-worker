@@ -7,7 +7,7 @@
 
     <!--Version information-->
     <VersionPrefix>4.2.0</VersionPrefix>
-    <VersionSuffix>-preview2</VersionSuffix>
+    <VersionSuffix>-preview3</VersionSuffix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

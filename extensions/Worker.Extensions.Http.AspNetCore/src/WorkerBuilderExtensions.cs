@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <param name="builder"></param>
         /// <returns></returns>
         /// <exception cref="ArgumentNullException"></exception>
-        public static IFunctionsWorkerApplicationBuilder UseAspNetCoreIntegration(this IFunctionsWorkerApplicationBuilder builder)
+        internal static IFunctionsWorkerApplicationBuilder UseAspNetCoreIntegration(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (builder is null)
             {

@@ -14,6 +14,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class FunctionsHttpProxyingMiddleware : IFunctionsWorkerMiddleware
     {
+        private const string HttpTrigger = "httpTrigger";
+
         private readonly IHttpCoordinator _coordinator;
         private readonly ConcurrentDictionary<string, bool> _isHttpTrigger = new();
 
@@ -59,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         private static bool IsHttpTriggerFunction(FunctionContext funcContext)
         {
             return funcContext.FunctionDefinition.InputBindings
-                .Any(p => p.Value.Type.Equals("httpTrigger", System.StringComparison.OrdinalIgnoreCase));
+                .Any(p => p.Value.Type.Equals(HttpTrigger, System.StringComparison.OrdinalIgnoreCase));
         }
     }
 }

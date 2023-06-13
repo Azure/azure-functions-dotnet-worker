@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                 extensions = new[]
                 {
                     new Extension("CosmosDB",
-                        "Microsoft.Azure.WebJobs.Extensions.CosmosDB.CosmosDBWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.CosmosDB, Version=4.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+                        "Microsoft.Azure.WebJobs.Extensions.CosmosDB.CosmosDBWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.CosmosDB, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.CosmosDB.dll"),
                     new Extension("Startup",
                         "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",

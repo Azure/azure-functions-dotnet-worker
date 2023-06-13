@@ -26,15 +26,17 @@ namespace Microsoft.Azure.Functions.Worker
             Configure(Options.DefaultName, options);
         }
 
-        public void Configure(string name, CosmosDBBindingOptions options)
+        public void Configure(string connectionName, CosmosDBBindingOptions options)
         {
-            IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(name);
+            IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(connectionName);
 
             if (!connectionSection.Exists())
             {
-                throw new InvalidOperationException($"Cosmos DB connection configuration '{name}' does not exist. " +
+                throw new InvalidOperationException($"Cosmos DB connection configuration '{connectionName}' does not exist. " +
                                                     "Make sure that it is a defined App Setting.");
             }
+
+            options.ConnectionName = connectionName;
 
             if (!string.IsNullOrWhiteSpace(connectionSection.Value))
             {

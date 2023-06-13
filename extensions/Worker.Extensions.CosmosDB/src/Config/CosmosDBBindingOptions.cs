@@ -11,23 +11,26 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal class CosmosDBBindingOptions
     {
+        public string? ConnectionName  { get; set; }
+
         public string? ConnectionString { get; set; }
 
         public string? AccountEndpoint { get; set; }
 
         public TokenCredential? Credential { get; set; }
 
-        internal string BuildCacheKey(string connectionString, string region) => $"{connectionString}|{region}";
+        internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
+
         internal ConcurrentDictionary<string, CosmosClient> ClientCache { get; } = new ConcurrentDictionary<string, CosmosClient>();
 
-        internal virtual CosmosClient GetClient(string connection, string preferredLocations = "")
+        internal virtual CosmosClient GetClient(string preferredLocations = "")
         {
-            if (string.IsNullOrEmpty(connection))
+            if (string.IsNullOrEmpty(ConnectionName))
             {
-                throw new ArgumentNullException(nameof(connection));
+                throw new ArgumentNullException(nameof(ConnectionName));
             }
 
-            string cacheKey = BuildCacheKey(connection, preferredLocations);
+            string cacheKey = BuildCacheKey(ConnectionName!, preferredLocations);
 
             CosmosClientOptions cosmosClientOptions = new ()
             {

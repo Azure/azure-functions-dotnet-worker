@@ -44,7 +44,11 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
                 {
                     throw new InvalidOperationException($"Invalid service transport type: {serviceTransportTypeStr}.");
                 }
-                //make connection more stable
+
+                // Set the connection count of WebSockets connection if users use persistent mode.
+                // This allows for fallback when one WebSockets connection is down.
+                // The connections may be down due to maintenance or unexpected errors with the SignalR instance it connects to.
+                // In such cases, the SDK can fall back to other WebSockets connections.
                 options.ConnectionCount = 3;
             };
         }

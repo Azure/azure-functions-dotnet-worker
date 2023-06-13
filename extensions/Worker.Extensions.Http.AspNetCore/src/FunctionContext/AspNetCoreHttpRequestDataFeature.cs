@@ -7,13 +7,13 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
-    internal class AspNetExtensionHttpRequestDataFeature : IHttpRequestDataFeature
+    internal class AspNetCoreHttpRequestDataFeature : IHttpRequestDataFeature
     {
-        private AspNetExtensionHttpRequestDataFeature()
+        private AspNetCoreHttpRequestDataFeature()
         {
         }
 
-        public static AspNetExtensionHttpRequestDataFeature Instance { get; } = new AspNetExtensionHttpRequestDataFeature();
+        public static AspNetCoreHttpRequestDataFeature Instance { get; } = new AspNetCoreHttpRequestDataFeature();
 
         public ValueTask<HttpRequestData?> GetHttpRequestDataAsync(FunctionContext context)
         {

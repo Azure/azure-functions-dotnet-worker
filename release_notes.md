@@ -1,14 +1,23 @@
-### Release notes
+## What's Changed
+
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker 1.14.0 (meta package)
-- Update Microsoft.Azure.Functions.Worker.Core dependency to 1.12.0
-- Update Microsoft.Azure.Functions.Worker.Grpc dependency to 1.10.0
-### Microsoft.Azure.Functions.Worker.Core 1.12.0
-- Fix `ArgumentOutOfRangeException` when using `HttpDataRequestDataExtensions.ReadAsStringAsync` in .NET Framework (#1466)
-### Microsoft.Azure.Functions.Worker.Grpc 1.10.0
-- Including worker metadata & capabilities in env reload response (#1425)
-- Fix race condition causing GrpcWorker initialization failure (#1508)
-- Fix `null` reference exception when retry context is not set (#1476)
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
+
+- Update protobuf to v1.9.0-protofile, which includes gRPC messages for retry-options in worker-indexing scenarios. (#1545)
+
+### Microsoft.Azure.Functions.Worker.Core <version>
+
+- Fixed issue spawning child process while debugging due to "DOTNET_STARTUP_HOOKS" always containing "Microsoft.Azure.Functions.Worker.Core". (#1539)
+- Add retry options support to `IFunctionMetadata` (#1548)
+- Refactor `GetHttpRequestDataAsync` to use new `IHttpRequestDataFeature`. This change is part of the move to the ASP.NET integration model for Http scenarios (#1612).
+
+### Microsoft.Azure.Functions.Worker.Grpc <version>
+
+- Add handling for retry options in worker-indexing grpc communication path (#1548)
+
+### Microsoft.Azure.Functions.Worker.Sdk
+
+- Added retries on `IOException` when writing `function.metadata` file as part of `GenerateFunctionMetadata` msbuild task. This is to allow builds to continue (with warnings) when another process has the file momentarily locked. If the file continues to be locked the task (and build) will fail after 10 retries with a 1 second delay each. (#1532)

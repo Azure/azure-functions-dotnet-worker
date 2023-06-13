@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
 {
     internal class DefaultHttpRequestDataFeature : IHttpRequestDataFeature
     {
-        private const string httpTriggerString = "httpTrigger";
+        private const string HttpTriggerString = "httpTrigger";
 
         private DefaultHttpRequestDataFeature()
         {
@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         public async ValueTask<HttpRequestData?> GetHttpRequestDataAsync(FunctionContext context)
         {
             var httpTriggerBinding = context.FunctionDefinition.InputBindings.Values
-                                            .FirstOrDefault(a => string.Equals(a.Type, httpTriggerString, StringComparison.OrdinalIgnoreCase));
+                                            .FirstOrDefault(a => string.Equals(a.Type, HttpTriggerString, StringComparison.OrdinalIgnoreCase));
 
             if (httpTriggerBinding != null)
             {

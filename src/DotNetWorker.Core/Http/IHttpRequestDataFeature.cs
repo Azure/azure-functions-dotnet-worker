@@ -11,12 +11,10 @@ namespace Microsoft.Azure.Functions.Worker.Http
     public interface IHttpRequestDataFeature
     {
         /// <summary>
-        /// /// <summary>
         /// Gets the <see cref="HttpRequestData"/> instance if the FunctionContext contains an invocation for an http trigger.
         /// </summary>
         /// <param name="context">The FunctionContext instance.</param>
         /// <returns>HttpRequestData instance if the invocation is http, else null</returns>
-        /// </summary>
         ValueTask<HttpRequestData?> GetHttpRequestDataAsync(FunctionContext context);
     }
 }

@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB <version>
 
-- <entry>
+- Add BindingCapabilities attribute to CosmosDb trigger to express function-level retry capabilities. (#1457)

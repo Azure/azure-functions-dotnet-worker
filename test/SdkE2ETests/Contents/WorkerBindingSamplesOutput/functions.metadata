@@ -973,6 +973,72 @@
     ]
   },
   {
+    "name": "EventDataFunctions",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventDataSamples.EventDataFunctions",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "event",
+        "direction": "In",
+        "type": "eventHubTrigger",
+        "eventHubName": "queue",
+        "connection": "EventHubConnection",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "EventDataBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventDataSamples.EventDataBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "events",
+        "direction": "In",
+        "type": "eventHubTrigger",
+        "eventHubName": "queue",
+        "connection": "EventHubConnection",
+        "cardinality": "Many",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "EventDataWithStringPropertiesFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventDataSamples.EventDataWithStringPropertiesFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "event",
+        "direction": "In",
+        "type": "eventHubTrigger",
+        "eventHubName": "queue",
+        "connection": "EventHubConnection",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
     "name": "ServiceBusReceivedMessageFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.ServiceBusReceivedMessageBindingSamples.ServiceBusReceivedMessageFunction",

@@ -3,23 +3,18 @@
 
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class InvokeFunctionMiddleware
     {
-        private readonly IHttpCoordinator _coordinator;
-
-        public InvokeFunctionMiddleware(RequestDelegate next, IHttpCoordinator httpCoordinator)
+        public InvokeFunctionMiddleware(RequestDelegate next)
         {
-            _coordinator = httpCoordinator;
         }
 
         public Task Invoke(HttpContext context)
         {
-            context.Request.Headers.TryGetValue(Constants.CorrelationHeader, out StringValues invocationId);
-            return _coordinator.RunFunctionInvocationAsync(invocationId);
+            return context.InvokeFunctionAsync();
         }
     }
 }

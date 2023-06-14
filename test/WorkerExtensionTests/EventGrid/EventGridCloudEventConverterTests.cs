@@ -26,13 +26,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_SourceAsObject_ReturnsUnhandled()
+        public async Task ConvertAsync_SourceAsObject_ReturnsFailed()
         {
             var context = new TestConverterContext(typeof(CloudEvent), new object());
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
@@ -57,13 +57,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_SourceAsObject_CloudEventCollectible_ReturnsUnhandled()
+        public async Task ConvertAsync_SourceAsObject_CloudEventCollectible_ReturnsFailed()
         {
             var context = new TestConverterContext(typeof(CloudEvent[]), new object());
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]

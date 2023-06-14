@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is null)
                 {
-                    return new(ConversionResult.Unhandled());
+                    return new(ConversionResult.Failed(new InvalidOperationException("Context source cannot be null")));
                 }
 
                 var jsonData = JsonSerializer.Deserialize(contextSource, typeof(List<object>)) as List<object>;

@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]

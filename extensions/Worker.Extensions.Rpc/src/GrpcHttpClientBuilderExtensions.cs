@@ -24,6 +24,11 @@ public static class GrpcHttpClientBuilderExtensions
     /// Configures a <see cref="IHttpClientBuilder" /> to communicate with the functions host.
     /// </summary>
     /// <param name="builder">The original builder for call chaining.</param>
+    /// <remarks>
+    /// When using Grpc.Net.ClientFactory 2.54.0-pre1 or earlier, use a <see cref="GrpcClientFactoryOptions"/>
+    /// configure accepting overload of <c>AddGrpcClient</c>, such as
+    /// <see cref="GrpcClientServiceExtensions.AddGrpcClient{TClient}(IServiceCollection, Action{GrpcClientFactoryOptions})"/>.
+    /// </remarks>
     public static IHttpClientBuilder ConfigureForFunctionsHostGrpc(this IHttpClientBuilder builder)
     {
         if (builder is null)

@@ -53,7 +53,7 @@ namespace SampleApp
         /// </summary>
         [Function(nameof(EventDataWithStringPropertiesFunction))]
         public void EventDataWithStringPropertiesFunction(
-            [EventHubTrigger("queue", Connection = "EventHubConnection")]
+            [EventHubTrigger("queue", Connection = "EventHubConnection", IsBatched = false)]
             EventData @event, string contentType, long offset)
         {
             // The ContentType property and the contentType parameter are the same.

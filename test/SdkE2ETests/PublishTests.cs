@@ -122,6 +122,9 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                     new Extension("CosmosDB",
                         "Microsoft.Azure.WebJobs.Extensions.CosmosDB.CosmosDBWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.CosmosDB, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.CosmosDB.dll"),
+                    new Extension("EventHubs",
+                        "Microsoft.Azure.WebJobs.EventHubs.EventHubsWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventHubs, Version=5.4.0.0, Culture=neutral, PublicKeyToken=014045d636e89289",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.EventHubs.dll"),
                     new Extension("Startup",
                         "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"),
@@ -144,7 +147,6 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             // Verify functions.metadata
             TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "Microsoft.Azure.Functions.SdkE2ETests.Contents.WorkerBindingSamplesOutput.functions.metadata");
         }
-
 
         private class Extension
         {

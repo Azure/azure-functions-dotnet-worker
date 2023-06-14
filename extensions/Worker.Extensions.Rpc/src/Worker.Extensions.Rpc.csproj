@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Rpc</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Rpc</RootNamespace>
+    <Description>Contains types to facilitate RPC communication between a worker extension and the functions host.</Description>
+    <VersionPrefix>1.0.0</VersionPrefix>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.Net.Client" Version="2.53.0" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.53.0" Condition="'$(TargetFramework)' == 'netstandard2.0'" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.53.0" />
+  </ItemGroup>
+
+</Project>

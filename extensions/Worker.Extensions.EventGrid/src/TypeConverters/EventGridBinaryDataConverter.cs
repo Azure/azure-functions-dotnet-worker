@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             catch (JsonException ex)
             {
                 string msg = String.Format(CultureInfo.CurrentCulture,
-                    @"Binding parameters to complex objects uses System.Text.Json serialization.
+                    @"Binding parameters to complex objects uses JSON serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
                     2. Change the event payload to be valid json.
                     The JSON parser failed: {0}",

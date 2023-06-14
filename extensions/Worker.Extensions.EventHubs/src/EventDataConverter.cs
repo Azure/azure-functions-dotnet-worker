@@ -10,12 +10,16 @@ using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Azure.Messaging.EventHubs;
 using Microsoft.Azure.Functions.Worker.Extensions.EventHubs;
+using Microsoft.Azure.Functions.Worker.Extensions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Converter to bind to <see cref="EventData" /> or <see cref="T:EventData[]" /> type parameters.
+    /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(EventData))]
-    [SupportedConverterType(typeof(EventData[]))]
+    [SupportedTargetType(typeof(EventData))]
+    [SupportedTargetType(typeof(EventData[]))]
     internal class EventDataConverter : IInputConverter
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -26,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     ModelBindingData binding => ConversionResult.Success(ConvertToEventData(binding)),
                     // Only array collections are currently supported, which matches the behavior of the in-proc extension.
-                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray
+                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingData
                         .Select(ConvertToEventData).ToArray()),
                     _ => ConversionResult.Unhandled()
                 };
@@ -40,16 +44,19 @@ namespace Microsoft.Azure.Functions.Worker
 
         private EventData ConvertToEventData(ModelBindingData binding)
         {
-            if (binding?.Source is not Constants.BindingSource)
+            if (binding is null)
             {
-                throw new InvalidOperationException(
-                    $"Unexpected binding source. Only '{Constants.BindingSource}' is supported.");
+                throw new ArgumentNullException(nameof(binding));
             }
 
-            if (binding.ContentType != Constants.BinaryContentType)
+            if (binding.Source is not Constants.BindingSource)
             {
-                throw new InvalidOperationException(
-                    $"Unexpected content-type. Only '{Constants.BinaryContentType}' is supported.");
+                throw new InvalidBindingSourceException(binding.Source, Constants.BindingSource);
+            }
+
+            if (binding.ContentType is not Constants.BinaryContentType)
+            {
+                throw new InvalidContentTypeException(binding.ContentType, Constants.BinaryContentType);
             }
 
             return new EventData(AmqpAnnotatedMessage.FromBytes(binding.Content));

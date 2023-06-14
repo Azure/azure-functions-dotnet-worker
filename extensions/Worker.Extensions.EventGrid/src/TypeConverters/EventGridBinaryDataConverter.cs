@@ -4,13 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Text;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
@@ -21,66 +17,32 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     [SupportedConverterType(typeof(BinaryData[]))]
     internal class EventGridBinaryDataConverter : IInputConverter
     {
-        private readonly IOptions<WorkerOptions> _workerOptions;
-
-        public EventGridBinaryDataConverter(IOptions<WorkerOptions> workerOptions)
-        {
-            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
-        }
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (context.TargetType != typeof(BinaryData) && context.TargetType != typeof(BinaryData[]))
-            {
-                return new(ConversionResult.Unhandled());
-            }
-
             try
             {
                 var contextSource = context?.Source as string;
 
-                if (contextSource is null)
+                if (contextSource == null)
                 {
                     return new(ConversionResult.Unhandled());
                 }
+                var targetType = context!.TargetType;
 
-                if (context!.TargetType == typeof(BinaryData))
+                switch (targetType)
                 {
-                    var binaryData = BinaryData.FromObjectAsJson<string>(contextSource);
-                    return new(ConversionResult.Success(binaryData));
-                }
-                else if (context!.TargetType == typeof(BinaryData[]))
-                {
-                    byte[] byteArray = Encoding.UTF8.GetBytes(contextSource);
-                    MemoryStream stream = new MemoryStream(byteArray);
-
-                    var jsonData = (List<object>?)_workerOptions?.Value?.Serializer?.Deserialize(stream, typeof(List<object>), CancellationToken.None);
-                    List<BinaryData> binaryDataList = new List<BinaryData>();
-
-                    if (jsonData is not null)
-                    {
-                        foreach (var item in jsonData)
-                        {
-                            if (item is not null)
-                            {
-                                var binaryData = new BinaryData(item);
-                                binaryDataList.Add(binaryData);
-                            }
-                        }
-                        return new(ConversionResult.Success(binaryDataList.ToArray()));
-                    }
+                    case Type t when t == typeof(BinaryData):
+                        return new(ConversionResult.Success((BinaryData.FromString(contextSource))));
+                    case Type t when t == typeof(BinaryData[]):
+                        return new(ConversionResult.Success(ConvertToBinaryDataArray(contextSource)));
                 }
             }
             catch (JsonException ex)
             {
                 string msg = String.Format(CultureInfo.CurrentCulture,
-                    @"Binding parameters to complex objects uses Json.NET serialization.
+                    @"Binding parameters to complex objects uses System.Text.Json serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
-                    2. Change the queue payload to be valid json.
+                    2. Change the event payload to be valid json.
                     The JSON parser failed: {0}",
                     ex.Message);
 
@@ -92,6 +54,26 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             }
 
             return new(ConversionResult.Unhandled());
+        }
+
+        private BinaryData[]? ConvertToBinaryDataArray(string contextSource)
+        {
+            var jsonData = JsonSerializer.Deserialize(contextSource, typeof(List<object>)) as List<object>;
+            List<BinaryData> binaryDataList = new List<BinaryData>();
+
+            if (jsonData is not null)
+            {
+                foreach (var item in jsonData)
+                {
+                    if (item is not null)
+                    {
+                        var binaryData = BinaryData.FromString(item.ToString());
+                        binaryDataList.Add(binaryData);
+                    }
+                }
+            }
+
+            return binaryDataList.ToArray();
         }
     }
 }

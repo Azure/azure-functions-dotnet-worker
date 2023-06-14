@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     internal static class EventGridHelper
     {
-        internal static ValueTask<ConversionResult> DeserilizeToTargetType(ConverterContext context)
+        internal static ValueTask<ConversionResult> DeserializeToTargetType(ConverterContext context)
         {
             try
             {
@@ -29,9 +29,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             catch (JsonException ex)
             {
                 string msg = String.Format(CultureInfo.CurrentCulture,
-                    @"Binding parameters to complex objects uses Json.NET serialization.
+                    @"Binding parameters to complex objects uses System.Text.Json serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
-                    2. Change the queue payload to be valid json.
+                    2. Change the event payload to be valid json.
                     The JSON parser failed: {0}",
                     ex.Message);
 

@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventHubs
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as EventData;
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected content-type 'application/json'. Only 'application/octet-stream' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventHubs
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as EventData[];
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected content-type 'application/json'. Only 'application/octet-stream' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventHubs
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as EventData;
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected binding source 'some-other-source'. Only 'AzureEventHubsEventData' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventHubs
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as EventData[];
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected binding source 'some-other-source'. Only 'AzureEventHubsEventData' is supported.", result.Error.Message);
         }
 
         private static void AssertEventData(EventData output)

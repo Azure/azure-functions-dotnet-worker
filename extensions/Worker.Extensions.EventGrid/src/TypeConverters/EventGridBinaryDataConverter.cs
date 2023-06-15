@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             {
                 foreach (var item in jsonData)
                 {
-                    var binaryData = BinaryData.FromString(item.ToString());
+                    var binaryData = item == null? null: BinaryData.FromString(item.ToString());
                     binaryDataList.Add(binaryData);   
                 }
             }

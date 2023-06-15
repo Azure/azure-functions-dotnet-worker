@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                     The JSON parser failed: {0}",
                     ex.Message);
 
-                return new(ConversionResult.Failed(new InvalidOperationException(msg)));
+                return new(ConversionResult.Failed(new InvalidOperationException(msg, ex)));
             }
             catch (Exception ex)
             {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -51,48 +52,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             foreach (var attribute in parameter.GetAttributes())
             {
                 var attributeType = attribute?.AttributeClass;
-                if (!attributeType.IsInputOrTriggerBinding())
+                if (!IsBlobInputBinding(attributeType))
                 {
                     continue;
                 }
 
-                var ConstructorArguments = attribute.ConstructorArguments; //GetInputConverterAttributes(context.Compilation);
+                var ConstructorArguments = attribute.ConstructorArguments;
 
                 foreach (var a in ConstructorArguments)
                 {
                     if (a.Type.Name == typeof(string).Name)
                     {
                         var b = a.Value.ToString().Split('/');
-                        if (b.Length == 1)
+                        if (b.Length < 2)
                         {
                             if (!IsIterableType(d, context))
                             {
-                                //var location = Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
                                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.IterableBindingTypeForContainer, parameter.Locations.First(), d);
                                 context.ReportDiagnostic(diagnostic);
                             }
                         }
                     }
                 }
-
-                /*
-
-                var allowConverterFallbackParameterValue = GetAllowConverterFallbackParameterValue(context, attributeType);
-                if (allowConverterFallbackParameterValue is bool allowFallback && allowFallback)
-                {
-                    // If allowConverterFallback is true, we don't need to check for supported types
-                    // because we don't know all of the types that are supported via the fallback
-                    continue;
-                }
-
-                var supportedTypes = GetSupportedTypes(context, inputConverterAttributes);
-                if (supportedTypes.Count <= 0 || supportedTypes.Contains(parameter.Type))
-                {
-                    continue;
-                }
-
-                ReportDiagnostic(context, parameter, attributeType);
-                */
             }
         }
 
@@ -159,6 +140,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 }
 
                 current = current.BaseType;
+            }
+
+            return false;
+        }
+
+
+        internal static bool IsBlobInputBinding(INamedTypeSymbol symbol)
+        {
+            var baseType = symbol.ToDisplayString();
+
+            if (string.Equals(baseType, "Microsoft.Azure.Functions.Worker.BlobInputAttribute", StringComparison.Ordinal)
+                || string.Equals(baseType, "Microsoft.Azure.WebJobs.BlobAttribute", StringComparison.Ordinal))
+            {
+                return true;
             }
 
             return false;

@@ -38,8 +38,6 @@ namespace Sdk.Analyzers.Tests
                 TestCode = testCode
             };
 
-           // test.ExpectedDiagnostics.Clear();
-
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                            // .WithSpan(10, 48, 10, 67)

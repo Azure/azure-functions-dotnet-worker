@@ -56,20 +56,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             return new(ConversionResult.Unhandled());
         }
 
-        private BinaryData[]? ConvertToBinaryDataArray(string contextSource)
+        private BinaryData?[]? ConvertToBinaryDataArray(string contextSource)
         {
             var jsonData = JsonSerializer.Deserialize(contextSource, typeof(List<object>)) as List<object>;
-            List<BinaryData> binaryDataList = new List<BinaryData>();
+            List<BinaryData?> binaryDataList = new List<BinaryData?>();
 
             if (jsonData is not null)
             {
                 foreach (var item in jsonData)
                 {
-                    if (item is not null)
-                    {
-                        var binaryData = BinaryData.FromString(item.ToString());
-                        binaryDataList.Add(binaryData);
-                    }
+                    var binaryData = BinaryData.FromString(item.ToString());
+                    binaryDataList.Add(binaryData);   
                 }
             }
 

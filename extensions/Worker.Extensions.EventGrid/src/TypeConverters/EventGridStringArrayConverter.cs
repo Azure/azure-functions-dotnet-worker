@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -28,23 +29,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 
                 if (contextSource is null)
                 {
-                    return new(ConversionResult.Failed(new InvalidOperationException("Context source cannot be null")));
+                    return new(ConversionResult.Failed(new InvalidOperationException("Context source must be a non-null string")));
                 }
 
                 var jsonData = JsonSerializer.Deserialize(contextSource, typeof(List<object>)) as List<object>;
-                List<string> stringList = new List<string>();
+                List<string?> stringList = new List<string?>();
 
                 if (jsonData is not null)
                 {
-                    foreach (var item in jsonData)
-                    {
-                        if (item is not null)
-                        {
-                            var data = item.ToString();
-                            stringList.Add(data);
-                        }
-                    }
-                    return new(ConversionResult.Success(stringList.ToArray()));
+                    return new(ConversionResult.Success(jsonData.Select(d => d?.ToString()).ToArray()));
                 }
             }
             catch (JsonException ex)

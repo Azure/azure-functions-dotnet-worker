@@ -1,4 +1,4 @@
-# Worker.Extensions.Rpc
+# Microsoft.Azure.Functions.Worker.Extensions.Rpc
 
 This package provides helpers for RPC communication with the functions host.
 

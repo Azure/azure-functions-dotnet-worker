@@ -4,8 +4,6 @@ using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Micr
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
-using RoslynTestKit;
-using System.Reflection;
 
 namespace Sdk.Analyzers.Tests
 {
@@ -23,7 +21,7 @@ namespace Sdk.Analyzers.Tests
                     public static class SomeFunction
                     {
                         [Function(nameof(SomeFunction))]
-                        public static void Run([BlobInput(""input"")] [|string message|])
+                        public static void Run([BlobInput(""input"")] string message)
                         {
                         }
                     }
@@ -40,11 +38,13 @@ namespace Sdk.Analyzers.Tests
                 TestCode = testCode
             };
 
+           // test.ExpectedDiagnostics.Clear();
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(6, 22, 6, 45)
-                            .WithArguments("SupportsDeferredBindingAttribute"));
+                           // .WithSpan(10, 48, 10, 67)
+                            .WithSpan(10, 76, 10, 83)
+                            .WithArguments("string"));
 
             await test.RunAsync();
         }

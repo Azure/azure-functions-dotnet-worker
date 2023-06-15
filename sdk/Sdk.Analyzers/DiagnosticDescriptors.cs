@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static DiagnosticDescriptor AsyncVoidReturnType { get; }
             = Create(id: "AZFW0002", title: "Avoid async void methods", messageFormat: "Do not use void as the return type for async methods. Use Task instead.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
-
+        
         public static DiagnosticDescriptor DeferredBindingAttributeNotSupported{ get; }
             = Create(id: "AZFW0009", title: "Invalid class attribute", messageFormat: "The attribute '{0}' can only be used on trigger and input binding attributes.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
@@ -28,5 +28,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static DiagnosticDescriptor BindingTypeNotSupported{ get; }
             = Create(id: "AZFW0010", title: "Invalid binding type", messageFormat: "The binding type '{0}' is not supported by '{1}'.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Warning);
+
+        public static DiagnosticDescriptor IterableBindingTypeForContainer { get; }
+            = Create(id: "AZFW0011", title: "Invalid binding type", messageFormat: "The binding type '{0}' must be iterable for container path.",
+                category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
     }
 }

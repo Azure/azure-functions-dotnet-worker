@@ -4,6 +4,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -12,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class IterableBindingTypeForContainerPath : DiagnosticAnalyzer
     {
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.DeferredBindingAttributeNotSupported);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.IterableBindingTypeForContainer);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -66,11 +67,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                         {
                             if (!IsIterableType(d, context))
                             {
-                                var location = Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
-                                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.DeferredBindingAttributeNotSupported, location, attribute.AttributeClass.Name);
+                                //var location = Location.Create(attribute.ApplicationSyntaxReference.SyntaxTree, attribute.ApplicationSyntaxReference.Span);
+                                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.IterableBindingTypeForContainer, parameter.Locations.First(), d);
                                 context.ReportDiagnostic(diagnostic);
                             }
-
                         }
                     }
                 }

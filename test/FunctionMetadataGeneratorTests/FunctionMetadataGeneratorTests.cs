@@ -11,6 +11,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
+using Azure.Messaging.EventHubs;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Tests;
@@ -760,7 +761,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.3.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)
@@ -967,6 +968,59 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "queueName", "queue" },
                     { "Cardinality", "Many" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+        }
+
+        [Fact]
+        public void EventHubs_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_EventHubs));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" },
+            });
+
+            var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));
+
+            ValidateFunction(eventHubTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction)),
+                ValidateEventHubTrigger);
+
+            var eventHubBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction));
+
+            ValidateFunction(eventHubBatchTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction)),
+                ValidateEventHubBatchTrigger);
+
+            void ValidateEventHubTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "event" },
+                    { "Type", "eventHubTrigger" },
+                    { "Direction", "In" },
+                    { "eventHubName", "hub" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<string, object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateEventHubBatchTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "events" },
+                    { "Type", "eventHubTrigger" },
+                    { "Direction", "In" },
+                    { "eventHubName", "hub" },
+                    { "Cardinality", "Many" },
+                    { "Properties", new Dictionary<string, object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
         }
@@ -1208,6 +1262,23 @@ namespace Microsoft.Azure.Functions.SdkTests
             [Function(nameof(ServiceBusBatchTriggerFunction))]
             public static void ServiceBusBatchTriggerFunction(
                 [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_EventHubs
+        {
+            [Function(nameof(EventHubTriggerFunction))]
+            public static void EventHubTriggerFunction(
+                [EventHubTrigger("hub", IsBatched = false)] EventData @event)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(EventHubBatchTriggerFunction))]
+            public static void EventHubBatchTriggerFunction(
+                [EventHubTrigger("hub")] EventData[] events)
             {
                 throw new NotImplementedException();
             }

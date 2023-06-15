@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_CosmosClient_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
             var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
 
             _mockCosmosClient.Setup(m => m.Endpoint).Returns(new Uri("https://www.example.com"));
@@ -63,11 +63,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_DatabaseClient_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
             var context = new TestConverterContext(typeof(Database), grpcModelBindingData);
 
             var _mockDatabase = new Mock<Database>();
-            _mockDatabase.Setup(m => m .Id).Returns("testId");
+            _mockDatabase.Setup(m => m.Id).Returns("testId");
 
             _mockCosmosClient
                 .Setup(m => m.GetDatabase(It.IsAny<string>()))
@@ -83,11 +83,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_ContainerClient_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
             var context = new TestConverterContext(typeof(Container), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
-            mockContainer.Setup(m => m .Id).Returns("testId");
+            mockContainer.Setup(m => m.Id).Returns("testId");
 
             _mockCosmosClient
                 .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
@@ -103,10 +103,10 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_ReturnsSuccess()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
-            var expectedToDoItem = new ToDoItem() { Id = "1", Description = "Take out the rubbish"};
+            var expectedToDoItem = new ToDoItem() { Id = "1", Description = "Take out the rubbish" };
 
             var mockResponse = new Mock<ItemResponse<ToDoItem>>();
             mockResponse.Setup(x => x.StatusCode).Returns(System.Net.HttpStatusCode.OK);
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithoutId_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(partitionKey: "1"));
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_SinglePOCO_WithoutPK_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"));
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
@@ -168,12 +168,12 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             var query = "SELECT * FROM TodoItems t WHERE t.id = @id";
             var queryParams = @"{""@id"":""1""}";
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(query: query, queryParams: queryParams));
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(query: query, queryParams: queryParams), "CosmosDB");
             var context = new TestConverterContext(typeof(IEnumerable<ToDoItem>), grpcModelBindingData);
 
-            var todo1 = new ToDoItem() { Id = "1", Description = "Take out the rubbish"};
-            var todo2 = new ToDoItem() { Id = "2", Description = "Write unit tests for cosmos converter"};
-            var expectedList = new List<ToDoItem>(){ todo1, todo2 };
+            var todo1 = new ToDoItem() { Id = "1", Description = "Take out the rubbish" };
+            var todo2 = new ToDoItem() { Id = "2", Description = "Write unit tests for cosmos converter" };
+            var expectedList = new List<ToDoItem>() { todo1, todo2 };
 
             var mockFeedResponse = new Mock<FeedResponse<ToDoItem>>();
             mockFeedResponse.Setup(x => x.StatusCode).Returns(System.Net.HttpStatusCode.OK);
@@ -201,11 +201,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_Container_NullFeedIterator_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
             var context = new TestConverterContext(typeof(IEnumerable<ToDoItem>), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
-            mockContainer.Setup(m => m .Id).Returns("testId");
+            mockContainer.Setup(m => m.Id).Returns("testId");
             mockContainer
                 .Setup(m => m.GetItemQueryIterator<ToDoItem>(It.IsAny<QueryDefinition>(), null, null))
                 .Returns<FeedIterator<ToDoItem>>(null);
@@ -225,11 +225,11 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         {
             var query = "SELECT * FROM TodoItems t WHERE t.id = @id";
             var queryParams = @"{""@id"":""1""}";
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(query: query, queryParams: queryParams));
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(query: query, queryParams: queryParams), "CosmosDB");
             var context = new TestConverterContext(typeof(IEnumerable<ToDoItem>), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
-            mockContainer.Setup(m => m .Id).Returns("testId");
+            mockContainer.Setup(m => m.Id).Returns("testId");
             mockContainer
                 .Setup(m => m.GetItemQueryIterator<ToDoItem>(It.IsAny<QueryDefinition>(), null, null))
                 .Returns((FeedIterator<ToDoItem>)null);
@@ -267,7 +267,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact] // Should we fail if the result is ever null?
         public async Task ConvertAsync_ResultIsNull_ReturnsUnhandled()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
             var context = new TestConverterContext(typeof(Database), grpcModelBindingData);
 
             _mockCosmosClient
@@ -282,7 +282,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ThrowsException_ReturnsFailure()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
             var context = new TestConverterContext(typeof(Database), grpcModelBindingData);
 
             _mockCosmosClient
@@ -297,7 +297,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ItemResponse_ResourceIsNull_ThrowsException_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockResponse = new Mock<ItemResponse<ToDoItem>>();
@@ -322,7 +322,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ModelBindingDataSource_NotCosmosExtension_ReturnsUnhandled()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(), source: "anotherExtensions");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "anotherExtensions");
             var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
@@ -333,7 +333,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_ModelBindingDataContentType_Unsupported_ReturnsFailed()
         {
-            var grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(), contentType: "binary");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB", contentType: "binary");
             var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
@@ -345,7 +345,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_CosmosContainerIsNull_ThrowsException_ReturnsFailure()
         {
-            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(container: "myContainer"));
+            object grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(container: "myContainer"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             _mockCosmosClient
@@ -361,7 +361,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_POCO_ItemResponseNull_ThrowsException_ReturnsFailure()
         {
-            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
+            object grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockContainer = new Mock<Container>();
@@ -382,7 +382,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         [Fact]
         public async Task ConvertAsync_POCO_IdProvided_StatusNot200_ThrowsException_ReturnsFailure()
         {
-            object grpcModelBindingData = GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"));
+            object grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockResponse = new Mock<ItemResponse<ToDoItem>>();
@@ -418,20 +418,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             return new BinaryData(jsonData);
         }
-
-        private GrpcModelBindingData GetTestGrpcModelBindingData(BinaryData content, string source = "CosmosDB", string contentType = "application/json")
-        {
-            var data = new ModelBindingData()
-            {
-                Version = "1.0",
-                Source = source,
-                Content = ByteString.CopyFrom(content),
-                ContentType = contentType
-            };
-
-            return new GrpcModelBindingData(data);
-        }
-
         public class ToDoItem
         {
             public string Id { get; set; }

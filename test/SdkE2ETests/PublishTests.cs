@@ -121,11 +121,14 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                 extensions = new[]
                 {
                     new Extension("CosmosDB",
-                        "Microsoft.Azure.WebJobs.Extensions.CosmosDB.CosmosDBWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.CosmosDB, Version=4.2.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+                        "Microsoft.Azure.WebJobs.Extensions.CosmosDB.CosmosDBWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.CosmosDB, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.CosmosDB.dll"),
-                     new Extension("EventGrid",
+                    new Extension("EventGrid",
                         "Microsoft.Azure.WebJobs.Extensions.EventGrid.EventGridWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventGrid, Version=3.2.1.0, Culture=neutral, PublicKeyToken=014045d636e89289",
                         "./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.EventGrid.dll"),
+                    new Extension("EventHubs",
+                        "Microsoft.Azure.WebJobs.EventHubs.EventHubsWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventHubs, Version=5.4.0.0, Culture=neutral, PublicKeyToken=014045d636e89289",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.EventHubs.dll"),
                     new Extension("Startup",
                         "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"),
@@ -140,7 +143,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll"),
                     new Extension("AzureTables",
                         "Microsoft.Azure.WebJobs.Extensions.Tables.AzureTablesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Tables, Version=1.2.0.0, Culture=neutral, PublicKeyToken=92742159e12e44c8",
-                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Tables.dll"),
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Tables.dll")
                 }
             });
             Assert.True(JToken.DeepEquals(extensionsJsonContents, expected), $"Actual: {extensionsJsonContents}{Environment.NewLine}Expected: {expected}");
@@ -148,7 +151,6 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             // Verify functions.metadata
             TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "Microsoft.Azure.Functions.SdkE2ETests.Contents.WorkerBindingSamplesOutput.functions.metadata");
         }
-
 
         private class Extension
         {

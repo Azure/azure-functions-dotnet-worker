@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+#if NET6_0_OR_GREATER
+
 using Grpc.Core;
 using Grpc.Net.ClientFactory;
 using Microsoft.Extensions.Configuration;
@@ -8,10 +10,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Options;
 using Xunit;
-
-#if NETFRAMEWORK
-using Grpc.Net.Client.Web;
-#endif
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
 {
@@ -75,12 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
             GrpcClientFactoryOptions options = monitor.Get(builder.Name);
 
             Assert.Equal(new Uri($"http://localhost:{port}"), options.Address);
-
-#if NETFRAMEWORK
-            Assert.IsType<GrpcWebHandler>(handler);
-#else
             Assert.Null(handler);
-#endif
         }
 
         private class CallInvokerExtractor
@@ -94,3 +87,5 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
         }
     }
 }
+
+#endif

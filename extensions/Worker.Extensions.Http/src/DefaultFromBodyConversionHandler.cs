@@ -15,58 +15,52 @@ using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http
 {
-    internal class DefaultFromBodyConversionHandler : IFromBodyConversionHandler
+    internal class DefaultFromBodyConversionHandler : IFromBodyConversionFeature
     {
-        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
-        {
+        public static IFromBodyConversionFeature Instance { get; } = new DefaultFromBodyConversionHandler();
 
-            var requestDataResult = context.FunctionContext.GetHttpRequestDataAsync();
+        public ValueTask<object?> ConvertAsync(FunctionContext context, Type targetType)
+        {
+            var requestDataResult = context.GetHttpRequestDataAsync();
 
             if (requestDataResult.IsCompletedSuccessfully)
             {
-                return ConvertRequestAsync(requestDataResult.Result, context);
+                return ConvertRequestAsync(requestDataResult.Result, context, targetType);
             }
 
-            return ConvertAsync(requestDataResult, context);
+            return ConvertAsync(requestDataResult, context, targetType);
         }
 
-        private async ValueTask<ConversionResult> ConvertAsync(ValueTask<HttpRequestData?> requestDataResult, ConverterContext context)
+        private async ValueTask<object?> ConvertAsync(ValueTask<HttpRequestData?> requestDataResult, FunctionContext context, Type targetType)
         {
             var requestData = await requestDataResult;
-            return await ConvertRequestAsync(requestData, context);
+            return await ConvertRequestAsync(requestData, context, targetType);
         }
 
-        private ValueTask<ConversionResult> ConvertRequestAsync(HttpRequestData? requestData, ConverterContext context)
+        private ValueTask<object?> ConvertRequestAsync(HttpRequestData? requestData, FunctionContext context, Type targetType)
         {
             if (requestData is null)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+               throw new InvalidOperationException($"The '{nameof(DefaultFromBodyConversionHandler)} expects an '{nameof(HttpRequestData)}' instance in the current context.");
             }
 
-            try
-            {
-                return ConvertBodyAsync(requestData, context);
-            }
-            catch (Exception ex)
-            {
-                return new ValueTask<ConversionResult>(ConversionResult.Failed(ex));
-            }
+            return ConvertBodyAsync(requestData, context, targetType);
         }
 
-        private static ValueTask<ConversionResult> ConvertBodyAsync(HttpRequestData requestData, ConverterContext context)
+        private static ValueTask<object?> ConvertBodyAsync(HttpRequestData requestData, FunctionContext context, Type targetType)
         {
             object? result;
-            if (context.TargetType == typeof(string))
+            if (targetType == typeof(string))
             {
                 result = requestData.ReadAsString();
             }
-            else if (context.TargetType == typeof(byte[]))
+            else if (targetType == typeof(byte[]))
             {
-                result = ReadBytes(requestData, context.FunctionContext.CancellationToken);
+                result = ReadBytes(requestData, context.CancellationToken);
             }
-            else if (context.TargetType == typeof(Memory<byte>))
+            else if (targetType == typeof(Memory<byte>))
             {
-                Memory<byte> bytes = ReadBytes(requestData, context.FunctionContext.CancellationToken);
+                Memory<byte> bytes = ReadBytes(requestData, context.CancellationToken);
                 result = bytes;
             }
             else if (HasJsonContentType(requestData))
@@ -74,14 +68,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
                 ObjectSerializer serializer = requestData.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
                  ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
 
-                result = serializer.Deserialize(requestData.Body, context.TargetType, context.FunctionContext.CancellationToken);
+                result = serializer.Deserialize(requestData.Body, targetType, context.CancellationToken);
             }
             else
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                throw new InvalidOperationException($"The type '{targetType}' is not supported by the '{nameof(DefaultFromBodyConversionHandler)}'.");
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Success(result));
+            return new ValueTask<object?>(result);
         }
 
         private static byte[] ReadBytes(HttpRequestData requestData, CancellationToken cancellationToken)
@@ -96,7 +90,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
         {
             var (key, value) = request.Headers
                 .FirstOrDefault(h => string.Equals(h.Key, "Content-Type", StringComparison.OrdinalIgnoreCase));
-                
+
             if (value is not null
                 && MediaTypeHeaderValue.TryParse(value.FirstOrDefault(), out var mediaType)
                 && mediaType.MediaType != null)

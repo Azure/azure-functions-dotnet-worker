@@ -19,15 +19,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (context.TargetType != typeof(string[]))
-            {
-                return new(ConversionResult.Unhandled());
-            }
             try
             {
                 if (context is null)
                 {
                     throw new ArgumentNullException(nameof(context));
+                }
+
+                if (context.TargetType != typeof(string[]))
+                {
+                    return new(ConversionResult.Unhandled());
                 }
 
                 if (context.Source is not string contextSource)

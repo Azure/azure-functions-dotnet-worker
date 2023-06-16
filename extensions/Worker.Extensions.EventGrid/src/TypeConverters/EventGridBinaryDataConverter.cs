@@ -21,12 +21,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
         {
             try
             {
-                var contextSource = context?.Source as string;
-
-                if (contextSource == null)
+                if (context?.Source is not string contextSource)
                 {
-                    return new(ConversionResult.Failed(new InvalidOperationException("Context source cannot be null")));
+                    return new(ConversionResult.Failed(new InvalidOperationException("Context source must be a non-null string. Current type of context source is " + context?.Source?.GetType())));
                 }
+
                 var targetType = context!.TargetType;
 
                 switch (targetType)
@@ -42,11 +41,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                 string msg = String.Format(CultureInfo.CurrentCulture,
                     @"Binding parameters to complex objects uses JSON serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
-                    2. Change the event payload to be valid json.
-                    The JSON parser failed: {0}",
-                    ex.Message);
+                    2. Change the event payload to be valid json.");
 
-                return new(ConversionResult.Failed(new InvalidOperationException(msg)));
+                return new(ConversionResult.Failed(new InvalidOperationException(msg, ex)));
             }
             catch (Exception ex)
             {

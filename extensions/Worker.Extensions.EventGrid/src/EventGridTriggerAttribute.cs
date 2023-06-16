@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker
         private bool _isBatched = false;
 
         /// <summary>
-        /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
+        /// Gets or sets the configuration to enable batch processing of event grid. Default value is "false".
         /// </summary>
         [DefaultValue(false)]
         public bool IsBatched

@@ -21,12 +21,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
         {
             try
             {
-                if (context?.Source is not string contextSource)
+                if (context is null)
+                {
+                    throw new ArgumentNullException(nameof(context));
+                }
+
+                if (context.Source is not string contextSource)
                 {
                     return new(ConversionResult.Failed(new InvalidOperationException("Context source must be a non-null string. Current type of context source is " + context?.Source?.GetType())));
                 }
 
-                var targetType = context!.TargetType;
+                var targetType = context.TargetType;
 
                 switch (targetType)
                 {

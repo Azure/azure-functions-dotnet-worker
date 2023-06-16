@@ -79,11 +79,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
         static bool IsIterableType(ITypeSymbol t, SymbolAnalysisContext context)
         {
+            var e = t.ToString();
+
+            var c = t is IArrayTypeSymbol;
+
+            if (c && string.Equals(e, typeof(byte[]).Name, StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+
             var a = IsOrImplementsOrDerivesFrom(t, context.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName)!);
 
             var b = IsOrImplementsOrDerivesFrom(t, context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName)!);
-
-            var c = t is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(t, context.Compilation.GetTypeByMetadataName(typeof(byte[]).FullName)!);
 
             return a || b || c;
         }

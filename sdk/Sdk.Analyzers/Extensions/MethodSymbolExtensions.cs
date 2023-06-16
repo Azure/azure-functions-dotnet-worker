@@ -40,8 +40,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
 
             var attributeType = analysisContext.Compilation.GetTypeByMetadataName(Constants.Types.WorkerFunctionAttribute);
+            var attributeType2 = analysisContext.Compilation.GetTypeByMetadataName("Microsoft.Azure.WebJobs.FunctionNameAttribute");
 
-            return attributes.Any(a => attributeType.IsAssignableFrom(a.AttributeClass, true));
+            return attributes.Any(a => attributeType.IsAssignableFrom(a.AttributeClass, true)
+            || attributeType2.IsAssignableFrom(a.AttributeClass, true)
+            );
         }
     }
 }

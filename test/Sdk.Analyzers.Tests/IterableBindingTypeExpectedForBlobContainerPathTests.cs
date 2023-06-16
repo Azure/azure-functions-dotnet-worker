@@ -4,7 +4,6 @@ using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Micr
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
-using System;
 
 namespace Sdk.Analyzers.Tests
 {

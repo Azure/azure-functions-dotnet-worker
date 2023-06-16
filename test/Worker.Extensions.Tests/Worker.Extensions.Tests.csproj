@@ -22,6 +22,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\extensions\Worker.Extensions.EventGrid\src\Worker.Extensions.EventGrid.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
         <ProjectReference Include="..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
     </ItemGroup>

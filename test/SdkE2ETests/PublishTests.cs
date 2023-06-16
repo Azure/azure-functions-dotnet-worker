@@ -119,6 +119,9 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             {
                 extensions = new[]
                 {
+                    new Extension("EventGrid",
+                        "Microsoft.Azure.WebJobs.Extensions.EventGrid.EventGridWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventGrid, Version=3.3.0.0, Culture=neutral, PublicKeyToken=014045d636e89289",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.EventGrid.dll"),
                     new Extension("Startup",
                         "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"),

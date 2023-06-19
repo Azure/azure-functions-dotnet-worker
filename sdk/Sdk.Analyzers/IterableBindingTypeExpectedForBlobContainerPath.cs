@@ -79,7 +79,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             var baseType = symbol.ToDisplayString();
 
             if (string.Equals(baseType, BlobInputBindingAttribute, StringComparison.Ordinal))
-               // || string.Equals(baseType, "Microsoft.Azure.WebJobs.BlobAttribute", StringComparison.Ordinal))
             {
                 return true;
             }

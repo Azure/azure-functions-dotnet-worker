@@ -15,6 +15,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using System.Collections;
+using System.Text.Json;
+using System.Globalization;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -104,6 +106,17 @@ namespace Microsoft.Azure.Functions.Worker
                 }
 
                 return ConversionResult.Success(result);
+            }
+            catch (JsonException ex)
+            {
+                string msg = String.Format(CultureInfo.CurrentCulture,
+                    @"Binding parameters to complex objects uses JSON serialization.
+                    1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
+                    2. Change the blob to be valid json.
+                    The JSON parser failed: {0}",
+                    ex.Message);
+
+                return ConversionResult.Failed(new InvalidOperationException(msg, ex));
             }
             catch (Exception ex)
             {

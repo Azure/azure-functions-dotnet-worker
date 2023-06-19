@@ -16,3 +16,4 @@
 
 - Add support for retry options (#1548)
 - Bug fix for when DefaultValue is not present on an IsBatched prop (#1602).
+- SDK changes for .NET 8.0 support (#1643)

@@ -772,7 +772,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_POCOCollection_Array_ReturnsFailed()
+        public async Task ConvertAsync_IncorrectJsonContent_POCOCollection_Array_ReturnsFailed()
         {
             // Arrange
             var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());

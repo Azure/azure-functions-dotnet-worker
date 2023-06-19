@@ -771,6 +771,40 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.IsType<JsonException>(conversionResult.Error);
         }
 
+        [Fact]
+        public async Task ConvertAsync_IncorrectJsonContent_POCOCollection_Array_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var context = new TestConverterContext(typeof(Book[]), grpcModelBindingData);
+
+            var expectedBookList = new Book[] { new Book() { Name = "MyBook" } };
+            var testStream = new MemoryStream(Encoding.UTF8.GetBytes("i should fail"));
+            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
+
+            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
+            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
+
+            var mockBlobClient = new Mock<BlobClient>();
+            mockBlobClient
+                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
+                .ReturnsAsync(mockResponse.Object);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var pocoResult = (Book[])conversionResult.Value;
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.IsType<JsonException>(conversionResult.Error.InnerException);
+        }
+
         private BinaryData GetTestBinaryData(string connection = "Connection", string container = "Container", string blobName = "MyBlob")
         {
             string jsonData = $@"{{

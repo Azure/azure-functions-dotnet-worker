@@ -14,7 +14,7 @@ using Microsoft.Extensions.Options;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Extensions for registering RPC services to communication with the functions host.
+    /// Extensions for registering RPC services to communicate with the functions host.
     /// </summary>
     public static class GrpcHttpClientBuilderExtensions
     {

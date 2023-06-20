@@ -160,6 +160,11 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(containerName));
             }
 
+            if (targetType != typeof(BlobContainerClient) && string.IsNullOrEmpty(blobName))
+            {
+                throw new InvalidOperationException($"Blob name is required for binding type '{targetType.Name}'.");
+            }
+
             return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);
         }
 

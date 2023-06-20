@@ -31,7 +31,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 _knownFunctionMetadataTypes = new KnownFunctionMetadataTypes(context.Compilation);
                 _dataTypeParser = new DataTypeParser(_knownTypes);
                 _cardinalityParser = new CardinalityParser(_knownTypes, _knownFunctionMetadataTypes, _dataTypeParser);
-                _cardinalityParser = new CardinalityParser(_knownTypes, _knownFunctionMetadataTypes, _dataTypeParser);
             }
 
             private Compilation Compilation => _context.Compilation;

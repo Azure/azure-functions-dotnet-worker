@@ -723,6 +723,42 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
+        public async Task ConvertAsync_MissingBlobNameParameter_NotBlobContainerClient_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: ""), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var clientResult = (BlobClient)conversionResult.Value;
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Blob name is required for binding type 'BlobClient'.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_MissingBlobNameParameter_BlobContainerClient_ReturnsSuccess()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: ""), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobContainerClient), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns((BlobClient)null);
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var clientResult = (BlobContainerClient)conversionResult.Value;
+
+            // Assert
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+        }
+
+        [Fact]
         public async Task ConvertAsync_BlobClient_MissingBlobNameParameter_ReturnsFailed()
         {
             // Arrange

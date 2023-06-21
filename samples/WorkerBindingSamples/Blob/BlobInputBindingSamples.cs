@@ -19,6 +19,21 @@ namespace SampleApp
             _logger = logger;
         }
 
+        [Function(nameof(BlobInputContainerClientFunction))]
+        public HttpResponseData BlobInputContainerClientFunction(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+        [BlobInput("input-container")] BlobContainerClient client)
+        {
+            _logger.LogInformation("Content of all blobs within container:");
+
+            foreach (var item in client.GetBlobs())
+            {
+                _logger.LogInformation(item.Name);
+            }
+
+            return req.CreateResponse(HttpStatusCode.OK);
+        }
+
         [Function(nameof(BlobInputClientFunction))]
         public async Task<HttpResponseData> BlobInputClientFunction(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -108,21 +123,6 @@ namespace SampleApp
             _logger.LogInformation("Content of all blobs within container:");
 
             foreach (var item in books)
-            {
-                _logger.LogInformation(item.Name);
-            }
-
-            return req.CreateResponse(HttpStatusCode.OK);
-        }
-
-        [Function(nameof(BlobContainerClientInputFunction))]
-        public HttpResponseData BlobContainerClientInputFunction(
-        [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-        [BlobInput("input-container")] BlobContainerClient client)
-        {
-            _logger.LogInformation("Content of all blobs within container:");
-            
-            foreach (var item in client.GetBlobs())
             {
                 _logger.LogInformation(item.Name);
             }

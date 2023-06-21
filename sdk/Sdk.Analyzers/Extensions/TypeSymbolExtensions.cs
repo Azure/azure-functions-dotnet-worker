@@ -1,10 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 {
@@ -56,6 +59,84 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
 
             return name;
+        }
+
+        internal static bool IsIterableType(this ITypeSymbol typeSymbol, SymbolAnalysisContext context)
+        {
+            bool isArrayType = false;
+
+            if (typeSymbol is IArrayTypeSymbol)
+            {
+                if (string.Equals(typeSymbol.ToString(), typeof(byte[]).Name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return false;
+                }
+
+                isArrayType = true;
+            }
+
+            bool IsIEnumerableTType = typeSymbol.IsOrImplementsOrDerivesFrom(context.Compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName)!);
+
+            var IsIEnumerableType = typeSymbol.IsOrImplementsOrDerivesFrom(context.Compilation.GetTypeByMetadataName(typeof(IEnumerable).FullName)!);
+
+            return IsIEnumerableTType || IsIEnumerableType || isArrayType;
+        }
+
+        internal static bool IsOrImplementsOrDerivesFrom(this ITypeSymbol symbol, ITypeSymbol? other)
+        {
+            return symbol.IsOrImplements(other) || symbol.IsOrDerivedFrom(other);
+        }
+
+        internal static bool IsOrDerivedFrom(this ITypeSymbol symbol, ITypeSymbol? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            var current = symbol;
+
+            while (current != null)
+            {
+                if (SymbolEqualityComparer.Default.Equals(current, other) || SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, other))
+                {
+                    return true;
+                }
+
+                current = current.BaseType;
+            }
+
+            return false;
+        }
+
+        internal static bool IsOrImplements(this ITypeSymbol symbol, ITypeSymbol? other)
+        {
+            if (other is null)
+            {
+                return false;
+            }
+
+            if (symbol.Name == typeof(string).Name)
+            {
+                return false;
+            }
+
+            var current = symbol;
+
+            while (current != null)
+            {
+                foreach (var member in current.Interfaces)
+                {
+                    if (IsOrDerivedFrom(member, other))
+                    {
+                        return true;
+                    }
+                }
+
+                current = current.BaseType;
+            }
+
+            return false;
         }
     }
 }

@@ -1,5 +1,32 @@
 [
   {
+    "name": "HttpProxyTrigger",
+    "scriptFile": "FunctionApp.dll",
+    "entryPoint": "FunctionApp.HttpProxyTrigger.Run",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Anonymous",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "HttpTriggerSimple",
     "scriptFile": "FunctionApp.dll",
     "entryPoint": "FunctionApp.HttpTriggerSimple.Run",

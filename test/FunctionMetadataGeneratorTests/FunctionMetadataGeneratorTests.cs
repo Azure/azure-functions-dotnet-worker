@@ -169,8 +169,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.2" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.2" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -292,8 +292,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.0-beta.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.2" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.2" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -358,7 +358,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.0.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.2" }
             });
 
             void ValidateHttpTrigger(ExpandoObject b)
@@ -494,7 +494,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.3.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)

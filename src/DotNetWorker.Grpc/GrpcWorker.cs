@@ -8,6 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
@@ -170,6 +171,15 @@ namespace Microsoft.Azure.Functions.Worker
                         _ => BuildRpc(func),
                     };
 
+                    if (func.Retry != null)
+                    {
+                        rpcFuncMetadata.RetryOptions = func.Retry switch
+                        {
+                            RpcRetryOptions retry => retry,
+                            _ => BuildRpcRetry(func.Retry)
+                        };
+                    }
+
                     // add BindingInfo here instead of in the providers  
                     // because we need access to gRPC types in proto-file and source-gen won't have access
                     rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
@@ -210,6 +220,32 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return rpcFuncMetadata;
+        }
+
+        private static RpcRetryOptions BuildRpcRetry(IRetryOptions retry)
+        {
+            var rpcRetryOptions = new RpcRetryOptions
+            {
+                MaxRetryCount = retry.MaxRetryCount
+            };
+
+            if (retry.Strategy is RetryStrategy.FixedDelay)
+            {
+                rpcRetryOptions.RetryStrategy = RpcRetryOptions.Types.RetryStrategy.FixedDelay;
+                rpcRetryOptions.DelayInterval = Duration.FromTimeSpan((TimeSpan) retry.DelayInterval!);
+            }
+            else if (retry.Strategy is RetryStrategy.ExponentialBackoff)
+            {
+                rpcRetryOptions.RetryStrategy = RpcRetryOptions.Types.RetryStrategy.ExponentialBackoff;
+                rpcRetryOptions.MaximumInterval = Duration.FromTimeSpan((TimeSpan) retry.MaximumInterval!);
+                rpcRetryOptions.MinimumInterval = Duration.FromTimeSpan((TimeSpan)retry.MinimumInterval!);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown retry strategy: ${nameof(retry.Strategy)}.");
+            }
+
+            return rpcRetryOptions;
         }
 
         internal void WorkerTerminateRequestHandler(WorkerTerminate request)

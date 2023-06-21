@@ -22,5 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public IDictionary<string, object> Properties { get; set; } = new Dictionary<string, object>();
 
         public IList<IDictionary<string, object>> RawBindings { get; set; } = new List<IDictionary<string, object>>(); // List of <propertyName, propertyValue> bindings.
+
+        public GeneratorRetryOptions? Retry { get; set; }
     }
 }

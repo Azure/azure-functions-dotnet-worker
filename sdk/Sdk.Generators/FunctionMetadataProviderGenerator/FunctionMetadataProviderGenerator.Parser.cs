@@ -277,7 +277,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 hasHttpTrigger = true;
                             }
 
-                            DataType dataType = GetDataType(parameterSymbol.Type);
+                            DataType dataType = _dataTypeParser.GetDataType(parameterSymbol.Type);
+
+                            bool cardinalityValidated = false;
                             bool supportsDeferredBinding = false;
 
                             if (SupportsDeferredBinding(attribute, parameterSymbol.Type.ToString()))

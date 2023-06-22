@@ -1217,6 +1217,7 @@
         "type": "serviceBusTrigger",
         "queueName": "queue",
         "connection": "ServiceBusConnection",
+        "cardinality": "One",
         "properties": {
           "supportsDeferredBinding": "True"
         }
@@ -1260,6 +1261,7 @@
         "type": "serviceBusTrigger",
         "queueName": "queue",
         "connection": "ServiceBusConnection",
+        "cardinality": "One",
         "properties": {
           "supportsDeferredBinding": "True"
         }

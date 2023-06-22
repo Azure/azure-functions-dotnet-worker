@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FunctionsNetHost
+﻿namespace FunctionsNetHost
 {
     internal class Preloader
     {
@@ -12,17 +6,17 @@ namespace FunctionsNetHost
         {
             string[] arr = new[]
             {
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.13\System.Private.CoreLib.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.13\System.Runtime.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.18\System.Text.Json.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.18\System.Linq.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.18\System.Collections.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.13\System.Collections.Immutable.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.13\System.Collections.Concurrent.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.13\System.Diagnostics.Tracing.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.13\System.Threading.Channels.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.18\System.Threading.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.18\System.Threading.Thread.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Private.CoreLib.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Runtime.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Text.Json.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Linq.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Collections.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Collections.Immutable.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Collections.Concurrent.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Diagnostics.Tracing.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Threading.Channels.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Threading.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Threading.Thread.dll",
             };
             ReadRuntimeAssemblyFiles(arr);
         }
@@ -50,8 +44,8 @@ namespace FunctionsNetHost
         private static void ReadFileInChunks(string file, byte[] chunk, int maxBuffer, Random random)
         {
             var fileExist = File.Exists(file);
-            Logger.Log($"Reading {file}. fileExist:{fileExist}");
-            
+            Logger.Log($"Reading {file}. file exist:{fileExist}");
+
             if (!fileExist)
             {
                 return;

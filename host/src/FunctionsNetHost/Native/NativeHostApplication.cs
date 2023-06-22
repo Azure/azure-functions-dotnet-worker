@@ -8,11 +8,11 @@ namespace FunctionsNetHost
         private IntPtr _workerHandle;
         unsafe delegate* unmanaged<byte**, int, IntPtr, IntPtr> _requestHandlerCallback;
         public static NativeHostApplication Instance { get; } = new();
-        
+
         private NativeHostApplication()
         {
         }
-        
+
         public unsafe void HandleInboundMessage(byte[] buffer, int size)
         {
             fixed (byte* pBuffer = buffer)
@@ -25,7 +25,7 @@ namespace FunctionsNetHost
         {
             _requestHandlerCallback = callback;
             _workerHandle = grpcHandle;
-            
+
             WorkerLoadStatusSignalManager.Instance.Signal.Set();
         }
     }

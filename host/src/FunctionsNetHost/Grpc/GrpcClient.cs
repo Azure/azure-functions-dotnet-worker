@@ -34,7 +34,7 @@ namespace FunctionsNetHost.Grpc
         internal async Task InitAsync()
         {
             var endpoint = $"http://{_grpcWorkerStartupOptions.Host}:{_grpcWorkerStartupOptions.Port}";
-            Logger.LogDebug($"Grpc service endpoint:{endpoint}");
+            Logger.LogTrace($"Grpc service endpoint:{endpoint}");
 
             var functionRpcClient = CreateFunctionRpcClient(endpoint);
             var eventStream = functionRpcClient.EventStream();
@@ -126,7 +126,7 @@ namespace FunctionsNetHost.Grpc
                 byte[] inboundMessageBytes = inboundMessage.ToByteArray();
                 NativeHostApplication.Instance.HandleInboundMessage(inboundMessageBytes, inboundMessageBytes.Length);
             });
-            
+
             return Task.CompletedTask;
         }
     }

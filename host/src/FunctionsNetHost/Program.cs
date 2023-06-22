@@ -12,18 +12,19 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.LogInfo("Starting FunctionsNetHost");
+                Logger.Log("Starting FunctionsNetHost");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-                using var appLoader = AppLoader.Instance;
+
+                using var appLoader = new AppLoader();
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)
             {
-                Logger.LogInfo($"An error occurred while running FunctionsNetHost.{exception}");
+                Logger.Log($"An error occurred while running FunctionsNetHost.{exception}");
             }
         }
 
@@ -45,14 +46,16 @@ namespace FunctionsNetHost
             var workerStartupOptions = new GrpcWorkerStartupOptions();
 
             rootCommand.SetHandler((host, port, workerId, grpcMsgLength, requestId) =>
-                {
-                    workerStartupOptions.Host = host;
-                    workerStartupOptions.Port = port;
-                    workerStartupOptions.WorkerId = workerId;
-                    workerStartupOptions.GrpcMaxMessageLength = grpcMsgLength;
-                    workerStartupOptions.RequestId = requestId;
-                },
+            {
+                workerStartupOptions.Host = host;
+                workerStartupOptions.Port = port;
+                workerStartupOptions.WorkerId = workerId;
+                workerStartupOptions.GrpcMaxMessageLength = grpcMsgLength;
+                workerStartupOptions.RequestId = requestId;
+            },
                 hostOption, portOption, workerOption, grpcMsgLengthOption, requestIdOption);
+
+            Logger.LogTrace($"raw args:{string.Join(" ", args)}");
 
             var argsWithoutExecutableName = args.Skip(1).ToArray();
             await rootCommand.InvokeAsync(argsWithoutExecutableName);

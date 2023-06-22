@@ -12,7 +12,7 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost");
+                Logger.Log("Starting FunctionsNetHost 202306212215");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 

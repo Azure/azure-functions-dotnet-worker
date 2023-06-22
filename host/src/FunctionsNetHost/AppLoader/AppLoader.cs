@@ -37,6 +37,8 @@ namespace FunctionsNetHost
             }
 
             Logger.LogTrace($"hostfxr library loaded successfully.");
+
+            Preloader.Preload();
         }
 
         internal int RunApplication(string? assemblyPath)

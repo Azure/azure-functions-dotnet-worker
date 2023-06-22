@@ -269,7 +269,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.2" },
             });
 
             var blobClientToBlobStringFunction = functions.Single(p => p.Name == "BlobClientToBlobStringFunction");
@@ -356,7 +356,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.2" },
             });
 
             var blobStringToBlobClientEnumerable = functions.Single(p => p.Name == "BlobStringToBlobClientEnumerable");
@@ -933,7 +933,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.10.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.11.0" },
             });
 
             var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));
@@ -954,6 +954,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "serviceBusTrigger" },
                     { "Direction", "In" },
                     { "queueName", "queue" },
+                    { "Cardinality", "One" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }

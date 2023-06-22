@@ -16,6 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _defaultValue;
         private readonly Lazy<INamedTypeSymbol?> _httpResponse;
         private readonly Lazy<INamedTypeSymbol?> _httpTriggerBinding;
+        private readonly Lazy<INamedTypeSymbol?> _retryAttribute;
+        private readonly Lazy<INamedTypeSymbol?> _bindingCapabilitiesAttribute;
+        private readonly Lazy<INamedTypeSymbol?> _fixedDelayRetryAttribute;
+        private readonly Lazy<INamedTypeSymbol?> _exponentialBackoffRetryAttribute;
         private readonly Lazy<INamedTypeSymbol?> _inputConverterAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportedConverterTypeAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
@@ -29,6 +33,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _defaultValue = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.DefaultValue));
             _httpResponse = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponse));
             _httpTriggerBinding = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpTriggerBinding));
+            _retryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.RetryAttribute));
+            _bindingCapabilitiesAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.BindingCapabilitiesAttribute));
+            _fixedDelayRetryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.FixedDelayRetryAttribute));
+            _exponentialBackoffRetryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.ExponentialBackoffRetryAttribute));
             _inputConverterAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttributeType));
             _supportedConverterTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttributeType));
             _supportsDeferredBindingAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportsDeferredBindingAttributeType));
@@ -47,6 +55,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public INamedTypeSymbol? HttpResponse { get => _httpResponse.Value; }
 
         public INamedTypeSymbol? HttpTriggerBinding { get => _httpTriggerBinding.Value; }
+
+        public INamedTypeSymbol? RetryAttribute { get => _retryAttribute.Value;  }
+
+        public INamedTypeSymbol? BindingCapabilitiesAttribute { get => _bindingCapabilitiesAttribute.Value; }
+
+        public INamedTypeSymbol? FixedDelayRetryAttribute {  get => _fixedDelayRetryAttribute.Value; }
+
+        public INamedTypeSymbol? ExponentialBackoffRetryAttribute { get => _exponentialBackoffRetryAttribute.Value; }
 
         public INamedTypeSymbol? InputConverterAttributeType { get => _inputConverterAttributeType.Value; }
 

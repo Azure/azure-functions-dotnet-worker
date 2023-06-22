@@ -3,4 +3,4 @@
 
 ﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.SignalRService", "1.8.0")]
+[assembly: ExtensionInformation("Microsoft.Azure.WebJobs.Extensions.SignalRService", "1.10.0")]

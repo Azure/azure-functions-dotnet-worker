@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Abstractions <version>
 
-- Added `BindingCapabilities` attribute which can be used on binding type attributes to express capabilities such as function-level retry. (#1457)
+- <event>

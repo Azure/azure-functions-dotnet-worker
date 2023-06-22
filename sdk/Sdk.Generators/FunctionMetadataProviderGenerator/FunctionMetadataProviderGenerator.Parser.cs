@@ -23,6 +23,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private readonly ImmutableArray<string> _functionsStringNamesToRemove;
             private readonly KnownTypes _knownTypes;
             private readonly KnownFunctionMetadataTypes _knownFunctionMetadataTypes;
+            private DataTypeParser _dataTypeParser;
+            private CardinalityParser _cardinalityParser;
 
             public Parser(GeneratorExecutionContext context)
             {
@@ -30,6 +32,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 _functionsStringNamesToRemove = ImmutableArray.Create("Attribute", "Input", "Output");
                 _knownTypes = new KnownTypes(context.Compilation);
                 _knownFunctionMetadataTypes = new KnownFunctionMetadataTypes(context.Compilation);
+                _dataTypeParser = new DataTypeParser(_knownTypes);
+                _cardinalityParser = new CardinalityParser(_knownTypes, _knownFunctionMetadataTypes, _dataTypeParser);
             }
 
             private Compilation Compilation => _context.Compilation;
@@ -67,7 +71,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ScriptFile = scriptFile
                     };
 
-                    if (!TryGetBindings(method, model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger))
+                    if (!TryGetBindings(method, model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? retryOptions))
                     {
                         continue;
                     }
@@ -75,6 +79,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (hasHttpTrigger)
                     {
                         newFunction.IsHttpTrigger = true;
+                    }
+
+                    if (retryOptions is not null)
+                    {
+                        newFunction.Retry = retryOptions;
                     }
 
                     newFunction.RawBindings = bindings!; // won't be null b/c TryGetBindings would've failed and this line wouldn't be reached
@@ -85,12 +94,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return result;
             }
 
-            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger)
+            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? validatedRetryOptions)
             {
                 hasHttpTrigger = false;
+                validatedRetryOptions = null;
 
-                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out IList<IDictionary<string, object>>? methodOutputBindings)
-                    || !TryGetParameterInputAndTriggerBindings(method, model, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
+                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
+                    || !TryGetParameterInputAndTriggerBindings(method, model, out bool supportsRetryOptions, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
                     || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
                 {
                     bindings = null;
@@ -105,13 +115,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 result.AddRange(returnTypeBindings);
                 bindings = result;
 
+                if (retryOptions is not null)
+                {
+                    if (supportsRetryOptions && retryOptions is not null)
+                    {
+                        validatedRetryOptions = retryOptions;
+                    }
+                    else if (!supportsRetryOptions && retryOptions is not null)
+                    {
+                        // TODO: Log retry options related diagnostic error here
+                    }
+                }
+
                 return true;
             }
 
             /// <summary>
             /// Checks for and returns any OutputBinding attributes associated with the method.
             /// </summary>
-            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var bindingLocation = method.Identifier.GetLocation();
 
@@ -120,9 +142,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 AttributeData? outputBindingAttribute = null;
                 hasOutputBinding = false;
+                retryOptions = null;
 
                 foreach (var attribute in attributes)
                 {
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
+                    {
+                        if (TryGetRetryOptionsFromAtttribute(attribute, out GeneratorRetryOptions? retryOptionsFromAttr))
+                        {
+                            retryOptions = retryOptionsFromAttr;
+                        }
+                    }
+
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
                     {
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
@@ -160,11 +191,63 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
+            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, out GeneratorRetryOptions? retryOptions)
+            {
+                retryOptions = null;
+
+                if (TryGetAttributeProperties(attribute, null, out IDictionary<string, object?>? attrProperties))
+                {
+                    retryOptions = new GeneratorRetryOptions();
+
+                    // Would not expect this to fail since MaxRetryCount is a required value of a retry policy attribute
+                    if (attrProperties!.TryGetValue(Constants.RetryConstants.MaxRetryCountKey, out object? maxRetryCount))
+                    {
+                        retryOptions.MaxRetryCount = maxRetryCount!.ToString();
+                    }
+
+                    // Check which strategy is being used by checking the attribute class
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.FixedDelayRetryAttribute))
+                    {
+                        retryOptions.Strategy = RetryStrategy.FixedDelay;
+
+                        if (attrProperties.TryGetValue(Constants.RetryConstants.DelayIntervalKey, out object? delayInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
+                        {
+                            retryOptions.DelayInterval = delayInterval!.ToString();
+                        }
+
+                    }
+                    else if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.ExponentialBackoffRetryAttribute))
+                    {
+                        retryOptions.Strategy = RetryStrategy.ExponentialBackoff;
+
+                        if (attrProperties.TryGetValue(Constants.RetryConstants.MinimumIntervalKey, out object? minimumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
+                        {
+                            retryOptions.MinimumInterval = minimumInterval!.ToString();
+                        }
+
+                        if (attrProperties.TryGetValue(Constants.RetryConstants.MaximumIntervalKey, out object? maximumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
+                        {
+                            retryOptions.MinimumInterval = maximumInterval!.ToString();
+                        }
+                    }
+                    else
+                    {
+                        // TODO: Diagnostic error for retry options parsing failure
+                        return false;
+                    }
+
+                    return true;
+                }
+
+                return false;
+            }
+
             /// <summary>
             /// Checks for and returns input and trigger bindings found in the parameters of the Azure Function method.
             /// </summary>
-            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool supportsRetryOptions, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
             {
+                supportsRetryOptions = false;
                 hasHttpTrigger = false;
                 bindingsList = new List<IDictionary<string, object>>();
 
@@ -194,7 +277,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 hasHttpTrigger = true;
                             }
 
-                            DataType dataType = GetDataType(parameterSymbol.Type);
+                            DataType dataType = _dataTypeParser.GetDataType(parameterSymbol.Type);
+
+                            bool cardinalityValidated = false;
                             bool supportsDeferredBinding = false;
 
                             if (SupportsDeferredBinding(attribute, parameterSymbol.Type.ToString()))
@@ -202,11 +287,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 supportsDeferredBinding = true;
                             }
 
-                            if (IsCardinalitySupported(attribute))
+                            if (_cardinalityParser.IsCardinalitySupported(attribute))
                             {
                                 DataType updatedDataType = DataType.Undefined;
 
-                                if (!IsCardinalityValid(parameterSymbol, parameter.Type, model, attribute, out updatedDataType))
+                                if (!_cardinalityParser.IsCardinalityValid(parameterSymbol, parameter.Type, attribute, out updatedDataType))
                                 {
                                     _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), parameterSymbol.Name));
                                     bindingsList = null;
@@ -217,6 +302,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 // ex. IList<String> would be evaluated as "Undefined" by the call to GetDataType
                                 // but it would be correctly evaluated as "String" during the call to IsCardinalityValid which parses iterable collections
                                 dataType = updatedDataType;
+                                cardinalityValidated = true;
                             }
 
                             string bindingName = parameter.Identifier.ValueText;
@@ -227,9 +313,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 return false;
                             }
 
+                            // If cardinality is supported and validated, but was not found in named args, constructor args, or default value attributes
+                            // default to Cardinality: One to stay in sync with legacy generator.
+                            if (cardinalityValidated && !bindingDict!.Keys.Contains("cardinality"))
+                            {
+                                bindingDict!.Add("cardinality", "One");
+                            }
+
                             if (dataType is not DataType.Undefined)
                             {
                                 bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
+                            }
+
+                            // check for binding capabilities
+                            var bindingCapabilitiesAttr = attribute?.AttributeClass?.GetAttributes().Where(a => (SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.BindingCapabilitiesAttribute)));
+                            if (bindingCapabilitiesAttr.FirstOrDefault() is not null)
+                            {
+                                var bindingCapabilities = bindingCapabilitiesAttr.FirstOrDefault().ConstructorArguments;
+
+                                if (bindingCapabilities.Any(s => string.Equals(s.Values.FirstOrDefault().Value?.ToString(), Constants.BindingCapabilities.FunctionLevelRetry, StringComparison.OrdinalIgnoreCase)))
+                                {
+                                    supportsRetryOptions = true;
+                                }
                             }
 
                             bindingsList.Add(bindingDict!);
@@ -564,7 +669,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     return false;
                 }
 
-                // It's fair to assume than constructor arguments appear before named arguments, and
+                // It's fair to assume that constructor arguments appear before named arguments, and
                 // that the constructor names would match the property names
                 for (int i = 0; i < attributeData.ConstructorArguments.Length; i++)
                 {
@@ -584,9 +689,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         case TypedConstantKind.Enum:
                             var enumValue = arg.Type!.GetMembers()
-                              .FirstOrDefault(m => m is IFieldSymbol field
-                                              && field.ConstantValue is object value
-                                              && value.Equals(arg.Value));
+                                .FirstOrDefault(m => m is IFieldSymbol field
+                                    && field.ConstantValue is object value
+                                    && value.Equals(arg.Value));
 
                             if (enumValue is null)
                             {
@@ -613,6 +718,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
+            /// <summary>
+            /// This method handles cases where an attribute property has a different function metadata binding name.
+            /// </summary>
+            /// <remarks>
+            /// For example, in the BlobTriggerAttribute type, the "BlobPath" property is decorated with "MetadataBindingPropertyName" attribute
+            /// where "path" is provided as the value to be used when generating metadata binding data, as shown below.
+            ///
+            ///     [MetadataBindingPropertyName("path")]
+            ///     public string BlobPath { get; set; }
+            ///
+            /// </remarks>
+            /// <param name="attributeClass">The attribute type represented as an <see cref="INamedTypeSymbol"/></param>
+            /// <param name="argumentName">The argument's name as represented in the constructor. This may be overriden by the MetadataBindingPropertyName.</param>
             private void OverrideBindingName(INamedTypeSymbol attributeClass, ref string argumentName)
             {
                 foreach (var prop in attributeClass.GetMembers().Where(a => a is IPropertySymbol))
@@ -627,203 +745,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
                 }
-            }
-
-            private bool IsCardinalitySupported(AttributeData attribute)
-            {
-                return TryGetIsBatchedProp(attribute, out var isBatchedProp);
-            }
-
-            private bool TryGetIsBatchedProp(AttributeData attribute, out ISymbol? isBatchedProp)
-            {
-                var attrClass = attribute.AttributeClass;
-                isBatchedProp = attrClass!
-                    .GetMembers()
-                    .SingleOrDefault(m => string.Equals(m.Name, Constants.FunctionMetadataBindingProps.IsBatchedKey, StringComparison.OrdinalIgnoreCase));
-
-                return isBatchedProp != null;
-            }
-
-            /// <summary>
-            /// This method verifies that a binding that has Cardinality (isBatched property) is valid. If isBatched is set to true, the parameter with the
-            /// attribute must be an enumerable type.
-            /// </summary>
-            private bool IsCardinalityValid(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, SemanticModel model, AttributeData attribute, out DataType dataType)
-            {
-                dataType = DataType.Undefined;
-                var cardinalityIsNamedArg = false;
-
-                // check if IsBatched is defined in the NamedArguments
-                foreach (var arg in attribute.NamedArguments)
-                {
-                    if (String.Equals(arg.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) &&
-                        arg.Value.Value != null)
-                    {
-                        cardinalityIsNamedArg = true;
-                        var isBatched = (bool)arg.Value.Value; // isBatched takes in booleans so we can just type cast it here to use
-
-                        if (!isBatched)
-                        {
-                            dataType = GetDataType(parameterSymbol.Type);
-                            return true;
-                        }
-                    }
-                }
-
-                // When "IsBatched" is not a named arg, we have to check the default value
-                if (!cardinalityIsNamedArg)
-                {
-                    if (!TryGetIsBatchedProp(attribute, out var isBatchedProp))
-                    {
-                        dataType = DataType.Undefined;
-                        return false;
-                    }
-
-                    var defaultValAttr = isBatchedProp!
-                        .GetAttributes()
-                        .SingleOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownFunctionMetadataTypes.DefaultValue));
-                    
-                    var defaultVal = defaultValAttr!.ConstructorArguments.SingleOrDefault().Value!.ToString(); // there is only one constructor arg for the DefaultValue attribute (the default value)
-                    
-                    if (!bool.TryParse(defaultVal, out bool b) || !b)
-                    {
-                        dataType = GetDataType(parameterSymbol.Type);
-                        return true;
-                    }
-                }
-
-                // we check if the param is an array type
-                // we exclude byte arrays (byte[]) b/c we handle that as Cardinality.One (we handle this similar to how a char[] is basically a string)
-                if (parameterSymbol.Type is IArrayTypeSymbol && !SymbolEqualityComparer.Default.Equals(parameterSymbol.Type, _knownTypes.ByteArray))
-                {
-                    dataType = GetDataType(parameterSymbol.Type);
-                    return true;
-                }
-
-                // Check if mapping type - mapping enumerables are not valid types for Cardinality.Many
-                if (parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.IEnumerableOfKeyValuePair)
-                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.LookupGeneric)
-                    || parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.DictionaryGeneric))
-                {
-                    return false;
-                }
-
-                var isGenericEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.IEnumerableGeneric);
-                var isEnumerable = parameterSymbol.Type.IsOrImplementsOrDerivesFrom(_knownTypes.IEnumerable);
-
-                if (!IsStringType(parameterSymbol.Type) && (isGenericEnumerable || isEnumerable))
-                {
-                    if (IsStringType(parameterSymbol.Type))
-                    {
-                        dataType = DataType.String;
-                    }
-                    else if (IsBinaryType(parameterSymbol.Type))
-                    {
-                        dataType = DataType.Binary;
-                    }
-                    else if (isGenericEnumerable)
-                    {
-                        if (parameterTypeSyntax is null)
-                        {
-                            return false;
-                        }
-
-                        dataType = ResolveIEnumerableOfT(parameterSymbol, parameterTypeSyntax, model, out bool hasError);
-
-                        if (hasError)
-                        {
-                            return false;
-                        }
-
-                        return true;
-                    }
-                    return true;
-                }
-
-                // trigger input type doesn't match any of the valid cases so return false
-                return false;
-            }
-
-            /// <summary>
-            /// Find the underlying data type of an IEnumerableOfT (String, Binary, Undefined)
-            /// ex. IEnumerable<byte[]> would return DataType.Binary
-            /// </summary>
-            private DataType ResolveIEnumerableOfT(IParameterSymbol parameterSymbol, TypeSyntax parameterSyntax, SemanticModel model, out bool hasError)
-            {
-                var result = DataType.Undefined;
-                var currentSyntax = parameterSyntax;
-                hasError = false;
-
-                var currSymbol = parameterSymbol.Type;
-                INamedTypeSymbol? finalSymbol = null;
-
-                while (currSymbol != null)
-                {
-                    INamedTypeSymbol? genericInterfaceSymbol = null;
-
-                    if (currSymbol.IsOrDerivedFrom(_knownTypes.IEnumerableGeneric) && currSymbol is INamedTypeSymbol currNamedSymbol)
-                    {
-                        finalSymbol = currNamedSymbol;
-                        break;
-                    }
-
-                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(_knownTypes.IEnumerableGeneric)).FirstOrDefault();
-                    if (genericInterfaceSymbol != null)
-                    {
-                        finalSymbol = genericInterfaceSymbol;
-                        break;
-                    }
-
-                    currSymbol = currSymbol.BaseType;
-                }
-
-                if (finalSymbol is null)
-                {
-                    hasError = true;
-                    return result;
-                }
-
-                var argument = finalSymbol.TypeArguments.FirstOrDefault(); // we've already checked and discarded mapping types by this point - should be a single argument
-
-                if (argument is null)
-                {
-                    hasError = true;
-                    return result;
-                }
-
-                return GetDataType(argument);
-            }
-
-            private DataType GetDataType(ITypeSymbol symbol)
-            {
-                if (IsStringType(symbol))
-                {
-                    return DataType.String;
-                }
-                // Is binary parameter type
-                else if (IsBinaryType(symbol))
-                {
-                    return DataType.Binary;
-                }
-
-                return DataType.Undefined;
-            }
-
-            private bool IsStringType(ITypeSymbol symbol)
-            {
-                return SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.StringType)
-                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, _knownTypes.StringType));
-            }
-
-            private bool IsBinaryType(ITypeSymbol symbol)
-            {
-                var isByteArray = SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.ByteArray)
-                    || (symbol is IArrayTypeSymbol arraySymbol && SymbolEqualityComparer.Default.Equals(arraySymbol.ElementType, _knownTypes.ByteType));
-                var isReadOnlyMemoryOfBytes = SymbolEqualityComparer.Default.Equals(symbol, _knownTypes.ReadOnlyMemoryOfBytes);
-                var isArrayOfByteArrays = symbol is IArrayTypeSymbol outerArray &&
-                    outerArray.ElementType is IArrayTypeSymbol innerArray && SymbolEqualityComparer.Default.Equals(innerArray.ElementType, _knownTypes.ByteType);
-
-                return isByteArray || isReadOnlyMemoryOfBytes || isArrayOfByteArrays;
             }
         }
     }

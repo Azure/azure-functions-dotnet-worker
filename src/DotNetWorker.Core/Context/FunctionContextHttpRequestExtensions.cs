@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -21,16 +22,9 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>HttpRequestData instance if the invocation is http, else null</returns>
         public static async ValueTask<HttpRequestData?> GetHttpRequestDataAsync(this FunctionContext context)
         {
-            var httpTriggerBinding = context.FunctionDefinition.InputBindings.Values
-                                            .FirstOrDefault(a => a.Type == "httpTrigger");
+            IHttpRequestDataFeature? httpRequestDataFeature = context.Features.Get<IHttpRequestDataFeature>() ?? DefaultHttpRequestDataFeature.Instance;
 
-            if (httpTriggerBinding != null)
-            {
-                var bindingResult = await context.BindInputAsync<HttpRequestData>(httpTriggerBinding);
-                return bindingResult.Value;
-            }
-
-            return default;
+            return await httpRequestDataFeature.GetHttpRequestDataAsync(context);
         }
 
         /// <summary>
@@ -47,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             // see output binding entries have a property of type HttpResponseData;
-            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault(a => a.BindingType == HttpBindingType);
+            var httpOutputBinding = context.GetOutputBindings<HttpResponseData>().FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
 
             return httpOutputBinding?.Value;
         }

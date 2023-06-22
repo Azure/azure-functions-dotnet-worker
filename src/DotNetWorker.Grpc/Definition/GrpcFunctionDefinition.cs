@@ -111,10 +111,11 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             var output = new Dictionary<string, object>();
             bool isInputConverterAttributeAdvertised = false;
 
+            output.Add(PropertyBagKeys.BindingAttribute, bindingAttribute);
+
             // ConverterTypesDictionary will be "object" part of the return value - ImmutableDictionary<string, object>
             // The dictionary has key of type IInputConverter and value as List of Types supported by the converter.
             var converterTypesDictionary = new Dictionary<Type, List<Type>>();
-
 
             Type type = bindingAttribute.GetType();
             var attributes = type.GetCustomAttributes<InputConverterAttribute>();

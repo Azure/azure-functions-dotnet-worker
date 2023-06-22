@@ -128,6 +128,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Rpc.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspNetCore", "extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj", "{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.SignalRService.Tests", "test\Worker.Extensions.SignalRService.Tests\Worker.Extensions.SignalRService.Tests.csproj", "{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -314,6 +316,10 @@ Global
 		{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -369,6 +375,7 @@ Global
 		{AA4D318D-101B-49E7-A4EC-B34165AEDB33} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
 		{B13C9E5F-0E4B-413E-90AE-20B84B100364} = {AA4D318D-101B-49E7-A4EC-B34165AEDB33}
 		{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
+		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

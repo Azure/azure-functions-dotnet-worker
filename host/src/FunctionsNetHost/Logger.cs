@@ -7,7 +7,6 @@ namespace FunctionsNetHost
 {
     internal static class Logger
     {
-        private static readonly bool IsDebugLevelLogEnabled;
         private static readonly string LogPrefix;
 
         static Logger()
@@ -17,43 +16,30 @@ namespace FunctionsNetHost
 #else
             LogPrefix = "";
 #endif
-            string traceLoggingEnabled =
-                Environment.GetEnvironmentVariable(EnvironmentSettingNames.FunctionsNetHostTrace) ?? "0";
-            IsDebugLevelLogEnabled = traceLoggingEnabled == "1";
         }
 
-        internal static bool IsDebugLogEnabled => IsDebugLevelLogEnabled;
+        internal static bool IsTraceLogEnabled
+        {
+            get
+            {
+                return string.Equals(EnvironmentUtils.GetValue(EnvironmentSettingNames.FunctionsNetHostTrace), "1");
+            }
+        }
 
         /// <summary>
-        /// Logs a debug message if "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE" environment variable value is set to "1"
-        /// For optimal performance (when building the log message needs execute some code (Ex: someObj.ToString() or so),
-        /// consider checking "IsDebugLogEnabled" before calling LogDebug.
+        /// Logs a trace message if "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE" environment variable value is set to "1"
         /// </summary>
-        internal static void LogDebug(string message)
+        internal static void LogTrace(string message)
         {
-            if (IsDebugLevelLogEnabled)
+            if (IsTraceLogEnabled)
             {
                 Log(message);
             }
         }
 
-        /// <summary>
-        /// Logs a debug message if "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE" environment variable value is set to "1"
-        /// </summary>
-        public static void LogDebug(Func<string> messageProvider)
+        internal static void Log(string message)
         {
-            if (IsDebugLevelLogEnabled)
-            {
-                string message = messageProvider();
-                Log(message);
-            }
-        }
-
-        internal static void LogInfo(string message) => Log(message);
-
-        private static void Log(string message)
-        {
-            string ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            var ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
             Console.WriteLine($"{LogPrefix}[{ts}] [FunctionsNetHost] {message}");
         }
     }

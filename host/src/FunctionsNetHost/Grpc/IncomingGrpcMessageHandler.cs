@@ -36,24 +36,27 @@ namespace FunctionsNetHost.Grpc
             switch (msg.ContentCase)
             {
                 case StreamingMessage.ContentOneofCase.WorkerInitRequest:
-                {
-                    responseMessage.WorkerInitResponse = BuildWorkerInitResponse();
-                    break;
-                }
+                    {
+                        responseMessage.WorkerInitResponse = BuildWorkerInitResponse();
+                        break;
+                    }
                 case StreamingMessage.ContentOneofCase.FunctionsMetadataRequest:
-                {
-                    responseMessage.FunctionMetadataResponse = BuildFunctionMetadataResponse();
-                    break;
-                }
+                    {
+                        responseMessage.FunctionMetadataResponse = BuildFunctionMetadataResponse();
+                        break;
+                    }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
-                {
+
+                    Logger.LogTrace("Specialization request received.");
+
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
-                        Environment.SetEnvironmentVariable(kv.Key, kv.Value);
+                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
                     var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
+                    Logger.LogTrace($"application path {applicationExePath}");
 
 #pragma warning disable CS4014
                     Task.Run(() =>
@@ -62,13 +65,13 @@ namespace FunctionsNetHost.Grpc
                         _ = _appLoader.RunApplication(applicationExePath);
                     });
 
+                    Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
-                    Logger.LogDebug($"Received worker loaded signal. Forwarding environment reload request to worker.");
+                    Logger.LogTrace($"Received worker loaded signal. Forwarding environment reload request to worker.");
 
                     await MessageChannel.Instance.SendInboundAsync(msg);
                     _specializationDone = true;
                     break;
-                }
             }
 
             await MessageChannel.Instance.SendOutboundAsync(responseMessage);
@@ -77,11 +80,11 @@ namespace FunctionsNetHost.Grpc
         private static FunctionMetadataResponse BuildFunctionMetadataResponse()
         {
             var metadataResponse = new FunctionMetadataResponse
-                {
-                    UseDefaultMetadataIndexing = true,
-                    Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                };
-            
+            {
+                UseDefaultMetadataIndexing = true,
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+            };
+
             return metadataResponse;
         }
 

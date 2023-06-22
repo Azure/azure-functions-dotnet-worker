@@ -3,6 +3,7 @@ trigger:
     include:
       - main
       - release/*
+      - feature/*
   paths:
     include:
       - host/src/
@@ -11,35 +12,131 @@ pr:
     include:
       - main
       - release/*
+      - feature/*
   paths:
     include:
       - host/src/
+stages:
+  - stage: BuildAndPublish
+    displayName: "Dotnet Publish(W+L)"
+    jobs:
+      - job: BuildAndPublishLinux
+        displayName: "Publish on Linux"
+        pool:
+          vmImage: "ubuntu-20.04"
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: "8.x"
+              includePreviewVersions: true
 
-pool:
-  vmImage: windows-latest
+          - script: |
+              sudo apt-get install clang zlib1g-dev
 
-steps:
-  # Remember to add this task to allow vcpkg to upload archives via NuGet
-  - task: NuGetAuthenticate@1
+          - task: DotnetCoreCLI@2
+            displayName: "Dotnet Publish"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              arguments: "-c Release -r linux-x64 -o $(Build.ArtifactStagingDirectory)/output/linux"
+              workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Publish win-x64 FunctionsNetHost'
-    inputs:
-      command: 'publish'
-      publishWebProjects: false
-      zipAfterPublish: false
-      arguments: '-c Release -r win-x64 -o $(Build.SourcesDirectory)/host/build/win-x64/FunctionsNetHost'
-      workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
+          - task: CopyFiles@2
+            displayName: "Copy needed files"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/output/linux"
+              # Publish output will include many other files. We only need the FunctionsNetHost & libnethost.so
+              Contents: |
+                FunctionsNetHost
+                libnethost.so
+              TargetFolder: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"
 
-  - task: NuGetCommand@2
-    displayName: "Nuget pack"
-    inputs:
-      command: "pack"
-      packagesToPack: "$(Build.SourcesDirectory)/host/tools/build/Microsoft.Azure.Functions.DotnetIsolatedNativeHost.nuspec"
-      versioningScheme: "off"
-      packDestination: "$(Build.ArtifactStagingDirectory)/host/build/nuget"
-      basePath: "$(Build.SourcesDirectory)/host/tools/build"
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"
+              artifact: "linux_publish_output"
 
-  # Publish artifacts.
-  - publish: $(Build.ArtifactStagingDirectory)/host/build/nuget
-    artifact: drop
+      - job: BuildAndPublishWindows
+        displayName: "Publish on Windows"
+        pool:
+          vmImage: "windows-latest"
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: "8.x"
+              includePreviewVersions: true
+
+          - task: DotnetCoreCLI@2
+            displayName: "Dotnet Publish"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              arguments: "-c Release -r win-x64 -o $(Build.ArtifactStagingDirectory)/output/windows"
+              workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
+
+          - task: CopyFiles@2
+            displayName: "Copy needed files"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/output/windows"
+              # Publish output will include many other files. We only need FunctionsNetHost.exe & nethost.dll
+              Contents: |
+                FunctionsNetHost.exe
+                nethost.dll
+              TargetFolder: "$(Build.ArtifactStagingDirectory)/output/windows_filtered"
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/output/windows_filtered"
+              artifact: "windows_publish_output"
+
+  - stage: ConsolidateArtifacts
+    displayName: "Nuget Publish"
+    dependsOn: BuildAndPublish
+    jobs:
+      - job: ConsolidateArtifacts
+        displayName: "Consolidate Artifacts"
+        pool:
+          vmImage: "windows-latest"
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              version: "7.x"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download Artifacts from Linux build"
+            inputs:
+              artifactName: "linux_publish_output"
+              path: "$(Build.ArtifactStagingDirectory)/linux_output"
+
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download Artifacts from Windows build"
+            inputs:
+              artifactName: "windows_publish_output"
+              path: "$(Build.ArtifactStagingDirectory)/windows_output"
+
+          - task: CopyFiles@2
+            displayName: "Copy files from linux artifacts to dist dir"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/linux_output"
+              TargetFolder: "$(Build.SourcesDirectory)/host/dist/linux"
+
+          - task: CopyFiles@2
+            displayName: "Copy files from Windows artifacts to dist dir"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/windows_output"
+              TargetFolder: "$(Build.SourcesDirectory)/host/dist/windows"
+
+          - task: NuGetCommand@2
+            displayName: "Nuget pack"
+            inputs:
+              command: "pack"
+              packagesToPack: "$(Build.SourcesDirectory)/host/tools/build/Microsoft.Azure.Functions.DotnetIsolatedNativeHost.nuspec"
+              versioningScheme: "off"
+              packDestination: "$(Build.ArtifactStagingDirectory)/host/dist/nuget"
+              basePath: "$(Build.SourcesDirectory)/host/tools/build"
+
+          # Publish artifacts.
+          - publish: $(Build.ArtifactStagingDirectory)/host/dist/nuget
+            artifact: drop

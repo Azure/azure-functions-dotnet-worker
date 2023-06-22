@@ -4,7 +4,7 @@
     <id>Microsoft.Azure.Functions.DotNetIsolatedNativeHost</id>
     <title>Microsoft Azure Functions dotnet-isolated native host</title>
     <tags>dotnet-isolated azure-functions azure</tags>
-    <version>1.0.0-preview103</version>
+    <version>1.0.0-preview805</version>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
     <projectUrl>https://github.com/Azure/azure-functions-dotnet-worker</projectUrl>
@@ -17,7 +17,8 @@
     </contentFiles>
   </metadata>
   <files>
-    <file src="..\..\build\win-x64\FunctionsNetHost\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
+    <file src="..\..\dist\windows\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
+    <file src="..\..\dist\linux\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
     <file src="worker.config.json" target="contentFiles/any/any/workers/dotnet-isolated" />
   </files>
 </package>

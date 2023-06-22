@@ -4,19 +4,23 @@
     {
         internal static void Preload()
         {
+            const string basePath = @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\";
+
             string[] arr = new[]
             {
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Private.CoreLib.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Runtime.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Text.Json.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Linq.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Collections.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Collections.Immutable.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Collections.Concurrent.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Diagnostics.Tracing.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Threading.Channels.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Threading.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\System.Threading.Thread.dll",
+                $@"{basePath}System.Collections.Concurrent.dll",
+                $@"{basePath}coreclr.dll",
+                $@"{basePath}System.Collections.dll",
+                $@"{basePath}System.Collections.Immutable.dll",
+                $@"{basePath}System.Diagnostics.Tracing.dll",
+                $@"{basePath}System.Linq.dll",
+                $@"{basePath}System.Net.Http.dll",
+                $@"{basePath}System.Private.CoreLib.dll",
+                $@"{basePath}System.Runtime.dll",
+                $@"{basePath}System.Text.Json.dll",
+                $@"{basePath}System.Threading.Channels.dll",
+                $@"{basePath}System.Threading.dll",
+                $@"{basePath}System.Threading.Thread.dll"
             };
             ReadRuntimeAssemblyFiles(arr);
         }
@@ -33,7 +37,7 @@
                     // Read file content to avoid disk reads during specialization. This is only to page-in bytes.
                     ReadFileInChunks(file, chunk, maxBuffer, random);
                 }
-                Logger.Log($"Preloader.ReadRuntimeAssemblyFiles Number of files read:{allFiles.Length}");
+                Logger.Log($"Preloader.ReadRuntimeAssemblyFiles Total files read:{allFiles.Length}");
             }
             catch (Exception ex)
             {

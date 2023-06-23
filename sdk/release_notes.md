@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
 
-- <entry>
+- Implementation for bypass deferred binding (#1462/#1495)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
 

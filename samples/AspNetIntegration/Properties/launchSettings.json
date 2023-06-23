@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "AspNetIntegration": {
+      "commandName": "Project"
+    },
+    "Profile 1": {
+      "commandName": "Executable"
+    }
+  }
+}

@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- bumping grpc packages (#1719)
+- <entry>

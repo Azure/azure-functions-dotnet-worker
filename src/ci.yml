@@ -18,10 +18,12 @@ pr:
     include:
     - src/
     - test/DotNetWorkerTests
+    - test/Worker.Extensions.Tests
     - test/E2ETests
     - test/TestUtility
     - sdk/
     - samples/FunctionApp
+    - samples/WorkerBindingSamples
     - tools/
 
 jobs:

@@ -4,7 +4,9 @@
       "commandName": "Project"
     },
     "Profile 1": {
-      "commandName": "Executable"
+      "commandName": "Executable",
+      "commandLineArgs": "--port 7049",
+      "launchBrowser": false
     }
   }
 }

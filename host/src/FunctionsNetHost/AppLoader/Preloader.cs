@@ -7,27 +7,28 @@ namespace FunctionsNetHost
     {
         internal static void ReadFiles()
         {
-            const string basePath = @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\";
+            const string netBasePath = @"C:\Program Files (x86)\dotnet\shared\Microsoft.NETCore.App\6.0.14\";
+            const string aspBasePath = @"C:\Program Files (x86)\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\";
 
             string[] arr = new[]
             {
-                $@"{basePath}System.Collections.Concurrent.dll",
-                $@"{basePath}coreclr.dll",
-                $@"{basePath}System.Collections.dll",
-                $@"{basePath}System.Collections.Immutable.dll",
-                $@"{basePath}System.Diagnostics.Tracing.dll",
-                $@"{basePath}System.Linq.dll",
-                $@"{basePath}System.Net.Http.dll",
-                $@"{basePath}System.Private.CoreLib.dll",
-                $@"{basePath}System.Runtime.dll",
-                $@"{basePath}System.Text.Json.dll",
-                $@"{basePath}System.Threading.Channels.dll",
-                $@"{basePath}System.Threading.dll",
-                $@"{basePath}System.Threading.Thread.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.Hosting.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.DependencyInjection.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.Logging.dll",
-                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.Configuration.dll",
+                $@"{netBasePath}System.Collections.Concurrent.dll",
+                $@"{netBasePath}coreclr.dll",
+                $@"{netBasePath}System.Collections.dll",
+                $@"{netBasePath}System.Collections.Immutable.dll",
+                $@"{netBasePath}System.Diagnostics.Tracing.dll",
+                $@"{netBasePath}System.Linq.dll",
+                $@"{netBasePath}System.Net.Http.dll",
+                $@"{netBasePath}System.Private.CoreLib.dll",
+                $@"{netBasePath}System.Runtime.dll",
+                $@"{netBasePath}System.Text.Json.dll",
+                $@"{netBasePath}System.Threading.Channels.dll",
+                $@"{netBasePath}System.Threading.dll",
+                $@"{netBasePath}System.Threading.Thread.dll",
+                $@"{aspBasePath}Microsoft.Extensions.Hosting.dll",
+                $@"{aspBasePath}Microsoft.Extensions.DependencyInjection.dll",
+                $@"{aspBasePath}Microsoft.Extensions.Logging.dll",
+                $@"{aspBasePath}Microsoft.Extensions.Configuration.dll",
             };
 
             ReadRuntimeAssemblyFiles(arr);

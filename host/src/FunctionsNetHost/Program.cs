@@ -12,10 +12,9 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost 202306221600");
+                Logger.Log("Starting FunctionsNetHost 202306231020");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
-
 
                 using var appLoader = new AppLoader();
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);

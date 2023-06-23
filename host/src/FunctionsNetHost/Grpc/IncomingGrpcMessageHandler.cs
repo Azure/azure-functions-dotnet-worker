@@ -40,6 +40,17 @@ namespace FunctionsNetHost.Grpc
                         responseMessage.WorkerInitResponse = BuildWorkerInitResponse();
                         break;
                     }
+                case StreamingMessage.ContentOneofCase.WorkerWarmupRequest:
+                    {
+                        Logger.Log("Worker warmup request received.");
+                        Preloader.ReadFiles();
+
+                        responseMessage.WorkerWarmupResponse = new WorkerWarmupResponse
+                        {
+                            Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                        };
+                        break;
+                    }
                 case StreamingMessage.ContentOneofCase.FunctionsMetadataRequest:
                     {
                         responseMessage.FunctionMetadataResponse = BuildFunctionMetadataResponse();
@@ -94,6 +105,7 @@ namespace FunctionsNetHost.Grpc
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success }
             };
+            response.Capabilities.Add("HandlesWorkerWarmupMessage", bool.TrueString);
 
             return response;
         }

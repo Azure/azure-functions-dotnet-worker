@@ -1,15 +1,16 @@
-﻿namespace FunctionsNetHost
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+namespace FunctionsNetHost
 {
-    internal class Preloader
+    internal static class Preloader
     {
-        internal static void Preload()
+        internal static void ReadFiles()
         {
             const string basePath = @"C:\Program Files\dotnet\shared\Microsoft.NETCore.App\6.0.14\";
 
             string[] arr = new[]
             {
-                $@"{basePath}Microsoft.Extensions.DependencyInjection.dll",
-                $@"{basePath}Microsoft.Extensions.Logging.dll",
                 $@"{basePath}System.Collections.Concurrent.dll",
                 $@"{basePath}coreclr.dll",
                 $@"{basePath}System.Collections.dll",
@@ -22,8 +23,13 @@
                 $@"{basePath}System.Text.Json.dll",
                 $@"{basePath}System.Threading.Channels.dll",
                 $@"{basePath}System.Threading.dll",
-                $@"{basePath}System.Threading.Thread.dll"
+                $@"{basePath}System.Threading.Thread.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.Hosting.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.DependencyInjection.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.Logging.dll",
+                @"C:\Program Files\dotnet\shared\Microsoft.AspNetCore.App\6.0.14\Microsoft.Extensions.Configuration.dll",
             };
+
             ReadRuntimeAssemblyFiles(arr);
         }
         private static void ReadRuntimeAssemblyFiles(string[] allFiles)

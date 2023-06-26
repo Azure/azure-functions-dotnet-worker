@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                 {
                     return new(ConversionResult.Failed(new InvalidOperationException("Context source must be a non-null string. Current type of context source is " + context?.Source?.GetType())));
                 }
-
+                
                 var targetType = context.TargetType;
                 var item = JsonSerializer.Deserialize(contextSource, targetType);
                 return new(ConversionResult.Success(item));

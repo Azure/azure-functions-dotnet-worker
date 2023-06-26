@@ -6,7 +6,6 @@ using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {

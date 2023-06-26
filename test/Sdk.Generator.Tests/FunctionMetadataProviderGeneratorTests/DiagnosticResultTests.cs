@@ -6,6 +6,7 @@ using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
@@ -184,6 +185,44 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     .WithSpan(11, 32, 11, 47)
                     // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                     .WithArguments("MultiReturnHttp")
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults);
+            }
+
+            [Fact]
+            public async void InvalidRetryOptionsFailure()
+            {
+                var inputCode = @"using System;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class HttpFunction
+                    {
+                        [Function(""HttpFunction"")]
+                        [FixedDelayRetry(5, ""00:00:10"")]
+                        public string Run([HttpTrigger(""get"")] string req)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.InvalidRetryOptions)
+                    .WithSpan(10, 25, 15, 26)
                 };
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(

@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else if (!supportsRetryOptions && retryOptions is not null)
                     {
-                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, method.GetLocation(), model.GetSymbolInfo(method).Symbol?.Name));
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, method.GetLocation()));
                         return false;
                     }
                 }
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
                     {
-                        if (TryGetRetryOptionsFromAtttribute(attribute, method.GetLocation(), methodSymbol.Name, out GeneratorRetryOptions? retryOptionsFromAttr))
+                        if (TryGetRetryOptionsFromAtttribute(attribute, method.GetLocation(), out GeneratorRetryOptions? retryOptionsFromAttr))
                         {
                             retryOptions = retryOptionsFromAttr;
                         }
@@ -190,7 +190,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, Location location, string methodName, out GeneratorRetryOptions? retryOptions)
+            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, Location location, out GeneratorRetryOptions? retryOptions)
             {
                 retryOptions = null;
 
@@ -231,7 +231,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, location, methodName));
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, location));
                         return false;
                     }
 

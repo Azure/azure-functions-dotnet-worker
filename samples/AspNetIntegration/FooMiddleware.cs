@@ -10,6 +10,7 @@ namespace AspNetIntegration
 {
     internal class FooMiddleware : IFunctionsWorkerMiddleware
     {
+        //<docsnippet_aspnet_middleware>
         public Task Invoke(FunctionContext context, FunctionExecutionDelegate next)
         {
             // retrieve http context from function context
@@ -30,5 +31,6 @@ namespace AspNetIntegration
             // continue along with function execution
             return next(context);
         }
+        //</docsnippet_aspnet_middleware>
     }
 }

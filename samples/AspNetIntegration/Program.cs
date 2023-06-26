@@ -4,6 +4,7 @@
 using AspNetIntegration;
 using Microsoft.Extensions.Hosting;
 
+//<docsnippet_aspnet_registration>
 var host = new HostBuilder()
     .ConfigureFunctionsWebApplication(builder =>
     {
@@ -14,3 +15,4 @@ var host = new HostBuilder()
     .Build();
 
 host.Run();
+//</docsnippet_aspnet_registration>

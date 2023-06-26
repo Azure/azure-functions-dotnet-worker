@@ -9,10 +9,12 @@ namespace AspNetIntegration
 {
     public class SimpleHttpTrigger
     {
+        //<docsnippet_aspnet_http_trigger>
         [Function("SimpleHttpTrigger")]
         public IActionResult Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
         {
             return new OkObjectResult("Welcome to Azure Functions!");
         }
+        //</docsnippet_aspnet_http_trigger>
     }
 }

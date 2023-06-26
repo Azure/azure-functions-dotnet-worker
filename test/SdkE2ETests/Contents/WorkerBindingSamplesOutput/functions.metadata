@@ -186,6 +186,170 @@
     ]
   },
   {
+    "name": "MyEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.MyEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "CloudEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.CloudEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "MultipleCloudEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.MultipleCloudEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "EventGridEvent",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.EventGridEvent",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "EventGridEventArray",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.EventGridEventArray",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "BinaryDataEvent",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.BinaryDataEvent",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "BinaryDataArrayEvent",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.BinaryDataArrayEvent",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "StringArrayEvent",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.StringArrayEvent",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "dataType": "String",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "StringEvent",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.StringEvent",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "input",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "dataType": "String",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
     "name": "BlobInputClientFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputClientFunction",
@@ -634,8 +798,6 @@
         "name": "client",
         "direction": "In",
         "type": "cosmosDB",
-        "databaseName": "",
-        "containerName": "",
         "connection": "CosmosDBConnection",
         "properties": {
           "supportsDeferredBinding": "True"
@@ -673,7 +835,6 @@
         "direction": "In",
         "type": "cosmosDB",
         "databaseName": "ToDoItems",
-        "containerName": "",
         "connection": "CosmosDBConnection",
         "properties": {
           "supportsDeferredBinding": "True"
@@ -976,6 +1137,72 @@
     ]
   },
   {
+    "name": "EventDataFunctions",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventDataSamples.EventDataFunctions",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "event",
+        "direction": "In",
+        "type": "eventHubTrigger",
+        "eventHubName": "queue",
+        "connection": "EventHubConnection",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "EventDataBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventDataSamples.EventDataBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "events",
+        "direction": "In",
+        "type": "eventHubTrigger",
+        "eventHubName": "queue",
+        "connection": "EventHubConnection",
+        "cardinality": "Many",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "EventDataWithStringPropertiesFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventDataSamples.EventDataWithStringPropertiesFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "event",
+        "direction": "In",
+        "type": "eventHubTrigger",
+        "eventHubName": "queue",
+        "connection": "EventHubConnection",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
     "name": "ServiceBusReceivedMessageFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.ServiceBusReceivedMessageBindingSamples.ServiceBusReceivedMessageFunction",
@@ -990,6 +1217,7 @@
         "type": "serviceBusTrigger",
         "queueName": "queue",
         "connection": "ServiceBusConnection",
+        "cardinality": "One",
         "properties": {
           "supportsDeferredBinding": "True"
         }
@@ -1033,6 +1261,7 @@
         "type": "serviceBusTrigger",
         "queueName": "queue",
         "connection": "ServiceBusConnection",
+        "cardinality": "One",
         "properties": {
           "supportsDeferredBinding": "True"
         }

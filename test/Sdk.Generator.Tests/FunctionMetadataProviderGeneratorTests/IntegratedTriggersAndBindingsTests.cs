@@ -22,9 +22,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
-                var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
                 var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
-                var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
@@ -38,9 +36,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     abstractionsExtension,
                     httpExtension,
                     storageExtension,
-                    cosmosDBExtension,
                     timerExtension,
-                    eventHubsExtension,
                     blobExtension,
                     queueExtension,
                     loggerExtension,
@@ -218,7 +214,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
-                            Function0RawBindings.Add(@"{""name"":""myBlob"",""type"":""Blob"",""direction"":""In"",""blobPath"":""test-samples/sample1.txt"",""connection"":""AzureWebJobsStorage"",""cardinality"":""One"",""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""myBlob"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""test-samples/sample1.txt"",""connection"":""AzureWebJobsStorage"",""cardinality"":""One"",""dataType"":""String""}");
                             Function0RawBindings.Add(@"{""name"":""Book"",""type"":""Queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
                             Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
 

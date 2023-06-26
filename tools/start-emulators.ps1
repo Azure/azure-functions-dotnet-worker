@@ -26,9 +26,22 @@ $startedStorage = $false
 
 if (!$IsWindows -and !$IsLinux -and !$IsMacOs)
 {
-  # For pre-PS6
-  Write-Host "Could not resolve OS. Assuming Windows."
-  $IsWindows = $true
+    # For pre-PS6
+    Write-Host "Could not resolve OS. Assuming Windows."
+    $IsWindows = $true
+}
+
+if (!$IsWindows)
+{
+    Write-Host "Skipping CosmosDB emulator because it is not supported on non-Windows OS."
+    $SkipCosmosDBEmulator = $true
+}
+
+if (!$SkipCosmosDBEmulator)
+{
+    # Locally, you may need to run PowerShell with administrative privileges
+    Add-MpPreference -ExclusionPath "$env:ProgramFiles\Azure Cosmos DB Emulator"
+    Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
 }
 
 function IsStorageEmulatorRunning()

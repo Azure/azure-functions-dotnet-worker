@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.EventHubs <version>
 
-- Add `BindingCapabilities` attribute to EventHubTrigger to express function-level retry capabilities. (#1457)
+- <entry>

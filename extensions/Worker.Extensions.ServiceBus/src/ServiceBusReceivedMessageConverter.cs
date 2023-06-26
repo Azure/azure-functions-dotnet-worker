@@ -13,7 +13,6 @@ using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-
     [SupportsDeferredBinding]
     [SupportedConverterType(typeof(ServiceBusReceivedMessage))]
     [SupportedConverterType(typeof(ServiceBusReceivedMessage[]))]
@@ -21,27 +20,40 @@ namespace Microsoft.Azure.Functions.Worker
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            ConversionResult result = context?.Source switch
+            try
             {
-                ModelBindingData binding => ConversionResult.Success(ConvertToServiceBusReceivedMessage(binding)),
-                // Only array collections are currently supported, which matches the behavior of the in-proc extension.
-                CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray
-                    .Select(ConvertToServiceBusReceivedMessage).ToArray()),
-                _ => ConversionResult.Unhandled()
-            };
-            return new ValueTask<ConversionResult>(result);
+                ConversionResult result = context?.Source switch
+                {
+                    ModelBindingData binding => ConversionResult.Success(ConvertToServiceBusReceivedMessage(binding)),
+                    // Only array collections are currently supported, which matches the behavior of the in-proc extension.
+                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray
+                        .Select(ConvertToServiceBusReceivedMessage).ToArray()),
+                    _ => ConversionResult.Unhandled()
+                };
+                return new ValueTask<ConversionResult>(result);
+            }
+            catch (Exception exception)
+            {
+                return new ValueTask<ConversionResult>(ConversionResult.Failed(exception));
+            }
         }
 
         private ServiceBusReceivedMessage ConvertToServiceBusReceivedMessage(ModelBindingData binding)
         {
-            // The lock token is a 16 byte GUID
-            const int lockTokenLength = 16;
+            if (binding?.Source is not Constants.BindingSource)
+            {
+                throw new InvalidOperationException(
+                    $"Unexpected binding source. Only '{Constants.BindingSource}' is supported.");
+            }
 
             if (binding.ContentType != Constants.BinaryContentType)
             {
                 throw new InvalidOperationException(
                     $"Unexpected content-type. Only '{Constants.BinaryContentType}' is supported.");
             }
+
+            // The lock token is a 16 byte GUID
+            const int lockTokenLength = 16;
 
             ReadOnlyMemory<byte> bytes = binding.Content.ToMemory();
             ReadOnlyMemory<byte> lockTokenBytes = bytes.Slice(0, lockTokenLength);

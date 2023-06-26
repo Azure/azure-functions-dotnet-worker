@@ -1,5 +1,8 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
@@ -13,7 +16,16 @@ namespace AspNetIntegration
             HttpContext httpContext = context.GetHttpContext() 
                 ?? throw new InvalidOperationException($"{nameof(context)} has no http context associated with it.");
 
-            // operations can be performed using HttpContext here
+            // operations can be performed using HttpContext
+            // example of getting route information from HttpContext:
+            RouteEndpoint? endpoint = httpContext.GetEndpoint() as RouteEndpoint;
+
+            if (endpoint != null)
+            {
+                string? displayName = endpoint.DisplayName;
+                string? routePattern = endpoint.RoutePattern.RawText;
+                IReadOnlyList<string>? httpMethods = (endpoint.Metadata.Single() as HttpMethodMetadata)?.HttpMethods;
+            }
 
             // continue along with function execution
             return next(context);

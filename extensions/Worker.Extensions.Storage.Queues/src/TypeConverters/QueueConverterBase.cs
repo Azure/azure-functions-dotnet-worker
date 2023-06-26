@@ -47,28 +47,26 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (!CanConvert(context))
             {
-                ConversionResult.Unhandled();
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
             }
 
             try
             {
                 var modelBindingData = (ModelBindingData)context.Source!;
-                return ConversionResult.Success(ConvertCoreAsync(modelBindingData));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(ConvertCoreAsync(modelBindingData)));
             }
             catch (JsonException ex)
             {
                 string msg = String.Format(CultureInfo.CurrentCulture,
-                    @"Binding parameters to complex objects uses Json.NET serialization.
+                    @"Binding parameters to complex objects uses JSON serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
-                    2. Change the queue payload to be valid json.
-                    The JSON parser failed: {0}",
-                    ex.Message);
+                    2. Change the queue payload to be valid json.");
 
-                return ConversionResult.Failed(new InvalidOperationException(msg));
+                return new ValueTask<ConversionResult>(ConversionResult.Failed(new InvalidOperationException(msg, ex)));
             }
             catch (Exception ex)
             {
-                return ConversionResult.Failed(ex);
+                return new ValueTask<ConversionResult>(ConversionResult.Failed(ex));
             }
         }
 

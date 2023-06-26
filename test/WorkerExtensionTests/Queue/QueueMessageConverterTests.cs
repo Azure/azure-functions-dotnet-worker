@@ -24,9 +24,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public QueueMessageConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
-            var logger = host.Services.GetService<ILogger<QueueMessageConverter>>();
-
-            _queueMessageConverter = new QueueMessageConverter(logger);
+            _queueMessageConverter = new QueueMessageConverter();
         }
 
         [Fact]

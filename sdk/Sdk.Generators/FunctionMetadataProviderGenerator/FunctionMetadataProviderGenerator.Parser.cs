@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -120,7 +121,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else if (!supportsRetryOptions && retryOptions is not null)
                     {
-                        // TODO: Log retry options related diagnostic error here
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, method.GetLocation(), model.GetSymbolInfo(method).Symbol?.Name));
+                        return false;
                     }
                 }
 
@@ -145,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
                     {
-                        if (TryGetRetryOptionsFromAtttribute(attribute, out GeneratorRetryOptions? retryOptionsFromAttr))
+                        if (TryGetRetryOptionsFromAtttribute(attribute, method.GetLocation(), methodSymbol.Name, out GeneratorRetryOptions? retryOptionsFromAttr))
                         {
                             retryOptions = retryOptionsFromAttr;
                         }
@@ -188,7 +190,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, out GeneratorRetryOptions? retryOptions)
+            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, Location location, string methodName, out GeneratorRetryOptions? retryOptions)
             {
                 retryOptions = null;
 
@@ -229,7 +231,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        // TODO: Diagnostic error for retry options parsing failure
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, location, methodName));
                         return false;
                     }
 

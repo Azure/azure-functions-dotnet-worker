@@ -1330,7 +1330,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                 throw new NotImplementedException();
             }
 
-
             [Function(nameof(ServiceBusBatchTriggerFunction))]
             public static void ServiceBusBatchTriggerFunction(
                 [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)

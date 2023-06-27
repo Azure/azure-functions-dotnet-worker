@@ -1203,6 +1203,64 @@
     ]
   },
   {
+    "name": "QueueMessageFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.QueueTriggerBindingSamples.QueueMessageFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "input-queue",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "QueueBinaryDataFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.QueueTriggerBindingSamples.QueueBinaryDataFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "input-queue-binarydata",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "QueueJsonFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.QueueTriggerBindingSamples.QueueJsonFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "input-queue-json",
+        "properties": {}
+      }
+    ]
+  },
+  {
     "name": "ServiceBusReceivedMessageFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.ServiceBusReceivedMessageBindingSamples.ServiceBusReceivedMessageFunction",

@@ -6,26 +6,35 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
-    // We cannot use SDK-type bindings with the Cosmos trigger binding. There is no way for
-    // the CosmosDB SDK to let us know the ID of the document that triggered the function;
-    // therefore we cannot create a client that is able to pull the triggering document.
-    public static class CosmosTriggerFunction
+    /// <summary>
+    /// Samples demonstrating binding to the <see cref="IReadOnlyList{T}"/> type.
+    /// </summary>
+    public class CosmosTriggerFunction
     {
+        private readonly ILogger<CosmosTriggerFunction> _logger;
+
+        public CosmosTriggerFunction(ILogger<CosmosTriggerFunction> logger)
+        {
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// This function demonstrates binding to a collection of <see cref="ToDoItem"/>.
+        /// </summary>
         [Function(nameof(CosmosTriggerFunction))]
-        public static void Run([CosmosDBTrigger(
+        public void Run([CosmosDBTrigger(
             databaseName: "ToDoItems",
             containerName:"TriggerItems",
             Connection = "CosmosDBConnection",
+            LeaseContainerName = "leases",
             CreateLeaseContainerIfNotExists = true)] IReadOnlyList<ToDoItem> todoItems,
             FunctionContext context)
         {
-            var logger = context.GetLogger(nameof(CosmosTriggerFunction));
-
             if (todoItems is not null && todoItems.Any())
             {
                 foreach (var doc in todoItems)
                 {
-                    logger.LogInformation("ToDoItem: {desc}", doc.Description);
+                    _logger.LogInformation("ToDoItem: {desc}", doc.Description);
                 }
             }
         }

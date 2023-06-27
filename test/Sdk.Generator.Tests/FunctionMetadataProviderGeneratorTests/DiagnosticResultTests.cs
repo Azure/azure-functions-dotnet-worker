@@ -193,6 +193,44 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedOutput,
                     expectedDiagnosticResults);
             }
+
+            [Fact]
+            public async void InvalidRetryOptionsFailure()
+            {
+                var inputCode = @"using System;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class HttpFunction
+                    {
+                        [Function(""HttpFunction"")]
+                        [FixedDelayRetry(5, ""00:00:10"")]
+                        public string Run([HttpTrigger(""get"")] string req)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.InvalidRetryOptions)
+                    .WithSpan(10, 25, 15, 26)
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults);
+            }
         }
     }
 }

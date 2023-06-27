@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -114,13 +115,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (retryOptions is not null)
                 {
-                    if (supportsRetryOptions && retryOptions is not null)
+                    if (supportsRetryOptions)
                     {
                         validatedRetryOptions = retryOptions;
                     }
-                    else if (!supportsRetryOptions && retryOptions is not null)
+                    else if (!supportsRetryOptions)
                     {
-                        // TODO: Log retry options related diagnostic error here
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, method.GetLocation()));
+                        return false;
                     }
                 }
 
@@ -145,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
                     {
-                        if (TryGetRetryOptionsFromAtttribute(attribute, out GeneratorRetryOptions? retryOptionsFromAttr))
+                        if (TryGetRetryOptionsFromAttribute(attribute, method.GetLocation(), out GeneratorRetryOptions? retryOptionsFromAttr))
                         {
                             retryOptions = retryOptionsFromAttr;
                         }
@@ -188,7 +190,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, out GeneratorRetryOptions? retryOptions)
+            private bool TryGetRetryOptionsFromAttribute(AttributeData attribute, Location location, out GeneratorRetryOptions? retryOptions)
             {
                 retryOptions = null;
 
@@ -224,12 +226,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         if (attrProperties.TryGetValue(Constants.RetryConstants.MaximumIntervalKey, out object? maximumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
                         {
-                            retryOptions.MinimumInterval = maximumInterval!.ToString();
+                            retryOptions.MaximumInterval = maximumInterval!.ToString();
                         }
                     }
                     else
                     {
-                        // TODO: Diagnostic error for retry options parsing failure
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, location));
                         return false;
                     }
 

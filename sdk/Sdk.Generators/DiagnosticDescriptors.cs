@@ -51,8 +51,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public static DiagnosticDescriptor InvalidCardinality { get; }
                   = Create(id: "AZFW0008",
-                    title: "Input or Trigger Binding Cardinality is invalid.",
-                    messageFormat: "The Cardinality of the Input or Trigger Binding on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
+                    title: "Input or trigger binding cardinality is invalid.",
+                    messageFormat: "The cardinality of the input or trigger binding on parameter '{0}' is invalid. IsBatched may be used incorrectly.",
+                    category: "FunctionMetadataGeneration",
+                    severity: DiagnosticSeverity.Error);
+
+        public static DiagnosticDescriptor InvalidRetryOptions { get; }
+                    = Create(id: "AZFW0012",
+                    title: "Invalid operation with a retry attribute.",
+                    messageFormat: "Invalid use of a retry attribute. Check that the attribute is used on a trigger that supports function-level retry.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
     }

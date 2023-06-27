@@ -115,11 +115,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (retryOptions is not null)
                 {
-                    if (supportsRetryOptions && retryOptions is not null)
+                    if (supportsRetryOptions)
                     {
                         validatedRetryOptions = retryOptions;
                     }
-                    else if (!supportsRetryOptions && retryOptions is not null)
+                    else if (!supportsRetryOptions)
                     {
                         _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, method.GetLocation()));
                         return false;
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
                     {
-                        if (TryGetRetryOptionsFromAtttribute(attribute, method.GetLocation(), out GeneratorRetryOptions? retryOptionsFromAttr))
+                        if (TryGetRetryOptionsFromAttribute(attribute, method.GetLocation(), out GeneratorRetryOptions? retryOptionsFromAttr))
                         {
                             retryOptions = retryOptionsFromAttr;
                         }
@@ -190,7 +190,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetRetryOptionsFromAtttribute(AttributeData attribute, Location location, out GeneratorRetryOptions? retryOptions)
+            private bool TryGetRetryOptionsFromAttribute(AttributeData attribute, Location location, out GeneratorRetryOptions? retryOptions)
             {
                 retryOptions = null;
 

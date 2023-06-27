@@ -59,7 +59,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public static DiagnosticDescriptor InvalidRetryOptions { get; }
                     = Create(id: "AZFW0012",
                     title: "Invalid operation with a retry attribute.",
-                    messageFormat: "Invalid use of a retry attribute. It may be used on a function with an incompatible trigger.",
+                    messageFormat: "Invalid use of a retry attribute. Check that the attribute is used on a trigger that supports function-level retry.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
     }

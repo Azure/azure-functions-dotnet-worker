@@ -166,5 +166,41 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             IEnumerable<string> queueMessages = await StorageHelpers.ReadMessagesFromQueue(Constants.Queue.OutputBindingNamePOCO);
             Assert.True(queueMessages.All(msg => msg.Contains(expectedQueueMessage)));
         }
+
+        [Fact]
+        public async Task QueueMessageQueueTriggerAndOutput()
+        {
+            string expectedQueueMessage = Guid.NewGuid().ToString();
+
+            //Clear queue
+            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingNameQueueMessage);
+            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingNameQueueMessage);
+
+            //Set up and trigger
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingNameQueueMessage);
+            await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingNameQueueMessage, expectedQueueMessage);
+
+            //Verify
+            var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingNameQueueMessage);
+            Assert.Equal(expectedQueueMessage, queueMessage);
+        }
+
+        [Fact]
+        public async Task BinaryDataQueueTriggerAndOutput()
+        {
+            string expectedQueueMessage = Guid.NewGuid().ToString();
+
+            //Clear queue
+            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingNameBinaryData);
+            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingNameBinaryData);
+
+            //Set up and trigger
+            await StorageHelpers.CreateQueue(Constants.Queue.OutputBindingNameBinaryData);
+            await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingNameBinaryData, expectedQueueMessage);
+
+            //Verify
+            var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingNameBinaryData);
+            Assert.Equal(expectedQueueMessage, queueMessage);
+        }
     }
 }

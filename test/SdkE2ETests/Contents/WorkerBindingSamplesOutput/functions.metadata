@@ -452,5 +452,45 @@
         }
       }
     ]
+  },
+  {
+    "name": "QueueMessageFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.QueueSamples.QueueMessageFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "input-queue",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "QueueBinaryDataFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.QueueSamples.QueueBinaryDataFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "queueTrigger",
+        "queueName": "input-queue-binarydata",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
   }
 ]

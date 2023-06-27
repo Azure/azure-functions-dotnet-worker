@@ -28,6 +28,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             public const string InputBindingNamePOCO = "test-input-dotnet-isolated-poco";
             public const string InputBindingNameMetadata = "test-input-dotnet-isolated-metadata";
             public const string OutputBindingNameMetadata = "test-output-dotnet-isolated-metadata";
+            public const string InputBindingNameQueueMessage = "test-input-dotnet-isolated-queuemessage";
+            public const string OutputBindingNameQueueMessage = "test-output-dotnet-isolated-queuemessage";
+            public const string InputBindingNameBinaryData = "test-input-dotnet-isolated-binarydata";
+            public const string OutputBindingNameBinaryData = "test-output-dotnet-isolated-binarydata";
             public const string TestQueueMessage = "Hello, World";
         }
 

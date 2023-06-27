@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 
-- <entry>
+- Add ability to bind a queue trigger to QueueMessage and BinaryData (#1470)

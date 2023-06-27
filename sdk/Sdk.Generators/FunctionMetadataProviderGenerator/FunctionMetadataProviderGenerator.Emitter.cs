@@ -134,12 +134,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 else if (retry?.Strategy is RetryStrategy.ExponentialBackoff)
                 {
                     builder.AppendLine($$"""
-                                    Retry = new DefaultRetryOptions
-                                    {
-                                        MaxRetryCount = {{retry!.MaxRetryCount}},
-                                        MinimumInterval = TimeSpan.Parse("{{retry.MinimumInterval}}"),
-                                        MaximumInterval = TimeSpan.Parse("{{retry.MaximumInterval}}")
-                                    },
+                                     Retry = new DefaultRetryOptions
+                                     {
+                                         MaxRetryCount = {{retry!.MaxRetryCount}},
+                                         MinimumInterval = TimeSpan.Parse("{{retry.MinimumInterval}}"),
+                                         MaximumInterval = TimeSpan.Parse("{{retry.MaximumInterval}}")
+                                     },
                      """);
                 }
 

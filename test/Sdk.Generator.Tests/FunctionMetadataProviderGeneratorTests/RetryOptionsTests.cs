@@ -143,7 +143,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     public static class TimerFunction
                     {
                         [Function("TimerFunction")]
-                        [FixedDelayRetry(5, "00:00:10")]
+                        [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
                         public static void Run([TimerTrigger("0 */5 * * * *")] TimerInfo timerInfo,
                             FunctionContext context)
                         {
@@ -184,7 +184,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 Retry = new DefaultRetryOptions
                                 {
                                     MaxRetryCount = 5,
-                                    DelayInterval = TimeSpan.Parse("00:00:10")
+                                    MinimumInterval = TimeSpan.Parse("00:00:04"),
+                                    MaximumInterval = TimeSpan.Parse("00:15:00")
                                 },
                                 ScriptFile = "TestProject.dll"
                             };

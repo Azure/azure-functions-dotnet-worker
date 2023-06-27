@@ -226,7 +226,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         if (attrProperties.TryGetValue(Constants.RetryConstants.MaximumIntervalKey, out object? maximumInterval)) // nonnullable constructor arg of attribute, wouldn't expect this to fail
                         {
-                            retryOptions.MinimumInterval = maximumInterval!.ToString();
+                            retryOptions.MaximumInterval = maximumInterval!.ToString();
                         }
                     }
                     else

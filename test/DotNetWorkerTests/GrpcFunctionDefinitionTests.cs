@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Azure.Data.Tables;
+using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -214,6 +215,45 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
         }
 
+        [Fact]
+        public void GrpcFunctionDefinition_QueueTrigger_Creates()
+        {
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+
+            var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+
+            string fullPathToThisAssembly = GetType().Assembly.Location;
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyQueueFunctionClass)}.{nameof(MyQueueFunctionClass.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
+
+            Assert.Equal(functionLoadRequest.FunctionId, definition.Id);
+            Assert.Equal(functionLoadRequest.Metadata.EntryPoint, definition.EntryPoint);
+            Assert.Equal(functionLoadRequest.Metadata.Name, definition.Name);
+            Assert.Equal(fullPathToThisAssembly, definition.PathToAssembly);
+
+            // Parameters
+            Assert.Collection(definition.Parameters,
+                q =>
+                {
+                    Assert.Equal("message", q.Name);
+                    Assert.Equal(typeof(QueueMessage), q.Type);
+                    Assert.Contains(PropertyBagKeys.AllowConverterFallback, q.Properties.Keys);
+                    Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
+                    Assert.True(true, q.Properties[PropertyBagKeys.AllowConverterFallback].ToString());
+                    Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
+                });
+        }
 
         private class MyFunctionClass
         {
@@ -248,6 +288,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 [TableInput("tableName")] TableClient tableInput)
             {
                 return req.CreateResponse();
+            }
+        }
+
+        private class MyQueueFunctionClass
+        {
+            public static void Run([QueueTrigger("input-queue")] QueueMessage message)
+            {
+                throw new NotImplementedException();
             }
         }
     }

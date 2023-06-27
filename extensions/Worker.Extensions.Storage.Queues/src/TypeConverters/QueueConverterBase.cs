@@ -43,17 +43,18 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (!CanConvert(context))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return (ConversionResult.Unhandled());
             }
 
             try
             {
                 var modelBindingData = (ModelBindingData)context.Source!;
-                return new ValueTask<ConversionResult>(ConversionResult.Success(ConvertCoreAsync(modelBindingData)));
+                var result = await ConvertCoreAsync(modelBindingData);
+                return ConversionResult.Success(result);
             }
             catch (JsonException ex)
             {
@@ -62,11 +63,11 @@ namespace Microsoft.Azure.Functions.Worker
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
                     2. Change the queue payload to be valid json.");
 
-                return new ValueTask<ConversionResult>(ConversionResult.Failed(new InvalidOperationException(msg, ex)));
+                return ConversionResult.Failed(new InvalidOperationException(msg, ex));
             }
             catch (Exception ex)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Failed(ex));
+                return ConversionResult.Failed(ex);
             }
         }
 

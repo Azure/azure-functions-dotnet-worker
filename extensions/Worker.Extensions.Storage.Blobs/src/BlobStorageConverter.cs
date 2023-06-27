@@ -18,6 +18,8 @@ using Microsoft.Extensions.Logging;
 using System.Collections;
 using System.Text.Json;
 using System.Globalization;
+using Azure.Storage.Blobs.Models;
+using Azure;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -43,7 +45,6 @@ namespace Microsoft.Azure.Functions.Worker
             return context?.Source switch
             {
                 ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
-                CollectionModelBindingData binding => await ConvertFromCollectionBindingDataAsync(context, binding),
                 _ => ConversionResult.Unhandled(),
             };
         }
@@ -57,50 +58,8 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new InvalidBindingSourceException(Constants.BlobExtensionName);
                 }
 
-                Dictionary<string, string> content = GetBindingDataContent(modelBindingData);
-                var result = await ConvertModelBindingDataAsync(content, context.TargetType, modelBindingData);
-
-                return ConversionResult.Success(result);
-            }
-            catch (Exception ex)
-            {
-                return ConversionResult.Failed(ex);
-            }
-        }
-
-        private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
-        {
-            Type elementType = context.TargetType.IsArray
-                ? context.TargetType.GetElementType()
-                : context.TargetType.GenericTypeArguments[0];
-
-            IList result = Array.CreateInstance(elementType, collectionModelBindingData.ModelBindingData.Length);
-
-            try
-            {
-                for (var i = 0; i < collectionModelBindingData.ModelBindingData.Length; i++)
-                {
-                    var modelBindingData = collectionModelBindingData.ModelBindingData[i];
-
-                    if (modelBindingData.Source is not Constants.BlobExtensionName)
-                    {
-                        throw new InvalidBindingSourceException(Constants.BlobExtensionName);
-                    }
-
-                    Dictionary<string, string> content = GetBindingDataContent(modelBindingData);
-                    var element = await ConvertModelBindingDataAsync(content, elementType, modelBindingData);
-
-                    if (element is not null)
-                    {
-                        result[i] = element;
-                    }
-                }
-
-                if (!context.TargetType.IsArray)
-                {
-                    var resultType = typeof(List<>).MakeGenericType(elementType);
-                    result = (IList)Activator.CreateInstance(resultType, result);
-                }
+                BlobBindingData blobData = GetBindingDataContent(modelBindingData);
+                var result = await ConvertModelBindingDataAsync(context.TargetType, blobData);
 
                 return ConversionResult.Success(result);
             }
@@ -109,9 +68,7 @@ namespace Microsoft.Azure.Functions.Worker
                 string msg = String.Format(CultureInfo.CurrentCulture,
                     @"Binding parameters to complex objects uses JSON serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
-                    2. Change the blob to be valid json.
-                    The JSON parser failed: {0}",
-                    ex.Message);
+                    2. Change the blob to be valid json.");
 
                 return ConversionResult.Failed(new InvalidOperationException(msg, ex));
             }
@@ -121,72 +78,142 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
+        private BlobBindingData GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
-                Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
+                Constants.JsonContentType => bindingData?.Content?.ToObjectFromJson<BlobBindingData>(),
                 _ => throw new InvalidContentTypeException(Constants.JsonContentType)
             };
         }
 
-        private async Task<object?> ConvertModelBindingDataAsync(IDictionary<string, string> content, Type targetType, ModelBindingData bindingData)
+        private async Task<object?> ConvertModelBindingDataAsync(Type targetType, BlobBindingData blobData)
         {
-            content.TryGetValue(Constants.Connection, out var connectionName);
-            content.TryGetValue(Constants.ContainerName, out var containerName);
-            content.TryGetValue(Constants.BlobName, out var blobName);
-
-            if (string.IsNullOrEmpty(connectionName))
+            if (string.IsNullOrEmpty(blobData.Connection))
             {
-                throw new ArgumentNullException(nameof(connectionName));
+                throw new ArgumentNullException(nameof(blobData.Connection));
             }
 
-            if (string.IsNullOrEmpty(containerName))
+            if (string.IsNullOrEmpty(blobData.ContainerName))
             {
-                throw new ArgumentNullException(nameof(containerName));
+                throw new ArgumentNullException(nameof(blobData.ContainerName));
             }
 
-            return await ToTargetTypeAsync(targetType, connectionName, containerName, blobName);
+            BlobContainerClient container = CreateBlobContainerClient(blobData.Connection!, blobData.ContainerName!);
+
+            if (IsCollectionBinding(targetType, blobData.BlobName!))
+            {
+                return await BindToCollectionAsync(targetType, container);
+            }
+            else
+            {
+                if (targetType == typeof(BlobContainerClient) && !string.IsNullOrEmpty(blobData.BlobName))
+                {
+                    throw new InvalidOperationException("Binding to BlobContainerClient with a blob path is not supported. "
+                                                        + "Either bind to the container path, or use BlobClient instead.");
+                }
+
+                return await ToTargetTypeAsync(targetType, container, blobData.BlobName!);
+            }
         }
 
-        private async Task<object?> ToTargetTypeAsync(Type targetType, string connectionName, string containerName, string blobName) => targetType switch
+        private bool IsCollectionBinding(Type type, string blobName)
         {
-            Type _ when targetType == typeof(string) => await GetBlobStringAsync(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(byte[]) => await GetBlobBinaryDataAsync(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(BlobBaseClient) => CreateBlobClient<BlobBaseClient>(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(BlobClient) => CreateBlobClient<BlobClient>(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(BlockBlobClient) => CreateBlobClient<BlockBlobClient>(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(PageBlobClient) => CreateBlobClient<PageBlobClient>(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(AppendBlobClient) => CreateBlobClient<AppendBlobClient>(connectionName, containerName, blobName),
-            Type _ when targetType == typeof(BlobContainerClient) => CreateBlobContainerClient(connectionName, containerName),
-            _ => await DeserializeToTargetObjectAsync(targetType, connectionName, containerName, blobName)
+            if (type == typeof(string) || type == typeof(byte[]))
+            {
+                return false;
+            }
+
+            bool isContainer = string.IsNullOrEmpty(blobName);
+            bool isCollectionType = type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
+
+            if (!isCollectionType)
+            {
+                return false;
+            }
+
+            if (!isContainer)
+            {
+                throw new InvalidOperationException("Collections are not supported when binding to a specific blob file.");
+            }
+
+            return true;
+        }
+
+        private async Task<object> BindToCollectionAsync(Type targetType, BlobContainerClient container)
+        {
+            Type elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
+
+            if (elementType == typeof(BlobContainerClient))
+            {
+                throw new InvalidOperationException("Collections of BlobContainerClient are not supported.");
+            }
+
+            var blobCount = 0;
+            var resultType = typeof(List<>).MakeGenericType(elementType);
+            var result = (IList)Activator.CreateInstance(resultType);
+
+            AsyncPageable<BlobItem> resultSegment = container.GetBlobsAsync();
+
+            await foreach (BlobItem blobItem in resultSegment)
+            {
+                var element = await ToTargetTypeAsync(elementType, container, blobItem.Name);
+
+                if (element is not null)
+                {
+                    result.Add(element);
+                    blobCount++;
+                }
+            }
+
+            if (targetType.IsArray)
+            {
+                var arrayResult = Array.CreateInstance(elementType, blobCount);
+                ((IList)result).CopyTo(arrayResult, 0);
+                return arrayResult;
+            }
+
+            return result;
+        }
+
+        private async Task<object?> ToTargetTypeAsync(Type targetType, BlobContainerClient containerClient, string blobName) => targetType switch
+        {
+            Type _ when targetType == typeof(BlobContainerClient) => containerClient,
+            Type _ when targetType == typeof(string) => await GetBlobStringAsync(containerClient, blobName),
+            Type _ when targetType == typeof(Stream) => await GetBlobStreamAsync(containerClient, blobName),
+            Type _ when targetType == typeof(byte[]) => await GetBlobBinaryDataAsync(containerClient, blobName),
+            Type _ when targetType == typeof(BlobBaseClient) => CreateBlobClient<BlobBaseClient>(containerClient, blobName),
+            Type _ when targetType == typeof(BlobClient) => CreateBlobClient<BlobClient>(containerClient, blobName),
+            Type _ when targetType == typeof(BlockBlobClient) => CreateBlobClient<BlockBlobClient>(containerClient, blobName),
+            Type _ when targetType == typeof(PageBlobClient) => CreateBlobClient<PageBlobClient>(containerClient, blobName),
+            Type _ when targetType == typeof(AppendBlobClient) => CreateBlobClient<AppendBlobClient>(containerClient, blobName),
+            _ => await DeserializeToTargetObjectAsync(targetType, containerClient, blobName)
         };
 
-        private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, string connectionName, string containerName, string blobName)
+        private async Task<object?> DeserializeToTargetObjectAsync(Type targetType, BlobContainerClient containerClient, string blobName)
         {
-            var content = await GetBlobStreamAsync(connectionName, containerName, blobName);
+            var content = await GetBlobStreamAsync(containerClient, blobName);
             return _workerOptions?.Value?.Serializer?.Deserialize(content, targetType, CancellationToken.None);
         }
 
-        private async Task<string> GetBlobStringAsync(string connectionName, string containerName, string blobName)
+        private async Task<string> GetBlobStringAsync(BlobContainerClient containerClient, string blobName)
         {
-            var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
+            var client = CreateBlobClient<BlobClient>(containerClient, blobName);
             var download = await client.DownloadContentAsync();
             return download.Value.Content.ToString();
         }
 
-        private async Task<byte[]> GetBlobBinaryDataAsync(string connectionName, string containerName, string blobName)
+        private async Task<byte[]> GetBlobBinaryDataAsync(BlobContainerClient containerClient, string blobName)
         {
             using MemoryStream stream = new();
-            var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
+            var client = CreateBlobClient<BlobClient>(containerClient, blobName);
             var res = await client.DownloadToAsync(stream);
             return stream.ToArray();
         }
 
-        private async Task<Stream> GetBlobStreamAsync(string connectionName, string containerName, string blobName)
+        private async Task<Stream> GetBlobStreamAsync(BlobContainerClient containerClient, string blobName)
         {
-            var client = CreateBlobClient<BlobClient>(connectionName, containerName, blobName);
+            var client = CreateBlobClient<BlobClient>(containerClient, blobName);
             var download = await client.DownloadStreamingAsync();
             return download.Value.Content;
         }
@@ -199,26 +226,31 @@ namespace Microsoft.Azure.Functions.Worker
             return container;
         }
 
-        private T CreateBlobClient<T>(string connectionName, string containerName, string blobName) where T : BlobBaseClient
+        private T CreateBlobClient<T>(BlobContainerClient containerClient, string blobName) where T : BlobBaseClient
         {
             if (string.IsNullOrEmpty(blobName))
             {
                 throw new ArgumentNullException(nameof(blobName));
             }
 
-            BlobContainerClient container = CreateBlobContainerClient(connectionName, containerName);
-
             Type targetType = typeof(T);
             BlobBaseClient blobClient = targetType switch
             {
-                Type _ when targetType == typeof(BlobClient) => container.GetBlobClient(blobName),
-                Type _ when targetType == typeof(BlockBlobClient) => container.GetBlockBlobClient(blobName),
-                Type _ when targetType == typeof(PageBlobClient) => container.GetPageBlobClient(blobName),
-                Type _ when targetType == typeof(AppendBlobClient) => container.GetAppendBlobClient(blobName),
-                _ => container.GetBlobBaseClient(blobName)
+                Type _ when targetType == typeof(BlobClient) => containerClient.GetBlobClient(blobName),
+                Type _ when targetType == typeof(BlockBlobClient) => containerClient.GetBlockBlobClient(blobName),
+                Type _ when targetType == typeof(PageBlobClient) => containerClient.GetPageBlobClient(blobName),
+                Type _ when targetType == typeof(AppendBlobClient) => containerClient.GetAppendBlobClient(blobName),
+                _ => containerClient.GetBlobBaseClient(blobName)
             };
 
             return (T)blobClient;
+        }
+
+        private class BlobBindingData()
+        {
+            public string? Connection { get; set; }
+            public string? ContainerName { get; set; }
+            public string? BlobName { get; set; }
         }
     }
 }

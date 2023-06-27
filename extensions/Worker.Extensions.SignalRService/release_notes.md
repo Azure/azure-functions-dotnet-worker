@@ -6,4 +6,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.SignalRService <version>
 
-- <entry>
+- Add `ServerlessHub` and `ServerlessHub<T>` for SignalR Service extensions (#771)
+

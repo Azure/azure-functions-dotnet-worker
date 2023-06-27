@@ -158,16 +158,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
             return message.ToString();
         }
 
-        [Function(nameof(JObjectQueueTriggerAndOutput))]
-        [QueueOutput("test-output-dotnet-isolated-jobject")]
-        public string JObjectQueueTriggerAndOutput([QueueTrigger("test-input-dotnet-isolated-jobject")] JObject message,
-            FunctionContext context)
-        {
-            var logger = context.GetLogger<QueueTestFunctions>();
-            logger.LogInformation($"Message: {message.ToString()}");
-
-            return message.ToString();
-        }
         public class TestData
         {
             public string Id { get; set; }

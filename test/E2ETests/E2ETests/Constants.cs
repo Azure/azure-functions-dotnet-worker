@@ -32,8 +32,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             public const string OutputBindingNameQueueMessage = "test-output-dotnet-isolated-queuemessage";
             public const string InputBindingNameBinaryData = "test-input-dotnet-isolated-binarydata";
             public const string OutputBindingNameBinaryData = "test-output-dotnet-isolated-binarydata";
-            public const string InputBindingNameJObject = "test-input-dotnet-isolated-jobject";
-            public const string OutputBindingNameJObject = "test-output-dotnet-isolated-jobject";
             public const string TestQueueMessage = "Hello, World";
         }
 

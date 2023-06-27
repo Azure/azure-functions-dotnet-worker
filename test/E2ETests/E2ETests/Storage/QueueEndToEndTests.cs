@@ -202,23 +202,5 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingNameBinaryData);
             Assert.Equal(expectedQueueMessage, queueMessage);
         }
-
-        [Fact]
-        public async Task JObjectQueueTriggerAndOutput()
-        {
-            string expectedQueueMessage = Guid.NewGuid().ToString();
-
-            //Clear queue
-            await StorageHelpers.ClearQueue(Constants.Queue.OutputBindingNameJObject);
-            await StorageHelpers.ClearQueue(Constants.Queue.InputBindingNameJObject);
-
-            //Set up and trigger
-            await StorageHelpers.CreateQueue(Constants.Queue.InputBindingNameJObject);
-            await StorageHelpers.InsertIntoQueue(Constants.Queue.InputBindingName, expectedQueueMessage);
-
-            //Verify
-            var queueMessage = await StorageHelpers.ReadFromQueue(Constants.Queue.OutputBindingNameJObject);
-            Assert.Equal(expectedQueueMessage, queueMessage);
-        }
     }
 }

@@ -2,7 +2,7 @@
   {
     "name": "TableClientFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.TableClientFunction",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableClientFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -27,18 +27,13 @@
         "properties": {
           "supportsDeferredBinding": "True"
         }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
       }
     ]
   },
   {
-    "name": "ReadTableDataFunction",
+    "name": "TableEntityFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.ReadTableDataFunction",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableEntityFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -57,7 +52,7 @@
         "properties": {}
       },
       {
-        "name": "table",
+        "name": "entity",
         "direction": "In",
         "type": "table",
         "tableName": "TableName",
@@ -66,57 +61,13 @@
         "properties": {
           "supportsDeferredBinding": "True"
         }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
       }
     ]
   },
   {
-    "name": "ReadTableDataFunctionWithFilter",
+    "name": "TableEntityCollectionFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.ReadTableDataFunctionWithFilter",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "table",
-        "direction": "In",
-        "type": "table",
-        "tableName": "TableName",
-        "partitionKey": "My Partition",
-        "take": 2,
-        "filter": "RowKey ne 'value'",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "EnumerableFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.EnumerableFunction",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableEntityCollectionFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -135,7 +86,7 @@
         "properties": {}
       },
       {
-        "name": "tables",
+        "name": "entities",
         "direction": "In",
         "type": "table",
         "tableName": "TableName",
@@ -143,18 +94,13 @@
         "properties": {
           "supportsDeferredBinding": "True"
         }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
       }
     ]
   },
   {
-    "name": "PocoFunction",
+    "name": "TableEntityWithFilterFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.Table.TableInputBindingSamples.PocoFunction",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableEntityWithFilterFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -176,175 +122,40 @@
         "direction": "In",
         "type": "table",
         "tableName": "TableName",
+        "partitionKey": "PartitionKey",
+        "take": 2,
+        "filter": "RowKey ne 'value'",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "TablePocoFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TablePocoFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
         "properties": {}
       },
       {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "MyEventFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.MyEventFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
+        "name": "entities",
         "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "One",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "CloudEventFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.CloudEventFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "One",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "MultipleCloudEventFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.MultipleCloudEventFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "Many",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "EventGridEvent",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.EventGridEvent",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "One",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "EventGridEventArray",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.EventGridEventArray",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "Many",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "BinaryDataEvent",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.BinaryDataEvent",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "One",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "BinaryDataArrayEvent",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.BinaryDataArrayEvent",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "Many",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "StringArrayEvent",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.StringArrayEvent",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "cardinality": "Many",
-        "dataType": "String",
-        "properties": {}
-      }
-    ]
-  },
-  {
-    "name": "StringEvent",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "WorkerBindingSamples.EventGrid.EventGridTriggerBindingSamples.StringEvent",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "input",
-        "direction": "In",
-        "type": "eventGridTrigger",
-        "dataType": "String",
-        "cardinality": "One",
+        "type": "table",
+        "tableName": "TableName",
         "properties": {}
       }
     ]
@@ -1131,7 +942,80 @@
         "databaseName": "ToDoItems",
         "containerName": "TriggerItems",
         "connection": "CosmosDBConnection",
+        "leaseContainerName": "leases",
         "createLeaseContainerIfNotExists": true,
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "CloudEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CloudEventSamples.CloudEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "cloudEvent",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "CloudEventBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CloudEventSamples.CloudEventBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "cloudEvents",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "EventGridEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventGridEventSamples.EventGridEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "eventGridEvent",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "EventGridEventBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventGridEventSamples.EventGridEventBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "eventGridEvents",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
         "properties": {}
       }
     ]
@@ -1205,7 +1089,7 @@
   {
     "name": "QueueMessageFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.QueueTriggerBindingSamples.QueueMessageFunction",
+    "entryPoint": "SampleApp.QueueSamples.QueueMessageFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -1225,7 +1109,7 @@
   {
     "name": "QueueBinaryDataFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.QueueTriggerBindingSamples.QueueBinaryDataFunction",
+    "entryPoint": "SampleApp.QueueSamples.QueueBinaryDataFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -1239,24 +1123,6 @@
         "properties": {
           "supportsDeferredBinding": "True"
         }
-      }
-    ]
-  },
-  {
-    "name": "QueueJsonFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.QueueTriggerBindingSamples.QueueJsonFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "message",
-        "direction": "In",
-        "type": "queueTrigger",
-        "queueName": "input-queue-json",
-        "properties": {}
       }
     ]
   },

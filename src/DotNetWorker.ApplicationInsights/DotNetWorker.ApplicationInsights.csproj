@@ -30,7 +30,7 @@
 
   <Target Name="GetReleaseNotes">
     <PropertyGroup>
-      <PackageReleaseNotes>$([System.IO.File]::ReadAllText('release_notes.md')</PackageReleaseNotes>
+      <PackageReleaseNotes>$([System.IO.File]::ReadAllText('release_notes.md'))</PackageReleaseNotes>
     </PropertyGroup>
   </Target>
 

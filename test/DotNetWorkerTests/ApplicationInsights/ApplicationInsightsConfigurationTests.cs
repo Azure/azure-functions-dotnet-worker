@@ -28,6 +28,7 @@ public class ApplicationInsightsConfigurationTests
 
     private static void Verify(IHostBuilder builder)
     {
+        builder.Build();
         IEnumerable<ServiceDescriptor> initializers = null;
         IEnumerable<ServiceDescriptor> modules = null;
 

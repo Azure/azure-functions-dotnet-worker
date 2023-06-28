@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         [Function("BlobsToQueueFunction")]
                         [QueueOutput("queue2")]
                         public object BlobsToQueue(
-                            [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobs)
+                            [BlobInput("container2")] IEnumerable<string> blobs)
                         {
                             throw new NotImplementedException();
                         }
@@ -219,7 +219,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
                             Function2RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""container2"",""cardinality"":""Many"",""dataType"":""String""}");
+                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""container2"",""dataType"":""String""}");
 
                             var Function2 = new DefaultFunctionMetadata
                             {
@@ -243,7 +243,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         ///</summary>
                         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                         {
-                            builder.ConfigureServices(s => 
+                            builder.ConfigureServices(s =>
                             {
                                 s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
                             });
@@ -258,51 +258,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
-            }
-
-            [Fact]
-            public async void TestInvalidBlobCardinalityMany()
-            {
-                string inputCode = """
-                using System;
-                using System.Collections.Generic;
-                using System.Linq;
-                using System.Net;
-                using System.Text.Json.Serialization;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
-
-                namespace FunctionApp
-                {
-                    public class BlobTest
-                    {                
-                        [Function("Function1")]
-                        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-                            [BlobInput("input-container", Connection = "AzureWebJobsStorage", IsBatched = true)] string blobs)
-                        {
-                            throw new NotImplementedException();
-                        }
-                    }
-                }
-                """;
-
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
-
-                var expectedDiagnosticResults = new List<DiagnosticResult>
-                {
-                    new DiagnosticResult(DiagnosticDescriptors.InvalidCardinality)
-                    .WithSpan(15, 105, 15, 110)
-                    // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
-                    .WithArguments("blobs")
-                };
-
-                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    _referencedExtensionAssemblies,
-                    inputCode,
-                    expectedGeneratedFileName,
-                    expectedOutput,
-                    expectedDiagnosticResults);
             }
         }
     }

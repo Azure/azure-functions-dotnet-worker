@@ -6,16 +6,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
-using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -54,10 +51,10 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobClient_ReturnsSuccess()
+        public async Task ConvertAsync_ValidModelBindingData_BlobClient_FilePath_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
 
             var mockBlobClient = new Mock<BlobClient>();
@@ -81,14 +78,19 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_List_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(IEnumerable<BlobClient>), grpcModelBindingData);
 
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient.Setup(m => m.Name).Returns("MyBlob");
 
+            var mockResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -106,14 +108,49 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_Array_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(BlobClient[]), grpcModelBindingData);
 
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient.Setup(m => m.Name).Returns("MyBlob");
 
+            var mockResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var clientResult = (BlobClient[])conversionResult.Value;
+
+            // Assert
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.IsType<BlobClient[]>(clientResult);
+            Assert.Equal("MyBlob", clientResult.First().Name);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_WithSubdirectoryPath_ReturnsSuccess()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData("test"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobClient[]), grpcModelBindingData);
+
+            var mockBlobClient = new Mock<BlobClient>();
+            mockBlobClient.Setup(m => m.Name).Returns("MyBlob");
+
+            var mockResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockResponse.Object);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -149,54 +186,10 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobContainerClientCollection_List_ReturnsSuccess()
-        {
-            // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(IEnumerable<BlobContainerClient>), grpcModelBindingData);
-
-            var mockContainer = new Mock<BlobContainerClient>();
-            mockContainer.Setup(m => m.Name).Returns("MyContainer");
-
-            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
-
-            // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var clientResult = (IEnumerable<BlobContainerClient>)conversionResult.Value;
-
-            // Assert
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsAssignableFrom<IEnumerable<BlobContainerClient>>(clientResult);
-            Assert.Equal("MyContainer", clientResult.First().Name);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobContainerClientCollection_Array_ReturnsSuccess()
-        {
-            // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
-            var context = new TestConverterContext(typeof(BlobContainerClient[]), grpcModelBindingData);
-
-            var mockContainer = new Mock<BlobContainerClient>();
-            mockContainer.Setup(m => m.Name).Returns("MyContainer");
-
-            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
-
-            // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var clientResult = (BlobContainerClient[])conversionResult.Value;
-
-            // Assert
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.IsType<BlobContainerClient[]>(clientResult);
-            Assert.Equal("MyContainer", clientResult.First().Name);
-        }
-
-        [Fact]
         public async Task ConvertAsync_ValidModelBindingData_String_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(string), grpcModelBindingData);
 
             var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(new BinaryData("MyBlobString"));
@@ -224,7 +217,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_StringCollection_List_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(IEnumerable<string>), grpcModelBindingData);
 
             var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(new BinaryData("MyBlobString"));
@@ -234,8 +227,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient.Setup(m => m.DownloadContentAsync()).ReturnsAsync(mockResponse.Object);
 
+            var mockBlobItemResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -253,7 +251,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_StringCollection_Array_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(string[]), grpcModelBindingData);
 
             var blobDownloadResult = BlobsModelFactory.BlobDownloadResult(new BinaryData("MyBlobString"));
@@ -263,8 +261,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient.Setup(m => m.DownloadContentAsync()).ReturnsAsync(mockResponse.Object);
 
+            var mockBlobItemResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -282,7 +285,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_Stream_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(Stream), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
@@ -313,7 +316,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_StreamCollection_List_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(IEnumerable<Stream>), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
@@ -327,8 +330,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
                 .ReturnsAsync(mockResponse.Object);
 
+            var mockBlobItemResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -346,7 +354,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_StreamCollection_Array_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(Stream[]), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
@@ -360,8 +368,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
                 .ReturnsAsync(mockResponse.Object);
 
+            var mockBlobItemResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -378,7 +391,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_ByteArray_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(byte[]), grpcModelBindingData);
 
             var expectedByteArray = Encoding.UTF8.GetBytes("MyBlobByteArray");
@@ -406,14 +419,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             Assert.IsType<byte[]>(byteResult);
             Assert.Equal(new byte[0], byteResult);
-            // Assert.Equal(expectedByteArray, byteResult); // Running into issues mocking DownloadToAsync stream update
         }
 
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_ByteArrayCollection_List_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(IEnumerable<byte[]>), grpcModelBindingData);
 
             var expectedByteArray = Encoding.UTF8.GetBytes("MyBlobByteArray");
@@ -426,8 +438,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Callback<Stream, CancellationToken>(async (s, _) => await testStream.CopyToAsync(s))
                 .ReturnsAsync(new Mock<Response>().Object);
 
+            var mockResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -438,14 +455,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             Assert.IsAssignableFrom<IEnumerable<byte[]>>(byteResult);
-            // Assert.Equal(expectedByteArray, byteResult.First()); // Running into issues mocking DownloadToAsync stream update
         }
 
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_ByteArrayCollection_Array_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(byte[][]), grpcModelBindingData);
 
             var expectedByteArray = Encoding.UTF8.GetBytes("MyBlobByteArray");
@@ -458,8 +474,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Callback<Stream, CancellationToken>(async (s, _) => await testStream.CopyToAsync(s))
                 .ReturnsAsync(new Mock<Response>().Object);
 
+            var mockResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -470,14 +491,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             // Assert
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
             Assert.IsType<byte[][]>(byteResult);
-            // Assert.Equal(expectedByteArray, byteResult.First()); // Running into issues mocking DownloadToAsync steam update
         }
 
         [Fact]
         public async Task ConvertAsync_ValidModelBindingData_POCO_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(Book), grpcModelBindingData);
 
             var expectedBook = new Book() { Name = "MyBook" };
@@ -511,7 +531,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_POCOCollection_List_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(IEnumerable<Book>), grpcModelBindingData);
 
             var expectedBookList = new List<Book>() { new Book() { Name = "MyBook" } };
@@ -526,8 +546,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
                 .ReturnsAsync(mockResponse.Object);
 
+            var mockBlobItemResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -545,7 +570,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_ValidModelBindingData_POCOCollection_Array_ReturnsSuccess()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(Book[]), grpcModelBindingData);
 
             var expectedBookList = new Book[] { new Book() { Name = "MyBook" } };
@@ -560,8 +585,13 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
                 .ReturnsAsync(mockResponse.Object);
 
+            var mockBlobItemResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
@@ -601,6 +631,26 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_BlobClientIsNull_ReturnsUnhandled()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns((BlobClient)null);
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Contains("Value cannot be null", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -668,7 +718,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.IsType<JsonException>(conversionResult.Error);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Contains("Binding parameters to complex objects uses JSON serialization", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -684,7 +735,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Value cannot be null. (Parameter 'connectionName')", conversionResult.Error.Message);
+            Assert.Equal("Value cannot be null. (Parameter 'Connection')", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -700,7 +751,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Value cannot be null. (Parameter 'containerName')", conversionResult.Error.Message);
+            Assert.Equal("Value cannot be null. (Parameter 'ContainerName')", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -723,7 +774,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         public async Task ConvertAsync_POCO_InvalidJson_ReturnsFailed()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(Book), grpcModelBindingData);
 
             var expectedBook = new Book() { Name = "MyBook" };
@@ -749,14 +800,15 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.IsType<JsonException>(conversionResult.Error);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Contains("Binding parameters to complex objects uses JSON serialization", conversionResult.Error.Message);
         }
 
         [Fact]
         public async Task ConvertAsync_IncorrectJsonContent_POCOCollection_Array_ReturnsFailed()
         {
             // Arrange
-            var grpcModelBindingData = GetTestGrpcCollectionModelBindingData(GetTestBinaryData());
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(Book[]), grpcModelBindingData);
 
             var expectedBookList = new Book[] { new Book() { Name = "MyBook" } };
@@ -771,22 +823,165 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                 .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
                 .ReturnsAsync(mockResponse.Object);
 
+            var blobItemMockResponse = new Mock<Response>();
+            var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, blobItemMockResponse.Object);
+
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+            mockContainer.Setup(m => m.GetBlobsAsync(It.IsAny<BlobTraits>(), It.IsAny<BlobStates>(), It.IsAny<string>(), default))
+                            .Returns(AsyncPageable<BlobItem>.FromPages(new List<Page<BlobItem>> { expectedOutput }));
+
 
             _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
 
             // Act
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var pocoResult = (Book[])conversionResult.Value;
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
             Assert.IsType<InvalidOperationException>(conversionResult.Error);
-            Assert.IsType<JsonException>(conversionResult.Error.InnerException);
+            Assert.Contains("Binding parameters to complex objects uses JSON serialization", conversionResult.Error.Message);
         }
 
-        private BinaryData GetTestBinaryData(string connection = "Connection", string container = "Container", string blobName = "MyBlob")
+        [Fact]
+        public async Task ConvertAsync_BlobClient_CollectionBindingWithBlobName_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(IEnumerable<BlobClient>), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Equal("Collections are not supported when binding to a specific blob file.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_StringCollection_CollectionBindingWithBlobName_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(string[]), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Equal("Collections are not supported when binding to a specific blob file.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_Stream_CollectionBindingWithBlobName_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(IEnumerable<Stream>), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Equal("Collections are not supported when binding to a specific blob file.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_ByteArray_CollectionBindingWithBlobName_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(byte[][]), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Equal("Collections are not supported when binding to a specific blob file.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_POCO_CollectionBindingWithBlobName_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(Book[]), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Equal("Collections are not supported when binding to a specific blob file.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_BlobContainerClient_BindingWithBlobName_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobContainerClient), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.Name).Returns("MyContainer");
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Contains("Binding to BlobContainerClient with a blob path is not supported", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_BlobContainerClient_CollectionBinding_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(IEnumerable<BlobContainerClient>), grpcModelBindingData);
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.Name).Returns("MyContainer");
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.IsType<InvalidOperationException>(conversionResult.Error);
+            Assert.Equal("Collections of BlobContainerClient are not supported.", conversionResult.Error.Message);
+        }
+
+        private BinaryData GetTestBinaryData(string connection = "Connection", string container = "Container", string blobName = "")
         {
             string jsonData = $@"{{
                                 ""Connection"" : ""{connection}"",
@@ -795,22 +990,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
                             }}";
 
             return new BinaryData(jsonData);
-        }
-
-        private GrpcCollectionModelBindingData GetTestGrpcCollectionModelBindingData(BinaryData data)
-        {
-            var modelBindingData = new ModelBindingData()
-            {
-                Version = "1.0",
-                Source = "AzureStorageBlobs",
-                Content = ByteString.CopyFrom(data),
-                ContentType = "application/json"
-            };
-
-            var array = new CollectionModelBindingData();
-            array.ModelBindingData.Add(modelBindingData);
-
-            return new GrpcCollectionModelBindingData(array);
         }
 
         public class Book

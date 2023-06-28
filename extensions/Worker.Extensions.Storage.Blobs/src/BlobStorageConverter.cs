@@ -10,7 +10,6 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
@@ -164,9 +163,7 @@ namespace Microsoft.Azure.Functions.Worker
             var resultType = typeof(List<>).MakeGenericType(elementType);
             var result = (IList)Activator.CreateInstance(resultType);
 
-            AsyncPageable<BlobItem> blobItems = container.GetBlobsAsync(prefix: blobPath);
-
-            await foreach (BlobItem blobItem in blobItems.ConfigureAwait(false))
+            await foreach (BlobItem blobItem in container.GetBlobsAsync(prefix: blobPath).ConfigureAwait(false))
             {
                 var element = await ToTargetTypeAsync(elementType, container, blobItem.Name);
 

@@ -2,11 +2,17 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -15,11 +21,6 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using System.Collections;
-using System.Text.Json;
-using System.Globalization;
-using Azure.Storage.Blobs.Models;
-using Azure;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -32,6 +33,8 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
         private readonly ILogger<BlobStorageConverter> _logger;
+        // private readonly Regex BlobIsFileRegex = new Regex(@"\..|[^/]$"); // Cannot use trailing slash as WebJobs validation fails. Would require another WebJobs change & release.
+        private readonly Regex BlobIsFileRegex = new Regex(@"\.[^.\/]+$");
 
         public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
         {
@@ -103,7 +106,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (IsCollectionBinding(targetType, blobData.BlobName!))
             {
-                return await BindToCollectionAsync(targetType, container);
+                return await BindToCollectionAsync(targetType, container, blobData.BlobName!);
             }
             else
             {
@@ -117,6 +120,12 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
+        /// <summary>
+        /// Determines if the binding is a collection binding.
+        /// A collection binding is when the target type is an array or IEnumerable and
+        /// the blob name is either null or empty (meaning a container path is provided).
+        /// If a blob name is provided, it must be a directory path (no file extension provided).
+        /// </summary>
         private bool IsCollectionBinding(Type type, string blobName)
         {
             if (type == typeof(string) || type == typeof(byte[]))
@@ -124,15 +133,17 @@ namespace Microsoft.Azure.Functions.Worker
                 return false;
             }
 
-            bool isContainer = string.IsNullOrEmpty(blobName);
-            bool isCollectionType = type.IsArray || typeof(IEnumerable).IsAssignableFrom(type);
-
-            if (!isCollectionType)
+            if (!(type.IsArray || typeof(IEnumerable).IsAssignableFrom(type)))
             {
                 return false;
             }
 
-            if (!isContainer)
+            if (string.IsNullOrEmpty(blobName))
+            {
+                return true;
+            }
+
+            if (BlobIsFileRegex.IsMatch(blobName))
             {
                 throw new InvalidOperationException("Collections are not supported when binding to a specific blob file.");
             }
@@ -140,7 +151,7 @@ namespace Microsoft.Azure.Functions.Worker
             return true;
         }
 
-        private async Task<object> BindToCollectionAsync(Type targetType, BlobContainerClient container)
+        private async Task<object> BindToCollectionAsync(Type targetType, BlobContainerClient container, string blobPath)
         {
             Type elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
 
@@ -153,9 +164,9 @@ namespace Microsoft.Azure.Functions.Worker
             var resultType = typeof(List<>).MakeGenericType(elementType);
             var result = (IList)Activator.CreateInstance(resultType);
 
-            AsyncPageable<BlobItem> resultSegment = container.GetBlobsAsync();
+            AsyncPageable<BlobItem> blobItems = container.GetBlobsAsync(prefix: blobPath);
 
-            await foreach (BlobItem blobItem in resultSegment)
+            await foreach (BlobItem blobItem in blobItems.ConfigureAwait(false))
             {
                 var element = await ToTargetTypeAsync(elementType, container, blobItem.Name);
 

@@ -15,6 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.IterableBindingTypeExpectedForBlobContainer);
 
         private const string BlobInputBindingAttribute = "Microsoft.Azure.Functions.Worker.BlobInputAttribute";
+        private const string BlobContainerClientType = "Azure.Storage.Blobs.BlobContainerClient";
 
         public override void Initialize(AnalysisContext context)
         {
@@ -64,7 +65,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     {
                         string path = arg.Value.ToString();
 
-                        if (path.Split('/').Length < 2 && !parameterType.IsIterableType(context))
+                        if (path.Split('/').Length < 2
+                            && !parameterType.IsIterableType(context)
+                            && !string.Equals(parameterType.ToDisplayString(), BlobContainerClientType, StringComparison.Ordinal))
                         {
                             var diagnostic = Diagnostic.Create(DiagnosticDescriptors.IterableBindingTypeExpectedForBlobContainer, parameter.Locations.First(), parameterType);
                             context.ReportDiagnostic(diagnostic);

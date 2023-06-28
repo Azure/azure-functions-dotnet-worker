@@ -9,6 +9,9 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
+    /// <summary>
+    /// Samples demonstrating binding to the <see cref="CosmosClient"/>, <see cref="Database"/>, and <see cref="Container"/> types.
+    /// </summary>
     public class CosmosInputBindingFunctions
     {
         private readonly ILogger<CosmosInputBindingFunctions> _logger;
@@ -18,6 +21,11 @@ namespace SampleApp
             _logger = logger;
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a collection of documents.
+        /// The code uses a <see cref="CosmosClient"/> instance to read a list of documents.
+        /// The <see cref="CosmosClient"/> instance could also be used for write operations.
+        /// </summary>
         [Function(nameof(DocsByUsingCosmosClient))]
         public async Task<HttpResponseData>  DocsByUsingCosmosClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -40,6 +48,11 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a collection of documents.
+        /// The function is triggered by an HTTP request and binds to the specified database.
+        /// as a <see cref="Database"/> type. The function then queries for all collections in the database.
+        /// </summary>
         [Function(nameof(DocsByUsingDatabaseClient))]
         public async Task<HttpResponseData> DocsByUsingDatabaseClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -61,6 +74,11 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a collection of documents.
+        /// The function is triggered by an HTTP request and binds to the specified database and collection
+        /// as a <see cref="Container"/> type. The function then queries for all documents in the collection.
+        /// </summary>
         [Function(nameof(DocsByUsingContainerClient))]
         public async Task<HttpResponseData>  DocsByUsingContainerClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -82,6 +100,11 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a single document.
+        /// The function is triggered by an HTTP request that uses a query string to specify the ID and partition key value to look up.
+        /// That ID and partition key value are used to retrieve a ToDoItem document from the specified database and collection.
+        /// </summary>
         [Function(nameof(DocByIdFromQueryString))]
         public HttpResponseData DocByIdFromQueryString(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -106,6 +129,11 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a single document.
+        /// The function is triggered by an HTTP request that uses route data to specify the ID and partition key value to look up.
+        /// That ID and partition key value are used to retrieve a ToDoItem document from the specified database and collection.
+        /// </summary>
         [Function(nameof(DocByIdFromRouteData))]
         public HttpResponseData DocByIdFromRouteData(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "todoitems/{partitionKey}/{id}")] HttpRequestData req,
@@ -130,6 +158,12 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a collection of documents.
+        /// The function is triggered by an HTTP request that uses route data to specify the ID to look up.
+        /// That ID is used to retrieve a list of ToDoItem documents from the specified database and collection.
+        /// The example shows how to use a binding expression in the <see cref="CosmosDBInputAttribute.SqlQuery"/> parameter.
+        /// </summary>
         [Function(nameof(DocByIdFromRouteDataUsingSqlQuery))]
         public HttpResponseData DocByIdFromRouteDataUsingSqlQuery(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = "todoitems2/{id}")] HttpRequestData req,
@@ -150,6 +184,12 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a collection of documents.
+        /// The function is triggered by an HTTP request that uses a query string to specify the ID to look up.
+        /// That ID is used to retrieve a list of ToDoItem documents from the specified database and collection.
+        /// The example shows how to use a binding expression in the <see cref="CosmosDBInputAttribute.SqlQuery"/> parameter.
+        /// </summary>
         [Function(nameof(DocByIdFromQueryStringUsingSqlQuery))]
         public HttpResponseData DocByIdFromQueryStringUsingSqlQuery(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -170,6 +210,10 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a collection of documents.
+        /// The function is triggered by an HTTP request. The query is specified in the <see cref="CosmosDBInputAttribute.SqlQuery"/> attribute property.
+        /// </summary>
         [Function(nameof(DocsBySqlQuery))]
         public HttpResponseData DocsBySqlQuery(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -189,6 +233,12 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
+        /// <summary>
+        /// This sample demonstrates how to retrieve a single document.
+        /// The function is triggered by a queue message that contains a JSON object. The queue trigger parses the JSON into
+        /// an object of type ToDoItemLookup, which contains the ID and partition key value to look up. That ID and partition
+        /// key value are used to retrieve a ToDoItem document from the specified database and collection.
+        /// </summary>
         [Function(nameof(DocByIdFromJSON))]
         public void DocByIdFromJSON(
             [QueueTrigger("todoqueueforlookup")] ToDoItemLookup toDoItemLookup,

@@ -219,7 +219,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
                             Function2RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""container2"",""dataType"":""String""}");
+                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""container2""}");
 
                             var Function2 = new DefaultFunctionMetadata
                             {
@@ -243,7 +243,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         ///</summary>
                         public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                         {
-                            builder.ConfigureServices(s =>
+                            builder.ConfigureServices(s => 
                             {
                                 s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
                             });

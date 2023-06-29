@@ -212,10 +212,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                 {
                     { "Name", "blobinput" },
                     { "Type", "blob" },
-                    { "DataType", "String"},
                     { "Direction", "In" },
                     { "blobPath", "container2" },
-                    { "Cardinality", "Many" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
@@ -393,7 +391,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blob" },
                     { "Direction", "In" },
                     { "blobPath", "container2" },
-                    { "DataType", "String" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
                 });
             }

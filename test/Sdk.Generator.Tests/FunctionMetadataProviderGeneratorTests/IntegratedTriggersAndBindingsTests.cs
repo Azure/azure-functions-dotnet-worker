@@ -214,7 +214,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
-                            Function0RawBindings.Add(@"{""name"":""myBlob"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""test-samples/sample1.txt"",""connection"":""AzureWebJobsStorage"",""cardinality"":""One"",""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""myBlob"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""test-samples/sample1.txt"",""connection"":""AzureWebJobsStorage"",""dataType"":""String""}");
                             Function0RawBindings.Add(@"{""name"":""Book"",""type"":""Queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
                             Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
 

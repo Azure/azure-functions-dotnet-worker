@@ -28,7 +28,6 @@ public class ApplicationInsightsConfigurationTests
 
     private static void Verify(IHostBuilder builder)
     {
-        builder.Build();
         IEnumerable<ServiceDescriptor> initializers = null;
         IEnumerable<ServiceDescriptor> modules = null;
 
@@ -38,6 +37,7 @@ public class ApplicationInsightsConfigurationTests
             modules = services.Where(s => s.ServiceType == typeof(ITelemetryModule));
         });
 
+        builder.Build();
         Assert.Collection(initializers, t => Assert.Equal(typeof(FunctionsTelemetryInitializer), t.ImplementationType));
         Assert.Collection(modules, t => Assert.Equal(typeof(FunctionsTelemetryModule), t.ImplementationType));
     }

@@ -10,7 +10,12 @@ var host = new HostBuilder()
     {
         // can still register middleware and use this extension method the same way
         // .ConfigureFunctionsWorkerDefaults() is used
-        builder.UseMiddleware<FooMiddleware>();
+        builder.UseWhen<FooMiddleware>((context)=>
+        {
+            // We want to use this middleware only for http trigger invocations.
+            return context.FunctionDefinition.InputBindings.Values
+                          .First(a => a.Type.EndsWith("Trigger")).Type == "httpTrigger";
+        });
     })
     .Build();
 

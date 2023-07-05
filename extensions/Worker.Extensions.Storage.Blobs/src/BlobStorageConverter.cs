@@ -10,10 +10,11 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using System.Collections;
 using System.Text.Json;
 using System.Globalization;
@@ -49,27 +50,22 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
-            if (!IsBlobExtension(modelBindingData))
-            {
-                return ConversionResult.Unhandled();
-            }
-
             try
             {
+                if (modelBindingData.Source is not Constants.BlobExtensionName)
+                {
+                    throw new InvalidBindingSourceException(Constants.BlobExtensionName);
+                }
+
                 Dictionary<string, string> content = GetBindingDataContent(modelBindingData);
                 var result = await ConvertModelBindingDataAsync(content, context.TargetType, modelBindingData);
 
-                if (result is not null)
-                {
-                    return ConversionResult.Success(result);
-                }
+                return ConversionResult.Success(result);
             }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
             }
-
-            return ConversionResult.Unhandled();
         }
 
         private async ValueTask<ConversionResult> ConvertFromCollectionBindingDataAsync(ConverterContext context, CollectionModelBindingData collectionModelBindingData)
@@ -85,9 +81,10 @@ namespace Microsoft.Azure.Functions.Worker
                 for (var i = 0; i < collectionModelBindingData.ModelBindingDataArray.Length; i++)
                 {
                     var modelBindingData = collectionModelBindingData.ModelBindingDataArray[i];
-                    if (!IsBlobExtension(modelBindingData))
+
+                    if (modelBindingData.Source is not Constants.BlobExtensionName)
                     {
-                        return ConversionResult.Unhandled();
+                        throw new InvalidBindingSourceException(Constants.BlobExtensionName);
                     }
 
                     Dictionary<string, string> content = GetBindingDataContent(modelBindingData);
@@ -124,23 +121,12 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private bool IsBlobExtension(ModelBindingData bindingData)
-        {
-            if (bindingData?.Source is not Constants.BlobExtensionName)
-            {
-                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData?.Source, nameof(BlobStorageConverter));
-                return false;
-            }
-
-            return true;
-        }
-
         private Dictionary<string, string> GetBindingDataContent(ModelBindingData bindingData)
         {
             return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => new Dictionary<string, string>(bindingData?.Content?.ToObjectFromJson<Dictionary<string, string>>(), StringComparer.OrdinalIgnoreCase),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
+                _ => throw new InvalidContentTypeException(Constants.JsonContentType)
             };
         }
 

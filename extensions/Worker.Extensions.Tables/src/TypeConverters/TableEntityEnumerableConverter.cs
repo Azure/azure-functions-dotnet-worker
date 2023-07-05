@@ -15,7 +15,7 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 {
     /// <summary>
-    /// Converter to bind Table type parameters.
+    /// Converter to bind <see cref="IEnumerable{T}" /> of type <see cref="TableEntity"/> parameters.
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedConverterType(typeof(IEnumerable<TableEntity>))]
@@ -28,30 +28,25 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         public override async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (!CanConvert(context))
-            {
-                return ConversionResult.Unhandled();
-            }
             try
             {
+                if (!CanConvert(context))
+                {
+                    return ConversionResult.Unhandled();
+                }
+
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
-
                 var result = await ConvertModelBindingData(tableData);
 
-                if (result is not null)
-                {
-                    return ConversionResult.Success(result);
-                }
+                return ConversionResult.Success(result);
             }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
             }
-
-            return ConversionResult.Unhandled();
         }
-        
+
         private async Task<IEnumerable<TableEntity>> ConvertModelBindingData(TableData content)
         {
             if (string.IsNullOrEmpty(content.TableName))
@@ -87,8 +82,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             int countRemaining = content.Take;
 
             var entities = tableClient.QueryAsync<TableEntity>(
-               filter: filter,
-               maxPerPage: maxPerPage).ConfigureAwait(false);
+                            filter: filter,
+                            maxPerPage: maxPerPage).ConfigureAwait(false);
 
             List<TableEntity> bindingDataContent = new List<TableEntity>();
 

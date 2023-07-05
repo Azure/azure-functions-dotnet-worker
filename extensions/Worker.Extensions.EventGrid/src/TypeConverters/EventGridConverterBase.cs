@@ -6,55 +6,30 @@ using System.Globalization;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core;
-using Microsoft.Azure.Functions.Worker.Extensions;
-using Microsoft.Azure.Functions.Worker.Storage.Queues;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal abstract class QueueConverterBase<T>  : IInputConverter
+    internal abstract class EventGridConverterBase  : IInputConverter
     {
-
-        public QueueConverterBase()
+        public EventGridConverterBase()
         {
-        }
-
-        public bool CanConvert(ConverterContext context)
-        {
-            if (context is null)
-            {
-                throw new ArgumentNullException(nameof(context));
-            }
-
-            if (context.TargetType != typeof(T))
-            {
-                return false;
-            }
-
-            if (context.Source is not ModelBindingData bindingData)
-            {
-                return false;
-            }
-
-            if (bindingData.Source is not Constants.QueueExtensionName)
-            {
-                throw new InvalidBindingSourceException(Constants.QueueExtensionName);
-            }
-
-            return true;
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             try
             {
-                if (!CanConvert(context))
+                if (context is null)
                 {
-                    return (ConversionResult.Unhandled());
+                    throw new ArgumentNullException(nameof(context));
                 }
 
-                var modelBindingData = (ModelBindingData)context.Source!;
-                var result = await ConvertCoreAsync(modelBindingData);
+                if (context.Source is not string json)
+                {
+                    throw new InvalidOperationException($"Context source must be a non-null string. Current type of context source is '{context.Source.GetType()}'");
+                }
+
+                var result = ConvertCoreAsync(context.TargetType, json);
                 return ConversionResult.Success(result);
             }
             catch (JsonException ex)
@@ -72,6 +47,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        protected abstract ValueTask<T> ConvertCoreAsync(ModelBindingData data);
+        protected abstract object ConvertCoreAsync(Type targetType, string json);
     }
 }

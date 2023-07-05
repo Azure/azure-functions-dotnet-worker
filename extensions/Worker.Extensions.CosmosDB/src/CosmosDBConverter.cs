@@ -13,11 +13,12 @@ using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind Cosmos DB type parameters.
+    /// Converter to bind CosmosDB type parameters.
     /// </summary>
     [SupportsDeferredBinding]
     internal class CosmosDBConverter : IInputConverter
@@ -42,38 +43,22 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async ValueTask<ConversionResult> ConvertFromBindingDataAsync(ConverterContext context, ModelBindingData modelBindingData)
         {
-            if (!IsCosmosExtension(modelBindingData))
-            {
-                return ConversionResult.Unhandled();
-            }
-
             try
             {
+                if (modelBindingData.Source is not Constants.CosmosExtensionName)
+                {
+                    throw new InvalidBindingSourceException(Constants.CosmosExtensionName);
+                }
+
                 var cosmosAttribute = GetBindingDataContent(modelBindingData);
                 object result = await ToTargetTypeAsync(context.TargetType, cosmosAttribute);
 
-                if (result is not null)
-                {
-                    return ConversionResult.Success(result);
-                }
+                return ConversionResult.Success(result);
             }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);
             }
-
-            return ConversionResult.Unhandled();
-        }
-
-        private bool IsCosmosExtension(ModelBindingData bindingData)
-        {
-            if (bindingData?.Source is not Constants.CosmosExtensionName)
-            {
-                _logger.LogTrace("Source '{source}' is not supported by {converter}", bindingData?.Source, nameof(CosmosDBConverter));
-                return false;
-            }
-
-            return true;
         }
 
         private CosmosDBInputAttribute GetBindingDataContent(ModelBindingData bindingData)
@@ -81,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker
             return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>(),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
+                _ => throw new InvalidContentTypeException(Constants.JsonContentType)
             };
         }
 

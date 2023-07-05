@@ -1,17 +1,20 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Storage.Queues;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Converter to bind to <see cref="QueueMessage" /> type parameters.
+    /// </summary>
     [SupportsDeferredBinding]
     [SupportedConverterType(typeof(QueueMessage))]
     internal sealed class QueueMessageConverter : QueueConverterBase<QueueMessage>
@@ -32,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (modelBindingData.ContentType is not Constants.JsonContentType)
             {
-                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
+                throw new InvalidContentTypeException(Constants.JsonContentType);
             }
 
             return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions);

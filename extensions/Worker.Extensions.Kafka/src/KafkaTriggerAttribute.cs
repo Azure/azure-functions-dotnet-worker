@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker
     public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         private bool _isBatched = false;
-
+        private long? lagThreshold;
         /// <summary>
         /// Initialize a new instance of the <see cref="KafkaTriggerAttribute"/>
         /// </summary>
@@ -102,6 +102,12 @@ namespace Microsoft.Azure.Functions.Worker
         /// ssl.key.password in librdkafka
         /// </summary>
         public string SslKeyPassword { get; set; }
+
+        /// <summary>
+        /// Lag threshold
+        /// Default: 1000
+        /// </summary>
+        public long LagThreshold { get => lagThreshold.GetValueOrDefault(1000L); set => lagThreshold = value; }
 
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".

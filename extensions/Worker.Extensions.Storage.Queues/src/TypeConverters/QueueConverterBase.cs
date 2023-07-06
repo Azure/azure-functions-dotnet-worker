@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (!CanConvert(context))
                 {
-                    return (ConversionResult.Unhandled());
+                    return ConversionResult.Unhandled();
                 }
 
                 var modelBindingData = (ModelBindingData)context.Source!;

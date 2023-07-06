@@ -11,26 +11,24 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal abstract class EventGridConverterBase  : IInputConverter
     {
-        public EventGridConverterBase()
-        {
-        }
+        public EventGridConverterBase() { }
 
-        public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
+            if (context is null)
+            {
+                throw new ArgumentNullException(nameof(context));
+            }
+
             try
             {
-                if (context is null)
-                {
-                    throw new ArgumentNullException(nameof(context));
-                }
-
                 if (context.Source is not string json)
                 {
                     throw new InvalidOperationException($"Context source must be a non-null string. Current type of context source is '{context.Source.GetType()}'");
                 }
 
-                var result = ConvertCoreAsync(context.TargetType, json);
-                return ConversionResult.Success(result);
+                var result = ConvertCore(context.TargetType, json);
+                return new ValueTask<ConversionResult>(result);
             }
             catch (JsonException ex)
             {
@@ -39,14 +37,14 @@ namespace Microsoft.Azure.Functions.Worker
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
                     2. Change the queue payload to be valid json.");
 
-                return ConversionResult.Failed(new InvalidOperationException(msg, ex));
+                return new ValueTask<ConversionResult>(ConversionResult.Failed(new InvalidOperationException(msg, ex)));
             }
             catch (Exception ex)
             {
-                return ConversionResult.Failed(ex);
+                return new ValueTask<ConversionResult>(ConversionResult.Failed(ex));
             }
         }
 
-        protected abstract object ConvertCoreAsync(Type targetType, string json);
+        protected abstract ConversionResult ConvertCore(Type targetType, string json);
     }
 }

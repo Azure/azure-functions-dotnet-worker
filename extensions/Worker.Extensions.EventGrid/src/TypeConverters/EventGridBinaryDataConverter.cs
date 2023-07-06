@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     [SupportedConverterType(typeof(BinaryData[]))]
     internal class EventGridBinaryDataConverter : EventGridConverterBase
     {
-        protected override object ConvertCoreAsync(Type targetType, string json)
+        protected override ConversionResult ConvertCore(Type targetType, string json)
         {
             object result = targetType switch
             {

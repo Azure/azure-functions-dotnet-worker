@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     [SupportedConverterType(typeof(string[]))]
     internal class EventGridStringArrayConverter : EventGridConverterBase
     {
-        protected override object ConvertCoreAsync(Type targetType, string json)
+        protected override ConversionResult ConvertCore(Type targetType, string json)
         {
             if (targetType != typeof(string[]))
             {
@@ -23,7 +23,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
             }
 
             var jsonData = JsonSerializer.Deserialize(json, typeof(List<object>)) as List<object>;
-            return jsonData.Select(d => d.ToString()).ToArray();
+            var result = jsonData.Select(d => d.ToString()).ToArray();
+            return ConversionResult.Success(result);
         }
     }
 }

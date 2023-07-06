@@ -15,14 +15,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     [SupportedConverterType(typeof(EventGridEvent[]))]
     internal class EventGridEventConverter : EventGridConverterBase
     {
-        protected override object ConvertCoreAsync(Type targetType, string json)
+        protected override ConversionResult ConvertCore(Type targetType, string json)
         {
             if (targetType != typeof(EventGridEvent) && targetType != typeof(EventGridEvent[]))
             {
                 return ConversionResult.Unhandled();
             }
 
-            return JsonSerializer.Deserialize(json, targetType)!;
+            return ConversionResult.Success(JsonSerializer.Deserialize(json, targetType)!);
         }
     }
 }

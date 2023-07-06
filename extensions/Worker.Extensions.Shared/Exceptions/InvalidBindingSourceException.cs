@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
     /// <summary>
     /// The exception that is thrown when an invalid binding source is provided.
     /// </summary>
-    public class InvalidBindingSourceException : InvalidOperationException
+    internal class InvalidBindingSourceException : InvalidOperationException
     {
         /// <summary>
         /// Initializes a new instance of the InvalidBindingSourceException class with a specified error message.

@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
     /// <summary>
     /// The exception that is thrown when an invalid content-type is provided.
     /// </summary>
-    public class InvalidContentTypeException : InvalidOperationException
+    internal class InvalidContentTypeException : InvalidOperationException
     {
         /// <summary>
         /// Initializes a new instance of the InvalidContentTypeException class with a specified error message.

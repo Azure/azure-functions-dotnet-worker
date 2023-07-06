@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (context.Source is not string json)
                 {
-                    throw new InvalidOperationException($"Context source must be a non-null string. Current type of context source is '{context.Source.GetType()}'");
+                    throw new InvalidOperationException("Context source must be a non-null string");
                 }
 
                 var result = ConvertCore(context.TargetType, json);

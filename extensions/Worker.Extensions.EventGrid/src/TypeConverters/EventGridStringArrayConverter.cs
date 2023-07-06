@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
                 return ConversionResult.Unhandled();
             }
 
-            var jsonData = JsonSerializer.Deserialize(json, typeof(List<object>)) as List<object>;
+            var jsonData = JsonSerializer.Deserialize<List<object>>(json);
             var result = jsonData.Select(d => d.ToString()).ToArray();
             return ConversionResult.Success(result);
         }

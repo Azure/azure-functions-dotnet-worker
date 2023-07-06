@@ -20,26 +20,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
         {
             object result = targetType switch
             {
-                Type t when t == typeof(BinaryData) => ConvertToBinaryData(json),
+                Type t when t == typeof(BinaryData) => BinaryData.FromString(json),
                 Type t when t == typeof(BinaryData[]) => () =>
                 {
-                    var data = JsonSerializer.Deserialize(json, typeof(List<object>)) as List<object>;
-                    return data.Select(d => ConvertToBinaryData(d.ToString())).ToArray();
+                    var data = JsonSerializer.Deserialize<List<object>>(json);
+                    return data.Select(item => BinaryData.FromString(item.ToString())).ToArray();
                 },
                 _ => ConversionResult.Unhandled()
             };
 
             return ConversionResult.Success(result);
-        }
-
-        private BinaryData ConvertToBinaryData(string item)
-        {
-            if (item is null)
-            {
-                throw new ArgumentNullException(nameof(item));
-            }
-
-            return BinaryData.FromString(item);
         }
     }
 }

@@ -32,7 +32,6 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
         private readonly ILogger<BlobStorageConverter> _logger;
-        // private readonly Regex BlobIsFileRegex = new Regex(@"\..|[^/]$"); // Cannot use trailing slash as WebJobs validation fails. Would require another WebJobs change & release.
         private readonly Regex BlobIsFileRegex = new Regex(@"\.[^.\/]+$");
 
         public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
@@ -159,7 +158,6 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException("Collections of BlobContainerClient are not supported.");
             }
 
-            var blobCount = 0;
             var resultType = typeof(List<>).MakeGenericType(elementType);
             var result = (IList)Activator.CreateInstance(resultType);
 
@@ -170,13 +168,12 @@ namespace Microsoft.Azure.Functions.Worker
                 if (element is not null)
                 {
                     result.Add(element);
-                    blobCount++;
                 }
             }
 
             if (targetType.IsArray)
             {
-                var arrayResult = Array.CreateInstance(elementType, blobCount);
+                var arrayResult = Array.CreateInstance(elementType, result.Count);
                 ((IList)result).CopyTo(arrayResult, 0);
                 return arrayResult;
             }

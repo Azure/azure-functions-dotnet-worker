@@ -75,6 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterType);
                         AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterFallbackBehavior);
                         AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttributeSupportedConverters);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttribute);
 
                         var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0
                                              ? properties.ToImmutableDictionary()
@@ -117,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         private void AddFunctionParameterPropertyIfPresent(IDictionary<string, object> properties, FunctionParameter param, string key)
         {
-            if (param.Properties.TryGetValue(key, out object val))
+            if (param.Properties.TryGetValue(key, out object? val))
             {
                 properties.Add(key, val);
             }

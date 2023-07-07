@@ -21,22 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
 
         [Fact]
         public void ConfigureForFunctionsHostGrpc_SetsUri()
-        {
-            // https://github.com/grpc/grpc-dotnet/issues/2158
-            // NOTE: when this test starts failing, it means the above issue was fixed.
-            // We should update this test and documentation to reflect as such.
-            InvalidOperationException exception = null;
-            try
-            {
-                ConfigureForFunctionsHostGrpc(s => s.AddGrpcClient<CallInvokerExtractor>());
-            }
-            catch (InvalidOperationException ex)
-            {
-                exception = ex;
-            }
-
-            Assert.NotNull(exception);
-        }
+            => ConfigureForFunctionsHostGrpc(s => s.AddGrpcClient<CallInvokerExtractor>());
 
         private void ConfigureForFunctionsHostGrpc(Func<IServiceCollection, IHttpClientBuilder> configure)
         {

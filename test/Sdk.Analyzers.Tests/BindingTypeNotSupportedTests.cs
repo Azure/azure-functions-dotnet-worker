@@ -10,7 +10,7 @@ namespace Sdk.Analyzers.Tests
     public class BindingTypeNotSupportedTests
     {
 
-        [Fact]
+        [Fact (Skip = "Test depends on new release of Microsoft.Azure.Functions.Worker")]
         public async Task TestAttribute_ValidBindingType_DiagnosticsNotExpected()
         {
             string testCode = @"
@@ -59,7 +59,7 @@ namespace Sdk.Analyzers.Tests
             await test.RunAsync();
         }
 
-        [Fact]
+        [Fact (Skip = "Test depends on new release of Microsoft.Azure.Functions.Worker")]
         public async Task TestAttribute_ValidBindingType_WithoutDeferredBinding_DiagnosticsNotExpected()
         {
             string testCode = @"
@@ -107,7 +107,7 @@ namespace Sdk.Analyzers.Tests
             await test.RunAsync();
         }
 
-        [Fact]
+        [Fact (Skip = "Test depends on new release of Microsoft.Azure.Functions.Worker")]
         public async Task TestAttribute_InvalidBindingType_DiagnosticsExpected()
         {
             string testCode = @"

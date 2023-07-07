@@ -125,7 +125,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     Assert.Equal(typeof(string), q.Type);
                     Assert.Contains(PropertyBagKeys.ConverterFallbackBehavior, q.Properties.Keys);
                     Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
-                    Assert.Equal("Allow", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
+                    Assert.Equal("Default", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
                     Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
                 });
 
@@ -192,7 +192,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     Assert.Equal(typeof(TableClient), q.Type);
                     Assert.Contains(PropertyBagKeys.ConverterFallbackBehavior, q.Properties.Keys);
                     Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
-                    Assert.Equal("Allow", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
+                    Assert.Equal("Default", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
                     Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
                 });
 
@@ -250,7 +250,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     Assert.Equal(typeof(QueueMessage), q.Type);
                     Assert.Contains(PropertyBagKeys.ConverterFallbackBehavior, q.Properties.Keys);
                     Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
-                    Assert.Equal("Allow", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
+                    Assert.Equal("Default", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
                     Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
                 });
         }

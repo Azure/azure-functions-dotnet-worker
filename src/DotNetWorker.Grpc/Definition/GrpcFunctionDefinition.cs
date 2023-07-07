@@ -136,7 +136,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             if (isInputConverterAttributeAdvertised)
             {
-                output[PropertyBagKeys.ConverterFallbackBehavior] =  type.GetCustomAttribute<ConverterFallbackBehaviorAttribute>()?.Behavior ?? ConverterFallbackBehavior.Default;
+                output[PropertyBagKeys.ConverterFallbackBehavior] = type.GetCustomAttribute<ConverterFallbackBehaviorAttribute>()?.Behavior ?? ConverterFallbackBehavior.Default;
             }
 
             return output.ToImmutableDictionary();

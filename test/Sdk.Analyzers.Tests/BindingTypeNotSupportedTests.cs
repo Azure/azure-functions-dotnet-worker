@@ -71,7 +71,7 @@ namespace Sdk.Analyzers.Tests
 
                 namespace Microsoft.Azure.Functions.Worker
                 {
-                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Allow)]
+                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
                     [InputConverter(typeof(TestConverter))]
                     public class TestTriggerAttribute : TriggerBindingAttribute
                     {

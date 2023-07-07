@@ -132,8 +132,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.True(bindingData.GetType() == typeof(GrpcCollectionModelBindingData));
             var grpcCollectionModelBindingData = (GrpcCollectionModelBindingData)bindingData;
 
-            Assert.True(grpcCollectionModelBindingData.ModelBindingDataArray.Count() == 1);
-            var grpcModelBindingData = grpcCollectionModelBindingData.ModelBindingDataArray[0];
+            Assert.True(grpcCollectionModelBindingData.ModelBindingData.Count() == 1);
+            var grpcModelBindingData = grpcCollectionModelBindingData.ModelBindingData[0];
             Assert.True(grpcModelBindingData.Version == "1.1.1");
             Assert.True(grpcModelBindingData.Content.GetType() == typeof(BinaryData));
         }
@@ -177,8 +177,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.True(bindingData.GetType() == typeof(GrpcCollectionModelBindingData));
             var grpcCollectionModelBindingData = (GrpcCollectionModelBindingData)bindingData;
 
-            Assert.True(grpcCollectionModelBindingData.ModelBindingDataArray.Count() == 1);
-            var grpcModelBindingData = grpcCollectionModelBindingData.ModelBindingDataArray[0];
+            Assert.True(grpcCollectionModelBindingData.ModelBindingData.Count() == 1);
+            var grpcModelBindingData = grpcCollectionModelBindingData.ModelBindingData[0];
             Assert.True(grpcModelBindingData.Version == "1.1.1");
             Assert.True(grpcModelBindingData.Content.GetType() == typeof(BinaryData));
         }

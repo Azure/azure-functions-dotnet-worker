@@ -59,11 +59,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 {
                     continue;
                 }
-//[ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
+
                 var converterFallbackBehaviorParameterValue = GetConverterFallbackBehaviorParameterValue(context, attributeType);
-                if (converterFallbackBehaviorParameterValue == ConverterFallbackBehavior.Allow)
+                if (converterFallbackBehaviorParameterValue.ToString() is not "Disallow")
                 {
-                    // If the ConverterFallbackBehavior is Allow, we don't need to check for supported types
+                    // If the ConverterFallbackBehavior is Allow or Default, we don't need to check for supported types
                     // because we don't know all of the types that are supported via the fallback
                     continue;
                 }

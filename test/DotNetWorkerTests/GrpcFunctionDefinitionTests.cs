@@ -192,7 +192,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     Assert.Equal(typeof(TableClient), q.Type);
                     Assert.Contains(PropertyBagKeys.ConverterFallbackBehavior, q.Properties.Keys);
                     Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
-                    Assert.Equal("True", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
+                    Assert.Equal("Allow", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
                     Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
                 });
 

@@ -7,331 +7,332 @@ using System.Collections.Immutable;
 
 namespace Sdk.Analyzers.Tests
 {
+    // Skipping these tests as they all depend on new release of Microsoft.Azure.Functions.Worker
+    // with the new ConverterFallbackBehavior attribute. #1724 is tracking reenabling these tests.
     public class BindingTypeNotSupportedTests
     {
+    //     [Fact]
+    //     public async Task TestAttribute_ValidBindingType_DiagnosticsNotExpected()
+    //     {
+    //         string testCode = @"
+    //             using System;
+    //             using Microsoft.Azure.Functions.Worker;
+    //             using Microsoft.Azure.Functions.Worker.Core;
+    //             using Microsoft.Azure.Functions.Worker.Converters;
+    //             using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-        [Fact (Skip = "Test depends on new release of Microsoft.Azure.Functions.Worker")]
-        public async Task TestAttribute_ValidBindingType_DiagnosticsNotExpected()
-        {
-            string testCode = @"
-                using System;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Core;
-                using Microsoft.Azure.Functions.Worker.Converters;
-                using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+    //             namespace Microsoft.Azure.Functions.Worker
+    //             {
+    //                 [AllowConverterFallback(false)]
+    //                 [InputConverter(typeof(TestConverter))]
+    //                 public class TestTriggerAttribute : TriggerBindingAttribute
+    //                 {
+    //                 }
 
-                namespace Microsoft.Azure.Functions.Worker
-                {
-                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
-                    [InputConverter(typeof(TestConverter))]
-                    public class TestTriggerAttribute : TriggerBindingAttribute
-                    {
-                    }
+    //                 [SupportsDeferredBinding]
+    //                 [SupportedConverterType(typeof(string))]
+    //                 [SupportedConverterType(typeof(bool))]
+    //                 public class TestConverter
+    //                 {
+    //                 }
+    //             }
 
-                    [SupportsDeferredBinding]
-                    [SupportedTargetType(typeof(string))]
-                    [SupportedTargetType(typeof(bool))]
-                    public class TestConverter
-                    {
-                    }
-                }
+    //             namespace FunctionApp
+    //             {
+    //                 public class SomeFunction
+    //                 {
+    //                     [Function(nameof(SomeFunction))]
+    //                     public void Run([TestTrigger()] string message)
+    //                     {
+    //                     }
+    //                 }
+    //             }";
 
-                namespace FunctionApp
-                {
-                    public class SomeFunction
-                    {
-                        [Function(nameof(SomeFunction))]
-                        public void Run([TestTrigger()] string message)
-                        {
-                        }
-                    }
-                }";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+    //                                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"))),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                                        new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"))),
-                TestCode = testCode
-            };
+    //         // test.ExpectedDiagnostics is an empty collection.
 
-            // test.ExpectedDiagnostics is an empty collection.
+    //         await test.RunAsync();
+    //     }
 
-            await test.RunAsync();
-        }
+    //     [Fact]
+    //     public async Task TestAttribute_ValidBindingType_WithoutDeferredBinding_DiagnosticsNotExpected()
+    //     {
+    //         string testCode = @"
+    //             using System;
+    //             using Microsoft.Azure.Functions.Worker;
+    //             using Microsoft.Azure.Functions.Worker.Core;
+    //             using Microsoft.Azure.Functions.Worker.Converters;
+    //             using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-        [Fact (Skip = "Test depends on new release of Microsoft.Azure.Functions.Worker")]
-        public async Task TestAttribute_ValidBindingType_WithoutDeferredBinding_DiagnosticsNotExpected()
-        {
-            string testCode = @"
-                using System;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Core;
-                using Microsoft.Azure.Functions.Worker.Converters;
-                using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+    //             namespace Microsoft.Azure.Functions.Worker
+    //             {
+    //                 [AllowConverterFallback(false)]
+    //                 [InputConverter(typeof(TestConverter))]
+    //                 public class TestTriggerAttribute : TriggerBindingAttribute
+    //                 {
+    //                 }
 
-                namespace Microsoft.Azure.Functions.Worker
-                {
-                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
-                    [InputConverter(typeof(TestConverter))]
-                    public class TestTriggerAttribute : TriggerBindingAttribute
-                    {
-                    }
+    //                 [SupportedConverterType(typeof(string))]
+    //                 [SupportedConverterType(typeof(bool))]
+    //                 public class TestConverter
+    //                 {
+    //                 }
+    //             }
 
-                    [SupportedTargetType(typeof(string))]
-                    [SupportedTargetType(typeof(bool))]
-                    public class TestConverter
-                    {
-                    }
-                }
+    //             namespace FunctionApp
+    //             {
+    //                 public class SomeFunction
+    //                 {
+    //                     [Function(nameof(SomeFunction))]
+    //                     public void Run([TestTrigger()] string message)
+    //                     {
+    //                     }
+    //                 }
+    //             }";
 
-                namespace FunctionApp
-                {
-                    public class SomeFunction
-                    {
-                        [Function(nameof(SomeFunction))]
-                        public void Run([TestTrigger()] string message)
-                        {
-                        }
-                    }
-                }";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+    //                                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"))),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                                        new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"))),
-                TestCode = testCode
-            };
+    //         // test.ExpectedDiagnostics is an empty collection.
 
-            // test.ExpectedDiagnostics is an empty collection.
+    //         await test.RunAsync();
+    //     }
 
-            await test.RunAsync();
-        }
+    //     [Fact]
+    //     public async Task TestAttribute_InvalidBindingType_DiagnosticsExpected()
+    //     {
+    //         string testCode = @"
+    //             using System;
+    //             using Microsoft.Azure.Functions.Worker;
+    //             using Microsoft.Azure.Functions.Worker.Core;
+    //             using Microsoft.Azure.Functions.Worker.Converters;
+    //             using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-        [Fact (Skip = "Test depends on new release of Microsoft.Azure.Functions.Worker")]
-        public async Task TestAttribute_InvalidBindingType_DiagnosticsExpected()
-        {
-            string testCode = @"
-                using System;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Core;
-                using Microsoft.Azure.Functions.Worker.Converters;
-                using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+    //             namespace Microsoft.Azure.Functions.Worker
+    //             {
+    //                 [AllowConverterFallback(false)]
+    //                 [InputConverter(typeof(TestConverter))]
+    //                 public class TestTriggerAttribute : TriggerBindingAttribute
+    //                 {
+    //                 }
 
-                namespace Microsoft.Azure.Functions.Worker
-                {
-                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
-                    [InputConverter(typeof(TestConverter))]
-                    public class TestTriggerAttribute : TriggerBindingAttribute
-                    {
-                    }
+    //                 [SupportsDeferredBinding]
+    //                 [SupportedConverterType(typeof(string))]
+    //                 [SupportedConverterType(typeof(bool))]
+    //                 public class TestConverter
+    //                 {
+    //                 }
+    //             }
 
-                    [SupportsDeferredBinding]
-                    [SupportedTargetType(typeof(string))]
-                    [SupportedTargetType(typeof(bool))]
-                    public class TestConverter
-                    {
-                    }
-                }
+    //             namespace FunctionApp
+    //             {
+    //                 public class SomeFunction
+    //                 {
+    //                     [Function(nameof(SomeFunction))]
+    //                     public void Run([TestTrigger()] BinaryData message)
+    //                     {
+    //                     }
+    //                 }
+    //             }";
 
-                namespace FunctionApp
-                {
-                    public class SomeFunction
-                    {
-                        [Function(nameof(SomeFunction))]
-                        public void Run([TestTrigger()] BinaryData message)
-                        {
-                        }
-                    }
-                }";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+    //                                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"))),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                                        new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"))),
-                TestCode = testCode
-            };
+    //         test.ExpectedDiagnostics.Add(Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
+    //             .WithSpan(29, 68, 29, 75).WithArguments("BinaryData", "TestTriggerAttribute"));
 
-            test.ExpectedDiagnostics.Add(Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
-                .WithSpan(29, 68, 29, 75).WithArguments("BinaryData", "TestTriggerAttribute"));
+    //         await test.RunAsync();
+    //     }
 
-            await test.RunAsync();
-        }
+    //     /*  The following tests use real binding attributes from extensions.
+    //         We don't currently have a real binding that has SupportedConverterType
+    //         and has AllowConverterFallback set to false. */
 
-        /*  The following tests use real binding attributes from extensions.
-            We don't currently have a real binding that has SupportedTargetType
-            and has ConverterFallbackBehavior set to 'disallow'. */
+    //     [Theory]
+    //     [InlineData("ToDoItem")]
+    //     [InlineData("CosmosClient")]
+    //     [InlineData("Container")]
+    //     [InlineData("BinaryData")]
+    //     public async Task CosmosDBInputAttribute_DiagnosticsNotExpected(string supportedType)
+    //     {
+    //         string testCode = $@"
+    //             using System;
+    //             using System.Net;
+    //             using Microsoft.Azure.Cosmos;
+    //             using Microsoft.Azure.Functions.Worker;
+    //             using Microsoft.Azure.Functions.Worker.Http;
 
-        [Theory]
-        [InlineData("ToDoItem")]
-        [InlineData("CosmosClient")]
-        [InlineData("Container")]
-        [InlineData("BinaryData")]
-        public async Task CosmosDBInputAttribute_DiagnosticsNotExpected(string supportedType)
-        {
-            string testCode = $@"
-                using System;
-                using System.Net;
-                using Microsoft.Azure.Cosmos;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
+    //             namespace FunctionApp
+    //             {{
+    //                 public static class SomeFunction
+    //                 {{
+    //                     [Function(nameof(SomeFunction))]
+    //                     public static void Run([HttpTrigger(AuthorizationLevel.Anonymous, ""get"")] HttpRequestData req,
+    //                     [CosmosDBInput(""a"", ""b"")] {supportedType} client)
+    //                     {{
+    //                     }}
+    //                 }}
 
-                namespace FunctionApp
-                {{
-                    public static class SomeFunction
-                    {{
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([HttpTrigger(AuthorizationLevel.Anonymous, ""get"")] HttpRequestData req,
-                        [CosmosDBInput(""a"", ""b"")] {supportedType} client)
-                        {{
-                        }}
-                    }}
+    //                 public class ToDoItem
+    //                 {{
+    //                     public string Id {{ get; set; }}
+    //                     public string Description {{ get; set; }}
+    //                     public bool IsComplete {{ get; set; }}
+    //                 }}
+    //             }}";
 
-                    public class ToDoItem
-                    {{
-                        public string Id {{ get; set; }}
-                        public string Description {{ get; set; }}
-                        public bool IsComplete {{ get; set; }}
-                    }}
-                }}";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
+    //                                     ImmutableArray.Create(
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.13"),
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB", "4.2.0-preview2")
+    //                                     )),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
-                                        ImmutableArray.Create(
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.13"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB", "4.2.0-preview2")
-                                        )),
-                TestCode = testCode
-            };
+    //         // test.ExpectedDiagnostics is an empty collection.
 
-            // test.ExpectedDiagnostics is an empty collection.
+    //         await test.RunAsync();
+    //     }
 
-            await test.RunAsync();
-        }
+    //     [Theory]
+    //     [InlineData("string")]
+    //     [InlineData("ToDoItem")]
+    //     [InlineData("ServiceBusReceivedMessage")]
+    //     public async Task ServiceBusTriggerAttribute_ValidSingleBindingType_DiagnosticsNotExpected(string supportedType)
+    //     {
+    //         string testCode = $@"
+    //             using System;
+    //             using Azure.Messaging.ServiceBus;
+    //             using Microsoft.Azure.Functions.Worker;
 
-        [Theory]
-        [InlineData("string")]
-        [InlineData("ToDoItem")]
-        [InlineData("ServiceBusReceivedMessage")]
-        public async Task ServiceBusTriggerAttribute_ValidSingleBindingType_DiagnosticsNotExpected(string supportedType)
-        {
-            string testCode = $@"
-                using System;
-                using Azure.Messaging.ServiceBus;
-                using Microsoft.Azure.Functions.Worker;
+    //             namespace FunctionApp
+    //             {{
+    //                 public static class SomeFunction
+    //                 {{
+    //                     [Function(nameof(SomeFunction))]
+    //                     public static void Run([ServiceBusTrigger(""queue"")] {supportedType} message)
+    //                     {{
+    //                     }}
+    //                 }}
 
-                namespace FunctionApp
-                {{
-                    public static class SomeFunction
-                    {{
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([ServiceBusTrigger(""queue"")] {supportedType} message)
-                        {{
-                        }}
-                    }}
+    //                 public class ToDoItem
+    //                 {{
+    //                     public string Id {{ get; set; }}
+    //                     public string Description {{ get; set; }}
+    //                     public bool IsComplete {{ get; set; }}
+    //                 }}
+    //             }}";
 
-                    public class ToDoItem
-                    {{
-                        public string Id {{ get; set; }}
-                        public string Description {{ get; set; }}
-                        public bool IsComplete {{ get; set; }}
-                    }}
-                }}";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
+    //                                     ImmutableArray.Create(
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.10.0-preview2")
+    //                                     )),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
-                                        ImmutableArray.Create(
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.10.0-preview2")
-                                        )),
-                TestCode = testCode
-            };
+    //         // test.ExpectedDiagnostics is an empty collection.
 
-            // test.ExpectedDiagnostics is an empty collection.
+    //         await test.RunAsync();
+    //     }
 
-            await test.RunAsync();
-        }
+    //     [Fact]
+    //     public async Task ServiceBusTriggerAttribute_ValidCollectionBindingType_DiagnosticsNotExpected()
+    //     {
+    //         string testCode = @"
+    //             using System;
+    //             using Azure.Messaging.ServiceBus;
+    //             using Microsoft.Azure.Functions.Worker;
 
-        [Fact]
-        public async Task ServiceBusTriggerAttribute_ValidCollectionBindingType_DiagnosticsNotExpected()
-        {
-            string testCode = @"
-                using System;
-                using Azure.Messaging.ServiceBus;
-                using Microsoft.Azure.Functions.Worker;
+    //             namespace FunctionApp
+    //             {
+    //                 public static class SomeFunction
+    //                 {
+    //                     [Function(nameof(SomeFunction))]
+    //                     public static void Run([ServiceBusTrigger(""queue"", IsBatched = true)] ServiceBusReceivedMessage[] messages)
+    //                     {
+    //                     }
+    //                 }
+    //             }";
 
-                namespace FunctionApp
-                {
-                    public static class SomeFunction
-                    {
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([ServiceBusTrigger(""queue"", IsBatched = true)] ServiceBusReceivedMessage[] messages)
-                        {
-                        }
-                    }
-                }";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
+    //                                     ImmutableArray.Create(
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.10.0-preview2")
+    //                                     )),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
-                                        ImmutableArray.Create(
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.10.0-preview2")
-                                        )),
-                TestCode = testCode
-            };
+    //         // test.ExpectedDiagnostics is an empty collection.
 
-            // test.ExpectedDiagnostics is an empty collection.
+    //         await test.RunAsync();
+    //     }
 
-            await test.RunAsync();
-        }
+    //     [Theory]
+    //     [InlineData("TableClient")]
+    //     [InlineData("TableEntity")]
+    //     public async Task TableInputAttribute_ValidBindingTypes_DiagnosticsNotExpected(string supportedType)
+    //     {
+    //         string testCode = $@"
+    //             using System;
+    //             using Azure.Data.Tables;
+    //             using Microsoft.Azure.Functions.Worker;
+    //             using Microsoft.Azure.Functions.Worker.Http;
 
-        [Theory]
-        [InlineData("TableClient")]
-        [InlineData("TableEntity")]
-        public async Task TableInputAttribute_ValidBindingTypes_DiagnosticsNotExpected(string supportedType)
-        {
-            string testCode = $@"
-                using System;
-                using Azure.Data.Tables;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
+    //             namespace FunctionApp
+    //             {{
+    //                 public static class SomeFunction
+    //                 {{
+    //                     [Function(nameof(SomeFunction))]
+    //                     public static void Run([HttpTrigger(AuthorizationLevel.Anonymous, ""get"")] HttpRequestData req,
+    //                     [TableInput(""input"")] {supportedType} message)
+    //                     {{
+    //                     }}
+    //                 }}
 
-                namespace FunctionApp
-                {{
-                    public static class SomeFunction
-                    {{
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([HttpTrigger(AuthorizationLevel.Anonymous, ""get"")] HttpRequestData req,
-                        [TableInput(""input"")] {supportedType} message)
-                        {{
-                        }}
-                    }}
+    //                 public class ToDoItem
+    //                 {{
+    //                     public string Id {{ get; set; }}
+    //                     public string Description {{ get; set; }}
+    //                     public bool IsComplete {{ get; set; }}
+    //                 }}
+    //             }}";
 
-                    public class ToDoItem
-                    {{
-                        public string Id {{ get; set; }}
-                        public string Description {{ get; set; }}
-                        public bool IsComplete {{ get; set; }}
-                    }}
-                }}";
+    //         var test = new AnalyzerTest
+    //         {
+    //             ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
+    //                                     ImmutableArray.Create(
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.13"),
+    //                                         new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Tables", "1.2.0-preview1")
+    //                                     )),
+    //             TestCode = testCode
+    //         };
 
-            var test = new AnalyzerTest
-            {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(
-                                        ImmutableArray.Create(
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.13"),
-                                            new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Tables", "1.2.0-preview1")
-                                        )),
-                TestCode = testCode
-            };
+    //         // test.ExpectedDiagnostics is an empty collection.
 
-            // test.ExpectedDiagnostics is an empty collection.
-
-            await test.RunAsync();
-        }
+    //         await test.RunAsync();
+    //     }
     }
 }

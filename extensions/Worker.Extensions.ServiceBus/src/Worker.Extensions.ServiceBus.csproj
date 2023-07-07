@@ -26,7 +26,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <SharedReference Include="..\..\Worker.Extensions.Shared/Worker.Extensions.Shared.csproj" />
+    <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
 
 </Project>

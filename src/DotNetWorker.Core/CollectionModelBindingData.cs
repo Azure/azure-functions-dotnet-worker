@@ -9,8 +9,8 @@ namespace Microsoft.Azure.Functions.Worker.Core
     public abstract class CollectionModelBindingData
     {
         /// <summary>
-        /// Gets the array of ModelBindingData
+        /// Gets a ModelBindingData array
         /// </summary>
-        public abstract ModelBindingData[] ModelBindingDataArray { get; }
+        public abstract ModelBindingData[] ModelBindingData { get; }
     }
 }

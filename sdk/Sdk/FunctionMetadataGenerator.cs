@@ -837,11 +837,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 if (converterAdvertisesDeferredBindingSupport)
                 {
-                    bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+                    bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportedTargetTypeAttributeType, StringComparison.Ordinal));
 
                     if (!converterAdvertisesTypes)
                     {
-                        // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
+                        // If a converter advertises deferred binding but does not explicitly advertise any types then DeferredBinding will be supported for all the types
                         return true;
                     }
 
@@ -857,7 +857,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // Parse attributes advertised by converter
             foreach (CustomAttribute attribute in customAttributes)
             {
-                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedTargetTypeAttributeType, StringComparison.Ordinal))
                 {
                     foreach (CustomAttributeArgument element in attribute.ConstructorArguments)
                     {

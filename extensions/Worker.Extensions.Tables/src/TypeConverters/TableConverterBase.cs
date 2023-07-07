@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -23,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tableOptions = tableOptions ?? throw new ArgumentNullException(nameof(tableOptions));
         }
-        
+
         protected bool CanConvert(ConverterContext context)
         {
             if (context is null)
@@ -36,14 +35,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 return false;
             }
 
-            if (!(context.Source is ModelBindingData bindingData))
+            if (context.Source is not ModelBindingData bindingData)
             {
                 return false;
             }
 
             if (bindingData.Source is not Constants.TablesExtensionName)
             {
-                return false;
+                throw new InvalidBindingSourceException(bindingData.Source, Constants.TablesExtensionName);
             }
 
             return true;
@@ -56,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             return bindingData?.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>(),
-                _ => throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.")
+                _ => throw new InvalidContentTypeException(bindingData?.ContentType, Constants.JsonContentType)
             };
         }
 

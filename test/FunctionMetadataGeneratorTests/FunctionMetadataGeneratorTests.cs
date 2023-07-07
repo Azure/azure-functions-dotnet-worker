@@ -10,8 +10,8 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using Azure.Messaging.EventHubs;
 using Azure.Data.Tables;
+using Azure.Messaging.EventHubs;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues.Models;
@@ -454,7 +454,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.2.0-beta.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.2.0" },
             });
 
             var tableEntityFunction = functions.Single(p => p.Name == "TableEntityFunction");

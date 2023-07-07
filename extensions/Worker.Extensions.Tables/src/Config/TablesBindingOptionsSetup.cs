@@ -36,8 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
             if (!connectionSection.Exists())
             {
                 // Not found
-                throw new InvalidOperationException($"Tables connection configuration '{name}' does not exist. " +
-                                                    "Make sure that it is a defined App Setting.");
+                throw new InvalidOperationException($"Tables connection configuration '{name}' does not exist. Make sure that it is a defined App Setting.");
             }
 
             if (!string.IsNullOrWhiteSpace(connectionSection.Value))

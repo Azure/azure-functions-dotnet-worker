@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Timer <version>
 
-- <entry>
+- Add `BindingCapabilities` attribute to  TimerTrigger to express function-level retry capabilities. (#1457)

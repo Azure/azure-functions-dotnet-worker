@@ -1,5 +1,166 @@
 [
   {
+    "name": "TableClientFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableClientFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "table",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "TableEntityFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableEntityFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "items/{partitionKey}/{rowKey}",
+        "properties": {}
+      },
+      {
+        "name": "entity",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "partitionKey": "{partitionKey}",
+        "rowKey": "{rowKey}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "TableEntityCollectionFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableEntityCollectionFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "route": "items/{partitionKey}",
+        "properties": {}
+      },
+      {
+        "name": "entities",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "partitionKey": "{partitionKey}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "TableEntityWithFilterFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TableEntityWithFilterFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "entities",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "partitionKey": "PartitionKey",
+        "take": 2,
+        "filter": "RowKey ne \u0027value\u0027",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "TablePocoFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "WorkerBindingSamples.Table.TableSamples.TablePocoFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "entities",
+        "direction": "In",
+        "type": "table",
+        "tableName": "TableName",
+        "properties": {}
+      }
+    ]
+  },
+  {
     "name": "BlobInputContainerClientFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputContainerClientFunction",

@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             public const string EmulatorConnectionString = "UseDevelopmentStorage=true";
             public const string TablesConnectionStringSetting = EmulatorConnectionString;
-            public const string TableName = "TableName";
+            public const string TableName = "TestTable";
         }
     }
 }

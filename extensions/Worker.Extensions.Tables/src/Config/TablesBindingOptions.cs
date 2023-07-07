@@ -17,25 +17,25 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
 
         public TableClientOptions? TableClientOptions { get; set; }
 
-        private TableServiceClient? TableServiceClient;
+        internal TableServiceClient? Client;
 
         internal virtual TableServiceClient CreateClient()
         {
-            if (ConnectionString is null && ServiceUri is null)
+            if (Client is not null)
             {
-                throw new ArgumentNullException(nameof(ConnectionString) + " " + nameof(ServiceUri));
+                return Client;
             }
 
-            if (TableServiceClient is not null)
+            if (ServiceUri is not null && Credential is not null)
             {
-                return TableServiceClient;
+                Client = new TableServiceClient(ServiceUri, Credential, TableClientOptions);
+            }
+            else
+            {
+                Client = new TableServiceClient(ConnectionString, TableClientOptions);
             }
 
-            TableServiceClient = !string.IsNullOrEmpty(ConnectionString)
-                ? new TableServiceClient(ConnectionString, TableClientOptions) // Connection string based auth;
-                : new TableServiceClient(ServiceUri, Credential, TableClientOptions); // AAD auth
-
-            return TableServiceClient;
+            return Client;
         }
     }
 }

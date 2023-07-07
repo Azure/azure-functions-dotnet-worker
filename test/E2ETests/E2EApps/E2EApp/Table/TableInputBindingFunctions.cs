@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function(nameof(TableClientFunction))]
         public async Task<HttpResponseData> TableClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-            [TableInput("TableName")] TableClient table)
+            [TableInput("TestTable")] TableClient table)
         {
             var tableEntity = table.QueryAsync<TableEntity>();
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -39,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function(nameof(ReadTableDataFunction))]
         public async Task<HttpResponseData> ReadTableDataFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunction/items/{partitionKey}/{rowKey}")] HttpRequestData req,
-            [TableInput("TableName", "{partitionKey}", "{rowKey}")] TableEntity table)
+            [TableInput("TestTable", "{partitionKey}", "{rowKey}")] TableEntity table)
         {
             table.TryGetValue("Text", out var text);
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
-            [TableInput("TableName", "{partition}", 2, Filter = "RowKey ne '" + "{rowKey}'")] IEnumerable<TableEntity> table)
+            [TableInput("TestTable", "{partition}", 2, Filter = "RowKey ne '" + "{rowKey}'")] IEnumerable<TableEntity> table)
         {
             List<string> tableList = new();
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -69,7 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function(nameof(EnumerableFunction))]
         public async Task<HttpResponseData> EnumerableFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "EnumerableFunction/items/{partitionKey}")] HttpRequestData req,
-            [TableInput("TableName", "{partitionKey}")] IEnumerable<TableEntity> tables)
+            [TableInput("TestTable", "{partitionKey}")] IEnumerable<TableEntity> tables)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             List<string> tableList = new();
@@ -88,7 +88,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
         [Function("DoesNotSupportDeferredBinding")]
         public static void TableInput(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
-            [TableInput("MyTable", "MyPartition", "yo")] MyPoco poco,
+            [TableInput("TestTable", "MyPartition", "yo")] MyPoco poco,
             ILogger log)
         {
             log.LogInformation($"PK={poco.PartitionKey}, RK={poco.RowKey}, Text={poco.Text}");

@@ -12,7 +12,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.WorkerExtension.Tests
+namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
 {
     public class ServiceBusReceivedMessageConverterTests
     {
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage;
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected content-type 'application/json'. Only 'application/octet-stream' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage[];
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected content-type 'application/json'. Only 'application/octet-stream' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage;
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected binding source 'some-other-source'. Only 'AzureServiceBusReceivedMessage' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage[];
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected binding source 'some-other-source'. Only 'AzureServiceBusReceivedMessage' is supported.", result.Error.Message);
         }
 
         private static void AssertReceivedMessage(ServiceBusReceivedMessage output, Guid lockToken)

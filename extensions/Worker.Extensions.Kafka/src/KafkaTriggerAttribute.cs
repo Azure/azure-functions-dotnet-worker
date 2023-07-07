@@ -107,7 +107,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Lag threshold
         /// Default: 1000
         /// </summary>
-        public long LagThreshold { get => lagThreshold.GetValueOrDefault(1000L); set => lagThreshold = value; }
+        public long LagThreshold { get; set; } = 1000;
 
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".

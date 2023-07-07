@@ -134,7 +134,6 @@ namespace SampleApp
             return req.CreateResponse(HttpStatusCode.OK);
         }
 
-
         [Function(nameof(BlobInputBytesArrayFunction))]
         public HttpResponseData BlobInputBytesArrayFunction(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,

@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(true)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(EventGridCloudEventConverter))]
     [InputConverter(typeof(EventGridEventConverter))]
     [InputConverter(typeof(EventGridBinaryDataConverter))]

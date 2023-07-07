@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Attribute used to configure a parameter as the input target for the Azure Storage Tables binding.
     /// </summary>
-    [AllowConverterFallback(true)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(TableClientConverter))]
     [InputConverter(typeof(TableEntityConverter))]
     [InputConverter(typeof(TableEntityEnumerableConverter))]

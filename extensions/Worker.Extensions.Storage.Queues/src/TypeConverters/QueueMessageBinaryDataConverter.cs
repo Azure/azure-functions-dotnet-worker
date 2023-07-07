@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// Converter to bind to <see cref="BinaryData" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(BinaryData))]
+    [SupportedTargetType(typeof(BinaryData))]
     internal sealed class QueueMessageBinaryDataConverter : QueueConverterBase<BinaryData>
     {
         public QueueMessageBinaryDataConverter() : base()

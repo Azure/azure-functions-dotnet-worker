@@ -12,8 +12,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     /// <summary>
     /// Converter to bind to <see cref="BinaryData" /> or <see cref="BinaryData[]" /> type parameters.
     /// </summary>
-    [SupportedConverterType(typeof(BinaryData))]
-    [SupportedConverterType(typeof(BinaryData[]))]
+    [SupportedTargetType(typeof(BinaryData))]
+    [SupportedTargetType(typeof(BinaryData[]))]
     internal class EventGridBinaryDataConverter : EventGridConverterBase
     {
         protected override ConversionResult ConvertCore(Type targetType, string json)

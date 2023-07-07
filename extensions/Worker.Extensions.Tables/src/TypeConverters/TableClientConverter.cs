@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     /// Converter to bind <see cref="TableClient" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(TableClient))]
+    [SupportedTargetType(typeof(TableClient))]
     internal class TableClientConverter: TableConverterBase<TableClient>
     {
         public TableClientConverter(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableClientConverter> logger)

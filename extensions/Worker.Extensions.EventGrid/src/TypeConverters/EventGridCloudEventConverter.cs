@@ -11,8 +11,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     /// <summary>
     /// Converter to bind to <see cref="CloudEvent" /> or <see cref="CloudEvent[]" /> type parameters.
     /// </summary>
-    [SupportedConverterType(typeof(CloudEvent))]
-    [SupportedConverterType(typeof(CloudEvent[]))]
+    [SupportedTargetType(typeof(CloudEvent))]
+    [SupportedTargetType(typeof(CloudEvent[]))]
     internal class EventGridCloudEventConverter: EventGridConverterBase
     {
         protected override ConversionResult ConvertCore(Type targetType, string json)

@@ -39,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string FixedDelayRetryAttribute = "Microsoft.Azure.Functions.Worker.FixedDelayRetryAttribute";
             internal const string ExponentialBackoffRetryAttribute = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
             internal const string InputConverterAttributeType = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
-            internal const string SupportedConverterTypeAttributeType = "Microsoft.Azure.Functions.Worker.Converters.SupportedConverterTypeAttribute";
+            internal const string SupportedTargetTypeAttributeType = "Microsoft.Azure.Functions.Worker.Converters.SupportedTargetTypeAttribute";
             internal const string SupportsDeferredBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
 
             // System types

@@ -13,8 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             public const string InputBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.InputBindingAttribute";
             public const string TriggerBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.TriggerBindingAttribute";
             public const string InputConverterAttribute = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
-            public const string AllowConverterFallbackAttribute = "Microsoft.Azure.Functions.Worker.Converters.AllowConverterFallbackAttribute";
-            public const string SupportedConverterTypeAttribute = "Microsoft.Azure.Functions.Worker.Converters.SupportedConverterTypeAttribute";
+            public const string ConverterFallbackBehaviorAttribute = "Microsoft.Azure.Functions.Worker.Converters.ConverterFallbackBehaviorAttribute";
+            public const string SupportedTargetTypeAttribute = "Microsoft.Azure.Functions.Worker.Converters.SupportedTargetTypeAttribute";
 
             // System types
             internal const string TaskType = "System.Threading.Tasks.Task";

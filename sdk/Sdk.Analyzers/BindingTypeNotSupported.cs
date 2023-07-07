@@ -59,11 +59,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 {
                     continue;
                 }
-
-                var allowConverterFallbackParameterValue = GetAllowConverterFallbackParameterValue(context, attributeType);
-                if (allowConverterFallbackParameterValue is bool allowFallback && allowFallback)
+//[ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
+                var converterFallbackBehaviorParameterValue = GetConverterFallbackBehaviorParameterValue(context, attributeType);
+                if (converterFallbackBehaviorParameterValue == ConverterFallbackBehavior.Allow)
                 {
-                    // If allowConverterFallback is true, we don't need to check for supported types
+                    // If the ConverterFallbackBehavior is Allow, we don't need to check for supported types
                     // because we don't know all of the types that are supported via the fallback
                     continue;
                 }
@@ -78,11 +78,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
         }
 
-        private static object GetAllowConverterFallbackParameterValue(SymbolAnalysisContext context, ITypeSymbol attributeType)
+        private static object GetConverterFallbackBehaviorParameterValue(SymbolAnalysisContext context, ITypeSymbol attributeType)
         {
-            var allowConverterFallbackAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.AllowConverterFallbackAttribute);
-            var allowConverterFallbackAttribute = attributeType.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, allowConverterFallbackAttributeType));
-            return allowConverterFallbackAttribute.ConstructorArguments.FirstOrDefault().Value;
+            var converterFallbackBehaviorAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.ConverterFallbackBehaviorAttribute);
+            var converterFallbackBehaviorAttribute = attributeType.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, converterFallbackBehaviorAttributeType));
+            return converterFallbackBehaviorAttribute.ConstructorArguments.FirstOrDefault().Value;
         }
 
         private static List<object> GetSupportedTypes(SymbolAnalysisContext context, List<AttributeData> inputConverterAttributes)
@@ -96,16 +96,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
                 var converterAttributes = converter.GetAttributes();
 
-                var supportedConverterTypeAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttribute);
-                var converterHasSupportedTypeAttribute = converterAttributes.Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedConverterTypeAttributeType));
+                var supportedTargetTypeAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.SupportedTargetTypeAttribute);
+                var converterHasSupportedTypeAttribute = converterAttributes.Any(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedTargetTypeAttributeType));
                 if (!converterHasSupportedTypeAttribute)
                 {
-                    // If a converter does not have the `SupportedConverterTypeAttribute`, we don't need to check for supported types
+                    // If a converter does not have the `SupportedTargetTypeAttribute`, we don't need to check for supported types
                     continue;
                 }
 
                 supportedTypes.AddRange(converterAttributes
-                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedConverterTypeAttributeType))
+                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedTargetTypeAttributeType))
                     .SelectMany(a => a.ConstructorArguments.Select(arg => arg.Value))
                     .ToList());
             }

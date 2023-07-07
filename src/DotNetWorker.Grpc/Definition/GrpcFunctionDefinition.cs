@@ -111,7 +111,6 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             // The dictionary has key of type IInputConverter and value as List of Types supported by the converter.
             var converterTypesDictionary = new Dictionary<Type, List<Type>>();
 
-
             Type type = bindingAttribute.GetType();
             var attributes = type.GetCustomAttributes<InputConverterAttribute>();
 
@@ -131,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             if (isInputConverterAttributeAdvertised)
             {
-                output[PropertyBagKeys.AllowConverterFallback] = type.GetCustomAttribute<AllowConverterFallbackAttribute>()?.AllowConverterFallback ?? true;
+                output[PropertyBagKeys.ConverterFallbackBehavior] = type.GetCustomAttribute<ConverterFallbackBehaviorAttribute>()?.Behavior ?? ConverterFallbackBehavior.Default;
             }
 
             return output.ToImmutableDictionary();
@@ -143,7 +142,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             foreach (CustomAttributeData converterAttribute in converter.CustomAttributes)
             {
-                if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
+                if (converterAttribute.AttributeType == typeof(SupportedTargetTypeAttribute))
                 {
                     foreach (CustomAttributeTypedArgument supportedType in converterAttribute.ConstructorArguments)
                     {

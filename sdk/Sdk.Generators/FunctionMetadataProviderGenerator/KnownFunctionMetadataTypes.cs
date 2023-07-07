@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _fixedDelayRetryAttribute;
         private readonly Lazy<INamedTypeSymbol?> _exponentialBackoffRetryAttribute;
         private readonly Lazy<INamedTypeSymbol?> _inputConverterAttributeType;
-        private readonly Lazy<INamedTypeSymbol?> _supportedConverterTypeAttributeType;
+        private readonly Lazy<INamedTypeSymbol?> _supportedTargetTypeAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
 
         internal KnownFunctionMetadataTypes(Compilation compilation)
@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _fixedDelayRetryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.FixedDelayRetryAttribute));
             _exponentialBackoffRetryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.ExponentialBackoffRetryAttribute));
             _inputConverterAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttributeType));
-            _supportedConverterTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttributeType));
+            _supportedTargetTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedTargetTypeAttributeType));
             _supportsDeferredBindingAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportsDeferredBindingAttributeType));
         }
 
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public INamedTypeSymbol? InputConverterAttributeType { get => _inputConverterAttributeType.Value; }
 
-        public INamedTypeSymbol? SupportedConverterTypeAttributeType { get => _supportedConverterTypeAttributeType.Value; }
+        public INamedTypeSymbol? SupportedTargetTypeAttributeType { get => _supportedTargetTypeAttributeType.Value; }
 
         public INamedTypeSymbol? SupportsDeferredBindingAttributeType { get => _supportsDeferredBindingAttributeType.Value; }
     }

@@ -72,25 +72,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     {
                         var properties = new Dictionary<string, object>();
 
-                        // Pass info about specific input converter type defined for this parameter, if present.
-                        if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
-                        {
-                            properties.Add(PropertyBagKeys.ConverterType, converterTypeAssemblyFullName);
-                        }
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterType);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterFallbackBehavior);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttributeSupportedConverters);
 
-                        // Pass info about the flag to allow fallback to default converters defined for this parameter, if present.
-                        if (param.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var flag))
-                        {
-                            properties.Add(PropertyBagKeys.AllowConverterFallback, flag);
-                        }
-
-                        // Pass info about input converter types defined for this parameter, if present.
-                        if (param.Properties.TryGetValue(PropertyBagKeys.BindingAttributeSupportedConverters, out var converters))
-                        {
-                            properties.Add(PropertyBagKeys.BindingAttributeSupportedConverters, converters);
-                        }
-
-                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0 
+                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0
                                              ? properties.ToImmutableDictionary()
                                              : ImmutableDictionary<string, object>.Empty);
 
@@ -126,6 +112,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             finally
             {
                 _semaphoreSlim.Release();
+            }
+        }
+
+        private void AddFunctionParameterPropertyIfPresent(IDictionary<string, object> properties, FunctionParameter param, string key)
+        {
+            if (param.Properties.TryGetValue(key, out object val))
+            {
+                properties.Add(key, val);
             }
         }
 

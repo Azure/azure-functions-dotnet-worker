@@ -380,7 +380,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (converterAdvertisesDeferredBindingSupport)
                     {
                         bool converterAdvertisesTypes = converterAdvertisedAttributes.Any(
-                            a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.SupportedConverterTypeAttributeType));
+                            a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.SupportedTargetTypeAttributeType));
 
                         if (!converterAdvertisesTypes)
                         {
@@ -399,7 +399,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 foreach (AttributeData attribute in converterAdvertisedAttributes)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.SupportedConverterTypeAttributeType))
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.SupportedTargetTypeAttributeType))
                     {
                         foreach (var element in attribute.ConstructorArguments)
                         {

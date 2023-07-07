@@ -191,11 +191,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// </summary>
         private bool IsConverterFallbackAllowed(ConverterContext context)
         {
-            if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var result))
+            if (context.Properties.TryGetValue(PropertyBagKeys.ConverterFallbackBehavior, out var result))
             {
-                if (result is not null && result is bool res)
+                if (result is not null && result is ConverterFallbackBehavior fallbackBehavior)
                 {
-                    return res;
+                    return fallbackBehavior != ConverterFallbackBehavior.Disallow;
                 }
             }
 

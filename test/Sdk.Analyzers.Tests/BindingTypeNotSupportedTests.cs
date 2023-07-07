@@ -22,15 +22,15 @@ namespace Sdk.Analyzers.Tests
 
                 namespace Microsoft.Azure.Functions.Worker
                 {
-                    [AllowConverterFallback(false)]
+                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
                     [InputConverter(typeof(TestConverter))]
                     public class TestTriggerAttribute : TriggerBindingAttribute
                     {
                     }
 
                     [SupportsDeferredBinding]
-                    [SupportedConverterType(typeof(string))]
-                    [SupportedConverterType(typeof(bool))]
+                    [SupportedTargetType(typeof(string))]
+                    [SupportedTargetType(typeof(bool))]
                     public class TestConverter
                     {
                     }
@@ -71,14 +71,14 @@ namespace Sdk.Analyzers.Tests
 
                 namespace Microsoft.Azure.Functions.Worker
                 {
-                    [AllowConverterFallback(false)]
+                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Allow)]
                     [InputConverter(typeof(TestConverter))]
                     public class TestTriggerAttribute : TriggerBindingAttribute
                     {
                     }
 
-                    [SupportedConverterType(typeof(string))]
-                    [SupportedConverterType(typeof(bool))]
+                    [SupportedTargetType(typeof(string))]
+                    [SupportedTargetType(typeof(bool))]
                     public class TestConverter
                     {
                     }
@@ -119,15 +119,15 @@ namespace Sdk.Analyzers.Tests
 
                 namespace Microsoft.Azure.Functions.Worker
                 {
-                    [AllowConverterFallback(false)]
+                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
                     [InputConverter(typeof(TestConverter))]
                     public class TestTriggerAttribute : TriggerBindingAttribute
                     {
                     }
 
                     [SupportsDeferredBinding]
-                    [SupportedConverterType(typeof(string))]
-                    [SupportedConverterType(typeof(bool))]
+                    [SupportedTargetType(typeof(string))]
+                    [SupportedTargetType(typeof(bool))]
                     public class TestConverter
                     {
                     }
@@ -158,8 +158,8 @@ namespace Sdk.Analyzers.Tests
         }
 
         /*  The following tests use real binding attributes from extensions.
-            We don't currently have a real binding that has SupportedConverterType
-            and has AllowConverterFallback set to false. */
+            We don't currently have a real binding that has SupportedTargetType
+            and has ConverterFallbackBehavior set to 'disallow'. */
 
         [Theory]
         [InlineData("ToDoItem")]

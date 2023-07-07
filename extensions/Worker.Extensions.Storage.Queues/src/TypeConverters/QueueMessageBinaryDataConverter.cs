@@ -6,11 +6,15 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Storage.Queues;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Converter to bind to <see cref="BinaryData" /> type parameters.
+    /// </summary>
     [SupportsDeferredBinding]
     [SupportedConverterType(typeof(BinaryData))]
     internal sealed class QueueMessageBinaryDataConverter : QueueConverterBase<BinaryData>
@@ -29,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             if (modelBindingData.ContentType is not Constants.JsonContentType)
             {
-                throw new NotSupportedException($"Unexpected content-type. Currently only '{Constants.JsonContentType}' is supported.");
+                throw new InvalidContentTypeException(Constants.JsonContentType);
             }
 
             using var contentStream = modelBindingData.Content.ToStream();

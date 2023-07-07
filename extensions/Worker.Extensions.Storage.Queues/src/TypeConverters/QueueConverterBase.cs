@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Storage.Queues;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -37,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (bindingData.Source is not Constants.QueueExtensionName)
             {
-                return false;
+                throw new InvalidBindingSourceException(Constants.QueueExtensionName);
             }
 
             return true;
@@ -45,13 +46,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
-            if (!CanConvert(context))
-            {
-                return (ConversionResult.Unhandled());
-            }
-
             try
             {
+                if (!CanConvert(context))
+                {
+                    return ConversionResult.Unhandled();
+                }
+
                 var modelBindingData = (ModelBindingData)context.Source!;
                 var result = await ConvertCoreAsync(modelBindingData);
                 return ConversionResult.Success(result);

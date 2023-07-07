@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                 foreach (var converterType in advertisedConverterTypes)
                 {
                     if (IsTargetTypeSupportedByConverter(converterType.Value, converterContext.TargetType))
-                    { 
+                    {
                         var conversionResult = await ConvertAsyncUsingConverter(converterType.Key, converterContext);
 
                         if (conversionResult.Status != ConversionStatus.Unhandled)
@@ -191,11 +191,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         /// </summary>
         private bool IsConverterFallbackAllowed(ConverterContext context)
         {
-            if (context.Properties.TryGetValue(PropertyBagKeys.AllowConverterFallback, out var result))
+            if (context.Properties.TryGetValue(PropertyBagKeys.ConverterFallbackBehavior, out var result))
             {
-                if (result is not null && result is bool res)
+                if (result is not null && result is ConverterFallbackBehavior fallbackBehavior)
                 {
-                    return res;
+                    return fallbackBehavior == ConverterFallbackBehavior.Disallow ? false : true;
                 }
             }
 

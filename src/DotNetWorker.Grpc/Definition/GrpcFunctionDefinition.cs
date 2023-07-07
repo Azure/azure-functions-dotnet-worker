@@ -136,7 +136,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             if (isInputConverterAttributeAdvertised)
             {
-                output[PropertyBagKeys.AllowConverterFallback] = type.GetCustomAttribute<AllowConverterFallbackAttribute>()?.AllowConverterFallback ?? true;
+                output[PropertyBagKeys.ConverterFallbackBehavior] =  type.GetCustomAttribute<ConverterFallbackBehaviorAttribute>()?.Behavior ?? ConverterFallbackBehavior.Default;
             }
 
             return output.ToImmutableDictionary();
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
 
             foreach (CustomAttributeData converterAttribute in converter.CustomAttributes)
             {
-                if (converterAttribute.AttributeType == typeof(SupportedConverterTypeAttribute))
+                if (converterAttribute.AttributeType == typeof(SupportedTargetTypeAttribute))
                 {
                     foreach (CustomAttributeTypedArgument supportedType in converterAttribute.ConstructorArguments)
                     {

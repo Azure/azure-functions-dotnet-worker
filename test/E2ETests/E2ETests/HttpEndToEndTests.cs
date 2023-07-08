@@ -69,7 +69,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.Equal(expectedBody, responseBody);
         }
 
-
         [Fact]
         public async Task HttpTriggerTests_PocoWithoutBindingSource()
         {

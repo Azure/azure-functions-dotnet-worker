@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 namespace Microsoft.Azure.Functions.Worker.Http
 {
     /// <summary>
-    /// Specifies that a parameter should be bound using the request body.
+    /// Specifies that a parameter should be bound using the HTTP request body when using the <see cref="HttpTriggerAttribute"/>.
     /// </summary>
     public class FromBodyAttribute : InputConverterAttribute
     {

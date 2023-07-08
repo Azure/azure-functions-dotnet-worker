@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
         [Function(nameof(HelloWithNoResponse))]
         public static Task HelloWithNoResponse(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)][FromBody] HttpRequestData req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = null)] HttpRequestData req,
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(HelloWithNoResponse));

@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.Converters
         /// </summary>
         /// <param name="context">The <see cref="FunctionContext"/> for the invocation.</param>
         /// <param name="targetType">The target type for the conversion.</param>
-        /// <returns>A <see cref="ValueTask{TResult}"/> that completes when the converson is finished.</returns>
+        /// <returns>A <see cref="ValueTask{TResult}"/> that completes when the conversion is finished.</returns>
         ValueTask<object?> ConvertAsync(FunctionContext context, Type targetType);
     }
 }

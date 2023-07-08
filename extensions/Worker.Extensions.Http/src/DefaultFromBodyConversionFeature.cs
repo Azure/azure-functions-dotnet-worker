@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
 {
     internal class DefaultFromBodyConversionFeature : IFromBodyConversionFeature
     {
-        public static IFromBodyConversionFeature Instance { get; } = new DefaultFromBodyConversionFeature();
+        internal static IFromBodyConversionFeature Instance { get; } = new DefaultFromBodyConversionFeature();
 
         public ValueTask<object?> ConvertAsync(FunctionContext context, Type targetType)
         {

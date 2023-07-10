@@ -18,18 +18,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     {
         protected override ConversionResult ConvertCore(Type targetType, string json)
         {
-            object result = targetType switch
+            ConversionResult result = targetType switch
             {
-                Type t when t == typeof(BinaryData) => BinaryData.FromString(json),
-                Type t when t == typeof(BinaryData[]) => () =>
-                {
-                    var data = JsonSerializer.Deserialize<List<object>>(json);
-                    return data.Select(item => BinaryData.FromString(item.ToString())).ToArray();
-                },
+                Type t when t == typeof(BinaryData) => ConversionResult.Success(BinaryData.FromString(json)),
+                Type t when t == typeof(BinaryData[]) => ConversionResult.Success(ConvertToBinaryDataArray(json)),
                 _ => ConversionResult.Unhandled()
             };
 
-            return ConversionResult.Success(result);
+            return result;
+        }
+
+        private BinaryData[] ConvertToBinaryDataArray(string json)
+        {
+            var data = JsonSerializer.Deserialize<List<object>>(json);
+            return data.Select(item => BinaryData.FromString(item.ToString())).ToArray();
         }
     }
 }

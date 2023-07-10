@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)

@@ -7,7 +7,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         internal const string ConverterType = "converterType";
         internal const string BindingAttribute = "bindingAttribute";
-        internal const string AllowConverterFallback = "allowConverterFallback";
+        internal const string ConverterFallbackBehavior = "converterFallbackBehavior";
         internal const string BindingAttributeSupportedConverters = "bindingAttributeSupportedConverters";
     }
 }

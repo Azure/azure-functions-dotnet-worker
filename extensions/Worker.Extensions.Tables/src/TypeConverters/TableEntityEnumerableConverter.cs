@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     /// Converter to bind <see cref="IEnumerable{T}" /> of type <see cref="TableEntity"/> parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(IEnumerable<TableEntity>))]
+    [SupportedTargetType(typeof(IEnumerable<TableEntity>))]
     internal class TableEntityEnumerableConverter : TableConverterBase<IEnumerable<TableEntity>>
     {
         public TableEntityEnumerableConverter(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableEntityEnumerableConverter> logger)

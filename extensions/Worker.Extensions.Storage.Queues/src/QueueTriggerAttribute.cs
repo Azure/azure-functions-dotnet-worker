@@ -7,7 +7,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(true)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(QueueMessageConverter))]
     [InputConverter(typeof(QueueMessageBinaryDataConverter))]
     public sealed class QueueTriggerAttribute : TriggerBindingAttribute

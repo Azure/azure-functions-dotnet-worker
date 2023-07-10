@@ -15,11 +15,11 @@ using Microsoft.Azure.Functions.Worker.Extensions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind to <see cref="EventData" /> or <see cref="EventData[]" /> type parameters.
+    /// Converter to bind to <see cref="EventData" /> or <see cref="EventData[]" />  type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(EventData))]
-    [SupportedConverterType(typeof(EventData[]))]
+    [SupportedTargetType(typeof(EventData))]
+    [SupportedTargetType(typeof(EventData[]))]
     internal class EventDataConverter : IInputConverter
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     ModelBindingData binding => ConversionResult.Success(ConvertToEventData(binding)),
                     // Only array collections are currently supported, which matches the behavior of the in-proc extension.
-                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray
+                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingData
                         .Select(ConvertToEventData).ToArray()),
                     _ => ConversionResult.Unhandled()
                 };

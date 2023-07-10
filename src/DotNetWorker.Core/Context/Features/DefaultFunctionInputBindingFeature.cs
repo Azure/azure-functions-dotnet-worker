@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         var properties = new Dictionary<string, object>();
 
                         AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterType);
-                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.AllowConverterFallback);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterFallbackBehavior);
                         AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttributeSupportedConverters);
                         AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttribute);
 

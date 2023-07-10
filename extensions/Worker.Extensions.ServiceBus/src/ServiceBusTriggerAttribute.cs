@@ -8,7 +8,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(true)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(ServiceBusReceivedMessageConverter))]
     public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {

@@ -381,11 +381,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     if (converterAdvertisesDeferredBindingSupport)
                     {
                         bool converterAdvertisesTypes = converterAdvertisedAttributes.Any(
-                            a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.SupportedConverterTypeAttributeType));
+                            a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, _knownFunctionMetadataTypes.SupportedTargetTypeAttributeType));
 
                         if (!converterAdvertisesTypes)
                         {
-                            // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
+                            // If a converter advertises deferred binding but does not explicitly advertise any types then DeferredBinding will be supported for all the types
                             return true;
                         }
 
@@ -400,7 +400,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 foreach (AttributeData attribute in converterAdvertisedAttributes)
                 {
-                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.SupportedConverterTypeAttributeType))
+                    if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass, _knownFunctionMetadataTypes.SupportedTargetTypeAttributeType))
                     {
                         foreach (var element in attribute.ConstructorArguments)
                         {

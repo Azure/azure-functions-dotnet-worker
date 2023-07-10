@@ -74,13 +74,13 @@ namespace Microsoft.Azure.Functions.Worker
                 ? context.TargetType.GetElementType()
                 : context.TargetType.GenericTypeArguments[0];
 
-            IList result = Array.CreateInstance(elementType, collectionModelBindingData.ModelBindingDataArray.Length);
+            IList result = Array.CreateInstance(elementType, collectionModelBindingData.ModelBindingData.Length);
 
             try
             {
-                for (var i = 0; i < collectionModelBindingData.ModelBindingDataArray.Length; i++)
+                for (var i = 0; i < collectionModelBindingData.ModelBindingData.Length; i++)
                 {
-                    var modelBindingData = collectionModelBindingData.ModelBindingDataArray[i];
+                    var modelBindingData = collectionModelBindingData.ModelBindingData[i];
 
                     if (modelBindingData.Source is not Constants.BlobExtensionName)
                     {

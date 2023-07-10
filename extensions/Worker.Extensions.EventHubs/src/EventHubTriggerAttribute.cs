@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// Attribute used to mark a function that should be triggered by Event Hubs messages.
     /// </summary>
     [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
-    [AllowConverterFallback(true)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(EventDataConverter))]
     public sealed class EventHubTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {

@@ -829,7 +829,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var typeReferenceValue = customAttribute.Value as TypeReference;
             var typeReferenceCustomAttributes = typeReferenceValue?.Resolve().CustomAttributes;
-            
+
             // Attributes advertised by converter
             if (typeReferenceCustomAttributes is not null)
             {
@@ -837,7 +837,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
                 if (converterAdvertisesDeferredBindingSupport)
                 {
-                    bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal));
+                    bool converterAdvertisesTypes = typeReferenceCustomAttributes.Any(a => string.Equals(a.AttributeType.FullName, Constants.SupportedTargetTypeAttributeType, StringComparison.Ordinal));
 
                     if (!converterAdvertisesTypes)
                     {
@@ -857,7 +857,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // Parse attributes advertised by converter
             foreach (CustomAttribute attribute in customAttributes)
             {
-                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedConverterTypeAttributeType, StringComparison.Ordinal))
+                if (string.Equals(attribute.AttributeType.FullName, Constants.SupportedTargetTypeAttributeType, StringComparison.Ordinal))
                 {
                     foreach (CustomAttributeArgument element in attribute.ConstructorArguments)
                     {
@@ -868,7 +868,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                             if (supportedType is not null && string.Equals(supportedType.FullName, bindingType.FullName, StringComparison.Ordinal))
                             {
                                 return true;
-                            }         
+                            }
                         }
                     }
                 }

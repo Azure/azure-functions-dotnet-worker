@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
     /// <summary>
     /// Converter to bind to <see cref="string[]" /> type parameters.
     /// </summary>
-    [SupportedConverterType(typeof(string[]))]
+    [SupportedTargetType(typeof(string[]))]
     internal class EventGridStringArrayConverter : EventGridConverterBase
     {
         protected override ConversionResult ConvertCore(Type targetType, string json)

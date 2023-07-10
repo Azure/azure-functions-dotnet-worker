@@ -18,8 +18,8 @@ namespace Microsoft.Azure.Functions.Worker
     /// Converter to bind to <see cref="ServiceBusReceivedMessage" /> or <see cref="ServiceBusReceivedMessage[]" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(ServiceBusReceivedMessage))]
-    [SupportedConverterType(typeof(ServiceBusReceivedMessage[]))]
+    [SupportedTargetType(typeof(ServiceBusReceivedMessage))]
+    [SupportedTargetType(typeof(ServiceBusReceivedMessage[]))]
     internal class ServiceBusReceivedMessageConverter : IInputConverter
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -30,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     ModelBindingData binding => ConversionResult.Success(ConvertToServiceBusReceivedMessage(binding)),
                     // Only array collections are currently supported, which matches the behavior of the in-proc extension.
-                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingDataArray
+                    CollectionModelBindingData collection => ConversionResult.Success(collection.ModelBindingData
                         .Select(ConvertToServiceBusReceivedMessage).ToArray()),
                     _ => ConversionResult.Unhandled()
                 };

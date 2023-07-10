@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     /// Converter to bind <see cref="TableEntity" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(TableEntity))]
+    [SupportedTargetType(typeof(TableEntity))]
     internal class TableEntityConverter : TableConverterBase<TableEntity>
     {
         public TableEntityConverter(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableEntityConverter> logger)

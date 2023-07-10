@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// Converter to bind to <see cref="QueueMessage" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    [SupportedConverterType(typeof(QueueMessage))]
+    [SupportedTargetType(typeof(QueueMessage))]
     internal sealed class QueueMessageConverter : QueueConverterBase<QueueMessage>
     {
         private readonly JsonSerializerOptions _jsonOptions;

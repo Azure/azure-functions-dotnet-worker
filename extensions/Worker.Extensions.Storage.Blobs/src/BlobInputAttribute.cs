@@ -6,7 +6,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(false)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(BlobStorageConverter))]
     public sealed class BlobInputAttribute : InputBindingAttribute
     {

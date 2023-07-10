@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (elementType == typeof(BlobContainerClient))
                 {
-                    throw new InvalidOperationException("Binding to BlobContainerClient collection is not supported.");
+                    throw new InvalidOperationException("Binding to a BlobContainerClient collection is not supported.");
                 }
 
                 if (typeof(BlobBaseClient).IsAssignableFrom(elementType) && !string.IsNullOrEmpty(blobData.BlobName) && BlobIsFileRegex.IsMatch(blobData.BlobName))
@@ -131,15 +131,15 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                if (string.IsNullOrEmpty(blobData.BlobName))
+                if (targetType == typeof(BlobContainerClient) && !string.IsNullOrEmpty(blobData.BlobName))
                 {
-                    throw new InvalidOperationException($"'{nameof(blobData.BlobName)}' cannot be null or empty when binding to a single blob.");
+                    throw new InvalidOperationException("Binding to a BlobContainerClient with a blob path is not supported. "
+                                                        + "Either bind to the container path, or use BlobClient instead.");
                 }
 
-                if (targetType == typeof(BlobContainerClient))
+                if (targetType != typeof(BlobContainerClient) && string.IsNullOrEmpty(blobData.BlobName))
                 {
-                    throw new InvalidOperationException("Binding to BlobContainerClient with a blob path is not supported. "
-                                                        + "Either bind to the container path, or use BlobClient instead.");
+                    throw new InvalidOperationException($"'{nameof(blobData.BlobName)}' cannot be null or empty when binding to a single blob.");
                 }
 
                 return await ToTargetTypeAsync(targetType, container, blobData.BlobName!);

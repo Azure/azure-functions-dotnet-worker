@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker
     public sealed class KafkaTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         private bool _isBatched = false;
-        private long? lagThreshold;
+
         /// <summary>
         /// Initialize a new instance of the <see cref="KafkaTriggerAttribute"/>
         /// </summary>
@@ -104,7 +104,10 @@ namespace Microsoft.Azure.Functions.Worker
         public string SslKeyPassword { get; set; }
 
         /// <summary>
-        /// Lag threshold
+        /// Maximum number of unprocessed messages a worker is expected to have at an instance.
+        /// When target-based scaling is not disabled, this is used to divide the 
+        /// total unprocessed event count to determine the number of worker instances, 
+        /// which will then be rounded up to a worker instance count that creates a balanced partition distribution.
         /// Default: 1000
         /// </summary>
         public long LagThreshold { get => lagThreshold.GetValueOrDefault(1000L); set => lagThreshold = value; }

@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             if (bindingData.Source is not Constants.TablesExtensionName)
             {
-                throw new InvalidContentTypeException(Constants.JsonContentType);
+                throw new InvalidBindingSourceException(Constants.TablesExtensionName);
             }
 
             return true;

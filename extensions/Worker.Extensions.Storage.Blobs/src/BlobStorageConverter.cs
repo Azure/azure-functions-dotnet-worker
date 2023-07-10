@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             catch (JsonException ex)
             {
-                string msg = String.Format(CultureInfo.CurrentCulture,
+                string msg = string.Format(CultureInfo.CurrentCulture,
                     @"Binding parameters to complex objects uses JSON serialization.
                     1. Bind the parameter type as 'string' instead to get the raw values and avoid JSON deserialization, or
                     2. Change the blob to be valid json.");
@@ -81,34 +81,62 @@ namespace Microsoft.Azure.Functions.Worker
 
         private BlobBindingData GetBindingDataContent(ModelBindingData bindingData)
         {
-            return bindingData?.ContentType switch
+            if (bindingData is null)
             {
-                Constants.JsonContentType => bindingData?.Content?.ToObjectFromJson<BlobBindingData>(),
+                throw new ArgumentNullException(nameof(bindingData));
+            }
+
+            return bindingData.ContentType switch
+            {
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<BlobBindingData>(),
                 _ => throw new InvalidContentTypeException(Constants.JsonContentType)
             };
         }
 
         private async Task<object?> ConvertModelBindingDataAsync(Type targetType, BlobBindingData blobData)
         {
+            if (blobData is null)
+            {
+                throw new ArgumentNullException(nameof(blobData));
+            }
+
             if (string.IsNullOrEmpty(blobData.Connection))
             {
-                throw new ArgumentNullException(nameof(blobData.Connection));
+                throw new InvalidOperationException($"'{nameof(blobData.Connection)}' cannot be null or empty.");
             }
 
             if (string.IsNullOrEmpty(blobData.ContainerName))
             {
-                throw new ArgumentNullException(nameof(blobData.ContainerName));
+                throw new InvalidOperationException($"'{nameof(blobData.ContainerName)}' cannot be null or empty.");
             }
 
             BlobContainerClient container = CreateBlobContainerClient(blobData.Connection!, blobData.ContainerName!);
 
             if (IsCollectionBinding(targetType, blobData.BlobName!))
             {
-                return await BindToCollectionAsync(targetType, container, blobData.BlobName!);
+                Type elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
+
+                if (elementType == typeof(BlobContainerClient))
+                {
+                    throw new InvalidOperationException("Binding to BlobContainerClient collection is not supported.");
+                }
+
+                if (typeof(BlobBaseClient).IsAssignableFrom(elementType) && !string.IsNullOrEmpty(blobData.BlobName) && BlobIsFileRegex.IsMatch(blobData.BlobName))
+                {
+                    throw new InvalidOperationException("Binding to a blob client collection with a blob path is not supported. "
+                                                        + "Either bind to the container path, or use BlobClient instead.");
+                }
+
+                return await BindToCollectionAsync(targetType, elementType, container, blobData.BlobName!);
             }
             else
             {
-                if (targetType == typeof(BlobContainerClient) && !string.IsNullOrEmpty(blobData.BlobName))
+                if (string.IsNullOrEmpty(blobData.BlobName))
+                {
+                    throw new InvalidOperationException($"'{nameof(blobData.BlobName)}' cannot be null or empty when binding to a single blob.");
+                }
+
+                if (targetType == typeof(BlobContainerClient))
                 {
                     throw new InvalidOperationException("Binding to BlobContainerClient with a blob path is not supported. "
                                                         + "Either bind to the container path, or use BlobClient instead.");
@@ -124,38 +152,31 @@ namespace Microsoft.Azure.Functions.Worker
         /// the blob name is either null or empty (meaning a container path is provided).
         /// If a blob name is provided, it must be a directory path (no file extension provided).
         /// </summary>
-        private bool IsCollectionBinding(Type type, string blobName)
+        private bool IsCollectionBinding(Type targetType, string blobName)
         {
-            if (type == typeof(string) || type == typeof(byte[]))
+            // Edge case: These two types should be treated as a single blob binding
+            // string implements IEnumerable<char> and byte[] would pass the IsArray check
+            if (targetType == typeof(string) || targetType == typeof(byte[]))
             {
                 return false;
             }
 
-            if (!(type.IsArray || typeof(IEnumerable).IsAssignableFrom(type)))
+            if (!(targetType.IsArray || typeof(IEnumerable).IsAssignableFrom(targetType)))
             {
                 return false;
-            }
-
-            if (string.IsNullOrEmpty(blobName))
-            {
-                return true;
-            }
-
-            if (BlobIsFileRegex.IsMatch(blobName))
-            {
-                throw new InvalidOperationException("Collections are not supported when binding to a specific blob file.");
             }
 
             return true;
         }
 
-        private async Task<object> BindToCollectionAsync(Type targetType, BlobContainerClient container, string blobPath)
+        private async Task<object> BindToCollectionAsync(Type targetType, Type elementType, BlobContainerClient container, string blobPath)
         {
-            Type elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
-
-            if (elementType == typeof(BlobContainerClient))
+            if (BlobIsFileRegex.IsMatch(blobPath))
             {
-                throw new InvalidOperationException("Collections of BlobContainerClient are not supported.");
+                // Binding is to a specific blob file, deserialize the content to target type
+                var deserializedResult = await DeserializeToTargetObjectAsync(targetType, container, blobPath);
+
+                return deserializedResult ?? throw new InvalidOperationException($"Could not deserialize blob '{blobPath}' to '{targetType}'.");
             }
 
             var resultType = typeof(List<>).MakeGenericType(elementType);
@@ -164,17 +185,13 @@ namespace Microsoft.Azure.Functions.Worker
             await foreach (BlobItem blobItem in container.GetBlobsAsync(prefix: blobPath).ConfigureAwait(false))
             {
                 var element = await ToTargetTypeAsync(elementType, container, blobItem.Name);
-
-                if (element is not null)
-                {
-                    result.Add(element);
-                }
+                result.Add(element);
             }
 
             if (targetType.IsArray)
             {
                 var arrayResult = Array.CreateInstance(elementType, result.Count);
-                ((IList)result).CopyTo(arrayResult, 0);
+                result.CopyTo(arrayResult, 0);
                 return arrayResult;
             }
 

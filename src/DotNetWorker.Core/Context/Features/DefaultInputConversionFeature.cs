@@ -195,7 +195,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             {
                 if (result is not null && result is ConverterFallbackBehavior fallbackBehavior)
                 {
-                    return fallbackBehavior == ConverterFallbackBehavior.Disallow ? false : true;
+                    return fallbackBehavior != ConverterFallbackBehavior.Disallow;
                 }
             }
 

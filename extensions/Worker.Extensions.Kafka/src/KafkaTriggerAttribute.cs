@@ -110,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// which will then be rounded up to a worker instance count that creates a balanced partition distribution.
         /// Default: 1000
         /// </summary>
-        public long LagThreshold { get => lagThreshold.GetValueOrDefault(1000L); set => lagThreshold = value; }
+        public long LagThreshold { get; set; } = 1000;
 
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".

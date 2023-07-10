@@ -9,7 +9,6 @@ using Google.Protobuf;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -264,21 +263,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
         }
 
-        [Fact] // Should we fail if the result is ever null?
-        public async Task ConvertAsync_ResultIsNull_ReturnsUnhandled()
-        {
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "CosmosDB");
-            var context = new TestConverterContext(typeof(Database), grpcModelBindingData);
-
-            _mockCosmosClient
-                .Setup(m => m.GetDatabase(It.IsAny<string>()))
-                .Returns<Database>(null);
-
-            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
-        }
-
         [Fact]
         public async Task ConvertAsync_ThrowsException_ReturnsFailure()
         {
@@ -320,14 +304,14 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ModelBindingDataSource_NotCosmosExtension_ReturnsUnhandled()
+        public async Task ConvertAsync_ModelBindingDataSource_NotCosmosExtension_ReturnsFailed()
         {
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "anotherExtensions");
             var context = new TestConverterContext(typeof(CosmosClient), grpcModelBindingData);
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
@@ -339,7 +323,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Unexpected content-type. Currently only 'application/json' is supported.", conversionResult.Error.Message);
+            Assert.Equal("Unexpected content-type. Only 'application/json' is supported.", conversionResult.Error.Message);
         }
 
         [Fact]

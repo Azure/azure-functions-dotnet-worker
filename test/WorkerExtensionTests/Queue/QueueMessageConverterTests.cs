@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ModelBindingDataSource_NotQueueStorageExtension_ReturnsUnhandled()
+        public async Task ConvertAsync_ModelBindingDataSource_NotQueueStorageExtension_ReturnsFailed()
         {
             var grpcModelBindingData = QueuesTestHelper.GetTestGrpcModelBindingData(source: "anotherExtensions");
             var context = new TestConverterContext(typeof(QueueMessage), grpcModelBindingData);
@@ -64,7 +64,8 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var queueMessageConverter = new QueueMessageConverter();
             var conversionResult = await queueMessageConverter.ConvertAsync(context);
 
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Unexpected binding source. Only 'AzureStorageQueues' is supported.", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -77,7 +78,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await queueMessageConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Unexpected content-type. Currently only 'application/json' is supported.", conversionResult.Error.Message);
+            Assert.Equal("Unexpected content-type. Only 'application/json' is supported.", conversionResult.Error.Message);
         }
     }
 }

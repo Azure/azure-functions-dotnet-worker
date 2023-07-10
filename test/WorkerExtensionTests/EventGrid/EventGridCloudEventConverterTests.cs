@@ -1,10 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Threading.Tasks;
 using Azure.Messaging;
-using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters;
@@ -21,35 +19,24 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         public EventGridCloudEventConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
-
             _eventGridConverter = new EventGridCloudEventConverter();
         }
 
         [Fact]
-        public async Task ConvertAsync_SourceAsObject_ReturnsFailed()
+        public async Task ConvertAsync_Source_IsNotAString_ReturnsFailed()
         {
             var context = new TestConverterContext(typeof(CloudEvent), new object());
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Context source must be a non-null string", conversionResult.Error.Message);
         }
 
         [Fact]
-        public async Task ConvertAsync_Returns_Success()
+        public async Task ConvertAsync_UnsupportedTargetType_ReturnsUnhandled()
         {
-            var context = new TestConverterContext(typeof(CloudEvent), "{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"lol test\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"some song\"}}");
-
-            var conversionResult = await _eventGridConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.True(conversionResult.Value is CloudEvent);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_Returns_Unhandled_For_Unsupported_Type()
-        {
-            var context = new TestConverterContext(typeof(string), "{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"lol test\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"some song\"}}");
+            var context = new TestConverterContext(typeof(string), "");
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
@@ -57,19 +44,32 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_SourceAsObject_CloudEventCollectible_ReturnsFailed()
+        public async Task ConvertAsync_InvalidJson_ThrowsJsonException_ReturnsFailed()
         {
-            var context = new TestConverterContext(typeof(CloudEvent[]), new object());
+            var context = new TestConverterContext(typeof(CloudEvent[]), @"{""invalid"" :json""}");
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Contains("Binding parameters to complex objects uses JSON serialization", conversionResult.Error.Message);
         }
 
         [Fact]
-        public async Task ConvertAsync_CloudEventCollectible_Returns_Success()
+        public async Task ConvertAsync_SingleCloudEvent_ReturnsSuccess()
         {
-            var context = new TestConverterContext(typeof(CloudEvent[]), "[{\"specversion\":\"1.0\",\"id\":\"b85d631a-101e-005a-02f2-cee7aa06f148\",\"type\":\"zohan.music.request\",\"source\":\"https://zohan.dev/music/\",\"subject\":\"zohan/music/requests/4322\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"Gerardo\",\"song\":\"Rico Suave\"}},{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"life is very lit\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"life is lit\"}}]");
+            var context = new TestConverterContext(typeof(CloudEvent), EventGridTestHelper.GetEventGridJsonData());
+
+            var conversionResult = await _eventGridConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.True(conversionResult.Value is CloudEvent);
+        }
+
+
+        [Fact]
+        public async Task ConvertAsync_CloudEventArray_ReturnsSuccess()
+        {
+            var context = new TestConverterContext(typeof(CloudEvent[]), EventGridTestHelper.GetEventGridJsonDataArray());
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
@@ -79,19 +79,9 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_CloudEventCollectible_Returns_Unhandled_For_Unsupported_Type()
+        public async Task ConvertAsync_CloudEventArray_SingleElement_ReturnsSuccess()
         {
-            var context = new TestConverterContext(typeof(string), "[{\"specversion\":\"1.0\",\"id\":\"b85d631a-101e-005a-02f2-cee7aa06f148\",\"type\":\"zohan.music.request\",\"source\":\"https://zohan.dev/music/\",\"subject\":\"zohan/music/requests/4322\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"Gerardo\",\"song\":\"Rico Suave\"}},{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"life is very lit\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"life is lit\"}}]");
-
-            var conversionResult = await _eventGridConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_SingleElement_Returns_Success()
-        {
-            var context = new TestConverterContext(typeof(CloudEvent[]), "[{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"lol test\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"some song\"}}]");
+            var context = new TestConverterContext(typeof(CloudEvent[]), $"[{EventGridTestHelper.GetEventGridJsonData()}]");
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 

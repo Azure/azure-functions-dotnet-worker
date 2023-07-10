@@ -89,7 +89,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage;
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected content-type. Only 'application/octet-stream' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage[];
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected content-type. Only 'application/octet-stream' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage;
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected binding source. Only 'AzureServiceBusReceivedMessage' is supported.", result.Error.Message);
         }
 
         [Fact]
@@ -168,7 +168,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             Assert.Equal(ConversionStatus.Failed, result.Status);
             var output = result.Value as ServiceBusReceivedMessage[];
             Assert.Null(output);
-            Assert.IsType<InvalidOperationException>(result.Error);
+            Assert.Equal("Unexpected binding source. Only 'AzureServiceBusReceivedMessage' is supported.", result.Error.Message);
         }
 
         private static void AssertReceivedMessage(ServiceBusReceivedMessage output, Guid lockToken)

@@ -33,20 +33,20 @@ public class EndToEndTests : IDisposable
             .ConfigureServices(services =>
             {
                 var functionsBuilder = services.AddFunctionsWorkerCore();
-                functionsBuilder
-                    .AddApplicationInsights(appInsightsOptions =>
-                    {
+                functionsBuilder.UseDefaultWorkerMiddleware();
+
+                services.AddApplicationInsightsTelemetryWorkerService(options =>
+                {
 #pragma warning disable CS0618 // Obsolete member. Test case, this is fine to use.
-                        appInsightsOptions.InstrumentationKey = "abc";
+                    options.InstrumentationKey = "abc";
 #pragma warning restore CS0618 // Obsolete member. Test case, this is fine to use.
 
-                        // keep things more deterministic for tests
-                        appInsightsOptions.EnableAdaptiveSampling = false;
-                        appInsightsOptions.EnableDependencyTrackingTelemetryModule = false;
-                    })
-                    .AddApplicationInsightsLogger();
+                    // keep things more deterministic for tests
+                    options.EnableAdaptiveSampling = false;
+                    options.EnableDependencyTrackingTelemetryModule = false;
+                });
 
-                functionsBuilder.UseDefaultWorkerMiddleware();
+                services.ConfigureFunctionsApplicationInsights();
                 services.AddDefaultInputConvertersToWorkerOptions();
 
                 // Register our own in-memory channel

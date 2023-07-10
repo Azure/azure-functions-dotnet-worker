@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             using (Socket tcpSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
             {
                 tcpSocket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-                int port = ((IPEndPoint)tcpSocket.LocalEndPoint).Port;
+                int port = ((IPEndPoint)tcpSocket.LocalEndPoint!).Port;
                 return port;
             }
         }

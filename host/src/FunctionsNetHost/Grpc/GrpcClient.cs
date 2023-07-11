@@ -1,13 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Threading.Channels;
-using Google.Protobuf;
-using Grpc.Core;
-using Grpc.Net.Client;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
-
 namespace FunctionsNetHost.Grpc
 {
     internal sealed class GrpcClient
@@ -56,6 +49,7 @@ namespace FunctionsNetHost.Grpc
                 await _messageHandler.ProcessMessageAsync(responseStream.Current);
             }
         }
+
         private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
         {
             await foreach (var rpcWriteMsg in _outgoingMessageChannel.Reader.ReadAllAsync())

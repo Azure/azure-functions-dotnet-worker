@@ -62,6 +62,11 @@ namespace Microsoft.Azure.Functions.Worker
                 BlobBindingData blobData = GetBindingDataContent(modelBindingData);
                 var result = await ConvertModelBindingDataAsync(context.TargetType, blobData);
 
+                if (result is null)
+                {
+                    return ConversionResult.Failed(new InvalidOperationException($"Unable to convert blob binding data to type '{context.TargetType.Name}'."));
+                }
+
                 return ConversionResult.Success(result);
             }
             catch (JsonException ex)
@@ -131,7 +136,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
             else
             {
-                if (targetType == typeof(BlobContainerClient) && !string.IsNullOrEmpty(blobData.BlobName))
+                if (targetType == typeof(BlobContainerClient) && BlobIsFileRegex.IsMatch(blobData.BlobName))
                 {
                     throw new InvalidOperationException("Binding to a BlobContainerClient with a blob path is not supported. "
                                                         + "Either bind to the container path, or use BlobClient instead.");
@@ -146,12 +151,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        /// <summary>
-        /// Determines if the binding is a collection binding.
-        /// A collection binding is when the target type is an array or IEnumerable and
-        /// the blob name is either null or empty (meaning a container path is provided).
-        /// If a blob name is provided, it must be a directory path (no file extension provided).
-        /// </summary>
         private bool IsCollectionBinding(Type targetType, string blobName)
         {
             // Edge case: These two types should be treated as a single blob binding

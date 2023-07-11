@@ -68,10 +68,10 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
         }
 
         [Fact]
-        public async Task ConvertAsync_BlobClientIsNull_ReturnsUnhandled()
+        public async Task ConvertAsync_ResultIsEmpty_ReturnsFailed()
         {
             // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData("MyBlob.txt"), "AzureStorageBlobs");
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
             var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
 
             var mockContainer = new Mock<BlobContainerClient>();
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("'BlobName' cannot be null or empty when binding to a single blob.", conversionResult.Error.Message);
+            Assert.Equal("Unable to convert blob binding data to type 'BlobClient'.", conversionResult.Error.Message);
         }
 
         [Fact]

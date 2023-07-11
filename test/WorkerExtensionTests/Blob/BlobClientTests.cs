@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobClient_WithFilePath_ReturnsSuccess()
+        public async Task ConvertAsync_BlobClient_WithFilePath_ReturnsSuccess()
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");
@@ -72,7 +72,47 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_List_WithContainerPath_ReturnsSuccess()
+        public async Task ConvertAsync_BlobClient_FilePathWithoutFileExtension_ReturnsSuccess()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(blobName: "test"), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
+
+            var mockBlobClient = new Mock<BlobClient>();
+            mockBlobClient.Setup(m => m.Name).Returns("test");
+
+            var mockContainer = new Mock<BlobContainerClient>();
+            mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
+
+            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var clientResult = (BlobClient)conversionResult.Value;
+
+            // Assert
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.Equal("test", clientResult.Name);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_BlobClient_WithContainerPath_ReturnsFailed()
+        {
+            // Arrange
+            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(), "AzureStorageBlobs");
+            var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
+
+            // Act
+            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
+            var clientResult = (BlobClient)conversionResult.Value;
+
+            // Assert
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("'BlobName' cannot be null or empty when binding to a single blob.", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_BlobClientCollection_List_WithContainerPath_ReturnsSuccess()
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(), "AzureStorageBlobs");
@@ -102,7 +142,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_Array_WithContainerPath_ReturnsSuccess()
+        public async Task ConvertAsync_BlobClientCollection_Array_WithContainerPath_ReturnsSuccess()
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(), "AzureStorageBlobs");
@@ -132,7 +172,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
         }
 
         [Fact]
-        public async Task ConvertAsync_ValidModelBindingData_BlobClientCollection_WithSubdirectoryPath_ReturnsSuccess()
+        public async Task ConvertAsync_BlobClientCollection_WithSubdirectoryPath_ReturnsSuccess()
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData("test"), "AzureStorageBlobs");
@@ -162,23 +202,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests.Blob
         }
 
         [Fact]
-        public async Task ConvertAsync_BlobClient_SingleBinding_MissingBlobNameParameter_ReturnsFailed()
-        {
-            // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(blobName: null), "AzureStorageBlobs");
-            var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
-
-            // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-            var clientResult = (BlobClient)conversionResult.Value;
-
-            // Assert
-            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("'BlobName' cannot be null or empty when binding to a single blob.", conversionResult.Error.Message);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_BlobClient_CollectionBinding_WithBlobName_ReturnsFailed()
+        public async Task ConvertAsync_BlobClientCollection_WithFilePath_ReturnsFailed()
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(BlobTestHelper.GetTestBinaryData(blobName: "MyBlob.txt"), "AzureStorageBlobs");

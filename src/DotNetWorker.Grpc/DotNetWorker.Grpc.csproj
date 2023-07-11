@@ -10,7 +10,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MinorProductVersion>12</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix>-preview3</VersionSuffix>
+    <VersionSuffix></VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

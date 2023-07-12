@@ -13,6 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class BindingTypeNotSupported : DiagnosticAnalyzer
     {
+        private const int ConverterFallbackBehaviorDefaultValue = 0;
+
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.BindingTypeNotSupported);
 
         public override void Initialize(AnalysisContext context)
@@ -60,10 +62,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     continue;
                 }
 
-                var converterFallbackBehaviorParameterValue = GetConverterFallbackBehaviorParameterValue(context, attributeType);
-                if (converterFallbackBehaviorParameterValue.ToString() is not "Disallow")
+                var converterFallbackBehaviorParameterValue = (int)GetConverterFallbackBehaviorParameterValue(context, attributeType);
+                if (converterFallbackBehaviorParameterValue == ConverterFallbackBehaviorDefaultValue)
                 {
-                    // If the ConverterFallbackBehavior is Allow or Default, we don't need to check for supported types
+                    // If the ConverterFallbackBehavior is Allow or Default (enum value 0), we don't need to check for supported types
                     // because we don't know all of the types that are supported via the fallback
                     continue;
                 }

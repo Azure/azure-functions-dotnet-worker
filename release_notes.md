@@ -4,16 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 1.18.0
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Core 1.14.0
+### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Unsealed `InputConverterAttribute`. Implementers can now derive from this type to map attributes to custom converters. (#1712)
-- Add support for deferred binding (#1676)
-- Add binding attribute to converter context (#1660)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Grpc 1.12.0
+### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- Add support for deferred binding (#1676)
+- <entry>

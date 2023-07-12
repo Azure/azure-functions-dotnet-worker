@@ -15,7 +15,7 @@ using Microsoft.Azure.Functions.Worker.Extensions;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind to <see cref="EventData" /> or <see cref="EventData[]" />  type parameters.
+    /// Converter to bind to <see cref="EventData" /> type or <see cref="T:EventData[]" />  parameters.
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedTargetType(typeof(EventData))]

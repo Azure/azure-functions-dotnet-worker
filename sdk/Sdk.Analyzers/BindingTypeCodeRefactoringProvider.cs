@@ -75,10 +75,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 var converter = model.Compilation.GetTypeByMetadataName(converterName);
                 var converterAttributes = converter.GetAttributes();
 
-                var supportedConverterTypeAttributeType = model.Compilation.GetTypeByMetadataName(Constants.Types.SupportedConverterTypeAttribute);
+                var supportedTargetTypeAttributeType = model.Compilation.GetTypeByMetadataName(Constants.Types.SupportedTargetTypeAttribute);
 
                 supportedTypes.AddRange(converterAttributes
-                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedConverterTypeAttributeType))
+                    .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, supportedTargetTypeAttributeType))
                     .Select(a => (ITypeSymbol)a.ConstructorArguments.FirstOrDefault().Value)
                     .ToList());
             }

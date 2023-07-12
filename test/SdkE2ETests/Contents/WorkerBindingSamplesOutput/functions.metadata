@@ -233,150 +233,6 @@
     ]
   },
   {
-    "name": "BlobInputStreamFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStreamFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "stream",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container/sample1.txt",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "BlobInputByteArrayFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputByteArrayFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "data",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container/sample1.txt",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "BlobInputStringFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStringFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "data",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container/{filename}",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "BlobInputBookFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputBookFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "data",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container/book.json",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
     "name": "BlobInputCollectionFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputCollectionFunction",
@@ -413,6 +269,42 @@
     ]
   },
   {
+    "name": "BlobInputStreamFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStreamFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "req",
+        "direction": "In",
+        "type": "httpTrigger",
+        "authLevel": "Function",
+        "methods": [
+          "get",
+          "post"
+        ],
+        "properties": {}
+      },
+      {
+        "name": "stream",
+        "direction": "In",
+        "type": "blob",
+        "blobPath": "input-container/{filename}",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      },
+      {
+        "name": "$return",
+        "type": "http",
+        "direction": "Out"
+      }
+    ]
+  },
+  {
     "name": "BlobInputCollectionSubdirectoryFunction",
     "scriptFile": "WorkerBindingSamples.dll",
     "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputCollectionSubdirectoryFunction",
@@ -433,7 +325,7 @@
         "properties": {}
       },
       {
-        "name": "blobs",
+        "name": "testFolderBlobs",
         "direction": "In",
         "type": "blob",
         "blobPath": "input-container/test",
@@ -449,9 +341,9 @@
     ]
   },
   {
-    "name": "BlobInputStreamArrayFunction",
+    "name": "BlobInputBookArrayFileContentFunction",
     "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStreamArrayFunction",
+    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputBookArrayFileContentFunction",
     "language": "dotnet-isolated",
     "properties": {
       "IsCodeless": false
@@ -472,115 +364,7 @@
         "name": "blobContent",
         "direction": "In",
         "type": "blob",
-        "blobPath": "input-container",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "BlobInputBytesArrayFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputBytesArrayFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "blobContent",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "BlobInputStringArrayFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputStringArrayFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "blobContent",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container",
-        "properties": {
-          "supportsDeferredBinding": "True"
-        }
-      },
-      {
-        "name": "$return",
-        "type": "http",
-        "direction": "Out"
-      }
-    ]
-  },
-  {
-    "name": "BlobInputBookArrayFunction",
-    "scriptFile": "WorkerBindingSamples.dll",
-    "entryPoint": "SampleApp.BlobInputBindingSamples.BlobInputBookArrayFunction",
-    "language": "dotnet-isolated",
-    "properties": {
-      "IsCodeless": false
-    },
-    "bindings": [
-      {
-        "name": "req",
-        "direction": "In",
-        "type": "httpTrigger",
-        "authLevel": "Function",
-        "methods": [
-          "get",
-          "post"
-        ],
-        "properties": {}
-      },
-      {
-        "name": "books",
-        "direction": "In",
-        "type": "blob",
-        "blobPath": "input-container",
+        "blobPath": "input-container/manybooks.json",
         "properties": {
           "supportsDeferredBinding": "True"
         }

@@ -118,6 +118,9 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             {
                 extensions = new[]
                 {
+                    new Extension("CosmosDB",
+                        "Microsoft.Azure.WebJobs.Extensions.CosmosDB.CosmosDBWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.CosmosDB, Version=4.3.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35",
+                        @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.CosmosDB.dll"),
                     new Extension("EventGrid",
                         "Microsoft.Azure.WebJobs.Extensions.EventGrid.EventGridWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.EventGrid, Version=3.3.0.0, Culture=neutral, PublicKeyToken=014045d636e89289",
                         @"./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.EventGrid.dll"),

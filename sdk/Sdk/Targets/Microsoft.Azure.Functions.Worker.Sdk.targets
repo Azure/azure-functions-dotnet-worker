@@ -62,14 +62,17 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
     </Target>
 
-    <Target Name="_FunctionsPostBuild" AfterTargets="AfterBuild" DependsOnTargets="_FunctionsPostBuildNetFx;_FunctionsPostBuildNetApp"/>
+    <Target Name="_FunctionsPostBuild" AfterTargets="AfterBuild" DependsOnTargets="_FunctionsGetWorkerExtensionPath;_FunctionsPostBuildNetFx;_FunctionsPostBuildNetApp"/>
+
+    <Target Name="_FunctionsGetWorkerExtensionPath">
+        <PropertyGroup>
+            <_FunctionsWorkerConfigOutputFile>$(TargetDir)\worker.config.json</_FunctionsWorkerConfigOutputFile>
+            <ExtensionsCsProjFilePath Condition="'$(ExtensionsCsProjFilePath)' == ''">$([System.IO.Path]::GetFullPath($(IntermediateOutputPath)WorkExtensions))</ExtensionsCsProjFilePath>
+        </PropertyGroup>
+    </Target>
+
     <!--.NET Framework post build-->
     <Target Name="_FunctionsPostBuildNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-        <PropertyGroup>
-            <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
-            <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
-        </PropertyGroup>
-
         <GenerateFunctionMetadata
           AssemblyPath="$(TargetDir)$(AssemblyName).exe"
           ReferencePaths="@(ReferencePath)"
@@ -84,24 +87,20 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
+          SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true" />
 
         <WriteLinesToFile
-            File="$(OutputFile)"
-            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
-                                  .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
-                                  .Replace('$functionWorker$', '$(TargetName).exe')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-            Overwrite="true" />
+          File="$(_FunctionsWorkerConfigOutputFile)"
+          Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
+                                .Replace('$functionWorker$', '$(TargetName).exe')
+                                .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+          Overwrite="true" />
     </Target>
 
     <!--.NET/.NET Core post build-->
     <Target Name="_FunctionsPostBuildNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
-        <PropertyGroup>
-            <OutputFile>$(TargetDir)\worker.config.json</OutputFile>
-            <ExtensionsCsProjFilePath>$([System.IO.Path]::Combine($([System.IO.Path]::GetTempPath()), $([System.IO.Path]::GetRandomFileName())))</ExtensionsCsProjFilePath>
-        </PropertyGroup>
-
         <GenerateFunctionMetadata
           AssemblyPath="$(TargetDir)$(AssemblyName).dll"
           ReferencePaths="@(ReferencePath)"
@@ -110,31 +109,33 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
           TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
+
         <!-- Do not copy _FunctionsMetadataLoaderExtensionFile when in placeholder mode, as we don't want the FunctionMetadataLoader entry in extensions.json--> 
         <Copy
           Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
+          SkipUnchangedFiles="true"
           OverwriteReadOnlyFiles="true" />
 
         <WriteLinesToFile
-            Condition="$(SelfContained)"
-            File="$(OutputFile)"
-            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
-                                  .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName).dll')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-        Overwrite="true" />
+          Condition="$(SelfContained)"
+          File="$(_FunctionsWorkerConfigOutputFile)"
+          Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
+                                .Replace('$functionWorker$', '$(TargetName).dll')
+                                .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+          Overwrite="true" />
 
 
         <WriteLinesToFile
-            Condition="!$(SelfContained)"
-            File="$(OutputFile)"
-            Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
-                                  .Replace('$functionExe$', 'dotnet')
-                                  .Replace('$functionWorker$', '$(TargetName).dll')
-                                  .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-        Overwrite="true" />
+          Condition="!$(SelfContained)"
+          File="$(_FunctionsWorkerConfigOutputFile)"
+          Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
+                                .Replace('$functionExe$', 'dotnet')
+                                .Replace('$functionWorker$', '$(TargetName).dll')
+                                .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
+          Overwrite="true" />
 
   </Target>
 
@@ -153,8 +154,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             <ExtensionRuntimeBinaries Include="$(ExtensionsCsProjFilePath)\buildout\runtimes\**\*.*" />
         </ItemGroup>
 
-        <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\%(RecursiveDir)" />
-        <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\runtimes\%(RecursiveDir)" />
+        <Copy SourceFiles="@(ExtensionBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\%(RecursiveDir)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="@(ExtensionRuntimeBinaries)" DestinationFolder="$(TargetDir)\.azurefunctions\runtimes\%(RecursiveDir)" SkipUnchangedFiles="true" />
     </Target>
 
     <Target Name ="_WorkerExtensionsBuild" AfterTargets="_WorkerExtensionsRestore">

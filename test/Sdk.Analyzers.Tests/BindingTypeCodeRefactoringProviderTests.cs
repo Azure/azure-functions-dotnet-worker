@@ -9,6 +9,8 @@ using Xunit;
 
 namespace Sdk.Analyzers.Tests
 {
+    // Disabling tests as they depend on Tables and ServiceBus extension releases with new deferred binding model changes
+    // Issue #1746  created to re-enable tests once new releases are available
     public class BindingTypeCodeRefactoringProviderTests : CodeRefactoringTestFixture
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -32,84 +34,84 @@ namespace Sdk.Analyzers.Tests
             ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus, Version=5.10.0.0").Location),
         };
 
-        [Theory]
-        [InlineData("TableClient", 0)]
-        [InlineData("TableEntity", 1)]
-        public void TableInput_SuggestsCodeRefactor(string supportedType, int index)
-        {
-            string testCode = @"
-                using System;
-                using Azure.Data.Tables;
-                using Microsoft.Azure.Functions.Worker;
+        // [Theory]
+        // [InlineData("TableClient", 0)]
+        // [InlineData("TableEntity", 1)]
+        // public void TableInput_SuggestsCodeRefactor(string supportedType, int index)
+        // {
+        //     string testCode = @"
+        //         using System;
+        //         using Azure.Data.Tables;
+        //         using Microsoft.Azure.Functions.Worker;
 
-                namespace FunctionApp
-                {
-                    public static class SomeFunction
-                    {
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([TableInput(""input"")] [|string message|])
-                        {
-                        }
-                    }
-                }";
+        //         namespace FunctionApp
+        //         {
+        //             public static class SomeFunction
+        //             {
+        //                 [Function(nameof(SomeFunction))]
+        //                 public static void Run([TableInput(""input"")] [|string message|])
+        //                 {
+        //                 }
+        //             }
+        //         }";
 
-            string expectedCode = $@"
-                using System;
-                using Azure.Data.Tables;
-                using Microsoft.Azure.Functions.Worker;
+        //     string expectedCode = $@"
+        //         using System;
+        //         using Azure.Data.Tables;
+        //         using Microsoft.Azure.Functions.Worker;
 
-                namespace FunctionApp
-                {{
-                    public static class SomeFunction
-                    {{
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([TableInput(""input"")] {supportedType} message)
-                        {{
-                        }}
-                    }}
-                }}";
+        //         namespace FunctionApp
+        //         {{
+        //             public static class SomeFunction
+        //             {{
+        //                 [Function(nameof(SomeFunction))]
+        //                 public static void Run([TableInput(""input"")] {supportedType} message)
+        //                 {{
+        //                 }}
+        //             }}
+        //         }}";
 
-            TestCodeRefactoring(testCode, expectedCode, index);
-        }
+        //     TestCodeRefactoring(testCode, expectedCode, index);
+        // }
 
-        [Theory]
-        [InlineData("ServiceBusReceivedMessage", 0)]
-        [InlineData("ServiceBusReceivedMessage[]", 1)]
-        public void ServiceBusTrigger_SuggestsCodeRefactor(string supportedType, int index)
-        {
-            string testCode = @"
-                using System;
-                using Azure.Messaging.ServiceBus;
-                using Microsoft.Azure.Functions.Worker;
+        // [Theory]
+        // [InlineData("ServiceBusReceivedMessage", 0)]
+        // [InlineData("ServiceBusReceivedMessage[]", 1)]
+        // public void ServiceBusTrigger_SuggestsCodeRefactor(string supportedType, int index)
+        // {
+        //     string testCode = @"
+        //         using System;
+        //         using Azure.Messaging.ServiceBus;
+        //         using Microsoft.Azure.Functions.Worker;
 
-                namespace FunctionApp
-                {
-                    public static class SomeFunction
-                    {
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([ServiceBusTrigger(""input"")] [|string message|])
-                        {
-                        }
-                    }
-                }";
+        //         namespace FunctionApp
+        //         {
+        //             public static class SomeFunction
+        //             {
+        //                 [Function(nameof(SomeFunction))]
+        //                 public static void Run([ServiceBusTrigger(""input"")] [|string message|])
+        //                 {
+        //                 }
+        //             }
+        //         }";
 
-            string expectedCode = $@"
-                using System;
-                using Azure.Messaging.ServiceBus;
-                using Microsoft.Azure.Functions.Worker;
+        //     string expectedCode = $@"
+        //         using System;
+        //         using Azure.Messaging.ServiceBus;
+        //         using Microsoft.Azure.Functions.Worker;
 
-                namespace FunctionApp
-                {{
-                    public static class SomeFunction
-                    {{
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([ServiceBusTrigger(""input"")] {supportedType} message)
-                        {{
-                        }}
-                    }}
-                }}";
+        //         namespace FunctionApp
+        //         {{
+        //             public static class SomeFunction
+        //             {{
+        //                 [Function(nameof(SomeFunction))]
+        //                 public static void Run([ServiceBusTrigger(""input"")] {supportedType} message)
+        //                 {{
+        //                 }}
+        //             }}
+        //         }}";
 
-            TestCodeRefactoring(testCode, expectedCode, index);
-        }
+        //     TestCodeRefactoring(testCode, expectedCode, index);
+        // }
     }
 }

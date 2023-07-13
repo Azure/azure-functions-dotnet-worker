@@ -6,8 +6,7 @@
     <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.3.1</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionPrefix>4.4.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

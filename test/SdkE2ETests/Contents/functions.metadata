@@ -52,7 +52,6 @@
         "type": "blob",
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
-        "cardinality": "One",
         "properties": {
           "supportsDeferredBinding": "True"
         }
@@ -185,7 +184,6 @@
         "type": "blob",
         "blobPath": "test-samples/sample1.txt",
         "connection": "AzureWebJobsStorage",
-        "cardinality": "One",
         "properties": {
           "supportsDeferredBinding": "True"
         }

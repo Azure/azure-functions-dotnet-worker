@@ -384,7 +384,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         if (!converterAdvertisesTypes)
                         {
-                            // If a converter advertises deferred binding but does not explictly advertise any types then DeferredBinding will be supported for all the types
+                            // If a converter advertises deferred binding but does not explicitly advertise any types then DeferredBinding will be supported for all the types
                             return true;
                         }
 

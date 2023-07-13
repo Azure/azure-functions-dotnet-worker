@@ -208,10 +208,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                 {
                     { "Name", "blobinput" },
                     { "Type", "blob" },
-                    { "DataType", "String"},
                     { "Direction", "In" },
                     { "blobPath", "container2" },
-                    { "Cardinality", "Many" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
@@ -321,7 +319,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blob" },
                     { "Direction", "In" },
                     { "blobPath", "container2/%file%" },
-                    { "Cardinality", "One" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
@@ -371,7 +368,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blob" },
                     { "Direction", "In" },
                     { "blobPath", "container2" },
-                    { "Cardinality", "Many" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
                 });
             }
@@ -391,8 +387,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "blob" },
                     { "Direction", "In" },
                     { "blobPath", "container2" },
-                    { "Cardinality", "Many" },
-                    { "DataType", "String" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
                 });
             }
@@ -939,7 +933,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobToBlobs(
                 [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
+                [BlobInput("container2")] IEnumerable<string> blobinput)
             {
                 throw new NotImplementedException();
             }
@@ -1000,7 +994,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobStringToBlobStringArray(
                 [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] string[] blobinput)
+                [BlobInput("container2")] string[] blobinput)
             {
                 throw new NotImplementedException();
             }
@@ -1010,7 +1004,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobStringToBlobClientEnumerable(
                 [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] IEnumerable<BlobClient> blobinput)
+                [BlobInput("container2")] IEnumerable<BlobClient> blobinput)
             {
                 throw new NotImplementedException();
             }
@@ -1019,7 +1013,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobStringToBlobPocoEnumerable(
                 [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] IEnumerable<Poco> blobinput)
+                [BlobInput("container2")] IEnumerable<Poco> blobinput)
             {
                 throw new NotImplementedException();
             }
@@ -1028,7 +1022,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobStringToBlobPocoArray(
                 [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] Poco[] blobinput)
+                [BlobInput("container2")] Poco[] blobinput)
             {
                 throw new NotImplementedException();
             }

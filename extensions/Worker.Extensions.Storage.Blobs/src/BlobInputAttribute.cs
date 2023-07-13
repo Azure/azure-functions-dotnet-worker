@@ -6,13 +6,11 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(false)]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     [InputConverter(typeof(BlobStorageConverter))]
     public sealed class BlobInputAttribute : InputBindingAttribute
     {
         private readonly string _blobPath;
-
-        private bool _isBatched = false;
 
         /// <summary>Initializes a new instance of the <see cref="BlobInputAttribute"/> class.</summary>
         /// <param name="blobPath">The path of the blob to which to bind.</param>
@@ -27,16 +25,6 @@ namespace Microsoft.Azure.Functions.Worker
         public string BlobPath
         {
             get { return _blobPath; }
-        }
-
-        /// <summary>
-        /// Gets or sets the configuration to enable batch processing of blobs. Default value is "false".
-        /// </summary>
-        [DefaultValue(false)]
-        public bool IsBatched
-        {
-            get => _isBatched;
-            set => _isBatched = value;
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
@@ -134,33 +135,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Equal("Hello World", result);
         }
 
-        [Fact]
-        public async Task BlobTrigger_BlobContainerClient_Succeeds()
-        {
-            string key = "BlobContainerTriggerOutput: ";
-            string fileName = Guid.NewGuid().ToString();
-
-            //Cleanup
-            await StorageHelpers.ClearBlobContainers();
-
-            //Trigger
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerBlobContainerClientContainer, fileName);
-
-            //Verify
-            IEnumerable<string> logs = null;
-            await TestUtility.RetryAsync(() =>
-            {
-                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
-                return Task.FromResult(logs.Count() >= 1);
-            });
-
-            var lastLog = logs.Last();
-            int subStringStart = lastLog.LastIndexOf(key) + key.Length;
-            var result = lastLog[subStringStart..];
-
-            Assert.Equal("Hello World", result);
-        }
-
         [Theory]
         [InlineData("BlobInputClientTest")]
         [InlineData("BlobInputBlockClientTest")]
@@ -214,31 +188,16 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Contains(expectedMessage, actualMessage);
         }
 
-        [Fact]
-        public async Task BlobInput_BlobClientCollection_Succeeds()
-        {
-            string expectedMessage = "testFile1.txt, testFile2.txt, testFile3.txt";
-            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
-
-            //Cleanup
-            await StorageHelpers.ClearBlobContainers();
-
-            //Setup
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile1");
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile2");
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile3");
-
-            //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputCollectionTest");
-            string actualMessage = await response.Content.ReadAsStringAsync();
-
-            //Verify
-            Assert.Equal(expectedStatusCode, response.StatusCode);
-            Assert.Equal(expectedMessage, actualMessage);
-        }
-
-        [Fact]
-        public async Task BlobInput_StringCollection_Succeeds()
+        [Theory]
+        [InlineData("BlobInputClientArrayTest")]
+        [InlineData("BlobInputClientEnumerableTest")]
+        [InlineData("BlobInputStreamArrayTest")]
+        [InlineData("BlobInputStreamEnumerableTest")]
+        [InlineData("BlobInputBytesArrayTest")]
+        [InlineData("BlobInputBytesEnumerableTest")]
+        [InlineData("BlobInputStringArrayTest")]
+        [InlineData("BlobInputStringEnumerableTest")]
+        public async Task BlobInput_BlobCollection_Succeeds(string functionName)
         {
             string expectedMessage = "ABC, DEF, GHI";
             HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
@@ -252,7 +211,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile3", "GHI");
 
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputStringArrayTest");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify
@@ -260,8 +219,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Equal(expectedMessage, actualMessage);
         }
 
-        [Fact]
-        public async Task BlobInput_PocoCollection_Succeeds()
+        [Theory]
+        [InlineData("BlobInputPocoArrayTest")]
+        [InlineData("BlobInputPocoEnumerableTest")]
+        public async Task BlobInput_PocoCollection_Succeeds(string functionName)
         {
             string book1 = $@"{{ ""id"": ""1"", ""name"": ""To Kill a Mockingbird""}}";
             string book2 = $@"{{ ""id"": ""2"", ""name"": ""Of Mice and Men""}}";
@@ -280,7 +241,102 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "book3", book3);
 
             //Trigger
-            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputPocoArrayTest");
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);
+            string actualMessage = await response.Content.ReadAsStringAsync();
+
+            //Verify
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal(expectedMessage, actualMessage);
+        }
+
+        [Theory]
+        [InlineData("BlobInputStringArraySingleBlobTest")]
+        [InlineData("BlobInputStringEnumerableSingleBlobTest")]
+        public async Task BlobInput_StringCollection_WithSingleBlobFile_Succeeds(string functionName)
+        {
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Setup
+            var fileContent = JsonSerializer.Serialize(new string[] { "Hello", "World" });
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile", fileContent);
+
+            //Trigger
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);
+            string actualMessage = await response.Content.ReadAsStringAsync();
+
+            //Verify
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal("Hello, World", actualMessage);
+        }
+
+        [Theory]
+        [InlineData("BlobInputBytesArraySingleBlobTest")]
+        [InlineData("BlobInputBytesEnumerableSingleBlobTest")]
+        public async Task BlobInput_ByteArrayCollection_WithSingleBlobFile_Succeeds(string functionName)
+        {
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Setup
+            var data = new List<byte[]> { Encoding.UTF8.GetBytes("Item1"), Encoding.UTF8.GetBytes("Item2") };
+            var fileContent = JsonSerializer.Serialize(data);
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile", fileContent);
+
+            //Trigger
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);
+            string actualMessage = await response.Content.ReadAsStringAsync();
+
+            //Verify
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal("Item1, Item2", actualMessage);
+        }
+
+
+        [Theory]
+        [InlineData("BlobInputPocoArraySingleBlobTest")]
+        [InlineData("BlobInputPocoEnumerableSingleBlobTest")]
+        public async Task BlobInput_PocoCollection_WithSingleBlobFile_Succeeds(string functionName)
+        {
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Setup
+            var data = new List<object> { new { id = "1", name = "To Kill a Mockingbird" }, new { id = "2", name = "Of Mice and Men" } };
+            var fileContent = JsonSerializer.Serialize(data);
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "testFile", fileContent);
+
+            //Trigger
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionName);
+            string actualMessage = await response.Content.ReadAsStringAsync();
+
+            //Verify
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+            Assert.Equal("To Kill a Mockingbird, Of Mice and Men", actualMessage);
+        }
+
+        [Fact]
+        public async Task BlobInput_BlobCollection_WithSubdirectory_Succeeds()
+        {
+            string expectedMessage = "ABC, GHI";
+            HttpStatusCode expectedStatusCode = HttpStatusCode.OK;
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Setup
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "test/file1", "ABC", true);
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "file2", "DEF");
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.InputBindingContainer, "test/file3", "GHI", true);
+
+            //Trigger
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("BlobInputClientCollectionWithSubdirectoryTest");
             string actualMessage = await response.Content.ReadAsStringAsync();
 
             //Verify

@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputContainerClientTest))]
         public async Task<HttpResponseData> BlobInputContainerClientTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated/testFile.txt")] BlobContainerClient client)
+            [BlobInput("test-input-dotnet-isolated")] BlobContainerClient client)
         {
             var blobClient = client.GetBlobClient("testFile.txt");
             var downloadResult = await blobClient.DownloadContentAsync();
@@ -131,17 +131,73 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return response;
         }
 
-        [Function(nameof(BlobInputCollectionTest))]
-        public async Task<HttpResponseData> BlobInputCollectionTest(
+        [Function(nameof(BlobInputClientArrayTest))]
+        public async Task<HttpResponseData> BlobInputClientArrayTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated", IsBatched = true)] IEnumerable<BlobClient> blobs)
+            [BlobInput("test-input-dotnet-isolated")] BlobClient[] blobs)
         {
             List<string> blobList = new();
 
             foreach (BlobClient blob in blobs)
             {
-                _logger.LogInformation("Blob name: {blobName}, Container name: {containerName}", blob.Name, blob.BlobContainerName);
-                blobList.Add(blob.Name);
+                var downloadResult = await blob.DownloadContentAsync();
+                var content = downloadResult.Value.Content.ToString();
+                blobList.Add(content);
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputStreamArrayTest))]
+        public async Task<HttpResponseData> BlobInputStreamArrayTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] Stream[] blobContent)
+        {
+            List<string> blobList = new();
+
+            foreach (Stream stream in blobContent)
+            {
+                using var blobStreamReader = new StreamReader(stream);
+                blobList.Add(blobStreamReader.ReadToEnd());
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputBytesArrayTest))]
+        public async Task<HttpResponseData> BlobInputBytesArrayTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] byte[][] blobContent)
+        {
+            List<string> blobList = new();
+
+            foreach (byte[] bytes in blobContent)
+            {
+                blobList.Add(Encoding.Default.GetString(bytes));
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputBytesArraySingleBlobTest))]
+        public async Task<HttpResponseData> BlobInputBytesArraySingleBlobTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] byte[][] blobContent)
+        {
+            List<string> blobList = new();
+
+            foreach (byte[] bytes in blobContent)
+            {
+                blobList.Add(Encoding.Default.GetString(bytes));
             }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
@@ -153,7 +209,18 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputStringArrayTest))]
         public async Task<HttpResponseData> BlobInputStringArrayTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated", IsBatched = true)] string[] blobContent)
+            [BlobInput("test-input-dotnet-isolated")] string[] blobContent)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobContent);
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputStringArraySingleBlobTest))]
+        public async Task<HttpResponseData> BlobInputStringArraySingleBlobTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] string[] blobContent)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
             string contentAsString = string.Join(", ", blobContent);
@@ -164,7 +231,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobInputPocoArrayTest))]
         public async Task<HttpResponseData> BlobInputPocoArrayTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
-            [BlobInput("test-input-dotnet-isolated", IsBatched = true)] Book[] books)
+            [BlobInput("test-input-dotnet-isolated")] Book[] books)
         {
             List<string> bookNames = new();
 
@@ -175,6 +242,177 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 
             var response = req.CreateResponse(HttpStatusCode.OK);
             string contentAsString = string.Join(", ", bookNames.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputPocoArraySingleBlobTest))]
+        public async Task<HttpResponseData> BlobInputPocoArraySingleBlobTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] Book[] books)
+        {
+            List<string> bookNames = new();
+
+            foreach (var item in books)
+            {
+                bookNames.Add(item.Name);
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", bookNames.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputClientEnumerableTest))]
+        public async Task<HttpResponseData> BlobInputClientEnumerableTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] IEnumerable<BlobClient> blobs)
+        {
+            List<string> blobList = new();
+
+            foreach (BlobClient blob in blobs)
+            {
+                var downloadResult = await blob.DownloadContentAsync();
+                var content = downloadResult.Value.Content.ToString();
+                blobList.Add(content);
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputStreamEnumerableTest))]
+        public async Task<HttpResponseData> BlobInputStreamEnumerableTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] IEnumerable<Stream> blobContent)
+        {
+            List<string> blobList = new();
+
+            foreach (Stream stream in blobContent)
+            {
+                using var blobStreamReader = new StreamReader(stream);
+                blobList.Add(blobStreamReader.ReadToEnd());
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputBytesEnumerableTest))]
+        public async Task<HttpResponseData> BlobInputBytesEnumerableTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] IEnumerable<byte[]> blobContent)
+        {
+            List<string> blobList = new();
+
+            foreach (byte[] bytes in blobContent)
+            {
+                blobList.Add(Encoding.Default.GetString(bytes));
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputBytesEnumerableSingleBlobTest))]
+        public async Task<HttpResponseData> BlobInputBytesEnumerableSingleBlobTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] IEnumerable<byte[]> blobContent)
+        {
+            List<string> blobList = new();
+
+            foreach (byte[] bytes in blobContent)
+            {
+                blobList.Add(Encoding.Default.GetString(bytes));
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputStringEnumerableTest))]
+        public async Task<HttpResponseData> BlobInputStringEnumerableTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] IEnumerable<string> blobContent)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobContent);
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputStringEnumerableSingleBlobTest))]
+        public async Task<HttpResponseData> BlobInputStringEnumerableSingleBlobTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] IEnumerable<string> blobContent)
+        {
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobContent);
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputPocoEnumerableTest))]
+        public async Task<HttpResponseData> BlobInputPocoEnumerableTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated")] IEnumerable<Book> books)
+        {
+            List<string> bookNames = new();
+
+            foreach (var item in books)
+            {
+                bookNames.Add(item.Name);
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", bookNames.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputPocoEnumerableSingleBlobTest))]
+        public async Task<HttpResponseData> BlobInputPocoEnumerableSingleBlobTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/testFile.txt")] IEnumerable<Book> books)
+        {
+            List<string> bookNames = new();
+
+            foreach (var item in books)
+            {
+                bookNames.Add(item.Name);
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", bookNames.ToArray());
+            await response.WriteStringAsync(contentAsString);
+            return response;
+        }
+
+        [Function(nameof(BlobInputClientCollectionWithSubdirectoryTest))]
+        public async Task<HttpResponseData> BlobInputClientCollectionWithSubdirectoryTest(
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+            [BlobInput("test-input-dotnet-isolated/test")] IEnumerable<BlobClient> blobs)
+        {
+            List<string> blobList = new();
+
+            foreach (BlobClient blob in blobs)
+            {
+                var downloadResult = await blob.DownloadContentAsync();
+                var content = downloadResult.Value.Content.ToString();
+                blobList.Add(content);
+            }
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            string contentAsString = string.Join(", ", blobList.ToArray());
             await response.WriteStringAsync(contentAsString);
             return response;
         }

@@ -121,9 +121,19 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return UploadFileToContainer(containerName, fileName, "Hello World");
         }
 
-        public async static Task UploadFileToContainer(string containerName, string fileName, string fileContents)
+        public async static Task UploadFileToContainer(string containerName, string fileName, string fileContents, bool containsSubdirectory = false)
         {
             string sourceFile = $"{fileName}.txt";
+
+            if (containsSubdirectory)
+            {
+                string directoryPath = Path.GetDirectoryName(sourceFile);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+            }
+
             File.WriteAllText(sourceFile, fileContents);
             await CreateBlobContainer(containerName);
             BlobContainerClient cloudBlobContainer = CreateBlobContainerClient(containerName);

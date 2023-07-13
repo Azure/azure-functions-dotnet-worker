@@ -7,11 +7,11 @@ using Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    [AllowConverterFallback(true)]
     [InputConverter(typeof(EventGridCloudEventConverter))]
     [InputConverter(typeof(EventGridEventConverter))]
     [InputConverter(typeof(EventGridBinaryDataConverter))]
     [InputConverter(typeof(EventGridStringArrayConverter))]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public sealed class EventGridTriggerAttribute : TriggerBindingAttribute
     {
         private bool _isBatched = false;

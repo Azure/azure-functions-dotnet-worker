@@ -314,5 +314,77 @@
         }
       }
     ]
+  },
+  {
+    "name": "CloudEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CloudEventSamples.CloudEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "cloudEvent",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "CloudEventBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.CloudEventSamples.CloudEventBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "cloudEvents",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "EventGridEventFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventGridEventSamples.EventGridEventFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "eventGridEvent",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "One",
+        "properties": {}
+      }
+    ]
+  },
+  {
+    "name": "EventGridEventBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.EventGridEventSamples.EventGridEventBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "eventGridEvents",
+        "direction": "In",
+        "type": "eventGridTrigger",
+        "cardinality": "Many",
+        "properties": {}
+      }
+    ]
   }
 ]

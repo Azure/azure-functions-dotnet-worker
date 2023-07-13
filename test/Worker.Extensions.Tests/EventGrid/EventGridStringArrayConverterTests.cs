@@ -19,9 +19,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_SourceAsObject_ReturnsUnhandled()
+        public async Task ConvertAsync_Source_IsNotAString_ReturnsUnhandled()
         {
             var context = new TestConverterContext(typeof(string[]), new object());
+
+            var conversionResult = await _eventGridConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Context source must be a non-null string", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_UnsupportedTargetType_ReturnsFailed()
+        {
+            var context = new TestConverterContext(typeof(byte[]), "");
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
@@ -29,9 +40,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_Returns_Success()
+        public async Task ConvertAsync_InvalidJson_ThrowsJsonException_ReturnsFailed()
         {
-            var context = new TestConverterContext(typeof(string[]), "[{\"specversion\":\"1.0\",\"id\":\"b85d631a-101e-005a-02f2-cee7aa06f148\",\"type\":\"zohan.music.request\",\"source\":\"https://zohan.dev/music/\",\"subject\":\"zohan/music/requests/4322\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"Gerardo\",\"song\":\"Rico Suave\"}},{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"life is very lit\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"life is lit\"}}]");
+            var context = new TestConverterContext(typeof(string[]), @"{""invalid"" :json""}");
+
+            var conversionResult = await _eventGridConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Contains("Binding parameters to complex objects uses JSON serialization", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_StringArray_ReturnsSuccess()
+        {
+            var context = new TestConverterContext(typeof(string[]), EventGridTestHelper.GetEventGridJsonDataArray());
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 
@@ -41,19 +63,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventGrid
         }
 
         [Fact]
-        public async Task ConvertAsync_Returns_Unhandled_For_Unsupported_Type()
+        public async Task ConvertAsync_StringArray_SingleElement_Returns_Success()
         {
-            var context = new TestConverterContext(typeof(string), "[{\"specversion\":\"1.0\",\"id\":\"b85d631a-101e-005a-02f2-cee7aa06f148\",\"type\":\"zohan.music.request\",\"source\":\"https://zohan.dev/music/\",\"subject\":\"zohan/music/requests/4322\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"Gerardo\",\"song\":\"Rico Suave\"}},{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"life is very lit\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"life is lit\"}}]");
-
-            var conversionResult = await _eventGridConverter.ConvertAsync(context);
-
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
-        }
-
-        [Fact]
-        public async Task ConvertAsync_SingleElement_Returns_Success()
-        {
-            var context = new TestConverterContext(typeof(string[]), "[{\"specversion\":\"1.0\",\"id\":\"2947780a-356b-c5a5-feb4-f5261fb2f155\",\"type\":\"test\",\"source\":\"moo\",\"subject\":\"lol test\",\"time\":\"2020-09-14T10:00:00Z\",\"data\":{\"artist\":\"wooo\",\"song\":\"some song\"}}]");
+            var context = new TestConverterContext(typeof(string[]),  $"[{EventGridTestHelper.GetEventGridJsonData()}]");
 
             var conversionResult = await _eventGridConverter.ConvertAsync(context);
 

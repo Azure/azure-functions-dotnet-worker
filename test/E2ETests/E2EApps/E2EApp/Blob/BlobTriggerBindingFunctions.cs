@@ -70,17 +70,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             _logger.LogInformation("BlobClientTriggerOutput: {c}", content);
         }
 
-        [Function(nameof(BlobTriggerBlobContainerClientTest))]
-        public async Task BlobTriggerBlobContainerClientTest(
-            [BlobTrigger("test-trigger-containerclient-dotnet-isolated/{name}")] BlobContainerClient client, string name,
-            FunctionContext context)
-        {
-            var blobClient = client.GetBlobClient(name);
-            var downloadResult = await blobClient.DownloadContentAsync();
-            string content = downloadResult.Value.Content.ToString();
-            _logger.LogInformation("BlobContainerTriggerOutput: {c}", content);
-        }
-
         public class TestBlobData
         {
             [JsonPropertyName("text")]

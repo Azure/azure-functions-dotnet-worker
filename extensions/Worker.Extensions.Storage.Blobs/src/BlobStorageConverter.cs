@@ -117,19 +117,11 @@ namespace Microsoft.Azure.Functions.Worker
 
             BlobContainerClient container = CreateBlobContainerClient(blobData.Connection!, blobData.ContainerName!);
 
-            if (IsCollectionBinding(targetType, blobData.BlobName!))
+            if (IsCollectionBinding(targetType, blobData.BlobName!, out Type? elementType))
             {
-                Type elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
-
-                if (elementType == typeof(BlobContainerClient))
+                if (elementType is null)
                 {
-                    throw new InvalidOperationException("Binding to a BlobContainerClient collection is not supported.");
-                }
-
-                if (typeof(BlobBaseClient).IsAssignableFrom(elementType) && !string.IsNullOrEmpty(blobData.BlobName) && BlobIsFileRegex.IsMatch(blobData.BlobName))
-                {
-                    throw new InvalidOperationException("Binding to a blob client collection with a blob path is not supported. "
-                                                        + "Either bind to the container path, or use BlobClient instead.");
+                    throw new InvalidOperationException($"Unable to determine element type for collection binding to type '{targetType.Name}'.");
                 }
 
                 return await BindToCollectionAsync(targetType, elementType, container, blobData.BlobName!);
@@ -151,8 +143,10 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private bool IsCollectionBinding(Type targetType, string blobName)
+        private bool IsCollectionBinding(Type targetType, string blobName, out Type? elementType)
         {
+            elementType = null;
+
             // Edge case: These two types should be treated as a single blob binding
             // string implements IEnumerable<char> and byte[] would pass the IsArray check
             if (targetType == typeof(string) || targetType == typeof(byte[]))
@@ -165,19 +159,34 @@ namespace Microsoft.Azure.Functions.Worker
                 return false;
             }
 
+            // At this stage, we know we have a collection type binding
+            elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
+
+            if (elementType == typeof(BlobContainerClient))
+            {
+                throw new InvalidOperationException("Binding to a BlobContainerClient collection is not supported.");
+            }
+
+            bool isFile = BlobIsFileRegex.IsMatch(blobName);
+
+            if (isFile && typeof(BlobBaseClient).IsAssignableFrom(elementType))
+            {
+                throw new InvalidOperationException("Binding to a blob client collection with a blob path is not supported. "
+                                                    + "Either bind to the container path, or use BlobClient instead.");
+            }
+
+            // If it's a collection binding and the blob is a file, we should treat it as a single blob binding as it
+            // end up in the `DeserializeToTargetObjectAsync` method via ToTargetTypeAsync()
+            if (isFile)
+            {
+                return false;
+            }
+
             return true;
         }
 
         private async Task<object> BindToCollectionAsync(Type targetType, Type elementType, BlobContainerClient container, string blobPath)
         {
-            if (BlobIsFileRegex.IsMatch(blobPath))
-            {
-                // Binding is to a specific blob file, deserialize the content to target type
-                var deserializedResult = await DeserializeToTargetObjectAsync(targetType, container, blobPath);
-
-                return deserializedResult ?? throw new InvalidOperationException($"Could not deserialize blob '{blobPath}' to '{targetType}'.");
-            }
-
             var resultType = typeof(List<>).MakeGenericType(elementType);
             var result = (IList)Activator.CreateInstance(resultType);
 

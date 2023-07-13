@@ -4,8 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB <version>
+### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.4.0
 
-- Add `BindingCapabilities` attribute to CosmosDb trigger to express function-level retry capabilities. (#1457)
-- Update `Microsoft.Azure.Cosmos` to `3.34.0` (#1550)
 - Updated CosmosDBInputAttribute constructors to allow empty values for databaseName and containerName
+- Implement input binding support for `CosmosClient`, `Database` and `Container`

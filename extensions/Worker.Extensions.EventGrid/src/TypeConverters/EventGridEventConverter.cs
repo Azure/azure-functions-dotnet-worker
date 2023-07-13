@@ -2,32 +2,29 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     /// <summary>
-    /// Converter to bind to EventGridEvent or EventGridEvent[] parameter.
+    /// Converter to bind to <see cref="EventGridEvent" /> or <see cref="EventGridEvent[]" /> type parameters.
     /// </summary>
-    [SupportedConverterType(typeof(EventGridEvent))]
-    [SupportedConverterType(typeof(EventGridEvent[]))]
-    internal class EventGridEventConverter : IInputConverter
+    [SupportedTargetType(typeof(EventGridEvent))]
+    [SupportedTargetType(typeof(EventGridEvent[]))]
+    internal class EventGridEventConverter : EventGridConverterBase
     {
-        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        protected override ConversionResult ConvertCore(Type targetType, string json)
         {
-            if (context is null)
+            var eventGridEvent = JsonSerializer.Deserialize(json, targetType);
+
+            if (eventGridEvent is null)
             {
-                return new(ConversionResult.Failed(new ArgumentNullException(nameof(context))));
+                return ConversionResult.Failed(new Exception("Unable to convert to EventGridEvent."));
             }
 
-            if (context?.TargetType != typeof(EventGridEvent) && context?.TargetType != typeof(EventGridEvent[]))
-            {
-                return new(ConversionResult.Unhandled());
-            }
-
-            return EventGridHelper.DeserializeToTargetType(context);
+            return ConversionResult.Success(eventGridEvent);
         }
     }
 }

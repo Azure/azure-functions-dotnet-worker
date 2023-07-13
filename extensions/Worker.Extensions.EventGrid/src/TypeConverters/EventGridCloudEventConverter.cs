@@ -2,32 +2,29 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
+using System.Text.Json;
 using Azure.Messaging;
 using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.EventGrid.TypeConverters
 {
     /// <summary>
-    /// Converter to bind to CloudEvent or CloudEvent[] parameter.
+    /// Converter to bind to <see cref="CloudEvent" /> or <see cref="CloudEvent[]" /> type parameters.
     /// </summary>
-    [SupportedConverterType(typeof(CloudEvent))]
-    [SupportedConverterType(typeof(CloudEvent[]))]
-    internal class EventGridCloudEventConverter: IInputConverter
+    [SupportedTargetType(typeof(CloudEvent))]
+    [SupportedTargetType(typeof(CloudEvent[]))]
+    internal class EventGridCloudEventConverter: EventGridConverterBase
     {
-        public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
+        protected override ConversionResult ConvertCore(Type targetType, string json)
         {
-            if (context is null)
+            var cloudEvent = JsonSerializer.Deserialize(json, targetType);
+
+            if (cloudEvent is null)
             {
-                return new(ConversionResult.Failed(new ArgumentNullException(nameof(context))));
+                return ConversionResult.Failed(new Exception("Unable to convert to CloudEvent."));
             }
 
-            if (context.TargetType != typeof(CloudEvent) && context.TargetType != typeof(CloudEvent[]))
-            {
-                return new(ConversionResult.Unhandled());
-            }
-
-            return EventGridHelper.DeserializeToTargetType(context);
+            return ConversionResult.Success(cloudEvent);
         }
     }
 }

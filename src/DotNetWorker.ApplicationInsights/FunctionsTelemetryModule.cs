@@ -45,15 +45,6 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
                     if (activity.GetCustomProperty(DependencyTelemetryKey) is IOperationHolder<DependencyTelemetry> dependencyHolder)
                     {
                         var dependency = dependencyHolder.Telemetry;
-
-                        foreach (var item in activity.Tags)
-                        {
-                            if (!dependency.Properties.ContainsKey(item.Key))
-                            {
-                                dependency.Properties[item.Key] = item.Value;
-                            }
-                        }
-
                         dependency.Success = activity.Status != ActivityStatusCode.Error;
                         _telemetryClient.StopOperation(dependencyHolder);
                         dependencyHolder.Dispose();
@@ -66,6 +57,15 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
             ActivitySource.AddActivityListener(_listener);
         }
 
+        // We want to translate some tags from the Activity into well-known properties in Functions
+        private string MapTagToProperty(string key)
+        {
+            return key switch
+            {
+                "faas.execution" => "InvocationId",
+                _ => key,
+            };
+        }
         private static void TrackExceptionTelemetryFromActivityEvent(ActivityEvent activityEvent, TelemetryClient telemetryClient)
         {
             if (activityEvent.Name == TraceConstants.AttributeExceptionEventName)

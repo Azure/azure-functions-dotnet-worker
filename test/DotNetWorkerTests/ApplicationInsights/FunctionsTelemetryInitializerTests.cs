@@ -1,6 +1,6 @@
 ﻿using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Microsoft.Azure.Functions.Worker.ApplicationInsights;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;

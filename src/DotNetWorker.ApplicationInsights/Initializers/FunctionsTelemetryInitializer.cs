@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
                 return;
             }
 
-            if (telemetry is not null)
+            if (_sdkVersion is not null)
             {
                 telemetry.Context.GetInternalContext().SdkVersion = _sdkVersion;
             }

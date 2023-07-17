@@ -1,0 +1,28 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
+
+namespace Microsoft.Azure.Functions.Worker.Extensions
+{
+    /// <summary>
+    /// The exception that is thrown when an invalid content-type is provided.
+    /// </summary>
+    internal class InvalidContentTypeException : InvalidOperationException
+    {
+        /// <summary>
+        /// Initializes a new instance of the InvalidContentTypeException class with a specified error message.
+        /// </summary>
+        /// <param name="contentType">The content type(s) that is supported.</param>
+        public InvalidContentTypeException(string contentType) : base($"Unexpected content-type. Only '{contentType}' is supported.") { }
+
+        /// <summary>
+        /// Initializes a new instance of the InvalidContentTypeException class with a specified error message
+        /// and a reference to the inner exception that is the cause of this exception.
+        /// </summary>
+        /// <param name="contentType">The content type(s) that is supported.</param>
+        /// <param name="innerException">The exception that is the cause of the current exception
+        /// or a null reference if no inner exception is specified..</param>
+        public InvalidContentTypeException(string contentType, Exception innerException) : base($"Unexpected content-type. Only '{contentType}' is supported.", innerException) { }
+    }
+}

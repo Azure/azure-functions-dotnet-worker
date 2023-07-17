@@ -206,7 +206,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
                             Function1RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function1RawBindings.Add(@"{""name"":""blob"",""type"":""BlobTrigger"",""direction"":""In"",""path"":""container2/%file%"",""dataType"":""String""}");
+                            Function1RawBindings.Add(@"{""name"":""blob"",""type"":""BlobTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""path"":""container2/%file%"",""dataType"":""String""}");
 
                             var Function1 = new DefaultFunctionMetadata
                             {
@@ -225,7 +225,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "BlobsToQueueFunction",
-                                EntryPoint = "TestProject.QueueTriggerAndOutput.BlobsToQueue",
+                                EntryPoint = "FunctionApp.QueueTriggerAndOutput.BlobsToQueue",
                                 RawBindings = Function2RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };

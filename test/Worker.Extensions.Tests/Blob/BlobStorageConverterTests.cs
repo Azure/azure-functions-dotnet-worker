@@ -604,25 +604,6 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_BlobClientIsNull_ReturnsUnhandled()
-        {
-            // Arrange
-            var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "AzureStorageBlobs");
-            var context = new TestConverterContext(typeof(BlobClient), grpcModelBindingData);
-
-            var mockContainer = new Mock<BlobContainerClient>();
-            mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns((BlobClient)null);
-
-            _mockBlobServiceClient.Setup(m => m.GetBlobContainerClient(It.IsAny<string>())).Returns(mockContainer.Object);
-
-            // Act
-            var conversionResult = await _blobStorageConverter.ConvertAsync(context);
-
-            // Assert
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
-        }
-
-        [Fact]
         public async Task ConvertAsync_ThrowsException_ReturnsFailure()
         {
             // Arrange
@@ -641,7 +622,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
         }
 
         [Fact]
-        public async Task ConvertAsync_ModelBindingDataSource_NotBlobExtension_ReturnsUnhandled()
+        public async Task ConvertAsync_ModelBindingDataSource_NotBlobExtension_ReturnsFailed()
         {
             // Arrange
             var grpcModelBindingData = Helper.GetTestGrpcModelBindingData(GetTestBinaryData(), "anotherExtensions");
@@ -651,7 +632,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
             var conversionResult = await _blobStorageConverter.ConvertAsync(context);
 
             // Assert
-            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
         }
 
         [Fact]
@@ -666,7 +647,7 @@ namespace Microsoft.Azure.Functions.WorkerExtension.Tests
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Unexpected content-type. Currently only 'application/json' is supported.", conversionResult.Error.Message);
+            Assert.Equal("Unexpected content-type. Only 'application/json' is supported.", conversionResult.Error.Message);
         }
 
         [Fact]

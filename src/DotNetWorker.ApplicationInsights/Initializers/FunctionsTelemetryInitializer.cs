@@ -12,6 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
 {
     internal class FunctionsTelemetryInitializer : ITelemetryInitializer
     {
+        private readonly string _roleInstanceName;
         private readonly string? _sdkVersion;
         private static readonly IDictionary<string, string> _mappings = new Dictionary<string, string>()
         {
@@ -19,13 +20,14 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
             { "AzureFunctions_InvocationId", "InvocationId" } // used by log scope
         };
 
-        internal FunctionsTelemetryInitializer(string? sdkVersion)
+        internal FunctionsTelemetryInitializer(FunctionsRoleInstanceProvider roleInstanceProvider, string? sdkVersion)
         {
+            _roleInstanceName = roleInstanceProvider.GetRoleInstanceName();
             _sdkVersion = sdkVersion;
         }
 
-        public FunctionsTelemetryInitializer() :
-            this(GetSdkVersion())
+        public FunctionsTelemetryInitializer(FunctionsRoleInstanceProvider roleInstanceProvider) :
+            this(roleInstanceProvider, GetSdkVersion())
         {
         }
 
@@ -46,6 +48,11 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
             if (_sdkVersion is not null)
             {
                 telemetry.Context.GetInternalContext().SdkVersion = _sdkVersion;
+            }
+
+            if (_roleInstanceName is not null)
+            {
+                telemetry.Context.Cloud.RoleInstance = _roleInstanceName;
             }
 
             if (telemetry is ISupportProperties supportProperties)

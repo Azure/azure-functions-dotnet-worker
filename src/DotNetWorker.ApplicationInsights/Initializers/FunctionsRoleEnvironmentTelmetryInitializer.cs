@@ -48,15 +48,13 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
             {
                 telemetry.Context.Cloud.RoleName = websiteCloudRoleName;
             }
-
-            if (string.IsNullOrEmpty(telemetry.Context.Cloud.RoleName))
+            else
             {
                 telemetry.Context.Cloud.RoleName = siteSlotName.Value;
             }
 
             var internalContext = telemetry.Context.GetInternalContext();
-            if (string.IsNullOrEmpty(internalContext.NodeName) &&
-                !string.IsNullOrEmpty(siteSlotName.Value))
+            if (!string.IsNullOrEmpty(siteSlotName.Value))
             {
                 internalContext.NodeName = _siteNodeNames.GetOrAdd(siteSlotName.Value!, p =>
                 {

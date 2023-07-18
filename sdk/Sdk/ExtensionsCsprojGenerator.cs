@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class ExtensionsCsprojGenerator
     {
-        private const string ExtensionsProjectName = "WorkerExtensions.csproj";
+        internal const string ExtensionsProjectName = "WorkerExtensions.csproj";
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;

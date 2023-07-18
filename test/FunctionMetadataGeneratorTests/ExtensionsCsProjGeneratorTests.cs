@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.IO;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 
@@ -9,8 +11,45 @@ namespace Microsoft.Azure.Functions.SdkTests
 {
     public class ExtensionsCsProjGeneratorTests
     {
-        [Fact]
-        public void GetCsProjContent_Succeeds_functions_v3()
+        public enum FuncVersion
+        {
+            V3,
+            V4,
+        }
+
+        [Theory]
+        [InlineData(FuncVersion.V3)]
+        [InlineData(FuncVersion.V4)]
+        public void GetCsProjContent_Succeeds(FuncVersion version)
+        {
+            var generator = GetGenerator(version);
+            string actual = generator.GetCsProjContent().Replace("\r\n", "\n");
+            string expected = ExpectedCsproj(version);
+            Assert.Equal(expected, actual);
+        }
+
+        [Theory]
+        [InlineData(FuncVersion.V3)]
+        [InlineData(FuncVersion.V4)]
+        public void GetCsProjContent_IncrementalSupport(FuncVersion version)
+        {
+            DateTime RunGenerate(string subPath)
+            {
+                var generator = GetGenerator(version, subPath);
+                generator.Generate();
+
+                var csproj = new FileInfo(Path.Combine(subPath, ExtensionsCsprojGenerator.ExtensionsProjectName));
+                return csproj.LastWriteTimeUtc;
+            }
+
+            string subPath = Guid.NewGuid().ToString();
+            DateTime firstRun = RunGenerate(subPath);
+            DateTime secondRun = RunGenerate(subPath);
+
+            Assert.Equal(firstRun, secondRun);
+        }
+
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string subPath = "")
         {
             IDictionary<string, string> extensions = new Dictionary<string, string>
             {
@@ -19,12 +58,21 @@ namespace Microsoft.Azure.Functions.SdkTests
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
-            var generator = new ExtensionsCsprojGenerator(extensions, "", "v3", Constants.NetCoreApp, Constants.NetCoreVersion31);
-
-            string actualCsproj = generator.GetCsProjContent().Replace("\r\n", "\n");
-
-            Assert.Equal(ExpectedCsProjV3(), actualCsproj);
+            return version switch
+            {
+                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, subPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
+                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, subPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6),
+                _ => throw new ArgumentOutOfRangeException(nameof(version)),
+            };
         }
+
+        private static string ExpectedCsproj(FuncVersion version)
+            => version switch
+            {
+                FuncVersion.V3 => ExpectedCsProjV3(),
+                FuncVersion.V4 => ExpectedCsProjV4(),
+                _ => throw new ArgumentOutOfRangeException(nameof(version)),
+            };
 
         private static string ExpectedCsProjV3()
         {
@@ -52,23 +100,6 @@ namespace Microsoft.Azure.Functions.SdkTests
     </ItemGroup>
 </Project>
 ";
-        }
-
-        [Fact]
-        public void GetCsProjContent_Succeeds_functions_v4()
-        {
-            IDictionary<string, string> extensions = new Dictionary<string, string>
-            {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" },
-                { "Microsoft.Azure.WebJobs.Extensions.Http", "3.0.0" },
-                { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
-            };
-
-            var generator = new ExtensionsCsprojGenerator(extensions, "", "v4", Constants.NetCoreApp, Constants.NetCoreVersion6);
-
-            string actualCsproj = generator.GetCsProjContent().Replace("\r\n", "\n");
-
-            Assert.Equal(ExpectedCsProjV4(), actualCsproj);
         }
 
         private static string ExpectedCsProjV4()

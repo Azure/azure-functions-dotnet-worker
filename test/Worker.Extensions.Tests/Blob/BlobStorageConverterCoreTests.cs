@@ -4,7 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
 using Microsoft.Extensions.DependencyInjection;
@@ -117,6 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+            Assert.Equal("Unexpected binding source 'anotherExtensions'. Only 'AzureStorageBlobs' is supported.", conversionResult.Error.Message);
         }
 
         [Fact]
@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
-            Assert.Equal("Unexpected content-type. Only 'application/json' is supported.", conversionResult.Error.Message);
+            Assert.Equal("Unexpected content-type 'binary'. Only 'application/json' is supported.", conversionResult.Error.Message);
         }
 
         [Fact]

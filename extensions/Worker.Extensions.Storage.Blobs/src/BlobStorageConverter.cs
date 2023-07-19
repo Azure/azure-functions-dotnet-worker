@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (modelBindingData.Source is not Constants.BlobExtensionName)
                 {
-                    throw new InvalidBindingSourceException(Constants.BlobExtensionName);
+                    throw new InvalidBindingSourceException(modelBindingData.Source, Constants.BlobExtensionName);
                 }
 
                 BlobBindingData blobData = GetBindingDataContent(modelBindingData);
@@ -94,7 +94,7 @@ namespace Microsoft.Azure.Functions.Worker
             return bindingData.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<BlobBindingData>(),
-                _ => throw new InvalidContentTypeException(Constants.JsonContentType)
+                _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }
 

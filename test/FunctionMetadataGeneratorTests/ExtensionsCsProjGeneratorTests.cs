@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         {
             var generator = GetGenerator(version);
             string actual = generator.GetCsProjContent().Replace("\r\n", "\n");
-            string expected = ExpectedCsproj(version);
+            string expected = ExpectedCsproj(version).Replace("\r\n", "\n");
             Assert.Equal(expected, actual);
         }
 

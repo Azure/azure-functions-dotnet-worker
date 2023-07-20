@@ -21,17 +21,21 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal BlobServiceClient CreateClient()
         {
-            if (this.Client is not null)
+            if (Client is not null)
             {
-                return this.Client;
+                return Client;
             }
 
             if (ServiceUri is not null && Credential is not null)
             {
-                return new BlobServiceClient(ServiceUri, Credential, BlobClientOptions);
+                Client = new BlobServiceClient(ServiceUri, Credential, BlobClientOptions);
+            }
+            else
+            {
+                Client = new BlobServiceClient(ConnectionString, BlobClientOptions);
             }
 
-            return new BlobServiceClient(ConnectionString, BlobClientOptions);
+            return Client;
         }
     }
 }

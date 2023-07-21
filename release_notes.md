@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- <entry>
+- Updated protobuf file to v1.10.0-protofile (#1774)
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 

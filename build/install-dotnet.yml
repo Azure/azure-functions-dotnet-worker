@@ -1,6 +1,14 @@
 steps:
+# Some tests rely on 6.0.412 existing
 - task: UseDotNet@2
-  displayName: 'Install .NET SDK'
+  displayName: 'Install .NET6 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: "6.0.412"
+
+# The SDK we use to build
+- task: UseDotNet@2
+  displayName: 'Install current .NET SDK'
   inputs:
     packageType: 'sdk'
     useGlobalJson: true

@@ -4,7 +4,7 @@ syntax = "proto3";
 option java_multiple_files = true;
 option java_package = "com.microsoft.azure.functions.rpc.messages";
 option java_outer_classname = "FunctionProto";
-option csharp_namespace = "Microsoft.Azure.WebJobs.Script.Grpc.Messages";
+option csharp_namespace = "Microsoft.Azure.Functions.Worker.Grpc.Messages";
 option go_package ="github.com/Azure/azure-functions-go-worker/internal/rpc";
 
 package AzureFunctionsRpcMessages;

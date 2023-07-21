@@ -7,7 +7,6 @@
 
     <!--Version information-->
     <VersionPrefix>1.2.0</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
 
   </PropertyGroup>
 

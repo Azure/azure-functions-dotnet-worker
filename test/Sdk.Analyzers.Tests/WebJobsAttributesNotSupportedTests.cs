@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using AnalizerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
@@ -28,7 +28,7 @@ namespace FunctionApp
         }
     }
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 // TODO: This needs to pull from a local source
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
@@ -43,7 +43,7 @@ namespace FunctionApp
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                 .WithSpan(12, 105, 12, 122).WithArguments("TimerTriggerAttribute"));
-            
+
             await test.RunAsync();
         }
 
@@ -67,7 +67,7 @@ namespace FunctionApp
 
     public record MyInfo(bool IsPastDue);
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.10.0"),
@@ -98,14 +98,14 @@ namespace FunctionApp
     {
         [Function(""Function1"")]
         [return: Microsoft.Azure.WebJobs.Queue(""dest-q"")]
-        public static string Run([TimerTrigger(""0 */1 * * * *"")] object myTimer, 
+        public static string Run([TimerTrigger(""0 */1 * * * *"")] object myTimer,
                                  [Blob(""samples-workitems/{queueTrigger}"", FileAccess.Read)] Stream myBlob)
         {
             return ""Azure"";
         }
     }
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.10.0"),
@@ -142,7 +142,7 @@ namespace GH258IsolatedReturnWebJobsAttr
         }
     }
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 // TODO: This needs to pull from a local source
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(

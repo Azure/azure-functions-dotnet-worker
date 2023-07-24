@@ -1,5 +1,5 @@
 ﻿using Xunit;
-using AnalizerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using AnalyzerVerifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer>;
 using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
@@ -35,7 +35,7 @@ namespace FunctionApp4
         }
     }
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
                 TestCode = inputCode
@@ -72,7 +72,7 @@ namespace FunctionApp4
         }
     }
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
                 TestCode = inputCode
@@ -80,7 +80,7 @@ namespace FunctionApp4
 
             await test.RunAsync();
         }
-                
+
         [Fact]
         public async Task AnalyzerDoesNotReportForNonAsyncCode()
         {
@@ -100,7 +100,7 @@ namespace FunctionApp4
         }
     }
 }";
-            var test = new AnalizerTest
+            var test = new AnalyzerTest
             {
                 ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
                 TestCode = inputCode
@@ -165,7 +165,7 @@ namespace FunctionApp4
             test.ExpectedDiagnostics.AddRange(new[] { expectedDiagnosticResult });
             await test.RunAsync(CancellationToken.None);
         }
-                
+
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(

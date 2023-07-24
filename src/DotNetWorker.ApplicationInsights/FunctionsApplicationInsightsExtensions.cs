@@ -2,11 +2,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Hosting;
@@ -23,7 +26,26 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(services));
             }
 
+            services.AddSingleton<FunctionsRoleInstanceProvider>();
+
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryInitializer, FunctionsTelemetryInitializer>());
+            services.AddSingleton<ITelemetryInitializer>(provider =>
+            {
+                // To match parity with the Host, we need to update the QuickPulseTelemetryModule.ServerId. We don't want to reference the
+                // top-level WorkerService or AspNetCore packages, so we cannot use ConfigureTelemetryModules().
+                // 
+                // Nesting this setup inside this ITelemetryInitializer factory as it guarantees it will be run before
+                // any ITelemetryModules are initialized.
+                var modules = provider.GetServices<ITelemetryModule>();
+                var quickPulseModule = modules.OfType<QuickPulseTelemetryModule>().SingleOrDefault();
+                if (quickPulseModule is not null)
+                {
+                    var roleInstanceProvider = provider.GetRequiredService<FunctionsRoleInstanceProvider>();
+                    quickPulseModule.ServerId = roleInstanceProvider.GetRoleInstanceName();
+                }
+
+                return ActivatorUtilities.CreateInstance<FunctionsRoleEnvironmentTelemetryInitializer>(provider);
+            });
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());
             services.AddOptions<FunctionsApplicationInsightsOptions>()
                 .Validate<IServiceProvider>(

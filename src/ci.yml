@@ -18,10 +18,12 @@ pr:
     include:
     - src/
     - test/DotNetWorkerTests
+    - test/Worker.Extensions.Tests
     - test/E2ETests
     - test/TestUtility
     - sdk/
     - samples/FunctionApp
+    - samples/WorkerBindingSamples
     - tools/
 
 jobs:
@@ -32,9 +34,9 @@ jobs:
       - ImageOverride -equals MMS2022TLS
 
   variables:
-    ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
+    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
       buildNumberTemp: $(Build.BuildNumber)
-    ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
+    ${{ if or( contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags') ) }}:
       isReleaseBuildTemp: true
     buildNumber: $[variables.buildNumberTemp]
     isReleaseBuild: $[variables.isReleaseBuildTemp]

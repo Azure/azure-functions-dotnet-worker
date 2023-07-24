@@ -10,7 +10,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <MinorProductVersion>1</MinorProductVersion>
-    <VersionSuffix>-preview4</VersionSuffix>
+    <VersionSuffix>-preview5</VersionSuffix>
     <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 

@@ -15,3 +15,4 @@
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
 - bumping grpc packages (#1719)
+- Add placeholder support for linux platform. (#1704)

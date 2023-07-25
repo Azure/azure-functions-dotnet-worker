@@ -6,9 +6,16 @@ steps:
     packageType: 'sdk'
     version: "6.0.412"
 
+# Some tests rely on 6.0.412 existing
+- task: UseDotNet@2
+  displayName: 'Install .NET8 Preview 6 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: "8.0.100-preview.6"
+
 # The SDK we use to build
 - task: UseDotNet@2
   displayName: 'Install current .NET SDK'
   inputs:
     packageType: 'sdk'
-    version: "7.0.306"
+    useGlobalJson: true

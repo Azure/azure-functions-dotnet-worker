@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal ConcurrentDictionary<string, CosmosClient> ClientCache { get; } = new ConcurrentDictionary<string, CosmosClient>();
 
-        internal virtual CosmosClient GetClient(string preferredLocations = "")
+        internal virtual CosmosClient GetClient(CosmosSerializer? serializer = null, string preferredLocations = "")
         {
             if (string.IsNullOrEmpty(ConnectionName))
             {
@@ -40,6 +40,11 @@ namespace Microsoft.Azure.Functions.Worker
             if (!string.IsNullOrEmpty(preferredLocations))
             {
                 cosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
+            }
+
+            if (serializer is not null)
+            {
+                cosmosClientOptions.Serializer = serializer;
             }
 
             return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(cosmosClientOptions));

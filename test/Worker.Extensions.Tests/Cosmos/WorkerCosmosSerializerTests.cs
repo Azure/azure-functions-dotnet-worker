@@ -32,7 +32,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
             {
                 Assert.Fail("Objects are not equal");
             }
-
         }
 
         [Fact]

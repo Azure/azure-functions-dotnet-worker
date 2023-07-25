@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public TokenCredential? Credential { get; set; }
 
-        internal CosmosSerializer? Serializer;
+        public CosmosSerializer? Serializer { get; set; }
 
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 

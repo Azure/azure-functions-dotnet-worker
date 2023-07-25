@@ -12,6 +12,7 @@ steps:
   inputs:
     packageType: 'sdk'
     version: "8.0.100-preview.6"
+    includePreviewVersions: true
 
 # The SDK we use to build
 - task: UseDotNet@2

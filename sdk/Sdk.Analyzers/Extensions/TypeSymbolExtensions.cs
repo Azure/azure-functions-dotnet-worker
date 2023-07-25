@@ -58,6 +58,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 name = Regex.Match(name, @"IEnumerable<[^>]+>").Value;
             }
 
+            if (name.Contains("System."))
+            {
+                name = Regex.Match(name, @"([^.]+$)").Value;
+            }
+
             return name;
         }
 

@@ -14,6 +14,6 @@
 - Remove IsBatched property from BlobInput binding attribute
 - Infer binding cardinality based on blobPath
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.1.3
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.2.0
 
 - Add ability to bind a queue trigger to QueueMessage and BinaryData (#1470)

@@ -22,7 +22,7 @@ internal static class AttributeDataExtensions
         {
             return false;
         }
-            
+
         foreach (var attribute in attributeAttributes)
         {
             if (string.Equals(attribute.AttributeClass?.ToDisplayString(), Constants.Types.WebJobsBindingAttribute,
@@ -30,6 +30,23 @@ internal static class AttributeDataExtensions
             {
                 return true;
             }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Checks if an attribute is the SupportsDeferredBinding attribute.
+    /// </summary>
+    /// <param name="attributeData">The attribute to check.</param>
+    /// <returns>A boolean value indicating whether the attribute is a SupportsDeferredBinding attribute.</returns>
+    public static bool IsSupportsDeferredBindingAttribute(this AttributeData attributeData)
+    {
+        if (string.Equals(attributeData.AttributeClass?.ToDisplayString(),
+                            Constants.Types.SupportsDeferredBindingAttribute,
+                            StringComparison.Ordinal))
+        {
+            return true;
         }
 
         return false;

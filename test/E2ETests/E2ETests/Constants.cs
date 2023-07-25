@@ -34,15 +34,19 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         //Blob tests
         public static class Blob
         {
-            public const string TriggerInputBindingContainer = "test-triggerinput-dotnet-isolated";
+            public const string TriggerInputBindingContainer = "test-trigger-dotnet-isolated";
             public const string InputBindingContainer = "test-input-dotnet-isolated";
             public const string OutputBindingContainer = "test-output-dotnet-isolated";
-
-            public const string TriggerPocoContainer = "test-triggerinputpoco-dotnet-isolated";
-            public const string OutputPocoContainer = "test-outputpoco-dotnet-isolated";
-
-            public const string TriggerStringContainer = "test-triggerinputstring-dotnet-isolated";
-            public const string OutputStringContainer = "test-outputstring-dotnet-isolated";
+            public const string TriggerPocoContainer = "test-trigger-poco-dotnet-isolated";
+            public const string OutputPocoContainer = "test-output-poco-dotnet-isolated";
+            public const string TriggerStringContainer = "test-trigger-string-dotnet-isolated";
+            public const string OutputStringContainer = "test-output-string-dotnet-isolated";
+            public const string TriggerStreamContainer = "test-trigger-stream-dotnet-isolated";
+            public const string OutputStreamContainer = "test-output-stream-dotnet-isolated";
+            public const string TriggerBlobClientContainer = "test-trigger-blobclient-dotnet-isolated";
+            public const string OutputBlobClientContainer = "test-output-blobclient-dotnet-isolated";
+            public const string TriggerBlobContainerClientContainer = "test-trigger-containerclient-dotnet-isolated";
+            public const string OutputBlobContainerClientContainer = "test-output-containerclient-dotnet-isolated";
         }
 
         // CosmosDB tests

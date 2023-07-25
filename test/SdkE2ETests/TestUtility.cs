@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             JToken functionsMetadataContents = JToken.Parse(File.ReadAllText(actualFilePath));
             var assembly = Assembly.GetExecutingAssembly();
             string resourceName = assembly.GetManifestResourceNames()
-                .Single(str => str.EndsWith("functions.metadata"));
+                .Single(str => str.EndsWith(embeddedResourceName));
             using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {
                 using (StreamReader reader = new StreamReader(stream))
@@ -84,6 +84,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         public static async Task RestoreAndPublishProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)
         {
+            await PackWorkerSdk(outputHelper);
+
+            await UpdateNugetPackagesForApp(fullPathToProjFile, outputHelper);
+
             // Name of the csproj
             string projectNameToTest = Path.GetFileName(fullPathToProjFile);
             string projectFileDirectory = Path.GetDirectoryName(fullPathToProjFile);

@@ -20,6 +20,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _bindingCapabilitiesAttribute;
         private readonly Lazy<INamedTypeSymbol?> _fixedDelayRetryAttribute;
         private readonly Lazy<INamedTypeSymbol?> _exponentialBackoffRetryAttribute;
+        private readonly Lazy<INamedTypeSymbol?> _inputConverterAttributeType;
+        private readonly Lazy<INamedTypeSymbol?> _supportedTargetTypeAttributeType;
+        private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
 
         internal KnownFunctionMetadataTypes(Compilation compilation)
         {
@@ -34,7 +37,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _bindingCapabilitiesAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.BindingCapabilitiesAttribute));
             _fixedDelayRetryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.FixedDelayRetryAttribute));
             _exponentialBackoffRetryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.ExponentialBackoffRetryAttribute));
-
+            _inputConverterAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttributeType));
+            _supportedTargetTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedTargetTypeAttributeType));
+            _supportsDeferredBindingAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportsDeferredBindingAttributeType));
         }
 
         public INamedTypeSymbol? BindingAttribute { get => _bindingAttribute.Value; }
@@ -58,5 +63,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public INamedTypeSymbol? FixedDelayRetryAttribute {  get => _fixedDelayRetryAttribute.Value; }
 
         public INamedTypeSymbol? ExponentialBackoffRetryAttribute { get => _exponentialBackoffRetryAttribute.Value; }
+
+        public INamedTypeSymbol? InputConverterAttributeType { get => _inputConverterAttributeType.Value; }
+
+        public INamedTypeSymbol? SupportedTargetTypeAttributeType { get => _supportedTargetTypeAttributeType.Value; }
+
+        public INamedTypeSymbol? SupportsDeferredBindingAttributeType { get => _supportsDeferredBindingAttributeType.Value; }
     }
 }

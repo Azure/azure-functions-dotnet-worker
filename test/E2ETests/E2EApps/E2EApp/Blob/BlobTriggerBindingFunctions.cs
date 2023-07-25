@@ -1,17 +1,19 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO;
 using System.Text.Json.Serialization;
-using Microsoft.Azure.Functions.Worker;
+using System.Threading.Tasks;
+using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 {
-    public class BlobTestFunctions
+    public class BlobTriggerBindingFunctions
     {
-        private readonly ILogger<BlobTestFunctions> _logger;
+        private readonly ILogger<BlobTriggerBindingFunctions> _logger;
 
-        public BlobTestFunctions(ILogger<BlobTestFunctions> logger)
+        public BlobTriggerBindingFunctions(ILogger<BlobTriggerBindingFunctions> logger)
         {
             _logger = logger;
         }
@@ -19,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         [Function(nameof(BlobTriggerToBlobTest))]
         [BlobOutput("test-output-dotnet-isolated/{name}")]
         public byte[] BlobTriggerToBlobTest(
-            [BlobTrigger("test-triggerinput-dotnet-isolated/{name}")] byte[] triggerBlob, string name,
+            [BlobTrigger("test-trigger-dotnet-isolated/{name}")] byte[] triggerBlob, string name,
             [BlobInput("test-input-dotnet-isolated/{name}")] byte[] inputBlob,
             FunctionContext context)
         {
@@ -29,9 +31,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         }
 
         [Function(nameof(BlobTriggerPocoTest))]
-        [BlobOutput("test-outputpoco-dotnet-isolated/{name}")]
+        [BlobOutput("test-output-poco-dotnet-isolated/{name}")]
         public TestBlobData BlobTriggerPocoTest(
-            [BlobTrigger("test-triggerinputpoco-dotnet-isolated/{name}")] TestBlobData triggerBlob, string name,
+            [BlobTrigger("test-trigger-poco-dotnet-isolated/{name}")] TestBlobData triggerBlob, string name,
             FunctionContext context)
         {
             _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + triggerBlob.BlobText);
@@ -39,13 +41,33 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         }
 
         [Function(nameof(BlobTriggerStringTest))]
-        [BlobOutput("test-outputstring-dotnet-isolated/{name}")]
+        [BlobOutput("test-output-string-dotnet-isolated/{name}")]
         public string BlobTriggerStringTest(
-            [BlobTrigger("test-triggerinputstring-dotnet-isolated/{name}")] string triggerBlobText, string name,
+            [BlobTrigger("test-trigger-string-dotnet-isolated/{name}")] string triggerBlobText, string name,
             FunctionContext context)
         {
             _logger.LogInformation(".NET Blob trigger function processed a blob.\n Name: " + name + "\n Content: " + triggerBlobText);
             return triggerBlobText;
+        }
+
+        [Function(nameof(BlobTriggerStreamTest))]
+        public async Task BlobTriggerStreamTest(
+            [BlobTrigger("test-trigger-stream-dotnet-isolated/{name}")] Stream stream, string name,
+            FunctionContext context)
+        {
+            using var blobStreamReader = new StreamReader(stream);
+            string content = await blobStreamReader.ReadToEndAsync();
+            _logger.LogInformation("StreamTriggerOutput: {c}", content);
+        }
+
+        [Function(nameof(BlobTriggerBlobClientTest))]
+        public async Task BlobTriggerBlobClientTest(
+            [BlobTrigger("test-trigger-blobclient-dotnet-isolated/{name}")] BlobClient client, string name,
+            FunctionContext context)
+        {
+            var downloadResult = await client.DownloadContentAsync();
+            string content = downloadResult.Value.Content.ToString();
+            _logger.LogInformation("BlobClientTriggerOutput: {c}", content);
         }
 
         public class TestBlobData

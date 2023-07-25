@@ -6,13 +6,12 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- <entry>
+- Updated protobuf file to v1.10.0-protofile (#1774)
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Unsealed `InputConverterAttribute`. Implementers can now derive from this type to map attributes to custom converters. 
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- bumping grpc packages (#1719)
 - Add placeholder support for linux platform. (#1704)

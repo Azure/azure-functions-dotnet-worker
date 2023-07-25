@@ -70,7 +70,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Kafka", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers", "sdk\Sdk.Analyzers\Sdk.Analyzers.csproj", "{055D602D-D2B3-416B-AC59-1972D832032A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers.Tests", "test\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests.csproj", "{A75EA1E1-2801-460C-87C0-DE6A82D30851}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers.Tests", "test\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests.csproj", "{A75EA1E1-2801-460C-87C0-DE6A82D30851}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{083592CA-7DAB-44CE-8979-44FAFA46AEC3}"
 EndProject
@@ -129,6 +129,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspNetCore", "extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj", "{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.SignalRService.Tests", "test\Worker.Extensions.SignalRService.Tests\Worker.Extensions.SignalRService.Tests.csproj", "{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Tests", "test\Worker.Extensions.Tests\Worker.Extensions.Tests.csproj", "{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetIntegration", "samples\AspNetIntegration\AspNetIntegration.csproj", "{D2F67410-9933-42E8-B04A-E17634D83A30}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -320,6 +324,14 @@ Global
 		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D2F67410-9933-42E8-B04A-E17634D83A30}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D2F67410-9933-42E8-B04A-E17634D83A30}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D2F67410-9933-42E8-B04A-E17634D83A30}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D2F67410-9933-42E8-B04A-E17634D83A30}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -376,6 +388,8 @@ Global
 		{B13C9E5F-0E4B-413E-90AE-20B84B100364} = {AA4D318D-101B-49E7-A4EC-B34165AEDB33}
 		{1F6B7CF6-0CC8-4C7F-825F-74B0BEC1CF0A} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{286F9EE3-00AE-4EFA-BFD8-A2E58BC809D2} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
+		{17BDCE12-6964-4B87-B2AC-68CE270A3E9A} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
+		{D2F67410-9933-42E8-B04A-E17634D83A30} = {9D6603BD-7EA2-4D11-A69C-0D9E01317FD6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

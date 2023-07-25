@@ -11,5 +11,4 @@ steps:
   displayName: 'Install current .NET SDK'
   inputs:
     packageType: 'sdk'
-    useGlobalJson: true
-    includePreviewVersions: true
+    version: "7.0.306"

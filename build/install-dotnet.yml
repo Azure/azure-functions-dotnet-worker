@@ -13,6 +13,7 @@ steps:
     packageType: 'sdk'
     version: "8.0.100-preview.6"
     includePreviewVersions: true
+    useGlobalJson: false
 
 # The SDK we use to build
 - task: UseDotNet@2

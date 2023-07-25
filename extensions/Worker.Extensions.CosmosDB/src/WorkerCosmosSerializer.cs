@@ -5,7 +5,6 @@
 
 using System;
 using System.IO;
-using System.Text;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Cosmos;
 
@@ -14,14 +13,14 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// This is a wrapper that allows us to use the worker options ObjectSerializer to create a CosmosSerializer.
     /// <summary>
-    public sealed class WorkerCosmosSerializer : CosmosSerializer
+    internal sealed class WorkerCosmosSerializer : CosmosSerializer
     {
         private readonly ObjectSerializer _serializer;
 
         /// <summary>
         /// Create a serializer that uses the Azure.Core ObjectSerializer
         /// </summary>
-        public WorkerCosmosSerializer(ObjectSerializer serializer)
+        public WorkerCosmosSerializer(ObjectSerializer? serializer)
         {
             _serializer = serializer ?? throw new ArgumentNullException(nameof(serializer));
         }
@@ -29,9 +28,9 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Convert a Stream to the passed in type.
         /// </summary>
-        /// <typeparam name="T">The type of object that should be deserialized</typeparam>
-        /// <param name="stream">An open stream that is readable that contains JSON</param>
-        /// <returns>The object representing the deserialized stream</returns>
+        /// <typeparam name="T">The type of object that should be deserialized.</typeparam>
+        /// <param name="stream">An open stream that is readable that contains JSON.</param>
+        /// <returns>The object representing the deserialized stream.</returns>
         public override T FromStream<T>(Stream stream)
         {
             using (stream)
@@ -46,15 +45,15 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// Converts an object to a open readable stream
+        /// Converts an object to an open readable stream.
         /// </summary>
-        /// <typeparam name="T">The type of object being serialized</typeparam>
-        /// <param name="input">The object to be serialized</param>
-        /// <returns>An open readable stream containing the JSON of the serialized object</returns>
+        /// <typeparam name="T">The type of object being serialized.</typeparam>
+        /// <param name="input">The object to be serialized.</param>
+        /// <returns>An open readable stream containing the JSON of the serialized object.</returns>
         public override Stream ToStream<T>(T input)
         {
             var streamPayload = new MemoryStream();
-            _serializer.Serialize(streamPayload, value: input, typeof(T), default);
+            _serializer.Serialize(streamPayload, input, typeof(T), default);
             streamPayload.Position = 0;
             return streamPayload;
         }

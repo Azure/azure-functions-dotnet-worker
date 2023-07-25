@@ -27,13 +27,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
             var logger = host.Services.GetService<ILogger<CosmosDBConverter>>();
 
-            var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>();
-
             _mockCosmosClient = new Mock<CosmosClient>();
 
             var mockCosmosOptions = new Mock<CosmosDBBindingOptions>();
             mockCosmosOptions
-                .Setup(m => m.GetClient(It.IsAny<CosmosSerializer>(), It.IsAny<string>()))
+                .Setup(m => m.GetClient(It.IsAny<string>()))
                 .Returns(_mockCosmosClient.Object);
 
             var mockCosmosOptionsSnapshot = new Mock<IOptionsSnapshot<CosmosDBBindingOptions>>();
@@ -41,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockCosmosOptions.Object);
 
-            _cosmosDBConverter = new CosmosDBConverter(workerOptions, mockCosmosOptionsSnapshot.Object, logger);
+            _cosmosDBConverter = new CosmosDBConverter(mockCosmosOptionsSnapshot.Object, logger);
         }
 
         [Fact]

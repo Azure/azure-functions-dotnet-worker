@@ -25,19 +25,11 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IOptionsSnapshot<CosmosDBBindingOptions> _cosmosOptions;
         private readonly ILogger<CosmosDBConverter> _logger;
-        private readonly WorkerCosmosSerializer _cosmosSerializer;
 
-        public CosmosDBConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
+        public CosmosDBConverter(IOptionsSnapshot<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
         {
-            if (workerOptions is null)
-            {
-                throw new ArgumentNullException(nameof(workerOptions));
-            }
-
             _cosmosOptions = cosmosOptions ?? throw new ArgumentNullException(nameof(cosmosOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-
-            _cosmosSerializer = new WorkerCosmosSerializer(workerOptions.Value.Serializer);
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -190,7 +182,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.Connection);
-            CosmosClient cosmosClient = cosmosDBOptions.GetClient(_cosmosSerializer, cosmosAttribute.PreferredLocations!);
+            CosmosClient cosmosClient = cosmosDBOptions.GetClient(cosmosAttribute.PreferredLocations!);
 
             Type targetType = typeof(T);
             object cosmosReference = targetType switch

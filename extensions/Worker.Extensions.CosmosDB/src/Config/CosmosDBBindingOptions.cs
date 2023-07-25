@@ -19,11 +19,13 @@ namespace Microsoft.Azure.Functions.Worker
 
         public TokenCredential? Credential { get; set; }
 
+        internal CosmosSerializer? Serializer;
+
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 
         internal ConcurrentDictionary<string, CosmosClient> ClientCache { get; } = new ConcurrentDictionary<string, CosmosClient>();
 
-        internal virtual CosmosClient GetClient(CosmosSerializer? serializer = null, string preferredLocations = "")
+        internal virtual CosmosClient GetClient(string preferredLocations = "")
         {
             if (string.IsNullOrEmpty(ConnectionName))
             {
@@ -42,9 +44,9 @@ namespace Microsoft.Azure.Functions.Worker
                 cosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
             }
 
-            if (serializer is not null)
+            if (Serializer is not null)
             {
-                cosmosClientOptions.Serializer = serializer;
+                cosmosClientOptions.Serializer = Serializer;
             }
 
             return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(cosmosClientOptions));

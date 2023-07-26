@@ -9,8 +9,6 @@ using Xunit;
 
 namespace Sdk.Analyzers.Tests
 {
-    // Disabling tests as they depend on Tables and ServiceBus extension releases with new deferred binding model changes
-    // Issue #1746  created to re-enable tests once new releases are available
     public class BindingTypeCodeRefactoringProviderTests : CodeRefactoringTestFixture
     {
         protected override string LanguageName => LanguageNames.CSharp;
@@ -24,94 +22,178 @@ namespace Sdk.Analyzers.Tests
         {
             ReferenceSource.NetStandard2_0,
             ReferenceSource.FromAssembly(Assembly.Load("System.Runtime, Version=7.0.0.0").Location),
-            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Core, Version=1.13.0.0").Location),
-            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.Abstractions, Version=1.2.0.0")),
+            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Core, Version=1.14.0.0").Location),
+            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.Abstractions, Version=1.3.0.0")),
 
-            ReferenceSource.FromAssembly(Assembly.Load("Azure.Data.Tables, Version=12.8.0.0").Location),
-            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.Tables, Version=1.2.0.0").Location),
+            ReferenceSource.FromAssembly(Assembly.Load("Azure.Storage.Queues, Version=12.13.1.0").Location),
+            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues, Version=5.2.0.0").Location),
 
-            ReferenceSource.FromAssembly(Assembly.Load("Azure.Messaging.ServiceBus, Version=7.14.0.0").Location),
-            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus, Version=5.10.0.0").Location),
+            ReferenceSource.FromAssembly(Assembly.Load("Azure.Messaging.EventHubs, Version=5.9.2.0").Location),
+            ReferenceSource.FromAssembly(Assembly.Load("Microsoft.Azure.Functions.Worker.Extensions.EventHubs, Version=5.5.0.0").Location)
         };
 
-        // [Theory]
-        // [InlineData("TableClient", 0)]
-        // [InlineData("TableEntity", 1)]
-        // public void TableInput_SuggestsCodeRefactor(string supportedType, int index)
-        // {
-        //     string testCode = @"
-        //         using System;
-        //         using Azure.Data.Tables;
-        //         using Microsoft.Azure.Functions.Worker;
+        [Theory]
+        [InlineData("string", 0)]
+        [InlineData("bool", 1)]
+        [InlineData("IEnumerable<string>", 2)]
+        [InlineData("bool[]", 3)]
+        public void TestBinding_SuggestsCodeRefactor(string supportedType, int index)
+        {
+            string testCode = @"
+                using System;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Core;
+                using Microsoft.Azure.Functions.Worker.Converters;
+                using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-        //         namespace FunctionApp
-        //         {
-        //             public static class SomeFunction
-        //             {
-        //                 [Function(nameof(SomeFunction))]
-        //                 public static void Run([TableInput(""input"")] [|string message|])
-        //                 {
-        //                 }
-        //             }
-        //         }";
+                namespace Microsoft.Azure.Functions.Worker
+                {
+                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
+                    [InputConverter(typeof(TestConverter))]
+                    public class TestTriggerAttribute : TriggerBindingAttribute
+                    {
+                    }
 
-        //     string expectedCode = $@"
-        //         using System;
-        //         using Azure.Data.Tables;
-        //         using Microsoft.Azure.Functions.Worker;
+                    [SupportsDeferredBinding]
+                    [SupportedTargetType(typeof(string))]
+                    [SupportedTargetType(typeof(bool))]
+                    [SupportedTargetType(typeof(IEnumerable<string>))]
+                    [SupportedTargetType(typeof(bool[]))]
+                    public class TestConverter
+                    {
+                    }
+                }
 
-        //         namespace FunctionApp
-        //         {{
-        //             public static class SomeFunction
-        //             {{
-        //                 [Function(nameof(SomeFunction))]
-        //                 public static void Run([TableInput(""input"")] {supportedType} message)
-        //                 {{
-        //                 }}
-        //             }}
-        //         }}";
+                namespace FunctionApp
+                {
+                    public class SomeFunction
+                    {
+                        [Function(nameof(SomeFunction))]
+                        public void Run([TestTrigger()] [|int message|])
+                        {
+                        }
+                    }
+                }";
 
-        //     TestCodeRefactoring(testCode, expectedCode, index);
-        // }
+            string expectedCode = $@"
+                using System;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Core;
+                using Microsoft.Azure.Functions.Worker.Converters;
+                using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
-        // [Theory]
-        // [InlineData("ServiceBusReceivedMessage", 0)]
-        // [InlineData("ServiceBusReceivedMessage[]", 1)]
-        // public void ServiceBusTrigger_SuggestsCodeRefactor(string supportedType, int index)
-        // {
-        //     string testCode = @"
-        //         using System;
-        //         using Azure.Messaging.ServiceBus;
-        //         using Microsoft.Azure.Functions.Worker;
+                namespace Microsoft.Azure.Functions.Worker
+                {{
+                    [ConverterFallbackBehavior(ConverterFallbackBehavior.Disallow)]
+                    [InputConverter(typeof(TestConverter))]
+                    public class TestTriggerAttribute : TriggerBindingAttribute
+                    {{
+                    }}
 
-        //         namespace FunctionApp
-        //         {
-        //             public static class SomeFunction
-        //             {
-        //                 [Function(nameof(SomeFunction))]
-        //                 public static void Run([ServiceBusTrigger(""input"")] [|string message|])
-        //                 {
-        //                 }
-        //             }
-        //         }";
+                    [SupportsDeferredBinding]
+                    [SupportedTargetType(typeof(string))]
+                    [SupportedTargetType(typeof(bool))]
+                    [SupportedTargetType(typeof(IEnumerable<string>))]
+                    [SupportedTargetType(typeof(bool[]))]
+                    public class TestConverter
+                    {{
+                    }}
+                }}
 
-        //     string expectedCode = $@"
-        //         using System;
-        //         using Azure.Messaging.ServiceBus;
-        //         using Microsoft.Azure.Functions.Worker;
+                namespace FunctionApp
+                {{
+                    public class SomeFunction
+                    {{
+                        [Function(nameof(SomeFunction))]
+                        public void Run([TestTrigger()] {supportedType} message)
+                        {{
+                        }}
+                    }}
+                }}";
 
-        //         namespace FunctionApp
-        //         {{
-        //             public static class SomeFunction
-        //             {{
-        //                 [Function(nameof(SomeFunction))]
-        //                 public static void Run([ServiceBusTrigger(""input"")] {supportedType} message)
-        //                 {{
-        //                 }}
-        //             }}
-        //         }}";
+            TestCodeRefactoring(testCode, expectedCode, index);
+        }
 
-        //     TestCodeRefactoring(testCode, expectedCode, index);
-        // }
+        [Theory]
+        [InlineData("QueueMessage", 0)]
+        [InlineData("BinaryData", 1)]
+        public void QueueTrigger_SuggestsCodeRefactor(string supportedType, int index)
+        {
+            string testCode = @"
+                using System;
+                using Azure.Storage.Queues.Models;
+                using Microsoft.Azure.Functions.Worker;
+
+                namespace FunctionApp
+                {
+                    public static class SomeFunction
+                    {
+                        [Function(nameof(SomeFunction))]
+                        public static void Run([QueueTrigger(""input"")] [|string message|])
+                        {
+                        }
+                    }
+                }";
+
+            string expectedCode = $@"
+                using System;
+                using Azure.Storage.Queues.Models;
+                using Microsoft.Azure.Functions.Worker;
+
+                namespace FunctionApp
+                {{
+                    public static class SomeFunction
+                    {{
+                        [Function(nameof(SomeFunction))]
+                        public static void Run([QueueTrigger(""input"")] {supportedType} message)
+                        {{
+                        }}
+                    }}
+                }}";
+
+            TestCodeRefactoring(testCode, expectedCode, index);
+        }
+
+        [Theory]
+        [InlineData("EventData", 0)]
+        [InlineData("EventData[]", 1)]
+        public void EventHubTrigger_SuggestsCodeRefactor(string supportedType, int index)
+        {
+            string testCode = @"
+                using System;
+                using Azure.Messaging.EventHubs;
+                using Microsoft.Azure.Functions.Worker;
+
+                namespace FunctionApp
+                {
+                    public static class SomeFunction
+                    {
+                        [Function(nameof(SomeFunction))]
+                        public static void Run([EventHubTrigger(""input"")] [|string message|])
+                        {
+                        }
+                    }
+                }";
+
+            string expectedCode = $@"
+                using System;
+                using Azure.Messaging.EventHubs;
+                using Microsoft.Azure.Functions.Worker;
+
+                namespace FunctionApp
+                {{
+                    public static class SomeFunction
+                    {{
+                        [Function(nameof(SomeFunction))]
+                        public static void Run([EventHubTrigger(""input"")] {supportedType} message)
+                        {{
+                        }}
+                    }}
+                }}";
+
+            TestCodeRefactoring(testCode, expectedCode, index);
+        }
     }
 }

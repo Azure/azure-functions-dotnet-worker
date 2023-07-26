@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Add placeholder support for linux platform. (#1704)

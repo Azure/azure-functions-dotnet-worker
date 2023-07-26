@@ -401,6 +401,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
 
             return new BinaryData(jsonData);
         }
+
         public class ToDoItem
         {
             public string Id { get; set; }

@@ -4,7 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.4.0
+### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB <version>
 
-- Updated CosmosDBInputAttribute constructors to allow empty values for databaseName and containerName
-- Implement input binding support for `CosmosClient`, `Database` and `Container`
+- <entry>

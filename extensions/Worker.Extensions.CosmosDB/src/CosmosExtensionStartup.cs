@@ -25,7 +25,8 @@ namespace Microsoft.Azure.Functions.Worker
             applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
 
             applicationBuilder.Services.AddOptions<CosmosDBBindingOptions>()
-                .Configure<IOptions<WorkerOptions>>((cosmosOptions, workerOptions) => {
+                .Configure<IOptions<WorkerOptions>>((cosmosOptions, workerOptions) =>
+                {
                     CosmosSerializer cosmosSerializer = new WorkerCosmosSerializer(workerOptions?.Value?.Serializer);
                     cosmosOptions.Serializer = cosmosSerializer;
                 });

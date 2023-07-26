@@ -4,16 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.0.0
+### Microsoft.Azure.Functions.Worker.Extensions.Storage <version>
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.0.0
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
 
-- Add support for SDK-type bindings via deferred binding feature
-- Remove IsBatched property from BlobInput binding attribute
-- Infer binding cardinality based on blobPath
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.2.0
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 
-- Add ability to bind a queue trigger to QueueMessage and BinaryData (#1470)
+- <entry>

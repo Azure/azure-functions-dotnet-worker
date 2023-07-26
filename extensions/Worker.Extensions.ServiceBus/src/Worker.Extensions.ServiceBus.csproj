@@ -6,8 +6,7 @@
     <Description>Azure Service Bus extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.11.0</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionPrefix>5.12.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

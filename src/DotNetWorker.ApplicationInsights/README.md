@@ -10,7 +10,7 @@ This package does **not** add Application Insights services directly. This must 
 
 ``` CHarp
 dotnet add package Microsoft.ApplicationInsights.WorkerService
-dotnet add package Microsoft.Azure.Function.sWorker.ApplicationInsights --prerelease
+dotnet add package Microsoft.Azure.Functions.Worker.ApplicationInsights --prerelease
 ```
 
 2. Configure ApplicationInsights

@@ -145,7 +145,6 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 try
                 {
                     cancellationTokenSource?.Cancel();
-                    _logger.LogWarning("Unable to cancel invocation {invocationId}.", invocationId);
                     return true;
                 }
                 catch (ObjectDisposedException)
@@ -154,7 +153,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Unable to cancel invocation {invocationId}.", invocationId);
+                    _logger.LogWarning(ex, "Unable to cancel invocation '{invocationId}'.", invocationId);
                     throw;
                 }
             }

@@ -15,3 +15,4 @@
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
 - Add placeholder support for linux platform. (#1704)
+- Auto register auto generated IHostBuilder extension methods. (#1794)

@@ -15,3 +15,4 @@
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
 - Add placeholder support for linux platform. (#1704)
+- Remove incorrect failure log during successful cancellation flow (#1797)

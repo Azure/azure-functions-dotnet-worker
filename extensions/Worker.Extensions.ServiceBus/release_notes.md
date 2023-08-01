@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.12.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
 
-- Support binding to ServiceBusReceivedMessage (#1313)
+- <entry>

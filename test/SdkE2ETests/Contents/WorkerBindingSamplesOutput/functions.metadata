@@ -855,5 +855,71 @@
         }
       }
     ]
+  },
+  {
+    "name": "ServiceBusReceivedMessageFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.ServiceBusReceivedMessageBindingSamples.ServiceBusReceivedMessageFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "serviceBusTrigger",
+        "queueName": "queue",
+        "connection": "ServiceBusConnection",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "ServiceBusReceivedMessageBatchFunction",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.ServiceBusReceivedMessageBindingSamples.ServiceBusReceivedMessageBatchFunction",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "messages",
+        "direction": "In",
+        "type": "serviceBusTrigger",
+        "queueName": "queue",
+        "connection": "ServiceBusConnection",
+        "cardinality": "Many",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
+  },
+  {
+    "name": "ServiceBusReceivedMessageWithStringProperties",
+    "scriptFile": "WorkerBindingSamples.dll",
+    "entryPoint": "SampleApp.ServiceBusReceivedMessageBindingSamples.ServiceBusReceivedMessageWithStringProperties",
+    "language": "dotnet-isolated",
+    "properties": {
+      "IsCodeless": false
+    },
+    "bindings": [
+      {
+        "name": "message",
+        "direction": "In",
+        "type": "serviceBusTrigger",
+        "queueName": "queue",
+        "connection": "ServiceBusConnection",
+        "cardinality": "One",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
+      }
+    ]
   }
 ]

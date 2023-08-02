@@ -8,18 +8,30 @@
     <MajorProductVersion>1</MajorProductVersion>
     <MinorProductVersion>0</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix>-preview4</VersionSuffix>
+    <VersionSuffix>-preview5</VersionSuffix>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <BeforePack>$(BeforePack);GetReleaseNotes</BeforePack>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="2.21.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.21.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <Target Name="GetReleaseNotes">
+    <PropertyGroup>
+      <PackageReleaseNotes>$([System.IO.File]::ReadAllText('release_notes.md'))</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
 
 </Project>

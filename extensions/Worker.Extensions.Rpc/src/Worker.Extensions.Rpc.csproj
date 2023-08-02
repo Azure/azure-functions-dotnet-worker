@@ -22,8 +22,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <PackageReference Include="Grpc.Net.Client" Version="2.53.0" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.53.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.55.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.55.0" />
   </ItemGroup>
 
   <ItemGroup>

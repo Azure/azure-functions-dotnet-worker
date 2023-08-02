@@ -4,14 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage <version> (metapackage)
+### Microsoft.Azure.Functions.Worker.Extensions.Storage <version>
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 
 - <entry>

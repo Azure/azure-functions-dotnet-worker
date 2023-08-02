@@ -38,11 +38,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string RetryAttribute = "Microsoft.Azure.Functions.Worker.RetryAttribute";
             internal const string FixedDelayRetryAttribute = "Microsoft.Azure.Functions.Worker.FixedDelayRetryAttribute";
             internal const string ExponentialBackoffRetryAttribute = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
+            internal const string InputConverterAttributeType = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
+            internal const string SupportedTargetTypeAttributeType = "Microsoft.Azure.Functions.Worker.Converters.SupportedTargetTypeAttribute";
+            internal const string SupportsDeferredBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
 
             // System types
             internal const string IEnumerableOfKeyValuePair = "System.Collections.Generic.IEnumerable`1<System.Collections.Generic.KeyValuePair`2<TKey,TValue>>";
         }
-        
+
         internal static class FunctionMetadataBindingProps {
             internal const string ReturnBindingName = "$return";
             internal const string HttpResponseBindingName = "HttpResponse";

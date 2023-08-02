@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>11</MinorProductVersion>
+    <MinorProductVersion>13</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>

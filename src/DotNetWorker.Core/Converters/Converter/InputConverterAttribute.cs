@@ -13,8 +13,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         AttributeTargets.Class |
         AttributeTargets.Interface |
         AttributeTargets.Enum |
-        AttributeTargets.Struct)]
-    public sealed class InputConverterAttribute : Attribute
+        AttributeTargets.Struct,
+        AllowMultiple = true)]
+    public class InputConverterAttribute : Attribute
     {
         /// <summary>
         /// Gets the input converter type.

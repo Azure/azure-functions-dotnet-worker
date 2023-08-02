@@ -4,11 +4,11 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk <version>
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
 
 - <entry>
 

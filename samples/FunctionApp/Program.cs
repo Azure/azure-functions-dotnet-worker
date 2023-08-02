@@ -7,7 +7,6 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.ApplicationInsights;
 
 namespace FunctionApp
 {
@@ -21,21 +20,13 @@ namespace FunctionApp
             //<docsnippet_startup>
             var host = new HostBuilder()
                 //<docsnippet_configure_defaults>
-                .ConfigureFunctionsWorkerDefaults(builder =>
-                {
-                    builder
-                        .AddApplicationInsights(options =>
-                        {
-                            // Configure the underlying ApplicationInsightsServiceOptions
-                            // This property configuration serves solely for demonstration purposes, and it is not mandatory to replicate the same property and its associated value in your own application.
-                            options.ApplicationVersion = "v1";
-                        })
-                        .AddApplicationInsightsLogger();
-                })
+                .ConfigureFunctionsWorkerDefaults()
                 //</docsnippet_configure_defaults>
                 //<docsnippet_dependency_injection>
                 .ConfigureServices(s =>
                 {
+                    s.AddApplicationInsightsTelemetryWorkerService();
+                    s.ConfigureFunctionsApplicationInsights();
                     s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
                     s.Configure<LoggerFilterOptions>(options =>
                     {
@@ -49,7 +40,7 @@ namespace FunctionApp
                             options.Rules.Remove(toRemove);
                         }
                     });
-                })               
+                })
                 //</docsnippet_dependency_injection>
                 .Build();
             //</docsnippet_startup>

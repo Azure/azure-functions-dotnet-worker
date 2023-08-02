@@ -108,6 +108,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             await ClearBlobContainer(Constants.Blob.OutputPocoContainer);
             await ClearBlobContainer(Constants.Blob.TriggerStringContainer);
             await ClearBlobContainer(Constants.Blob.OutputStringContainer);
+            await ClearBlobContainer(Constants.Blob.TriggerStreamContainer);
+            await ClearBlobContainer(Constants.Blob.OutputStreamContainer);
+            await ClearBlobContainer(Constants.Blob.TriggerBlobClientContainer);
+            await ClearBlobContainer(Constants.Blob.OutputBlobClientContainer);
+            await ClearBlobContainer(Constants.Blob.TriggerBlobContainerClientContainer);
+            await ClearBlobContainer(Constants.Blob.OutputBlobContainerClientContainer);
         }
 
         public static Task UploadFileToContainer(string containerName, string fileName)
@@ -115,9 +121,19 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             return UploadFileToContainer(containerName, fileName, "Hello World");
         }
 
-        public async static Task UploadFileToContainer(string containerName, string fileName, string fileContents)
+        public async static Task UploadFileToContainer(string containerName, string fileName, string fileContents, bool containsSubdirectory = false)
         {
             string sourceFile = $"{fileName}.txt";
+
+            if (containsSubdirectory)
+            {
+                string directoryPath = Path.GetDirectoryName(sourceFile);
+                if (!Directory.Exists(directoryPath))
+                {
+                    Directory.CreateDirectory(directoryPath);
+                }
+            }
+
             File.WriteAllText(sourceFile, fileContents);
             await CreateBlobContainer(containerName);
             BlobContainerClient cloudBlobContainer = CreateBlobContainerClient(containerName);

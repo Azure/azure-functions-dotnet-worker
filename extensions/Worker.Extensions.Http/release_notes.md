@@ -6,4 +6,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http <version>
 
-- <entry>
+- Added ability to bind a POCO parameter to the request body using `FromBodyAttribute`
+  - Special thanks to @njqdev for the contributions and collaboration on this feature

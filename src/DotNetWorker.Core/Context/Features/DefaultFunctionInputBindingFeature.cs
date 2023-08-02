@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -21,8 +22,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
         public DefaultFunctionInputBindingFeature(IConverterContextFactory converterContextFactory)
         {
-            _converterContextFactory = converterContextFactory ??
-                                       throw new ArgumentNullException(nameof(converterContextFactory));
+            _converterContextFactory = converterContextFactory
+                                     ?? throw new ArgumentNullException(nameof(converterContextFactory));
         }
 
         public async ValueTask<FunctionInputBindingResult> BindFunctionInputAsync(FunctionContext context)
@@ -38,7 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     // Return the cached value if BindFunctionInputAsync is called a second time during invocation.
                     return _inputBindingResult!;
                 }
-                
+
                 IFunctionBindingsFeature functionBindings = context.GetBindings();
                 var inputBindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
                 var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
@@ -69,18 +70,16 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     }
                     else
                     {
-                        IReadOnlyDictionary<string, object> properties = ImmutableDictionary<string, object>.Empty;
+                        var properties = new Dictionary<string, object>();
 
-                        // Pass info about specific input converter type defined for this parameter, if present.
-                        if (param.Properties.TryGetValue(PropertyBagKeys.ConverterType, out var converterTypeAssemblyFullName))
-                        {
-                            properties = new Dictionary<string, object>()
-                        {
-                            { PropertyBagKeys.ConverterType, converterTypeAssemblyFullName }
-                        };
-                        }
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterType);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.ConverterFallbackBehavior);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttributeSupportedConverters);
+                        AddFunctionParameterPropertyIfPresent(properties, param, PropertyBagKeys.BindingAttribute);
 
-                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties);
+                        var converterContext = _converterContextFactory.Create(param.Type, source, context, properties.Count() != 0
+                                             ? properties.ToImmutableDictionary()
+                                             : ImmutableDictionary<string, object>.Empty);
 
                         bindingResult = await inputConversionFeature.ConvertAsync(converterContext);
                         inputBindingCache[cacheKey] = bindingResult;
@@ -114,6 +113,14 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             finally
             {
                 _semaphoreSlim.Release();
+            }
+        }
+
+        private void AddFunctionParameterPropertyIfPresent(IDictionary<string, object> properties, FunctionParameter param, string key)
+        {
+            if (param.Properties.TryGetValue(key, out object? val))
+            {
+                properties.Add(key, val);
             }
         }
 

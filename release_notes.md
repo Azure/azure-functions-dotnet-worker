@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- <entry>
+- Updated protobuf file to v1.10.0-protofile (#1774)
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
@@ -14,4 +14,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Add placeholder support for linux platform. (#1704)
+- Remove incorrect failure log during successful cancellation flow (#1797)

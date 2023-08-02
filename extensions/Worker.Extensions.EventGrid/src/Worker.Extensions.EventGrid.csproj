@@ -6,7 +6,7 @@
     <Description>Azure Event Grid extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>3.2.1</VersionPrefix>
+    <VersionPrefix>3.3.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -16,6 +16,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Messaging.EventGrid" Version="4.17.0" />
   </ItemGroup>
 
 </Project>

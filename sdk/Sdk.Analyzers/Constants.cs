@@ -9,7 +9,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         {
             public const string WorkerFunctionAttribute = "Microsoft.Azure.Functions.Worker.FunctionAttribute";
             public const string WebJobsBindingAttribute = "Microsoft.Azure.WebJobs.Description.BindingAttribute";
-            
+            public const string SupportsDeferredBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
+            public const string InputBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.InputBindingAttribute";
+            public const string TriggerBindingAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.TriggerBindingAttribute";
+            public const string InputConverterAttribute = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
+            public const string ConverterFallbackBehaviorAttribute = "Microsoft.Azure.Functions.Worker.Converters.ConverterFallbackBehaviorAttribute";
+            public const string SupportedTargetTypeAttribute = "Microsoft.Azure.Functions.Worker.Converters.SupportedTargetTypeAttribute";
+
             // System types
             internal const string TaskType = "System.Threading.Tasks.Task";
         }

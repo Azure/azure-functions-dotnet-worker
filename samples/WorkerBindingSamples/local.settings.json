@@ -4,6 +4,7 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "CosmosDBConnection": "",
-    "EventHubConnection": ""
+    "EventHubConnection": "",
+    "ServiceBusConnection": ""
   }
 }

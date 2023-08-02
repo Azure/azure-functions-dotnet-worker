@@ -39,7 +39,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' And !$(FunctionsEnablePlaceholder)">false</FunctionsEnableWorkerIndexing>
         <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
         <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == ''">false</FunctionsEnableExecutorSourceGen>
-        <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">false</FunctionsAutoRegisterGeneratedFunctionsExecutor>
+        <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
         <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == ''">false</FunctionsAutoRegisterGeneratedMetadataProvider>
         <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider)">true</FunctionsAutoRegisterGeneratedMetadataProvider>

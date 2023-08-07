@@ -30,10 +30,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -68,10 +68,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -105,10 +105,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -143,10 +143,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -179,10 +179,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -214,10 +214,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -249,10 +249,10 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };
@@ -285,10 +285,46 @@ namespace Sdk.Analyzers.Tests
             var test = new AnalyzerTest
             {
                 ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.15.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.9.0-preview1"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "5.1.1-preview2"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.2.0-preview1"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
+
+                TestCode = testCode
+            };
+
+            // test.ExpectedDiagnostics is an empty collection.
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task BlobInputAttribute_BlobPathExpression_Diagnostics_NotExpected()
+        {
+            string testCode = @"
+                using System;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Azure.Storage.Blobs;
+
+                namespace FunctionApp
+                {
+                    public static class SomeFunction
+                    {
+                        [Function(nameof(SomeFunction))]
+                        public static void Run([BlobInput(""{input}"")] string message)
+                        {
+                        }
+                    }
+                }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
 
                 TestCode = testCode
             };

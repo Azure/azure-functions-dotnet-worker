@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <MinorProductVersion>2</MinorProductVersion>
-    <PatchProductVersion>0</PatchProductVersion>
+    <PatchProductVersion>1</PatchProductVersion>
     <OutputType>Library</OutputType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput>

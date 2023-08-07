@@ -8,9 +8,9 @@
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
+### Microsoft.Azure.Functions.Worker.Sdk.Analyzers 1.2.1
 
-- <entry>
+- Disable blob container path analyzer when an expression is used for the blob path
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

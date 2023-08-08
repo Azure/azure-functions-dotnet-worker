@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.0.1
 
-- Updated Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs to 6.0.1
+- Updated Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs dependency to 6.0.1
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.0.1
 

@@ -23,10 +23,10 @@ namespace Microsoft.Azure.Functions.Worker
     [SupportsDeferredBinding]
     internal class CosmosDBConverter : IInputConverter
     {
-        private readonly IOptionsSnapshot<CosmosDBBindingOptions> _cosmosOptions;
+        private readonly IOptionsMonitor<CosmosDBBindingOptions> _cosmosOptions;
         private readonly ILogger<CosmosDBConverter> _logger;
 
-        public CosmosDBConverter(IOptionsSnapshot<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
+        public CosmosDBConverter(IOptionsMonitor<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
         {
             _cosmosOptions = cosmosOptions ?? throw new ArgumentNullException(nameof(cosmosOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));

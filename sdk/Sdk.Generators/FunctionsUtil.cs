@@ -28,12 +28,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            foreach (var attr in methodSymbol.GetAttributes())
+            if (IsFunctionSymbol(methodSymbol, compilation, out functionName))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsFunctionSymbol(ISymbol symbol, Compilation compilation, out string? functionName)
+        {
+            functionName = null;
+
+            foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass != null &&
                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
                 {
-                    functionName = (string)attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
+                    functionName = (string) attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
                     return true;
                 }
             }

@@ -2,8 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
@@ -35,6 +38,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             // attempt to parse user compilation
             var p = new Parser(context);
 
+            var candidateMethods = receiver.CandidateMethods;
+
+            candidateMethods.AddRange(GetDependentAssemblyFunctions(context));
+
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
 
             // Proceed to generate the file if function metadata info was successfully returned
@@ -54,6 +61,35 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public void Initialize(GeneratorInitializationContext context)
         {
             context.RegisterForSyntaxNotifications(() => new FunctionMethodSyntaxReceiver());
+        }
+
+        /// <summary>
+        /// Collect methods with Function attributes on them from dependent/referenced assemblies.
+        /// </summary>
+        private IList<MethodDeclarationSyntax> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
+        {
+            IList<MethodDeclarationSyntax>? dependentAssemblyFuncs = new List<MethodDeclarationSyntax>();
+
+            foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
+            {
+                string? funcName = null;
+                var functionsSymbolList = assembly.GlobalNamespace.GetMembers().Where(m => FunctionsUtil.IsFunctionSymbol(m, context.Compilation, out funcName));
+
+                foreach (var funcSymbol in functionsSymbolList)
+                {
+                    if (funcSymbol is IMethodSymbol methodSymbol)
+                    {
+                        var syntaxReference = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+
+                        if (syntaxReference is MethodDeclarationSyntax methodSyntax)
+                        {
+                            dependentAssemblyFuncs.Add(methodSyntax);
+                        }
+                    }
+                }
+            }
+
+            return dependentAssemblyFuncs.Count > 0 ? dependentAssemblyFuncs : ImmutableList<MethodDeclarationSyntax>.Empty;
         }
     }
 }

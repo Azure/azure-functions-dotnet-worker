@@ -34,12 +34,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
                 .Setup(m => m.GetClient(It.IsAny<string>()))
                 .Returns(_mockCosmosClient.Object);
 
-            var mockCosmosOptionsSnapshot = new Mock<IOptionsSnapshot<CosmosDBBindingOptions>>();
-            mockCosmosOptionsSnapshot
+            var mockCosmosOptionsMonitor = new Mock<IOptionsMonitor<CosmosDBBindingOptions>>();
+            mockCosmosOptionsMonitor
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockCosmosOptions.Object);
 
-            _cosmosDBConverter = new CosmosDBConverter(mockCosmosOptionsSnapshot.Object, logger);
+            _cosmosDBConverter = new CosmosDBConverter(mockCosmosOptionsMonitor.Object, logger);
         }
 
         [Fact]

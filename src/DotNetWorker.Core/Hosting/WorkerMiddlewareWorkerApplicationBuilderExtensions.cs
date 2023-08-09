@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
@@ -151,6 +152,47 @@ namespace Microsoft.Extensions.Hosting
         }
 
         /// <summary>
+        /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the provided middleware type, when the <see cref="FunctionMiddlewareAttribute{T}"/> is annotated.
+        /// </summary>
+        /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder UseWhenAttribute<T>(this IFunctionsWorkerApplicationBuilder builder)
+            where T : class, IFunctionsWorkerMiddleware
+        {
+            builder.UseWhen<T>(static context =>
+            {
+                var key = new CacheKey(context.FunctionDefinition.EntryPoint, typeof(T));
+                while (true)
+                {
+                    if (s_IsMiddlewareAvailables.TryGetValue(key, out var available))
+                        return available;
+
+                    available = isAvailable(context);
+                    if (s_IsMiddlewareAvailables.TryAdd(key, available))
+                        return available;
+                }
+            });
+            return builder;
+
+
+            #region Local Functions
+            static bool isAvailable(FunctionContext context)
+            {
+                var method = context.GetMethodInfo();
+                if (method is null)
+                    return false;
+
+                return method.CustomAttributes.Any(static x =>
+                {
+                    var actual = x.AttributeType;
+                    var expect = typeof(FunctionMiddlewareAttribute<T>);
+                    return actual == expect;
+                });
+            }
+            #endregion
+        }
+
+        /// <summary>
         /// Configures the <see cref="IFunctionsWorkerApplicationBuilder"/> to use the provided inline middleware delegate.
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
@@ -209,5 +251,10 @@ namespace Microsoft.Extensions.Hosting
 
             return builder;
         }
+
+        #region UseWhenAttribute Helpers
+        private static readonly ConcurrentDictionary<CacheKey, bool> s_IsMiddlewareAvailables = new();
+        private record struct CacheKey(string EntryPoint, Type MiddlewareType);
+        #endregion
     }
 }

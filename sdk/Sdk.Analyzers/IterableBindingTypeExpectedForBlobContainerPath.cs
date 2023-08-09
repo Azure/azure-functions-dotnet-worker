@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -16,6 +17,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
         private const string BlobInputBindingAttribute = "Microsoft.Azure.Functions.Worker.BlobInputAttribute";
         private const string BlobContainerClientType = "Azure.Storage.Blobs.BlobContainerClient";
+
+        private static readonly Regex BlobPathUsesExpression = new Regex("{.*}");
 
         public override void Initialize(AnalysisContext context)
         {
@@ -64,6 +67,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                     if (arg.Type.Name == typeof(string).Name)
                     {
                         string path = arg.Value.ToString();
+
+                        // Skip this analyzer if an expression is used for the blob path
+                        if (BlobPathUsesExpression.IsMatch(path))
+                        {
+                            continue;
+                        }
 
                         if (path.Split('/').Length < 2
                             && !parameterType.IsIterableType(context)

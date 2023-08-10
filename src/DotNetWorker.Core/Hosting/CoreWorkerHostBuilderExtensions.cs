@@ -58,14 +58,8 @@ namespace Microsoft.Extensions.Hosting
 
             foreach (var type in autoConfigureStartupTypes)
             {
-                var configureMethod = type.GetMethod(nameof(IAutoConfigureStartup.Configure), new[] { typeof(IHostBuilder) });
-                if (configureMethod == null)
-                {
-                    continue;
-                }
-
-                var instance = Activator.CreateInstance(type) as IAutoConfigureStartup;
-                instance?.Configure(builder);
+                var instance = (IAutoConfigureStartup)Activator.CreateInstance(type)!;
+                instance.Configure(builder);
             }
 
             return builder;

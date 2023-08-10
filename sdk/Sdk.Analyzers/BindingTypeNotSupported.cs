@@ -84,6 +84,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         {
             var converterFallbackBehaviorAttributeType = context.Compilation.GetTypeByMetadataName(Constants.Types.ConverterFallbackBehaviorAttribute);
             var converterFallbackBehaviorAttribute = attributeType.GetAttributes().FirstOrDefault(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, converterFallbackBehaviorAttributeType));
+
+            if (converterFallbackBehaviorAttribute == null)
+            {
+                // If the ConverterFallbackBehaviorAttribute is not present, we don't need to check for supported types
+                return ConverterFallbackBehaviorDefaultValue;
+            }
+
             return converterFallbackBehaviorAttribute.ConstructorArguments.FirstOrDefault().Value;
         }
 

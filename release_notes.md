@@ -16,3 +16,4 @@
 
 - Add placeholder support for linux platform. (#1704)
 - Remove incorrect failure log during successful cancellation flow (#1797)
+- Auto register auto generated IHostBuilder extension methods. (#1794)

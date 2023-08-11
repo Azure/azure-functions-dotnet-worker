@@ -4,14 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.14.0
-
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
+### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
 
 - <entry>
 
-- Disable blob container path analyzer when an expression is used for the blob path
+### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
 
-### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.0
+- <entry>
 
-- Updated source generated versions of FunctionMetadataProvider and FunctionExecutor to emit auto registration information.(#1794)
+### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
+
+- <entry>

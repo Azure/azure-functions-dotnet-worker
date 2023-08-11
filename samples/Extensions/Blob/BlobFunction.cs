@@ -8,7 +8,7 @@ namespace SampleApp
 {
     public static class BlobFunction
     {
-        [Function("BlobFunction")]
+        [Function(nameof(BlobFunction))]
         [BlobOutput("test-samples-output/{name}-output.txt")]
         public static string Run(
             [BlobTrigger("test-samples-trigger/{name}")] string myTriggerItem,
@@ -16,8 +16,8 @@ namespace SampleApp
             FunctionContext context)
         {
             var logger = context.GetLogger("BlobFunction");
-            logger.LogInformation($"Triggered Item = {myTriggerItem}");
-            logger.LogInformation($"Input Item = {myBlob}");
+            logger.LogInformation("Triggered Item = {myTriggerItem}", myTriggerItem);
+            logger.LogInformation("Input Item = {myBlob}", myBlob);
 
             // Blob Output
             return "blob-output content";

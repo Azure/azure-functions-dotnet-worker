@@ -9,14 +9,14 @@ namespace SampleApp
 {
     public static class KafkaFunction
     {
-        [Function("KafkaFunction")]
+        [Function(nameof(KafkaFunction))]
         [FixedDelayRetry(5, "00:00:10")]
         [KafkaOutput("LocalBroker", "stringTopicTenPartitions")]
         public static string Run([KafkaTrigger("LocalBroker", "stringTopicTenPartitions",
             ConsumerGroup = "$Default", AuthenticationMode = BrokerAuthenticationMode.Plain)] string input,
             FunctionContext context)
         {
-            var logger = context.GetLogger("KafkaFunction");
+            var logger = context.GetLogger(nameof(KafkaFunction));
 
             logger.LogInformation(input);
 

@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Tables 1.2.0
+### Microsoft.Azure.Functions.Worker.Extensions.Tables <version>
 
-- Add ability to bind table input to TableClient, TableEntity, and IEnumerable<TableEntity> (#1470)
+- <entry>

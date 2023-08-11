@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -10,11 +11,11 @@ namespace SampleApp
     /// <summary>
     /// Samples demonstrating binding to the <see cref="ServiceBusReceivedMessage"/> type.
     /// </summary>
-    public class ServiceBusReceivedMessageBindingSamples
+    public class ServiceBusReceivedMessageFunctions
     {
-        private readonly ILogger<ServiceBusReceivedMessageBindingSamples> _logger;
+        private readonly ILogger<ServiceBusReceivedMessageFunctions> _logger;
 
-        public ServiceBusReceivedMessageBindingSamples(ILogger<ServiceBusReceivedMessageBindingSamples> logger)
+        public ServiceBusReceivedMessageFunctions(ILogger<ServiceBusReceivedMessageFunctions> logger)
         {
             _logger = logger;
         }
@@ -23,12 +24,16 @@ namespace SampleApp
         /// This function demonstrates binding to a single <see cref="ServiceBusReceivedMessage"/>.
         /// </summary>
         [Function(nameof(ServiceBusReceivedMessageFunction))]
-        public void ServiceBusReceivedMessageFunction(
+        [ServiceBusOutput("outputQueue", Connection = "ServiceBusConnection")]
+        public string ServiceBusReceivedMessageFunction(
             [ServiceBusTrigger("queue", Connection = "ServiceBusConnection")] ServiceBusReceivedMessage message)
         {
             _logger.LogInformation("Message ID: {id}", message.MessageId);
             _logger.LogInformation("Message Body: {body}", message.Body);
             _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
+
+            var outputMessage = $"Output message created at {DateTime.Now}";
+            return outputMessage;
         }
 
         /// <summary>

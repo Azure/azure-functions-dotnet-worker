@@ -9,12 +9,12 @@ namespace SampleApp
 {
     public static class RabbitMQFunction
     {
-        [Function("RabbitMQFunction")]
-        [RabbitMQOutput(QueueName = "destinationQueue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")]
-        public static string Run([RabbitMQTrigger("queue", ConnectionStringSetting = "rabbitMQConnectionAppSetting")] string item,
+        [Function(nameof(RabbitMQFunction))]
+        [RabbitMQOutput(QueueName = "destinationQueue", ConnectionStringSetting = "RabbitMQConnection")]
+        public static string Run([RabbitMQTrigger("queue", ConnectionStringSetting = "RabbitMQConnection")] string item,
             FunctionContext context)
         {
-            var logger = context.GetLogger("RabbitMQFunction");
+            var logger = context.GetLogger(nameof(RabbitMQFunction));
 
             logger.LogInformation(item);
 

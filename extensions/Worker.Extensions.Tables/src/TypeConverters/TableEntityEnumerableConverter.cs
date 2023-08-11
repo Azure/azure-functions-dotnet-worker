@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     [SupportedTargetType(typeof(IEnumerable<TableEntity>))]
     internal class TableEntityEnumerableConverter : TableConverterBase<IEnumerable<TableEntity>>
     {
-        public TableEntityEnumerableConverter(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableEntityEnumerableConverter> logger)
+        public TableEntityEnumerableConverter(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableEntityEnumerableConverter> logger)
             : base(tableOptions, logger)
         {
         }

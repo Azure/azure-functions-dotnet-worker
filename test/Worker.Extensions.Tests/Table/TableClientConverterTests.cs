@@ -36,12 +36,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
                 .Setup(m => m.CreateClient())
                 .Returns(_mockTableServiceClient.Object);
 
-            var mockTablesOptionsSnapshot = new Mock<IOptionsSnapshot<TablesBindingOptions>>();
-            mockTablesOptionsSnapshot
+            var mockTablesOptionsMonitor = new Mock<IOptionsMonitor<TablesBindingOptions>>();
+            mockTablesOptionsMonitor
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockTableOptions.Object);
 
-            _tableConverter = new TableClientConverter(mockTablesOptionsSnapshot.Object, logger);
+            _tableConverter = new TableClientConverter(mockTablesOptionsMonitor.Object, logger);
         }
 
         [Fact]

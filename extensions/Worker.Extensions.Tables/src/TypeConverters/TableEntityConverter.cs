@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     [SupportedTargetType(typeof(TableEntity))]
     internal class TableEntityConverter : TableConverterBase<TableEntity>
     {
-        public TableEntityConverter(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableEntityConverter> logger)
+        public TableEntityConverter(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableEntityConverter> logger)
             : base(tableOptions, logger)
         {
         }

@@ -15,9 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     internal abstract class TableConverterBase<T> : IInputConverter
     {
         private readonly ILogger<TableConverterBase<T>> _logger;
-        protected readonly IOptionsSnapshot<TablesBindingOptions> _tableOptions;
+        protected readonly IOptionsMonitor<TablesBindingOptions> _tableOptions;
 
-        public TableConverterBase(IOptionsSnapshot<TablesBindingOptions> tableOptions, ILogger<TableConverterBase<T>> logger)
+        public TableConverterBase(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableConverterBase<T>> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tableOptions = tableOptions ?? throw new ArgumentNullException(nameof(tableOptions));
@@ -52,10 +52,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         protected TableData GetBindingDataContent(ModelBindingData? bindingData)
         {
-            return bindingData?.ContentType switch
+            if (bindingData is null)
+            {
+                throw new ArgumentNullException(nameof(bindingData));
+            }
+
+            return bindingData.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>(),
-                _ => throw new InvalidContentTypeException(bindingData?.ContentType, Constants.JsonContentType)
+                _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }
 

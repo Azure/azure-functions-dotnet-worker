@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>13</MinorProductVersion>
+    <MinorProductVersion>14</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <VersionSuffix>-preview1</VersionSuffix>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>

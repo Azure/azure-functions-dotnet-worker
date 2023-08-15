@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk <version>
+### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
 
 - <entry>
 

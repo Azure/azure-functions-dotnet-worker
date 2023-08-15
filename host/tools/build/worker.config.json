@@ -5,5 +5,21 @@
     "defaultExecutablePath": "%FUNCTIONS_WORKER_DIRECTORY%/bin/FunctionsNetHost.exe",
     "defaultWorkerPath": "bin/FunctionsNetHost.exe",
     "workerIndexing": "true"
-  }
+  },
+  "profiles": [
+    {
+      "profileName": "DotnetIsolatedLinux",
+      "conditions": [
+        {
+          "conditionType": "hostProperty",
+          "conditionName": "platform",
+          "conditionExpression": "LINUX"
+        }
+      ],
+      "description": {
+        "defaultExecutablePath": "%FUNCTIONS_WORKER_DIRECTORY%/bin/FunctionsNetHost",
+        "defaultWorkerPath": "bin/FunctionsNetHost"
+      }
+    }
+  ]
 }

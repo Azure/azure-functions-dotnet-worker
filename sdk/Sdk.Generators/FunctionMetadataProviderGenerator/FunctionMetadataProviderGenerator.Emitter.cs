@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -19,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
             };
 
-            public string Emit(IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, CancellationToken cancellationToken)
+            public string Emit(IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, bool includeAutoRegistrationCode, CancellationToken cancellationToken)
             {
                 string functionMetadataInfo = AddFunctionMetadataInfo(funcMetadata, cancellationToken);
 
@@ -60,11 +59,30 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                      });
                                      return builder;
                                  }
-                             }
+                             }{{GetAutoConfigureStartupClass(includeAutoRegistrationCode)}}
                          }
                          """;
             }
 
+            private static string GetAutoConfigureStartupClass(bool includeAutoRegistrationCode)
+            {
+                if (includeAutoRegistrationCode)
+                {
+                    string result = $$"""
+
+                                      public class FunctionMetadataProviderAutoStartup : IAutoConfigureStartup
+                                      {
+                                          public void Configure(IHostBuilder hostBuilder)
+                                          {
+                                              hostBuilder.ConfigureGeneratedFunctionMetadataProvider();
+                                          }
+                                      }
+                                  """;
+
+                    return result;
+                }
+                return "";
+            }
             private string AddFunctionMetadataInfo(IReadOnlyList<GeneratorFunctionMetadata> functionMetadata, CancellationToken cancellationToken)
             {
                 var functionCount = 0;

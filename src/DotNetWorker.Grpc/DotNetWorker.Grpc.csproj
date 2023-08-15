@@ -2,13 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;net7.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Grpc</PackageId>
     <Description>This library provides gRPC support for Azure Functions .NET Worker communication with the Azure Functions Host.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>13</MinorProductVersion>
+    <MinorProductVersion>14</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <VersionSuffix></VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -45,10 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto"
-              ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto"
-              GrpcServices="Client"
-              Access="internal" />
+    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" GrpcServices="Client" Access="internal" />
 
   </ItemGroup>
 

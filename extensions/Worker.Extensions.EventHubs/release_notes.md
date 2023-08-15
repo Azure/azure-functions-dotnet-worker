@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.EventHubs <version>
 
-- <event>
+- <entry>

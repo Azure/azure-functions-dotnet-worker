@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>1</MinorProductVersion>
-    <PatchProductVersion>2</PatchProductVersion>
+    <MinorProductVersion>2</MinorProductVersion>
+    <PatchProductVersion>1</PatchProductVersion>
     <OutputType>Library</OutputType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <IncludeBuildOutput>false</IncludeBuildOutput>
@@ -29,7 +29,7 @@
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
   </ItemGroup>
-  
+
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.Azure.Functions.Worker.Sdk.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />

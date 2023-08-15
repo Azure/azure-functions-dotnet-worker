@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
@@ -40,6 +41,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var httpContext = await _coordinator.SetFunctionContextAsync(invocationId, context);
 
             AddHttpContextToFunctionContext(context, httpContext);
+
+            // Register additional context features
+            context.Features.Set<IFromBodyConversionFeature>(FromBodyConverstionFeature.Instance);
 
             await next(context);
 

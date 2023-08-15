@@ -4,14 +4,15 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage <version> (metapackage)
+### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.0.1
+
+- Updated Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs dependency to 6.0.1
+
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.0.1
+
+- [Bug] Update BlobOptions from using IOptionsSnapshot to IOptionsMonitor to avoid DI scoping issues
+
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version>
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version> (delete if not updated)
-
-- <entry>
-
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues <version> (delete if not updated)
-
-- <entry>

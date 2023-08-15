@@ -6,9 +6,14 @@ using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Dynamic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Azure.Messaging.EventHubs;
+using Azure.Messaging.ServiceBus;
+using Azure.Storage.Blobs;
+using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -169,8 +174,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.2" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.2" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -206,11 +211,9 @@ namespace Microsoft.Azure.Functions.SdkTests
                 {
                     { "Name", "blobinput" },
                     { "Type", "blob" },
-                    { "DataType", "String"},
                     { "Direction", "In" },
                     { "blobPath", "container2" },
-                    { "Cardinality", "Many" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
 
@@ -225,9 +228,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Name", "blob" },
                     { "Type", "blobTrigger" },
                     { "Direction", "In" },
-                    { "DataType", "String"},
                     { "path", "container2/%file%" },
-                    { "Properties", new Dictionary<String, Object>() }
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
                 });
             }
 
@@ -239,6 +241,195 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "queue" },
                     { "Direction", "Out" },
                     { "queueName", "queue2" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void BlobStorageFunctions_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_BlobStorage));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(5, functions.Count());
+
+            var blobStringToBlobStringFunction = functions.Single(p => p.Name == "BlobStringToBlobStringFunction");
+
+            ValidateFunction(blobStringToBlobStringFunction, "BlobStringToBlobStringFunction", GetEntryPoint(nameof(SDKTypeBindings_BlobStorage), nameof(SDKTypeBindings_BlobStorage.BlobStringToBlobStringFunction)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+            });
+
+            var blobClientToBlobStringFunction = functions.Single(p => p.Name == "BlobClientToBlobStringFunction");
+
+            ValidateFunction(blobClientToBlobStringFunction, "BlobClientToBlobStringFunction", GetEntryPoint(nameof(SDKTypeBindings_BlobStorage), nameof(SDKTypeBindings_BlobStorage.BlobClientToBlobStreamFunction)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+
+            var blobUnsupportedTypeToBlobStringFunction = functions.Single(p => p.Name == "BlobUnsupportedTypeToBlobStringFunction");
+
+            ValidateFunction(blobUnsupportedTypeToBlobStringFunction, "BlobUnsupportedTypeToBlobStringFunction", GetEntryPoint(nameof(SDKTypeBindings_BlobStorage), nameof(SDKTypeBindings_BlobStorage.BlobUnsupportedTypeToBlobClientFunction)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+
+            var blobPocoToBlobUnsupportedType = functions.Single(p => p.Name == "BlobPocoToBlobUnsupportedType");
+
+            ValidateFunction(blobPocoToBlobUnsupportedType, "BlobPocoToBlobUnsupportedType", GetEntryPoint(nameof(SDKTypeBindings_BlobStorage), nameof(SDKTypeBindings_BlobStorage.BlobPocoToBlobUnsupportedType)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+
+            var blobByteArrayToBlobByteArrayFunction = functions.Single(p => p.Name == "BlobByteArrayToBlobByteArrayFunction");
+
+            ValidateFunction(blobByteArrayToBlobByteArrayFunction, "BlobByteArrayToBlobByteArrayFunction", GetEntryPoint(nameof(SDKTypeBindings_BlobStorage), nameof(SDKTypeBindings_BlobStorage.BlobByteArrayToBlobByteArrayFunction)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInput(b),
+                b => ValidateBlobOutput(b));
+
+
+            void ValidateBlobTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blob" },
+                    { "Type", "blobTrigger" },
+                    { "Direction", "In" },
+                    { "path", "container2/%file%" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateBlobInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "Direction", "In" },
+                    { "blobPath", "container2/%file%" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateBlobOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "blob" },
+                    { "Direction", "Out" },
+                    { "blobPath", "container1/hello.txt" },
+                    { "Connection", "MyOtherConnection" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void BlobCollectionFunctions_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_BlobCollection));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(4, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+            });
+
+            var blobStringToBlobClientEnumerable = functions.Single(p => p.Name == "BlobStringToBlobClientEnumerable");
+
+            ValidateFunction(blobStringToBlobClientEnumerable, "BlobStringToBlobClientEnumerable", GetEntryPoint(nameof(SDKTypeBindings_BlobCollection), nameof(SDKTypeBindings_BlobCollection.BlobStringToBlobClientEnumerable)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInputForEnumerable(b),
+                b => ValidateBlobOutput(b));
+
+            void ValidateBlobInputForEnumerable(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "Direction", "In" },
+                    { "blobPath", "container2" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
+                });
+            }
+
+            var blobStringToBlobStringArray = functions.Single(p => p.Name == "BlobStringToBlobStringArray");
+
+            ValidateFunction(blobStringToBlobStringArray, "BlobStringToBlobStringArray", GetEntryPoint(nameof(SDKTypeBindings_BlobCollection), nameof(SDKTypeBindings_BlobCollection.BlobStringToBlobStringArray)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInputForStringArray(b),
+                b => ValidateBlobOutput(b));
+
+            void ValidateBlobInputForStringArray(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blobinput" },
+                    { "Type", "blob" },
+                    { "Direction", "In" },
+                    { "blobPath", "container2" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding", "True" } } }
+                });
+            }
+
+            var blobStringToBlobPocoEnumerable = functions.Single(p => p.Name == "BlobStringToBlobPocoEnumerable");
+
+            ValidateFunction(blobStringToBlobPocoEnumerable, "BlobStringToBlobPocoEnumerable", GetEntryPoint(nameof(SDKTypeBindings_BlobCollection), nameof(SDKTypeBindings_BlobCollection.BlobStringToBlobPocoEnumerable)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInputForEnumerable(b),
+                b => ValidateBlobOutput(b));
+
+
+            var blobStringToBlobPocoArray = functions.Single(p => p.Name == "BlobStringToBlobPocoArray");
+
+            ValidateFunction(blobStringToBlobPocoArray, "BlobStringToBlobPocoArray", GetEntryPoint(nameof(SDKTypeBindings_BlobCollection), nameof(SDKTypeBindings_BlobCollection.BlobStringToBlobPocoArray)),
+                b => ValidateBlobTrigger(b),
+                b => ValidateBlobInputForEnumerable(b),
+                b => ValidateBlobOutput(b));
+
+
+            void ValidateBlobTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "blob" },
+                    { "Type", "blobTrigger" },
+                    { "Direction", "In" },
+                    { "path", "container2/%file%" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateBlobOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "blob" },
+                    { "Direction", "Out" },
+                    { "blobPath", "container1/hello.txt" },
+                    { "Connection", "MyOtherConnection" },
                     { "Properties", new Dictionary<String, Object>() }
                 });
             }
@@ -273,6 +464,57 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void QueueStorageFunctions_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Queue));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
+            });
+
+            var queueMessageTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_Queue.QueueMessageTrigger));
+
+            ValidateFunction(queueMessageTriggerFunction, nameof(SDKTypeBindings_Queue.QueueMessageTrigger), GetEntryPoint(nameof(SDKTypeBindings_Queue), nameof(SDKTypeBindings_Queue.QueueMessageTrigger)),
+                ValidateQueueMessageTrigger);
+
+            var queueBinaryDataTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_Queue.QueueBinaryDataTrigger));
+
+            ValidateFunction(queueBinaryDataTriggerFunction, nameof(SDKTypeBindings_Queue.QueueBinaryDataTrigger), GetEntryPoint(nameof(SDKTypeBindings_Queue), nameof(SDKTypeBindings_Queue.QueueBinaryDataTrigger)),
+                ValidateQueueBinaryDataTrigger);
+
+            void ValidateQueueMessageTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "queueTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateQueueBinaryDataTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "queueTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+        }
+
+        [Fact]
         public void MultiOutput_OnReturnType()
         {
             var generator = new FunctionMetadataGenerator();
@@ -292,8 +534,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.2" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.2" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -358,7 +600,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.2" }
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" }
             });
 
             void ValidateHttpTrigger(ExpandoObject b)
@@ -653,6 +895,112 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Throws<ArgumentOutOfRangeException>(() => new ExponentialBackoffRetryAttribute(5, "something_bad", "00:01:00"));
         }
 
+        [Fact]
+        public void ServiceBus_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_ServiceBus));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.11.0" },
+            });
+
+            var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));
+
+            ValidateFunction(serviceBusTriggerFunction, nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_ServiceBus), nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction)),
+                ValidateServiceBusTrigger);
+
+            var serviceBusBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction));
+
+            ValidateFunction(serviceBusBatchTriggerFunction, nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_ServiceBus), nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction)),
+                ValidateServiceBusBatchTrigger);
+
+            void ValidateServiceBusTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateServiceBusBatchTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "messages" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Cardinality", "Many" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+        }
+
+        [Fact]
+        public void EventHubs_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_EventHubs));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" },
+            });
+
+            var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));
+
+            ValidateFunction(eventHubTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction)),
+                ValidateEventHubTrigger);
+
+            var eventHubBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction));
+
+            ValidateFunction(eventHubBatchTriggerFunction, nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_EventHubs), nameof(SDKTypeBindings_EventHubs.EventHubBatchTriggerFunction)),
+                ValidateEventHubBatchTrigger);
+
+            void ValidateEventHubTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "event" },
+                    { "Type", "eventHubTrigger" },
+                    { "Direction", "In" },
+                    { "eventHubName", "hub" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<string, object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateEventHubBatchTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "events" },
+                    { "Type", "eventHubTrigger" },
+                    { "Direction", "In" },
+                    { "eventHubName", "hub" },
+                    { "Cardinality", "Many" },
+                    { "Properties", new Dictionary<string, object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+        }
+
         private class EventHubNotBatched
         {
             [Function("EventHubTrigger")]
@@ -744,19 +1092,147 @@ namespace Microsoft.Azure.Functions.SdkTests
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
             public object BlobToBlobs(
                 [BlobTrigger("container2/%file%")] string blob,
-                [BlobInput("container2", IsBatched = true)] IEnumerable<string> blobinput)
+                [BlobInput("container2")] IEnumerable<string> blobinput)
             {
                 throw new NotImplementedException();
             }
         }
 
-        private class SDKTypeBindings
+        private class SDKTypeBindings_BlobStorage
         {
-            [Function("BlobToBlobFunction")]
+            [Function("BlobStringToBlobStringFunction")]
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
-            public object BlobToBlob(
+            public object BlobStringToBlobStringFunction(
                 [BlobTrigger("container2/%file%")] string blob,
                 [BlobInput("container2/%file%")] string blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobClientToBlobStringFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobClientToBlobStreamFunction(
+                [BlobTrigger("container2/%file%")] BlobClient blob,
+                [BlobInput("container2/%file%")] Stream blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobByteArrayToBlobByteArrayFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobByteArrayToBlobByteArrayFunction(
+                [BlobTrigger("container2/%file%")] byte[] blob,
+                [BlobInput("container2/%file%")] byte[] blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobUnsupportedTypeToBlobStringFunction")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobUnsupportedTypeToBlobClientFunction(
+                [BlobTrigger("container2/%file%")] BinaryData blob,
+                [BlobInput("container2/%file%")] BlobClient blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobPocoToBlobUnsupportedType")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobPocoToBlobUnsupportedType(
+                [BlobTrigger("container2/%file%")] Poco blob,
+                [BlobInput("container2/%file%")] BinaryData blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_BlobCollection
+        {
+            [Function("BlobStringToBlobStringArray")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobStringToBlobStringArray(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2")] string[] blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+
+            [Function("BlobStringToBlobClientEnumerable")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobStringToBlobClientEnumerable(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2")] IEnumerable<BlobClient> blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobStringToBlobPocoEnumerable")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobStringToBlobPocoEnumerable(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2")] IEnumerable<Poco> blobinput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("BlobStringToBlobPocoArray")]
+            [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
+            public object BlobStringToBlobPocoArray(
+                [BlobTrigger("container2/%file%")] string blob,
+                [BlobInput("container2")] Poco[] blobinput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_EventHubs
+        {
+            [Function(nameof(EventHubTriggerFunction))]
+            public static void EventHubTriggerFunction(
+                [EventHubTrigger("hub", IsBatched = false)] EventData @event)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(EventHubBatchTriggerFunction))]
+            public static void EventHubBatchTriggerFunction(
+                [EventHubTrigger("hub")] EventData[] events)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_Queue
+        {
+            [Function(nameof(QueueMessageTrigger))]
+            public static void QueueMessageTrigger(
+                [QueueTrigger("queue")] QueueMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(QueueBinaryDataTrigger))]
+            public static void QueueBinaryDataTrigger(
+                [QueueTrigger("queue")] BinaryData message)
+
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_ServiceBus
+        {
+            [Function(nameof(ServiceBusTriggerFunction))]
+            public static void ServiceBusTriggerFunction(
+                [ServiceBusTrigger("queue")] ServiceBusReceivedMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(ServiceBusBatchTriggerFunction))]
+            public static void ServiceBusBatchTriggerFunction(
+                [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)
             {
                 throw new NotImplementedException();
             }

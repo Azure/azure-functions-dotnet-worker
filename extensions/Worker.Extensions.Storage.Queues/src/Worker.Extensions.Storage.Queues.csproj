@@ -6,7 +6,7 @@
     <Description>Azure Queue Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.1.2</VersionPrefix>
+    <VersionPrefix>5.2.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -16,6 +16,15 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Storage.Queues" Version="12.13.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
 
 </Project>

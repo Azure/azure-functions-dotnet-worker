@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             candidateMethods.AddRange(GetDependentAssemblyFunctions(context));
 
-            IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
+            IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(candidateMethods);
 
             // Proceed to generate the file if function metadata info was successfully returned
             if (functionMetadataInfo.Count > 0)
@@ -73,17 +73,32 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
                 string? funcName = null;
-                var functionsSymbolList = assembly.GlobalNamespace.GetMembers().Where(m => FunctionsUtil.IsFunctionSymbol(m, context.Compilation, out funcName));
-
-                foreach (var funcSymbol in functionsSymbolList)
+                
+                if (assembly.MetadataName == "LibraryWithFunctions")
                 {
-                    if (funcSymbol is IMethodSymbol methodSymbol)
-                    {
-                        var syntaxReference = methodSymbol.DeclaringSyntaxReferences.FirstOrDefault()?.GetSyntax();
+                    var namespaceSymbols = assembly.GlobalNamespace.GetMembers();
 
-                        if (syntaxReference is MethodDeclarationSyntax methodSyntax)
+                    foreach (var namespaceSymbol in namespaceSymbols)
+                    {
+                        var namespaceMembers = namespaceSymbol.GetMembers();
+
+                        foreach (var m in namespaceMembers)
                         {
-                            dependentAssemblyFuncs.Add(methodSyntax);
+                            if (m is INamedTypeSymbol namedType)
+                            {
+                                var typeMembers = namedType.GetMembers();
+
+                                foreach (var typeMember in typeMembers)
+                                {
+                                    if (typeMember is IMethodSymbol method)
+                                    {
+                                        if (FunctionsUtil.IsFunctionSymbol(method, context.Compilation, out funcName))
+                                        {
+                                            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault();
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }

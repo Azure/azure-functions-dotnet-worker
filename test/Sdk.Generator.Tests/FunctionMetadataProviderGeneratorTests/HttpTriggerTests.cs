@@ -23,6 +23,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
                 var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
+                var depFuncs = Assembly.LoadFrom("LibraryWithFunctions.dll");
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -31,7 +32,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     hostingExtension,
                     hostingAbExtension,
                     diExtension,
-                    diAbExtension
+                    diAbExtension,
+                    depFuncs
                 };
             }
 

@@ -1,7 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Net;
+using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -27,7 +29,7 @@ namespace SampleApp
         /// The <see cref="CosmosClient"/> instance could also be used for write operations.
         /// </summary>
         [Function(nameof(DocsByUsingCosmosClient))]
-        public async Task<HttpResponseData>  DocsByUsingCosmosClient(
+        public async Task<HttpResponseData> DocsByUsingCosmosClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput(Connection = "CosmosDBConnection")] CosmosClient client)
         {
@@ -80,7 +82,7 @@ namespace SampleApp
         /// as a <see cref="Container"/> type. The function then queries for all documents in the collection.
         /// </summary>
         [Function(nameof(DocsByUsingContainerClient))]
-        public async Task<HttpResponseData>  DocsByUsingContainerClient(
+        public async Task<HttpResponseData> DocsByUsingContainerClient(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [CosmosDBInput("ToDoItems", "Items", Connection = "CosmosDBConnection")] Container container)
         {
@@ -261,11 +263,17 @@ namespace SampleApp
             }
         }
 
+        public class ToDoItem
+        {
+            public string Id { get; set; }
+            public string Description { get; set; }
+        }
+
         public class ToDoItemLookup
         {
-            public string? ToDoItemId { get; set; }
+            public string ToDoItemId { get; set; }
 
-            public string? ToDoItemPartitionKeyValue { get; set; }
+            public string ToDoItemPartitionKeyValue { get; set; }
         }
     }
 }

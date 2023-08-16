@@ -10,7 +10,7 @@ namespace Extensions.SignalR
     public static class SignalRNegotiationFunctions
     {
         // <snippet_negotiate>
-        [Function("Negotiate")]
+        [Function(nameof(Negotiate))]
         public static string Negotiate([HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequestData req,
             [SignalRConnectionInfoInput(HubName = "serverless")] string connectionInfo)
         {
@@ -26,7 +26,7 @@ namespace Extensions.SignalR
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
-        [Function("NegotiateWithMultipleEndpoints")]
+        [Function(nameof(NegotiateWithMultipleEndpoints))]
         public static string NegotiateWithMultipleEndpoints(
             [HttpTrigger(AuthorizationLevel.Anonymous)] HttpRequestData req,
             [SignalRNegotiationInput("chatHub", "SignalRConnection")] SignalRNegotiationContext negotiationContext)

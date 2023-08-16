@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using Azure.Storage.Queues.Models;
+using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -186,6 +187,73 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
         }
 
+        [Fact]
+        public void GrpcFunctionDefinition_TableInput_Creates()
+        {
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+
+            var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+
+            string fullPathToThisAssembly = GetType().Assembly.Location;
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyTableFunctionClass)}.{nameof(MyTableFunctionClass.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            // We base this on the request exclusively, not the binding attributes.
+            functionLoadRequest.Metadata.Bindings.Add("req", new BindingInfo { Type = "HttpTrigger", Direction = Direction.In });
+            functionLoadRequest.Metadata.Bindings.Add("$return", new BindingInfo { Type = "Http", Direction = Direction.Out });
+
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
+
+            Assert.Equal(functionLoadRequest.FunctionId, definition.Id);
+            Assert.Equal(functionLoadRequest.Metadata.EntryPoint, definition.EntryPoint);
+            Assert.Equal(functionLoadRequest.Metadata.Name, definition.Name);
+            Assert.Equal(fullPathToThisAssembly, definition.PathToAssembly);
+
+            // Parameters
+            Assert.Collection(definition.Parameters,
+                p =>
+                {
+                    Assert.Equal("req", p.Name);
+                    Assert.Equal(typeof(HttpRequestData), p.Type);
+                },
+                q =>
+                {
+                    Assert.Equal("tableInput", q.Name);
+                    Assert.Equal(typeof(TableClient), q.Type);
+                    Assert.Contains(PropertyBagKeys.ConverterFallbackBehavior, q.Properties.Keys);
+                    Assert.Contains(PropertyBagKeys.BindingAttributeSupportedConverters, q.Properties.Keys);
+                    Assert.Equal("Default", q.Properties[PropertyBagKeys.ConverterFallbackBehavior].ToString());
+                    Assert.Contains(new Dictionary<Type, List<Type>>().ToString(), q.Properties[PropertyBagKeys.BindingAttributeSupportedConverters].ToString());
+                });
+
+            // InputBindings
+            Assert.Collection(definition.InputBindings,
+                p =>
+                {
+                    Assert.Equal("req", p.Key);
+                    Assert.Equal(BindingDirection.In, p.Value.Direction);
+                    Assert.Equal("HttpTrigger", p.Value.Type);
+                });
+
+            // OutputBindings
+            Assert.Collection(definition.OutputBindings,
+                p =>
+                {
+                    Assert.Equal("$return", p.Key);
+                    Assert.Equal(BindingDirection.Out, p.Value.Direction);
+                    Assert.Equal("Http", p.Value.Type);
+                });
+        }
+
         private class MyFunctionClass
         {
             public HttpResponseData Run(HttpRequestData req)
@@ -217,6 +285,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             public static void Run([QueueTrigger("input-queue")] QueueMessage message)
             {
                 throw new NotImplementedException();
+            }
+        }
+
+        private class MyTableFunctionClass
+        {
+            public HttpResponseData Run(
+                [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+                [TableInput("tableName")] TableClient tableInput)
+            {
+                return req.CreateResponse();
             }
         }
     }

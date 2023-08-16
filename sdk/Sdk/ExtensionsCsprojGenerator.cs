@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class ExtensionsCsprojGenerator
     {
-        private const string ExtensionsProjectName = "WorkerExtensions.csproj";
+        internal const string ExtensionsProjectName = "WorkerExtensions.csproj";
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
@@ -31,9 +31,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var extensionsCsprojFilePath = Path.Combine(_outputPath, ExtensionsProjectName);
 
-            RecreateDirectory(_outputPath);
+            string csproj = GetCsProjContent();
 
-            WriteExtensionsCsProj(extensionsCsprojFilePath);
+            // Incremental build support: write the new csproj only if contents have changed.
+            // By keeping one from a previous build around, our restore & build has a chance
+            // to follow incremental build and no-op if nothing needs to be done.
+            if (File.Exists(extensionsCsprojFilePath))
+            {
+                string existing = File.ReadAllText(extensionsCsprojFilePath);
+                if (string.Equals(csproj, existing, StringComparison.Ordinal))
+                {
+                    // Up to date, nothing to do.
+                    return;
+                }
+            }
+
+            RecreateDirectory(_outputPath);
+            File.WriteAllText(extensionsCsprojFilePath, csproj);
         }
 
         private void RecreateDirectory(string directoryPath)
@@ -44,13 +58,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             Directory.CreateDirectory(directoryPath);
-        }
-
-        private void WriteExtensionsCsProj(string filePath)
-        {
-            string csprojContent = GetCsProjContent();
-
-            File.WriteAllText(filePath, csprojContent);
         }
 
         internal string GetCsProjContent()

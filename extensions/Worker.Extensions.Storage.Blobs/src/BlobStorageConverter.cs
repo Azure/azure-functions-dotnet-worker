@@ -20,6 +20,8 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -32,13 +34,21 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly IOptionsMonitor<BlobStorageBindingOptions> _blobOptions;
         private readonly ILogger<BlobStorageConverter> _logger;
+        private readonly IAzureClientFactory<BlobServiceClient> _blobServiceClientFactory;
         private readonly Regex BlobIsFileRegex = new Regex(@"\.[^.\/]+$");
 
-        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
+        public BlobStorageConverter(
+            IOptions<WorkerOptions> workerOptions,
+            IOptionsMonitor<BlobStorageBindingOptions> blobOptions,
+            ILogger<BlobStorageConverter> logger,
+            IAzureClientFactory<BlobServiceClient> blobServiceClientFactory,
+            IConfiguration config)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _blobServiceClientFactory = blobServiceClientFactory ?? throw new ArgumentNullException(nameof(blobServiceClientFactory));
+            var con = config;
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -250,8 +260,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         private BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)
         {
-            var blobStorageOptions = _blobOptions.Get(connectionName);
-            BlobServiceClient blobServiceClient = blobStorageOptions.CreateClient();
+            BlobServiceClient blobServiceClient = _blobServiceClientFactory.CreateClient(connectionName);
             BlobContainerClient container = blobServiceClient.GetBlobContainerClient(containerName);
             return container;
         }

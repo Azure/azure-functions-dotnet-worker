@@ -5,6 +5,7 @@ using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
@@ -21,7 +22,16 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
+            applicationBuilder.Services.AddAzureClients(clientBuilder =>
+            {
+                var configuration = applicationBuilder.Services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+                clientBuilder.AddBlobServiceClient(configuration);
+            });
+
             applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
+
+            // applicationBuilder.Services.TryAddSingleton<BlobServiceClientProvider>();
+
             applicationBuilder.Services.AddOptions<BlobStorageBindingOptions>();
             applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
         }

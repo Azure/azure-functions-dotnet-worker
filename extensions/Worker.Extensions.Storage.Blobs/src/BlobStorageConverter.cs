@@ -60,6 +60,14 @@ namespace Microsoft.Azure.Functions.Worker
                 }
 
                 BlobBindingData blobData = GetBindingDataContent(modelBindingData);
+
+                // Temp fix for connection value being incorrect from WebJobs
+                context.TryGetBindingAttribute<BlobTriggerAttribute>(out object attribute);
+                if (attribute is BlobTriggerAttribute blobTriggerAttribute)
+                {
+                    blobData.Connection = blobTriggerAttribute.Connection;
+                }
+
                 var result = await ConvertModelBindingDataAsync(context.TargetType, blobData);
 
                 if (result is null)

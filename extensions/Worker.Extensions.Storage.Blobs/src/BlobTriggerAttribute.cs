@@ -40,5 +40,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the app setting name that contains the Azure Storage connection string.
         /// </summary>
         public string? Connection { get; set; }
+
+        /// <summary>
+        /// Gets or sets the blob trigger source used to detect blob changes. Default is <see cref="BlobTriggerSource.LogsAndContainerScan"/>.
+        /// </summary>
+        public BlobTriggerSource Source { get; set; } = BlobTriggerSource.LogsAndContainerScan;
     }
 }

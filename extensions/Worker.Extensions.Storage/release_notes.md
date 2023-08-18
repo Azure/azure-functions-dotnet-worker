@@ -11,3 +11,5 @@
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.1.0
 
 - Added support for trigger sources, enabling use of Event Grid for change detection/notification
+- Implement IFunctionsWorkerApplicationBuilder.ConfigureBlobStorage() extension method
+  - F# projects need to configure the extension manually due to source gen restrictions

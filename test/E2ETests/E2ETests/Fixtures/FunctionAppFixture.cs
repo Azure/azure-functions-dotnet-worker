@@ -55,7 +55,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     _funcProcess.StartInfo.ArgumentList.Add("HelloFromQuery");
                     _funcProcess.StartInfo.ArgumentList.Add("HelloFromJsonBody");
                     _funcProcess.StartInfo.ArgumentList.Add("HelloUsingPoco");
+                    _funcProcess.StartInfo.ArgumentList.Add("HelloWithNoResponse");
+                    _funcProcess.StartInfo.ArgumentList.Add("PocoFromBody");
+                    _funcProcess.StartInfo.ArgumentList.Add("PocoBeforeRouteParameters");
+                    _funcProcess.StartInfo.ArgumentList.Add("PocoAfterRouteParameters");
                     _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
+                    _funcProcess.StartInfo.ArgumentList.Add("PocoWithoutBindingSource");
                 }
 
                 await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);
@@ -90,6 +95,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     }
                     catch
                     {
+                        if (_funcProcess.HasExited)
+                        {
+                            // Something went wrong starting the host - check the logs
+                            _logger.LogInformation($"  Current state: process exited - something may have gone wrong.");
+                            return false;
+                        }
+
                         // Can get exceptions before host is running.
                         _logger.LogInformation($"  Current state: process starting");
                         return false;

@@ -15,6 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string FixedDelayRetryAttributeType = "Microsoft.Azure.Functions.Worker.FixedDelayRetryAttribute";
         internal const string ExponentialBackoffRetryAttributeType = "Microsoft.Azure.Functions.Worker.ExponentialBackoffRetryAttribute";
         internal const string BindingPropertyNameAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingPropertyNameAttribute";
+        internal const string SupportsDeferredBindingAttributeType = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.SupportsDeferredBindingAttribute";
+        internal const string InputConverterAttributeType = "Microsoft.Azure.Functions.Worker.Converters.InputConverterAttribute";
+        internal const string SupportedTargetTypeAttributeType = "Microsoft.Azure.Functions.Worker.Converters.SupportedTargetTypeAttribute";
 
         // System types
         internal const string IEnumerableType = "System.Collections.IEnumerable";
@@ -47,5 +50,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal const string NetCoreVersion6 = "v6.0";
         internal const string NetCoreVersion31 = "v3.1";
         internal const string AzureFunctionsVersion3 = "v3";
+
+        // Binding directions
+        internal const string OutputBindingDirection = "Out";
+        internal const string InputBindingDirection = "In";
+
+        // Binding properties
+        internal const string SupportsDeferredBindingProperty = "SupportsDeferredBinding";
     }
 }

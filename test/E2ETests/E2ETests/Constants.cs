@@ -28,21 +28,29 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             public const string InputBindingNamePOCO = "test-input-dotnet-isolated-poco";
             public const string InputBindingNameMetadata = "test-input-dotnet-isolated-metadata";
             public const string OutputBindingNameMetadata = "test-output-dotnet-isolated-metadata";
+            public const string InputBindingNameQueueMessage = "test-input-dotnet-isolated-queuemessage";
+            public const string OutputBindingNameQueueMessage = "test-output-dotnet-isolated-queuemessage";
+            public const string InputBindingNameBinaryData = "test-input-dotnet-isolated-binarydata";
+            public const string OutputBindingNameBinaryData = "test-output-dotnet-isolated-binarydata";
             public const string TestQueueMessage = "Hello, World";
         }
 
         //Blob tests
         public static class Blob
         {
-            public const string TriggerInputBindingContainer = "test-triggerinput-dotnet-isolated";
+            public const string TriggerInputBindingContainer = "test-trigger-dotnet-isolated";
             public const string InputBindingContainer = "test-input-dotnet-isolated";
             public const string OutputBindingContainer = "test-output-dotnet-isolated";
-
-            public const string TriggerPocoContainer = "test-triggerinputpoco-dotnet-isolated";
-            public const string OutputPocoContainer = "test-outputpoco-dotnet-isolated";
-
-            public const string TriggerStringContainer = "test-triggerinputstring-dotnet-isolated";
-            public const string OutputStringContainer = "test-outputstring-dotnet-isolated";
+            public const string TriggerPocoContainer = "test-trigger-poco-dotnet-isolated";
+            public const string OutputPocoContainer = "test-output-poco-dotnet-isolated";
+            public const string TriggerStringContainer = "test-trigger-string-dotnet-isolated";
+            public const string OutputStringContainer = "test-output-string-dotnet-isolated";
+            public const string TriggerStreamContainer = "test-trigger-stream-dotnet-isolated";
+            public const string OutputStreamContainer = "test-output-stream-dotnet-isolated";
+            public const string TriggerBlobClientContainer = "test-trigger-blobclient-dotnet-isolated";
+            public const string OutputBlobClientContainer = "test-output-blobclient-dotnet-isolated";
+            public const string TriggerBlobContainerClientContainer = "test-trigger-containerclient-dotnet-isolated";
+            public const string OutputBlobContainerClientContainer = "test-output-containerclient-dotnet-isolated";
         }
 
         // CosmosDB tests
@@ -82,5 +90,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         // Xunit Fixtures and Collections
         public const string FunctionAppCollectionName = "FunctionAppCollection";
+
+        // Tables tests
+        public static class Tables
+        {
+            public const string EmulatorConnectionString = "UseDevelopmentStorage=true";
+            public const string TablesConnectionStringSetting = EmulatorConnectionString;
+            public const string TableName = "TestTable";
+        }
     }
 }

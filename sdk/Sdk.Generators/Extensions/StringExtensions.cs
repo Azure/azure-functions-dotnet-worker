@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 result = result.TrimStringFromEnd(s);
             }
 
-            return result; 
+            return result;
         }
     }
 }

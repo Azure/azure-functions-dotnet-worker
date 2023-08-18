@@ -7,9 +7,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -60,12 +58,6 @@ namespace Microsoft.Azure.Functions.Worker
                     foreach (var binding in rawBindings.EnumerateArray())
                     {
                         functionMetadata.RawBindings.Add(binding.GetRawText());
-
-                        BindingInfo bindingInfo = FunctionMetadataRpcExtensions.CreateBindingInfo(binding);
-
-                        binding.TryGetProperty("name", out JsonElement jsonName);
-
-                        functionMetadata.Bindings.Add(jsonName.ToString(), bindingInfo);
                     }
 
                     functionMetadataResults.Add(functionMetadata);

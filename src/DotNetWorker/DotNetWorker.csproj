@@ -2,14 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;net7.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker</PackageId>
     <Description>This library enables you to create an Azure Functions .NET Worker, adding support for the isolated, out-of-process execution model.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>11</MinorProductVersion>
-    <VersionSuffix>-preview2</VersionSuffix>
+    <MinorProductVersion>19</MinorProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix></VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

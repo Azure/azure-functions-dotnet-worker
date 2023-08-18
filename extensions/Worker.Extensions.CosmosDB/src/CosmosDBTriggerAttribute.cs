@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
     public sealed class CosmosDBTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>
@@ -124,7 +125,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// The recommended format is ISO 8601 with the UTC designator. 
         /// For example: "2021-02-16T14:19:29Z"
         /// </summary>
-        public bool? StartFromTime { get; set; }
+        public string? StartFromTime { get; set; }
 
         /// <summary>
         /// Optional.

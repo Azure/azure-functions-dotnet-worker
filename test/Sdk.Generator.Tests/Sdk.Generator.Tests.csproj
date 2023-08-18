@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.SdkGeneratorTests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.SdkGeneratorTests</RootNamespace>
@@ -13,21 +13,21 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" Version="1.1.*" />
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.1.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.1.0" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.1.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis" Version="4.4.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.*" PrivateAssets="all" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.2" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.3.1" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
     <PackageReference Include="xunit" Version="2.4.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="coverlet.collector" Version="3.1.2">
+    <PackageReference Include="coverlet.collector" Version="3.2.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
@@ -39,6 +39,8 @@
     <ProjectReference Include="..\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj" />
     <ProjectReference Include="..\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.ServiceBus\src\Worker.Extensions.ServiceBus.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />

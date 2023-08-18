@@ -3,83 +3,89 @@
 
 using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.ApplicationInsights.WorkerService;
+using Microsoft.ApplicationInsights.Extensibility.PerfCounterCollector.QuickPulse;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights;
-using Microsoft.Azure.Functions.Worker.Logging;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.ApplicationInsights;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     public static class FunctionsApplicationInsightsExtensions
     {
-        /// <summary>
-        /// Adds Application Insights support by internally calling <see cref="ApplicationInsightsExtensions.AddApplicationInsightsTelemetryWorkerService(IServiceCollection)"/>.
-        /// </summary>
-        /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/></param>
-        /// <param name="configureOptions">Action to configure ApplicationInsights services.</param>
-        /// <returns>The <see cref="IFunctionsWorkerApplicationBuilder"/></returns>
-        public static IFunctionsWorkerApplicationBuilder AddApplicationInsights(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsServiceOptions>? configureOptions = null)
+        public static IServiceCollection ConfigureFunctionsApplicationInsights(this IServiceCollection services)
         {
-            builder.AddCommonServices();
-
-            builder.Services.AddApplicationInsightsTelemetryWorkerService(options =>
+            if (services == null)
             {
-                configureOptions?.Invoke(options);
-            });
-
-            return builder;
-        }
-
-        /// <summary>
-        /// Adds the <see cref="ApplicationInsightsLoggerProvider"/> and disables the Functions host passthrough logger.
-        /// </summary>
-        /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/></param>
-        /// <param name="configureOptions">Action to configure ApplicationInsights logger.</param>
-        /// <returns>The <see cref="IFunctionsWorkerApplicationBuilder"/></returns>
-        public static IFunctionsWorkerApplicationBuilder AddApplicationInsightsLogger(this IFunctionsWorkerApplicationBuilder builder, Action<ApplicationInsightsLoggerOptions>? configureOptions = null)
-        {
-            builder.AddCommonServices();
-
-            builder.Services.AddLogging(logging =>
-            {
-                logging.AddApplicationInsights(options =>
-                {
-                    options.IncludeScopes = false;
-                    configureOptions?.Invoke(options);
-                });
-            });
-
-            return builder;
-        }
-
-        private static IFunctionsWorkerApplicationBuilder AddCommonServices(this IFunctionsWorkerApplicationBuilder builder)
-        {
-            builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryInitializer), typeof(FunctionsTelemetryInitializer), ServiceLifetime.Singleton));
-            builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ITelemetryModule), typeof(FunctionsTelemetryModule), ServiceLifetime.Singleton));
-
-            // User logs will be written directly to Application Insights; this prevents duplicate logging.
-            builder.Services.AddSingleton<IUserLogWriter>(_ => NullUserLogWriter.Instance);
-
-            // This middleware is temporary for the preview. Eventually this behavior will move into the
-            // core worker assembly.
-            if (!builder.Services.Any(p => p.ImplementationType == typeof(FunctionActivitySourceMiddleware)))
-            {
-                builder.Services.AddSingleton<FunctionActivitySourceMiddleware>();
-                builder.Use(next =>
-                {
-                    return async context =>
-                    {
-                        var middleware = context.InstanceServices.GetRequiredService<FunctionActivitySourceMiddleware>();
-                        await middleware.Invoke(context, next);
-                    };
-                });
+                throw new ArgumentNullException(nameof(services));
             }
 
-            return builder;
+            services.AddSingleton<FunctionsRoleInstanceProvider>();
+
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryInitializer, FunctionsTelemetryInitializer>());
+            services.AddSingleton<ITelemetryInitializer>(provider =>
+            {
+                // To match parity with the Host, we need to update the QuickPulseTelemetryModule.ServerId. We don't want to reference the
+                // top-level WorkerService or AspNetCore packages, so we cannot use ConfigureTelemetryModules().
+                // 
+                // Nesting this setup inside this ITelemetryInitializer factory as it guarantees it will be run before
+                // any ITelemetryModules are initialized.
+                var modules = provider.GetServices<ITelemetryModule>();
+                var quickPulseModule = modules.OfType<QuickPulseTelemetryModule>().SingleOrDefault();
+                if (quickPulseModule is not null)
+                {
+                    var roleInstanceProvider = provider.GetRequiredService<FunctionsRoleInstanceProvider>();
+                    quickPulseModule.ServerId = roleInstanceProvider.GetRoleInstanceName();
+                }
+
+                return ActivatorUtilities.CreateInstance<FunctionsRoleEnvironmentTelemetryInitializer>(provider);
+            });
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());
+            services.AddOptions<FunctionsApplicationInsightsOptions>()
+                .Validate<IServiceProvider>(
+                    (_, sp) => sp.GetService<TelemetryClient>() is not null,
+                    "Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information.");
+
+            services.AddHostedService<ApplicationInsightsValidationService>();
+
+            // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
+            services.Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerApplicationInsightsLoggingEnabled"] = bool.TrueString);
+            return services;
+        }
+
+        /// <summary>
+        /// Options for configuring Functions Application Insights.
+        /// </summary>
+        /// <remarks>
+        /// This is a private nested class as we have no public options to expose (yet). This is just a vessel to trigger validating that
+        /// an Application Insights SDK has also been configured.
+        /// When we do have options to configure, this can be moved to be a public top-level class.
+        /// </remarks>
+        private class FunctionsApplicationInsightsOptions
+        {
+        }
+
+        /// <summary>
+        /// This services is for a singular purpose: trigger validation of <see cref="FunctionsApplicationInsightsOptions" /> on startup.
+        /// </summary>
+        private class ApplicationInsightsValidationService : IHostedService
+        {
+            private readonly FunctionsApplicationInsightsOptions _options;
+
+            public ApplicationInsightsValidationService(IOptions<FunctionsApplicationInsightsOptions> options)
+            {
+                _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            }
+
+            public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+            public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
     }
 }

@@ -1,10 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [InputConverter(typeof(BlobStorageConverter))]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public sealed class BlobTriggerAttribute : TriggerBindingAttribute
     {
         private readonly string _blobPath;
@@ -37,5 +40,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the app setting name that contains the Azure Storage connection string.
         /// </summary>
         public string? Connection { get; set; }
+
+        /// <summary>
+        /// Gets or sets the blob trigger source used to detect blob changes. Default is <see cref="BlobTriggerSource.LogsAndContainerScan"/>.
+        /// </summary>
+        public BlobTriggerSource Source { get; set; } = BlobTriggerSource.LogsAndContainerScan;
     }
 }

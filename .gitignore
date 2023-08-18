@@ -4,6 +4,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 Azure.Functions.Cli
+azurite
 
 # For local nuget packages
 [Ll]ocal/
@@ -361,3 +362,4 @@ MigrationBackup/
 # Entity framework sample
 Migrations/
 local.settings.json
+/tools/localpack.ps1

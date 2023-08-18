@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -12,7 +14,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
     {
         public class IntegratedTriggersAndBindingsTests
         {
-            private Assembly[] referencedExtensionAssemblies;
+            private readonly Assembly[] _referencedExtensionAssemblies;
 
             public IntegratedTriggersAndBindingsTests()
             {
@@ -20,9 +22,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
-                var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
                 var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
-                var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
@@ -31,14 +31,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
 
-                referencedExtensionAssemblies = new[]
+                _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,
                     httpExtension,
                     storageExtension,
-                    cosmosDBExtension,
                     timerExtension,
-                    eventHubsExtension,
                     blobExtension,
                     queueExtension,
                     loggerExtension,
@@ -53,112 +51,93 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             public async Task FunctionWhereOutputBindingIsInTheReturnType()
             {
                 // test generating function metadata for a simple HttpTrigger
-                string inputCode = @"
-            using System;
-            using System.Net;
-            using Microsoft.Azure.Functions.Worker;
-            using Microsoft.Azure.Functions.Worker.Http;
+                string inputCode = """
+                using System;
+                using System.Net;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
 
-            namespace FunctionApp
-            {
-                public static class HttpTriggerWithMultipleOutputBindings
+                namespace FunctionApp
                 {
-                    [Function(nameof(HttpTriggerWithMultipleOutputBindings))]
-                    public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, 'get', 'post', Route = null)] HttpRequestData req,
-                        FunctionContext context)
+                    public static class HttpTriggerWithMultipleOutputBindings
                     {
-                        throw new NotImplementedException();
+                        [Function(nameof(HttpTriggerWithMultipleOutputBindings))]
+                        public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+                            FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public class MyOutputType
+                    {
+                        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+                        public string Name { get; set; }
+
+                        public HttpResponseData HttpResponse { get; set; }
                     }
                 }
-
-                public class MyOutputType
-                {
-                    [QueueOutput('functionstesting2', Connection = 'AzureWebJobsStorage')]
-                    public string Name { get; set; }
-
-                    public HttpResponseData HttpResponse { get; set; }
-                }
-            }".Replace("'", "\"");
+                """;
 
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-                string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Http;
-namespace Microsoft.Azure.Functions.Worker
-{
-    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)0,
-                methods = new List<string> { 'get','post' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                name = 'Name',
-                type = 'Queue',
-                direction = 'Out',
-                queueName = 'functionstesting2',
-                Connection = 'AzureWebJobsStorage',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0binding2 = new {
-                name = 'HttpResponse',
-                type = 'http',
-                direction = 'Out',
-            };
-            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2);
-            Function0RawBindings.Add(Function0binding2JSON);
-            var Function0 = new DefaultFunctionMetadata
-            {
-                FunctionId = Guid.NewGuid().ToString(),
-                Language = 'dotnet-isolated',
-                Name = 'HttpTriggerWithMultipleOutputBindings',
-                EntryPoint = 'TestProject.HttpTriggerWithMultipleOutputBindings.Run',
-                RawBindings = Function0RawBindings,
-                ScriptFile = 'TestProject.dll'
-            };
-            metadataList.Add(Function0);
-            return Task.FromResult(metadataList.ToImmutableArray());
-        }
-    }
-    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-    {
-        ///<summary>
-        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
-        ///</summary>
-        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-        {
-            builder.ConfigureServices(s => 
-            {
-                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-            });
-            return builder;
-        }
-    }
-}
-".Replace("'", "\"");
+                string expectedOutput = """
+                // <auto-generated/>
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace Microsoft.Azure.Functions.Worker
+                {
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                    {
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                        {
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""Name"",""type"":""Queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
+                            Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "HttpTriggerWithMultipleOutputBindings",
+                                EntryPoint = "FunctionApp.HttpTriggerWithMultipleOutputBindings.Run",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+
+                            return Task.FromResult(metadataList.ToImmutableArray());
+                        }
+                    }
+
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -167,140 +146,112 @@ namespace Microsoft.Azure.Functions.Worker
             [Fact]
             public async Task FunctionWithStringDataTypeInputBinding()
             {
-                string inputCode = @"
-            using System.Net;
-            using System.Text.Json;
-            using Microsoft.Azure.Functions.Worker;
-            using Microsoft.Azure.Functions.Worker.Http;
+                string inputCode = """
+                using System.Net;
+                using System.Text.Json;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
 
-            namespace FunctionApp
-            {
-                public static class HttpTriggerWithBlobInput
+                namespace FunctionApp
                 {
-                    [Function(nameof(HttpTriggerWithBlobInput))]
-                    public static MyOutputType Run(
-                        [HttpTrigger(AuthorizationLevel.Anonymous, 'get', 'post', Route = null)] HttpRequestData req,
-                        [BlobInput('test-samples/sample1.txt', Connection = 'AzureWebJobsStorage')] string myBlob, FunctionContext context)
+                    public static class HttpTriggerWithBlobInput
                     {
-                        var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
-
-                        var response = req.CreateResponse(HttpStatusCode.OK);
-
-                        response.Headers.Add('Date', 'Mon, 18 Jul 2016 16:06:00 GMT');
-                        response.Headers.Add('Content-Type', 'text/html; charset=utf-8');
-                        response.WriteString('Book Sent to Queue!');
-
-                        return new MyOutputType()
+                        [Function(nameof(HttpTriggerWithBlobInput))]
+                        public static MyOutputType Run(
+                            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+                            [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob, FunctionContext context)
                         {
-                            Book = bookVal,
-                            HttpResponse = response
-                        };
-                    }
+                            var bookVal = (Book)JsonSerializer.Deserialize(myBlob, typeof(Book));
 
-                    public class MyOutputType
-                    {
-                        [QueueOutput('functionstesting2', Connection = 'AzureWebJobsStorage')]
-                        public Book Book { get; set; }
+                            var response = req.CreateResponse(HttpStatusCode.OK);
 
-                        public HttpResponseData HttpResponse { get; set; }
-                    }
+                            response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
+                            response.Headers.Add("Content-Type", "text/html; charset=utf-8");
+                            response.WriteString("Book Sent to Queue!");
 
-                    public class Book
-                    {
-                        public string name { get; set; }
-                        public string id { get; set; }
+                            return new MyOutputType()
+                            {
+                                Book = bookVal,
+                                HttpResponse = response
+                            };
+                        }
+
+                        public class MyOutputType
+                        {
+                            [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+                            public Book Book { get; set; }
+
+                            public HttpResponseData HttpResponse { get; set; }
+                        }
+
+                        public class Book
+                        {
+                            public string name { get; set; }
+                            public string id { get; set; }
+                        }
                     }
                 }
-            }".Replace("'", "\"");
+                """;
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-                string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Http;
-namespace Microsoft.Azure.Functions.Worker
-{
-    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)0,
-                methods = new List<string> { 'get','post' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                name = 'myBlob',
-                type = 'Blob',
-                direction = 'In',
-                blobPath = 'test-samples/sample1.txt',
-                Connection = 'AzureWebJobsStorage',
-                dataType = 'String',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0binding2 = new {
-                name = 'Book',
-                type = 'Queue',
-                direction = 'Out',
-                queueName = 'functionstesting2',
-                Connection = 'AzureWebJobsStorage',
-            };
-            var Function0binding2JSON = JsonSerializer.Serialize(Function0binding2);
-            Function0RawBindings.Add(Function0binding2JSON);
-            var Function0binding3 = new {
-                name = 'HttpResponse',
-                type = 'http',
-                direction = 'Out',
-            };
-            var Function0binding3JSON = JsonSerializer.Serialize(Function0binding3);
-            Function0RawBindings.Add(Function0binding3JSON);
-            var Function0 = new DefaultFunctionMetadata
-            {
-                FunctionId = Guid.NewGuid().ToString(),
-                Language = 'dotnet-isolated',
-                Name = 'HttpTriggerWithBlobInput',
-                EntryPoint = 'TestProject.HttpTriggerWithBlobInput.Run',
-                RawBindings = Function0RawBindings,
-                ScriptFile = 'TestProject.dll'
-            };
-            metadataList.Add(Function0);
-            return Task.FromResult(metadataList.ToImmutableArray());
-        }
-    }
-    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-    {
-        ///<summary>
-        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
-        ///</summary>
-        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-        {
-            builder.ConfigureServices(s => 
-            {
-                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-            });
-            return builder;
-        }
-    }
-}
-".Replace("'", "\"");
+                string expectedOutput = """
+                // <auto-generated/>
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace Microsoft.Azure.Functions.Worker
+                {
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                    {
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                        {
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""myBlob"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""test-samples/sample1.txt"",""connection"":""AzureWebJobsStorage"",""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""Book"",""type"":""Queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
+                            Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "HttpTriggerWithBlobInput",
+                                EntryPoint = "FunctionApp.HttpTriggerWithBlobInput.Run",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+
+                            return Task.FromResult(metadataList.ToImmutableArray());
+                        }
+                    }
+
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -309,108 +260,97 @@ namespace Microsoft.Azure.Functions.Worker
             [Fact]
             public async Task FunctionWithNonFunctionsRelatedAttribute()
             {
-                string inputCode = @"
-            using System;
-            using System.Net;
-            using System.Text.Json;
-            using Microsoft.Azure.Functions.Worker;
-            using Microsoft.Azure.Functions.Worker.Http;
+                string inputCode = """
+                using System;
+                using System.Net;
+                using System.Text.Json;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
 
-            namespace FunctionApp
-            {
-                public class HttpTriggerWithBlobInput
+                namespace FunctionApp
                 {
-                    [Function('Products')]
-                    public HttpResponseData Run(
-                                   [HttpTrigger(AuthorizationLevel.Anonymous, 'get', Route = null)] HttpRequestData req,
-                                   [FakeAttribute('hi')] string someString)
+                    public class HttpTriggerWithBlobInput
                     {
-                        var response = req.CreateResponse(HttpStatusCode.OK);
-                        response.Headers.Add('Content-Type', 'text/plain; charset=utf-8');
-                        return response;
-                    }
-                }
-
-                public class FakeAttribute : Attribute
-                {
-                    public FakeAttribute(string name)
-                    {
-                        Name = name;
+                        [Function("Products")]
+                        public HttpResponseData Run(
+                                       [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequestData req,
+                                       [FakeAttribute("hi")] string someString)
+                        {
+                            var response = req.CreateResponse(HttpStatusCode.OK);
+                            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+                            return response;
+                        }
                     }
 
-                    public string Name { get; }
+                    public class FakeAttribute : Attribute
+                    {
+                        public FakeAttribute(string name)
+                        {
+                            Name = name;
+                        }
+
+                        public string Name { get; }
+                    }
                 }
-            }".Replace("'", "\"");
+                """;
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-                string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Http;
-namespace Microsoft.Azure.Functions.Worker
-{
-    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                name = 'req',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)0,
-                methods = new List<string> { 'get' },
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                name = '$return',
-                type = 'http',
-                direction = 'Out',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0 = new DefaultFunctionMetadata
-            {
-                FunctionId = Guid.NewGuid().ToString(),
-                Language = 'dotnet-isolated',
-                Name = 'Products',
-                EntryPoint = 'TestProject.HttpTriggerWithBlobInput.Run',
-                RawBindings = Function0RawBindings,
-                ScriptFile = 'TestProject.dll'
-            };
-            metadataList.Add(Function0);
-            return Task.FromResult(metadataList.ToImmutableArray());
-        }
-    }
-    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-    {
-        ///<summary>
-        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
-        ///</summary>
-        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-        {
-            builder.ConfigureServices(s => 
-            {
-                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-            });
-            return builder;
-        }
-    }
-}
-".Replace("'", "\"");
+                string expectedOutput = """
+                // <auto-generated/>
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace Microsoft.Azure.Functions.Worker
+                {
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                    {
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                        {
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get""]}");
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "Products",
+                                EntryPoint = "FunctionApp.HttpTriggerWithBlobInput.Run",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+
+                            return Task.FromResult(metadataList.ToImmutableArray());
+                        }
+                    }
+
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -419,7 +359,7 @@ namespace Microsoft.Azure.Functions.Worker
             [Fact]
             public async void FunctionWithTaskReturnType()
             {
-                string inputCode = @"
+                string inputCode = """
                 using System;
                 using System.Net;
                 using System.Text.Json;
@@ -431,76 +371,71 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     public class Timer
                     {
-                        [Function('TimerFunction')]
-                        public Task RunTimer([TimerTrigger('0 0 0 * * *', RunOnStartup = false)] object timer)
+                        [Function("TimerFunction")]
+                        public Task RunTimer([TimerTrigger("0 0 0 * * *", RunOnStartup = false)] object timer)
                         {
                             throw new NotImplementedException();
                         }
                     }
                 }
-                ".Replace("'", "\"");
+                """;
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-                string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-namespace Microsoft.Azure.Functions.Worker
-{
-    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                name = 'timer',
-                type = 'TimerTrigger',
-                direction = 'In',
-                schedule = '0 0 0 * * *',
-                RunOnStartup = 'False',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0 = new DefaultFunctionMetadata
-            {
-                FunctionId = Guid.NewGuid().ToString(),
-                Language = 'dotnet-isolated',
-                Name = 'TimerFunction',
-                EntryPoint = 'TestProject.Timer.RunTimer',
-                RawBindings = Function0RawBindings,
-                ScriptFile = 'TestProject.dll'
-            };
-            metadataList.Add(Function0);
-            return Task.FromResult(metadataList.ToImmutableArray());
-        }
-    }
-    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-    {
-        ///<summary>
-        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
-        ///</summary>
-        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-        {
-            builder.ConfigureServices(s => 
-            {
-                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-            });
-            return builder;
-        }
-    }
-}
-".Replace("'", "\"");
+                string expectedOutput = """
+                // <auto-generated/>
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace Microsoft.Azure.Functions.Worker
+                {
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                    {
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                        {
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""timer"",""type"":""TimerTrigger"",""direction"":""In"",""schedule"":""0 0 0 * * *"",""runOnStartup"":""False""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "TimerFunction",
+                                EntryPoint = "FunctionApp.Timer.RunTimer",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+
+                            return Task.FromResult(metadataList.ToImmutableArray());
+                        }
+                    }
+
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
@@ -509,7 +444,7 @@ namespace Microsoft.Azure.Functions.Worker
             [Fact]
             public async void FunctionWithGenericTaskReturnType()
             {
-                string inputCode = @"
+                string inputCode = """
                 using System;
                 using System.Net;
                 using System.Text.Json;
@@ -521,122 +456,72 @@ namespace Microsoft.Azure.Functions.Worker
                 {
                     public class BasicHttp
                     {
-                        [Function('FunctionName')]
-                        public Task<HttpResponseData> Http([HttpTrigger(AuthorizationLevel.Admin, 'get', 'Post', Route = '/api2')] HttpRequestData myReq)
+                        [Function("FunctionName")]
+                        public Task<HttpResponseData> Http([HttpTrigger(AuthorizationLevel.Admin, "get", "Post", Route = "/api2")] HttpRequestData myReq)
                         {
                             throw new NotImplementedException();
                         }
                     }
                 }
-                ".Replace("'", "\"");
+                """;
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
-                string expectedOutput = @"// <auto-generated/>
-using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Azure.Functions.Worker.Http;
-namespace Microsoft.Azure.Functions.Worker
-{
-    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
-    {
-        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
-        {
-            var metadataList = new List<IFunctionMetadata>();
-            var Function0RawBindings = new List<string>();
-            var Function0binding0 = new {
-                name = 'myReq',
-                type = 'HttpTrigger',
-                direction = 'In',
-                authLevel = (AuthorizationLevel)4,
-                methods = new List<string> { 'get','Post' },
-                Route = '/api2',
-            };
-            var Function0binding0JSON = JsonSerializer.Serialize(Function0binding0);
-            Function0RawBindings.Add(Function0binding0JSON);
-            var Function0binding1 = new {
-                name = 'Result',
-                type = 'http',
-                direction = 'Out',
-            };
-            var Function0binding1JSON = JsonSerializer.Serialize(Function0binding1);
-            Function0RawBindings.Add(Function0binding1JSON);
-            var Function0 = new DefaultFunctionMetadata
-            {
-                FunctionId = Guid.NewGuid().ToString(),
-                Language = 'dotnet-isolated',
-                Name = 'FunctionName',
-                EntryPoint = 'TestProject.BasicHttp.Http',
-                RawBindings = Function0RawBindings,
-                ScriptFile = 'TestProject.dll'
-            };
-            metadataList.Add(Function0);
-            return Task.FromResult(metadataList.ToImmutableArray());
-        }
-    }
-    public static class WorkerHostBuilderFunctionMetadataProviderExtension
-    {
-        ///<summary>
-        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
-        /// During initialization, the worker will return generated funciton metadata instead of relying on the Azure Functions host for function indexing.
-        ///</summary>
-        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
-        {
-            builder.ConfigureServices(s => 
-            {
-                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-            });
-            return builder;
-        }
-    }
-}
-".Replace("'", "\"");
-
-                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
-                    referencedExtensionAssemblies,
-                    inputCode,
-                    expectedGeneratedFileName,
-                    expectedOutput);
-            }
-
-            [Fact]
-            public async void MultipleOutputOnMethodFails()
-            {
-                var inputCode = @"using System;
-                using System.Net;
-                using System.Collections;
+                string expectedOutput = """
+                // <auto-generated/>
+                using System;
                 using System.Collections.Generic;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Azure.Functions.Worker.Http;
-                using System.Linq;
+                using System.Collections.Immutable;
+                using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
 
-                namespace FunctionApp
+                namespace Microsoft.Azure.Functions.Worker
                 {
-                    public class EventHubsInput
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
-                        [Function(""QueueToBlobFunction"")]
-                        [BlobOutput(""container1/hello.txt"", Connection = ""MyOtherConnection"")]
-                        [QueueOutput(""queue2"")]
-                        public string QueueToBlob(
-                            [QueueTrigger(""queueName"", Connection = ""MyConnection"")] string queuePayload)
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
-                            throw new NotImplementedException();
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""myReq"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""Post""],""route"":""/api2""}");
+                            Function0RawBindings.Add(@"{""name"":""Result"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "FunctionName",
+                                EntryPoint = "FunctionApp.BasicHttp.Http",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+
+                            return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
-                }";
 
-                string? expectedGeneratedFileName = null;
-                string? expectedOutput = null;
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
 
-                await TestHelpers.RunTestAsync<ExtensionStartupRunnerGenerator>(
-                    referencedExtensionAssemblies,
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);

@@ -2,14 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;net6.0;net7.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Grpc</PackageId>
     <Description>This library provides gRPC support for Azure Functions .NET Worker communication with the Azure Functions Host.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>7</MinorProductVersion>
-    <VersionSuffix>-preview2</VersionSuffix>
+    <MinorProductVersion>14</MinorProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix></VersionSuffix>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -20,8 +22,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.10.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.21.7" />
-    <PackageReference Include="Grpc.Tools" Version="2.49.1">
+    <PackageReference Include="Google.Protobuf" Version="3.23.3" />
+    <PackageReference Include="Grpc.Tools" Version="2.56.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -30,8 +32,8 @@
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <PackageReference Include="Grpc.Net.Client" Version="2.49.0" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.49.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.55.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.55.0" />
   </ItemGroup>
 
   <!--For applications using the .NET Standard 2.0 target/.NET Framework apps
@@ -39,10 +41,12 @@
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Grpc.Core" Version="2.45.0" />
+    <Compile Remove="NativeHostIntegration/**" />
   </ItemGroup>
 
   <ItemGroup>
-    <Protobuf Include=".\protobuf\src\proto\**\*.proto" ProtoRoot=".\protobuf\src\proto" />
+    <Protobuf Include="..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" ProtoRoot="..\..\protos\azure-functions-language-worker-protobuf\src\proto" GrpcServices="Client" Access="internal" />
+
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
@@ -50,12 +54,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Protobuf Update=".\protobuf\src\proto\FunctionRpc.proto" Access="Internal" />
-    <Protobuf Update=".\protobuf\src\proto\identity\ClaimsIdentityRpc.proto" Access="Internal" />
-    <Protobuf Update=".\protobuf\src\proto\shared\NullableTypes.proto" Access="Internal" />
-  </ItemGroup>
 </Project>

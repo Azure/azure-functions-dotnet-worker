@@ -1,8 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -23,11 +25,25 @@ namespace Microsoft.Azure.Functions.Worker
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
 
         /// <summary>
-        /// Gets and sets the flag for opting in to unwrapping user-code-thrown
+        /// Gets the optional worker capabilities.
+        /// </summary>
+        public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>()
+        {
+            // Enable these by default, although they are not strictly required and can be removed
+            { "HandlesWorkerTerminateMessage", bool.TrueString },
+            { "HandlesInvocationCancelMessage", bool.TrueString }
+        };
+
+        /// <summary>
+        /// Gets or sets the flag for opting in to unwrapping user-code-thrown
         /// exceptions when they are surfaced to the Host. 
         /// </summary>
-        public bool EnableUserCodeException { get; set; } = false;
-        
+        public bool EnableUserCodeException
+        {
+            get => GetBoolCapability(nameof(EnableUserCodeException));
+            set => SetBoolCapability(nameof(EnableUserCodeException), value);
+        }
+
         /// <summary>
         /// Gets or sets a value that determines if empty entries should be included in the function trigger message payload.
         /// For example, if a set of entries were sent to a messaging service such as Service Bus or Event Hub and your function
@@ -35,6 +51,35 @@ namespace Microsoft.Azure.Functions.Worker
         /// function code as trigger data when this setting value is <see langword="false"/>. When it is <see langword="true"/>,
         /// All entries will be sent to the function code as it is. Default value for this setting is <see langword="false"/>.
         /// </summary>
-        public bool IncludeEmptyEntriesInMessagePayload { get; set; }
+        public bool IncludeEmptyEntriesInMessagePayload
+        {
+            get => GetBoolCapability(nameof(IncludeEmptyEntriesInMessagePayload));
+            set => SetBoolCapability(nameof(IncludeEmptyEntriesInMessagePayload), value);
+        }
+
+        /// <summary>
+        /// Gets or sets a value that determines the schema to use when generating Activities. Currently internal as there is only
+        /// one schema, but stubbing this out for future use.
+        /// </summary>
+        internal OpenTelemetrySchemaVersion OpenTelemetrySchemaVersion { get; set; } = OpenTelemetrySchemaVersion.v1_17_0;
+
+        private bool GetBoolCapability(string name)
+        {
+            return Capabilities.TryGetValue(name, out string? value) && bool.TryParse(value, out bool b) && b;
+        }
+
+        // For false values, the host does not expect the capability to exist; there are some cases where this
+        // will be interpreted as "true" just because the key is there.
+        private void SetBoolCapability(string name, bool value)
+        {
+            if (value)
+            {
+                Capabilities[name] = bool.TrueString;
+            }
+            else
+            {
+                Capabilities.Remove(name);
+            }
+        }
     }
 }

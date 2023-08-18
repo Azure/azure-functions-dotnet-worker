@@ -10,9 +10,10 @@ namespace SampleApp
 {
     public static class SignalROutputBindingFunctions
     {
-        [Function("BroadcastToAll")]
+        [Function(nameof(BroadcastToAll))]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction BroadcastToAll([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction BroadcastToAll(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -22,9 +23,10 @@ namespace SampleApp
             };
         }
 
-        [Function("SendToConnection")]
+        [Function(nameof(SendToConnection))]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
-        public static SignalRMessageAction SendToConnection([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
+        public static SignalRMessageAction SendToConnection(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
             using var bodyReader = new StreamReader(req.Body);
             return new SignalRMessageAction("newMessage")
@@ -34,7 +36,7 @@ namespace SampleApp
             };
         }
 
-        [Function("SendToUser")]
+        [Function(nameof(SendToUser))]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToUser([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
@@ -46,7 +48,7 @@ namespace SampleApp
             };
         }
 
-        [Function("SendToGroup")]
+        [Function(nameof(SendToGroup))]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToGroup([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {
@@ -58,7 +60,7 @@ namespace SampleApp
             };
         }
 
-        [Function("SendToEndpoint")]
+        [Function(nameof(SendToEndpoint))]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRMessageAction SendToEndpoint(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req,
@@ -74,7 +76,7 @@ namespace SampleApp
             };
         }
 
-        [Function("RemoveFromGroup")]
+        [Function(nameof(RemoveFromGroup))]
         [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static SignalRGroupAction RemoveFromGroup([HttpTrigger(AuthorizationLevel.Anonymous, "post")] HttpRequestData req)
         {

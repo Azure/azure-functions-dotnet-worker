@@ -13,6 +13,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal static bool IsSystemLog => _isSystemLog.Value;
 
+        /// <summary>
+        /// Creates a delegate which can be invoked for logging a message. This message is treated as a "system" log
+        /// and forwarded to the Functions host in addition to other loggers.
+        /// </summary>
         public static Action<ILogger, Exception?> Define(LogLevel logLevel, EventId eventId, string formatString)
         {
             var log = LoggerMessage.Define(logLevel, eventId, formatString);
@@ -30,7 +34,10 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             };
         }
-
+        /// <summary>
+        /// Creates a delegate which can be invoked for logging a message. This message is treated as a "system" log
+        /// and forwarded to the Functions host in addition to other loggers.
+        /// </summary>
         public static Action<ILogger, T1, Exception?> Define<T1>(LogLevel logLevel, EventId eventId, string formatString)
         {
             var log = LoggerMessage.Define<T1>(logLevel, eventId, formatString);
@@ -49,6 +56,10 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
+        /// <summary>
+        /// Creates a delegate which can be invoked for logging a message. This message is treated as a "system" log
+        /// and forwarded to the Functions host in addition to other loggers.
+        /// </summary>
         public static Action<ILogger, T1, T2, Exception?> Define<T1, T2>(LogLevel logLevel, EventId eventId, string formatString)
         {
             var log = LoggerMessage.Define<T1, T2>(logLevel, eventId, formatString);

@@ -3,9 +3,8 @@
 
 using System.Collections.Immutable;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
-namespace Microsoft.Azure.Functions.Core
+namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
 {
     /// <summary>
     /// Returns function metadata information from an app.

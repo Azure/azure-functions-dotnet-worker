@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ImplicitUsings>true</ImplicitUsings>
+    <LangVersion>preview</LangVersion>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Rpc</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
+    <PackageReference Include="Moq" Version="4.18.2" />
+    <PackageReference Include="xunit" Version="2.4.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Rpc\src\Worker.Extensions.Rpc.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -16,7 +16,7 @@ namespace SampleApp
     //<docsnippet_multiple_outputs>
     public static class MultiOutput
     {
-        [Function("MultiOutput")]
+        [Function(nameof(MultiOutput))]
         public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req,
             FunctionContext context)
         {

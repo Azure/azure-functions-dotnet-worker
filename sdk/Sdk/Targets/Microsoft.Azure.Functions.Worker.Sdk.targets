@@ -17,6 +17,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
         <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
         <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
+        <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v8.0'">net8-isolated</_ToolingSuffix>
         <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
         <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
         <_FunctionsTaskFramework Condition=" '$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
@@ -33,7 +34,15 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <_FunctionsExtensionsFullPublish Condition="$(_FunctionsExtensionsFullPublish) == ''">!$(NoBuild)</_FunctionsExtensionsFullPublish>
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
       
-        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == ''">false</FunctionsEnableWorkerIndexing>
+        <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
+        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnablePlaceholder)">true</FunctionsEnableWorkerIndexing>
+        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' And !$(FunctionsEnablePlaceholder)">false</FunctionsEnableWorkerIndexing>
+        <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
+        <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == ''">false</FunctionsEnableExecutorSourceGen>
+        <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
+        <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
+        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == ''">false</FunctionsAutoRegisterGeneratedMetadataProvider>
+        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"
@@ -74,7 +83,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
 
+        <!-- Do not copy _FunctionsMetadataLoaderExtensionFile when in placeholder mode, as we don't want the FunctionMetadataLoader entry in extensions.json-->
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
           OverwriteReadOnlyFiles="true" />
@@ -103,8 +114,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
           TargetFrameworkVersion="$(TargetFrameworkVersion)"
           OutputPath="$(TargetDir)"/>
-
+        <!-- Do not copy _FunctionsMetadataLoaderExtensionFile when in placeholder mode, as we don't want the FunctionMetadataLoader entry in extensions.json--> 
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\buildout"
           OverwriteReadOnlyFiles="true" />
@@ -291,6 +303,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           OutputPath="$(PublishDir)"/>
 
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
           OverwriteReadOnlyFiles="true" />
@@ -321,6 +334,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
           OutputPath="$(PublishDir)"/>
 
         <Copy
+          Condition="!$(FunctionsEnablePlaceholder)"
           SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
           DestinationFolder="$(ExtensionsCsProjFilePath)\publishout"
           OverwriteReadOnlyFiles="true" />

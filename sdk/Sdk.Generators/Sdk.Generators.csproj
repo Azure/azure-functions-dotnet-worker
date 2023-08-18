@@ -7,24 +7,32 @@
     <Description>This package provides source generation for the Azure Functions .NET Worker.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Sdk.Generators</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Sdk.Generators</RootNamespace>
-    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <IncludeBuildOutput>false</IncludeBuildOutput>
-    <VersionSuffix>-preview2</VersionSuffix>
+    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+    <MinorProductVersion>1</MinorProductVersion>
+    <VersionSuffix></VersionSuffix>
+    <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0"  PrivateAssets="all" GeneratePathProperty="true" />
+    <PackageReference Include="System.Text.Encodings.Web" Version="5.0.1"  PrivateAssets="all" GeneratePathProperty="true" />
     <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="3.11.0" PrivateAssets="all" />
+    <PackageReference Include="System.Text.Json" Version="5.0.2" PrivateAssets="all" GeneratePathProperty="true" />
   </ItemGroup>
-
+    
   <ItemGroup>
     <!-- Package the generator in the analyzer directory of the nuget package -->
     <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  
+    <None Include="$(PKGSystem_Text_Json)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGMicrosoft_Bcl_AsyncInterfaces)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+    <None Include="$(PKGSystem_Text_Encodings_Web)\lib\netstandard2.0\*.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
   </ItemGroup>
-
 </Project>

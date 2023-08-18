@@ -28,12 +28,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         // keep
-        public async static Task CreateDocument(string docId)
+        public async static Task CreateDocument(string docId, string docText = "test")
         {
-            Document documentToTest = new Document()
-            {
-                Id = docId
-            };
+            Document documentToTest = new Document() { Id = docId };
+            documentToTest.SetPropertyValue("Text", docText);
 
             _ = await _docDbClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName), documentToTest);
         }
@@ -63,16 +61,16 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public async static Task DeleteTestDocuments(string docId)
         {
             var inputDocUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName, docId);
-            await DeleteDocument(inputDocUri);
+            await DeleteDocument(inputDocUri, docId);
             var outputDocUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName, docId);
-            await DeleteDocument(outputDocUri);
+            await DeleteDocument(outputDocUri, docId);
         }
 
-        private async static Task DeleteDocument(Uri docUri)
+        private async static Task DeleteDocument(Uri docUri, string docId)
         {
             try
             {
-                await _docDbClient.DeleteDocumentAsync(docUri);
+                await _docDbClient.DeleteDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(docId) });
             }
             catch (Exception)
             {

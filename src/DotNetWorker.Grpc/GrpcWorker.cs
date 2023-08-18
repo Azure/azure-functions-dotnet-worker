@@ -2,131 +2,69 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using Azure.Core.Serialization;
-using Grpc.Core;
-using Microsoft.Azure.Functions.Core;
-using Microsoft.Azure.Functions.Worker.Context.Features;
+using Google.Protobuf.WellKnownTypes;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using static Microsoft.Azure.Functions.Worker.Grpc.Messages.FunctionRpc;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class GrpcWorker : IWorker
+    internal class GrpcWorker : IWorker, IMessageProcessor
     {
-        private readonly ChannelReader<StreamingMessage> _outputReader;
-        private readonly ChannelWriter<StreamingMessage> _outputWriter;
-
         private readonly IFunctionsApplication _application;
-        private readonly FunctionRpcClient _rpcClient;
-        private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
-        private readonly IOutputBindingsInfoProvider _outputBindingsInfoProvider;
-        private readonly IInputConversionFeatureProvider _inputConversionFeatureProvider;
         private readonly IMethodInfoLocator _methodInfoLocator;
-        private readonly GrpcWorkerStartupOptions _startupOptions;
         private readonly WorkerOptions _workerOptions;
-        private readonly ObjectSerializer _serializer;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
+        private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
         private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private IWorkerClient? _workerClient;
 
-        public GrpcWorker(IFunctionsApplication application, FunctionRpcClient rpcClient, GrpcHostChannel outputChannel, IInvocationFeaturesFactory invocationFeaturesFactory,
-            IOutputBindingsInfoProvider outputBindingsInfoProvider, IMethodInfoLocator methodInfoLocator,
-            IOptions<GrpcWorkerStartupOptions> startupOptions, IOptions<WorkerOptions> workerOptions,
-            IInputConversionFeatureProvider inputConversionFeatureProvider,
-            IFunctionMetadataProvider functionMetadataProvider,
-            IHostApplicationLifetime hostApplicationLifetime,
-            ILogger<GrpcWorker> logger)
+        public GrpcWorker(IFunctionsApplication application,
+                          IWorkerClientFactory workerClientFactory,
+                          IMethodInfoLocator methodInfoLocator,
+                          IOptions<WorkerOptions> workerOptions,
+                          IFunctionMetadataProvider functionMetadataProvider,
+                          IHostApplicationLifetime hostApplicationLifetime,
+                          IInvocationHandler invocationHandler)
         {
-            if (outputChannel == null)
-            {
-                throw new ArgumentNullException(nameof(outputChannel));
-            }
-
-            _outputReader = outputChannel.Channel.Reader;
-            _outputWriter = outputChannel.Channel.Writer;
-
             _hostApplicationLifetime = hostApplicationLifetime ?? throw new ArgumentNullException(nameof(hostApplicationLifetime));
+            _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
-            _rpcClient = rpcClient ?? throw new ArgumentNullException(nameof(rpcClient));
-            _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
-            _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-            _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions));
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
-            _serializer = workerOptions.Value.Serializer ?? throw new InvalidOperationException(nameof(workerOptions.Value.Serializer));
-            _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
 
-            // Handlers (TODO: dependency inject handlers instead of creating here)
-            _invocationHandler = new InvocationHandler(_application, _invocationFeaturesFactory, _serializer, _outputBindingsInfoProvider, _inputConversionFeatureProvider, logger);
+            _invocationHandler = invocationHandler;
         }
 
-        public async Task StartAsync(CancellationToken token)
+        public Task StartAsync(CancellationToken token)
         {
-            var eventStream = _rpcClient.EventStream(cancellationToken: token);
-
-            await SendStartStreamMessageAsync(eventStream.RequestStream);
-
-            _ = StartWriterAsync(eventStream.RequestStream);
-            _ = StartReaderAsync(eventStream.ResponseStream);
+            _workerClient = _workerClientFactory.CreateClient(this);
+            return _workerClient.StartAsync(token);
         }
 
-        public Task StopAsync(CancellationToken token)
-        {
-            return Task.CompletedTask;
-        }
+        public Task StopAsync(CancellationToken token) => Task.CompletedTask;
 
-        private async Task SendStartStreamMessageAsync(IClientStreamWriter<StreamingMessage> requestStream)
-        {
-            StartStream str = new StartStream()
-            {
-                WorkerId = _startupOptions.WorkerId
-            };
-
-            StreamingMessage startStream = new StreamingMessage()
-            {
-                StartStream = str
-            };
-
-            await requestStream.WriteAsync(startStream);
-        }
-
-        private async Task StartWriterAsync(IClientStreamWriter<StreamingMessage> requestStream)
-        {
-            await foreach (StreamingMessage rpcWriteMsg in _outputReader.ReadAllAsync())
-            {
-                await requestStream.WriteAsync(rpcWriteMsg);
-            }
-        }
-
-        private async Task StartReaderAsync(IAsyncStreamReader<StreamingMessage> responseStream)
-        {
-            while (await responseStream.MoveNext())
-            {
-                await ProcessRequestAsync(responseStream.Current);
-            }
-        }
-
-        private Task ProcessRequestAsync(StreamingMessage request)
+        Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
             // Dispatch and return.
-            Task.Run(() => ProcessRequestCoreAsync(request));
+            Task.Run(() => ProcessRequestCoreAsync(message));
+
             return Task.CompletedTask;
         }
 
@@ -164,11 +102,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.FunctionEnvironmentReloadRequest:
-                    // No-op for now, but return a response.
-                    responseMessage.FunctionEnvironmentReloadResponse = new FunctionEnvironmentReloadResponse
-                    {
-                        Result = new StatusResult { Status = StatusResult.Types.Status.Success }
-                    };
+                    responseMessage.FunctionEnvironmentReloadResponse = EnvironmentReloadRequestHandler(_workerOptions);
                     break;
 
                 case MsgType.InvocationCancel:
@@ -180,12 +114,12 @@ namespace Microsoft.Azure.Functions.Worker
                     return;
             }
 
-            await _outputWriter.WriteAsync(responseMessage);
+            await _workerClient!.SendMessageAsync(responseMessage);
         }
 
         internal Task<InvocationResponse> InvocationRequestHandlerAsync(InvocationRequest request)
         {
-            return _invocationHandler.InvokeAsync(request, _workerOptions);
+            return _invocationHandler.InvokeAsync(request);
         }
 
         internal void InvocationCancelRequestHandler(InvocationCancel request)
@@ -199,34 +133,10 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success },
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
-                WorkerMetadata = new WorkerMetadata
-                {
-                    RuntimeName = RuntimeInformation.FrameworkDescription,
-                    RuntimeVersion = Environment.Version.ToString(),
-                    WorkerVersion = WorkerInformation.Instance.WorkerVersion,
-                    WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
-                }
+                WorkerMetadata = GetWorkerMetadata()
             };
 
-            response.WorkerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
-
-            response.Capabilities.Add("RpcHttpBodyOnly", bool.TrueString);
-            response.Capabilities.Add("RawHttpBodyBytes", bool.TrueString);
-            response.Capabilities.Add("RpcHttpTriggerMetadataRemoved", bool.TrueString);
-            response.Capabilities.Add("UseNullableValueDictionaryForHttp", bool.TrueString);
-            response.Capabilities.Add("TypedDataCollection", bool.TrueString);
-            response.Capabilities.Add("WorkerStatus", bool.TrueString);
-            response.Capabilities.Add("HandlesWorkerTerminateMessage", bool.TrueString);
-            response.Capabilities.Add("HandlesInvocationCancelMessage", bool.TrueString);
-
-            if (workerOptions.EnableUserCodeException)
-            {
-                response.Capabilities.Add("EnableUserCodeException", bool.TrueString);
-            }
-            if (workerOptions.IncludeEmptyEntriesInMessagePayload)
-            {
-                response.Capabilities.Add("IncludeEmptyEntriesInMessagePayload", bool.TrueString);
-            }
+            response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
 
             return response;
         }
@@ -261,7 +171,17 @@ namespace Microsoft.Azure.Functions.Worker
                         _ => BuildRpc(func),
                     };
 
-                    // add BindingInfo
+                    if (func.Retry != null)
+                    {
+                        rpcFuncMetadata.RetryOptions = func.Retry switch
+                        {
+                            RpcRetryOptions retry => retry,
+                            _ => BuildRpcRetry(func.Retry)
+                        };
+                    }
+
+                    // add BindingInfo here instead of in the providers  
+                    // because we need access to gRPC types in proto-file and source-gen won't have access
                     rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
 
                     response.FunctionMetadataResults.Add(rpcFuncMetadata);
@@ -302,6 +222,32 @@ namespace Microsoft.Azure.Functions.Worker
             return rpcFuncMetadata;
         }
 
+        private static RpcRetryOptions BuildRpcRetry(IRetryOptions retry)
+        {
+            var rpcRetryOptions = new RpcRetryOptions
+            {
+                MaxRetryCount = retry.MaxRetryCount
+            };
+
+            if (retry.Strategy is RetryStrategy.FixedDelay)
+            {
+                rpcRetryOptions.RetryStrategy = RpcRetryOptions.Types.RetryStrategy.FixedDelay;
+                rpcRetryOptions.DelayInterval = Duration.FromTimeSpan((TimeSpan) retry.DelayInterval!);
+            }
+            else if (retry.Strategy is RetryStrategy.ExponentialBackoff)
+            {
+                rpcRetryOptions.RetryStrategy = RpcRetryOptions.Types.RetryStrategy.ExponentialBackoff;
+                rpcRetryOptions.MaximumInterval = Duration.FromTimeSpan((TimeSpan) retry.MaximumInterval!);
+                rpcRetryOptions.MinimumInterval = Duration.FromTimeSpan((TimeSpan)retry.MinimumInterval!);
+            }
+            else
+            {
+                throw new InvalidOperationException($"Unknown retry strategy: ${nameof(retry.Strategy)}.");
+            }
+
+            return rpcRetryOptions;
+        }
+
         internal void WorkerTerminateRequestHandler(WorkerTerminate request)
         {
             _hostApplicationLifetime.StopApplication();
@@ -333,6 +279,55 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return response;
+        }
+
+        internal static FunctionEnvironmentReloadResponse EnvironmentReloadRequestHandler(WorkerOptions workerOptions)
+        {
+            var envReloadResponse = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult { Status = StatusResult.Types.Status.Success },
+                WorkerMetadata = GetWorkerMetadata()
+            };
+            envReloadResponse.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+
+            return envReloadResponse;
+        }
+
+        private static WorkerMetadata GetWorkerMetadata()
+        {
+            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
+
+            var workerMetadata = new WorkerMetadata
+            {
+                RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
+                RuntimeVersion = Environment.Version.ToString(),
+                WorkerVersion = WorkerInformation.Instance.WorkerVersion,
+                WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()
+            };
+            workerMetadata.CustomProperties.Add("Worker.Grpc.Version", typeof(GrpcWorker).Assembly.GetName().Version?.ToString());
+
+            return workerMetadata;
+        }
+
+        private static IDictionary<string, string> GetWorkerCapabilities(WorkerOptions workerOptions)
+        {
+            var capabilities = new Dictionary<string, string>();
+
+            // Add additional capabilities defined by WorkerOptions
+            foreach ((string key, string value) in workerOptions.Capabilities)
+            {
+                capabilities[key] = value;
+            }
+
+            // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
+            capabilities["RpcHttpBodyOnly"] = bool.TrueString;
+            capabilities["RawHttpBodyBytes"] = bool.TrueString;
+            capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
+            capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
+            capabilities["TypedDataCollection"] = bool.TrueString;
+            capabilities["WorkerStatus"] = bool.TrueString;
+
+            return capabilities;
         }
     }
 }

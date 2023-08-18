@@ -6,9 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -100,6 +102,32 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public override RetryContext RetryContext => Features.Get<IExecutionRetryFeature>()?.Context;
 
         public override CancellationToken CancellationToken => _cancellationToken;
+
+        public static TestFunctionContext Create(FunctionDefinition functionDefinition = null,
+            FunctionInvocation functionInvocation = null, ObjectSerializer serializer = null)
+        {
+            functionDefinition ??= new TestFunctionDefinition();
+            functionInvocation ??= new TestFunctionInvocation();
+
+            var context = new TestFunctionContext(functionDefinition, functionInvocation);
+
+            var services = new ServiceCollection();
+            services.AddOptions();
+            services.AddFunctionsWorkerDefaults();
+
+            if (serializer != null)
+            {
+                services.Configure<WorkerOptions>(c =>
+                {
+                    c.Serializer = serializer;
+                });
+            }
+
+            context.InstanceServices = services.BuildServiceProvider()
+                .CreateScope().ServiceProvider;
+
+            return context;
+        }
 
         public void Dispose()
         {

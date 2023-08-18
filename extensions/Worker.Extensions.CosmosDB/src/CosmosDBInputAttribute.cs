@@ -1,17 +1,45 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Generic;
+using System.Text.Json.Serialization;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [InputConverter(typeof(CosmosDBConverter))]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public sealed class CosmosDBInputAttribute : InputBindingAttribute
     {
         /// <summary>
         /// Constructs a new instance.
+        /// Use this constructor when binding to a CosmosClient.
+        /// </summary>
+        public CosmosDBInputAttribute()
+        {
+            DatabaseName = string.Empty;
+            ContainerName = string.Empty;
+        }
+
+        /// <summary>
+        /// Constructs a new instance with the specified database name.
+        /// Use this constructor when binding to a Database.
+        /// </summary>
+        /// <param name="databaseName">The CosmosDB database name.</param>
+        public CosmosDBInputAttribute(string databaseName)
+        {
+            DatabaseName = databaseName;
+            ContainerName = string.Empty;
+        }
+
+        /// <summary>
+        /// Constructs a new instance with the specified database and container names.
+        /// Use this constructor when binding to a Container or a POCO.
         /// </summary>
         /// <param name="databaseName">The CosmosDB database name.</param>
         /// <param name="containerName">The CosmosDB container name.</param>
+        [JsonConstructor]
         public CosmosDBInputAttribute(string databaseName, string containerName)
         {
             DatabaseName = databaseName;
@@ -44,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>
         /// Optional.
-        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key 
+        /// When specified on an output binding and <see cref="CreateIfNotExists"/> is true, defines the partition key
         /// path for the created container.
         /// When specified on an input binding, specifies the partition key value for the lookup.
         /// May include binding parameters.
@@ -67,5 +95,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// PreferredLocations = "East US,South Central US,North Europe"
         /// </example>
         public string? PreferredLocations { get; set; }
+
+        /// <summary>
+        /// Optional.
+        /// Defines the parameters to be used with the SqlQuery
+        /// </summary>
+        public IDictionary<string, object>? SqlQueryParameters { get; set; }
     }
 }

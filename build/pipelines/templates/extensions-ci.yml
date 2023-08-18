@@ -32,15 +32,7 @@ jobs:
   #     projects: |
   #       test/**/*Tests.csproj
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Build packages'
-    inputs:
-      command: 'custom'
-      custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
-
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -72,7 +64,21 @@ jobs:
           }
         ]
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: DeleteFiles@1
+    displayName: 'Delete CodeSignSummary files'
+    condition: eq(variables.isReleaseBuild, true)
+    inputs:
+      contents: '**\CodeSignSummary-*.md'
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Build packages'
+    inputs:
+      command: 'custom'
+      custom: 'pack'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -109,6 +115,6 @@ jobs:
     inputs:
       BuildDropPath: '$(System.DefaultWorkingDirectory)/packages'
       Verbosity: 'Information'
-      
+
   - publish: $(System.DefaultWorkingDirectory)/packages
     artifact: drop

@@ -11,20 +11,18 @@ namespace SampleApp
     public static class HttpFunction
     {
         //<docsnippet_http_trigger>
-        [Function("HttpFunction")]
+        [Function(nameof(HttpFunction))]
         public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext executionContext)
         {
             //<docsnippet_logging>
-            var logger = executionContext.GetLogger("HttpFunction");
+            var logger = executionContext.GetLogger(nameof(HttpFunction));
             logger.LogInformation("message logged");
             //</docsnippet_logging>
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            response.Headers.Add("Date", "Mon, 18 Jul 2016 16:06:00 GMT");
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-
-            response.WriteString("Welcome to .NET 5!!");
+            response.WriteString("Welcome to .NET isolated worker !!");
 
             return response;
         }

@@ -8,22 +8,33 @@ using Microsoft.Extensions.Logging;
 
 namespace SampleApp
 {
-    public static class CosmosDBFunction
+    public class CosmosDBFunction
     {
-        [Function("CosmosDBFunction")]
-        [CosmosDBOutput("%CosmosDb%", "%CosmosCollOut%", ConnectionStringSetting = "CosmosConnection", CreateIfNotExists = true)]
-        public static object Run(
-            [CosmosDBTrigger("%CosmosDb%", "%CosmosCollIn%", ConnectionStringSetting = "CosmosConnection",
-                LeaseCollectionName = "leases", CreateLeaseCollectionIfNotExists = true)] IReadOnlyList<MyDocument> input,
+        private readonly ILogger<CosmosDBFunction> _logger;
+
+        public CosmosDBFunction(ILogger<CosmosDBFunction> logger)
+        {
+            _logger = logger;
+        }
+
+        //<docsnippet_exponential_backoff_retry_example>
+        [Function(nameof(CosmosDBFunction))]
+        [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
+        [CosmosDBOutput("%CosmosDb%", "%CosmosContainerOut%", Connection = "CosmosDBConnection", CreateIfNotExists = true)]
+        public object Run(
+            [CosmosDBTrigger(
+                "%CosmosDb%",
+                "%CosmosContainerIn%",
+                Connection = "CosmosDBConnection",
+                LeaseContainerName = "leases",
+                CreateLeaseContainerIfNotExists = true)] IReadOnlyList<MyDocument> input,
             FunctionContext context)
         {
-            var logger = context.GetLogger("CosmosDBFunction");
-
             if (input != null && input.Any())
             {
                 foreach (var doc in input)
                 {
-                    logger.LogInformation($"Doc Id: {doc.Id}");
+                    _logger.LogInformation("Doc Id: {id}", doc.Id);
                 }
 
                 // Cosmos Output
@@ -32,6 +43,7 @@ namespace SampleApp
 
             return null;
         }
+        //</docsnippet_exponential_backoff_retry_example>
     }
 
     public class MyDocument

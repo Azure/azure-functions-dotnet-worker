@@ -3,17 +3,27 @@ trigger:
     include:
     - main
     - release/*
+    - feature/*
   paths:
     include:
     - src/
+    - sdk/
 pr:
   branches:
     include:
     - main
     - release/*
+    - feature/*
   paths:
     include:
     - src/
+    - test/DotNetWorkerTests
+    - test/Worker.Extensions.Tests
+    - test/E2ETests
+    - test/TestUtility
+    - sdk/
+    - samples/FunctionApp
+    - tools/
 
 jobs:
 - job: "Build_And_Test_Windows"
@@ -23,9 +33,9 @@ jobs:
       - ImageOverride -equals MMS2022TLS
 
   variables:
-    ${{ if not(contains(variables['Build.SourceBranch'], '/release/' )) }}:
+    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
       buildNumberTemp: $(Build.BuildNumber)
-    ${{ if contains(variables['Build.SourceBranch'], '/release/' ) }}:
+    ${{ if or( contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags') ) }}:
       isReleaseBuildTemp: true
     buildNumber: $[variables.buildNumberTemp]
     isReleaseBuild: $[variables.isReleaseBuildTemp]
@@ -35,9 +45,10 @@ jobs:
 
   steps:
   - pwsh: . "tools/start-emulators.ps1" -NoWait
-    displayName: "Start emulators (-NoWait)"
+    displayName: "Start emulators (NoWait)"
 
   - template: ../build/install-dotnet.yml
+
   - task: DotNetCoreCLI@2
     displayName: 'Build projects'
     inputs:
@@ -52,7 +63,8 @@ jobs:
         throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
       }
       ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
-                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools
+                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
+                            -SkipBuildOnPack
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2
@@ -63,7 +75,7 @@ jobs:
       projects: |
         test/**/*Tests.csproj
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'Sdk: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -95,7 +107,7 @@ jobs:
           }
         ]
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'Sdk: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -127,7 +139,7 @@ jobs:
           }
         ]
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'DotnetWorker: ESRP CodeSigning - Authenticode'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -170,11 +182,11 @@ jobs:
     inputs:
       command: 'custom'
       custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      arguments: '--no-build -c Release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: |
         **\DotNetWorker.Core.slnf
 
-  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@1
+  - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'
     condition: eq(variables.isReleaseBuild, true)
     inputs:
@@ -238,7 +250,8 @@ jobs:
         }
         ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
                               -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                              -SkipCosmosDBEmulator
+                              -SkipCosmosDBEmulator `
+                              -SkipBuildOnPack
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)

@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .AddScoped<IBindingCache<ConversionResult>, DefaultBindingCache<ConversionResult>>()
                 .AddSingleton<IInputConversionFeature, DefaultInputConversionFeature>()
                 .Configure<WorkerOptions>(o => configure?.Invoke(o))
-                .AddSingleton<DefaultModelBindingFeature>()
+                .AddSingleton<DefaultFunctionInputBindingFeature>()
                 .AddDefaultInputConvertersToWorkerOptions()
                 .BuildServiceProvider();
         }
@@ -71,6 +71,20 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                     MaxRetryCount = 3,
                     RetryCount = 2
                 }
+            };
+        }
+
+        public static InvocationRequest CreateInvocationRequestWithNullRetryContext(string invocationId = "")
+        {
+            return new InvocationRequest
+            {
+                InvocationId = invocationId,
+                TraceContext = new RpcTraceContext
+                {
+                    TraceParent = Guid.NewGuid().ToString(),
+                    TraceState = Guid.NewGuid().ToString()
+                },
+                RetryContext = null
             };
         }
     }

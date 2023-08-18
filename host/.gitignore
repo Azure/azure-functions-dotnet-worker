@@ -1,0 +1,9 @@
+.vs/
+build/
+out/
+.idea/
+cmake-build-*/
+/src/.idea/
+
+#Ignore the proto files we temporarily copy for build
+/src/Protos/**/*.proto

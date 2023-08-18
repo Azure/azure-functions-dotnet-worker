@@ -1,10 +1,15 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using System.Collections.Generic;
+using Azure.Messaging.ServiceBus;
+using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [InputConverter(typeof(ServiceBusReceivedMessageConverter))]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public sealed class ServiceBusTriggerAttribute : TriggerBindingAttribute, ISupportCardinality
     {
         private bool _isBatched = false;
@@ -73,6 +78,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
         /// </summary>
+        [DefaultValue(false)]
         public bool IsBatched
         {
             get => _isBatched;

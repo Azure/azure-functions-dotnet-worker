@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>1</MinorProductVersion>
+    <MinorProductVersion>2</MinorProductVersion>
     <PatchProductVersion>1</PatchProductVersion>
     <OutputType>Library</OutputType>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
@@ -19,7 +19,7 @@
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.2">
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -29,7 +29,7 @@
   <ItemGroup>
     <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
   </ItemGroup>
-  
+
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.Azure.Functions.Worker.Sdk.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />

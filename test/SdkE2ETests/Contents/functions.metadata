@@ -10,13 +10,14 @@
     "bindings": [
       {
         "name": "req",
-        "type": "httpTrigger",
         "direction": "In",
+        "type": "httpTrigger",
         "authLevel": "Anonymous",
         "methods": [
           "get",
           "post"
-        ]
+        ],
+        "properties": {}
       },
       {
         "name": "$return",
@@ -36,41 +37,39 @@
     "bindings": [
       {
         "name": "req",
-        "type": "httpTrigger",
         "direction": "In",
+        "type": "httpTrigger",
         "authLevel": "Anonymous",
         "methods": [
           "get",
           "post"
-        ]
+        ],
+        "properties": {}
       },
       {
         "name": "myBlob",
-        "type": "blob",
         "direction": "In",
-        "dataType": "String",
+        "type": "blob",
         "blobPath": "test-samples/sample1.txt",
-        "connection": "AzureWebJobsStorage"
+        "connection": "AzureWebJobsStorage",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
       },
       {
         "name": "Book",
-        "type": "queue",
         "direction": "Out",
+        "type": "queue",
         "queueName": "functionstesting2",
-        "connection": "AzureWebJobsStorage"
+        "connection": "AzureWebJobsStorage",
+        "properties": {}
       },
       {
         "name": "HttpResponse",
         "type": "http",
         "direction": "Out"
       }
-    ],
-    "retry": {
-      "strategy": "exponentialBackoff",
-      "maxRetryCount": 5,
-      "minimumInterval": "00:00:04",
-      "maximumInterval": "00:15:00"
-    }
+    ]
   },
   {
     "name": "HttpTriggerWithCancellation",
@@ -83,13 +82,14 @@
     "bindings": [
       {
         "name": "req",
-        "type": "httpTrigger",
         "direction": "In",
+        "type": "httpTrigger",
         "authLevel": "Anonymous",
         "methods": [
           "get",
           "post"
-        ]
+        ],
+        "properties": {}
       },
       {
         "name": "$return",
@@ -109,13 +109,14 @@
     "bindings": [
       {
         "name": "req",
-        "type": "httpTrigger",
         "direction": "In",
+        "type": "httpTrigger",
         "authLevel": "Anonymous",
         "methods": [
           "get",
           "post"
-        ]
+        ],
+        "properties": {}
       },
       {
         "name": "$return",
@@ -135,21 +136,23 @@
     "bindings": [
       {
         "name": "req",
-        "type": "httpTrigger",
         "direction": "In",
+        "type": "httpTrigger",
         "authLevel": "Anonymous",
         "methods": [
           "get",
           "post"
-        ]
+        ],
+        "properties": {}
       },
       {
         "name": "Name",
-        "type": "queue",
         "direction": "Out",
+        "type": "queue",
         "dataType": "String",
         "queueName": "functionstesting2",
-        "connection": "AzureWebJobsStorage"
+        "connection": "AzureWebJobsStorage",
+        "properties": {}
       },
       {
         "name": "HttpResponse",
@@ -169,24 +172,22 @@
     "bindings": [
       {
         "name": "myQueueItem",
-        "type": "queueTrigger",
         "direction": "In",
+        "type": "queueTrigger",
         "queueName": "functionstesting2",
-        "connection": "AzureWebJobsStorage"
+        "connection": "AzureWebJobsStorage",
+        "properties": {}
       },
       {
         "name": "myBlob",
-        "type": "blob",
         "direction": "In",
-        "dataType": "String",
+        "type": "blob",
         "blobPath": "test-samples/sample1.txt",
-        "connection": "AzureWebJobsStorage"
+        "connection": "AzureWebJobsStorage",
+        "properties": {
+          "supportsDeferredBinding": "True"
+        }
       }
-    ],
-    "retry": {
-      "strategy": "fixedDelay",
-      "maxRetryCount": 5,
-      "delayInterval": "00:00:10"
-    }
+    ]
   }
 ]

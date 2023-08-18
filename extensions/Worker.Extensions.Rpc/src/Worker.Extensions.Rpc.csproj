@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Rpc</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Rpc</RootNamespace>
+    <Description>Contains types to facilitate RPC communication between a worker extension and the functions host.</Description>
+    <VersionPrefix>1.0.0</VersionPrefix>
+    <VersionSuffix>-preview1</VersionSuffix>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+    <PackageReference Include="Grpc.Core" Version="2.46.6" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
+    <PackageReference Include="Grpc.Net.Client" Version="2.55.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.55.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="../README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+</Project>

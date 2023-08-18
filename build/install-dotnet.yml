@@ -1,12 +1,14 @@
 steps:
-- pwsh: |
-    Invoke-WebRequest 'https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.ps1' -OutFile 'dotnet-install.ps1'
-    ./dotnet-install.ps1 -InstallDir "$env:ProgramFiles/dotnet" -Version "6.0.100" -Channel 'release'
-  displayName: 'Install the .Net version used by the Core Tools for Windows'
-  condition: and(eq( variables['Agent.OS'], 'Windows_NT' ), eq(variables['FUNCTIONSRUNTIMEVERSION'], '4'))
+# Some tests rely on 6.0.412 existing
+- task: UseDotNet@2
+  displayName: 'Install .NET6 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: "6.0.412"
 
-- bash: |
-    curl -sSL https://raw.githubusercontent.com/dotnet/cli/master/scripts/obtain/dotnet-install.sh | bash /dev/stdin -v '6.0.100' -c 'release' --install-dir /usr/share/dotnet
-  displayName: 'Install the .Net version used by the Core Tools for Linux'
-  condition: and(eq( variables['Agent.OS'], 'Linux' ), eq(variables['FUNCTIONSRUNTIMEVERSION'], '4'))
-  
+# The SDK we use to build
+- task: UseDotNet@2
+  displayName: 'Install current .NET SDK'
+  inputs:
+    packageType: 'sdk'
+    useGlobalJson: true

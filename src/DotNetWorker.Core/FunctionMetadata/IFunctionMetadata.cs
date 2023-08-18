@@ -1,4 +1,7 @@
-﻿using System.Collections.Generic;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
 {
@@ -46,5 +49,10 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         /// The function app assembly (ex. FunctionApp.dll).
         /// </summary>
         string? ScriptFile { get; }
+
+        /// <summary>
+        /// The optional function execution retry strategy to use on invocation failures.
+        /// </summary>
+        IRetryOptions? Retry { get; }
     }
 }

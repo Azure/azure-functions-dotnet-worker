@@ -20,6 +20,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <ProjectCapability Include="AzureFunctions"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <CompilerVisibleProperty Include="FunctionsEnableMetadataSourceGen" />
+    <CompilerVisibleProperty Include="FunctionsEnableExecutorSourceGen" />
+    <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedFunctionsExecutor" />
+    <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedMetadataProvider" />
+  </ItemGroup>
 <!--
   ***********************************************************************************************
   Import the Publish Props

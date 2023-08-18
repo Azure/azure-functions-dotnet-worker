@@ -4,15 +4,12 @@
 using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
-[assembly: WorkerExtensionStartup(typeof(StorageExtensionStartup))]
+[assembly: WorkerExtensionStartup(typeof(BlobStorageExtensionStartup))]
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public class StorageExtensionStartup : WorkerExtensionStartup
+    public class BlobStorageExtensionStartup : WorkerExtensionStartup
     {
         public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
@@ -21,9 +18,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
-            applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-            applicationBuilder.Services.AddOptions<BlobStorageBindingOptions>();
-            applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
+            applicationBuilder.ConfigureBlobStorage();
         }
     }
 }

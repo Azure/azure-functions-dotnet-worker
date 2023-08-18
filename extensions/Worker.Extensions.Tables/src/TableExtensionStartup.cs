@@ -4,10 +4,6 @@
 using System;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
-using Microsoft.Azure.Functions.Worker.Extensions.Tables.Config;
-using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 [assembly: WorkerExtensionStartup(typeof(TableExtensionStartup))]
 
@@ -28,9 +24,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
-            applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-            applicationBuilder.Services.AddOptions<TablesBindingOptions>();
-            applicationBuilder.Services.AddSingleton<IConfigureOptions<TablesBindingOptions>, TablesBindingOptionsSetup>();
+            applicationBuilder.ConfigureTables();
         }
     }
 }

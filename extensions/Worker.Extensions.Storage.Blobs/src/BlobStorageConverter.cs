@@ -32,23 +32,22 @@ namespace Microsoft.Azure.Functions.Worker
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;
-        private readonly IOptionsMonitor<BlobStorageBindingOptions> _blobOptions;
+        // private readonly IOptionsMonitor<BlobStorageBindingOptions> _blobOptions;
         private readonly ILogger<BlobStorageConverter> _logger;
         private readonly IAzureClientFactory<BlobServiceClient> _blobServiceClientFactory;
         private readonly Regex BlobIsFileRegex = new Regex(@"\.[^.\/]+$");
 
         public BlobStorageConverter(
             IOptions<WorkerOptions> workerOptions,
-            IOptionsMonitor<BlobStorageBindingOptions> blobOptions,
             ILogger<BlobStorageConverter> logger,
             IAzureClientFactory<BlobServiceClient> blobServiceClientFactory,
             IConfiguration config)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
-            _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
+            // _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _blobServiceClientFactory = blobServiceClientFactory ?? throw new ArgumentNullException(nameof(blobServiceClientFactory));
-            var con = config;
+            var connection = config;
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
@@ -70,6 +69,14 @@ namespace Microsoft.Azure.Functions.Worker
                 }
 
                 BlobBindingData blobData = GetBindingDataContent(modelBindingData);
+
+                // Set to default storage connection if not specified
+                // This was previously done by BlobStorageBindingOptionsSetup.Configure() but that is no longer called
+                if (string.IsNullOrEmpty(blobData.Connection))
+                {
+                    blobData.Connection = "AzureWebJobsStorage";
+                }
+
                 var result = await ConvertModelBindingDataAsync(context.TargetType, blobData);
 
                 if (result is null)

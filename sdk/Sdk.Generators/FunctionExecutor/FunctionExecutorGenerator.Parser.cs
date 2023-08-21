@@ -48,7 +48,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             continue;
                         }
 
-                        methodParameterList.Add(parameterSymbol.Type.ToDisplayString());
+                        var fullyQualifiedTypeName = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        methodParameterList.Add(fullyQualifiedTypeName);
                     }
 
                     var methodSymbol = model.GetDeclaredSymbol(method)!;

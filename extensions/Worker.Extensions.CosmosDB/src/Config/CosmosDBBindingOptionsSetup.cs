@@ -14,9 +14,9 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
-        private readonly IOptions<WorkerOptions> _workerOptions;
+        private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptions<WorkerOptions> workerOptions)
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker
                 options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
             }
 
-            options.Serializer = new WorkerCosmosSerializer(_workerOptions.Value?.Serializer);
+            options.Serializer = new WorkerCosmosSerializer(_workerOptions.CurrentValue.Serializer);
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly AzureComponentFactory _componentFactory;
         private readonly IOptions<WorkerOptions> _workerOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptions<WorkerOptions> workerOptions, )
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptions<WorkerOptions> workerOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));

@@ -23,8 +23,8 @@ namespace Microsoft.Azure.Functions.Worker
         public string? TopicKeySetting { get; set; }
 
         /// <summary>
-        /// Gets or sets the app setting name that contains the Event Grid topic's connection information.
+        /// Gets or sets the app setting name that contains the Event Grid topic's connection information. When setting the `Connection` property, the `TopicEndpointUri` and `TopicKeySetting` properties should NOT be set.
         /// </summary>
-        public string Connection { get; set; }
+        public string? Connection { get; set; }
     }
 }

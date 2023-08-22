@@ -40,8 +40,11 @@ internal class StartupHook
 
         static bool WaitOnDebugger(int cycle)
         {
+            Console.WriteLine($"Inside WaitOnDebugger");
+
             if (Debugger.IsAttached)
             {
+                Console.WriteLine($"Checking if debugger is attached");
                 return false;
             }
 
@@ -57,6 +60,7 @@ internal class StartupHook
 
         if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
+            Console.WriteLine($"Writing to json output file");
             Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { processId } }}");
         }
 
@@ -66,6 +70,7 @@ internal class StartupHook
 
             for (int i = 0; WaitOnDebugger(i); i++)
             {
+                Console.WriteLine($"Debugger still not attached ({i})");
                 Thread.Sleep(SleepTime);
             }
         }

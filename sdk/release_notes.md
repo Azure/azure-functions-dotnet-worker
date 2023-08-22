@@ -15,3 +15,4 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - Updated source generated versions of FunctionExecutor to use `global::` namespace prefix to avoid ambiguity between namespaces.(#1847)
+- Fixing the check to determine the function return type for async functions.(#1817)

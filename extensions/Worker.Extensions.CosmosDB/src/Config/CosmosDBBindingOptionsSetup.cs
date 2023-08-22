@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Azure;
@@ -15,19 +14,13 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
+        private readonly IOptions<WorkerOptions> _workerOptions;
 
-        public CosmosDBBindingOptionsSetup(IOptions<WorkerOptions> workerOptions, IOptions<CosmosDBBindingOptions> cosmosOptions, IConfiguration configuration, AzureComponentFactory componentFactory)
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptions<WorkerOptions> workerOptions, )
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
-
-            if (workerOptions is null)
-            {
-                throw new ArgumentNullException(nameof(workerOptions));
-            }
-
-            CosmosSerializer cosmosSerializer = new WorkerCosmosSerializer(workerOptions.Value?.Serializer);
-            cosmosOptions.Value.Serializer = cosmosSerializer;
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
         }
 
         public void Configure(CosmosDBBindingOptions options)
@@ -62,6 +55,8 @@ namespace Microsoft.Azure.Functions.Worker
 
                 options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
             }
+
+            options.Serializer = new WorkerCosmosSerializer(_workerOptions.Value?.Serializer);
         }
     }
 }

@@ -4,15 +4,11 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk 1.14.1
 
-- <entry>
+- Update Microsoft.Azure.Functions.Worker.Sdk.Generators dependency to 1.1.1
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.1
 
-- <entry>
-
-### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
-
-- Updated source generated versions of FunctionExecutor to use `global::` namespace prefix to avoid ambiguity between namespaces.(#1847)
-- Fixing the check to determine the function return type for async functions.(#1817)
+- Updated source generated version of function executor to prevent generating type names which causes namespace ambiguity with existing types.(#1847)
+- Updated source generated version of function metadata provider to correctly generate binding values for async functions.(#1817)

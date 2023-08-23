@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventGrid <version>
+### Microsoft.Azure.Functions.Worker.Extensions.EventGrid 3.4.0
 
-- <event>
+- Update EventGrid output binding to add Connection property (#1835)

@@ -3,8 +3,10 @@
 
 using System;
 using System.Linq;
+using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -29,10 +31,11 @@ namespace Microsoft.Azure.Functions.Worker
 
             var serviceProvider = applicationBuilder.Services.BuildServiceProvider();
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
+            var metadataProvider = serviceProvider.GetRequiredService<IFunctionMetadataProvider>();
 
             applicationBuilder.Services.AddAzureClients(clientBuilder =>
             {
-                RegisterBlobServiceClients(configuration, clientBuilder);
+                RegisterBlobServiceClients(configuration, clientBuilder, serviceProvider, metadataProvider);
             });
 
             // applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
@@ -43,72 +46,69 @@ namespace Microsoft.Azure.Functions.Worker
             // applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
         }
 
-        private void RegisterBlobServiceClients(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder)
+        private void RegisterBlobServiceClients(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder, ServiceProvider services, IFunctionMetadataProvider metadataProvider)
         {
+            var azureComponentFactory = services.GetService<AzureComponentFactory>();
             var allConfigurationEntries = configuration.AsEnumerable();
+
+            //function metadata provider, using binding configuration
 
             foreach (var configEntry in allConfigurationEntries)
             {
-                if (configuration.GetWebJobsConnectionStringSection(configEntry.Key) is { } connectionSection)
+                var connectionName = GetConnectionName(configEntry.Key);
+
+                if (configuration.GetWebJobsConnectionStringSection(connectionName) is not { } connectionSection)
                 {
-                    if(!IsBlobStorageConnection(connectionSection))
-                    {
-                        continue;
-                    }
+                    continue;
+                }
 
-                    var connectionName = GetConnectionName(connectionSection.Path);
-
-
-                    // TODO: Figure out managed identity
-                    // TODO: Figure out how to avoid duplicate client registrations
-                    if (!string.IsNullOrWhiteSpace(connectionSection.Value) && connectionSection.Value.Contains("DefaultEndpointsProtocol"))
-                    {
-                        clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(connectionName);
-                    }
-                    else
-                    {
-                        if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri)
-                            || connectionSection.Value is { } && Uri.TryCreate(connectionSection.Value, UriKind.Absolute, out serviceUri))
-                        {
-                            clientBuilder.AddBlobServiceClient(serviceUri).WithName(connectionName);
-                        }
-                    }
+                if (!string.IsNullOrWhiteSpace(connectionSection.Value) && IsValidStorageConnection(connectionSection))
+                {
+                    clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(configEntry.Key);
+                }
+                else if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
+                {
+                    var credential = azureComponentFactory?.CreateTokenCredential(connectionSection);
+                    clientBuilder.AddBlobServiceClient(serviceUri).WithName(connectionName).WithCredential(credential);
                 }
             }
         }
 
-        private static bool IsBlobStorageConnection(IConfigurationSection section)
+    private static bool IsValidStorageConnection(IConfigurationSection section)
+    {
+        return section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
+            section.Value.Contains("AccountName=") &&
+            section.Value.Contains("AccountKey="); ;
+    }
+
+    private string GetConnectionName(string path)
+    {
+        int colonIndex = path.IndexOf(':');
+        if (colonIndex >= 0)
         {
-            // Check if the section contains a valid blob connection string format
-            bool hasValidBlobConnectionString = section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
-                section.Value.Contains("AccountName=") &&
-                section.Value.Contains("AccountKey=");
-
-            // Check if the section's key is "AzureWebJobsStorage"
-            bool isAzureWebJobsStorageKey = section.Key == "AzureWebJobsStorage";
-
-            // Check if the section's path contains "blobServiceUri"
-            bool containsBlobServiceUri = section.Path.Contains("blobServiceUri");
-
-            // Check if the section's path contains "accountName"
-            bool containsAccountName = section.Path.Contains("accountName");
-
-            // Return true if any of the heuristics match
-            return hasValidBlobConnectionString || isAzureWebJobsStorageKey || containsBlobServiceUri || containsAccountName;
+            return path.Substring(0, colonIndex);
         }
 
-        private string GetConnectionName(string path)
-        {
-            // Check if the path or key contains a colon (:)
-            int colonIndex = path.IndexOf(':');
-            if (colonIndex >= 0)
-            {
-                // Extract the name before the colon
-                return path.Substring(0, colonIndex);
-            }
-
-            // Use the entire path or key as the name
-            return path;
-        }
+        return path;
     }
 }
+}
+
+// Without custom token credential creation:
+// Unable to find matching constructor while trying to create an instance of BlobServiceClient.
+// Expected one of the follow sets of configuration parameters:
+// 1. connectionString
+// 2. serviceUri
+// 3. serviceUri, credential:accountName, credential:accountKey
+// 4. serviceUri, credential:signature
+// 5. serviceUri
+
+"Storage":
+{
+    "serviceUri": "https://lilianstorage.blob.core.windows.net/",
+}
+
+"storage__blobServiceUri"
+"storage__queueServiceUri"
+
+

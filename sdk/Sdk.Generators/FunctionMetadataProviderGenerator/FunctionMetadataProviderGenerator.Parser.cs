@@ -432,10 +432,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.VoidType) &&
-                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.TaskType))
+                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol.OriginalDefinition, _knownTypes.TaskType))
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.TaskOfTType))
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol.OriginalDefinition, _knownTypes.TaskOfTType))
                     {
                         GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
                         var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument

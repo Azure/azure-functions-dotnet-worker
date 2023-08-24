@@ -60,7 +60,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
   </Target>
 
-  <Target Name="_FunctionsInnerBuild" AfterTargets="CoreCompile" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsExtensionAssignTargetPaths" />
+  <Target Name="_FunctionsInnerBuild" AfterTargets="CoreCompile" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsExtensionBuild;_FunctionsExtensionAssignTargetPaths" />
+  <Target Name="_FunctionsInnerPublish" BeforeTargets="GetCopyToPublishDirectoryItems" DependsOnTargets="_FunctionsExtensionAssignTargetPaths" />
 
   <Target Name="_FunctionsGetPaths">
     <PropertyGroup>
@@ -75,9 +76,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="_FunctionsPreBuild" DependsOnTargets="_FunctionsGetPaths" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
-      <None Include="$(_FunctionsMetadataPath)" CopyToOutputDirectory="PreserveNewest" TargetPath="functions.metadata" />
-      <None Include="$(_FunctionsWorkerConfigPath)" CopyToOutputDirectory="PreserveNewest" TargetPath="worker.config.json" />
-      <None Include="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)" CopyToOutputDirectory="PreserveNewest" TargetPath="$(_FunctionsExtensionsJsonName)" />
+      <None Include="$(_FunctionsMetadataPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="functions.metadata"  />
+      <None Include="$(_FunctionsWorkerConfigPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="worker.config.json" />
+      <None Include="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="$(_FunctionsExtensionsJsonName)" />
     </ItemGroup>
   </Target>
 
@@ -150,12 +151,15 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OutputPath="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)"/>
   </Target>
 
-  <Target Name="_FunctionsExtensionAssignTargetPaths" DependsOnTargets="_FunctionsExtensionBuild">
+  <Target Name="_FunctionsExtensionAssignTargetPaths">
     <ItemGroup>
       <_ExtensionBinaries Include="$(ExtensionsCsProjDirectory)\buildout\bin\**"
         Exclude="$(ExtensionsCsProjDirectory)\buildout\bin\runtimes\**;$(_FunctionsIntermdiateExtensionJsonPath)"
-        CopyToOutputDirectory="PreserveNewest" />
-      <_ExtensionRuntimeBinaries Include="$(ExtensionsCsProjDirectory)\buildout\runtimes\**" CopyToOutputDirectory="PreserveNewest" />
+        CopyToOutputDirectory="PreserveNewest"
+        CopyToPublishDirectory="PreserveNewest" />
+      <_ExtensionRuntimeBinaries Include="$(ExtensionsCsProjDirectory)\buildout\runtimes\**"
+        CopyToOutputDirectory="PreserveNewest"
+        CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
 
     <AssignTargetPath Files="@(_ExtensionBinaries)" RootFolder="$(ExtensionsCsProjDirectory)\buildout\bin">

@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option csharp_namespace = "Samples.Extensions.Rpc";
+
+// The settlement service definition.
+service Settlement {
+  // Sends a greeting
+  rpc Complete (CompleteRequest) returns (CompleteReply) {}
+}
+
+// The request message containing the locktoken.
+message CompleteRequest {
+  string locktoken = 1;
+}
+
+// The response message containing any exceptions
+message CompleteReply {
+  string exception = 1;
+}

@@ -3,6 +3,7 @@
 
 using System;
 using System.Linq;
+using System.Text.Json;
 using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -31,27 +32,62 @@ namespace Microsoft.Azure.Functions.Worker
 
             var serviceProvider = applicationBuilder.Services.BuildServiceProvider();
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-            var metadataProvider = serviceProvider.GetRequiredService<IFunctionMetadataProvider>();
+            // var metadataProvider = serviceProvider.GetRequiredService<IFunctionMetadataProvider>(); // doesn't work
 
             applicationBuilder.Services.AddAzureClients(clientBuilder =>
             {
-                RegisterBlobServiceClients(configuration, clientBuilder, serviceProvider, metadataProvider);
+                RegisterBlobServiceClientsWithConfig(configuration, clientBuilder, serviceProvider);
             });
 
             // applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-
             // applicationBuilder.Services.TryAddSingleton<BlobServiceClientProvider>();
-
             // applicationBuilder.Services.AddOptions<BlobStorageBindingOptions>();
             // applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
         }
 
-        private void RegisterBlobServiceClients(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder, ServiceProvider services, IFunctionMetadataProvider metadataProvider)
+        private void RegisterBlobServiceClientsWithMetadata(AzureClientFactoryBuilder clientBuilder, ServiceProvider services, IFunctionMetadataProvider metadataProvider, IConfiguration configuration)
+        {
+            var azureComponentFactory = services.GetService<AzureComponentFactory>();
+
+            string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
+            var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
+            foreach (var func in functionMetadataList)
+            {
+                if (func is null)
+                {
+                    continue;
+                }
+
+                foreach (var bindingJson in func.RawBindings)
+                {
+                    // for each binding where binding type == blob
+
+                    var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
+                    binding.TryGetProperty("connection", out JsonElement conn);
+                    var connectionName = conn.ToString();
+
+                    if (configuration.GetWebJobsConnectionStringSection(connectionName) is not { } connectionSection)
+                    {
+                        continue;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(connectionSection.Value) && IsValidStorageConnection(connectionSection))
+                    {
+                        clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(connectionName);
+                    }
+                    else if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
+                    {
+                        var credential = azureComponentFactory?.CreateTokenCredential(connectionSection);
+                        clientBuilder.AddBlobServiceClient(serviceUri).WithName(connectionName).WithCredential(credential);
+                    }
+                }
+            }
+        }
+
+        private void RegisterBlobServiceClientsWithConfig(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder, ServiceProvider services)
         {
             var azureComponentFactory = services.GetService<AzureComponentFactory>();
             var allConfigurationEntries = configuration.AsEnumerable();
-
-            //function metadata provider, using binding configuration
 
             foreach (var configEntry in allConfigurationEntries)
             {
@@ -74,41 +110,22 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-    private static bool IsValidStorageConnection(IConfigurationSection section)
-    {
-        return section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
-            section.Value.Contains("AccountName=") &&
-            section.Value.Contains("AccountKey="); ;
-    }
-
-    private string GetConnectionName(string path)
-    {
-        int colonIndex = path.IndexOf(':');
-        if (colonIndex >= 0)
+        private static bool IsValidStorageConnection(IConfigurationSection section)
         {
-            return path.Substring(0, colonIndex);
+            return section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
+                section.Value.Contains("AccountName=") &&
+                section.Value.Contains("AccountKey="); ;
         }
 
-        return path;
+        private string GetConnectionName(string path)
+        {
+            int colonIndex = path.IndexOf(':');
+            if (colonIndex >= 0)
+            {
+                return path.Substring(0, colonIndex);
+            }
+
+            return path;
+        }
     }
 }
-}
-
-// Without custom token credential creation:
-// Unable to find matching constructor while trying to create an instance of BlobServiceClient.
-// Expected one of the follow sets of configuration parameters:
-// 1. connectionString
-// 2. serviceUri
-// 3. serviceUri, credential:accountName, credential:accountKey
-// 4. serviceUri, credential:signature
-// 5. serviceUri
-
-"Storage":
-{
-    "serviceUri": "https://lilianstorage.blob.core.windows.net/",
-}
-
-"storage__blobServiceUri"
-"storage__queueServiceUri"
-
-

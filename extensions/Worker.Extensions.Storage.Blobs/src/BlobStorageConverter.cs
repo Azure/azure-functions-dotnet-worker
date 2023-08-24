@@ -22,6 +22,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -41,7 +42,8 @@ namespace Microsoft.Azure.Functions.Worker
             IOptions<WorkerOptions> workerOptions,
             ILogger<BlobStorageConverter> logger,
             IAzureClientFactory<BlobServiceClient> blobServiceClientFactory,
-            IConfiguration config)
+            IConfiguration config,
+            IFunctionMetadataProvider metadataProvider)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             // _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
@@ -49,8 +51,25 @@ namespace Microsoft.Azure.Functions.Worker
             _blobServiceClientFactory = blobServiceClientFactory ?? throw new ArgumentNullException(nameof(blobServiceClientFactory));
             var connection = config;
 
-            var allConfigurationEntries = config.AsEnumerable();
+            // For debugging only
+            string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
+            var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
+            foreach (var func in functionMetadataList)
+            {
+                if (func is null)
+                {
+                    continue;
+                }
 
+                foreach(var bindingJson in func.RawBindings)
+                {
+                    var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
+                    binding.TryGetProperty("connection", out JsonElement conn);
+                }
+            }
+
+            // For debugging only
+            var allConfigurationEntries = config.AsEnumerable();
             foreach (var configEntry in allConfigurationEntries)
             {
                 var name = GetConnectionName(configEntry.Key);
@@ -77,26 +96,6 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
             }
-        }
-
-        private static bool IsBlobStorageConnection(IConfigurationSection section)
-        {
-            // Check if the section's key is "AzureWebJobsStorage"
-            bool isAzureWebJobsStorageKey = section.Key == "AzureWebJobsStorage";
-
-            // Check if the section contains a valid blob connection string format
-            bool hasValidBlobConnectionString = section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
-                section.Value.Contains("AccountName=") &&
-                section.Value.Contains("AccountKey=");
-
-            // Check if the section's path contains "blobServiceUri"
-            bool containsBlobServiceUri = section.Path.Contains("blobServiceUri");
-
-            // Check if the section's path contains "accountName"
-            bool containsAccountName = section.Path.Contains("accountName");
-
-            // Return true if any of the heuristics match
-            return hasValidBlobConnectionString || isAzureWebJobsStorageKey || containsBlobServiceUri || containsAccountName;
         }
 
         private string GetConnectionName(string path)

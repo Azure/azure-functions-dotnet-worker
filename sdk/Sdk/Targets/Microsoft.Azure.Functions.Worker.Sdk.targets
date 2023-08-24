@@ -60,8 +60,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
   </Target>
 
-  <Target Name="_FunctionsInnerBuild" AfterTargets="CoreCompile" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsExtensionBuild;_FunctionsExtensionAssignTargetPaths" />
+  <Target Name="_FunctionsInnerBuild" AfterTargets="CoreCompile" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsPostBuild;_WorkerExtensionsBuild;_FunctionsExtensionAssignTargetPaths" />
   <Target Name="_FunctionsInnerPublish" BeforeTargets="GetCopyToPublishDirectoryItems" DependsOnTargets="_FunctionsExtensionAssignTargetPaths" />
+
+  <!-- This is a no-op target purely for backwards compatibilty. Remove this with a major version rev. -->
+  <Target Name="_FunctionsPostBuild" />
 
   <Target Name="_FunctionsGetPaths">
     <PropertyGroup>
@@ -133,16 +136,16 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Overwrite="true" />
   </Target>
 
-  <Target Name="_FunctionsExtensionRestore">
+  <Target Name="_WorkerExtensionsRestore">
     <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;$(_FunctionsExtensionCommonProps)" />
   </Target>
 
-  <Target Name="_FunctionsExtensionBuild" DependsOnTargets="_FunctionsExtensionRestore">
+  <Target Name="_WorkerExtensionsBuild" DependsOnTargets="_WorkerExtensionsRestore">
     <MSbuild Projects="$(ExtensionsCsProj)" Targets="Build" RemoveProperties="DeployOnBuild" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjDirectory)\buildout;$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <Target Name="_FunctionsExtensionUpdateMetadata"
-    AfterTargets="_FunctionsExtensionBuild"
+    AfterTargets="_WorkerExtensionsBuild"
     BeforeTargets="CopyFilesToOutputDirectory"
     Inputs="$(_FunctionsIntermdiateExtensionJsonPath)"
     Outputs="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)">

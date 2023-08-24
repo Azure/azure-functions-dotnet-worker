@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option csharp_namespace = "Samples.Extensions.Rpc";
+option csharp_namespace = "Microsoft.Azure.Functions.Worker";
 
 // The settlement service definition.
 service Settlement {

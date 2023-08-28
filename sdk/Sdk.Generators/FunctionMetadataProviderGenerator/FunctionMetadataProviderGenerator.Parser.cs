@@ -250,6 +250,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 hasHttpTrigger = false;
                 bindingsList = new List<IDictionary<string, object>>();
 
+                var methodSymbol = model.GetDeclaredSymbol(method);
+                var methodParamSymbols = methodSymbol?.Parameters;
+                foreach(var paramSymbol in methodParamSymbols)
+                {
+                    paramSymbol.GetAttributes();
+                }
+
                 foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
                 {
                     // If there's no attribute, we can assume that this parameter is not a binding

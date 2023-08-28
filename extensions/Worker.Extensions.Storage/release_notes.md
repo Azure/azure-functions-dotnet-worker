@@ -4,9 +4,9 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.1.01
+### Microsoft.Azure.Functions.Worker.Extensions.Storage 6.1.1
 
-- Updated `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to 6.1.01
+- Updated `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to 6.1.1
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.1.1
 

@@ -27,11 +27,36 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
+        /// <param name="defaultValue">Default value of the parameter.</param>
+        public FunctionParameter(string name, Type type, object? defaultValue): this(name, type, defaultValue, ImmutableDictionary<string, object>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Creates an instance of the <see cref="FunctionParameter"/> class.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
         /// <param name="properties">The properties of the parameter.</param>
         public FunctionParameter(string name, Type type, IReadOnlyDictionary<string, object> properties)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
+            Properties = properties ?? throw new ArgumentNullException(nameof(properties));
+        }
+
+        /// <summary>
+        /// Creates an instance of the <see cref="FunctionParameter"/> class.
+        /// </summary>
+        /// <param name="name">The parameter name.</param>
+        /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
+        /// <param name="defaultValue">Default value of the parameter.</param>
+        /// <param name="properties">The properties of the parameter.</param>
+        public FunctionParameter(string name, Type type, object? defaultValue, IReadOnlyDictionary<string, object> properties)
+        {
+            Name = name ?? throw new ArgumentNullException(nameof(name));
+            Type = type ?? throw new ArgumentNullException(nameof(type));
+            DefaultValue = defaultValue ?? default;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
@@ -44,6 +69,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the parameter <see cref="System.Type"/>.
         /// </summary>
         public Type Type { get; }
+
+        /// <summary>
+        /// Gets the default value of the parameter if exists, else null.
+        /// </summary>
+        public object? DefaultValue { get; }
 
         /// <summary>
         /// A dictionary holding properties of this parameter.

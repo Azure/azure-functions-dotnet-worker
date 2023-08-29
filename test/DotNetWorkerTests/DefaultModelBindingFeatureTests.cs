@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
@@ -57,6 +59,70 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal("foo", book.Id);
             var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
             Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
+        }
+
+        [Fact]
+        public async void BindFunctionInputAsync_Populates_Parameters_Using_DefaultValue()
+        {
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
+            {
+                 new FunctionParameter("req", typeof(HttpRequestData)),
+                 new FunctionParameter("fooId", typeof(int), defaultValue: 100)
+            },
+            inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                 { "req", new TestBindingMetadata("req","httpTrigger",BindingDirection.In) }
+            });  ;
+            features.Set<FunctionDefinition>(httpFunctionDefinition);
+
+            var functionContext = new TestFunctionContext(httpFunctionDefinition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
+            var grpcHttpReq = new GrpcHttpRequestData(TestUtility.CreateRpcHttp(), functionContext);
+            var functionBindings = new TestFunctionBindingsFeature
+            {
+                InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } })
+            };
+            features.Set<IFunctionBindingsFeature>(functionBindings);
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+
+            // Act
+            var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
+            var parameterValuesArray = bindingResult.Values;
+
+            // Assert
+            var httpReqData = TestUtility.AssertIsTypeAndConvert<HttpRequestData>(parameterValuesArray[0]);
+            Assert.NotNull(httpReqData);
+            var fooId = TestUtility.AssertIsTypeAndConvert<int>(parameterValuesArray[1]);
+            Assert.Equal(100, fooId);
+        }
+
+        [Fact]
+        public async void BindFunctionInputAsync_Throws_When_Explicit_OptionalParametersValueNotPresent()
+        {
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
+            {
+                 new FunctionParameter("req", typeof(HttpRequestData)),
+                 new FunctionParameter("fooId", typeof(int))
+            },
+            inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                 { "req", new TestBindingMetadata("req","httpTrigger",BindingDirection.In) }
+            }); ;
+            features.Set<FunctionDefinition>(httpFunctionDefinition);
+
+            var functionContext = new TestFunctionContext(httpFunctionDefinition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
+            var grpcHttpReq = new GrpcHttpRequestData(TestUtility.CreateRpcHttp(), functionContext);
+            var functionBindings = new TestFunctionBindingsFeature
+            {
+                InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } })
+            };
+            features.Set<IFunctionBindingsFeature>(functionBindings);
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+
+            // Assert
+            var exception = await Assert.ThrowsAsync<FunctionInputConverterException>(async () => await _functionInputBindingFeature.BindFunctionInputAsync(functionContext));
+            Assert.Equal("Error converting 1 input parameters for Function 'TestName': Could not populate the value for 'fooId' parameter. Consider updating the parameter with an default value.", exception.Message);
         }
 
         [Fact]

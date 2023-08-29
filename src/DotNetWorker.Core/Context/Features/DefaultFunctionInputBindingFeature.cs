@@ -5,6 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -96,6 +99,22 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                         errors.Add(
                             $"Cannot convert input parameter '{param.Name}' to type '{param.Type.FullName}' from type '{source.GetType().FullName}'. Error:{bindingResult.Error}");
+                    }
+                    else if (bindingResult.Status == ConversionStatus.Unhandled)
+                    {
+                        // If still unhandled after going through all converters,check an explicit default value was provided for the function parameter.
+                        if (param.DefaultValue is not null)
+                        {
+                            parameterValues[i] = param.DefaultValue;
+                        }
+                        else
+                        {
+                            // We could not find a value for this param. should throw.
+                            errors ??= new List<string>();
+
+                            errors.Add(
+                                $"Could not populate the value for '{param.Name}' parameter. Consider updating the parameter with an default value.");
+                        }
                     }
                 }
 

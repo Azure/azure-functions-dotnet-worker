@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
         /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
-        public static IFunctionsWorkerApplicationBuilder ConfigureTables(this IFunctionsWorkerApplicationBuilder builder)
+        public static IFunctionsWorkerApplicationBuilder ConfigureTablesExtension(this IFunctionsWorkerApplicationBuilder builder)
         {
             if (builder is null)
             {

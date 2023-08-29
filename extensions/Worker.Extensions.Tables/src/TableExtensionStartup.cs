@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(applicationBuilder));
             }
 
-            applicationBuilder.ConfigureTables();
+            applicationBuilder.ConfigureTablesExtension();
         }
     }
 }

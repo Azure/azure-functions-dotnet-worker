@@ -4,6 +4,8 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 1.0.0
 
-- Adding support for binding to request body (`FromBodyAttribute` support)
+- GA version update. No functional changes.
+
+

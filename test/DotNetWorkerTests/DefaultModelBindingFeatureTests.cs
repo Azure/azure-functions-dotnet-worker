@@ -62,13 +62,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_Populates_Parameters_Using_DefaultValue()
+        public async void BindFunctionInputAsync_Populates_Parameter_Using_DefaultValue_When_CouldNot_Populate_From_InputData()
         {
-            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            var features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
             var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
             {
-                 new FunctionParameter("req", typeof(HttpRequestData)),
-                 new FunctionParameter("fooId", typeof(int), defaultValue: 100)
+                 new("req", typeof(HttpRequestData)),
+                 new("fooId", typeof(int), defaultValue: 100)
             },
             inputBindings: new Dictionary<string, BindingMetadata>
             {
@@ -99,11 +99,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public async void BindFunctionInputAsync_Throws_When_Explicit_OptionalParametersValueNotPresent()
         {
+            // 'fooId' is a parameter defined for the function without a default value
+            // and 'InputData' does not have a corresponding entry for that we could use to populate that parameter.
+            
             IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
             var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
             {
-                 new FunctionParameter("req", typeof(HttpRequestData)),
-                 new FunctionParameter("fooId", typeof(int))
+                 new("req", typeof(HttpRequestData)),
+                 new("fooId", typeof(int))
             },
             inputBindings: new Dictionary<string, BindingMetadata>
             {
@@ -122,7 +125,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Assert
             var exception = await Assert.ThrowsAsync<FunctionInputConverterException>(async () => await _functionInputBindingFeature.BindFunctionInputAsync(functionContext));
-            Assert.Equal("Error converting 1 input parameters for Function 'TestName': Could not populate the value for 'fooId' parameter. Consider updating the parameter with an default value.", exception.Message);
+            Assert.Equal("Error converting 1 input parameters for Function 'TestName': Could not populate the value for 'fooId' parameter. Consider updating the parameter with a default value.", exception.Message);
         }
 
         [Fact]

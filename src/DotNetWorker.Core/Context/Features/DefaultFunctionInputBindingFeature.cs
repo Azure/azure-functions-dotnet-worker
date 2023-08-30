@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     }
                     else if (bindingResult.Status == ConversionStatus.Unhandled)
                     {
-                        // If still unhandled after going through all converters,check an explicit default value was provided for the function parameter.
+                        // If still unhandled after going through all converters,check an explicit default value was provided for the parameter.
                         if (param.DefaultValue is not null)
                         {
                             parameterValues[i] = param.DefaultValue;
@@ -111,9 +111,8 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         {
                             // We could not find a value for this param. should throw.
                             errors ??= new List<string>();
-
                             errors.Add(
-                                $"Could not populate the value for '{param.Name}' parameter. Consider updating the parameter with an default value.");
+                                $"Could not populate the value for '{param.Name}' parameter. Consider updating the parameter with a default value.");
                         }
                     }
                 }

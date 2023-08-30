@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -267,7 +267,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             var blobClientToBlobStringFunction = functions.Single(p => p.Name == "BlobClientToBlobStringFunction");
@@ -353,7 +353,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             var blobStringToBlobClientEnumerable = functions.Single(p => p.Name == "BlobStringToBlobClientEnumerable");
@@ -605,7 +605,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -806,7 +806,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.5.0" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)
@@ -978,7 +978,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.11.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.12.0" },
             });
 
             var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));
@@ -1031,7 +1031,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.5.0" },
             });
 
             var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));

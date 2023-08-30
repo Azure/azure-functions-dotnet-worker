@@ -2,8 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
@@ -67,6 +70,50 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             return string.Equals(value, bool.TrueString, System.StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>
+        /// Collect methods with Function attributes on them from dependent/referenced assemblies.
+        /// </summary>
+        private IList<MethodDeclarationSyntax> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
+        {
+            IList<MethodDeclarationSyntax>? dependentAssemblyFuncs = new List<MethodDeclarationSyntax>();
+
+            foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
+            {
+                string? funcName = null;
+
+                if (assembly.MetadataName == "LibraryWithFunctions")
+                {
+                    var namespaceSymbols = assembly.GlobalNamespace.GetMembers();
+
+                    foreach (var namespaceSymbol in namespaceSymbols)
+                    {
+                        var namespaceMembers = namespaceSymbol.GetMembers();
+
+                        foreach (var m in namespaceMembers)
+                        {
+                            if (m is INamedTypeSymbol namedType)
+                            {
+                                var typeMembers = namedType.GetMembers();
+
+                                foreach (var typeMember in typeMembers)
+                                {
+                                    if (typeMember is IMethodSymbol method)
+                                    {
+                                        if (FunctionsUtil.IsFunctionSymbol(method, context.Compilation, out funcName))
+                                        {
+                                            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault();
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            return dependentAssemblyFuncs.Count > 0 ? dependentAssemblyFuncs : ImmutableList<MethodDeclarationSyntax>.Empty;
         }
     }
 }

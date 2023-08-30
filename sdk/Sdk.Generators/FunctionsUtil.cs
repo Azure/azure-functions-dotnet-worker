@@ -28,7 +28,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            foreach (var attr in methodSymbol.GetAttributes())
+            if (IsFunctionSymbol(methodSymbol, compilation, out functionName))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsFunctionSymbol(ISymbol symbol, Compilation compilation, out string? functionName)
+        {
+            functionName = null;
+
+            foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass != null &&
                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))

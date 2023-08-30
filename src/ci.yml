@@ -227,7 +227,7 @@ jobs:
   - publish: $(System.DefaultWorkingDirectory)/packages
     artifact: drop
 
-- job: "E2ETests_Ubuntu"  
+- job: "E2ETests_Ubuntu"
   pool:
     name: '1ES-Hosted-AzFunc'
     demands:
@@ -255,10 +255,12 @@ jobs:
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)
-    
+
     - task: DotNetCoreCLI@2
       displayName: 'Run E2E tests'
       inputs:
         command: 'test'
         arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
-        projects: 'test/**/*Tests.csproj'
+        projects: |
+          !test/Worker.Extensions.Rpc.Tests/**
+          test/**/*Tests.csproj

@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
-- <entry>
+- Parse named arguments by type #1877

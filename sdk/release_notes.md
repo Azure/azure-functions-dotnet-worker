@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
-- Parse named arguments by type #1877
+- Parse named arguments by type [#1877](https://github.com/Azure/azure-functions-dotnet-worker/pull/1877)

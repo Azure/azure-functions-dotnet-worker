@@ -632,7 +632,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
                             else
                             {
-                                // throw diagnostic error
+                                // TODO: Log diagnostic error
                             }
                         }
                     }
@@ -664,14 +664,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> argsDict, Location? attribLocation)
+            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> arguments, Location? attributeLocation)
             {
                 IMethodSymbol? attribMethodSymbol = attributeData.AttributeConstructor;
 
                 // Check if the attribute constructor has any parameters
                 if (attribMethodSymbol is null)
                 {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, attribLocation, nameof(attribMethodSymbol)));
+                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, attributeLocation, nameof(attribMethodSymbol)));
                     return false;
                 }
 
@@ -686,11 +686,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (TryParseValueByType(arg, out object? argValue))
                     {
-                        argsDict[argumentName] = argValue;
+                        arguments[argumentName] = argValue;
                     }
                     else
                     {
-                        // throw diagnostic error
+                        // TODO: Log diagnostic error
                     }
                 }
 
@@ -726,12 +726,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         var arrayValues = attributeArg.Values.Select(a => a.Value?.ToString()).ToArray();
                         argValue = arrayValues;
                         break;
-
-                    default:
-                        break;
                 }
 
-                return true;
+                return argValue is not null;
             }
 
             /// <summary>

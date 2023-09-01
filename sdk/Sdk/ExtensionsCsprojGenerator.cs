@@ -64,11 +64,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     targetFramework = Constants.NetCoreApp31;
                 }
-
-                if (_targetFrameworkVersion.Equals(Constants.NetCoreVersion7, StringComparison.OrdinalIgnoreCase))
-                {
-                    targetFramework = Constants.Net70;
-                }
             }
 
             string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.2.0";

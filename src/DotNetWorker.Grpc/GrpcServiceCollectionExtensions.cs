@@ -68,9 +68,13 @@ namespace Microsoft.Extensions.DependencyInjection
 #endif
 
             services.AddOptions<GrpcWorkerStartupOptions>()
-                .Configure<IConfiguration>((arguments, config) =>
+                .Configure<IConfiguration>((grpcWorkerStartupOption, config) =>
                 {
-                    config.Bind(arguments);
+                    grpcWorkerStartupOption.Host = config["FUNCTIONS_HOST"] ?? config["host"];
+                    grpcWorkerStartupOption.Port = config.GetValue<int?>("FUNCTIONS_PORT", null) ?? config.GetValue<int>("port");
+                    grpcWorkerStartupOption.Host = config["FUNCTIONS_WORKERID"] ?? config["workerId"];
+                    grpcWorkerStartupOption.RequestId = config["FUNCTIONS_REQUESTID"] ?? config["requestId"];
+                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("FUNCTIONS_GRPCMAXMESSAGELENGTH", null) ?? config.GetValue<int>("grpcMaxMessageLength");
                 });
 
             return services;

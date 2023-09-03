@@ -118,6 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.Features
             // This is guaranteed to be Json here -- we can use that.
             TypedData.DataOneofCase.Json => typedData.Json,
             TypedData.DataOneofCase.Bytes => typedData.Bytes.Memory,
+            TypedData.DataOneofCase.Stream => typedData.Stream,
             TypedData.DataOneofCase.CollectionBytes => typedData.CollectionBytes.Bytes.Select(element => {
                 return element.Memory;
             }),

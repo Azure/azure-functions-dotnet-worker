@@ -28,7 +28,8 @@ namespace Microsoft.Azure.Functions.Worker
         /// <param name="name">The parameter name.</param>
         /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
         /// <param name="defaultValue">Default value of the parameter.</param>
-        public FunctionParameter(string name, Type type, object? defaultValue): this(name, type, defaultValue, ImmutableDictionary<string, object>.Empty)
+        public FunctionParameter(string name, Type type, object? defaultValue)
+            : this(name, type, defaultValue, ImmutableDictionary<string, object>.Empty)
         {
         }
 

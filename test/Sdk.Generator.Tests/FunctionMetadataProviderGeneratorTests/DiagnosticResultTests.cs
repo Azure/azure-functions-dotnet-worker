@@ -231,6 +231,44 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedOutput,
                     expectedDiagnosticResults);
             }
+
+            [Fact]
+            public async void InvalidBindingArgument()
+            {
+                var inputCode = @"using System;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+
+                namespace FunctionApp
+                {
+                    public class HttpFunction
+                    {
+                        [Function(""QueueFunction"")]
+                        public string QueueFunc(
+                        [QueueTrigger(""queueName"", Connection = null)] string queuePayload)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }";
+
+                string? expectedGeneratedFileName = null;
+                string? expectedOutput = null;
+
+                var expectedDiagnosticResults = new List<DiagnosticResult>
+                {
+                    new DiagnosticResult(DiagnosticDescriptors.InvalidBindingAttributeArgument)
+                    .WithSpan(12, 79, 12, 91)
+                };
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    expectedDiagnosticResults);
+            }
         }
     }
 }

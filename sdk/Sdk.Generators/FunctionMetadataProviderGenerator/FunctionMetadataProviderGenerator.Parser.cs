@@ -632,9 +632,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
                             else
                             {
-                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, Location.None));
+                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, attribLocation));
+                                return false;
                             }
                         }
+                    }
+                    else
+                    {
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, attribLocation));
+                        return false;
                     }
                 }
 
@@ -690,7 +696,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, Location.None));
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, attributeLocation));
+                        return false;
                     }
                 }
 

@@ -103,7 +103,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                     else if (bindingResult.Status == ConversionStatus.Unhandled)
                     {
                         // If still unhandled after going through all converters,check an explicit default value was provided for the parameter.
-                        if (param.DefaultValue is not null)
+                        if (param.HasDefaultValue)
                         {
                             parameterValues[i] = param.DefaultValue;
                         }

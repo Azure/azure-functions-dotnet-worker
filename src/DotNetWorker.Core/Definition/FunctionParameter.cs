@@ -27,9 +27,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
+        /// <param name="hasDefaultValue">Value that indicates whether the parameter has a default value.</param>
         /// <param name="defaultValue">Default value of the parameter.</param>
-        public FunctionParameter(string name, Type type, object? defaultValue)
-            : this(name, type, defaultValue, ImmutableDictionary<string, object>.Empty)
+        public FunctionParameter(string name, Type type, bool hasDefaultValue, object? defaultValue)
+            : this(name, type, hasDefaultValue, defaultValue, ImmutableDictionary<string, object>.Empty)
         {
         }
 
@@ -51,13 +52,15 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="name">The parameter name.</param>
         /// <param name="type">The <see cref="System.Type"/> of the parameter.</param>
+        /// <param name="hasDefaultValue">Value that indicates whether the parameter has a default value.</param>
         /// <param name="defaultValue">Default value of the parameter.</param>
         /// <param name="properties">The properties of the parameter.</param>
-        public FunctionParameter(string name, Type type, object? defaultValue, IReadOnlyDictionary<string, object> properties)
+        public FunctionParameter(string name, Type type, bool hasDefaultValue, object? defaultValue, IReadOnlyDictionary<string, object> properties)
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
             DefaultValue = defaultValue ?? default;
+            HasDefaultValue = hasDefaultValue;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
@@ -70,6 +73,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the parameter <see cref="System.Type"/>.
         /// </summary>
         public Type Type { get; }
+
+        /// <summary>
+        /// Gets a value that indicates whether this parameter has a default value.
+        /// </summary>
+        public bool HasDefaultValue { get; }
 
         /// <summary>
         /// Gets the default value of the parameter if exists, else null.

@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             Parameters = methodInfoLocator.GetMethod(PathToAssembly, EntryPoint)
                 .GetParameters()
                 .Where(p => p.Name != null)
-                .Select(p => new FunctionParameter(p.Name!, p.ParameterType, p.HasDefaultValue ? p.DefaultValue! : null, GetAdditionalPropertiesDictionary(p)))
+                .Select(p => new FunctionParameter(p.Name!, p.ParameterType, p.HasDefaultValue, p.DefaultValue, GetAdditionalPropertiesDictionary(p)))
                 .ToImmutableArray();
         }
 

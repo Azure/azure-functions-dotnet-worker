@@ -68,7 +68,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
             {
                  new("req", typeof(HttpRequestData)),
-                 new("fooId", typeof(int), defaultValue: 100)
+                 new("fooId", typeof(int), true,  defaultValue: 100),
+                 new("bar", typeof(string), true, defaultValue: null)
             },
             inputBindings: new Dictionary<string, BindingMetadata>
             {
@@ -94,6 +95,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.NotNull(httpReqData);
             var fooId = TestUtility.AssertIsTypeAndConvert<int>(parameterValuesArray[1]);
             Assert.Equal(100, fooId);
+            var bar = parameterValuesArray[2];
+            Assert.Null(bar);
         }
 
         [Fact]

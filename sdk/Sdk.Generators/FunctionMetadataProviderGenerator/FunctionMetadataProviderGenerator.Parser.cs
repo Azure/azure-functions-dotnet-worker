@@ -637,11 +637,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
                         }
                     }
-                    else
-                    {
-                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, attribLocation));
-                        return false;
-                    }
                 }
 
                 // some properties have default values, so if these properties were not already defined in constructor or named arguments, we will auto-add them here

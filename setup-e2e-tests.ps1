@@ -1,12 +1,6 @@
 #Requires -Version 6
 
 param(
-    [Parameter(Mandatory=$true)]
-    [ValidateNotNullOrEmpty()]
-    [String]
-    [ValidateSet("3", "4")]
-    $FunctionsRuntimeVersion,
-
     [Switch]
     $SkipStorageEmulator,
 
@@ -22,6 +16,8 @@ param(
     [Switch]
     $SkipBuildOnPack
 )
+
+$FunctionsRuntimeVersion = 4
 
 # A function that checks exit codes and fails script if an error is found 
 function StopOnFailedExecution {

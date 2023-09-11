@@ -104,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
             private FunctionRpcClient CreateClient()
             {
-                string uriString = $"http://{_startupOptions.Host}:{_startupOptions.Port}";
+                string uriString = _startupOptions.Uri ?? $"http://{_startupOptions.Host}:{_startupOptions.Port}";
                 if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
                 {
                     throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");

@@ -70,11 +70,12 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions<GrpcWorkerStartupOptions>()
                 .Configure<IConfiguration>((grpcWorkerStartupOption, config) =>
                 {
-                    grpcWorkerStartupOption.Host = config["FUNCTIONS_HOST"] ?? config["host"];
-                    grpcWorkerStartupOption.Port = config.GetValue<int?>("FUNCTIONS_PORT", null) ?? config.GetValue<int>("port");
-                    grpcWorkerStartupOption.Host = config["FUNCTIONS_WORKERID"] ?? config["workerId"];
-                    grpcWorkerStartupOption.RequestId = config["FUNCTIONS_REQUESTID"] ?? config["requestId"];
-                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("FUNCTIONS_GRPCMAXMESSAGELENGTH", null) ?? config.GetValue<int>("grpcMaxMessageLength");
+                    grpcWorkerStartupOption.Host = config["host"];
+                    grpcWorkerStartupOption.Port = config.GetValue<int>("port");
+                    grpcWorkerStartupOption.Uri = config["functions-uri"];
+                    grpcWorkerStartupOption.RequestId = config["functions-requestid"] ?? config["requestId"];
+                    grpcWorkerStartupOption.WorkerId = config["functions-workerid"] ?? config["workerId"];
+                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("functions-grpcmaxmessagelength", null) ?? config.GetValue<int>("grpcMaxMessageLength");
                 });
 
             return services;

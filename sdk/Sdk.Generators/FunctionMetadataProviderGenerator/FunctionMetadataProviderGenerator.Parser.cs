@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// Takes in candidate methods from the user compilation and parses them to return function metadata info as GeneratorFunctionMetadata.
             /// </summary>
             /// <param name="methods">List of candidate methods from the syntax receiver.</param>
-            public IReadOnlyList<GeneratorFunctionMetadata> GetFunctionMetadataInfo(List<MethodDeclarationSyntax> methods)
+            public IReadOnlyList<GeneratorFunctionMetadata> GetFunctionMetadataInfo(List<IMethodSymbol> methods)
             {
                 var result = ImmutableArray.CreateBuilder<GeneratorFunctionMetadata>();
 
@@ -50,26 +50,25 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var scriptFile = Path.Combine(assemblyName + ".dll");
 
                 // Loop through the candidate methods (methods with any attribute associated with them)
-                foreach (MethodDeclarationSyntax method in methods)
+                foreach (IMethodSymbol method in methods)
                 {
                     CancellationToken.ThrowIfCancellationRequested();
 
-                    var model = Compilation.GetSemanticModel(method.SyntaxTree);
-
-                    if (!FunctionsUtil.IsValidFunctionMethod(_context, Compilation, model, method, out string? functionName))
+                    string? funcName = null;
+                    if (!FunctionsUtil.TryGetFunctionName(method, Compilation, out funcName))
                     {
-                        continue;
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, method.Name)); // would only reach here if the function attribute or method was not loaded, resulting in failure to retrieve name
                     }
 
                     var newFunction = new GeneratorFunctionMetadata
                     {
-                        Name = functionName,
-                        EntryPoint = FunctionsUtil.GetFullyQualifiedMethodName(method, model),
+                        Name = funcName,
+                        EntryPoint = FunctionsUtil.GetFullyQualifiedMethodName(method),
                         Language = Constants.Languages.DotnetIsolated,
                         ScriptFile = scriptFile
                     };
 
-                    if (!TryGetBindings(method, model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? retryOptions))
+                    if (!TryGetBindings(method, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? retryOptions))
                     {
                         continue;
                     }
@@ -92,14 +91,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return result;
             }
 
-            private bool TryGetBindings(MethodDeclarationSyntax method, SemanticModel model, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? validatedRetryOptions)
+            private bool TryGetBindings(IMethodSymbol method, out IList<IDictionary<string, object>>? bindings, out bool hasHttpTrigger, out GeneratorRetryOptions? validatedRetryOptions)
             {
                 hasHttpTrigger = false;
                 validatedRetryOptions = null;
 
-                if (!TryGetMethodOutputBinding(method, model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
-                    || !TryGetParameterInputAndTriggerBindings(method, model, out bool supportsRetryOptions, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
-                    || !TryGetReturnTypeBindings(method, model, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
+                if (!TryGetMethodOutputBinding(method, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
+                    || !TryGetParameterInputAndTriggerBindings(method, out bool supportsRetryOptions, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
+                    || !TryGetReturnTypeBindings(method, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
                 {
                     bindings = null;
                     return false;
@@ -121,7 +120,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else if (!supportsRetryOptions)
                     {
-                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, method.GetLocation()));
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidRetryOptions, Location.None));
                         return false;
                     }
                 }
@@ -132,12 +131,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any OutputBinding attributes associated with the method.
             /// </summary>
-            private bool TryGetMethodOutputBinding(MethodDeclarationSyntax method, SemanticModel model, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetMethodOutputBinding(IMethodSymbol method,out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
             {
-                var bindingLocation = method.Identifier.GetLocation();
-
-                var methodSymbol = model.GetDeclaredSymbol(method);
-                var attributes = methodSymbol!.GetAttributes(); // methodSymbol is not null here because it's checked in IsValidAzureFunction which is called before bindings are collected/created
+                var attributes = method!.GetAttributes(); // methodSymbol is not null here because it's checked in IsValidAzureFunction which is called before bindings are collected/created
 
                 AttributeData? outputBindingAttribute = null;
                 hasOutputBinding = false;
@@ -147,7 +143,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.RetryAttribute))
                     {
-                        if (TryGetRetryOptionsFromAttribute(attribute, method.GetLocation(), out GeneratorRetryOptions? retryOptionsFromAttr))
+                        if (TryGetRetryOptionsFromAttribute(attribute, Location.None, out GeneratorRetryOptions? retryOptionsFromAttr))
                         {
                             retryOptions = retryOptionsFromAttr;
                         }
@@ -158,7 +154,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
                         if (hasOutputBinding)
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, bindingLocation, new object[] { "Method", method.Identifier.ToString() }));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Method", method.Name }));
                             bindingsList = null;
                             return false;
                         }
@@ -170,7 +166,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, bindingLocation, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
@@ -244,29 +240,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns input and trigger bindings found in the parameters of the Azure Function method.
             /// </summary>
-            private bool TryGetParameterInputAndTriggerBindings(MethodDeclarationSyntax method, SemanticModel model, out bool supportsRetryOptions, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetParameterInputAndTriggerBindings(IMethodSymbol method, out bool supportsRetryOptions, out bool hasHttpTrigger, out IList<IDictionary<string, object>>? bindingsList)
             {
                 supportsRetryOptions = false;
                 hasHttpTrigger = false;
                 bindingsList = new List<IDictionary<string, object>>();
 
-                foreach (ParameterSyntax parameter in method.ParameterList.Parameters)
+                foreach (IParameterSymbol parameter in method.Parameters)
                 {
                     // If there's no attribute, we can assume that this parameter is not a binding
-                    if (parameter.AttributeLists.Count == 0)
+                    if (parameter.GetAttributes().Count() == 0)
                     {
                         continue;
                     }
 
-                    if (model.GetDeclaredSymbol(parameter) is not IParameterSymbol parameterSymbol)
-                    {
-                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, parameter.Identifier.GetLocation(), nameof(parameterSymbol)));
-                        bindingsList = null;
-                        return false;
-                    }
-
                     // Check to see if any of the attributes associated with this parameter is a BindingAttribute
-                    foreach (var attribute in parameterSymbol.GetAttributes())
+                    foreach (var attribute in parameter.GetAttributes())
                     {
                         if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType?.BaseType, _knownFunctionMetadataTypes.BindingAttribute))
                         {
@@ -276,12 +265,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 hasHttpTrigger = true;
                             }
 
-                            DataType dataType = _dataTypeParser.GetDataType(parameterSymbol.Type);
+                            DataType dataType = _dataTypeParser.GetDataType(parameter.Type);
 
                             bool cardinalityValidated = false;
                             bool supportsDeferredBinding = false;
 
-                            if (SupportsDeferredBinding(attribute, parameterSymbol.Type.ToString()))
+                            if (SupportsDeferredBinding(attribute, parameter.Type.ToString()))
                             {
                                 supportsDeferredBinding = true;
                             }
@@ -290,9 +279,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             {
                                 DataType updatedDataType = DataType.Undefined;
 
-                                if (!_cardinalityParser.IsCardinalityValid(parameterSymbol, parameter.Type, attribute, out updatedDataType))
+                                if (!_cardinalityParser.IsCardinalityValid(parameter, attribute, out updatedDataType))
                                 {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, parameter.Identifier.GetLocation(), parameterSymbol.Name));
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidCardinality, Location.None, parameter.Name));
                                     bindingsList = null;
                                     return false;
                                 }
@@ -304,9 +293,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 cardinalityValidated = true;
                             }
 
-                            string bindingName = parameter.Identifier.ValueText;
+                            string bindingName = parameter.Name;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, parameter.Identifier.GetLocation(), out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
+                            if (!TryCreateBindingDict(attribute, bindingName, Location.None, out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
                             {
                                 bindingsList = null;
                                 return false;
@@ -418,15 +407,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any bindings found in the Return Type of the method
             /// </summary>
-            private bool TryGetReturnTypeBindings(MethodDeclarationSyntax method, SemanticModel model, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetReturnTypeBindings(IMethodSymbol method, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
             {
-                TypeSyntax returnTypeSyntax = method.ReturnType;
-                ITypeSymbol? returnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol as ITypeSymbol;
+                ITypeSymbol? returnTypeSymbol = method.ReturnType;
                 bindingsList = new List<IDictionary<string, object>>();
 
                 if (returnTypeSymbol is null)
                 {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, returnTypeSyntax.GetLocation(), nameof(returnTypeSymbol)));
+                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(returnTypeSymbol)));
                     bindingsList = null;
                     return false;
                 }
@@ -437,13 +425,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     // If there is a Task<T> return type, inspect T, the inner type.
                     if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol.OriginalDefinition, _knownTypes.TaskOfTType))
                     {
-                        GenericNameSyntax genericSyntax = (GenericNameSyntax)returnTypeSyntax;
-                        var innerTypeSyntax = genericSyntax.TypeArgumentList.Arguments.First(); // Generic task should only have one type argument
-                        returnTypeSymbol = model.GetSymbolInfo(innerTypeSyntax).Symbol as ITypeSymbol;
+                        if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol)
+                        {
+                            if (namedTypeSymbol.IsGenericType)
+                            {
+                                returnTypeSymbol = namedTypeSymbol.TypeArguments.FirstOrDefault();// Generic task should only have one type argument
+                            }
+                        }
 
                         if (returnTypeSymbol is null) // need this check here b/c return type symbol takes on a new value from the inner argument type above
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, genericSyntax.Identifier.GetLocation(), nameof(returnTypeSymbol)));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, nameof(returnTypeSymbol)));
                             bindingsList = null;
                             return false;
                         }
@@ -455,7 +447,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        if (!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, returnTypeSyntax.GetLocation(), out bindingsList))
+                        if (!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, out bindingsList))
                         {
                             bindingsList = null;
                             return false;
@@ -466,7 +458,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasOutputBinding, Location returnTypeLocation, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var members = returnTypeSymbol.GetMembers();
                 var foundHttpOutput = false;
@@ -486,7 +478,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         if (foundHttpOutput)
                         {
-                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, returnTypeLocation, new object[] { returnTypeSymbol.Name }));
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, Location.None, new object[] { returnTypeSymbol.Name }));
                             bindingsList = null;
                             return false;
                         }
@@ -505,7 +497,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 // validate that there's only one binding attribute per property
                                 if (foundPropertyOutputAttr)
                                 {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, prop.Locations.FirstOrDefault(), new object[] { "Property", prop.Name.ToString() }));
+                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Property", prop.Name.ToString() }));
                                     bindingsList = null;
                                     return false;
                                 }

@@ -4,6 +4,9 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
+using System.Data;
+using System;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -16,10 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             GeneratorExecutionContext context,
             Compilation compilation,
             SemanticModel model, 
-            MethodDeclarationSyntax method, 
-            out string? functionName)
+            MethodDeclarationSyntax method)
         {
-            functionName = null;
             var methodSymbol = model.GetDeclaredSymbol(method);
 
             if (methodSymbol is null)
@@ -28,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            if (IsFunctionSymbol(methodSymbol, compilation, out functionName))
+            if (IsFunctionSymbol(methodSymbol, compilation))
             {
                 return true;
             }
@@ -36,18 +37,30 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return false;
         }
 
-        internal static bool IsFunctionSymbol(ISymbol symbol, Compilation compilation, out string? functionName)
+        internal static bool IsFunctionSymbol(ISymbol symbol, Compilation compilation)
         {
-            functionName = null;
-
             foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass != null &&
                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
                 {
-                    functionName = (string)attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        internal static bool TryGetFunctionName(ISymbol symbol, Compilation compilation, out string? functionName) 
+        {
+            functionName = null;
+
+            var functionAttribute = symbol.GetAttributes().Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)));
+            
+            if (functionAttribute.Count() > 0)
+            {
+                functionName = (string)functionAttribute.FirstOrDefault().ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
+                return true;
             }
 
             return false;
@@ -64,6 +77,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
 
             return $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
+        }
+
+        internal static string GetFullyQualifiedMethodName(IMethodSymbol method)
+        {
+            var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString();
+            return $"{fullyQualifiedClassName}.{method.Name}";
+        }
+
+        internal static string GetFullyQualifiedMetadataName(IMethodSymbol method)
+        {
+            throw new NotImplementedException();
         }
     }
 }

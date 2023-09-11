@@ -60,11 +60,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// attribute must be an iterable collection.
             /// </summary>
             /// <param name="parameterSymbol">The parameter associated with a binding attribute that supports cardinality represented as an <see cref="IParameterSymbol"/>.</param>
-            /// <param name="parameterTypeSyntax">The <see cref="TypeSyntax"/> representation of the paramter's type if it exists.</param>
             /// <param name="attribute">The binding attribute that supports cardinality.</param>
             /// <param name="dataType">The <see cref="DataType"/> that best represents the parameter.</param>
             /// <returns>Returns true if the parameter is compatible with the cardinality defined by the attribute, else returns false.</returns>
-            public bool IsCardinalityValid(IParameterSymbol parameterSymbol, TypeSyntax? parameterTypeSyntax, AttributeData attribute, out DataType dataType)
+            public bool IsCardinalityValid(IParameterSymbol parameterSymbol, AttributeData attribute, out DataType dataType)
             {
                 dataType = DataType.Undefined;
                 var cardinalityIsNamedArg = false;
@@ -139,12 +138,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else if (isGenericEnumerable)
                     {
-                        if (parameterTypeSyntax is null)
-                        {
-                            return false;
-                        }
-
-                        dataType = ResolveIEnumerableOfT(parameterSymbol, parameterTypeSyntax, out bool hasError);
+                        dataType = ResolveIEnumerableOfT(parameterSymbol, out bool hasError);
 
                         if (hasError)
                         {
@@ -164,10 +158,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// Find the underlying data type of an IEnumerableOfT (String, Binary, Undefined)
             /// ex. IEnumerable<byte[]> would return DataType.Binary
             /// </summary>
-            private DataType ResolveIEnumerableOfT(IParameterSymbol parameterSymbol, TypeSyntax parameterSyntax, out bool hasError)
+            private DataType ResolveIEnumerableOfT(IParameterSymbol parameterSymbol, out bool hasError)
             {
                 var result = DataType.Undefined;
-                var currentSyntax = parameterSyntax;
                 hasError = false;
 
                 var currSymbol = parameterSymbol.Type;

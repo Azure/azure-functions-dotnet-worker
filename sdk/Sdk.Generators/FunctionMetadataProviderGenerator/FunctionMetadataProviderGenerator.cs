@@ -38,7 +38,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             // attempt to parse user compilation
             var p = new Parser(context);
 
-            IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(receiver.CandidateMethods);
+            var entryAssemblyFuncs = GetEntryAssemblyFunctions(receiver.CandidateMethods, context);
+            var dependentFuncs = GetDependentAssemblyFunctions(context);
+
+            IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = p.GetFunctionMetadataInfo(entryAssemblyFuncs.Concat(dependentFuncs).ToList());
 
             // Proceed to generate the file if function metadata info was successfully returned
             if (functionMetadataInfo.Count > 0)
@@ -72,39 +75,52 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return string.Equals(value, bool.TrueString, System.StringComparison.OrdinalIgnoreCase);
         }
 
+        private IList<IMethodSymbol> GetEntryAssemblyFunctions(List<MethodDeclarationSyntax> candidateMethods, GeneratorExecutionContext context)
+        {
+            IList<IMethodSymbol>? entryAssemblyFuncs = new List<IMethodSymbol>();
+
+            foreach (MethodDeclarationSyntax method in candidateMethods)
+            {
+                var model = context.Compilation.GetSemanticModel(method.SyntaxTree);
+
+                if (FunctionsUtil.IsValidFunctionMethod(context, context.Compilation, model,  method))
+                {
+                    IMethodSymbol? methodSymbol = (IMethodSymbol) model.GetDeclaredSymbol(method)!;
+                    entryAssemblyFuncs.Add(methodSymbol);
+                }
+            }
+
+            return entryAssemblyFuncs.Count > 0 ? entryAssemblyFuncs : ImmutableList<IMethodSymbol>.Empty;
+        }
+
         /// <summary>
         /// Collect methods with Function attributes on them from dependent/referenced assemblies.
         /// </summary>
-        private IList<MethodDeclarationSyntax> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
+        private IList<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
         {
-            IList<MethodDeclarationSyntax>? dependentAssemblyFuncs = new List<MethodDeclarationSyntax>();
+            IList<IMethodSymbol>? dependentAssemblyFuncs = new List<IMethodSymbol>();
 
             foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
-                string? funcName = null;
+                var namespaceSymbols = assembly.GlobalNamespace.GetMembers();
 
-                if (assembly.MetadataName == "LibraryWithFunctions")
+                foreach (var namespaceSymbol in namespaceSymbols)
                 {
-                    var namespaceSymbols = assembly.GlobalNamespace.GetMembers();
+                    var namespaceMembers = namespaceSymbol.GetMembers();
 
-                    foreach (var namespaceSymbol in namespaceSymbols)
+                    foreach (var m in namespaceMembers)
                     {
-                        var namespaceMembers = namespaceSymbol.GetMembers();
-
-                        foreach (var m in namespaceMembers)
+                        if (m is INamedTypeSymbol namedType)
                         {
-                            if (m is INamedTypeSymbol namedType)
-                            {
-                                var typeMembers = namedType.GetMembers();
+                            var typeMembers = namedType.GetMembers();
 
-                                foreach (var typeMember in typeMembers)
+                            foreach (var typeMember in typeMembers)
+                            {
+                                if (typeMember is IMethodSymbol method)
                                 {
-                                    if (typeMember is IMethodSymbol method)
+                                    if (FunctionsUtil.IsFunctionSymbol(method, context.Compilation))
                                     {
-                                        if (FunctionsUtil.IsFunctionSymbol(method, context.Compilation, out funcName))
-                                        {
-                                            var syntax = method.DeclaringSyntaxReferences.FirstOrDefault();
-                                        }
+                                        dependentAssemblyFuncs.Add(method);
                                     }
                                 }
                             }
@@ -113,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
             }
 
-            return dependentAssemblyFuncs.Count > 0 ? dependentAssemblyFuncs : ImmutableList<MethodDeclarationSyntax>.Empty;
+            return dependentAssemblyFuncs.Count > 0 ? dependentAssemblyFuncs : ImmutableList<IMethodSymbol>.Empty;
         }
     }
 }

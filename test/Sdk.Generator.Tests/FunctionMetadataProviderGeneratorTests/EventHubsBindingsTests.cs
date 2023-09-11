@@ -795,7 +795,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
                     new DiagnosticResult(DiagnosticDescriptors.InvalidCardinality)
-                    .WithSpan(15, 146, 15, 151)
                     // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                     .WithArguments("input")
                 };

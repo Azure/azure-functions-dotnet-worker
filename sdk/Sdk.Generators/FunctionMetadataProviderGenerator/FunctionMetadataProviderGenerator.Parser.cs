@@ -626,7 +626,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else
                         {
-                            attrProperties[namedArgument.Key] = namedArgument.Value.Value;
+                            if (TryParseValueByType(namedArgument.Value, out object? argValue))
+                            {
+                                attrProperties[namedArgument.Key] = argValue;
+                            }
+                            else
+                            {
+                                // TODO: Log diagnostic error
+                            }
                         }
                     }
                 }
@@ -657,14 +664,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> dict, Location? attribLocation)
+            private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> arguments, Location? attributeLocation)
             {
                 IMethodSymbol? attribMethodSymbol = attributeData.AttributeConstructor;
 
                 // Check if the attribute constructor has any parameters
                 if (attribMethodSymbol is null)
                 {
-                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, attribLocation, nameof(attribMethodSymbol)));
+                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, attributeLocation, nameof(attribMethodSymbol)));
                     return false;
                 }
 
@@ -677,44 +684,51 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     var arg = attributeData.ConstructorArguments[i];
 
-                    switch (arg.Kind)
+                    if (TryParseValueByType(arg, out object? argValue))
                     {
-                        case TypedConstantKind.Error:
-                            break;
-
-                        case TypedConstantKind.Primitive:
-                            dict[argumentName] = arg.Value;
-                            break;
-
-                        case TypedConstantKind.Enum:
-                            var enumValue = arg.Type!.GetMembers()
-                                .FirstOrDefault(m => m is IFieldSymbol field
-                                    && field.ConstantValue is object value
-                                    && value.Equals(arg.Value));
-
-                            if (enumValue is null)
-                            {
-                                return false;
-                            }
-
-                            // we want just the enumValue symbol's name (Admin, Anonymous, Function)
-                            dict[argumentName] = enumValue.Name;
-                            break;
-
-                        case TypedConstantKind.Type:
-                            break;
-
-                        case TypedConstantKind.Array:
-                            var arrayValues = arg.Values.Select(a => a.Value?.ToString()).ToArray();
-                            dict[argumentName] = arrayValues;
-                            break;
-
-                        default:
-                            break;
+                        arguments[argumentName] = argValue;
+                    }
+                    else
+                    {
+                        // TODO: Log diagnostic error
                     }
                 }
 
                 return true;
+            }
+
+            private bool TryParseValueByType(TypedConstant attributeArg, out object? argValue)
+            {
+                argValue = null;
+
+                switch (attributeArg.Kind)
+                {
+                    case TypedConstantKind.Primitive:
+                        argValue = attributeArg.Value;
+                        break;
+
+                    case TypedConstantKind.Enum:
+                        var enumValue = attributeArg.Type!.GetMembers()
+                            .FirstOrDefault(m => m is IFieldSymbol field
+                                && field.ConstantValue is object value
+                                && value.Equals(attributeArg.Value));
+
+                        if (enumValue is null)
+                        {
+                            return false;
+                        }
+
+                        // we want just the enumValue symbol's name (ex: Admin, Anonymous, Function)
+                        argValue = enumValue.Name;
+                        break;
+
+                    case TypedConstantKind.Array:
+                        var arrayValues = attributeArg.Values.Select(a => a.Value?.ToString()).ToArray();
+                        argValue = arrayValues;
+                        break;
+                }
+
+                return argValue is not null;
             }
 
             /// <summary>

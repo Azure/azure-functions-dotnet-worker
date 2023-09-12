@@ -156,7 +156,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         [Function("BlobToQueueFunction")]
                         [QueueOutput("queue2")]
                         public object BlobToQueue(
-                            [BlobTrigger("container2/%file%")] string blob)
+                            [BlobTrigger("container2/%file%", Source = BlobTriggerSource.EventGrid)] string blob)
                         {
                             throw new NotImplementedException();
                         }
@@ -206,7 +206,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
                             Function1RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function1RawBindings.Add(@"{""name"":""blob"",""type"":""BlobTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""path"":""container2/%file%"",""dataType"":""String""}");
+                            Function1RawBindings.Add(@"{""name"":""blob"",""type"":""BlobTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""path"":""container2/%file%"",""source"":""EventGrid"",""dataType"":""String""}");
 
                             var Function1 = new DefaultFunctionMetadata
                             {

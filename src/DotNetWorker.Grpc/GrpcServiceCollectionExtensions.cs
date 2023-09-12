@@ -73,9 +73,9 @@ namespace Microsoft.Extensions.DependencyInjection
                     grpcWorkerStartupOption.Host = config["host"];
                     grpcWorkerStartupOption.Port = config.GetValue<int>("port");
                     grpcWorkerStartupOption.Uri = config["functions-uri"];
-                    grpcWorkerStartupOption.RequestId = config["functions-requestid"] ?? config["requestId"];
-                    grpcWorkerStartupOption.WorkerId = config["functions-workerid"] ?? config["workerId"];
-                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("functions-grpcmaxmessagelength", null) ?? config.GetValue<int>("grpcMaxMessageLength");
+                    grpcWorkerStartupOption.RequestId = config["functions-request-id"] ?? config["requestId"];
+                    grpcWorkerStartupOption.WorkerId = config["functions-worker-id"] ?? config["workerId"];
+                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("functions-grpc-max-message-length", null) ?? config.GetValue<int>("grpcMaxMessageLength");
                 });
 
             return services;

@@ -16,7 +16,6 @@ namespace FunctionsNetHost
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-
                 using var appLoader = new AppLoader();
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
@@ -35,25 +34,36 @@ namespace FunctionsNetHost
             var workerOption = new Option<string>("--workerId");
             var grpcMsgLengthOption = new Option<int>("--grpcMaxMessageLength");
             var requestIdOption = new Option<string>("--requestId");
+            var funcUriOption = new Option<string>("--functions-uri");
+            var funcRequestIdOption = new Option<string>("--functions-request-id");
+            var funcWorkerIdOption = new Option<string>("--functions-worker-id");
+            var funcGrpcMsgLengthOption = new Option<int?>("--functions-grpc-max-message-length");
 
-            var rootCommand = new RootCommand();
+            var rootCommand = new RootCommand
+            {
+                TreatUnmatchedTokensAsErrors = false
+            };
             rootCommand.AddOption(portOption);
             rootCommand.AddOption(hostOption);
             rootCommand.AddOption(workerOption);
             rootCommand.AddOption(grpcMsgLengthOption);
             rootCommand.AddOption(requestIdOption);
+            rootCommand.AddOption(funcUriOption);
+            rootCommand.AddOption(funcRequestIdOption);
+            rootCommand.AddOption(funcWorkerIdOption);
+            rootCommand.AddOption(funcGrpcMsgLengthOption);
 
             var workerStartupOptions = new GrpcWorkerStartupOptions();
 
-            rootCommand.SetHandler((host, port, workerId, grpcMsgLength, requestId) =>
+            rootCommand.SetHandler((context) =>
             {
-                workerStartupOptions.Host = host;
-                workerStartupOptions.Port = port;
-                workerStartupOptions.WorkerId = workerId;
-                workerStartupOptions.GrpcMaxMessageLength = grpcMsgLength;
-                workerStartupOptions.RequestId = requestId;
-            },
-                hostOption, portOption, workerOption, grpcMsgLengthOption, requestIdOption);
+                var serverEndpoint = context.ParseResult.GetValueForOption(funcUriOption) ?? $"http://{context.ParseResult.GetValueForOption(hostOption)}:{context.ParseResult.GetValueForOption(portOption)}";
+                workerStartupOptions.ServerUri = new Uri(serverEndpoint);
+
+                workerStartupOptions.GrpcMaxMessageLength = context.ParseResult.GetValueForOption(funcGrpcMsgLengthOption) ?? context.ParseResult.GetValueForOption(grpcMsgLengthOption);
+                workerStartupOptions.RequestId = context.ParseResult.GetValueForOption(funcRequestIdOption) ?? context.ParseResult.GetValueForOption(requestIdOption);
+                workerStartupOptions.WorkerId = context.ParseResult.GetValueForOption(funcWorkerIdOption) ?? context.ParseResult.GetValueForOption(workerOption);
+            });
 
             Logger.LogTrace($"raw args:{string.Join(" ", args)}");
 

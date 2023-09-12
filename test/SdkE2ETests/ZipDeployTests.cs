@@ -54,16 +54,8 @@ namespace Microsoft.Azure.Functions.SdkTests
                     }
                     else
                     {
-                        try
-                        {
-                            Assert.Equal(0, entry.HostSystem);
-                            Assert.Equal(0, entry.ExternalFileAttributes);
-                        }
-                        catch
-                        {
-                            _testOutputHelper.WriteLine($"{zip.Name} failed validation");
-                            throw;
-                        }
+                        Assert.Equal(0, entry.HostSystem);
+                        Assert.Equal(0, entry.ExternalFileAttributes);
                     }
                 }
 

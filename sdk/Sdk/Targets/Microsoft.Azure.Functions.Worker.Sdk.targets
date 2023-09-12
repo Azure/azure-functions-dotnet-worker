@@ -106,7 +106,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OverwriteReadOnlyFiles="true" />
   </Target>
 
-  <Target Name="_FunctionsGenerateNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'" Inputs="$(_FunctionsWorkerConfigInputFile)" Outputs="$(_FunctionsWorkerConfigPath)">
+  <Target Name="_FunctionsGenerateNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
     <WriteLinesToFile
       Condition="$(SelfContained)"
       File="$(_FunctionsWorkerConfigPath)"
@@ -126,7 +126,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Overwrite="true" />
   </Target>
 
-  <Target Name="_FunctionsGenerateNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'" Inputs="$(_FunctionsWorkerConfigInputFile)" Outputs="$(_FunctionsWorkerConfigPath)">
+  <Target Name="_FunctionsGenerateNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
     <WriteLinesToFile
       File="$(_FunctionsWorkerConfigPath)"
       Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))

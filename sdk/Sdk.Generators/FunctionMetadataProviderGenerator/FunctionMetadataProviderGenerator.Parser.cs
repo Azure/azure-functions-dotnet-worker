@@ -632,7 +632,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             }
                             else
                             {
-                                // TODO: Log diagnostic error
+                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, attribLocation));
+                                return false;
                             }
                         }
                     }
@@ -690,7 +691,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        // TODO: Log diagnostic error
+                        _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.InvalidBindingAttributeArgument, attributeLocation));
+                        return false;
                     }
                 }
 

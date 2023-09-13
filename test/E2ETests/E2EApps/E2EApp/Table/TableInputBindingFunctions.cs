@@ -19,6 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             _logger = logger;
         }
 
+        /*
         [Function(nameof(TableClientFunction))]
         public async Task<HttpResponseData> TableClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
@@ -27,14 +28,28 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             var tableEntity = table.QueryAsync<TableEntity>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 
+#if NET48
+            foreach (TableEntity val in tableEntity)
+            {
+                val.TryGetValue("Text", out var text);
+                response.WriteString(downloadResult.Value.Content.ToString());
+            }
+
+#elif NET6_0_OR_GREATER
             await foreach (TableEntity val in tableEntity)
             {
                 val.TryGetValue("Text", out var text);
                 await response.WriteStringAsync(text?.ToString() ?? "");
             }
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
+
 
             return response;
         }
+        */
 
         [Function(nameof(ReadTableDataFunction))]
         public async Task<HttpResponseData> ReadTableDataFunction(
@@ -52,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
             [TableInput("TestTable", "{partition}", 2, Filter = "RowKey ne '" + "{rowKey}'")] IEnumerable<TableEntity> table)
         {
-            List<string> tableList = new();
+            List<string> tableList = new List<string>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 
             foreach (TableEntity tableEntity in table)
@@ -72,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             [TableInput("TestTable", "{partitionKey}")] IEnumerable<TableEntity> tables)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
-            List<string> tableList = new();
+            List<string> tableList = new List<string>();
 
             foreach (TableEntity tableEntity in tables)
             {

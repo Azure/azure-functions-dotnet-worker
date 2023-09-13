@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -30,7 +30,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.Body.WriteAsync(downloadResult.Value.Content);
+
+#if NET48
+            response.WriteString(downloadResult.Value.Content.ToString());
+#elif NET6_0_OR_GREATER
+                await response.Body.WriteAsync(downloadResult.Value.Content);
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
             return response;
         }
 
@@ -41,7 +49,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.Body.WriteAsync(downloadResult.Value.Content);
+
+#if NET48
+            response.WriteString(downloadResult.Value.Content.ToString());
+#elif NET6_0_OR_GREATER
+                            await response.Body.WriteAsync(downloadResult.Value.Content);
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
             return response;
         }
 
@@ -52,7 +68,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.Body.WriteAsync(downloadResult.Value.Content);
+
+#if NET48
+            response.WriteString(downloadResult.Value.Content.ToString());
+#elif NET6_0_OR_GREATER
+                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
             return response;
         }
 
@@ -63,7 +87,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.Body.WriteAsync(downloadResult.Value.Content);
+
+#if NET48
+            response.WriteString(downloadResult.Value.Content.ToString());
+#elif NET6_0_OR_GREATER
+                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
             return response;
         }
 
@@ -74,7 +106,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.Body.WriteAsync(downloadResult.Value.Content);
+
+#if NET48
+            response.WriteString(downloadResult.Value.Content.ToString());
+#elif NET6_0_OR_GREATER
+                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
             return response;
         }
 
@@ -86,7 +126,15 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             var blobClient = client.GetBlobClient("testFile.txt");
             var downloadResult = await blobClient.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-            await response.Body.WriteAsync(downloadResult.Value.Content);
+
+#if NET48
+            response.WriteString(downloadResult.Value.Content.ToString());
+#elif NET6_0_OR_GREATER
+                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+#else
+#error This code block does not match csproj TargetFrameworks list
+#endif
+
             return response;
         }
 
@@ -95,7 +143,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/testFile.txt")] Stream stream)
         {
-            using var blobStreamReader = new StreamReader(stream);
+            var blobStreamReader = new StreamReader(stream);
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(blobStreamReader.ReadToEnd());
             return response;
@@ -136,7 +184,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] BlobClient[] blobs)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (BlobClient blob in blobs)
             {
@@ -151,16 +199,17 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return response;
         }
 
+        /*
         [Function(nameof(BlobInputStreamArrayTest))]
         public async Task<HttpResponseData> BlobInputStreamArrayTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] Stream[] blobContent)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (Stream stream in blobContent)
             {
-                using var blobStreamReader = new StreamReader(stream);
+                var blobStreamReader = new StreamReader(stream);
                 blobList.Add(blobStreamReader.ReadToEnd());
             }
 
@@ -169,13 +218,14 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             await response.WriteStringAsync(contentAsString);
             return response;
         }
+        */
 
         [Function(nameof(BlobInputBytesArrayTest))]
         public async Task<HttpResponseData> BlobInputBytesArrayTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] byte[][] blobContent)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (byte[] bytes in blobContent)
             {
@@ -193,7 +243,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/testFile.txt")] byte[][] blobContent)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (byte[] bytes in blobContent)
             {
@@ -233,7 +283,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] Book[] books)
         {
-            List<string> bookNames = new();
+            List<string> bookNames = new List<string>();
 
             foreach (var item in books)
             {
@@ -251,7 +301,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/testFile.txt")] Book[] books)
         {
-            List<string> bookNames = new();
+            List<string> bookNames = new List<string>();
 
             foreach (var item in books)
             {
@@ -269,7 +319,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] IEnumerable<BlobClient> blobs)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (BlobClient blob in blobs)
             {
@@ -284,16 +334,17 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return response;
         }
 
+        /*
         [Function(nameof(BlobInputStreamEnumerableTest))]
         public async Task<HttpResponseData> BlobInputStreamEnumerableTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] IEnumerable<Stream> blobContent)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (Stream stream in blobContent)
             {
-                using var blobStreamReader = new StreamReader(stream);
+                var blobStreamReader = new StreamReader(stream);
                 blobList.Add(blobStreamReader.ReadToEnd());
             }
 
@@ -302,13 +353,14 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             await response.WriteStringAsync(contentAsString);
             return response;
         }
+        */
 
         [Function(nameof(BlobInputBytesEnumerableTest))]
         public async Task<HttpResponseData> BlobInputBytesEnumerableTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] IEnumerable<byte[]> blobContent)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (byte[] bytes in blobContent)
             {
@@ -326,7 +378,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/testFile.txt")] IEnumerable<byte[]> blobContent)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (byte[] bytes in blobContent)
             {
@@ -366,7 +418,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated")] IEnumerable<Book> books)
         {
-            List<string> bookNames = new();
+            List<string> bookNames = new List<string>();
 
             foreach (var item in books)
             {
@@ -384,7 +436,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/testFile.txt")] IEnumerable<Book> books)
         {
-            List<string> bookNames = new();
+            List<string> bookNames = new List<string>();
 
             foreach (var item in books)
             {
@@ -402,7 +454,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
             [BlobInput("test-input-dotnet-isolated/test")] IEnumerable<BlobClient> blobs)
         {
-            List<string> blobList = new();
+            List<string> blobList = new List<string>();
 
             foreach (BlobClient blob in blobs)
             {

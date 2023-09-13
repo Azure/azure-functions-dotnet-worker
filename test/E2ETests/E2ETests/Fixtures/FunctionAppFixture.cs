@@ -117,13 +117,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             if (!_disposed)
             {
-                _logger.LogInformation("FunctionAppFixture disposing.");
-
                 if (_funcProcess != null)
                 {
                     try
                     {
-                        _logger.LogInformation($"Shutting down functions host for {Constants.FunctionAppCollectionName}");
                         _funcProcess.Kill();
                         _funcProcess.Dispose();
                     }

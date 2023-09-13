@@ -101,7 +101,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 Name = "DependencyFunc",
                                 EntryPoint = "DependentAssemblyWithFunctions.DependencyFunc.Run",
                                 RawBindings = Function1RawBindings,
-                                ScriptFile = "TestProject.dll"
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
                             };
                             metadataList.Add(Function1);
 

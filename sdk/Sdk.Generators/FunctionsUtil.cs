@@ -55,11 +55,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             functionName = null;
 
-            var functionAttribute = symbol.GetAttributes().Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)));
-            
-            if (functionAttribute.Count() > 0)
+            var functionAttribute = symbol.GetAttributes()
+                .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
+                .FirstOrDefault();
+
+            if (functionAttribute is not null)
             {
-                functionName = (string)functionAttribute.FirstOrDefault().ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
+                functionName = (string) functionAttribute.ConstructorArguments.First().Value!;
                 return true;
             }
 
@@ -83,11 +85,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString();
             return $"{fullyQualifiedClassName}.{method.Name}";
-        }
-
-        internal static string GetFullyQualifiedMetadataName(IMethodSymbol method)
-        {
-            throw new NotImplementedException();
         }
     }
 }

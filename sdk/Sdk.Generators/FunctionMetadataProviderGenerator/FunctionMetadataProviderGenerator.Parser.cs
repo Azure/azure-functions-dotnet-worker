@@ -46,9 +46,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var result = ImmutableArray.CreateBuilder<GeneratorFunctionMetadata>();
 
-                var assemblyName = Compilation.Assembly.Name;
-                var scriptFile = Path.Combine(assemblyName + ".dll");
-
                 // Loop through the candidate methods (methods with any attribute associated with them)
                 foreach (IMethodSymbol method in methods)
                 {
@@ -59,6 +56,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     {
                         _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, method.Name)); // would only reach here if the function attribute or method was not loaded, resulting in failure to retrieve name
                     }
+
+                    var assemblyName = method.ContainingAssembly.Name;
+                    var scriptFile = Path.Combine(assemblyName + ".dll");
 
                     var newFunction = new GeneratorFunctionMetadata
                     {

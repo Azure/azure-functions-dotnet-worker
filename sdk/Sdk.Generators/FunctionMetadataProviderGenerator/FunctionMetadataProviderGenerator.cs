@@ -75,7 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return string.Equals(value, bool.TrueString, System.StringComparison.OrdinalIgnoreCase);
         }
 
-        private IList<IMethodSymbol> GetEntryAssemblyFunctions(List<MethodDeclarationSyntax> candidateMethods, GeneratorExecutionContext context)
+        private IEnumerable<IMethodSymbol> GetEntryAssemblyFunctions(List<MethodDeclarationSyntax> candidateMethods, GeneratorExecutionContext context)
         {
             IList<IMethodSymbol>? entryAssemblyFuncs = new List<IMethodSymbol>();
 
@@ -86,20 +86,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 if (FunctionsUtil.IsValidFunctionMethod(context, context.Compilation, model,  method))
                 {
                     IMethodSymbol? methodSymbol = (IMethodSymbol) model.GetDeclaredSymbol(method)!;
-                    entryAssemblyFuncs.Add(methodSymbol);
+                    yield return methodSymbol;
                 }
             }
-
-            return entryAssemblyFuncs.Count > 0 ? entryAssemblyFuncs : ImmutableList<IMethodSymbol>.Empty;
         }
 
         /// <summary>
         /// Collect methods with Function attributes on them from dependent/referenced assemblies.
         /// </summary>
-        private IList<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
+        private IEnumerable<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
         {
-            IList<IMethodSymbol>? dependentAssemblyFuncs = new List<IMethodSymbol>();
-
             foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
                 var namespaceSymbols = assembly.GlobalNamespace.GetMembers();
@@ -120,7 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 {
                                     if (FunctionsUtil.IsFunctionSymbol(method, context.Compilation))
                                     {
-                                        dependentAssemblyFuncs.Add(method);
+                                        yield return method;
                                     }
                                 }
                             }
@@ -128,8 +124,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
             }
-
-            return dependentAssemblyFuncs.Count > 0 ? dependentAssemblyFuncs : ImmutableList<IMethodSymbol>.Empty;
         }
     }
 }

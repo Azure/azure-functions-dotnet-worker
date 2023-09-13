@@ -8,6 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
@@ -16,9 +17,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
     {
         private readonly FunctionAppFixture _fixture;
 
-        public HttpEndToEndTests(FunctionAppFixture fixture)
+        public HttpEndToEndTests(FunctionAppFixture fixture, ITestOutputHelper testOutputHelper)
         {
             _fixture = fixture;
+            _fixture.TestLogs.UseTestLogger(testOutputHelper);
         }
 
         [Theory]

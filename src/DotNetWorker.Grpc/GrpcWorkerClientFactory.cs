@@ -104,15 +104,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
 
             private FunctionRpcClient CreateClient()
             {
-                string uriString = _startupOptions.Uri ?? $"http://{_startupOptions.Host}:{_startupOptions.Port}";
-                if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
-                {
-                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
-                }
-
-
 #if NET5_0_OR_GREATER
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
+                GrpcChannel grpcChannel = GrpcChannel.ForAddress(_startupOptions.Uri!.AbsoluteUri, new GrpcChannelOptions()
                 {
                     MaxReceiveMessageSize = _startupOptions.GrpcMaxMessageLength,
                     MaxSendMessageSize = _startupOptions.GrpcMaxMessageLength,
@@ -126,7 +119,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                     new ChannelOption(GrpcCore.ChannelOptions.MaxSendMessageLength, _startupOptions.GrpcMaxMessageLength)
                 };
 
-                GrpcCore.Channel grpcChannel = new GrpcCore.Channel(_startupOptions.Host, _startupOptions.Port, ChannelCredentials.Insecure, options);
+                GrpcCore.Channel grpcChannel = new GrpcCore.Channel(_startupOptions.Uri.Host, _startupOptions.Uri.Port, ChannelCredentials.Insecure, options);
 
 #endif
                 return new FunctionRpcClient(grpcChannel);

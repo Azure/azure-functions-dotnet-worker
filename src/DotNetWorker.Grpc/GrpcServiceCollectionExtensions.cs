@@ -11,7 +11,6 @@ using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Handlers;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -70,9 +69,25 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddOptions<GrpcWorkerStartupOptions>()
                 .Configure<IConfiguration>((grpcWorkerStartupOption, config) =>
                 {
-                    grpcWorkerStartupOption.Host = config["host"];
-                    grpcWorkerStartupOption.Port = config.GetValue<int>("port");
-                    grpcWorkerStartupOption.Uri = config["functions-uri"];
+                    Uri? grpcUri;
+                    var functionsUri = config["functions-uri"];
+                    if (functionsUri is not null)
+                    {
+                        if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out grpcUri))
+                        {
+                            throw new UriFormatException($"'{functionsUri}' is not a valid value for 'functions-uri'. Value should be a valid URL.");
+                        }
+                    }
+                    else
+                    {
+                        var uriString = $"http://{config["HOST"]}:{config["PORT"]}";
+                        if (!Uri.TryCreate(uriString, UriKind.Absolute, out grpcUri))
+                        {
+                            throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
+                        }
+                    }
+
+                    grpcWorkerStartupOption.Uri = grpcUri;
                     grpcWorkerStartupOption.RequestId = config["functions-request-id"] ?? config["requestId"];
                     grpcWorkerStartupOption.WorkerId = config["functions-worker-id"] ?? config["workerId"];
                     grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("functions-grpc-max-message-length", null) ?? config.GetValue<int>("grpcMaxMessageLength");

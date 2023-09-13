@@ -1,10 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
+  <PropertyGroup Condition="$(DotnetVersion) != 'netfx'">
     <TargetFramework>net7.0</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
 
-  <PropertyGroup>
+  <PropertyGroup Condition="$(DotnetVersion) == 'netfx'">
+    <TargetFramework>net48</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+  </PropertyGroup>
+    
+    <PropertyGroup>
     <OutputType>Exe</OutputType>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
     <AssemblyName>Microsoft.Azure.Functions.Worker.E2EApp</AssemblyName>
@@ -12,15 +17,23 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <ItemGroup>
+  <!-- Remove  any .cs files which are not expected to work with net framework -->  
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
+      <Compile Remove="Blob\*.cs; Cosmos\*.cs; EventHubs\*.cs; Queue\*.cs; Table\*.cs"/> 
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
-    <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+      <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
+      <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
+      <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,7 +52,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.14.1" />
-    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.18.0" />    
+    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" /> 
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 </Project>

@@ -62,16 +62,26 @@ jobs:
       {
         throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
       }
-      ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
+      ./setup-e2e-tests.ps1 -DotnetVersion $env:DOTNETVERSION `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
                             -SkipBuildOnPack
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2
+    condition: eq(variables['DotnetVersion'], 'net7')
     displayName: 'Run tests'
     inputs:
       command: 'test'
       arguments: '--no-build -c Release'
+      projects: |
+        test/**/*Tests.csproj
+
+  - task: DotNetCoreCLI@2
+    condition: eq(variables['DotnetVersion'], 'netfx')
+    displayName: 'Run tests for NetFramework'
+    inputs:
+      command: 'test'
+      arguments: '--no-build -c Release  --filter "FullyQualifiedName~TimerTrigger"' #only run http tests to avoid emulators on Linux
       projects: |
         test/**/*Tests.csproj
 
@@ -232,7 +242,8 @@ jobs:
     name: '1ES-Hosted-AzFunc'
     demands:
       - ImageOverride -equals MMSUbuntu20.04TLS
-
+  condition: eq(variables['DotnetVersion'], 'net7')
+    
   steps:
     - template: ../build/install-dotnet.yml
     - task: DotNetCoreCLI@2
@@ -248,7 +259,7 @@ jobs:
         {
           throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
         }
-        ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
+        ./setup-e2e-tests.ps1 -DotnetVersion $env:DOTNETVERSION `
                               -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
                               -SkipCosmosDBEmulator `
                               -SkipBuildOnPack

@@ -1,6 +1,12 @@
 #Requires -Version 6
 
 param(
+    [Parameter(Mandatory=$true)]
+    [ValidateNotNullOrEmpty()]
+    [String]
+    [ValidateSet("net7", "netfx")]
+    $DotnetVersion,
+
     [Switch]
     $SkipStorageEmulator,
 
@@ -98,7 +104,7 @@ if (Test-Path $output)
   Remove-Item $output -Recurse -Force -ErrorAction Ignore
 }
 
-$AdditionalPackArgs = @("-c", "Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion")
+$AdditionalPackArgs = @("-c", "Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion", "-p:DotnetVersion=$DotnetVersion")
 
 if ($SkipBuildOnPack -eq $true)
 {

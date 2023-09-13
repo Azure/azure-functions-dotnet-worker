@@ -29,40 +29,35 @@ namespace FunctionsNetHost
 
         private static async Task<GrpcWorkerStartupOptions> GetStartupOptionsFromCmdLineArgs(string[] args)
         {
-            var hostOption = new Option<string>("--host");
-            var portOption = new Option<int>("--port");
-            var workerOption = new Option<string>("--workerId");
-            var grpcMsgLengthOption = new Option<int>("--grpcMaxMessageLength");
-            var requestIdOption = new Option<string>("--requestId");
-            var funcUriOption = new Option<string>("--functions-uri");
-            var funcRequestIdOption = new Option<string>("--functions-request-id");
-            var funcWorkerIdOption = new Option<string>("--functions-worker-id");
-            var funcGrpcMsgLengthOption = new Option<int?>("--functions-grpc-max-message-length");
+            var uriOption = new Option<string>("--functions-uri") { IsRequired = true };
+            var requestIdOption = new Option<string>("--functions-request-id") { IsRequired = true };
+            var workerIdOption = new Option<string>("--functions-worker-id") { IsRequired = true };
+            var grpcMaxMessageLengthOption = new Option<int>("--functions-grpc-max-message-length") { IsRequired = true };
 
             var rootCommand = new RootCommand
             {
                 TreatUnmatchedTokensAsErrors = false
             };
-            rootCommand.AddOption(portOption);
-            rootCommand.AddOption(hostOption);
-            rootCommand.AddOption(workerOption);
-            rootCommand.AddOption(grpcMsgLengthOption);
+
+            rootCommand.AddOption(uriOption);
             rootCommand.AddOption(requestIdOption);
-            rootCommand.AddOption(funcUriOption);
-            rootCommand.AddOption(funcRequestIdOption);
-            rootCommand.AddOption(funcWorkerIdOption);
-            rootCommand.AddOption(funcGrpcMsgLengthOption);
+            rootCommand.AddOption(workerIdOption);
+            rootCommand.AddOption(grpcMaxMessageLengthOption);
 
             var workerStartupOptions = new GrpcWorkerStartupOptions();
 
             rootCommand.SetHandler((context) =>
             {
-                var serverEndpoint = context.ParseResult.GetValueForOption(funcUriOption) ?? $"http://{context.ParseResult.GetValueForOption(hostOption)}:{context.ParseResult.GetValueForOption(portOption)}";
-                workerStartupOptions.ServerUri = new Uri(serverEndpoint);
+                var uriString = context.ParseResult.GetValueForOption(uriOption);
+                if (!Uri.TryCreate(uriString, UriKind.Absolute, out var endpointUri))
+                {
+                    throw new UriFormatException($"'{uriString}' is not a valid value for argument '{uriOption.Name}'. Value should be a valid URL.");
+                }
 
-                workerStartupOptions.GrpcMaxMessageLength = context.ParseResult.GetValueForOption(funcGrpcMsgLengthOption) ?? context.ParseResult.GetValueForOption(grpcMsgLengthOption);
-                workerStartupOptions.RequestId = context.ParseResult.GetValueForOption(funcRequestIdOption) ?? context.ParseResult.GetValueForOption(requestIdOption);
-                workerStartupOptions.WorkerId = context.ParseResult.GetValueForOption(funcWorkerIdOption) ?? context.ParseResult.GetValueForOption(workerOption);
+                workerStartupOptions.ServerUri = endpointUri;
+                workerStartupOptions.GrpcMaxMessageLength = context.ParseResult.GetValueForOption(grpcMaxMessageLengthOption);
+                workerStartupOptions.RequestId = context.ParseResult.GetValueForOption(requestIdOption);
+                workerStartupOptions.WorkerId = context.ParseResult.GetValueForOption(workerIdOption);
             });
 
             Logger.LogTrace($"raw args:{string.Join(" ", args)}");

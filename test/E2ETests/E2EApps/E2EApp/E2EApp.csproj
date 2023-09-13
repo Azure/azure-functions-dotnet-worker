@@ -17,11 +17,6 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <!-- Remove  any .cs files which are not expected to work with net framework -->  
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-      <Compile Remove="Blob\*.cs; Cosmos\*.cs; EventHubs\*.cs; Queue\*.cs; Table\*.cs"/> 
-  </ItemGroup>
-
   <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />

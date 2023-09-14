@@ -6,10 +6,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc
 {
-    /// <summary>
-    /// contains extension methods for IConfiguration.
-    /// </summary>
-    public static class ConfigurationExtensions
+    internal static class ConfigurationExtensions
     {
         /// <summary>
         /// Gets the functions host gRPC address from <see cref="IConfiguration"/>.

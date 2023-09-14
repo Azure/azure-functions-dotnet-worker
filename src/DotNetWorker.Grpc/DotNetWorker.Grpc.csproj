@@ -40,7 +40,7 @@
     we use the legacy Grpc.Core package instead, due to limitations with the current 
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="Grpc.Core" Version="2.46.6" />
+    <PackageReference Include="Grpc.Core" Version="2.45.0" />
     <Compile Remove="NativeHostIntegration/**" />
   </ItemGroup>
 
@@ -55,7 +55,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Rpc\src\Worker.Extensions.Rpc.csproj" />
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
 

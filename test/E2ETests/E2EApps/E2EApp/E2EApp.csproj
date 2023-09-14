@@ -17,7 +17,7 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <!-- Remove  any .cs files which are not expected to work with net framework -->  
+  <!-- Add only those .cs files which are expected to work with net framework -->  
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
       <Compile Remove="**\*.cs"/>
       <Compile Include="Timer\*.cs; Http\*.cs; *.cs"/>

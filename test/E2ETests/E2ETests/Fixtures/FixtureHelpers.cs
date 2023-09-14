@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             var funcProcess = new Process();
             var rootDir = Path.GetFullPath(@"../../../../../..");
             var e2eAppBinPath = Path.Combine(rootDir, @"test/E2ETests/E2EApps/E2EApp/bin");
-            string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).Where(a=>a.Contains("net7")).FirstOrDefault();
+            string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
 
             if (e2eHostJson == null)
             {

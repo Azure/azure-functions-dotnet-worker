@@ -19,7 +19,8 @@
 
   <!-- Remove  any .cs files which are not expected to work with net framework -->  
   <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-      <Compile Remove="Blob\*.cs; Cosmos\*.cs; EventHubs\*.cs; Queue\*.cs; Table\*.cs"/> 
+      <Compile Remove="**\*.cs"/>
+      <Compile Include="Timer\*.cs; Http\*.cs; *.cs"/>
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">

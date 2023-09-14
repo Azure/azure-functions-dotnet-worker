@@ -164,8 +164,7 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    IFunctionsWorkerApplicationBuilder appBuilder =
-                        services.AddFunctionsWorkerDefaults(configureOptions);
+                    IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults(configureOptions);
 
                     // Call the provided configuration prior to adding default middleware
                     configure(context, appBuilder);

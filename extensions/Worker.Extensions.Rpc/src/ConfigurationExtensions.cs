@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc
             }
             else
             {
-                string uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
+                var uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
                 if (!Uri.TryCreate(uriString, UriKind.Absolute, out grpcUri))
                 {
                     throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");

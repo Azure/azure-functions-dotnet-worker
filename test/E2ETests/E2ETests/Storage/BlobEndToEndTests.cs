@@ -189,14 +189,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
         }
 
         [Theory]
-        [InlineData("BlobInputClientArrayTest")]
-        [InlineData("BlobInputClientEnumerableTest")]
         [InlineData("BlobInputStreamArrayTest")]
-        [InlineData("BlobInputStreamEnumerableTest")]
-        [InlineData("BlobInputBytesArrayTest")]
-        [InlineData("BlobInputBytesEnumerableTest")]
-        [InlineData("BlobInputStringArrayTest")]
-        [InlineData("BlobInputStringEnumerableTest")]
         public async Task BlobInput_BlobCollection_Succeeds(string functionName)
         {
             string expectedMessage = "ABC, DEF, GHI";

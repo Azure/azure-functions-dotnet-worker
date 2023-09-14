@@ -34,9 +34,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 #if NET48
             response.WriteString(downloadResult.Value.Content.ToString());
 #elif NET6_0_OR_GREATER
-                await response.Body.WriteAsync(downloadResult.Value.Content);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
 #else
-#error This code block does not match csproj TargetFrameworks list
+#error      This code block does not match csproj TargetFrameworks list
 #endif
 
             return response;
@@ -53,9 +53,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 #if NET48
             response.WriteString(downloadResult.Value.Content.ToString());
 #elif NET6_0_OR_GREATER
-                            await response.Body.WriteAsync(downloadResult.Value.Content);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
 #else
-#error This code block does not match csproj TargetFrameworks list
+#error      This code block does not match csproj TargetFrameworks list
 #endif
 
             return response;
@@ -72,9 +72,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 #if NET48
             response.WriteString(downloadResult.Value.Content.ToString());
 #elif NET6_0_OR_GREATER
-                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
 #else
-#error This code block does not match csproj TargetFrameworks list
+#error      This code block does not match csproj TargetFrameworks list
 #endif
 
             return response;
@@ -91,9 +91,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 #if NET48
             response.WriteString(downloadResult.Value.Content.ToString());
 #elif NET6_0_OR_GREATER
-                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
 #else
-#error This code block does not match csproj TargetFrameworks list
+#error      This code block does not match csproj TargetFrameworks list
 #endif
 
             return response;
@@ -110,9 +110,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 #if NET48
             response.WriteString(downloadResult.Value.Content.ToString());
 #elif NET6_0_OR_GREATER
-                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
 #else
-#error This code block does not match csproj TargetFrameworks list
+#error      This code block does not match csproj TargetFrameworks list
 #endif
 
             return response;
@@ -130,9 +130,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
 #if NET48
             response.WriteString(downloadResult.Value.Content.ToString());
 #elif NET6_0_OR_GREATER
-                                        await response.Body.WriteAsync(downloadResult.Value.Content);
+            await response.Body.WriteAsync(downloadResult.Value.Content);
 #else
-#error This code block does not match csproj TargetFrameworks list
+#error      This code block does not match csproj TargetFrameworks list
 #endif
 
             return response;
@@ -199,7 +199,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return response;
         }
 
-        /*
         [Function(nameof(BlobInputStreamArrayTest))]
         public async Task<HttpResponseData> BlobInputStreamArrayTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -218,7 +217,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             await response.WriteStringAsync(contentAsString);
             return response;
         }
-        */
 
         [Function(nameof(BlobInputBytesArrayTest))]
         public async Task<HttpResponseData> BlobInputBytesArrayTest(
@@ -334,7 +332,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             return response;
         }
 
-        /*
         [Function(nameof(BlobInputStreamEnumerableTest))]
         public async Task<HttpResponseData> BlobInputStreamEnumerableTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -353,7 +350,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             await response.WriteStringAsync(contentAsString);
             return response;
         }
-        */
 
         [Function(nameof(BlobInputBytesEnumerableTest))]
         public async Task<HttpResponseData> BlobInputBytesEnumerableTest(

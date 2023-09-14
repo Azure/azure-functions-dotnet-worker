@@ -105,7 +105,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private FunctionRpcClient CreateClient()
             {
 #if NET5_0_OR_GREATER
-                GrpcChannel grpcChannel = GrpcChannel.ForAddress(_startupOptions.Uri!.AbsoluteUri, new GrpcChannelOptions()
+                GrpcChannel grpcChannel = GrpcChannel.ForAddress(_startupOptions.HostEndpoint!.AbsoluteUri, new GrpcChannelOptions()
                 {
                     MaxReceiveMessageSize = _startupOptions.GrpcMaxMessageLength,
                     MaxSendMessageSize = _startupOptions.GrpcMaxMessageLength,
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                     new ChannelOption(GrpcCore.ChannelOptions.MaxSendMessageLength, _startupOptions.GrpcMaxMessageLength)
                 };
 
-                GrpcCore.Channel grpcChannel = new GrpcCore.Channel(_startupOptions.Uri.Host, _startupOptions.Uri.Port, ChannelCredentials.Insecure, options);
+                GrpcCore.Channel grpcChannel = new GrpcCore.Channel(_startupOptions.HostEndpoint!.Host, _startupOptions.HostEndpoint.Port, ChannelCredentials.Insecure, options);
 
 #endif
                 return new FunctionRpcClient(grpcChannel);

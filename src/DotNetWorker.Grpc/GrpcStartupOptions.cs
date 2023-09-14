@@ -8,7 +8,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     internal class GrpcWorkerStartupOptions
     {
-        public Uri? Uri { get; set; }
+        public Uri? HostEndpoint { get; set; }
 
         public string? WorkerId { get; set; }
 

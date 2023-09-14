@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
@@ -53,7 +54,8 @@ namespace Microsoft.Extensions.Hosting
         /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
         /// <param name="configure">A delegate that will be invoked to configure the provided <see cref="IFunctionsWorkerApplicationBuilder"/>.</param>
         /// <returns>The <see cref="IHostBuilder"/>.</returns>
-        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<IFunctionsWorkerApplicationBuilder> configure)
+        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder,
+            Action<IFunctionsWorkerApplicationBuilder> configure)
         {
             return builder.ConfigureFunctionsWorkerDefaults(configure, o => { });
         }
@@ -76,7 +78,8 @@ namespace Microsoft.Extensions.Hosting
         /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
         /// <param name="configureOptions">A delegate that will be invoked to configure the provided <see cref="WorkerOptions"/>.</param>
         /// <returns>The <see cref="IHostBuilder"/>.</returns>     
-        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<WorkerOptions> configureOptions)
+        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder,
+            Action<WorkerOptions> configureOptions)
         {
             return builder.ConfigureFunctionsWorkerDefaults(o => { }, configureOptions);
         }
@@ -100,7 +103,8 @@ namespace Microsoft.Extensions.Hosting
         /// <param name="configure">A delegate that will be invoked to configure the provided <see cref="IFunctionsWorkerApplicationBuilder"/>.</param>
         /// <param name="configureOptions">A delegate that will be invoked to configure the provided <see cref="WorkerOptions"/>.</param>
         /// <returns>The <see cref="IHostBuilder"/>.</returns>
-        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
+        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder,
+            Action<IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
         {
             return builder.ConfigureFunctionsWorkerDefaults((context, b) => configure(b), configureOptions);
         }
@@ -122,7 +126,8 @@ namespace Microsoft.Extensions.Hosting
         /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
         /// <param name="configure">A delegate that will be invoked to configure the provided <see cref="HostBuilderContext"/> and an <see cref="IFunctionsWorkerApplicationBuilder"/>.</param>
         /// <returns>The <see cref="IHostBuilder"/>.</returns>
-        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure)
+        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder,
+            Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure)
         {
             return builder.ConfigureFunctionsWorkerDefaults(configure, o => { });
         }
@@ -146,7 +151,9 @@ namespace Microsoft.Extensions.Hosting
         /// <param name="configure">A delegate that will be invoked to configure the provided <see cref="HostBuilderContext"/> and an <see cref="IFunctionsWorkerApplicationBuilder"/>.</param>
         /// <param name="configureOptions">A delegate that will be invoked to configure the provided <see cref="WorkerOptions"/>.</param>
         /// <returns>The <see cref="IHostBuilder"/>.</returns>
-        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure, Action<WorkerOptions> configureOptions)
+        public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder,
+            Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configure,
+            Action<WorkerOptions> configureOptions)
         {
             builder
                 .ConfigureHostConfiguration(config =>
@@ -163,7 +170,8 @@ namespace Microsoft.Extensions.Hosting
                 })
                 .ConfigureServices((context, services) =>
                 {
-                    IFunctionsWorkerApplicationBuilder appBuilder = services.AddFunctionsWorkerDefaults(configureOptions);
+                    IFunctionsWorkerApplicationBuilder appBuilder =
+                        services.AddFunctionsWorkerDefaults(configureOptions);
 
                     // Call the provided configuration prior to adding default middleware
                     configure(context, appBuilder);
@@ -200,7 +208,14 @@ namespace Microsoft.Extensions.Hosting
                 cmdLine[i] = $"\"{arg}\"";
             }
 
-            builder.AddCommandLine(cmdLine);
+            var switchMappings = new Dictionary<string, string>
+            {
+                { "--functions-uri", "Functions:Worker:HostEndpoint" },
+                { "--functions-request-id", "Functions:Worker:RequestId" },
+                { "--functions-worker-id", "Functions:Worker:WorkerId" },
+                { "--functions-grpc-max-message-length", "Functions:Worker:GrpcMaxMessageLength" },
+            };
+            builder.AddCommandLine(cmdLine, switchMappings);
         }
     }
 }

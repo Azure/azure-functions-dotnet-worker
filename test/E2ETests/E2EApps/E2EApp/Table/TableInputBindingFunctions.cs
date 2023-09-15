@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             _logger = logger;
         }
 
-        /*
+#if NET6_0_OR_GREATER
         [Function(nameof(TableClientFunction))]
         public async Task<HttpResponseData> TableClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
@@ -28,29 +28,17 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             var tableEntity = table.QueryAsync<TableEntity>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 
-#if NET48
-            foreach (TableEntity val in tableEntity)
-            {
-                val.TryGetValue("Text", out var text);
-                response.WriteString(downloadResult.Value.Content.ToString());
-            }
-
-#elif NET6_0_OR_GREATER
             await foreach (TableEntity val in tableEntity)
             {
                 val.TryGetValue("Text", out var text);
                 await response.WriteStringAsync(text?.ToString() ?? "");
             }
-#else
-#error This code block does not match csproj TargetFrameworks list
-#endif
-
-
 
             return response;
         }
-        */
+#endif
 
+#if NET6_0_OR_GREATER
         [Function(nameof(ReadTableDataFunction))]
         public async Task<HttpResponseData> ReadTableDataFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunction/items/{partitionKey}/{rowKey}")] HttpRequestData req,
@@ -61,6 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             await response.WriteStringAsync(text?.ToString() ?? "");
             return response;
         }
+#endif
 
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(

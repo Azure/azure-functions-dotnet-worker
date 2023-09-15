@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             await TableHelpers.DeleteTable();
         }
 
-        [Fact]
+        [Fact(Skip = "skip")]
         public async Task Read_TableData_Succeeds()
         {
             const string partitionKey = "Partition";

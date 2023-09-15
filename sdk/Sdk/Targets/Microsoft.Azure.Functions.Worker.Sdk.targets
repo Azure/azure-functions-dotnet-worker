@@ -70,7 +70,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <PropertyGroup>
       <_FunctionsMetadataPath>$(IntermediateOutputPath)functions.metadata</_FunctionsMetadataPath>
       <_FunctionsWorkerConfigPath>$(IntermediateOutputPath)worker.config.json</_FunctionsWorkerConfigPath>
-      <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$([System.IO.Path]::GetFullPath($(IntermediateOutputPath)WorkExtensions))</ExtensionsCsProjDirectory>
+      <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$([System.IO.Path]::GetFullPath($(IntermediateOutputPath)WorkerExtensions))</ExtensionsCsProjDirectory>
       <ExtensionsCsProj>$([System.IO.Path]::Combine($(ExtensionsCsProjDirectory), WorkerExtensions.csproj))</ExtensionsCsProj>
       <_FunctionsIntermdiateExtensionJsonPath>$(ExtensionsCsProjDirectory)\buildout\bin\$(_FunctionsExtensionsJsonName)</_FunctionsIntermdiateExtensionJsonPath>
       <_FunctionsIntermdiateExtensionUpdatedJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermdiateExtensionUpdatedJsonPath>

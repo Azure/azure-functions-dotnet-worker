@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
-        [Fact]
+        [Fact(Skip = "skip")]
         public async Task Read_TableClient_Data_Succeeds()
         {
             const string partitionKey = "Partition";

@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async Task SimpleFunctionInDependentAssemblyTest()
+            public async Task FunctionInDependentAssemblyTest()
             {
                 string inputCode = """
                 using System;
@@ -99,11 +99,37 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             {
                                 Language = "dotnet-isolated",
                                 Name = "DependencyFunc",
-                                EntryPoint = "DependentAssemblyWithFunctions.DependencyFunc.Run",
+                                EntryPoint = "DependentAssemblyWithFunctions.DependencyFunction.Run",
                                 RawBindings = Function1RawBindings,
                                 ScriptFile = "DependentAssemblyWithFunctions.dll"
                             };
                             metadataList.Add(Function1);
+                            var Function2RawBindings = new List<string>();
+                            Function2RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function2RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+                
+                            var Function2 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "InternalFunction",
+                                EntryPoint = "DependentAssemblyWithFunctions.InternalFunction.Run",
+                                RawBindings = Function2RawBindings,
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
+                            };
+                            metadataList.Add(Function2);
+                            var Function3RawBindings = new List<string>();
+                            Function3RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function3RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+                
+                            var Function3 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "StaticFunction",
+                                EntryPoint = "DependentAssemblyWithFunctions.StaticFunction.Run",
+                                RawBindings = Function3RawBindings,
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
+                            };
+                            metadataList.Add(Function3);
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }

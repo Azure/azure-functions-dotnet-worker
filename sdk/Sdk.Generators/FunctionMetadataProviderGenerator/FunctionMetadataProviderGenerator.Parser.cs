@@ -249,7 +249,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 foreach (IParameterSymbol parameter in method.Parameters)
                 {
                     // If there's no attribute, we can assume that this parameter is not a binding
-                    if (parameter.GetAttributes().Count() == 0)
+                    if (!parameter.GetAttributes().Any())
                     {
                         continue;
                     }
@@ -268,12 +268,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             DataType dataType = _dataTypeParser.GetDataType(parameter.Type);
 
                             bool cardinalityValidated = false;
-                            bool supportsDeferredBinding = false;
-
-                            if (SupportsDeferredBinding(attribute, parameter.Type.ToString()))
-                            {
-                                supportsDeferredBinding = true;
-                            }
+                            bool supportsDeferredBinding = SupportsDeferredBinding(attribute, parameter.Type.ToString());
 
                             if (_cardinalityParser.IsCardinalitySupported(attribute))
                             {

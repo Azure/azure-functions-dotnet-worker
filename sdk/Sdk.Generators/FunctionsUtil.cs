@@ -56,8 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             functionName = null;
 
             var functionAttribute = symbol.GetAttributes()
-                .Where(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
-                .FirstOrDefault();
+                .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)));
 
             if (functionAttribute is not null)
             {
@@ -73,14 +72,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Ex: "MyNamespaceName.MyClassName.MyMethod" 
         /// for a method called "MyMethod" inside the "MyClassName" type which is inside the "MyNamespaceName" namespace.
         /// </summary>
-        internal static string GetFullyQualifiedMethodName(MethodDeclarationSyntax method, SemanticModel semanticModel)
-        {
-            var methodSymbol = semanticModel.GetDeclaredSymbol(method)!;
-            var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-
-            return $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
-        }
-
         internal static string GetFullyQualifiedMethodName(IMethodSymbol method)
         {
             var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString();

@@ -68,20 +68,10 @@ jobs:
     displayName: "Setup E2E tests"
 
   - task: DotNetCoreCLI@2
-    condition: eq(variables['DotnetVersion'], 'net7')
     displayName: 'Run tests'
     inputs:
       command: 'test'
       arguments: '--no-build -c Release'
-      projects: |
-        test/**/*Tests.csproj
-
-  - task: DotNetCoreCLI@2
-    condition: eq(variables['DotnetVersion'], 'netfx')
-    displayName: 'Run tests for NetFramework'
-    inputs:
-      command: 'test'
-      arguments: '--no-build -c Release  --filter "FullyQualifiedName~TimerTrigger"' #only run http tests to avoid emulators on Linux
       projects: |
         test/**/*Tests.csproj
 

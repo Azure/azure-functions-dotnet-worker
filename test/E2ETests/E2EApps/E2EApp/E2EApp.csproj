@@ -17,24 +17,15 @@
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
-  <!-- Add only those .cs files which are expected to work with net framework -->  
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net48' ">
-      <Compile Remove="**\*.cs"/>
-      <Compile Include="Timer\*.cs; Http\*.cs; *.cs"/>
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net7.0' ">
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
-    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
-  </ItemGroup>
-
   <ItemGroup>
       <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
       <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
       <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
+      <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
   </ItemGroup>
 
   <ItemGroup>

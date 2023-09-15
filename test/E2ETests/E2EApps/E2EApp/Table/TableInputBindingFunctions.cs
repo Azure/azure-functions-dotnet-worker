@@ -2,10 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Drawing.Printing;
 using System.Net;
 using System.Threading.Tasks;
-using Azure;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;

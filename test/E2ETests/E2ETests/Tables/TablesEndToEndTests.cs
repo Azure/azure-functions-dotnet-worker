@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
-        [Fact(Skip = "skip")]
+        [Fact(Skip = "TODO: <Add github issue Id>")]
         public async Task Read_TableClient_Data_Succeeds()
         {
             const string partitionKey = "Partition";
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             await TableHelpers.DeleteTable();
         }
 
-        [Fact(Skip = "skip")]
+        [Fact(Skip = "TODO: <Add github issue Id>")]
         public async Task Read_TableData_Succeeds()
         {
             const string partitionKey = "Partition";

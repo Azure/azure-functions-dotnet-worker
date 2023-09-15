@@ -7,7 +7,9 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Blobs.Specialized;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -23,6 +25,20 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             _logger = logger;
         }
 
+        private HttpResponseData WriteToResponse(Response<BlobDownloadResult> downloadResult, HttpResponseData response)
+        {
+            #if NET48
+                response.WriteString(downloadResult.Value.Content.ToString());
+            #elif NET6_0_OR_GREATER
+                response.Body.WriteAsync(downloadResult.Value.Content).GetAwaiter().GetResult();
+            #else
+            #error
+                This code block does not match csproj TargetFrameworks list
+            #endif
+            
+            return response;
+        }
+
         [Function(nameof(BlobInputClientTest))]
         public async Task<HttpResponseData> BlobInputClientTest(
             [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
@@ -30,14 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-
-#if NET48
-            response.WriteString(downloadResult.Value.Content.ToString());
-#elif NET6_0_OR_GREATER
-            await response.Body.WriteAsync(downloadResult.Value.Content);
-#else
-#error      This code block does not match csproj TargetFrameworks list
-#endif
+            response = WriteToResponse(downloadResult, response);
 
             return response;
         }
@@ -49,14 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-
-#if NET48
-            response.WriteString(downloadResult.Value.Content.ToString());
-#elif NET6_0_OR_GREATER
-            await response.Body.WriteAsync(downloadResult.Value.Content);
-#else
-#error      This code block does not match csproj TargetFrameworks list
-#endif
+            response = WriteToResponse(downloadResult, response);
 
             return response;
         }
@@ -68,14 +70,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-
-#if NET48
-            response.WriteString(downloadResult.Value.Content.ToString());
-#elif NET6_0_OR_GREATER
-            await response.Body.WriteAsync(downloadResult.Value.Content);
-#else
-#error      This code block does not match csproj TargetFrameworks list
-#endif
+            response = WriteToResponse(downloadResult, response);
 
             return response;
         }
@@ -87,14 +82,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-
-#if NET48
-            response.WriteString(downloadResult.Value.Content.ToString());
-#elif NET6_0_OR_GREATER
-            await response.Body.WriteAsync(downloadResult.Value.Content);
-#else
-#error      This code block does not match csproj TargetFrameworks list
-#endif
+            response = WriteToResponse(downloadResult, response);
 
             return response;
         }
@@ -106,14 +94,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var downloadResult = await client.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-
-#if NET48
-            response.WriteString(downloadResult.Value.Content.ToString());
-#elif NET6_0_OR_GREATER
-            await response.Body.WriteAsync(downloadResult.Value.Content);
-#else
-#error      This code block does not match csproj TargetFrameworks list
-#endif
+            response = WriteToResponse(downloadResult, response);
 
             return response;
         }
@@ -126,14 +107,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             var blobClient = client.GetBlobClient("testFile.txt");
             var downloadResult = await blobClient.DownloadContentAsync();
             var response = req.CreateResponse(HttpStatusCode.OK);
-
-#if NET48
-            response.WriteString(downloadResult.Value.Content.ToString());
-#elif NET6_0_OR_GREATER
-            await response.Body.WriteAsync(downloadResult.Value.Content);
-#else
-#error      This code block does not match csproj TargetFrameworks list
-#endif
+            response = WriteToResponse(downloadResult, response);
 
             return response;
         }

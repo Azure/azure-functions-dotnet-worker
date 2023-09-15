@@ -2,8 +2,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Drawing.Printing;
 using System.Net;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -19,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             _logger = logger;
         }
 
-#if NET6_0_OR_GREATER
+        #if NET6_0_OR_GREATER
         [Function(nameof(TableClientFunction))]
         public async Task<HttpResponseData> TableClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
@@ -36,9 +38,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
 
             return response;
         }
-#endif
+        #endif
 
-#if NET6_0_OR_GREATER
         [Function(nameof(ReadTableDataFunction))]
         public async Task<HttpResponseData> ReadTableDataFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunction/items/{partitionKey}/{rowKey}")] HttpRequestData req,
@@ -49,7 +50,6 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             await response.WriteStringAsync(text?.ToString() ?? "");
             return response;
         }
-#endif
 
         [Function(nameof(ReadTableDataFunctionWithFilter))]
         public async Task<HttpResponseData> ReadTableDataFunctionWithFilter(

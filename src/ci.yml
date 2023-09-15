@@ -81,7 +81,7 @@ jobs:
     displayName: 'Run tests for NetFramework'
     inputs:
       command: 'test'
-      arguments: '--no-build -c Release --exclude "FullyQualifiedName~HttpTrigger"'
+      arguments: '--no-build -c Release --filter  "FullyQualifiedName\!~HttpTrigger"'
       projects: |
         test/**/*Tests.csproj
 

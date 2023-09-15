@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Equal("Hello World", result);
         }
 
-        [Fact(Skip = "TODO: <Add github issue Id>")]
+        [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1910")]
         public async Task BlobTrigger_BlobClient_Succeeds()
         {
             string key = "BlobClientTriggerOutput: ";

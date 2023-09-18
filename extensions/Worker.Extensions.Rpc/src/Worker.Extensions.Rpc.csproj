@@ -6,7 +6,6 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Rpc</RootNamespace>
     <Description>Contains types to facilitate RPC communication between a worker extension and the functions host.</Description>
     <VersionPrefix>1.0.0</VersionPrefix>
-    <VersionSuffix>-preview2</VersionSuffix>
     <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 

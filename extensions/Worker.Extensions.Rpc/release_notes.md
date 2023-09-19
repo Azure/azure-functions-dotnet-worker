@@ -4,6 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Rpc 1.0.0-preview2
+### Microsoft.Azure.Functions.Worker.Extensions.Rpc 1.0.0
 
-- Replace auto-registration via `WorkerRpcStartup` with manual call `RpcServiceCollectionExtensions.AddWorkerRpc`
+- Initial public release
+- Adds API for getting a `CallInvoker` pre-configured for communication with Functions host. 

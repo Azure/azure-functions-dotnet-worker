@@ -5,16 +5,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
-using Azure.Identity;
 using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Extensions;
+using Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 
 
 [assembly: WorkerExtensionStartup(typeof(StorageExtensionStartup))]
@@ -23,8 +22,6 @@ namespace Microsoft.Azure.Functions.Worker
 {
     public class StorageExtensionStartup : WorkerExtensionStartup
     {
-        private const string BlobServiceUriSubDomain = "blob";
-
         public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
         {
             if (applicationBuilder == null)
@@ -37,43 +34,64 @@ namespace Microsoft.Azure.Functions.Worker
 
             applicationBuilder.Services.AddAzureClients(clientBuilder =>
             {
-                RegisterBlobServiceClientsWithMetadata(clientBuilder, configuration);
+                RegisterBlobServiceClientsWithConfig(configuration, clientBuilder);
+                // RegisterBlobServiceClientsWithMetadata(configuration, clientBuilder);
             });
-
-
-            // applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-            // applicationBuilder.Services.TryAddSingleton<BlobServiceClientProvider>();
-            // applicationBuilder.Services.AddOptions<BlobStorageBindingOptions>();
-            // applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
         }
 
-        private void RegisterBlobServiceClientsWithMetadata(AzureClientFactoryBuilder clientBuilder, IConfiguration configuration)
+        private void RegisterBlobServiceClientsWithConfig(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder)
         {
-            // var clients = new Dictionary<string, BlobServiceClient>();
+            var allConfigurationEntries = configuration.AsEnumerable();
+
+            foreach (var configEntry in allConfigurationEntries)
+            {
+                if (configuration.GetWebJobsConnectionStringSection(configEntry.Key) is not { } connectionSection)
+                {
+                    continue;
+                }
+
+                if (!string.IsNullOrWhiteSpace(connectionSection.Value) && IsValidStorageConnection(connectionSection))
+                {
+                    clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(configEntry.Key);
+                }
+                else if (connectionSection.TryGetServiceUriForStorageAccounts(Constants.BlobServiceUriSubDomain, out Uri serviceUri))
+                {
+                    clientBuilder.AddBlobServiceClient(serviceUri).WithName(connectionSection.Key);
+                }
+            }
+        }
+
+        private static bool IsValidStorageConnection(IConfigurationSection section)
+        {
+            return section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
+                section.Value.Contains("AccountName=") &&
+                section.Value.Contains("AccountKey="); ;
+        }
+
+        private void RegisterBlobServiceClientsWithMetadata(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder)
+        {
             var connections = new List<string>();
 
-            clientBuilder.AddClient<BlobServiceClient, BlobClientOptions>((options, credential, serviceProvider) =>
+            clientBuilder.AddClient<BlobServiceClient, BlobClientOptions>((_, provider) =>
             {
                 string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
-                var metadataProvider = serviceProvider.GetService<IFunctionMetadataProvider>();
+                Console.WriteLine("Azure Functions .NET Worker: scriptroot: " + scriptRoot);
+                var metadataProvider = provider.GetService<IFunctionMetadataProvider>();
+
+                if (metadataProvider is null) { throw new Exception("metadataProvider"); }
+
                 var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
 
-                if(!functionMetadataList.Any())
+                if (functionMetadataList == null || !functionMetadataList.Any())
                 {
-                    Console.WriteLine("No function metadata found");
-                    throw new Exception("this!!!!!!!");
+                    Console.WriteLine("Azure Functions .NET Worker: No function metadata found");
+                    throw new InvalidOperationException("No function metadata found");
                 }
 
                 connections = GetConnectionNames(functionMetadataList);
 
-                return null!;
-            });
-
-            clientBuilder.AddClient<BlobServiceClient, BlobClientOptions>((_, _, provider) =>
-            {
-                Console.WriteLine("Registering BlobServiceClient with config");
                 return new BlobServiceClient("UseDevelopmentStorage=true");
-            });
+            }).WithName("StorageEmulator");
 
             foreach (string connection in connections)
             {
@@ -91,7 +109,7 @@ namespace Microsoft.Azure.Functions.Worker
                     clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(connection);
                 }
 
-                if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
+                if (connectionSection.TryGetServiceUriForStorageAccounts(Constants.BlobServiceUriSubDomain, out Uri serviceUri))
                 {
                     clientBuilder.AddBlobServiceClient(serviceUri).WithName(connection);
                 }
@@ -105,8 +123,8 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 if (func is null)
                 {
-                    Console.WriteLine("Function metadata is null");
-                    continue;
+                    Console.WriteLine("Azure Functions .NET Worker: func is null");
+                    throw new InvalidOperationException("func is null");
                 }
 
                 foreach (var bindingJson in func.RawBindings)
@@ -131,50 +149,6 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }
             return connections;
-        }
-
-        private void RegisterBlobServiceClientsWithConfig(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder, ServiceProvider services)
-        {
-            var azureComponentFactory = services.GetService<AzureComponentFactory>();
-            var allConfigurationEntries = configuration.AsEnumerable();
-
-            foreach (var configEntry in allConfigurationEntries)
-            {
-                var connectionName = GetConnectionName(configEntry.Key);
-
-                if (configuration.GetWebJobsConnectionStringSection(connectionName) is not { } connectionSection)
-                {
-                    continue;
-                }
-
-                if (!string.IsNullOrWhiteSpace(connectionSection.Value) && IsValidStorageConnection(connectionSection))
-                {
-                    clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(configEntry.Key);
-                }
-                else if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
-                {
-                    var credential = azureComponentFactory?.CreateTokenCredential(connectionSection);
-                    clientBuilder.AddBlobServiceClient(serviceUri).WithName(connectionName).WithCredential(credential);
-                }
-            }
-        }
-
-        private static bool IsValidStorageConnection(IConfigurationSection section)
-        {
-            return section.Value?.StartsWith("DefaultEndpointsProtocol=") == true &&
-                section.Value.Contains("AccountName=") &&
-                section.Value.Contains("AccountKey="); ;
-        }
-
-        private string GetConnectionName(string path)
-        {
-            int colonIndex = path.IndexOf(':');
-            if (colonIndex >= 0)
-            {
-                return path.Substring(0, colonIndex);
-            }
-
-            return path;
         }
     }
 }

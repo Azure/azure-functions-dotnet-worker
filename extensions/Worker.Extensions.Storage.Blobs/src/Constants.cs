@@ -7,6 +7,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs
     {
         internal const string Storage = "Storage";
         internal const string BlobExtensionName = "AzureStorageBlobs";
+        internal const string BlobServiceUriSubDomain = "blob";
 
         // Media content types
         internal const string JsonContentType = "application/json";

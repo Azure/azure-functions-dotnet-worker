@@ -75,13 +75,6 @@ jobs:
       projects: |
         test/**/*Tests.csproj
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Build projects'
-    inputs:
-      command: 'build'
-      arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: 'DotNetWorker.sln'
-
   - pwsh: |
       $useIntegrationTestingCoreTools = $null
       if (-not ([bool]::TryParse($env:USECORETOOLSBUILDFROMINTEGRATIONTESTS, [ref] $useIntegrationTestingCoreTools)))

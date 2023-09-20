@@ -4,6 +4,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.ServiceBus</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.ServiceBus</RootNamespace>
     <Description>Azure Service Bus extensions for .NET isolated functions</Description>
+    <IncludeShadedAssembliesInPackage>true</IncludeShadedAssembliesInPackage>
 
     <!--Version information-->
     <VersionPrefix>5.13.0</VersionPrefix>
@@ -17,16 +18,14 @@
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.14.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.3" />
-    <PackageReference Include="Google.Protobuf" Version="3.23.4" Shade="true"/>
-    <PackageReference Include="PackageShading.Tasks" Version="1.0.10-preview-g43070690f3" PrivateAssets="All" />
-    <PackageReference Include="Grpc.Tools" Version="2.56.2" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Rpc" Version="1.0.0-preview1-20230620.2" Shade="true" />
+    <PackageReference Include="Google.Protobuf" Version="3.23.4" />
+    <PackageReference Include="Grpc.Tools" Version="2.56.2" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Rpc" Version="1.0.0-preview1-20230620.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
-    <ProjectReference Include="..\..\Worker.Extensions.Rpc\src\Worker.Extensions.Rpc.csproj"/>
+    <ProjectReference Include="..\..\Worker.Extensions.Rpc\src\Worker.Extensions.Rpc.csproj" />
   </ItemGroup>
 
   <ItemGroup>

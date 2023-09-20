@@ -104,6 +104,8 @@ if (Test-Path $output)
   Remove-Item $output -Recurse -Force -ErrorAction Ignore
 }
 
+Write-Host "----- Executing tests for Dotnet version $DotnetVersion -----"
+
 $AdditionalPackArgs = @("-c", "Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion", "-p:DotnetVersion=$DotnetVersion")
 
 if ($SkipBuildOnPack -eq $true)

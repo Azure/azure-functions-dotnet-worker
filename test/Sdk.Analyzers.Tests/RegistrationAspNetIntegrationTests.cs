@@ -9,6 +9,8 @@ namespace Sdk.Analyzers.Tests
 {
     public class RegistrationAspNetIntegrationTests
     {
+        private const string ExpectedRegistrationMethod = "ConfigureFunctionsWebApplication";
+
         [Fact]
         public async Task BlobInputAttribute_String_Diagnostics_Expected()
         {
@@ -54,7 +56,7 @@ namespace Sdk.Analyzers.Tests
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithArguments("d"));
+                            .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();
         }

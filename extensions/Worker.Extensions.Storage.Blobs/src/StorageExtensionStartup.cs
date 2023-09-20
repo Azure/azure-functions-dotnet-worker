@@ -2,9 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Azure.Identity;
+using Azure.Storage.Blobs;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
@@ -32,12 +34,12 @@ namespace Microsoft.Azure.Functions.Worker
 
             var serviceProvider = applicationBuilder.Services.BuildServiceProvider();
             var configuration = serviceProvider.GetRequiredService<IConfiguration>();
-            // var metadataProvider = serviceProvider.GetRequiredService<IFunctionMetadataProvider>(); // doesn't work
 
             applicationBuilder.Services.AddAzureClients(clientBuilder =>
             {
-                RegisterBlobServiceClientsWithConfig(configuration, clientBuilder, serviceProvider);
+                RegisterBlobServiceClientsWithMetadata(clientBuilder, configuration);
             });
+
 
             // applicationBuilder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             // applicationBuilder.Services.TryAddSingleton<BlobServiceClientProvider>();
@@ -45,43 +47,90 @@ namespace Microsoft.Azure.Functions.Worker
             // applicationBuilder.Services.AddSingleton<IConfigureOptions<BlobStorageBindingOptions>, BlobStorageBindingOptionsSetup>();
         }
 
-        private void RegisterBlobServiceClientsWithMetadata(AzureClientFactoryBuilder clientBuilder, ServiceProvider services, IFunctionMetadataProvider metadataProvider, IConfiguration configuration)
+        private void RegisterBlobServiceClientsWithMetadata(AzureClientFactoryBuilder clientBuilder, IConfiguration configuration)
         {
-            var azureComponentFactory = services.GetService<AzureComponentFactory>();
+            // var clients = new Dictionary<string, BlobServiceClient>();
+            var connections = new List<string>();
 
-            string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
-            var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
+            clientBuilder.AddClient<BlobServiceClient, BlobClientOptions>((options, credential, serviceProvider) =>
+            {
+                string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
+                var metadataProvider = serviceProvider.GetService<IFunctionMetadataProvider>();
+                var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
+
+                if(!functionMetadataList.Any())
+                {
+                    Console.WriteLine("No function metadata found");
+                    throw new Exception("this!!!!!!!");
+                }
+
+                connections = GetConnectionNames(functionMetadataList);
+
+                return null!;
+            });
+
+            clientBuilder.AddClient<BlobServiceClient, BlobClientOptions>((_, _, provider) =>
+            {
+                Console.WriteLine("Registering BlobServiceClient with config");
+                return new BlobServiceClient("UseDevelopmentStorage=true");
+            });
+
+            foreach (string connection in connections)
+            {
+                IConfigurationSection connectionSection = configuration.GetWebJobsConnectionStringSection(connection!);
+
+                if (!connectionSection.Exists())
+                {
+                    // Not found
+                    throw new InvalidOperationException($"Blob storage connection configuration '{connection}' does not exist. " +
+                                                        "Make sure that it is a defined App Setting.");
+                }
+
+                if (!string.IsNullOrWhiteSpace(connectionSection.Value))
+                {
+                    clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(connection);
+                }
+
+                if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
+                {
+                    clientBuilder.AddBlobServiceClient(serviceUri).WithName(connection);
+                }
+            }
+        }
+
+        private List<string> GetConnectionNames(IEnumerable<IFunctionMetadata> functionMetadataList)
+        {
+            var connections = new List<string>();
             foreach (var func in functionMetadataList)
             {
                 if (func is null)
                 {
+                    Console.WriteLine("Function metadata is null");
                     continue;
                 }
 
                 foreach (var bindingJson in func.RawBindings)
                 {
-                    // for each binding where binding type == blob
-
                     var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
-                    binding.TryGetProperty("connection", out JsonElement conn);
-                    var connectionName = conn.ToString();
 
-                    if (configuration.GetWebJobsConnectionStringSection(connectionName) is not { } connectionSection)
+                    if (binding.TryGetProperty("type", out JsonElement bindingType)
+                        && !bindingType.ToString().Equals("blob", StringComparison.OrdinalIgnoreCase))
                     {
                         continue;
                     }
 
-                    if (!string.IsNullOrWhiteSpace(connectionSection.Value) && IsValidStorageConnection(connectionSection))
+                    binding.TryGetProperty("connection", out JsonElement bindingConnection);
+                    var connectionName = bindingConnection.ToString();
+
+                    if (string.IsNullOrWhiteSpace(connectionName))
                     {
-                        clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(connectionName);
+                        connectionName = "Storage"; // default
                     }
-                    else if (connectionSection.TryGetServiceUriForStorageAccounts(BlobServiceUriSubDomain, out Uri serviceUri))
-                    {
-                        var credential = azureComponentFactory?.CreateTokenCredential(connectionSection);
-                        clientBuilder.AddBlobServiceClient(serviceUri).WithName(connectionName).WithCredential(credential);
-                    }
+
+                    connections.Add(connectionName!);
                 }
             }
+            return connections;
         }
 
         private void RegisterBlobServiceClientsWithConfig(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder, ServiceProvider services)

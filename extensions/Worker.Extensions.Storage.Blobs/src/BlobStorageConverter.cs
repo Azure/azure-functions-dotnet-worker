@@ -49,67 +49,6 @@ namespace Microsoft.Azure.Functions.Worker
             // _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _blobServiceClientFactory = blobServiceClientFactory ?? throw new ArgumentNullException(nameof(blobServiceClientFactory));
-            var connection = config;
-
-            // For debugging only
-            string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
-            var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
-            foreach (var func in functionMetadataList)
-            {
-                if (func is null)
-                {
-                    continue;
-                }
-
-                foreach(var bindingJson in func.RawBindings)
-                {
-                    var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
-                    binding.TryGetProperty("connection", out JsonElement conn);
-                }
-            }
-
-            // For debugging only
-            var allConfigurationEntries = config.AsEnumerable();
-            foreach (var configEntry in allConfigurationEntries)
-            {
-                var name = GetConnectionName(configEntry.Key);
-                if (config.GetWebJobsConnectionStringSection(name) is { } connectionSection)
-                {
-                    // if(!IsBlobStorageConnection(connectionSection))
-                    // {
-                    //     continue;
-                    // }
-
-                    // TODO: Figure out managed identity
-                    // TODO: Figure out how to avoid duplicate client registrations
-                    if (!string.IsNullOrWhiteSpace(connectionSection.Value) && connectionSection.Value.Contains("DefaultEndpointsProtocol"))
-                    {
-                        Console.WriteLine(configEntry.Key); //configEntry.Key
-                    }
-                    else
-                    {
-                        if (connectionSection.TryGetServiceUriForStorageAccounts("blob", out Uri serviceUri))
-                        {
-                            // var connectionName = GetConnectionName(connectionSection.Path);
-                            Console.WriteLine(name);
-                        }
-                    }
-                }
-            }
-        }
-
-        private string GetConnectionName(string path)
-        {
-            // Check if the path or key contains a colon (:)
-            int colonIndex = path.IndexOf(':');
-            if (colonIndex >= 0)
-            {
-                // Extract the name before the colon
-                return path.Substring(0, colonIndex);
-            }
-
-            // Use the entire path or key as the name
-            return path;
         }
 
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)

@@ -2,10 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection.Metadata;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -31,17 +29,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
         private static void AnalyzeMethod(SymbolAnalysisContext context)
         {
-            // if not function then using Microsoft.Extensions.Hosting
-            IEnumerable<AssemblyIdentity> e = context.Compilation.ReferencedAssemblyNames.Where(x => x.Name.Equals("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore"));
-            string code = context.Symbol.DeclaringSyntaxReferences.First().SyntaxTree.GetText().ToString();
+            var method = (IMethodSymbol)context.Symbol;
 
-            if (e.Any())
+            if (!method.IsFunction(context))
             {
-                if (code.Contains("ConfigureFunctionsWebApplication"))
-                {
-                    var diagnostic = Diagnostic.Create(DiagnosticDescriptors.IterableBindingTypeExpectedForBlobContainer, null, "d");
-                    context.ReportDiagnostic(diagnostic);
-                }
+                return;
+            }
+
+            var methodParameters = method.Parameters;
+
+            if (method.Parameters.Length <= 0)
+            {
+                return;
+            }
+
+            foreach (var parameter in methodParameters)
+            {
+                AnalyzeParameter(context, parameter);
             }
         }
 

@@ -32,5 +32,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static DiagnosticDescriptor IterableBindingTypeExpectedForBlobContainer { get; }
             = Create(id: "AZFW0011", title: "Invalid binding type", messageFormat: "The binding type '{0}' must be iterable for container path.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
+        public static DiagnosticDescriptor CorrectRegistrationExpectedInASPNetIntegration { get; }
+            = Create(id: "AZFW0012", title: "Missing expected registration in ASPNet Integration", messageFormat: "The registration for '{0}' is expected for ASP Net Integration.",
+                category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
     }
 }

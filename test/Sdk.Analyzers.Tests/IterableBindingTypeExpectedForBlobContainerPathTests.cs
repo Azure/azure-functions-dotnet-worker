@@ -4,6 +4,8 @@ using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Micr
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
+using RoslynTestKit;
+using System.Reflection;
 
 namespace Sdk.Analyzers.Tests
 {
@@ -13,35 +15,48 @@ namespace Sdk.Analyzers.Tests
         public async Task BlobInputAttribute_String_Diagnostics_Expected()
         {
             string testCode = @"
-                using System;
+                using System.Linq;
+                using System.Threading.Tasks;
                 using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+                using Microsoft.Extensions.Logging;
 
-                namespace FunctionApp
+                namespace AspNetIntegration
                 {
-                    public static class SomeFunction
+                    class Program
                     {
-                        [Function(nameof(SomeFunction))]
-                        public static void Run([BlobInput(""input"")] string message)
+                        static void Main(string[] args)
                         {
+
+                            //<docsnippet_aspnet_registration>
+                            var host = new HostBuilder()
+                                .ConfigureFunctionsWebApplication()
+                                .Build();
+
+                            host.Run();
+                            //</docsnippet_aspnet_registration>
                         }
                     }
                 }";
 
             var test = new AnalyzerTest
             {
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.19.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.14.1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "5.0.0"),
+                    new PackageIdentity("Microsoft.Extensions.Hosting.Abstractions", "6.0.0")
+                    )),
 
                 TestCode = testCode
             };
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(10, 76, 10, 83)
-                            .WithArguments("string"));
+                            .WithArguments("d"));
 
             await test.RunAsync();
         }

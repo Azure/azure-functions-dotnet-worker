@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
             if (isASPNetAssembly)
             {
-                if (code.Contains(ExpectedRegistrationMethod))
+                if (!code.Contains(ExpectedRegistrationMethod))
                 {
                     var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInASPNetIntegration, null, ExpectedRegistrationMethod);
                     context.ReportDiagnostic(diagnostic);

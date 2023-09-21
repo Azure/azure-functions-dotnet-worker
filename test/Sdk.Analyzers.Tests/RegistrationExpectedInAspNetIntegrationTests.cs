@@ -143,6 +143,14 @@ namespace Sdk.Analyzers.Tests
 
                             host.Run();
                         }
+
+                        public static void Method1()
+                        {
+                        }
+
+                        private static void Method2()
+                        {
+                        }
                     }
                 }";
 
@@ -187,6 +195,14 @@ namespace Sdk.Analyzers.Tests
 
                             host.Run();
                             //</docsnippet_aspnet_registration>
+                        }
+
+                        public static void Method1()
+                        {
+                        }
+
+                        private static void Method2()
+                        {
                         }
                     }
                 }";

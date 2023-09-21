@@ -26,11 +26,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
         private static void AnalyzeMethod(SymbolAnalysisContext context)
         {
-            bool isAspNetAssembly = context.Compilation.ReferencedAssemblyNames.Where(assembly => assembly.Name.Equals(AspNetExtensionAssemblyName)).Any();
+            bool isAspNetAssembly = context.Compilation.ReferencedAssemblyNames.Any(assembly => assembly.Name.Equals(AspNetExtensionAssemblyName));
+
+            if (!isAspNetAssembly)
+            {
+                return;
+            }
+
             SyntaxReference syntaxReference = context.Symbol.DeclaringSyntaxReferences.FirstOrDefault();
             string code = syntaxReference.SyntaxTree.GetText().ToString();
 
-            if (isAspNetAssembly && !code.Contains(ExpectedRegistrationMethod))
+            if (!code.Contains(ExpectedRegistrationMethod))
             {
                 var location = Location.Create(syntaxReference.SyntaxTree, syntaxReference.Span);
                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, location, ExpectedRegistrationMethod);

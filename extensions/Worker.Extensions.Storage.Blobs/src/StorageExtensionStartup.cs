@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker
                     }
                 }
 
-                
+                return null!;
             });
         }
 

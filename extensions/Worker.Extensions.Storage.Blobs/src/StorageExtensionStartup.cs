@@ -70,50 +70,25 @@ namespace Microsoft.Azure.Functions.Worker
 
         private void RegisterBlobServiceClientsWithMetadata(IConfiguration configuration, AzureClientFactoryBuilder clientBuilder)
         {
-            var connections = new List<string>();
-
             clientBuilder.AddClient<BlobServiceClient, BlobClientOptions>((_, provider) =>
             {
                 string scriptRoot = Environment.GetEnvironmentVariable("FUNCTIONS_APPLICATION_DIRECTORY");
-                Console.WriteLine("Azure Functions .NET Worker: scriptroot: " + scriptRoot);
                 var metadataProvider = provider.GetService<IFunctionMetadataProvider>();
-
-                if (metadataProvider is null) { throw new Exception("metadataProvider"); }
-
                 var functionMetadataList = metadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
+                var connections = GetConnectionNames(functionMetadataList);
 
-                if (functionMetadataList == null || !functionMetadataList.Any())
+                foreach (string connection in connections)
                 {
-                    Console.WriteLine("Azure Functions .NET Worker: No function metadata found");
-                    throw new InvalidOperationException("No function metadata found");
+                    IConfigurationSection connectionSection = configuration.GetWebJobsConnectionStringSection(connection!);
+
+                    if (connectionSection.Exists())
+                    {
+                        clientBuilder.AddBlobServiceClient(connectionSection).WithName(connection);
+                    }
                 }
 
-                connections = GetConnectionNames(functionMetadataList);
-
-                return new BlobServiceClient("UseDevelopmentStorage=true");
-            }).WithName("StorageEmulator");
-
-            foreach (string connection in connections)
-            {
-                IConfigurationSection connectionSection = configuration.GetWebJobsConnectionStringSection(connection!);
-
-                if (!connectionSection.Exists())
-                {
-                    // Not found
-                    throw new InvalidOperationException($"Blob storage connection configuration '{connection}' does not exist. " +
-                                                        "Make sure that it is a defined App Setting.");
-                }
-
-                if (!string.IsNullOrWhiteSpace(connectionSection.Value))
-                {
-                    clientBuilder.AddBlobServiceClient(connectionSection.Value).WithName(connection);
-                }
-
-                if (connectionSection.TryGetServiceUriForStorageAccounts(Constants.BlobServiceUriSubDomain, out Uri serviceUri))
-                {
-                    clientBuilder.AddBlobServiceClient(serviceUri).WithName(connection);
-                }
-            }
+                
+            });
         }
 
         private List<string> GetConnectionNames(IEnumerable<IFunctionMetadata> functionMetadataList)

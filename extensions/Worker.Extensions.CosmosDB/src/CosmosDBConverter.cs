@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -14,6 +13,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions;
+using System.Text.Json;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -80,29 +80,18 @@ namespace Microsoft.Azure.Functions.Worker
             Type _ when targetType == typeof(CosmosClient) => CreateCosmosClient<CosmosClient>(cosmosAttribute),
             Type _ when targetType == typeof(Database) => CreateCosmosClient<Database>(cosmosAttribute),
             Type _ when targetType == typeof(Container) => CreateCosmosClient<Container>(cosmosAttribute),
-            _ => await CreateTargetObjectAsync(targetType, cosmosAttribute)
+            _ => ConvertDynamic(await CreateTargetObjectAsync(targetType, cosmosAttribute), targetType)
         };
+
+        private object ConvertDynamic(dynamic data, Type targetType)
+        {
+            var json = JsonSerializer.Serialize(data);
+            return JsonSerializer.Deserialize(json, targetType,
+                new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+        }
 
         private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute)
         {
-            MethodInfo createPOCOMethod;
-
-            if (targetType.GenericTypeArguments.Any())
-            {
-                targetType = targetType.GenericTypeArguments.FirstOrDefault();
-
-                createPOCOMethod = GetType()
-                                    .GetMethod(nameof(CreatePOCOCollectionAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                    .MakeGenericMethod(targetType);
-            }
-            else
-            {
-                createPOCOMethod = GetType()
-                                    .GetMethod(nameof(CreatePOCOAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                    .MakeGenericMethod(targetType);
-            }
-
-
             var container = CreateCosmosClient<Container>(cosmosAttribute) as Container;
 
             if (container is null)
@@ -110,17 +99,24 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException($"Unable to create Cosmos container client for '{cosmosAttribute.ContainerName}'.");
             }
 
-            return await (Task<object>)createPOCOMethod.Invoke(this, new object[] { container, cosmosAttribute });
+            if (targetType.GenericTypeArguments.Any())
+            {
+                return await CreatePOCOCollectionAsync(container, cosmosAttribute);
+            }
+            else
+            {
+                return await CreatePOCOAsync(container, cosmosAttribute);
+            }
         }
 
-        private async Task<object> CreatePOCOAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute)
+        private async Task<object> CreatePOCOAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
             if (String.IsNullOrEmpty(cosmosAttribute.Id) || String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
             {
                 throw new InvalidOperationException("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.");
             }
 
-            ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
+            ItemResponse<dynamic> item = await container.ReadItemAsync<dynamic>(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
 
             if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK || item.Resource is null)
             {
@@ -130,7 +126,7 @@ namespace Microsoft.Azure.Functions.Worker
             return item.Resource;
         }
 
-        private async Task<object> CreatePOCOCollectionAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute)
+        private async Task<object> CreatePOCOCollectionAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
             QueryDefinition queryDefinition = null!;
             if (!String.IsNullOrEmpty(cosmosAttribute.SqlQuery))
@@ -148,11 +144,11 @@ namespace Microsoft.Azure.Functions.Worker
             QueryRequestOptions queryRequestOptions = new();
             if (!String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
             {
-                var partitionKey =  new PartitionKey(cosmosAttribute.PartitionKey);
+                var partitionKey = new PartitionKey(cosmosAttribute.PartitionKey);
                 queryRequestOptions = new() { PartitionKey = partitionKey };
             }
 
-            using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
+            using (var iterator = container.GetItemQueryIterator<dynamic>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {
                 if (iterator is null)
                 {

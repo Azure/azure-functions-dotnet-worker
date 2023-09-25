@@ -4,9 +4,6 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Data;
-using System;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -76,6 +73,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString();
             return $"{fullyQualifiedClassName}.{method.Name}";
+        }
+
+        /// <summary>
+        /// Gets the namespace value to be used for the auto generated types.
+        /// </summary>
+        internal static string GetNamespaceForGeneratedCode(GeneratorExecutionContext context)
+        {
+            // If csproj has the msbuild property specified, use it's value.
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.GeneratedCodeNamespace, out var namespaceValue))
+            {
+                return namespaceValue;
+            }
+
+            // Use root namespace.
+            return context.Compilation.Assembly.Name;
         }
     }
 }

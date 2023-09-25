@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         internal static class Emitter
         {
-            internal static string Emit(IEnumerable<ExecutableFunction> functions, bool includeAutoRegistrationCode, CancellationToken cancellationToken)
+            internal static string Emit(GeneratorExecutionContext context, IEnumerable<ExecutableFunction> functions, bool includeAutoRegistrationCode)
             {
 
                 string result = $$"""
@@ -23,9 +23,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          using System.Collections.Generic;
                          using Microsoft.Extensions.Hosting;
                          using Microsoft.Extensions.DependencyInjection;
+                         using Microsoft.Azure.Functions.Worker;
                          using Microsoft.Azure.Functions.Worker.Context.Features;
                          using Microsoft.Azure.Functions.Worker.Invocation;
-                         namespace Microsoft.Azure.Functions.Worker
+                         namespace {{FunctionsUtil.GetNamespaceForGeneratedCode(context)}}
                          {
                              internal class DirectFunctionExecutor : IFunctionExecutor
                              {

@@ -21,25 +21,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         {
             context.EnableConcurrentExecution();
             context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
-            context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Namespace);
+            context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
         }
 
         private static void AnalyzeMethod(SymbolAnalysisContext context)
         {
+            var symbol = (IMethodSymbol)context.Symbol;
+
             bool isAspNetAssembly = context.Compilation.ReferencedAssemblyNames.Any(assembly => assembly.Name.Equals(AspNetExtensionAssemblyName));
 
-            if (!isAspNetAssembly)
+            if (!isAspNetAssembly || !symbol.IsMainMethod())
             {
                 return;
             }
 
-            SyntaxReference syntaxReference = context.Symbol.DeclaringSyntaxReferences.FirstOrDefault();
+            SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
             string code = syntaxReference.SyntaxTree.GetText().ToString();
 
             if (!code.Contains(ExpectedRegistrationMethod))
             {
-                var location = Location.Create(syntaxReference.SyntaxTree, syntaxReference.Span);
-                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, location, ExpectedRegistrationMethod);
+                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, symbol.Locations.First(), ExpectedRegistrationMethod);
                 context.ReportDiagnostic(diagnostic);
             }
         }

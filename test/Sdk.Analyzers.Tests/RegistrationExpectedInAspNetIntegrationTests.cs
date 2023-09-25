@@ -53,7 +53,7 @@ namespace Sdk.Analyzers.Tests
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(2, 17, 22, 18)
+                            .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();
@@ -117,7 +117,7 @@ namespace Sdk.Analyzers.Tests
 
             test.ExpectedDiagnostics.Add(Verify.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(2, 17, 22, 18)
+                            .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();

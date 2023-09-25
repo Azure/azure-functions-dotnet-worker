@@ -1,6 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
+  <PropertyGroup Condition="$(DotnetVersion) != 'netfx'">
     <TargetFramework>net7.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$(DotnetVersion) == 'netfx'">
+    <TargetFramework>net48</TargetFramework>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
   </PropertyGroup>
 
@@ -39,7 +44,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.14.1" />
-    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.18.0" />    
+    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />    
     <PackageReference Include="System.Text.Json" Version="6.0.5" />
   </ItemGroup>
 </Project>

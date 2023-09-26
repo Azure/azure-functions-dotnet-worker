@@ -25,6 +25,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IOptionsMonitor<CosmosDBBindingOptions> _cosmosOptions;
         private readonly ILogger<CosmosDBConverter> _logger;
+        private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNameCaseInsensitive = true };
 
         public CosmosDBConverter(IOptionsMonitor<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
         {
@@ -86,8 +87,7 @@ namespace Microsoft.Azure.Functions.Worker
         private object ConvertDynamic(dynamic data, Type targetType)
         {
             var json = JsonSerializer.Serialize(data);
-            return JsonSerializer.Deserialize(json, targetType,
-                new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
+            return JsonSerializer.Deserialize(json, targetType, _serializerOptions);
         }
 
         private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute)

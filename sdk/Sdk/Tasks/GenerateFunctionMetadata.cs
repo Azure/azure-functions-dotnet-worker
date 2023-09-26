@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
                         throw new FunctionsMetadataGenerationException();
                     }
 
-                    string message = $"Could not write function metadata. Error: '{ex.Message}'. Begining retry {attempt} of 10 in 1000ms.";
+                    string message = $"Could not write function metadata. Error: '{ex.Message}'. Beginning retry {attempt} of 10 in 1000ms.";
                     Log.LogWarning(message);
                     Thread.Sleep(1000);
                 }

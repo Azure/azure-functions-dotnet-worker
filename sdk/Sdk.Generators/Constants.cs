@@ -12,6 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         internal static class BuildProperties
         {
+            internal const string MSBuildRootNamespace = "build_property.RootNamespace";
             internal const string GeneratedCodeNamespace = "build_property.FunctionsGeneratedCodeNamespace";
             internal const string EnableSourceGen = "build_property.FunctionsEnableMetadataSourceGen";
             internal const string EnablePlaceholder = "build_property.FunctionsEnableExecutorSourceGen";

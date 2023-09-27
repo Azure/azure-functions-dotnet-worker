@@ -105,9 +105,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
-namespace Microsoft.Azure.Functions.Worker
+namespace TestProject
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
@@ -211,9 +212,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
-namespace Microsoft.Azure.Functions.Worker
+namespace MyCompany.MyProject.MyApp
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
@@ -251,11 +253,18 @@ namespace Microsoft.Azure.Functions.Worker
 {GetExpectedExtensionMethodCode()}
 }}".Replace("'", "\"");
 
+            // override the namespace value for generated types using msbuild property.
+            var buildPropertiesDict = new Dictionary<string, string>()
+            {
+                {  Constants.BuildProperties.GeneratedCodeNamespace, "MyCompany.MyProject.MyApp"}
+            };
+
             await TestHelpers.RunTestAsync<FunctionExecutorGenerator>(
                 _referencedAssemblies,
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
-                expectedOutput);
+                expectedOutput,
+                buildPropertiesDictionary: buildPropertiesDict);
         }
 
         [Fact]
@@ -338,9 +347,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
-namespace Microsoft.Azure.Functions.Worker
+namespace TestProject
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
@@ -444,9 +454,10 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
-namespace Microsoft.Azure.Functions.Worker
+namespace TestProject
 {{
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{

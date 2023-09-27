@@ -87,11 +87,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Collections.Immutable;
                 using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace Microsoft.Azure.Functions.Worker
+                namespace TestProject
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
@@ -211,11 +212,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Collections.Immutable;
                 using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace Microsoft.Azure.Functions.Worker
+                namespace TestProject
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
@@ -302,11 +304,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Collections.Immutable;
                 using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace Microsoft.Azure.Functions.Worker
+                namespace TestProject
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
@@ -440,11 +443,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Collections.Immutable;
                 using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace Microsoft.Azure.Functions.Worker
+                namespace TestProject
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
@@ -588,11 +592,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Collections.Immutable;
                 using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace Microsoft.Azure.Functions.Worker
+                namespace TestProject
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
@@ -699,11 +704,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Collections.Immutable;
                 using System.Text.Json;
                 using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace Microsoft.Azure.Functions.Worker
+                namespace TestProject
                 {
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {

@@ -5,6 +5,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
@@ -36,13 +37,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
 
             SyntaxReference syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
-            string code = syntaxReference.SyntaxTree.GetText().ToString();
+            var root = syntaxReference.SyntaxTree.GetRoot();
 
-            if (!code.Contains(ExpectedRegistrationMethod))
+            var methodCallExpressions = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
+            bool methodInvocationPresent = methodCallExpressions.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
+
+            if (methodInvocationPresent)
             {
-                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, symbol.Locations.First(), ExpectedRegistrationMethod);
-                context.ReportDiagnostic(diagnostic);
+                return;
             }
+
+            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, symbol.Locations.First(), ExpectedRegistrationMethod);
+            context.ReportDiagnostic(diagnostic);
         }
     }
 }

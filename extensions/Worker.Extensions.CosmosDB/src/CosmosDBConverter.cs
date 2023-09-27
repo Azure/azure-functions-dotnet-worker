@@ -3,7 +3,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -13,7 +15,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions;
-using System.Text.Json;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -81,13 +82,13 @@ namespace Microsoft.Azure.Functions.Worker
             Type _ when targetType == typeof(CosmosClient) => CreateCosmosClient<CosmosClient>(cosmosAttribute),
             Type _ when targetType == typeof(Database) => CreateCosmosClient<Database>(cosmosAttribute),
             Type _ when targetType == typeof(Container) => CreateCosmosClient<Container>(cosmosAttribute),
-            _ => ConvertDynamic(await CreateTargetObjectAsync(targetType, cosmosAttribute), targetType)
+            _ => ConvertObject(await CreateTargetObjectAsync(targetType, cosmosAttribute), targetType)
         };
 
-        private object ConvertDynamic(dynamic data, Type targetType)
+        private object ConvertObject(object data, Type targetType)
         {
             var json = JsonSerializer.Serialize(data);
-            return JsonSerializer.Deserialize(json, targetType, _serializerOptions);
+            return JsonSerializer.Deserialize(json, targetType, _serializerOptions)!;
         }
 
         private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute)
@@ -109,24 +110,24 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private async Task<object> CreatePOCOAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
+        private async Task<Stream> CreatePOCOAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
             if (String.IsNullOrEmpty(cosmosAttribute.Id) || String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
             {
                 throw new InvalidOperationException("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.");
             }
 
-            ItemResponse<dynamic> item = await container.ReadItemAsync<dynamic>(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
+            ResponseMessage item = await container.ReadItemStreamAsync(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
 
-            if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK || item.Resource is null)
+            if (item is null || item.StatusCode is not System.Net.HttpStatusCode.OK || item.Content is null)
             {
                 throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
             }
 
-            return item.Resource;
+            return item.Content;
         }
 
-        private async Task<object> CreatePOCOCollectionAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
+        private async Task<IList<Stream>> CreatePOCOCollectionAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
             QueryDefinition queryDefinition = null!;
             if (!String.IsNullOrEmpty(cosmosAttribute.SqlQuery))
@@ -148,7 +149,7 @@ namespace Microsoft.Azure.Functions.Worker
                 queryRequestOptions = new() { PartitionKey = partitionKey };
             }
 
-            using (var iterator = container.GetItemQueryIterator<dynamic>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
+            using (var iterator = container.GetItemQueryStreamIterator(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
             {
                 if (iterator is null)
                 {
@@ -159,13 +160,13 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private async Task<IList<T>> ExtractCosmosDocumentsAsync<T>(FeedIterator<T> iterator)
+        private async Task<IList<Stream>> ExtractCosmosDocumentsAsync(FeedIterator iterator)
         {
-            var documentList = new List<T>();
+            var documentList = new List<Stream>();
             while (iterator.HasMoreResults)
             {
-                FeedResponse<T> response = await iterator.ReadNextAsync();
-                documentList.AddRange(response.Resource);
+                ResponseMessage response = await iterator.ReadNextAsync();
+                documentList.Add(response.Content);
             }
             return documentList;
         }

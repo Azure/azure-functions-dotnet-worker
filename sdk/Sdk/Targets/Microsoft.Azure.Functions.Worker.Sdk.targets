@@ -51,6 +51,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 
+  <!-- Validating some expectations for the function app early on. -->
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
     <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
     <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
@@ -60,33 +61,42 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
   </Target>
 
+  <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->
   <Target Name="_FunctionsInnerBuild" AfterTargets="CoreCompile" BeforeTargets="CopyFilesToOutputDirectory" DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsPostBuild;_WorkerExtensionsBuild;_FunctionsExtensionAssignTargetPaths" />
+
+  <!-- For publish we have very little targets. Either:
+    1) It is a publish with build, in which case _FunctionsInnerBuild will already be ran.
+    2) It is publish no-build, in which case we assume everything is as expected in the output directory already. -->
   <Target Name="_FunctionsInnerPublish" BeforeTargets="GetCopyToPublishDirectoryItems" DependsOnTargets="_FunctionsExtensionAssignTargetPaths" />
 
   <!-- This is a no-op target purely for backwards compatibilty. Remove this with a major version rev. -->
   <Target Name="_FunctionsPostBuild" />
 
+  <!-- Setting up some paths we will use for later targets. Broken out into its own as we want to pull it in not just for build (ie: Clean also). -->
   <Target Name="_FunctionsGetPaths">
     <PropertyGroup>
       <_FunctionsMetadataPath>$(IntermediateOutputPath)functions.metadata</_FunctionsMetadataPath>
       <_FunctionsWorkerConfigPath>$(IntermediateOutputPath)worker.config.json</_FunctionsWorkerConfigPath>
       <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$([System.IO.Path]::GetFullPath($(IntermediateOutputPath)WorkerExtensions))</ExtensionsCsProjDirectory>
       <ExtensionsCsProj>$([System.IO.Path]::Combine($(ExtensionsCsProjDirectory), WorkerExtensions.csproj))</ExtensionsCsProj>
-      <_FunctionsIntermdiateExtensionJsonPath>$(ExtensionsCsProjDirectory)\buildout\bin\$(_FunctionsExtensionsJsonName)</_FunctionsIntermdiateExtensionJsonPath>
-      <_FunctionsIntermdiateExtensionUpdatedJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermdiateExtensionUpdatedJsonPath>
+      <_FunctionsIntermediateExtensionJsonPath>$(ExtensionsCsProjDirectory)\buildout\bin\$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
+      <_FunctionsIntermediateExtensionUpdatedJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionUpdatedJsonPath>
     </PropertyGroup>
   </Target>
 
+  <!-- We have a few files we can tell the .NET SDK targets to copy for us early on in the build. -->
   <Target Name="_FunctionsPreBuild" DependsOnTargets="_FunctionsGetPaths" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="$(_FunctionsMetadataPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="functions.metadata"  />
       <None Include="$(_FunctionsWorkerConfigPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="worker.config.json" />
-      <None Include="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="$(_FunctionsExtensionsJsonName)" />
+      <None Include="$(_FunctionsIntermediateExtensionUpdatedJsonPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="$(_FunctionsExtensionsJsonName)" />
     </ItemGroup>
   </Target>
 
+  <!-- Helper target to granularly order more targets. -->
   <Target Name="_FunctionsGenerateMetadata" DependsOnTargets="_FunctionsGenerateCommon;_FunctionsCopyMetadataLoader;_FunctionsGenerateNetApp;_FunctionsGenerateNetFx" />
 
+  <!-- Generates the extension files. Generates functions.metadata and the WorkerExtension.csproj -->
   <Target Name="_FunctionsGenerateCommon" Inputs="@(IntermediateAssembly);@(ReferencePath)" Outputs="$(_FunctionsMetadataPath);$(ExtensionsCsProj)">
     <GenerateFunctionMetadata
       AssemblyPath="$(IntermediateOutputPath)$(TargetName)$(TargetExt)"
@@ -98,6 +108,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OutputPath="$(IntermediateOutputPath)"/>
   </Target>
 
+  <!-- Copies an assembly over only if we are not a placeholder. -->
   <Target Name="_FunctionsCopyMetadataLoader" Condition="!$(FunctionsEnablePlaceholder)">
     <Copy
       SourceFiles="$(_FunctionsMetadataLoaderExtensionFile)"
@@ -106,6 +117,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OverwriteReadOnlyFiles="true" />
   </Target>
 
+  <!-- Generates the worker.config.json for .NET apps -->
   <Target Name="_FunctionsGenerateNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
     <WriteLinesToFile
       Condition="$(SelfContained)"
@@ -126,6 +138,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         Overwrite="true" />
   </Target>
 
+  <!-- Generates the worker.config.json for netfx apps -->
   <Target Name="_FunctionsGenerateNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
     <WriteLinesToFile
       File="$(_FunctionsWorkerConfigPath)"
@@ -136,28 +149,34 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Overwrite="true" />
   </Target>
 
+  <!-- Invoke restore on WorkerExtension.csproj -->
   <Target Name="_WorkerExtensionsRestore">
     <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;$(_FunctionsExtensionCommonProps)" />
   </Target>
 
+  <!-- Invoke build on WorkerExtension.csproj -->
   <Target Name="_WorkerExtensionsBuild" DependsOnTargets="_WorkerExtensionsRestore">
     <MSbuild Projects="$(ExtensionsCsProj)" Targets="Build" RemoveProperties="DeployOnBuild" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjDirectory)\buildout;$(_FunctionsExtensionCommonProps)" />
   </Target>
 
+  <!-- Touch up the extensions.json file as needed for .NET isolated -->
   <Target Name="_FunctionsExtensionUpdateMetadata"
     AfterTargets="_WorkerExtensionsBuild"
     BeforeTargets="CopyFilesToOutputDirectory"
-    Inputs="$(_FunctionsIntermdiateExtensionJsonPath)"
-    Outputs="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)">
+    Inputs="$(_FunctionsIntermediateExtensionJsonPath)"
+    Outputs="$(_FunctionsIntermediateExtensionUpdatedJsonPath)">
     <EnhanceExtensionsMetadata
-      ExtensionsJsonPath="$(_FunctionsIntermdiateExtensionJsonPath)"
-      OutputPath="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)"/>
+      ExtensionsJsonPath="$(_FunctionsIntermediateExtensionJsonPath)"
+      OutputPath="$(_FunctionsIntermediateExtensionUpdatedJsonPath)"/>
   </Target>
 
+  <!-- We do not copy files to output or publish directory ourselves. Instead, we are going to leverage existing
+    targets in the .NET SDK to perform the copying for us. All we have to do is append to an item group with
+    appropriate metadata on the items, and now both Build and Publish will know our files are to be copied out. -->
   <Target Name="_FunctionsExtensionAssignTargetPaths">
     <ItemGroup>
       <_ExtensionBinaries Include="$(ExtensionsCsProjDirectory)\buildout\bin\**"
-        Exclude="$(ExtensionsCsProjDirectory)\buildout\bin\runtimes\**;$(_FunctionsIntermdiateExtensionJsonPath)"
+        Exclude="$(ExtensionsCsProjDirectory)\buildout\bin\runtimes\**;$(_FunctionsIntermediateExtensionJsonPath)"
         CopyToOutputDirectory="PreserveNewest"
         CopyToPublishDirectory="PreserveNewest" />
       <_ExtensionRuntimeBinaries Include="$(ExtensionsCsProjDirectory)\buildout\runtimes\**"
@@ -165,6 +184,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         CopyToPublishDirectory="PreserveNewest" />
     </ItemGroup>
 
+    <!-- This target will assign the 'TargetPath' metadata for us with the correct root. The 'TargetPath' is what
+      the CopyToOutputDirectory and CopyToPublishDirectory will use to determine path to copy to. Setting
+      'RootFolder' as we do tells this task to trim off the root when deciding the final location. -->
     <AssignTargetPath Files="@(_ExtensionBinaries)" RootFolder="$(ExtensionsCsProjDirectory)\buildout\bin">
       <Output TaskParameter="AssignedFiles" ItemName="_ExtensionFilesWithTargetPath" />
     </AssignTargetPath>
@@ -173,6 +195,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <Output TaskParameter="AssignedFiles" ItemName="_ExtensionFilesWithTargetPath" />
     </AssignTargetPath>
 
+    <!-- Hook all these files into CopyToOutputDirectory by appending to _NoneWithTargetPath. -->
     <ItemGroup>
       <_NoneWithTargetPath Include="@(_ExtensionFilesWithTargetPath)" TargetPath="$(_FunctionsExtensionsDirectory)/%(_ExtensionFilesWithTargetPath.TargetPath)" />
     </ItemGroup>
@@ -187,7 +210,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <_WorkerExtFilesToClean Include="$(TargetDir)worker.config.json" />
       <_WorkerExtFilesToClean Include="$(TargetDir)extensions.json" />
       <_WorkerExtFilesToClean Include="$(TargetDir)functions.metadata" />
-      <_WorkerExtFilesToClean Include="$(_FunctionsIntermdiateExtensionUpdatedJsonPath)" />
+      <_WorkerExtFilesToClean Include="$(_FunctionsIntermediateExtensionUpdatedJsonPath)" />
     </ItemGroup>
 
     <Delete Files="@(_WorkerExtFilesToClean)" ContinueOnError="true" />

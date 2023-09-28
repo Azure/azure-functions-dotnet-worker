@@ -19,6 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             _logger = logger;
         }
 
+        #if NET6_0_OR_GREATER
         [Function(nameof(TableClientFunction))]
         public async Task<HttpResponseData> TableClientFunction(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
@@ -35,6 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
 
             return response;
         }
+        #endif
 
         [Function(nameof(ReadTableDataFunction))]
         public async Task<HttpResponseData> ReadTableDataFunction(
@@ -52,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
             [TableInput("TestTable", "{partition}", 2, Filter = "RowKey ne '" + "{rowKey}'")] IEnumerable<TableEntity> table)
         {
-            List<string> tableList = new();
+            List<string> tableList = new List<string>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 
             foreach (TableEntity tableEntity in table)
@@ -72,7 +74,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             [TableInput("TestTable", "{partitionKey}")] IEnumerable<TableEntity> tables)
         {
             var response = req.CreateResponse(HttpStatusCode.OK);
-            List<string> tableList = new();
+            List<string> tableList = new List<string>();
 
             foreach (TableEntity tableEntity in tables)
             {

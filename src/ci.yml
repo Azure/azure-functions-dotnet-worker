@@ -62,13 +62,32 @@ jobs:
       {
         throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
       }
-      ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
+      ./setup-e2e-tests.ps1 -DotnetVersion 'net7' `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
                             -SkipBuildOnPack
-    displayName: "Setup E2E tests"
+    displayName: "Setup E2E tests - Net7"
 
   - task: DotNetCoreCLI@2
-    displayName: 'Run tests'
+    displayName: 'Run tests - Net7'
+    inputs:
+      command: 'test'
+      arguments: '--no-build -c Release'
+      projects: |
+        test/**/*Tests.csproj
+
+  - pwsh: |
+      $useIntegrationTestingCoreTools = $null
+      if (-not ([bool]::TryParse($env:USECORETOOLSBUILDFROMINTEGRATIONTESTS, [ref] $useIntegrationTestingCoreTools)))
+      {
+        throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
+      }
+      ./setup-e2e-tests.ps1 -DotnetVersion 'netfx' `
+                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
+                            -SkipBuildOnPack
+    displayName: "Setup E2E tests - NetFramework"
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run tests - NetFramework'
     inputs:
       command: 'test'
       arguments: '--no-build -c Release'
@@ -227,12 +246,12 @@ jobs:
   - publish: $(System.DefaultWorkingDirectory)/packages
     artifact: drop
 
-- job: "E2ETests_Ubuntu"  
+- job: "E2ETests_Ubuntu"
   pool:
     name: '1ES-Hosted-AzFunc'
     demands:
       - ImageOverride -equals MMSUbuntu20.04TLS
-
+    
   steps:
     - template: ../build/install-dotnet.yml
     - task: DotNetCoreCLI@2
@@ -248,17 +267,19 @@ jobs:
         {
           throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
         }
-        ./setup-e2e-tests.ps1 -FunctionsRuntimeVersion $env:FUNCTIONSRUNTIMEVERSION `
+        ./setup-e2e-tests.ps1 -DotnetVersion 'net7' `
                               -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
                               -SkipCosmosDBEmulator `
                               -SkipBuildOnPack
       displayName: "Setup E2E tests"
       env:
         CORE_TOOLS_URL: $(CORE_TOOLS_URL)
-    
+
     - task: DotNetCoreCLI@2
       displayName: 'Run E2E tests'
       inputs:
         command: 'test'
         arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' #only run http tests to avoid emulators on Linux
-        projects: 'test/**/*Tests.csproj'
+        projects: |
+          test/**/*Tests.csproj
+          !test/**/Worker.Extensions.Rpc.Tests.csproj

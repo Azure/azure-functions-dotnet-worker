@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.EventGrid <version>
 
-- <event>
+- <entry>

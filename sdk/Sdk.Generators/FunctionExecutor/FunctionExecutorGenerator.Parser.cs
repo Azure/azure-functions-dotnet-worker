@@ -32,8 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     _context.CancellationToken.ThrowIfCancellationRequested();
                     var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                    if (!FunctionsUtil.IsValidFunctionMethod(_context, Compilation, model, method,
-                            out _))
+                    if (!FunctionsUtil.IsValidFunctionMethod(_context, Compilation, model, method))
                     {
                         continue;
                     }
@@ -48,7 +47,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             continue;
                         }
 
-                        methodParameterList.Add(parameterSymbol.Type.ToDisplayString());
+                        var fullyQualifiedTypeName = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                        methodParameterList.Add(fullyQualifiedTypeName);
                     }
 
                     var methodSymbol = model.GetDeclaredSymbol(method)!;

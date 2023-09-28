@@ -5,9 +5,7 @@ namespace FunctionsNetHost.Grpc
 {
     internal sealed class GrpcWorkerStartupOptions
     {
-        public string? Host { get; set; }
-
-        public int Port { get; set; }
+        public Uri ServerUri { get; set; }
 
         public string? WorkerId { get; set; }
 

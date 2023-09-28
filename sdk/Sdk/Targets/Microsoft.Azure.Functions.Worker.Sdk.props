@@ -25,6 +25,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <CompilerVisibleProperty Include="FunctionsEnableExecutorSourceGen" />
     <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedFunctionsExecutor" />
     <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedMetadataProvider" />
+    <CompilerVisibleProperty Include="FunctionsGeneratedCodeNamespace" />
   </ItemGroup>
 <!--
   ***********************************************************************************************

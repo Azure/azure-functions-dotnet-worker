@@ -15,11 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal static bool IsValidFunctionMethod(
             GeneratorExecutionContext context,
             Compilation compilation,
-            SemanticModel model, 
-            MethodDeclarationSyntax method, 
-            out string? functionName)
+            SemanticModel model,
+            MethodDeclarationSyntax method)
         {
-            functionName = null;
             var methodSymbol = model.GetDeclaredSymbol(method);
 
             if (methodSymbol is null)
@@ -28,14 +26,39 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return false;
             }
 
-            foreach (var attr in methodSymbol.GetAttributes())
+            if (IsFunctionSymbol(methodSymbol, compilation))
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static bool IsFunctionSymbol(ISymbol symbol, Compilation compilation)
+        {
+            foreach (var attr in symbol.GetAttributes())
             {
                 if (attr.AttributeClass != null &&
                    SymbolEqualityComparer.Default.Equals(attr.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)))
                 {
-                    functionName = (string)attr.ConstructorArguments.First().Value!; // If this is a function attribute this won't be null
                     return true;
                 }
+            }
+
+            return false;
+        }
+
+        internal static bool TryGetFunctionName(ISymbol symbol, Compilation compilation, out string? functionName)
+        {
+            functionName = null;
+
+            var functionAttribute = symbol.GetAttributes()
+                .FirstOrDefault(a => SymbolEqualityComparer.Default.Equals(a.AttributeClass, compilation.GetTypeByMetadataName(Constants.Types.FunctionName)));
+
+            if (functionAttribute is not null)
+            {
+                functionName = (string)functionAttribute.ConstructorArguments.First().Value!;
+                return true;
             }
 
             return false;
@@ -46,12 +69,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Ex: "MyNamespaceName.MyClassName.MyMethod" 
         /// for a method called "MyMethod" inside the "MyClassName" type which is inside the "MyNamespaceName" namespace.
         /// </summary>
-        internal static string GetFullyQualifiedMethodName(MethodDeclarationSyntax method, SemanticModel semanticModel)
+        internal static string GetFullyQualifiedMethodName(IMethodSymbol method)
         {
-            var methodSymbol = semanticModel.GetDeclaredSymbol(method)!;
-            var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
+            var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString();
+            return $"{fullyQualifiedClassName}.{method.Name}";
+        }
 
-            return $"{fullyQualifiedClassName}.{method.Identifier.ValueText}";
+        /// <summary>
+        /// Gets the namespace value to be used for the auto generated types.
+        /// </summary>
+        internal static string GetNamespaceForGeneratedCode(GeneratorExecutionContext context)
+        {
+            // If csproj has the msbuild property specified, use it's value.
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.GeneratedCodeNamespace, out var namespaceValue)
+                && !string.IsNullOrWhiteSpace(namespaceValue))
+            {
+                return namespaceValue;
+            }
+
+            // Get the "RootNamespace" msbuild property value.(This gets populated in Microsoft.NET.Sdk.props and can be overridden by user in their function app)
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.MSBuildRootNamespace, out var rootNamespaceValue);
+
+            return rootNamespaceValue!;
         }
     }
 }

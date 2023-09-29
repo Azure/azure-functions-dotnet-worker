@@ -77,7 +77,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <PropertyGroup>
       <_FunctionsMetadataPath>$(IntermediateOutputPath)functions.metadata</_FunctionsMetadataPath>
       <_FunctionsWorkerConfigPath>$(IntermediateOutputPath)worker.config.json</_FunctionsWorkerConfigPath>
-      <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$([System.IO.Path]::GetFullPath($(IntermediateOutputPath)WorkerExtensions))</ExtensionsCsProjDirectory>
+      <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$(IntermediateOutputPath)WorkerExtensions</ExtensionsCsProjDirectory>
+      <ExtensionsCsProjDirectory>$([System.IO.Path]::GetFullPath($(ExtensionsCsProjDirectory)))</ExtensionsCsProjDirectory> <!-- Ensure ExtensionsCsProjDirectory is a full path. -->
       <ExtensionsCsProj>$([System.IO.Path]::Combine($(ExtensionsCsProjDirectory), WorkerExtensions.csproj))</ExtensionsCsProj>
       <_FunctionsIntermediateExtensionJsonPath>$(ExtensionsCsProjDirectory)\buildout\bin\$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
       <_FunctionsIntermediateExtensionUpdatedJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionUpdatedJsonPath>

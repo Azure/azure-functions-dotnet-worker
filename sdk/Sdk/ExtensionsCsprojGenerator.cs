@@ -32,16 +32,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             var extensionsCsprojFilePath = Path.Combine(_outputPath, ExtensionsProjectName);
 
             string csproj = GetCsProjContent();
-
-            // Incremental build support: write the new csproj only if contents have changed.
-            // By keeping one from a previous build around, our restore & build has a chance
-            // to follow incremental build and no-op if nothing needs to be done.
             if (File.Exists(extensionsCsprojFilePath))
             {
                 string existing = File.ReadAllText(extensionsCsprojFilePath);
                 if (string.Equals(csproj, existing, StringComparison.Ordinal))
                 {
-                    // Up to date, nothing to do.
+                    // If contents are the same, only touch the file to update timestamp.
+                    File.SetLastWriteTimeUtc(extensionsCsprojFilePath, DateTime.UtcNow);
                     return;
                 }
             }

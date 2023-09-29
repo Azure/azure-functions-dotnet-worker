@@ -33,20 +33,23 @@ namespace Microsoft.Azure.Functions.SdkTests
         [InlineData(FuncVersion.V4)]
         public void GetCsProjContent_IncrementalSupport(FuncVersion version)
         {
-            DateTime RunGenerate(string subPath)
+            DateTime RunGenerate(string subPath, out string contents)
             {
                 var generator = GetGenerator(version, subPath);
                 generator.Generate();
 
+                string path = Path.Combine(subPath, ExtensionsCsprojGenerator.ExtensionsProjectName);
+                contents = File.ReadAllText(path);
                 var csproj = new FileInfo(Path.Combine(subPath, ExtensionsCsprojGenerator.ExtensionsProjectName));
                 return csproj.LastWriteTimeUtc;
             }
 
             string subPath = Guid.NewGuid().ToString();
-            DateTime firstRun = RunGenerate(subPath);
-            DateTime secondRun = RunGenerate(subPath);
+            DateTime firstRun = RunGenerate(subPath, out string first);
+            DateTime secondRun = RunGenerate(subPath, out string second);
 
-            Assert.Equal(firstRun, secondRun);
+            Assert.NotEqual(firstRun, secondRun);
+            Assert.Equal(first, second);
         }
 
         static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string subPath = "")

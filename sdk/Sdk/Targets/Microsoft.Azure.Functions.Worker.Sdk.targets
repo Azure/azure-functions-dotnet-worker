@@ -151,7 +151,13 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- Invoke restore on WorkerExtension.csproj -->
   <Target Name="_WorkerExtensionsRestore">
-    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;$(_FunctionsExtensionCommonProps)" />
+    <!-- Task from Nuget targets, this will resolve the restore sources this project has configured. We want to pass
+      these on to the inner-build, so that nuget feeds used are identical. -->
+    <GetRestoreSettingsTask ProjectUniqueName="$(MSBuildProjectFullPath)" RestoreSources="$(RestoreSources)" RestorePackagesPath="$(RestorePackagesPath)" RestoreRepositoryPath="$(RestoreRepositoryPath)" RestoreFallbackFolders="$(RestoreFallbackFolders)" RestoreConfigFile="$(RestoreConfigFile)" RestoreRootConfigDirectory="$(RestoreRootConfigDirectory)" RestoreSolutionDirectory="$(RestoreSolutionDirectory)" RestoreSettingsPerFramework="@(_RestoreSettingsPerFramework)" RestorePackagesPathOverride="$(_RestorePackagesPathOverride)" RestoreRepositoryPathOverride="$(_RestoreRepositoryPathOverride)" RestoreSourcesOverride="$(_RestoreSourcesOverride)" RestoreFallbackFoldersOverride="$(_RestoreFallbackFoldersOverride)" RestoreProjectStyle="$(RestoreProjectStyle)" MSBuildStartupDirectory="$(MSBuildStartupDirectory)">
+      <Output TaskParameter="OutputSources" PropertyName="_ExtensionRestoreSources" />
+    </GetRestoreSettingsTask>
+
+    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;RestoreSources=$(_ExtensionRestoreSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <!-- Invoke build on WorkerExtension.csproj -->

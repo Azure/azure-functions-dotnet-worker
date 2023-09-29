@@ -149,15 +149,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Overwrite="true" />
   </Target>
 
-  <!-- Invoke restore on WorkerExtension.csproj -->
-  <Target Name="_WorkerExtensionsRestore">
-    <!-- Task from Nuget targets, this will resolve the restore sources this project has configured. We want to pass
-      these on to the inner-build, so that nuget feeds used are identical. -->
-    <GetRestoreSettingsTask ProjectUniqueName="$(MSBuildProjectFullPath)" RestoreSources="$(RestoreSources)" RestorePackagesPath="$(RestorePackagesPath)" RestoreRepositoryPath="$(RestoreRepositoryPath)" RestoreFallbackFolders="$(RestoreFallbackFolders)" RestoreConfigFile="$(RestoreConfigFile)" RestoreRootConfigDirectory="$(RestoreRootConfigDirectory)" RestoreSolutionDirectory="$(RestoreSolutionDirectory)" RestoreSettingsPerFramework="@(_RestoreSettingsPerFramework)" RestorePackagesPathOverride="$(_RestorePackagesPathOverride)" RestoreRepositoryPathOverride="$(_RestoreRepositoryPathOverride)" RestoreSourcesOverride="$(_RestoreSourcesOverride)" RestoreFallbackFoldersOverride="$(_RestoreFallbackFoldersOverride)" RestoreProjectStyle="$(RestoreProjectStyle)" MSBuildStartupDirectory="$(MSBuildStartupDirectory)">
-      <Output TaskParameter="OutputSources" PropertyName="_ExtensionRestoreSources" />
-    </GetRestoreSettingsTask>
-
-    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;RestoreSources=$(_ExtensionRestoreSources);$(_FunctionsExtensionCommonProps)" />
+  <!-- Invoke restore on WorkerExtension.csproj.
+    We depend on _GetRestoreSettings, which is a task from nuget targets that will resolve various nuget restore settings.
+    Namely we want to know what restore sources ($(_OutputSources)) to use. -->
+  <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_GetRestoreSettings">
+    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <!-- Invoke build on WorkerExtension.csproj -->

@@ -10,9 +10,9 @@ namespace SampleApp
 {
     public static class EventHubsTriggerMetadata
     {
-        [Function("EventHubsTriggerMetadata-Context")]
+        [Function(nameof(EventHubsTriggerUsingContext))]
         [FixedDelayRetry(5, "00:00:10")]
-        public static void UsingContext([EventHubTrigger("src-context", Connection = "EventHubConnectionAppSetting")] string[] messages, FunctionContext context)
+        public static void EventHubsTriggerUsingContext([EventHubTrigger("src-context", Connection = "EventHubConnection")] string[] messages, FunctionContext context)
         {
             // Properties for messages are passed as binding data, which is accessible via the FunctionContext.
             // However, this requires converting manually into the correct types.
@@ -23,9 +23,9 @@ namespace SampleApp
             var systemPropertiesArray = context.BindingContext.BindingData["systemPropertiesArray"];
         }
 
-        [Function("EventHubsTriggerMetadata-Parameters")]
+        [Function(nameof(EventHubsTriggerUsingParameters))]
         [FixedDelayRetry(5, "00:00:10")]
-        public static void UsingParameters([EventHubTrigger("src-parameters", Connection = "EventHubConnectionAppSetting")] string[] messages,
+        public static void EventHubsTriggerUsingParameters([EventHubTrigger("src-parameters", Connection = "EventHubConnection")] string[] messages,
             DateTime[] enqueuedTimeUtcArray,
             long[] sequenceNumberArray,
             string[] offsetArray,

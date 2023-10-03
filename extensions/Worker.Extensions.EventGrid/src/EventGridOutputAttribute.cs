@@ -21,5 +21,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         /// <summary>Gets or sets the Topic Key setting. You can find information on getting the Key for a topic here: https://docs.microsoft.com/en-us/azure/event-grid/custom-event-quickstart#send-an-event-to-your-topic </summary>
         public string? TopicKeySetting { get; set; }
+
+        /// <summary>
+        /// Gets or sets the app setting name that contains the Event Grid topic's connection information. When setting the `Connection` property, the `TopicEndpointUri` and `TopicKeySetting` properties should NOT be set.
+        /// </summary>
+        public string? Connection { get; set; }
     }
 }

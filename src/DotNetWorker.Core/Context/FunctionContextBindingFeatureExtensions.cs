@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -28,19 +30,13 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(bindingMetadata));
             }
 
-            ConversionResult bindingResult;
-            var cacheKey = bindingMetadata.Name;
-            var bindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>();
+            var bindingCache = context.InstanceServices.GetService<IBindingCache<ConversionResult>>()!;
 
-            if (bindingCache!.TryGetValue(cacheKey, out var cachedResult))
+            if (!bindingCache!.TryGetValue(bindingMetadata.Name, out ConversionResult bindingResult))
             {
-                bindingResult = cachedResult;
-                return new DefaultInputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
+                bindingResult = await GetConvertedValueFromInputConversionFeature(context, bindingMetadata, typeof(T));
+                bindingCache.TryAdd(bindingMetadata.Name, bindingResult);
             }
-
-            var requestedType = typeof(T);
-            bindingResult = await GetConvertedValueFromInputConversionFeature(context, bindingMetadata, requestedType);
-            bindingCache.TryAdd(cacheKey, bindingResult);
 
             return new DefaultInputBindingData<T>(bindingCache, bindingMetadata, (T?)bindingResult.Value);
         }
@@ -54,9 +50,9 @@ namespace Microsoft.Azure.Functions.Worker
         public static InvocationResult<T> GetInvocationResult<T>(this FunctionContext context)
         {
             var invocationResult = context.GetBindings().InvocationResult;
-            if (invocationResult is T resultAsT)
+            if (invocationResult is T result)
             {
-                return new DefaultInvocationResult<T>(context, resultAsT);
+                return new DefaultInvocationResult<T>(context, result);
             }
 
             throw new InvalidOperationException($"Requested type({typeof(T)}) does not match the type of Invocation result({invocationResult!.GetType()})");
@@ -103,19 +99,29 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         private static async ValueTask<ConversionResult> GetConvertedValueFromInputConversionFeature(FunctionContext context, BindingMetadata bindingMetadata, Type targetType)
         {
+            DefaultFunctionInputBindingFeature.TryGetBindingSource(bindingMetadata.Name, context, out object? source);
+
             var converterContextFactory = context.InstanceServices.GetService<IConverterContextFactory>();
             var inputConversionFeature = context.Features.Get<IInputConversionFeature>();
-            var functionBindings = context.GetBindings();
+            var converterContext = converterContextFactory!.Create(targetType, source, context, ImmutableDictionary<string, object>.Empty);
 
-            // Check InputData first, then TriggerMetadata
-            if (!functionBindings.InputData.TryGetValue(bindingMetadata.Name, out object? source))
+            ConversionResult conversionResult = await inputConversionFeature!.ConvertAsync(converterContext);
+
+            if (conversionResult.Status != ConversionStatus.Unhandled)
             {
-                functionBindings.TriggerMetadata.TryGetValue(bindingMetadata.Name, out source);
+                return conversionResult;
             }
 
-            var converterContext = converterContextFactory!.Create(targetType, source, context);
+            // Fallback to using parameter defined converters.
+            FunctionParameter? parameter = context.FunctionDefinition.Parameters
+            .FirstOrDefault(p => string.Equals(p.Name, bindingMetadata.Name, StringComparison.OrdinalIgnoreCase));
 
-            return await inputConversionFeature!.ConvertAsync(converterContext);
+            if (parameter is not null)
+            {
+                return await DefaultFunctionInputBindingFeature.ConvertAsync(context, parameter);
+            }
+
+            return ConversionResult.Unhandled();
         }
     }
 }

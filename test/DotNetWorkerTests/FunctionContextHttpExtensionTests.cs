@@ -85,7 +85,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _features.Set<FunctionDefinition>(httpFunctionDefinition);
 
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
-            var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
+            var grpcHttpReq = new GrpcHttpRequestData(TestUtility.CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {
                 InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } })
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             _features.Set<FunctionDefinition>(new TestFunctionDefinition());
 
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
-            var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
+            var grpcHttpReq = new GrpcHttpRequestData(TestUtility.CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {
                 InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } }),
@@ -153,7 +153,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }));
 
             _defaultFunctionContext = new DefaultFunctionContext(_serviceScopeFactory, _features, CancellationToken.None);
-            var grpcHttpReq = new GrpcHttpRequestData(CreateRpcHttp(), _defaultFunctionContext);
+            var grpcHttpReq = new GrpcHttpRequestData(TestUtility.CreateRpcHttp(), _defaultFunctionContext);
             var functionBindings = new TestFunctionBindingsFeature
             {
                 InputData = new ReadOnlyDictionary<string, object>(new Dictionary<string, object> { { "req", grpcHttpReq } })
@@ -178,18 +178,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             // Call the GetHttpResponseData method again and verify.
             HttpResponseData actual2 = _defaultFunctionContext.GetHttpResponseData();
             Assert.True(actual2.Headers.First(a => a.Key == "X-Foo-Id").Value.Any());
-        }
-
-        private RpcHttp CreateRpcHttp()
-        {
-            var rpcHttp = new RpcHttp
-            {
-                Url = "https://m.sn"
-            };
-            rpcHttp.NullableHeaders["Accept-Encoding"] = new NullableString() { Value = "gzip, deflate" };
-            rpcHttp.NullableHeaders["Cookie"] = new NullableString() { Value = "theme=light; x-token=foo" };
-
-            return rpcHttp;
         }
     }
 }

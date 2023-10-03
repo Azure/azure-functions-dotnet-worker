@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- Adding support for binding to request body (`FromBodyAttribute` support)
+- <entry>

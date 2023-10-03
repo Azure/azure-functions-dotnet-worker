@@ -2,13 +2,13 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 
+using System;
+
 namespace Microsoft.Azure.Functions.Worker
 {
     internal class GrpcWorkerStartupOptions
     {
-        public string? Host { get; set; }
-
-        public int Port { get; set; }
+        public Uri? HostEndpoint { get; set; }
 
         public string? WorkerId { get; set; }
 

@@ -10,11 +10,11 @@ namespace SampleApp
 {
     public static class EventGridFunction
     {
-        [Function("EventGridFunction")]
+        [Function(nameof(EventGridFunction))]
         [EventGridOutput(TopicEndpointUri = "MyEventGridTopicUriSetting", TopicKeySetting = "MyEventGridTopicKeySetting")]
         public static MyEventType Run([EventGridTrigger] MyEventType input, FunctionContext context)
         {
-            var logger = context.GetLogger("EventGridFunction");
+            var logger = context.GetLogger(nameof(EventGridFunction));
 
             logger.LogInformation(input.Data.ToString());
 

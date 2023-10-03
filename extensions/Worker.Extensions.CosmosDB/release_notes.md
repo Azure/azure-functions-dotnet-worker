@@ -4,6 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.4.1
+### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.5.0
 
-- [Bug] Update CosmosOptions from using IOptionsSnapshot to IOptionsMonitor to avoid DI scoping issues
+- Updated `Microsoft.Azure.WebJobs.Extensions.CosmosDB` to 4.4.0
+  - Release notes for v4.4.0 can be found [here](https://github.com/Azure/azure-webjobs-sdk-extensions/releases/tag/cosmos-v4.4.0)

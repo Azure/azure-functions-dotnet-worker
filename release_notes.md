@@ -10,8 +10,10 @@
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- <entry>
+- Adding optional parameter support (#1868)
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Added support for handling the new command line arguments with "functions-" prefix. (#1897)
+- Adding optional parameter support (#1868)
+  

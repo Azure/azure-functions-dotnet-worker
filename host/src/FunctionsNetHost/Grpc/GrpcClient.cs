@@ -33,7 +33,7 @@ namespace FunctionsNetHost.Grpc
 
         internal async Task InitAsync()
         {
-            var endpoint = $"http://{_grpcWorkerStartupOptions.Host}:{_grpcWorkerStartupOptions.Port}";
+            var endpoint = _grpcWorkerStartupOptions.ServerUri.AbsoluteUri;
             Logger.LogTrace($"Grpc service endpoint:{endpoint}");
 
             var functionRpcClient = CreateFunctionRpcClient(endpoint);

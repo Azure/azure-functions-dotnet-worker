@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
-        [Fact]
+        [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1910")]
         public async Task Read_TableClient_Data_Succeeds()
         {
             const string partitionKey = "Partition";
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
             await TableHelpers.DeleteTable();
         }
 
-        [Fact]
+        [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1910")]
         public async Task Read_TableData_Succeeds()
         {
             const string partitionKey = "Partition";

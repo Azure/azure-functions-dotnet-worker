@@ -62,5 +62,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     messageFormat: "Invalid use of a retry attribute. Check that the attribute is used on a trigger that supports function-level retry.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
+        public static DiagnosticDescriptor InvalidBindingAttributeArgument { get; }
+                    = Create(id: "AZFW0013",
+                    title: "Invalid argument in binding attribute.",
+                    messageFormat: "Invalid argument passed in binding attribute. Check that the argument is not null.",
+                    category: "FunctionMetadataGeneration",
+                    severity: DiagnosticSeverity.Error);
+
     }
 }

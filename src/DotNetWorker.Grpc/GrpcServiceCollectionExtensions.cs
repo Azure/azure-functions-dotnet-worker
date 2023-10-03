@@ -11,7 +11,6 @@ using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Azure.Functions.Worker.Handlers;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -68,12 +67,38 @@ namespace Microsoft.Extensions.DependencyInjection
 #endif
 
             services.AddOptions<GrpcWorkerStartupOptions>()
-                .Configure<IConfiguration>((arguments, config) =>
+                .Configure<IConfiguration>((grpcWorkerStartupOption, config) =>
                 {
-                    config.Bind(arguments);
+                    grpcWorkerStartupOption.HostEndpoint = GetFunctionsHostGrpcUri(config);
+                    grpcWorkerStartupOption.RequestId = config["Functions:Worker:RequestId"] ?? config["requestId"];
+                    grpcWorkerStartupOption.WorkerId = config["Functions:Worker:WorkerId"] ?? config["workerId"];
+                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("Functions:Worker:GrpcMaxMessageLength", null) ?? config.GetValue<int>("grpcMaxMessageLength");
                 });
 
             return services;
+        }
+
+        private static Uri GetFunctionsHostGrpcUri(IConfiguration configuration)
+        {
+            Uri? grpcUri;
+            var functionsUri = configuration["Functions:Worker:HostEndpoint"];
+            if (functionsUri is not null)
+            {
+                if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out grpcUri))
+                {
+                    throw new InvalidOperationException($"The gRPC channel URI '{functionsUri}' could not be parsed.");
+                }
+            }
+            else
+            {
+                var uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
+                if (!Uri.TryCreate(uriString, UriKind.Absolute, out grpcUri))
+                {
+                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
+                }
+            }
+
+            return grpcUri;
         }
     }
 }

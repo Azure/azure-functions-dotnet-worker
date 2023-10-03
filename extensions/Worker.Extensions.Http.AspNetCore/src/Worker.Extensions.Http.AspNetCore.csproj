@@ -24,9 +24,6 @@
 
     <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
         <FrameworkReference Include="Microsoft.AspNetCore.App" />
-    </ItemGroup>
-    
-    <ItemGroup Condition=" '$(TargetFramework)' == 'net6.0'">
         <ProjectReference Include="..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
         <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
         <ProjectReference Include="..\..\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />

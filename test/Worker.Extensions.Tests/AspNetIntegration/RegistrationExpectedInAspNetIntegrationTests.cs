@@ -1,6 +1,6 @@
 ﻿using Xunit;
 using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using Verify1 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
+using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verify1.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
@@ -100,7 +100,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verify1.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
@@ -163,7 +163,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verify1.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));

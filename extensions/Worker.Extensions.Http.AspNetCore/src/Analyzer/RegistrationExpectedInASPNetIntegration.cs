@@ -10,22 +10,18 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     /// <summary>
-    /// Analyzer to check expected registations for AspNetIntegration App
+    /// Analyzer to verify whether expected registation is present for AspNetIntegration.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class RegistrationExpectedInASPNetIntegration : DiagnosticAnalyzer
     {
-        /// <summary>
-        /// Diagnostics supported by this analyzer.
-        /// </summary>
+        /// Diagnostics supported by the analyzer
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration);
 
         private const string ExpectedRegistrationMethod = "ConfigureFunctionsWebApplication";
         private const string AspNetExtensionAssemblyName = "Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore";
 
-        /// <summary>
-        /// Analyzer initialization.
-        /// </summary>
+        /// Initialization method
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -59,11 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             context.ReportDiagnostic(diagnostic);
         }
 
-        /// <summary>
-        /// Checks if a method symbol is a Main method. This also checks for implicit main in top-level statements
-        /// </summary>
-        /// <param name="symbol">The method symbol to check.</param>
-        /// <returns>A boolean value indicating whether the method symbol is a Main method.</returns>
+        // Checks if a method symbol is a Main method. This also checks for implicit main in top-level statements
         private static bool IsMainMethod(IMethodSymbol symbol)
         {
             var isMainMethod = symbol?.IsStatic == true && symbol.Name switch

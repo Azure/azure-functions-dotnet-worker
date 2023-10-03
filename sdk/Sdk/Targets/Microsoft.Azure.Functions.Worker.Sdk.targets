@@ -150,9 +150,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Overwrite="true" />
   </Target>
 
-  <!-- Invoke restore on WorkerExtension.csproj -->
-  <Target Name="_WorkerExtensionsRestore">
-    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;$(_FunctionsExtensionCommonProps)" />
+  <!-- Invoke restore on WorkerExtension.csproj.
+    We depend on _GetRestoreSettings, which is a task from nuget targets that will resolve various nuget restore settings.
+    Namely we want to know what restore sources ($(_OutputSources)) to use. -->
+  <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_GetRestoreSettings">
+    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <!-- Invoke build on WorkerExtension.csproj -->

@@ -1,11 +1,11 @@
 ﻿using Xunit;
-using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.RegistrationExpectedInASPNetIntegration>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using Verify1 = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 
-namespace Sdk.Analyzers.Tests
+namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
 {
     public class RegistrationExpectedInAspNetIntegrationTests
     {
@@ -51,7 +51,7 @@ namespace Sdk.Analyzers.Tests
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verify.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verify1.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
@@ -100,7 +100,7 @@ namespace Sdk.Analyzers.Tests
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verify.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verify1.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
@@ -163,7 +163,7 @@ namespace Sdk.Analyzers.Tests
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verify.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verify1.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));

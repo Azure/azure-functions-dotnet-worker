@@ -43,23 +43,5 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 
             return attributes.Any(a => attributeType.IsAssignableFrom(a.AttributeClass, true));
         }
-
-        /// <summary>
-        /// Checks if a method symbol is a Main method. This also checks for implicit main in top-level statements
-        /// </summary>
-        /// <param name="symbol">The method symbol to check.</param>
-        /// <returns>A boolean value indicating whether the method symbol is a Main method.</returns>
-        public static bool IsMainMethod(this IMethodSymbol symbol)
-        {
-            bool isMainMethod = symbol?.IsStatic == true && symbol.Name switch
-            {
-                "Main" => true,
-                "$Main" => true,
-                "<Main>$" => true,
-                _ => false
-            };
-
-            return isMainMethod;
-        }
     }
 }

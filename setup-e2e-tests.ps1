@@ -4,8 +4,8 @@ param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [String]
-    [ValidateSet("3", "4")]
-    $FunctionsRuntimeVersion,
+    [ValidateSet("net7", "netfx")]
+    $DotnetVersion,
 
     [Switch]
     $SkipStorageEmulator,
@@ -22,6 +22,8 @@ param(
     [Switch]
     $SkipBuildOnPack
 )
+
+$FunctionsRuntimeVersion = 4
 
 # A function that checks exit codes and fails script if an error is found 
 function StopOnFailedExecution {
@@ -102,7 +104,9 @@ if (Test-Path $output)
   Remove-Item $output -Recurse -Force -ErrorAction Ignore
 }
 
-$AdditionalPackArgs = @("-c", "Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion")
+Write-Host "----- Executing tests for Dotnet version $DotnetVersion -----"
+
+$AdditionalPackArgs = @("-c", "Release", "-p:FunctionsRuntimeVersion=$FunctionsRuntimeVersion", "-p:DotnetVersion=$DotnetVersion")
 
 if ($SkipBuildOnPack -eq $true)
 {

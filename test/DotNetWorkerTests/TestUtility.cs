@@ -87,5 +87,17 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 RetryContext = null
             };
         }
+
+        internal static RpcHttp CreateRpcHttp()
+        {
+            var rpcHttp = new RpcHttp
+            {
+                Url = "https://m.sn"
+            };
+            rpcHttp.NullableHeaders["Accept-Encoding"] = new NullableString() { Value = "gzip, deflate" };
+            rpcHttp.NullableHeaders["Cookie"] = new NullableString() { Value = "theme=light; x-token=foo" };
+
+            return rpcHttp;
+        }
     }
 }

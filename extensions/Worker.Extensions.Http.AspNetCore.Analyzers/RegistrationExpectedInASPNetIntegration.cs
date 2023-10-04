@@ -19,7 +19,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration);
 
         private const string ExpectedRegistrationMethod = "ConfigureFunctionsWebApplication";
-        private const string AspNetExtensionAssemblyName = "Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore";
 
         /// Initialization method
         public override void Initialize(AnalysisContext context)
@@ -33,9 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         {
             var symbol = (IMethodSymbol)context.Symbol;
 
-            var isAspNetAssembly = context.Compilation.ReferencedAssemblyNames.Any(assembly => assembly.Name.Equals(AspNetExtensionAssemblyName));
-
-            if (!isAspNetAssembly || !IsMainMethod(symbol))
+            if (!IsMainMethod(symbol))
             {
                 return;
             }

@@ -4,9 +4,6 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
-using System.Data;
-using System;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -18,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal static bool IsValidFunctionMethod(
             GeneratorExecutionContext context,
             Compilation compilation,
-            SemanticModel model, 
+            SemanticModel model,
             MethodDeclarationSyntax method)
         {
             var methodSymbol = model.GetDeclaredSymbol(method);
@@ -51,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             return false;
         }
 
-        internal static bool TryGetFunctionName(ISymbol symbol, Compilation compilation, out string? functionName) 
+        internal static bool TryGetFunctionName(ISymbol symbol, Compilation compilation, out string? functionName)
         {
             functionName = null;
 
@@ -60,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             if (functionAttribute is not null)
             {
-                functionName = (string) functionAttribute.ConstructorArguments.First().Value!;
+                functionName = (string)functionAttribute.ConstructorArguments.First().Value!;
                 return true;
             }
 
@@ -76,6 +73,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString();
             return $"{fullyQualifiedClassName}.{method.Name}";
+        }
+
+        /// <summary>
+        /// Gets the namespace value to be used for the auto generated types.
+        /// </summary>
+        internal static string GetNamespaceForGeneratedCode(GeneratorExecutionContext context)
+        {
+            // If csproj has the msbuild property specified, use it's value.
+            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.GeneratedCodeNamespace, out var namespaceValue)
+                && !string.IsNullOrWhiteSpace(namespaceValue))
+            {
+                return namespaceValue;
+            }
+
+            // Get the "RootNamespace" msbuild property value.(This gets populated in Microsoft.NET.Sdk.props and can be overridden by user in their function app)
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.MSBuildRootNamespace, out var rootNamespaceValue);
+
+            return rootNamespaceValue!;
         }
     }
 }

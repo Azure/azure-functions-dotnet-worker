@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -13,16 +13,18 @@ namespace SampleApp
     /// </summary>
     public class ServiceBusReceivedMessageFunctions
     {
+        //<docsnippet_servicebusmessage_createlogger>
         private readonly ILogger<ServiceBusReceivedMessageFunctions> _logger;
 
         public ServiceBusReceivedMessageFunctions(ILogger<ServiceBusReceivedMessageFunctions> logger)
         {
             _logger = logger;
         }
-
+        //</docsnippet_servicebusmessage_createlogger>
         /// <summary>
         /// This function demonstrates binding to a single <see cref="ServiceBusReceivedMessage"/>.
         /// </summary>
+        //<docsnippet_servicebus_readmessage>
         [Function(nameof(ServiceBusReceivedMessageFunction))]
         [ServiceBusOutput("outputQueue", Connection = "ServiceBusConnection")]
         public string ServiceBusReceivedMessageFunction(
@@ -35,12 +37,13 @@ namespace SampleApp
             var outputMessage = $"Output message created at {DateTime.Now}";
             return outputMessage;
         }
-
+        //</docsnippet_servicebus_readmessage>
         /// <summary>
         /// This function demonstrates binding to an array of <see cref="ServiceBusReceivedMessage"/>.
         /// Note that when doing so, you must also set the <see cref="ServiceBusTriggerAttribute.IsBatched"/> property
         /// to <value>true</value>.
         /// </summary>
+        //<docsnippet_servicebus_readbatch>
         [Function(nameof(ServiceBusReceivedMessageBatchFunction))]
         public void ServiceBusReceivedMessageBatchFunction(
             [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", IsBatched = true)] ServiceBusReceivedMessage[] messages)
@@ -52,7 +55,7 @@ namespace SampleApp
                 _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
             }
         }
-
+        //</docsnippet_servicebus_readbatch>
         /// <summary>
         /// This functions demonstrates that it is possible to bind to both the ServiceBusReceivedMessage and any of the supported binding contract
         /// properties at the same time. If attempting this, the ServiceBusReceivedMessage must be the first parameter. There is not

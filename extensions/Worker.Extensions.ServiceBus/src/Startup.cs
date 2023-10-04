@@ -4,6 +4,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Extensions.Rpc;
+using Microsoft.Azure.ServiceBus.Grpc;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Samples.Extensions.Rpc.Worker;
@@ -21,8 +22,5 @@ public sealed class Startup : WorkerExtensionStartup
             IOptions<FunctionsGrpcOptions> options = sp.GetRequiredService<IOptions<FunctionsGrpcOptions>>();
             return new Settlement.SettlementClient(options.Value.CallInvoker);
         });
-
-        // applicationBuilder.Services.AddSingleton<ISettlement, SettlementImpl>();
-        // applicationBuilder.Services.AddTransient<ServiceBusMessageActions>();
     }
 }

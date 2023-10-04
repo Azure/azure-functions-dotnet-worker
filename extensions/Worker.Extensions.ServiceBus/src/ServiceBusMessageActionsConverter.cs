@@ -4,6 +4,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.ServiceBus.Grpc;
 
 namespace Microsoft.Azure.Functions.Worker
 {

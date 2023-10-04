@@ -172,6 +172,53 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
         }
 
         [Fact]
+        public async Task NotAspNetIntegration_Diagnostics_NotExpected()
+        {
+            string testCode = @"
+                using System;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace SampleApp
+                {
+                    public class Program
+                    {
+                        public static void Main()
+                        {
+                            var host = new HostBuilder()
+                                .ConfigureFunctionsWorkerDefaults()
+                                .Build();
+
+                            host.Run();
+                        }
+
+                        public static void Method1()
+                        {
+                        }
+
+                        private static void Method2()
+                        {
+                        }
+                    }
+                }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net50.WithPackages(ImmutableArray.Create(
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.13.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "1.3.0"))),
+
+                TestCode = testCode
+            };
+
+            // test.ExpectedDiagnostics is an empty collection.
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         public async Task AspNetIntegration_WithRegistration_Diagnostics_NotExpected()
         {
             string testCode = @"

@@ -11,6 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Data.Tables" Version="12.8.0" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.4.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
@@ -23,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.25" />
+    <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.36" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.3-preview" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="4.4.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.Workspaces.Common" Version="4.4.0" />
@@ -31,9 +32,11 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
-    <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.ServiceBus\src\Worker.Extensions.ServiceBus.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />

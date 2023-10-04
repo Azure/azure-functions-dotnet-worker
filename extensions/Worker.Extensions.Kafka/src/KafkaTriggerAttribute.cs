@@ -104,6 +104,15 @@ namespace Microsoft.Azure.Functions.Worker
         public string SslKeyPassword { get; set; }
 
         /// <summary>
+        /// Maximum number of unprocessed messages a worker is expected to have at an instance.
+        /// When target-based scaling is not disabled, this is used to divide the 
+        /// total unprocessed event count to determine the number of worker instances, 
+        /// which will then be rounded up to a worker instance count that creates a balanced partition distribution.
+        /// Default: 1000
+        /// </summary>
+        public long LagThreshold { get; set; } = 1000;
+
+        /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
         /// </summary>
         public bool IsBatched

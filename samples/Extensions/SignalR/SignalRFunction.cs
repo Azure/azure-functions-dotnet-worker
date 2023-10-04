@@ -9,17 +9,17 @@ namespace SampleApp
 {
     public static class SignalRFunction
     {
-        [Function("SignalRFunction")]
-        [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnectionString")]
+        [Function(nameof(SignalRFunction))]
+        [SignalROutput(HubName = "chat", ConnectionStringSetting = "SignalRConnection")]
         public static MyMessage Run([SignalRTrigger("SignalRTest", "messages", "SendMessage", parameterNames: new string[] { "message" },
-            ConnectionStringSetting = "SignalRConnectionString")] string item,
+            ConnectionStringSetting = "SignalRConnection")] string item,
             [SignalRConnectionInfoInput(HubName = "chat")] MyConnectionInfo connectionInfo,
             FunctionContext context)
         {
-            var logger = context.GetLogger("SignalRFunction");
+            var logger = context.GetLogger(nameof(SignalRFunction));
 
             logger.LogInformation(item);
-            logger.LogInformation($"Connection URL = {connectionInfo.Url}");
+            logger.LogInformation("Connection URL = {url}", connectionInfo.Url);
 
             var message = $"Output message created at {DateTime.Now}";
 

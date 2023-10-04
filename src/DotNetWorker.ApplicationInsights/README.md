@@ -8,9 +8,9 @@ This package does **not** add Application Insights services directly. This must 
 
 1. Add packages
 
-``` CHarp
+``` CSharp
 dotnet add package Microsoft.ApplicationInsights.WorkerService
-dotnet add package Microsoft.Azure.Function.sWorker.ApplicationInsights --prerelease
+dotnet add package Microsoft.Azure.Functions.Worker.ApplicationInsights
 ```
 
 2. Configure ApplicationInsights

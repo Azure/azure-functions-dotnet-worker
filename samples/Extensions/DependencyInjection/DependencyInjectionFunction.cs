@@ -24,7 +24,6 @@ namespace SampleApp
             FunctionContext context)
         {
             _logger.LogInformation("message logged");
-
             return _responderService.ProcessRequest(req);
         }
     }

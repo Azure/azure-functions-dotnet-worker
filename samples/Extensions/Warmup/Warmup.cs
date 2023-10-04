@@ -8,11 +8,10 @@ namespace SampleApp
 {
     public static class Warmup
     {
-        [Function("Warmup")]
+        [Function(nameof(Warmup))]
         public static void Run([WarmupTrigger] object warmupContext, FunctionContext context)
         {
-            var logger = context.GetLogger("Warmup");
-
+            var logger = context.GetLogger(nameof(Warmup));
             logger.LogInformation("Function App instance is now warm!");
         }
     }

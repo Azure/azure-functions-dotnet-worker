@@ -6,12 +6,14 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Updated protobuf file to v1.10.0-protofile (#1774)
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- <entry>
+- Adding optional parameter support (#1868)
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- Add placeholder support for linux platform. (#1704)
+- Added support for handling the new command line arguments with "functions-" prefix. (#1897)
+- Adding optional parameter support (#1868)
+  

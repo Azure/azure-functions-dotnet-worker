@@ -87,12 +87,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             return IsIEnumerableTType || IsIEnumerableType || isArrayType;
         }
 
-        internal static bool IsOrImplementsOrDerivesFrom(this ITypeSymbol symbol, ITypeSymbol? other)
+        internal static bool IsOrImplementsOrDerivesFrom(this ITypeSymbol symbol, ITypeSymbol other)
         {
             return symbol.IsOrImplements(other) || symbol.IsOrDerivedFrom(other);
         }
 
-        internal static bool IsOrDerivedFrom(this ITypeSymbol symbol, ITypeSymbol? other)
+        internal static bool IsOrDerivedFrom(this ITypeSymbol symbol, ITypeSymbol other)
         {
             if (other is null)
             {
@@ -114,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             return false;
         }
 
-        internal static bool IsOrImplements(this ITypeSymbol symbol, ITypeSymbol? other)
+        internal static bool IsOrImplements(this ITypeSymbol symbol, ITypeSymbol other)
         {
             if (other is null)
             {

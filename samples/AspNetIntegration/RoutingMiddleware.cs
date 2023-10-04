@@ -18,9 +18,7 @@ namespace AspNetIntegration
 
             // operations can be performed using HttpContext
             // example of getting route information from HttpContext:
-            RouteEndpoint? endpoint = httpContext.GetEndpoint() as RouteEndpoint;
-
-            if (endpoint != null)
+            if (httpContext.GetEndpoint() is RouteEndpoint endpoint)
             {
                 string? displayName = endpoint.DisplayName;
                 string? routePattern = endpoint.RoutePattern.RawText;

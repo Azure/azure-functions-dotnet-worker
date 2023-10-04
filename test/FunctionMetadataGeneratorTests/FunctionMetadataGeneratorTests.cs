@@ -10,7 +10,9 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 using Azure.Messaging.EventHubs;
+using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Tests;
@@ -174,7 +176,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -265,7 +267,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             var blobClientToBlobStringFunction = functions.Single(p => p.Name == "BlobClientToBlobStringFunction");
@@ -351,7 +353,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             var blobStringToBlobClientEnumerable = functions.Single(p => p.Name == "BlobStringToBlobClientEnumerable");
@@ -430,6 +432,75 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "blobPath", "container1/hello.txt" },
                     { "Connection", "MyOtherConnection" },
                     { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
+        public void TableFunctions_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_Table));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(5, functions.Count());
+
+            var tableClientFunction = functions.Single(p => p.Name == "TableClientFunction");
+
+            ValidateFunction(tableClientFunction, "TableClientFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableClientFunction)),
+                b => ValidateTableInput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.2.0" },
+            });
+
+            var tableEntityFunction = functions.Single(p => p.Name == "TableEntityFunction");
+
+            ValidateFunction(tableEntityFunction, "TableEntityFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableEntityFunction)),
+                b => ValidateTableInput(b));
+
+
+            var enumerableTableEntityFunction = functions.Single(p => p.Name == "EnumerableTableEntityFunction");
+
+            ValidateFunction(enumerableTableEntityFunction, "EnumerableTableEntityFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.EnumerableTableEntityFunction)),
+                b => ValidateTableInput(b));
+
+
+            var tableUnsupportedTypeFunction = functions.Single(p => p.Name == "TableUnsupportedTypeFunction");
+
+            ValidateFunction(tableUnsupportedTypeFunction, "TableUnsupportedTypeFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableUnsupportedTypeFunction)),
+                b => ValidateTableInputBypassDeferredBinding(b));
+
+
+            var tablePocoFunction = functions.Single(p => p.Name == "TablePocoFunction");
+
+            ValidateFunction(tablePocoFunction, "TablePocoFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TablePocoFunction)),
+                b => ValidateTableInputBypassDeferredBinding(b));
+
+            void ValidateTableInput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "tableInput" },
+                    { "Type", "table" },
+                    { "Direction", "In" },
+                    { "tableName", "tableName" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateTableInputBypassDeferredBinding(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "tableInput" },
+                    { "Type", "table" },
+                    { "Direction", "In" },
+                    { "tableName", "tableName" },
+                    { "Properties", new Dictionary<String, Object>( ) { } }
                 });
             }
         }
@@ -534,7 +605,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             AssertDictionary(extensions, new Dictionary<string, string>
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.1.3" },
-                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.1.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs", "5.2.0" },
             });
 
             void ValidateQueueTrigger(ExpandoObject b)
@@ -735,7 +806,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.5.0" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)
@@ -895,6 +966,59 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void ServiceBus_SDKTypeBindings()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(SDKTypeBindings_ServiceBus));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Equal(2, functions.Count());
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.12.0" },
+            });
+
+            var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));
+
+            ValidateFunction(serviceBusTriggerFunction, nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_ServiceBus), nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction)),
+                ValidateServiceBusTrigger);
+
+            var serviceBusBatchTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction));
+
+            ValidateFunction(serviceBusBatchTriggerFunction, nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction), GetEntryPoint(nameof(SDKTypeBindings_ServiceBus), nameof(SDKTypeBindings_ServiceBus.ServiceBusBatchTriggerFunction)),
+                ValidateServiceBusBatchTrigger);
+
+            void ValidateServiceBusTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "message" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Cardinality", "One" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateServiceBusBatchTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "messages" },
+                    { "Type", "serviceBusTrigger" },
+                    { "Direction", "In" },
+                    { "queueName", "queue" },
+                    { "Cardinality", "Many" },
+                    { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+        }
+
+        [Fact]
         public void EventHubs_SDKTypeBindings()
         {
             var generator = new FunctionMetadataGenerator();
@@ -907,7 +1031,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.4.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "5.5.0" },
             });
 
             var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));
@@ -1092,6 +1216,46 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class SDKTypeBindings_Table
+        {
+            [Function("TableClientFunction")]
+            public object TableClientFunction(
+                [TableInput("tableName")] TableClient tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+
+            [Function("TableEntityFunction")]
+            public object TableEntityFunction(
+                [TableInput("tableName")] TableEntity tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+
+            [Function("EnumerableTableEntityFunction")]
+            public object EnumerableTableEntityFunction(
+                [TableInput("tableName")] IEnumerable<TableEntity> tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("TableUnsupportedTypeFunction")]
+            public object TableUnsupportedTypeFunction(
+                [TableInput("tableName")] BinaryData tableInput)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function("TablePocoFunction")]
+            public object TablePocoFunction(
+                [TableInput("tableName")] Poco tableInput)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class SDKTypeBindings_BlobCollection
         {
             [Function("BlobStringToBlobStringArray")]
@@ -1158,11 +1322,27 @@ namespace Microsoft.Azure.Functions.SdkTests
                 throw new NotImplementedException();
             }
 
-
             [Function(nameof(QueueBinaryDataTrigger))]
             public static void QueueBinaryDataTrigger(
                 [QueueTrigger("queue")] BinaryData message)
 
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private class SDKTypeBindings_ServiceBus
+        {
+            [Function(nameof(ServiceBusTriggerFunction))]
+            public static void ServiceBusTriggerFunction(
+                [ServiceBusTrigger("queue")] ServiceBusReceivedMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            [Function(nameof(ServiceBusBatchTriggerFunction))]
+            public static void ServiceBusBatchTriggerFunction(
+                [ServiceBusTrigger("queue", IsBatched = true)] ServiceBusReceivedMessage[] messages)
             {
                 throw new NotImplementedException();
             }

@@ -33,12 +33,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var mockBlobOptions = new Mock<BlobStorageBindingOptions>();
             mockBlobOptions.Object.Client = _mockBlobServiceClient.Object;
 
-            var mockBlobOptionsSnapshot = new Mock<IOptionsSnapshot<BlobStorageBindingOptions>>();
-            mockBlobOptionsSnapshot
+            var mockBlobOptionsMonitor = new Mock<IOptionsMonitor<BlobStorageBindingOptions>>();
+            mockBlobOptionsMonitor
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockBlobOptions.Object);
 
-            _blobStorageConverter = new BlobStorageConverter(workerOptions, mockBlobOptionsSnapshot.Object, logger);
+            _blobStorageConverter = new BlobStorageConverter(workerOptions, mockBlobOptionsMonitor.Object, logger);
         }
 
         [Fact]

@@ -5,7 +5,7 @@
     <Description>Kafka extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>3.8.0</VersionPrefix>
+    <VersionPrefix>3.9.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

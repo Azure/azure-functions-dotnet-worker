@@ -30,11 +30,11 @@ namespace Microsoft.Azure.Functions.Worker
     internal class BlobStorageConverter : IInputConverter
     {
         private readonly IOptions<WorkerOptions> _workerOptions;
-        private readonly IOptionsSnapshot<BlobStorageBindingOptions> _blobOptions;
+        private readonly IOptionsMonitor<BlobStorageBindingOptions> _blobOptions;
         private readonly ILogger<BlobStorageConverter> _logger;
         private readonly Regex BlobIsFileRegex = new Regex(@"\.[^.\/]+$");
 
-        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsSnapshot<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
+        public BlobStorageConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<BlobStorageBindingOptions> blobOptions, ILogger<BlobStorageConverter> logger)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _blobOptions = blobOptions ?? throw new ArgumentNullException(nameof(blobOptions));

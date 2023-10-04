@@ -18,10 +18,22 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc
         /// </exception>
         public static Uri GetFunctionsHostGrpcUri(this IConfiguration configuration)
         {
-            string uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
-            if (!Uri.TryCreate(uriString, UriKind.Absolute, out Uri? grpcUri))
+            Uri? grpcUri;
+            var functionsUri = configuration["Functions:Worker:HostEndpoint"];
+            if (functionsUri is not null)
             {
-                throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
+                if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out grpcUri))
+                {
+                    throw new InvalidOperationException($"The gRPC channel URI '{functionsUri}' could not be parsed.");
+                }
+            }
+            else
+            {
+                var uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
+                if (!Uri.TryCreate(uriString, UriKind.Absolute, out grpcUri))
+                {
+                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
+                }
             }
 
             return grpcUri;

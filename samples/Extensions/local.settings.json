@@ -4,9 +4,12 @@
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "AzureWebJobsStorage": "",
         "CosmosConnection": "",
-        "SignalRConnection": "",
         "CosmosDb": "ItemDb",
-        "CosmosCollIn": "ItemCollectionIn",
-        "CosmosCollOut": "ItemCollectionOut"
+        "CosmosContainerIn": "ItemContainerIn",
+        "CosmosContainerOut": "ItemContainerOut",
+        "EventHubConnection": "",
+        "RabbitMQConnection": "",
+        "ServiceBusConnection": "",
+        "SignalRConnection": ""
     }
 }

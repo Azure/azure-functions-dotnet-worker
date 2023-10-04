@@ -4,7 +4,6 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.ServiceBus</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.ServiceBus</RootNamespace>
     <Description>Azure Service Bus extensions for .NET isolated functions</Description>
-    <IncludeShadedAssembliesInPackage>true</IncludeShadedAssembliesInPackage>
 
     <!--Version information-->
     <VersionPrefix>5.13.0</VersionPrefix>

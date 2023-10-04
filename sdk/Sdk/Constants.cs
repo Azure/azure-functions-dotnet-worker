@@ -43,10 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         // NetFramework
         internal const string NetCoreApp31 = "netcoreapp3.1";
         internal const string Net60 = "net6.0";
-        internal const string Net70 = "net7.0";
-        internal const string Net50 = "net5.0";
         internal const string NetCoreApp = ".NETCoreApp";
-        internal const string NetCoreVersion7 = "v7.0";
         internal const string NetCoreVersion6 = "v6.0";
         internal const string NetCoreVersion31 = "v3.1";
         internal const string AzureFunctionsVersion3 = "v3";

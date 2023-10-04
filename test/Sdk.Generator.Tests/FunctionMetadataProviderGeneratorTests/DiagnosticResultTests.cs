@@ -76,7 +76,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var expectedDiagnosticResults = new List<DiagnosticResult>
             {
                 new DiagnosticResult(DiagnosticDescriptors.MultipleBindingsGroupedTogether)
-                .WithSpan(17, 39, 17, 50)
                 // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                 .WithArguments("Method", "QueueToBlob")
             };
@@ -131,7 +130,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var expectedDiagnosticResults = new List<DiagnosticResult>
             {
                 new DiagnosticResult(DiagnosticDescriptors.MultipleBindingsGroupedTogether)
-                .WithSpan(28, 39, 28, 43)
                 // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                 .WithArguments("Property", "Name")
             };
@@ -181,7 +179,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
                     new DiagnosticResult(DiagnosticDescriptors.MultipleHttpResponseTypes)
-                    .WithSpan(11, 32, 11, 47)
                     // these arguments are the values we pass as the message format parameters when creating the DiagnosticDescriptor instance.
                     .WithArguments("MultiReturnHttp")
                 };
@@ -221,7 +218,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var expectedDiagnosticResults = new List<DiagnosticResult>
                 {
                     new DiagnosticResult(DiagnosticDescriptors.InvalidRetryOptions)
-                    .WithSpan(10, 25, 15, 26)
                 };
 
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(

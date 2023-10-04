@@ -4,8 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- Create FunctionContext extension to retrieve HttpContext (#1534)
-- `UseAspNetCoreIntegration()` and `ConfgigureAspNetCoreIntegration()` are now obsolete. Use `ConfigureFunctionsWebApplication()` to configure services for AspNetCore integration. Details can be found in PR #1601.
-- `GetHttpRequestDataAsync` throws error in ASP.NET integration model (#1612)
+- <entry>

@@ -25,7 +25,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             string inputSource,
             string? expectedFileName,
             string? expectedOutputSource,
-            List<DiagnosticResult>? expectedDiagnosticResults = null) where TSourceGenerator : ISourceGenerator, new()
+            List<DiagnosticResult>? expectedDiagnosticResults = null,
+            IDictionary<string, string>? buildPropertiesDictionary = null) where TSourceGenerator : ISourceGenerator, new()
         {
             CSharpSourceGeneratorVerifier<TSourceGenerator>.Test test = new()
             {
@@ -47,7 +48,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             // Enable SourceGen & Placeholder MSBuild Properties for testing
             var config = $@"is_global = true
                             build_property.FunctionsEnableExecutorSourceGen = {true}
-                            build_property.FunctionsEnableMetadataSourceGen = {true}";
+                            build_property.FunctionsEnableMetadataSourceGen = {true}
+                            build_property.RootNamespace = TestProject";
+
+            // Add test specific MSBuild properties.
+            if (buildPropertiesDictionary is not null)
+            {
+                foreach (var buildProperty in buildPropertiesDictionary)
+                {
+                    config += $@"
+                                {buildProperty.Key} = {buildProperty.Value}";
+                }
+            }
+
             test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", config));
 
             foreach (var item in extensionAssemblyReferences)

@@ -50,13 +50,20 @@ namespace FunctionsNetHost.Grpc
                     Logger.LogTrace("Specialization request received.");
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
+                    var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
+                    Logger.LogTrace($"application path {applicationExePath}");
+
+                    if (string.IsNullOrWhiteSpace(applicationExePath))
+                    {
+                        var ex = new InvalidOperationException($"Unable to find a valid function app payload at '{envReloadRequest.FunctionAppDirectory}'");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(ex);
+                        break;
+                    }
+
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
-
-                    var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
-                    Logger.LogTrace($"application path {applicationExePath}");
 
 #pragma warning disable CS4014
                     Task.Run(() =>
@@ -74,7 +81,31 @@ namespace FunctionsNetHost.Grpc
                     break;
             }
 
-            await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            if (responseMessage.ContentCase != StreamingMessage.ContentOneofCase.None)
+            {
+                await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            }
+        }
+
+        private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception exception)
+        {
+            var rpcException = new RpcException
+            {
+                Message = exception.ToString(),
+                Source = exception.Source ?? string.Empty,
+                StackTrace = exception.StackTrace ?? string.Empty
+            };
+
+            var response = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult
+                {
+                    Status = StatusResult.Types.Status.Failure,
+                    Exception = rpcException
+                }
+            };
+
+            return response;
         }
 
         private static FunctionMetadataResponse BuildFunctionMetadataResponse()

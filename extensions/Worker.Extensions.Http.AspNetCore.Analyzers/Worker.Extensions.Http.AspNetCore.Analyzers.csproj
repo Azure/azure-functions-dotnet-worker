@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <VersionPrefix>1.0.0</VersionPrefix>
+        <OutputType>Library</OutputType>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <PackageId>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers</PackageId>
+        <Description>This package provides development time code analysis for ASP.NET Core extensions for .NET isolated functions.</Description>
+        <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers</AssemblyName>
+        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers</RootNamespace>
+        <Nullable>disable</Nullable>
+        <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
+    </PropertyGroup>
+
+    <Import Project="..\..\build\Common.props" />
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.3">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
+    </ItemGroup>
+
+    <Target Name="_AddAnalyzersToOutput">
+        <ItemGroup>
+            <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />
+        </ItemGroup>
+    </Target>
+</Project>

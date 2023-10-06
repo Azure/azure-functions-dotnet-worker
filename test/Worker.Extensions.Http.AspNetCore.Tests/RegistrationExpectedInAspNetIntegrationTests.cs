@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 
-namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
+namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 {
     public class RegistrationExpectedInAspNetIntegrationTests
     {

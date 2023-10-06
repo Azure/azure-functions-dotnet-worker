@@ -1,10 +1,10 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net7.0</TargetFramework>
         <IsPackable>false</IsPackable>
-        <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Tests</AssemblyName>
-        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Tests</RootNamespace>
+        <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests</AssemblyName>
+        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests</RootNamespace>
         <SignAssembly>true</SignAssembly>
         <LangVersion>preview</LangVersion>
         <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
@@ -19,6 +19,13 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="SmartAnalyzers.RoslynTestKit" Version="4.7.0" />
+        <PackageReference Include="coverlet.collector" Version="3.2.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.1" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeFix.Testing.XUnit" Version="1.1.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -29,6 +36,8 @@
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
         <ProjectReference Include="..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
+        <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+        <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
     </ItemGroup>
 
 </Project>

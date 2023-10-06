@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     /// <summary>
-    /// Analyzer to verify whether expected registation is present for AspNetIntegration.
+    /// Analyzer to verify whether expected registration is present for AspNetIntegration.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class RegistrationExpectedInASPNetIntegration : DiagnosticAnalyzer

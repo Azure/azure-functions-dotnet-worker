@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
 
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
 
@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.AspNetIntegration
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
                             .WithSpan(13, 37, 13, 41)
                             .WithArguments(ExpectedRegistrationMethod));
 

@@ -17,6 +17,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public static DiagnosticDescriptor CorrectRegistrationExpectedInAspNetIntegration { get; }
             = Create(id: "AZFW0014", title: "Missing expected registration in ASPNet Integration", messageFormat: "The registration for method '{0}' is expected for ASP.Net Integration.",
-                category: Usage, severity: DiagnosticSeverity.Error);
+                category: Usage, severity: DiagnosticSeverity.Warning);
     }
 }

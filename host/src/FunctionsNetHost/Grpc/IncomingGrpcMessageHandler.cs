@@ -68,7 +68,7 @@ namespace FunctionsNetHost.Grpc
                         break;
                     }
 
-                    var applicationExePath = workerConfig.Description.DefaultWorkerPath;
+                    var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
                     Logger.LogTrace($"application path {applicationExePath}");
 
                     foreach (var kv in envReloadRequest.EnvironmentVariables)

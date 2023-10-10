@@ -52,19 +52,19 @@ namespace FunctionsNetHost.Grpc
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
 
-                    var workerConfig = PathUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
+                    var workerConfig = WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
 
                     if (workerConfig?.Description is null)
                     {
-                        var ex = new AppPayloadNotFoundException($"Unable to find a valid function app payload at '{envReloadRequest.FunctionAppDirectory}'");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(ex);
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(new FunctionAppPayloadNotFoundException());
                         break;
                     }
 
+                    // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
                     if (!workerConfig.Description.IsSpecializable)
                     {
-                        var ex = new UnsupportedVersionException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(ex);
+                        Logger.LogTrace("App payload uses an older version of worker package which does not support specialization.");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(new EnvironmentReloadUnsupportedException());
                         break;
                     }
 

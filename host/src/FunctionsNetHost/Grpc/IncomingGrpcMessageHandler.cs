@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost.Grpc
@@ -50,15 +51,25 @@ namespace FunctionsNetHost.Grpc
                     Logger.LogTrace("Specialization request received.");
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
-                    var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
-                    Logger.LogTrace($"application path {applicationExePath}");
 
-                    if (string.IsNullOrWhiteSpace(applicationExePath))
+                    var workerConfig = PathUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
+
+                    if (workerConfig?.Description is null)
                     {
-                        var ex = new InvalidOperationException($"Unable to find a valid function app payload at '{envReloadRequest.FunctionAppDirectory}'");
+                        var ex = new AppPayloadNotFoundException($"Unable to find a valid function app payload at '{envReloadRequest.FunctionAppDirectory}'");
                         responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(ex);
                         break;
                     }
+
+                    if (!workerConfig.Description.IsSpecializable)
+                    {
+                        var ex = new UnsupportedVersionException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(ex);
+                        break;
+                    }
+
+                    var applicationExePath = workerConfig.Description.DefaultWorkerPath;
+                    Logger.LogTrace($"application path {applicationExePath}");
 
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {

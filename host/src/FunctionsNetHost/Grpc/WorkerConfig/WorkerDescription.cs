@@ -7,6 +7,6 @@ namespace FunctionsNetHost.Grpc
     {
         public string? DefaultWorkerPath { set; get; }
 
-        public bool IsSpecializable { set; get; }
+        public bool CanUsePlaceholder { set; get; }
     }
 }

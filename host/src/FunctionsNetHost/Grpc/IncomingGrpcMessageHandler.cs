@@ -61,10 +61,10 @@ namespace FunctionsNetHost.Grpc
                     }
 
                     // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
-                    if (!workerConfig.Description.IsSpecializable)
+                    if (!workerConfig.Description.CanUsePlaceholder)
                     {
                         Logger.LogTrace("App payload uses an older version of worker package which does not support specialization.");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(new EnvironmentReloadUnsupportedException());
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(new EnvironmentReloadNotSupportedException());
                         break;
                     }
 

@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk 1.15.1 (meta package)
 
-- Include `isSpecializable` property in worker.config.json (#1956)
+- Include `canUsePlaceholder` property in worker.config.json (#1956)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
 

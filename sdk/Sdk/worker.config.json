@@ -5,6 +5,6 @@
     "defaultExecutablePath": "$functionExe$",
     "defaultWorkerPath": "$functionWorker$",
     "workerIndexing": "$enableWorkerIndexing$",
-    "isSpecializable": true
+    "canUsePlaceholder": true
   }
 }

@@ -52,7 +52,7 @@ namespace FunctionsNetHost.Grpc
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
 
-                    var workerConfig = WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
+                    var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
 
                     if (workerConfig?.Description is null)
                     {

@@ -6,7 +6,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// The exception that is thrown when the current function app payload does not support environment reload.
     /// </summary>
-    public sealed class EnvironmentReloadUnsupportedException : Exception
+    public sealed class EnvironmentReloadUnsupportedException : NotSupportedException
     {
         public EnvironmentReloadUnsupportedException() { }
 

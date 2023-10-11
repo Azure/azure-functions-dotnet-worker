@@ -8,23 +8,26 @@ namespace FunctionsNetHost.Grpc
     internal static class WorkerConfigUtils
     {
         /// <summary>
-        /// Build and returns an instance of <see cref="WorkerConfig"/> from the worker.config.json file if present in the application directory.
+        /// Builds and returns an instance of <see cref="WorkerConfig"/> from the worker.config.json file if present in the application directory.
         /// </summary>
         /// <param name="applicationDirectory">The directory where function app deployed payload is present.</param>
-        internal static WorkerConfig? GetWorkerConfig(string applicationDirectory)
+        internal static async Task<WorkerConfig?> GetWorkerConfig(string applicationDirectory)
         {
+            string workerConfigPath = string.Empty;
+
             try
             {
-                var workerConfigPath = Path.Combine(applicationDirectory, "worker.config.json");
+                workerConfigPath = Path.Combine(applicationDirectory, "worker.config.json");
 
-                if (!File.Exists(workerConfigPath))
-                {
-                    Logger.Log($"worker.config.json not found at {workerConfigPath}. This may indicate missing app payload.");
-                    return null;
-                }
+                using Stream stream = File.OpenRead(workerConfigPath);
+                var workerConfig = await JsonSerializer.DeserializeAsync(stream, WorkerConfigSerializerContext.Default.WorkerConfig);
 
-                var jsonString = File.ReadAllText(workerConfigPath);
-                return JsonSerializer.Deserialize(jsonString, WorkerConfigSerializerContext.Default.WorkerConfig);
+                return workerConfig;
+            }
+            catch (FileNotFoundException)
+            {
+                Logger.Log($"worker.config.json not found at {workerConfigPath}. This may indicate missing app payload.");
+                return null;
             }
             catch (Exception ex)
             {

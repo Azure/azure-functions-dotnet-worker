@@ -4,6 +4,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace AspNetIntegration
 {
@@ -16,5 +17,18 @@ namespace AspNetIntegration
             return new OkObjectResult("Welcome to Azure Functions!");
         }
         //</docsnippet_aspnet_http_trigger>
+    }
+
+    public class SimpleHttpTriggerHttpData
+    {
+        [Function("SimpleHttpTriggerHttpData")]
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
+        {
+            var response = req.CreateResponse();
+
+            await response.WriteStringAsync("Welcome to Azure Functions (HttpData)");
+
+            return response;
+        }
     }
 }

@@ -7,6 +7,7 @@
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
 - New overload added to `ConfigureFunctionsWebApplication` to take a `HostBuilderContext` (#1925). Thank you @vmcbaptista
+- Added support for the `HttpRequestData` and `HttpResponseData` models, backed by ASP.NET Core. (#1932)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers
 

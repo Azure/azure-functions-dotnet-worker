@@ -56,15 +56,17 @@ namespace FunctionsNetHost.Grpc
 
                     if (workerConfig?.Description is null)
                     {
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(new FunctionAppPayloadNotFoundException());
+                        Logger.LogTrace($"Could not find a worker config in {envReloadRequest.FunctionAppDirectory}");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse();
                         break;
                     }
 
                     // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
                     if (!workerConfig.Description.CanUsePlaceholder)
                     {
-                        Logger.LogTrace("App payload uses an older version of worker package which does not support specialization.");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(new EnvironmentReloadNotSupportedException());
+                        Logger.LogTrace("App payload uses an older version of Microsoft.Azure.Functions.Worker SDK which does not support placeholder.");
+                        var e = new EnvironmentReloadNotSupportedException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(e);
                         break;
                     }
 
@@ -98,27 +100,37 @@ namespace FunctionsNetHost.Grpc
             }
         }
 
-        private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception exception)
+        private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)
         {
-            var rpcException = new RpcException
-            {
-                Message = exception.ToString(),
-                Source = exception.Source ?? string.Empty,
-                StackTrace = exception.StackTrace ?? string.Empty
-            };
-
             var response = new FunctionEnvironmentReloadResponse
             {
                 Result = new StatusResult
                 {
-                    Status = StatusResult.Types.Status.Failure,
-                    Exception = rpcException
+                    Status = StatusResult.Types.Status.Failure
                 }
             };
+
+            response.Result.Exception = ToUserRpcException(exception);
 
             return response;
         }
 
+        internal static RpcException? ToUserRpcException(Exception? exception)
+        {
+            if (exception is null)
+            {
+                return null;
+            }
+
+            return new RpcException
+            {
+                Message = exception.Message,
+                Source = exception.Source ?? string.Empty,
+                StackTrace = exception.StackTrace ?? string.Empty,
+                Type = exception.GetType().FullName ?? string.Empty,
+                IsUserException = true
+            };
+        }
         private static FunctionMetadataResponse BuildFunctionMetadataResponse()
         {
             var metadataResponse = new FunctionMetadataResponse
@@ -136,6 +148,7 @@ namespace FunctionsNetHost.Grpc
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success }
             };
+            response.Capabilities[WorkerCapabilities.EnableUserCodeException] = bool.TrueString;
 
             return response;
         }

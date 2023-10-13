@@ -4,9 +4,9 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.15.1 (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
 
-- Include `canUsePlaceholder` property in worker.config.json (#1956)
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
 

@@ -19,12 +19,23 @@ namespace Microsoft.Azure.Functions.Worker
             _settlement = settlement;
         }
 
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ServiceBusMessageActions"/> class for mocking use in testing.
+        /// </summary>
+        /// <remarks>
+        /// This constructor exists only to support mocking. When used, class state is not fully initialized, and
+        /// will not function correctly; virtual members are meant to be mocked.
+        ///</remarks>
+        protected ServiceBusMessageActions()
+        {
+        }
+
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task CompleteMessageAsync(
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken = default)
         {
-            await _settlement.CompleteAsync(new() { Locktoken = message.LockToken}, cancellationToken: cancellationToken);
+            await _settlement.CompleteAsync(new() { Locktoken = message.LockToken }, cancellationToken: cancellationToken);
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
@@ -52,17 +63,11 @@ namespace Microsoft.Azure.Functions.Worker
             var request = new DeadletterRequest()
             {
                 Locktoken = message.LockToken,
-                PropertiesToModify = { TransformProperties(propertiesToModify) }
+                PropertiesToModify = { TransformProperties(propertiesToModify) },
+                DeadletterReason = deadLetterReason,
+                DeadletterErrorDescription = deadLetterErrorDescription
             };
-            if (deadLetterReason != null)
-            {
-                request.DeadletterReason = deadLetterReason;
-            }
 
-            if (deadLetterErrorDescription != null)
-            {
-                request.DeadletterErrorDescription = deadLetterErrorDescription;
-            }
             await _settlement.DeadletterAsync(request, cancellationToken: cancellationToken);
         }
 
@@ -90,76 +95,37 @@ namespace Microsoft.Azure.Functions.Worker
             // support all types listed here - https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.servicebus.servicebusmessage.applicationproperties?view=azure-dotnet
             foreach (var kvp in properties)
             {
-                switch (kvp.Value)
+                SettlementProperties settlementProperties = kvp.Value switch
                 {
-                    case string stringValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { StringValue = stringValue });
-                        break;
-                    case bool boolValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { BoolValue = boolValue });
-                        break;
-                    case byte byteValue:
-                        // proto does not support single byte, so use int
-                        converted.Add(kvp.Key, new SettlementProperties() { IntValue = byteValue });
-                        break;
-                    case sbyte sbyteValue:
-                        // proto does not support single byte, so use int
-                        converted.Add(kvp.Key, new SettlementProperties() { IntValue = sbyteValue });
-                        break;
-                    case short shortValue:
-                        // proto does not support short, so use int
-                        converted.Add(kvp.Key, new SettlementProperties() { IntValue = shortValue });
-                        break;
-                    case ushort ushortValue:
-                        // proto does not support short, so use int
-                        converted.Add(kvp.Key, new SettlementProperties() { IntValue = ushortValue });
-                        break;
-                    case int intValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { IntValue = intValue });
-                        break;
-                    case uint uintValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { UintValue = uintValue });
-                        break;
-                    case long longValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { LongValue = longValue });
-                        break;
-                    case ulong ulongValue:
-                        // proto does not support ulong, so use double
-                        converted.Add(kvp.Key, new SettlementProperties() { DoubleValue = ulongValue });
-                        break;
-                    case double doubleValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { DoubleValue = doubleValue });
-                        break;
-                    case decimal decimalValue:
-                        // proto does not support decimal, so use double
-                        converted.Add(kvp.Key, new SettlementProperties() { DoubleValue = Decimal.ToDouble(decimalValue) });
-                        break;
-                    case float floatValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { FloatValue = floatValue });
-                        break;
-                    case char charValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { StringValue = charValue.ToString() });
-                        break;
-                    case Guid guidValue:
-                        converted.Add(kvp.Key, new SettlementProperties() { StringValue = guidValue.ToString() });
-                        break;
-                    case DateTimeOffset dateTimeOffsetValue:
-                        // proto does not support DateTimeOffset, so use Timestamp from google.protobuf
-                        converted.Add(kvp.Key, new SettlementProperties() { TimestampValue = Timestamp.FromDateTimeOffset(dateTimeOffsetValue) });
-                        break;
-                    case DateTime dateTimeValue:
-                        // proto does not support DateTime, so use Timestamp from google.protobuf
-                        converted.Add(kvp.Key, new SettlementProperties() { TimestampValue = Timestamp.FromDateTimeOffset(dateTimeValue) });
-                        break;
-                    case Uri uriValue:
-                        // proto does not support Uri, so use string
-                        converted.Add(kvp.Key, new SettlementProperties() { StringValue = uriValue.ToString() });
-                        break;
-                    case TimeSpan timeSpanValue:
-                        // proto does not support TimeSpan, so use string
-                        converted.Add(kvp.Key, new SettlementProperties() { StringValue = timeSpanValue.ToString() });
-                        break;
-                }
+                    string stringValue => new SettlementProperties() { StringValue = stringValue },
+                    bool boolValue => new SettlementProperties() { BoolValue = boolValue },
+                    // proto does not support single byte, so use int
+                    byte byteValue => new SettlementProperties() { IntValue = byteValue },
+                    sbyte sbyteValue => new SettlementProperties() { IntValue = sbyteValue },
+                    // proto does not support short, so use int
+                    short shortValue => new SettlementProperties() { IntValue = shortValue },
+                    ushort ushortValue => new SettlementProperties() { IntValue = ushortValue },
+                    int intValue => new SettlementProperties() { IntValue = intValue },
+                    uint uintValue => new SettlementProperties() { UintValue = uintValue },
+                    long longValue => new SettlementProperties() { LongValue = longValue },
+                    // proto does not support ulong, so use double
+                    ulong ulongValue => new SettlementProperties() { DoubleValue = ulongValue },
+                    double doubleValue => new SettlementProperties() { DoubleValue = doubleValue },
+                    decimal decimalValue => new SettlementProperties() { DoubleValue = decimal.ToDouble(decimalValue) },
+                    float floatValue => new SettlementProperties() { FloatValue = floatValue },
+                    char charValue => new SettlementProperties() { StringValue = charValue.ToString() },
+                    Guid guidValue => new SettlementProperties() { StringValue = guidValue.ToString() },
+                    DateTimeOffset dateTimeOffsetValue => new SettlementProperties()
+                        { TimestampValue = Timestamp.FromDateTimeOffset(dateTimeOffsetValue) },
+                    // proto does not support DateTime, so use Timestamp from google.protobuf
+                    DateTime dateTimeValue => new SettlementProperties() { TimestampValue = Timestamp.FromDateTimeOffset(dateTimeValue) },
+                    // proto does not support Uri, so use string
+                    Uri uriValue => new SettlementProperties() { StringValue = uriValue.ToString() },
+                    // proto does not support TimeSpan, so use string
+                    TimeSpan timeSpanValue => new SettlementProperties() { StringValue = timeSpanValue.ToString() },
+                    _ => throw new NotSupportedException($"Unsupported property type {kvp.Value.GetType()}"),
+                };
+                converted.Add(kvp.Key, settlementProperties);
             }
 
             return converted;

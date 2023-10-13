@@ -2,6 +2,7 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 import "google/protobuf/empty.proto";
+import "google/protobuf/wrappers.proto";
 
 // this namespace will be shared between isolated worker and WebJobs extension so make it somewhat generic
 option csharp_namespace = "Microsoft.Azure.ServiceBus.Grpc";
@@ -36,8 +37,8 @@ message AbandonRequest {
 message DeadletterRequest {
   string locktoken = 1;
   map<string, SettlementProperties> propertiesToModify = 2;
-  optional string deadletterReason = 3;
-  optional string deadletterErrorDescription = 4;
+  google.protobuf.StringValue deadletterReason= 3;
+  google.protobuf.StringValue deadletterErrorDescription = 4;
 }
 
 // The defer message request containing the locktoken and properties to modify.
@@ -48,7 +49,7 @@ message DeferRequest {
 
 // The settlement property can be of any type listed below, which 
 // corresponds to the types specified in 
-// https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.servicebus.servicebusmessage.applicationproperties?view=azure-dotnet#remarks
+// https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus.servicebusmessage.applicationproperties?view=azure-dotnet#remarks
 // Note: this list doesn't match 1:1 with the supported Service Bus types, so compatible types are used in some cases - e.g.
 // short uses int, TimeSpan uses string, etc. The full list of transforms can be found in the isolated worker extension source code.
 message SettlementProperties {

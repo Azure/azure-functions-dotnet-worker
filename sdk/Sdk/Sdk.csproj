@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <MinorProductVersion>15</MinorProductVersion>
-    <PatchProductVersion>0</PatchProductVersion>
+    <PatchProductVersion>1</PatchProductVersion>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>
     <Description>This package provides development time support for the Azure Functions .NET Worker.</Description>

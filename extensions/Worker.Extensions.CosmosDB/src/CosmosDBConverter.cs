@@ -97,15 +97,15 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (targetType.TryGetCollectionElementType(out Type? elementType))
             {
-                var list = await CreateListAsync(container, cosmosAttribute, elementType!, targetType);
+                var listResult = await CreateListAsync(container, cosmosAttribute, elementType!, targetType);
                 if (targetType.IsArray)
                 {
-                    var arrayResult = Array.CreateInstance(elementType, list.Count);
-                    list.CopyTo(arrayResult, 0);
+                    var arrayResult = Array.CreateInstance(elementType, listResult.Count);
+                    listResult.CopyTo(arrayResult, 0);
                     return arrayResult;
                 }
 
-                return list;
+                return listResult;
             }
             else
             {

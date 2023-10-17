@@ -1,11 +1,18 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
-using Google.Protobuf.WellKnownTypes;
+using Google.Protobuf;
+using Microsoft.Azure.Amqp;
+using Microsoft.Azure.Amqp.Encoding;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.ServiceBus.Grpc;
+using Type = System.Type;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -13,6 +20,33 @@ namespace Microsoft.Azure.Functions.Worker
     public class ServiceBusMessageActions
     {
         private readonly Settlement.SettlementClient _settlement;
+
+        /// <summary>The size, in bytes, to use as a buffer for stream operations.</summary>
+        private const int StreamBufferSizeInBytes = 512;
+
+        /// <summary>The set of mappings from CLR types to AMQP types for property values.</summary>
+        private static readonly IReadOnlyDictionary<Type, AmqpType> AmqpPropertyTypeMap = new Dictionary<Type, AmqpType>
+        {
+            { typeof(byte), AmqpType.Byte },
+            { typeof(sbyte), AmqpType.SByte },
+            { typeof(char), AmqpType.Char },
+            { typeof(short), AmqpType.Int16 },
+            { typeof(ushort), AmqpType.UInt16 },
+            { typeof(int), AmqpType.Int32 },
+            { typeof(uint), AmqpType.UInt32 },
+            { typeof(long), AmqpType.Int64 },
+            { typeof(ulong), AmqpType.UInt64 },
+            { typeof(float), AmqpType.Single },
+            { typeof(double), AmqpType.Double },
+            { typeof(decimal), AmqpType.Decimal },
+            { typeof(bool), AmqpType.Boolean },
+            { typeof(Guid), AmqpType.Guid },
+            { typeof(string), AmqpType.String },
+            { typeof(Uri), AmqpType.Uri },
+            { typeof(DateTime), AmqpType.DateTime },
+            { typeof(DateTimeOffset), AmqpType.DateTimeOffset },
+            { typeof(TimeSpan), AmqpType.TimeSpan },
+        };
 
         internal ServiceBusMessageActions(Settlement.SettlementClient settlement)
         {
@@ -41,14 +75,17 @@ namespace Microsoft.Azure.Functions.Worker
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task AbandonMessageAsync(
             ServiceBusReceivedMessage message,
-            IDictionary<string, object>? properties,
+            IDictionary<string, object>? propertiesToModify,
             CancellationToken cancellationToken = default)
         {
             var request = new AbandonRequest()
             {
                 Locktoken = message.LockToken,
-                PropertiesToModify = { TransformProperties(properties) }
             };
+            if (propertiesToModify != null)
+            {
+                request.PropertiesToModify = ConvertToByteString(propertiesToModify);
+            }
             await _settlement.AbandonAsync(request, cancellationToken: cancellationToken);
         }
 
@@ -63,11 +100,13 @@ namespace Microsoft.Azure.Functions.Worker
             var request = new DeadletterRequest()
             {
                 Locktoken = message.LockToken,
-                PropertiesToModify = { TransformProperties(propertiesToModify) },
                 DeadletterReason = deadLetterReason,
                 DeadletterErrorDescription = deadLetterErrorDescription
             };
-
+            if (propertiesToModify != null)
+            {
+                request.PropertiesToModify = ConvertToByteString(propertiesToModify);
+            }
             await _settlement.DeadletterAsync(request, cancellationToken: cancellationToken);
         }
 
@@ -80,55 +119,243 @@ namespace Microsoft.Azure.Functions.Worker
             var request = new DeferRequest()
             {
                 Locktoken = message.LockToken,
-                PropertiesToModify = { TransformProperties(propertiesToModify) }
             };
+            if (propertiesToModify != null)
+            {
+                request.PropertiesToModify = ConvertToByteString(propertiesToModify);
+            }
             await _settlement.DeferAsync(request, cancellationToken: cancellationToken);
         }
 
-        private static Dictionary<string, SettlementProperties> TransformProperties(IDictionary<string, object>? properties)
+        private static ByteString ConvertToByteString(IDictionary<string, object> propertiesToModify)
         {
-            var converted = new Dictionary<string, SettlementProperties>();
-            if (properties == null)
+            var map = new AmqpMap();
+            foreach (KeyValuePair<string, object> kvp in propertiesToModify)
             {
-                return converted;
-            }
-            // support all types listed here - https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.servicebus.servicebusmessage.applicationproperties?view=azure-dotnet
-            foreach (var kvp in properties)
-            {
-                SettlementProperties settlementProperties = kvp.Value switch
+                if (TryCreateAmqpPropertyValueFromNetProperty(kvp.Value, out var amqpValue))
                 {
-                    string stringValue => new SettlementProperties() { StringValue = stringValue },
-                    bool boolValue => new SettlementProperties() { BoolValue = boolValue },
-                    // proto does not support single byte, so use int
-                    byte byteValue => new SettlementProperties() { IntValue = byteValue },
-                    sbyte sbyteValue => new SettlementProperties() { IntValue = sbyteValue },
-                    // proto does not support short, so use int
-                    short shortValue => new SettlementProperties() { IntValue = shortValue },
-                    ushort ushortValue => new SettlementProperties() { IntValue = ushortValue },
-                    int intValue => new SettlementProperties() { IntValue = intValue },
-                    uint uintValue => new SettlementProperties() { UintValue = uintValue },
-                    long longValue => new SettlementProperties() { LongValue = longValue },
-                    // proto does not support ulong, so use double
-                    ulong ulongValue => new SettlementProperties() { DoubleValue = ulongValue },
-                    double doubleValue => new SettlementProperties() { DoubleValue = doubleValue },
-                    decimal decimalValue => new SettlementProperties() { DoubleValue = decimal.ToDouble(decimalValue) },
-                    float floatValue => new SettlementProperties() { FloatValue = floatValue },
-                    char charValue => new SettlementProperties() { StringValue = charValue.ToString() },
-                    Guid guidValue => new SettlementProperties() { StringValue = guidValue.ToString() },
-                    DateTimeOffset dateTimeOffsetValue => new SettlementProperties()
-                        { TimestampValue = Timestamp.FromDateTimeOffset(dateTimeOffsetValue) },
-                    // proto does not support DateTime, so use Timestamp from google.protobuf
-                    DateTime dateTimeValue => new SettlementProperties() { TimestampValue = Timestamp.FromDateTimeOffset(dateTimeValue) },
-                    // proto does not support Uri, so use string
-                    Uri uriValue => new SettlementProperties() { StringValue = uriValue.ToString() },
-                    // proto does not support TimeSpan, so use string
-                    TimeSpan timeSpanValue => new SettlementProperties() { StringValue = timeSpanValue.ToString() },
-                    _ => throw new NotSupportedException($"Unsupported property type {kvp.Value.GetType()}"),
-                };
-                converted.Add(kvp.Key, settlementProperties);
+                    map[new MapKey(kvp.Value)] = amqpValue;
+                }
+                else
+                {
+                    throw new NotSupportedException(
+                        string.Format(
+                            CultureInfo.CurrentCulture,
+                            "The key `{0}` has a value of type `{1}` which is not supported for AMQP transport." +
+                            "The list of supported types can be found here: https://learn.microsoft.com/dotnet/api/azure.messaging.servicebus.servicebusmessage.applicationproperties?view=azure-dotnet#remarks",
+                            kvp.Key,
+                            kvp.Value?.GetType().Name));
+                }
             }
 
-            return converted;
+            using ByteBuffer buffer = new ByteBuffer(256, true);
+            AmqpCodec.EncodeMap(map, buffer);
+            return ByteString.CopyFrom(buffer.Buffer, 0, buffer.Length);
+        }
+
+        /// <summary>
+        ///   Attempts to create an AMQP property value for a given event property.
+        /// </summary>
+        ///
+        /// <param name="propertyValue">The value of the event property to create an AMQP property value for.</param>
+        /// <param name="amqpPropertyValue">The AMQP property value that was created.</param>
+        /// <param name="allowBodyTypes"><c>true</c> to allow an AMQP map to be translated to additional types supported only by a message body; otherwise, <c>false</c>.</param>
+        ///
+        /// <returns><c>true</c> if an AMQP property value was able to be created; otherwise, <c>false</c>.</returns>
+        ///
+        private static bool TryCreateAmqpPropertyValueFromNetProperty(
+            object? propertyValue,
+            out object? amqpPropertyValue,
+            bool allowBodyTypes = false)
+        {
+            amqpPropertyValue = null;
+
+            if (propertyValue == null)
+            {
+                return true;
+            }
+
+            switch (GetTypeIdentifier(propertyValue))
+            {
+                case AmqpType.Byte:
+                case AmqpType.SByte:
+                case AmqpType.Int16:
+                case AmqpType.Int32:
+                case AmqpType.Int64:
+                case AmqpType.UInt16:
+                case AmqpType.UInt32:
+                case AmqpType.UInt64:
+                case AmqpType.Single:
+                case AmqpType.Double:
+                case AmqpType.Boolean:
+                case AmqpType.Decimal:
+                case AmqpType.Char:
+                case AmqpType.Guid:
+                case AmqpType.DateTime:
+                case AmqpType.String:
+                    amqpPropertyValue = propertyValue;
+                    break;
+
+                case AmqpType.Stream:
+                case AmqpType.Unknown when propertyValue is Stream:
+                    amqpPropertyValue = ReadStreamToArraySegment((Stream)propertyValue);
+                    break;
+
+                case AmqpType.Uri:
+                    amqpPropertyValue = new DescribedType((AmqpSymbol)AmqpMessageConstants.Uri, ((Uri)propertyValue).AbsoluteUri);
+                    break;
+
+                case AmqpType.DateTimeOffset:
+                    amqpPropertyValue = new DescribedType((AmqpSymbol)AmqpMessageConstants.DateTimeOffset, ((DateTimeOffset)propertyValue).UtcTicks);
+                    break;
+
+                case AmqpType.TimeSpan:
+                    amqpPropertyValue = new DescribedType((AmqpSymbol)AmqpMessageConstants.TimeSpan, ((TimeSpan)propertyValue).Ticks);
+                    break;
+
+                case AmqpType.Unknown when allowBodyTypes && propertyValue is byte[] byteArray:
+                    amqpPropertyValue = new ArraySegment<byte>(byteArray);
+                    break;
+
+                case AmqpType.Unknown when allowBodyTypes && propertyValue is IDictionary dict:
+                    amqpPropertyValue = new AmqpMap(dict);
+                    break;
+
+                case AmqpType.Unknown when allowBodyTypes && propertyValue is IList:
+                    amqpPropertyValue = propertyValue;
+                    break;
+
+                case AmqpType.Unknown:
+                    var exception = new SerializationException(string.Format(CultureInfo.CurrentCulture, "Serialization failed due to an unsupported type, {0}.", propertyValue.GetType().FullName));
+                    throw exception;
+            }
+
+            return (amqpPropertyValue != null);
+        }
+
+        /// <summary>
+        ///   Converts a stream to an <see cref="ArraySegment{T}" /> representation.
+        /// </summary>
+        ///
+        /// <param name="stream">The stream to read and capture in memory.</param>
+        ///
+        /// <returns>The <see cref="ArraySegment{T}" /> containing the stream data.</returns>
+        ///
+        private static ArraySegment<byte> ReadStreamToArraySegment(Stream stream)
+        {
+            switch (stream)
+            {
+                case { Length: < 1 }:
+                    return default;
+
+                case BufferListStream bufferListStream:
+                    return bufferListStream.ReadBytes((int)stream.Length);
+
+                case MemoryStream memStreamSource:
+                {
+                    using var memStreamCopy = new MemoryStream((int)(memStreamSource.Length - memStreamSource.Position));
+                    memStreamSource.CopyTo(memStreamCopy, StreamBufferSizeInBytes);
+                    if (!memStreamCopy.TryGetBuffer(out ArraySegment<byte> segment))
+                    {
+                        segment = new ArraySegment<byte>(memStreamCopy.ToArray());
+                    }
+                    return segment;
+                }
+
+                default:
+                {
+                    using var memStreamCopy = new MemoryStream(StreamBufferSizeInBytes);
+                    stream.CopyTo(memStreamCopy, StreamBufferSizeInBytes);
+                    if (!memStreamCopy.TryGetBuffer(out ArraySegment<byte> segment))
+                    {
+                        segment = new ArraySegment<byte>(memStreamCopy.ToArray());
+                    }
+                    return segment;
+                }
+            }
+        }
+
+        /// <summary>
+        ///   Represents the supported AMQP property types.
+        /// </summary>
+        ///
+        /// <remarks>
+        ///   WARNING:
+        ///     These values are synchronized between Azure services and the client
+        ///     library.  You must consult with the Event Hubs/Service Bus service team before making
+        ///     changes, including adding a new member.
+        ///
+        ///     When adding a new member, remember to always do so before the Unknown
+        ///     member.
+        /// </remarks>
+        ///
+        private enum AmqpType
+        {
+            Null,
+            Byte,
+            SByte,
+            Char,
+            Int16,
+            UInt16,
+            Int32,
+            UInt32,
+            Int64,
+            UInt64,
+            Single,
+            Double,
+            Decimal,
+            Boolean,
+            Guid,
+            String,
+            Uri,
+            DateTime,
+            DateTimeOffset,
+            TimeSpan,
+            Stream,
+            Unknown
+        }
+
+        /// <summary>
+        ///   Gets the AMQP property type identifier for a given
+        ///   value.
+        /// </summary>
+        ///
+        /// <param name="value">The value to determine the type identifier for.</param>
+        ///
+        /// <returns>The <see cref="Type"/> that was identified for the given <paramref name="value"/>.</returns>
+        ///
+        private static AmqpType GetTypeIdentifier(object? value) => ToAmqpPropertyType(value?.GetType());
+
+        /// <summary>
+        ///   Translates the given <see cref="Type" /> to the corresponding
+        ///   <see cref="AmqpType" />.
+        /// </summary>
+        ///
+        /// <param name="type">The type to convert to an AMQP type.</param>
+        ///
+        /// <returns>The AMQP property type that best matches the specified <paramref name="type"/>.</returns>
+        ///
+        private static AmqpType ToAmqpPropertyType(Type? type)
+        {
+            if (type == null)
+            {
+                return AmqpType.Null;
+            }
+
+            if (AmqpPropertyTypeMap.TryGetValue(type, out AmqpType amqpType))
+            {
+                return amqpType;
+            }
+
+            return AmqpType.Unknown;
+        }
+
+        internal static class AmqpMessageConstants
+        {
+            public const string Vendor = "com.microsoft";
+            public const string TimeSpan = Vendor + ":timespan";
+            public const string Uri = Vendor + ":uri";
+            public const string DateTimeOffset = Vendor + ":datetime-offset";
         }
     }
 }

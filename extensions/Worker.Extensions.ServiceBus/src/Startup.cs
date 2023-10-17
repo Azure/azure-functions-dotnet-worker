@@ -22,5 +22,6 @@ public sealed class Startup : WorkerExtensionStartup
             IOptions<FunctionsGrpcOptions> options = sp.GetRequiredService<IOptions<FunctionsGrpcOptions>>();
             return new Settlement.SettlementClient(options.Value.CallInvoker);
         });
+        applicationBuilder.Services.AddWorkerRpc();
     }
 }

@@ -34,10 +34,24 @@ namespace Microsoft.Extensions.Hosting
         /// <returns>The same instance of the <see cref="IHostBuilder"/> for chaining.</returns>
         public static IHostBuilder ConfigureFunctionsWebApplication(this IHostBuilder builder, Action<IFunctionsWorkerApplicationBuilder> configureWorker)
         {
-            builder.ConfigureFunctionsWorkerDefaults(workerAppBuilder =>
+            return builder.ConfigureFunctionsWebApplication((_, workerAppBuilder) =>
+            {
+                configureWorker?.Invoke(workerAppBuilder);
+            });
+        }
+
+        /// <summary>
+        /// Configures the worker to use the ASP.NET Core integration, enabling advanced HTTP features.
+        /// </summary>
+        /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
+        /// <param name="configureWorker">The worker configure callback.</param>
+        /// <returns>The same instance of the <see cref="IHostBuilder"/> for chaining.</returns>
+        public static IHostBuilder ConfigureFunctionsWebApplication(this IHostBuilder builder, Action<HostBuilderContext, IFunctionsWorkerApplicationBuilder> configureWorker)
+        {
+            builder.ConfigureFunctionsWorkerDefaults((hostBuilderContext, workerAppBuilder) =>
             {
                 workerAppBuilder.UseAspNetCoreIntegration();
-                configureWorker?.Invoke(workerAppBuilder);
+                configureWorker?.Invoke(hostBuilderContext, workerAppBuilder);
             });
 
             builder.ConfigureAspNetCoreIntegration();

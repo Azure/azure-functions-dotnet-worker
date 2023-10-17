@@ -1,10 +1,12 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
@@ -55,8 +57,13 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [BlobTrigger("test-trigger-stream-dotnet-isolated/{name}")] Stream stream, string name,
             FunctionContext context)
         {
-            var blobStreamReader = new StreamReader(stream);
-            string content = await blobStreamReader.ReadToEndAsync();
+            string content;
+
+            using (StreamReader reader = new StreamReader(stream)) //File.OpenText("existingfile.txt"))
+            {
+                content = await reader.ReadToEndAsync();
+            }
+
             _logger.LogInformation("StreamTriggerOutput: {c}", content);
         }
 

@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
 - <entry>
 

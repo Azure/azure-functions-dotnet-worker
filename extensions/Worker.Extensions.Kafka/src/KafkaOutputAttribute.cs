@@ -128,5 +128,20 @@ namespace Microsoft.Azure.Functions.Worker
         /// being sent to cluster. Larger value allows more batching results in high throughput.
         /// </summary>
         public int LingerMs { get; set; } = 5;
+
+        /// <summary>
+        /// URL for the Avro Schema Registry
+        /// </summary>
+        public string SchemaRegistryUrl { get; set; }
+
+        /// <summary>
+        /// Username for the Avro Schema Registry
+        /// </summary>
+        public string SchemaRegistryUsername { get; set; }
+
+        /// <summary>
+        /// Password for the Avro Schema Registry
+        /// </summary>
+        public string SchemaRegistryPassword { get; set; }
     }
 }

@@ -34,10 +34,4 @@
   <ItemGroup>
     <Protobuf Include="Proto/settlement.proto" GrpcServices="client" Access="internal" />
   </ItemGroup>
-  
-  <ItemGroup>
-    <Compile Include="$(AzureCoreAmqpSharedSources)AmqpAnnotatedMessageConverter.cs" LinkBase="SharedSource\Azure.Core.Amqp" />
-    <Compile Include="$(AzureCoreAmqpSharedSources)MessageBody.cs" LinkBase="SharedSource\Azure.Core.Amqp" />
-  </ItemGroup>
-
 </Project>

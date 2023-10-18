@@ -35,14 +35,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
       
         <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
-        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnablePlaceholder)">true</FunctionsEnableWorkerIndexing>
-        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' And !$(FunctionsEnablePlaceholder)">false</FunctionsEnableWorkerIndexing>
-        <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
+        <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' Or $(FunctionsEnableWorkerIndexing)">true</FunctionsEnableWorkerIndexing>
         <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == ''">false</FunctionsEnableExecutorSourceGen>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
-        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == ''">false</FunctionsAutoRegisterGeneratedMetadataProvider>
-        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
+        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == '' And $(FunctionsEnableWorkerIndexing)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
+        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) And $(FunctionsEnableWorkerIndexing)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"

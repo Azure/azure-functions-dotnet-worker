@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Kafka <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Kafka 3.10.0
 
-- <entry>
+- Added Schema Registry Attributes for Trigger and Output bindings

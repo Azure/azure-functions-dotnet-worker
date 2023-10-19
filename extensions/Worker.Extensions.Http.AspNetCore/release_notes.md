@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- <entry>
+- New overload added to `ConfigureFunctionsWebApplication` to take a `HostBuilderContext` (#1925). Thank you @vmcbaptista

@@ -127,14 +127,14 @@ namespace Microsoft.Azure.Functions.Worker
             await _settlement.DeferAsync(request, cancellationToken: cancellationToken);
         }
 
-        private static ByteString ConvertToByteString(IDictionary<string, object> propertiesToModify)
+        internal static ByteString ConvertToByteString(IDictionary<string, object> propertiesToModify)
         {
             var map = new AmqpMap();
             foreach (KeyValuePair<string, object> kvp in propertiesToModify)
             {
                 if (TryCreateAmqpPropertyValueFromNetProperty(kvp.Value, out var amqpValue))
                 {
-                    map[new MapKey(kvp.Value)] = amqpValue;
+                    map[new MapKey(kvp.Key)] = amqpValue;
                 }
                 else
                 {

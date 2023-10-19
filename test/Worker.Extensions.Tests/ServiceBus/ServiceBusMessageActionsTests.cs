@@ -75,6 +75,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             await messageActions.DeferMessageAsync(message, properties);
         }
 
+        [Fact]
+        public async Task PassingNullMessageThrows()
+        {
+            var messageActions = new ServiceBusMessageActions(new MockSettlementClient(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await messageActions.CompleteMessageAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await messageActions.AbandonMessageAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await messageActions.DeadLetterMessageAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await messageActions.DeferMessageAsync(null));
+        }
+
         private class MockSettlementClient : Settlement.SettlementClient
         {
             private readonly string _lockToken;

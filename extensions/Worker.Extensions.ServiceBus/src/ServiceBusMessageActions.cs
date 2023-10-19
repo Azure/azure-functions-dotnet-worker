@@ -69,15 +69,25 @@ namespace Microsoft.Azure.Functions.Worker
             ServiceBusReceivedMessage message,
             CancellationToken cancellationToken = default)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             await _settlement.CompleteAsync(new() { Locktoken = message.LockToken }, cancellationToken: cancellationToken);
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task AbandonMessageAsync(
             ServiceBusReceivedMessage message,
-            IDictionary<string, object>? propertiesToModify,
+            IDictionary<string, object>? propertiesToModify = default,
             CancellationToken cancellationToken = default)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             var request = new AbandonRequest()
             {
                 Locktoken = message.LockToken,
@@ -97,6 +107,11 @@ namespace Microsoft.Azure.Functions.Worker
             string? deadLetterErrorDescription = default,
             CancellationToken cancellationToken = default)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             var request = new DeadletterRequest()
             {
                 Locktoken = message.LockToken,
@@ -116,6 +131,11 @@ namespace Microsoft.Azure.Functions.Worker
             IDictionary<string, object>? propertiesToModify = default,
             CancellationToken cancellationToken = default)
         {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
             var request = new DeferRequest()
             {
                 Locktoken = message.LockToken,

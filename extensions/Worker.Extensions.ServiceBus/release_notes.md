@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.14.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
 
-- Message settlement support allowing binding to `ServiceBusMessageActions`
+- <entry>

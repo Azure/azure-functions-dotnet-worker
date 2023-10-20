@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions
 {
@@ -37,14 +38,36 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         /// </summary>
         public static bool TryGetCollectionElementType(this Type type, out Type? elementType)
         {
+            elementType = null;
+
             if (!type.IsCollectionType())
             {
-                elementType = null;
                 return false;
             }
 
-            elementType = type.IsArray ? type.GetElementType() : type.GenericTypeArguments[0];
-            return true;
+            // Check if the type is an array
+            if (type.IsArray)
+            {
+                elementType = type.GetElementType();
+                return true;
+            }
+
+            // Traverse the inheritance hierarchy to find the first generic interface
+            while (type != typeof(object) || type is not null)
+            {
+                var interfaceType = type.GetInterfaces().FirstOrDefault(t => t.IsGenericType
+                    || (t == typeof(IEnumerable) || t == typeof(ICollection) || t == typeof(IList)));
+
+                if (interfaceType is not null)
+                {
+                    elementType = interfaceType.GetGenericArguments()[0];
+                    return true;
+                }
+
+                type = type.BaseType;
+            }
+
+            return false;
         }
     }
 }

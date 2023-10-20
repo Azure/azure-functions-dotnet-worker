@@ -4,6 +4,8 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.14.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.14.1
 
-- Message settlement support allowing binding to `ServiceBusMessageActions`
+- Fixed issue where deadlettering a message without specifying properties to modify could throw
+  an exception from out of proc extension.
+- Include underlying exception details in RpcException when a failure occurs.

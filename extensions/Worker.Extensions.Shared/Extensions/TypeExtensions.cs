@@ -69,5 +69,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
 
             return false;
         }
+
+        /// <summary>
+        /// Returns true if the type is concrete, and false if it is not.
+        /// A concrete type is a class that allows creating an instance or an object using the new keyword.
+        /// </summary>
+        public static bool IsConcreteType(this Type type)
+        {
+            return !type.IsAbstract && !type.IsInterface;
+        }
     }
 }

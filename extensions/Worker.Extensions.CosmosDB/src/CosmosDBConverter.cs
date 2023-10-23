@@ -97,7 +97,17 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (targetType.TryGetCollectionElementType(out Type? elementType))
             {
-                var listResult = await CreateListAsync(container, cosmosAttribute, elementType!, targetType);
+                if (elementType is null)
+                {
+                    throw new ArgumentNullException(nameof(elementType));
+                }
+
+                if (targetType.IsConcreteType())
+                {
+                    return await CreatePocoListConcreteAsync(container, cosmosAttribute, elementType, targetType);
+                }
+
+                var listResult = await CreatePocoListAsync(container, cosmosAttribute, elementType, targetType);
                 if (targetType.IsArray)
                 {
                     var arrayResult = Array.CreateInstance(elementType, listResult.Count);
@@ -130,7 +140,21 @@ namespace Microsoft.Azure.Functions.Worker
             return JsonSerializer.DeserializeAsync(item.Content, targetType, _serializerOptions)!;
         }
 
-        private async Task<IList> CreateListAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType, Type targetType)
+        private async Task<object> CreatePocoListConcreteAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType, Type targetType)
+        {
+            var result = Activator.CreateInstance(elementType);
+            var addMethod = elementType.GetMethod("Add")
+                ?? throw new InvalidOperationException($"Unable to find 'Add' method on type '{elementType.Name}'.");
+
+            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, targetType))
+            {
+                addMethod.Invoke(result, new[] { item });
+            }
+
+            return result;
+        }
+
+        private async Task<IList> CreatePocoListAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType, Type targetType)
         {
             var resultType = typeof(List<>).MakeGenericType(elementType);
             var result = (IList)Activator.CreateInstance(resultType);
@@ -141,6 +165,16 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return result;
+        }
+
+        private bool IsSupportedCollectionType(Type targetType)
+        {
+            if (targetType is null)
+            {
+                throw new ArgumentNullException(nameof(targetType));
+            }
+
+            return targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(IList<>);
         }
 
         private async IAsyncEnumerable<object> GetObjectsAsTargetTypeAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type target)

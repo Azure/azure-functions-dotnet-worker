@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions
@@ -52,11 +53,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
                 return true;
             }
 
+            if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(IEnumerable<>))
+            {
+                elementType = type.GetGenericArguments()[0];
+                return true;
+            }
+
+            // if generic, get generic type definition, check if that is IEnumerable<>, ICollection<> or IList<>. If so, then pull off the first generic argument.
             // Traverse the inheritance hierarchy to find the first generic interface
             while (type is not null)
             {
                 var interfaceType = type.GetInterfaces().FirstOrDefault(t => t.IsGenericType
-                    || (t == typeof(IEnumerable) || t == typeof(ICollection) || t == typeof(IList)));
+                    && (t.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                    || t.GetGenericTypeDefinition() == typeof(ICollection<>)
+                    || t.GetGenericTypeDefinition() == typeof(IList<>)));
 
                 if (interfaceType is not null)
                 {

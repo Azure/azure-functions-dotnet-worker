@@ -15,8 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(List<string>), true)]
         [InlineData(typeof(IEnumerable<string>), true)]
         [InlineData(typeof(MyList), true)]
-        [InlineData(typeof(LayeredList), true)]
+        [InlineData(typeof(MyLayeredList), true)]
         [InlineData(typeof(MyEnumerable), true)]
+        [InlineData(typeof(MyGenericList), true)]
         [InlineData(typeof(string), false)]
         [InlineData(typeof(int), false)]
         [InlineData(typeof(bool), false)]
@@ -34,8 +35,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(List<string>), typeof(string))]
         [InlineData(typeof(IEnumerable<string>), typeof(string))]
         [InlineData(typeof(MyList), typeof(string))]
-        [InlineData(typeof(LayeredList), typeof(string))]
+        [InlineData(typeof(MyLayeredList), typeof(string))]
         [InlineData(typeof(MyEnumerable), typeof(string))]
+        [InlineData(typeof(MyGenericList), typeof(string))]
         public void TryGetCollectionElementType_ReturnsElementType(Type type, Type expectedElementType)
         {
             // Act
@@ -50,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         {
         }
 
-        public class LayeredList : Layer2
+        public class MyLayeredList : Layer2
         {
         }
 
@@ -59,6 +61,23 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         }
 
         public class MyEnumerable : IEnumerable<string>
+        {
+            public IEnumerator<string> GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public interface IGeneric<T>
+        {
+        }
+
+        public class MyGenericList : IGeneric<int>, IEnumerable<string>
         {
             public IEnumerator<string> GetEnumerator()
             {

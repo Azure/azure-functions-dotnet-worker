@@ -45,12 +45,7 @@ namespace FunctionsNetHost
 
             unsafe
             {
-                var parameters = new HostFxr.hostfxr_initialize_parameters
-                {
-                    size = sizeof(HostFxr.hostfxr_initialize_parameters)
-                };
-
-                var error = HostFxr.Initialize(1, new[] { assemblyPath }, ref parameters, out _hostContextHandle);
+                var error = HostFxr.Initialize(1, new[] { assemblyPath }, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
                 {
@@ -95,8 +90,8 @@ namespace FunctionsNetHost
 
                 if (_hostContextHandle != IntPtr.Zero)
                 {
-                    NativeLibrary.Free(_hostContextHandle);
-                    Logger.LogTrace($"Freed hostcontext handle");
+                    HostFxr.Close(_hostContextHandle);
+                    Logger.LogTrace($"Closed hostcontext handle");
                     _hostContextHandle = IntPtr.Zero;
                 }
 

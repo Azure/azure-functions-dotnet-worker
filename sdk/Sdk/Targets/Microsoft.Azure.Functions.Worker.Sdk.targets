@@ -65,6 +65,16 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
     </Target>
 
+    <PropertyGroup Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
+        <_FunctionsWorkerExecutableFileName >$(TargetName).exe</_FunctionsWorkerExecutableFileName>
+    </PropertyGroup>
+  
+    <PropertyGroup Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
+        <_FunctionsNativeExecutableExtension Condition="($(RuntimeIdentifier.StartsWith('win')) or $(DefaultAppHostRuntimeIdentifier.StartsWith('win')))">.exe</_FunctionsNativeExecutableExtension>
+        <_FunctionsWorkerExecutableFileName Condition="'$(PublishAot)' != 'true'">$(TargetName).dll</_FunctionsWorkerExecutableFileName>
+        <_FunctionsWorkerExecutableFileName Condition="'$(PublishAot)' == 'true'">$(TargetName)$(_FunctionsNativeExecutableExtension)</_FunctionsWorkerExecutableFileName>
+    </PropertyGroup>
+
     <Target Name="_FunctionsPostBuild" AfterTargets="AfterBuild" DependsOnTargets="_FunctionsPostBuildNetFx;_FunctionsPostBuildNetApp"/>
     <!--.NET Framework post build-->
     <Target Name="_FunctionsPostBuildNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
@@ -93,7 +103,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
-                                  .Replace('$functionWorker$', '$(TargetName).exe')
+                                  .Replace('$functionWorker$', '$(_FunctionsWorkerExecutableFileName)')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
             Overwrite="true" />
     </Target>
@@ -125,7 +135,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$functionWorker$', '$(_FunctionsWorkerExecutableFileName)')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
@@ -135,7 +145,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
-                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$functionWorker$', '$(_FunctionsWorkerExecutableFileName)')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
@@ -311,7 +321,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
-                                  .Replace('$functionWorker$', '$(TargetName).exe')
+                                  .Replace('$functionWorker$', '$(_FunctionsWorkerExecutableFileName)')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
             Overwrite="true" />
     </Target>
@@ -343,7 +353,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$functionWorker$', '$(_FunctionsWorkerExecutableFileName)')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 
@@ -352,7 +362,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
             File="$(OutputFile)"
             Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
                                   .Replace('$functionExe$', 'dotnet')
-                                  .Replace('$functionWorker$', '$(TargetName).dll')
+                                  .Replace('$functionWorker$', '$(_FunctionsWorkerExecutableFileName)')
                                   .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
         Overwrite="true" />
 

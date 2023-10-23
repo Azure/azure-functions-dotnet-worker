@@ -244,7 +244,8 @@ namespace Microsoft.Azure.Functions.Worker
         private async Task<Stream> GetBlobStreamAsync(BlobContainerClient containerClient, string blobName)
         {
             var client = CreateBlobClient<BlobClient>(containerClient, blobName);
-            return await client.OpenReadAsync();
+            var download = await client.DownloadStreamingAsync();
+            return download.Value.Content;
         }
 
         private BlobContainerClient CreateBlobContainerClient(string connectionName, string containerName)

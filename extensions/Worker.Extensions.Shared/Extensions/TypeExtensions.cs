@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             }
 
             // Traverse the inheritance hierarchy to find the first generic interface
-            while (type != typeof(object) || type is not null)
+            while (type is not null)
             {
                 var interfaceType = type.GetInterfaces().FirstOrDefault(t => t.IsGenericType
                     || (t == typeof(IEnumerable) || t == typeof(ICollection) || t == typeof(IList)));

@@ -14,37 +14,33 @@ namespace FunctionsNetHost
             public char* dotnet_root;
         };
 
-        [LibraryImport("hostfxr", EntryPoint = "hostfxr_initialize_for_dotnet_command_line")]
-        public unsafe static partial int Initialize(
-                int argc,
-                [MarshalAs(UnmanagedType.LPArray, ArraySubType = 
+        [LibraryImport("hostfxr", EntryPoint = "hostfxr_initialize_for_dotnet_command_line",
 #if OS_LINUX
-    UnmanagedType.LPStr
+            StringMarshalling = StringMarshalling.Utf8
 #else
-     UnmanagedType.LPWStr
+            StringMarshalling = StringMarshalling.Utf16
 #endif
-            )] string[] argv,
-                ref hostfxr_initialize_parameters parameters,
-                out IntPtr host_context_handle
-            );
+        )]
+        public unsafe static partial int Initialize(
+            int argc,
+            string[] argv,
+            IntPtr parameters,
+            out IntPtr host_context_handle
+        );
 
         [LibraryImport("hostfxr", EntryPoint = "hostfxr_run_app")]
         public static partial int Run(IntPtr host_context_handle);
 
-        [LibraryImport("hostfxr", EntryPoint = "hostfxr_set_runtime_property_value")]
-        public static partial int SetAppContextData(IntPtr host_context_handle, [MarshalAs(
+        [LibraryImport("hostfxr", EntryPoint = "hostfxr_set_runtime_property_value",
 #if OS_LINUX
-    UnmanagedType.LPStr
+            StringMarshalling = StringMarshalling.Utf8
 #else
-     UnmanagedType.LPWStr
+            StringMarshalling = StringMarshalling.Utf16
 #endif
-            )] string name, [MarshalAs(
-#if OS_LINUX
-    UnmanagedType.LPStr
-#else
-     UnmanagedType.LPWStr
-#endif
-            )] string value);
+        )]
+        public static partial int SetAppContextData(IntPtr host_context_handle, string name, string value);
 
+        [LibraryImport("hostfxr", EntryPoint = "hostfxr_close")]
+        public static partial int Close(IntPtr host_context_handle);
     }
 }

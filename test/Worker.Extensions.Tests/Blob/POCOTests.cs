@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -57,14 +57,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var expectedBook = new Book() { Name = "MyBook" };
 
             var testStream = new MemoryStream(Encoding.UTF8.GetBytes("{\"Name\":\"MyBook\"}"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(testStream);
 
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
@@ -91,14 +87,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var expectedBook = new Book() { Name = "MyBook" };
 
             var testStream = new MemoryStream(Encoding.UTF8.GetBytes("{\"Name\":\"MyBook\"}"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(testStream);
 
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
@@ -144,14 +136,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var expectedBook = new Book() { Name = "MyBook" };
 
             var testStream = new MemoryStream(Encoding.UTF8.GetBytes("{\"Name:\"MyBook\"}"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(testStream);
 
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
@@ -177,15 +165,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
             var expectedBookList = new List<Book>() { new Book() { Name = "MyBook" } };
             var testStream = new MemoryStream(Encoding.UTF8.GetBytes("{\"Name\":\"MyBook\"}"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
-
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(testStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem> { BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
@@ -216,15 +199,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
             var expectedBookList = new Book[] { new Book() { Name = "MyBook" } };
             var testStream = new MemoryStream(Encoding.UTF8.GetBytes("{\"Name\":\"MyBook\"}"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
-
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(testStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem> { BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
@@ -255,15 +233,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
             var expectedBookList = new Book[] { new Book() { Name = "MyBook" } };
             var testStream = new MemoryStream(Encoding.UTF8.GetBytes("i should fail"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(testStream);
-
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(testStream);
 
             var blobItemMockResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem> { BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, blobItemMockResponse.Object);
@@ -294,14 +267,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
 
             var jsonString = JsonConvert.SerializeObject(new List<object> { new { Name = "MyBook" }, new { Name = "MySecondBook" }});
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes(jsonString));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
@@ -332,14 +301,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(Book[]), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("[1,2]"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);

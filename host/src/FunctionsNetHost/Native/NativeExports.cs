@@ -10,7 +10,7 @@ namespace FunctionsNetHost
     public static class NativeExports
     {
         [UnmanagedCallersOnly(EntryPoint = "get_application_properties")]
-        public static int GetApplicationProperties(NativeHostData nativeHostData)
+        public static unsafe int GetApplicationProperties(NativeHostData* nativeHostData)
         {
             Logger.LogTrace("NativeExports.GetApplicationProperties method invoked.");
 
@@ -19,7 +19,7 @@ namespace FunctionsNetHost
                 var nativeHostApplication = NativeHostApplication.Instance;
                 GCHandle gch = GCHandle.Alloc(nativeHostApplication, GCHandleType.Pinned);
                 IntPtr pNativeApplication = gch.AddrOfPinnedObject();
-                nativeHostData.PNativeApplication = pNativeApplication;
+                nativeHostData->PNativeApplication = pNativeApplication;
 
                 return 1;
             }

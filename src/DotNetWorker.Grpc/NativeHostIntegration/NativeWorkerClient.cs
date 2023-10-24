@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         private readonly IMessageProcessor _messageProcessor;
         private readonly ChannelReader<StreamingMessage> _outputChannelReader;
         private readonly ChannelWriter<StreamingMessage> _outputChannelWriter;
-        private readonly NativeSafeHandle _application;
+        private readonly IntPtr _nativeApplicationHandle;
         private GCHandle _gcHandle;
 
         private readonly Channel<StreamingMessage> _inbound = Channel.CreateUnbounded<StreamingMessage>();
@@ -25,7 +25,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             _messageProcessor = messageProcessor;
             _outputChannelReader = outputChannel.Channel.Reader;
             _outputChannelWriter = outputChannel.Channel.Writer;
-            _application = new NativeSafeHandle(nativeHostData.pNativeApplication);
+            _nativeApplicationHandle = nativeHostData.pNativeApplication;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         public unsafe void Start()
         {
             _gcHandle = GCHandle.Alloc(this);
-            NativeMethods.RegisterCallbacks(_application, &HandleRequest, (IntPtr)_gcHandle);
+            NativeMethods.RegisterCallbacks(_nativeApplicationHandle, &HandleRequest, (IntPtr)_gcHandle);
 
             _ = ProcessInbound();
             _ = ProcessOutbound();
@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         {
             await foreach (StreamingMessage msg in _outputChannelReader.ReadAllAsync())
             {
-                NativeMethods.SendStreamingMessage(_application, msg);
+                NativeMethods.SendStreamingMessage(_nativeApplicationHandle, msg);
             }
         }
 

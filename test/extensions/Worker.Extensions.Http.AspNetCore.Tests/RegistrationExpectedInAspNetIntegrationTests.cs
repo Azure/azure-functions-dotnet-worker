@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 
 
         [Fact]
-        public async Task AspNetIntegration_CommentedRegistration_Diagnostics_Expected()
+        public async Task AspNetIntegration_CommentedRegistration_Diagnostics_NotExpected()
         {
             string testCode = @"
                 namespace AspNetIntegration

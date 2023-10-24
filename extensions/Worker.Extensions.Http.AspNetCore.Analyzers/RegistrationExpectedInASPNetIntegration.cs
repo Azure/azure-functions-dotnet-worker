@@ -40,9 +40,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             var syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
             var root = syntaxReference?.SyntaxTree.GetRoot();
-
             var methodCallExpressions = root?.DescendantNodes().OfType<InvocationExpressionSyntax>();
+
             var expectedMethodInvocationPresent = methodCallExpressions?.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
+            
             var incorrectMethodInvocationPresent = methodCallExpressions?.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == IncorrectRegistrationMethod);
 
             if ((bool)incorrectMethodInvocationPresent && !(bool)expectedMethodInvocationPresent)

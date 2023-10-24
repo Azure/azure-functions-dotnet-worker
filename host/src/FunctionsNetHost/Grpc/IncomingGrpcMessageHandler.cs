@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost.Grpc
@@ -50,13 +51,32 @@ namespace FunctionsNetHost.Grpc
                     Logger.LogTrace("Specialization request received.");
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
+
+                    var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
+
+                    if (workerConfig?.Description is null)
+                    {
+                        Logger.LogTrace($"Could not find a worker config in {envReloadRequest.FunctionAppDirectory}");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse();
+                        break;
+                    }
+
+                    // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
+                    if (!workerConfig.Description.CanUsePlaceholder)
+                    {
+                        Logger.LogTrace("App payload uses an older version of Microsoft.Azure.Functions.Worker SDK which does not support placeholder.");
+                        var e = new EnvironmentReloadNotSupportedException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
+                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(e);
+                        break;
+                    }
+
+                    var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
+                    Logger.LogTrace($"application path {applicationExePath}");
+
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
-
-                    var applicationExePath = PathUtils.GetApplicationExePath(envReloadRequest.FunctionAppDirectory);
-                    Logger.LogTrace($"application path {applicationExePath}");
 
 #pragma warning disable CS4014
                     Task.Run(() =>
@@ -74,9 +94,43 @@ namespace FunctionsNetHost.Grpc
                     break;
             }
 
-            await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            if (responseMessage.ContentCase != StreamingMessage.ContentOneofCase.None)
+            {
+                await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            }
         }
 
+        private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)
+        {
+            var response = new FunctionEnvironmentReloadResponse
+            {
+                Result = new StatusResult
+                {
+                    Status = StatusResult.Types.Status.Failure
+                }
+            };
+
+            response.Result.Exception = ToUserRpcException(exception);
+
+            return response;
+        }
+
+        internal static RpcException? ToUserRpcException(Exception? exception)
+        {
+            if (exception is null)
+            {
+                return null;
+            }
+
+            return new RpcException
+            {
+                Message = exception.Message,
+                Source = exception.Source ?? string.Empty,
+                StackTrace = exception.StackTrace ?? string.Empty,
+                Type = exception.GetType().FullName ?? string.Empty,
+                IsUserException = true
+            };
+        }
         private static FunctionMetadataResponse BuildFunctionMetadataResponse()
         {
             var metadataResponse = new FunctionMetadataResponse
@@ -94,6 +148,7 @@ namespace FunctionsNetHost.Grpc
             {
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success }
             };
+            response.Capabilities[WorkerCapabilities.EnableUserCodeException] = bool.TrueString;
 
             return response;
         }

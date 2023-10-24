@@ -5,12 +5,11 @@ using System;
 using System.IO;
 using System.Net;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Microsoft.Extensions.DependencyInjection;
-using Azure.Core.Serialization;
 using System.Threading;
-using System.Text.Json;
+using System.Threading.Tasks;
+using Azure.Core.Serialization;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.Http
 {
@@ -37,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 return null;
             }
 
-            using (var reader = new StreamReader(request.Body, bufferSize: 1024, detectEncodingFromByteOrderMarks: true, encoding: encoding, leaveOpen: true))
+            using (var reader = new StreamReader(request.Body, bufferSize: 1024, detectEncodingFromByteOrderMarks: true, encoding: encoding ?? Encoding.UTF8, leaveOpen: true))
             {
                 return await reader.ReadToEndAsync();
             }
@@ -61,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 return null;
             }
 
-            using (var reader = new StreamReader(request.Body, bufferSize: 1024, detectEncodingFromByteOrderMarks: true, encoding: encoding, leaveOpen: true))
+            using (var reader = new StreamReader(request.Body, bufferSize: 1024, detectEncodingFromByteOrderMarks: true, encoding: encoding ?? Encoding.UTF8, leaveOpen: true))
             {
                 return reader.ReadToEnd();
             }
@@ -123,7 +122,6 @@ namespace Microsoft.Azure.Functions.Worker.Http
 
             return new ValueTask<T?>(result.AsTask().ContinueWith(t => TryCast(t.Result)));
         }
-
 
         /// <summary>
         /// Creates a response for the the provided <see cref="HttpRequestData"/>.

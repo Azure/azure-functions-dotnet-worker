@@ -13,21 +13,7 @@ namespace FunctionsNetHost
         public static unsafe int GetApplicationProperties(NativeHostData* nativeHostData)
         {
             Logger.LogTrace("NativeExports.GetApplicationProperties method invoked.");
-
-            try
-            {
-                var nativeHostApplication = NativeHostApplication.Instance;
-                GCHandle gch = GCHandle.Alloc(nativeHostApplication, GCHandleType.Pinned);
-                IntPtr pNativeApplication = gch.AddrOfPinnedObject();
-                nativeHostData->PNativeApplication = pNativeApplication;
-
-                return 1;
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Error in NativeExports.GetApplicationProperties: {ex}");
-                return 0;
-            }
+            return 1;
         }
 
         [UnmanagedCallersOnly(EntryPoint = "register_callbacks")]

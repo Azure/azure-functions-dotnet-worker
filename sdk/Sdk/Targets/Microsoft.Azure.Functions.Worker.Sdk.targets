@@ -66,7 +66,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </Target>
 
     <PropertyGroup Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
-        <_FunctionsWorkerExecutableFileName >$(TargetName).exe</_FunctionsWorkerExecutableFileName>
+        <_FunctionsWorkerExecutableFileName >$(TargetName)$(TargetExt)</_FunctionsWorkerExecutableFileName>
     </PropertyGroup>
   
     <PropertyGroup Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">

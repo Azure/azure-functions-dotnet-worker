@@ -1,7 +1,5 @@
-﻿using Xunit;
-using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+﻿using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 
@@ -44,8 +42,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
-                            .WithSpan(13, 37, 13, 41)
+                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSpan(15, 40, 16, 68)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();
@@ -137,8 +135,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
-                            .WithSpan(13, 37, 13, 41)
+                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSpan(15, 40, 16, 68)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();
@@ -292,8 +290,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
-                            .WithSpan(13, 37, 13, 41)
+                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSpan(17, 40, 18, 68)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();

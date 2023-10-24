@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new ArgumentNullException(nameof(elementType));
                 }
 
-                if (targetType.IsConcreteType())
+                if (targetType.IsConcreteType() && !targetType.IsArray)
                 {
                     return await CreatePocoListConcreteAsync(container, cosmosAttribute, elementType, targetType);
                 }
@@ -137,16 +137,16 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
             }
 
-            return JsonSerializer.DeserializeAsync(item.Content, targetType, _serializerOptions)!;
+            return await JsonSerializer.DeserializeAsync(item.Content, targetType, _serializerOptions)!;
         }
 
         private async Task<object> CreatePocoListConcreteAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType, Type targetType)
         {
-            var result = Activator.CreateInstance(elementType);
-            var addMethod = elementType.GetMethod("Add")
-                ?? throw new InvalidOperationException($"Unable to find 'Add' method on type '{elementType.Name}'.");
+            var result = Activator.CreateInstance(targetType);
+            var addMethod = targetType.GetMethod("Add")
+                ?? throw new InvalidOperationException($"Unable to find 'Add' method on type '{targetType.Name}'.");
 
-            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, targetType))
+            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, elementType))
             {
                 addMethod.Invoke(result, new[] { item });
             }
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.Functions.Worker
             var resultType = typeof(List<>).MakeGenericType(elementType);
             var result = (IList)Activator.CreateInstance(resultType);
 
-            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, targetType))
+            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, elementType))
             {
                 result.Add(item);
             }
@@ -181,7 +181,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             await foreach (var stream in this.GetCollectionStreamAsync(container, cosmosAttribute))
             {
-                yield return JsonSerializer.DeserializeAsync(stream, target, _serializerOptions)!;
+                yield return await JsonSerializer.DeserializeAsync(stream, target, _serializerOptions)!;
             }
         }
 

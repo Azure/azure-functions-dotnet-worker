@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(15, 40, 16, 68)
+                            .WithSpan(16, 34, 16, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();
@@ -136,7 +136,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(15, 40, 16, 68)
+                            .WithSpan(16, 34, 16, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();
@@ -291,7 +291,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
                             .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
-                            .WithSpan(17, 40, 18, 68)
+                            .WithSpan(18, 34, 18, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 
             await test.RunAsync();

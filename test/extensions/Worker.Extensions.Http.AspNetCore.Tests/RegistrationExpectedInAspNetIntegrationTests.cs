@@ -1,7 +1,10 @@
 ﻿using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 {
@@ -294,6 +297,95 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
                             .WithSpan(18, 34, 18, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task AspNetIntegration_WithIncorrectRegistration_Diagnostics_Expected_CodeFixWorks()
+        {
+            string inputCode = @"
+                using System.Linq;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+                using Microsoft.Extensions.Logging;
+
+                namespace AspNetIntegration
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+
+                            //<docsnippet_aspnet_registration>
+                            var host = new HostBuilder()
+                                .ConfigureFunctionsWorkerDefaults()
+                                .Build();
+
+                            host.Run();
+                            //</docsnippet_aspnet_registration>
+                        }
+
+                        public static void Method1()
+                        {
+                        }
+
+                        private static void Method2()
+                        {
+                        }
+                    }
+                }";
+
+            string expectedCode = @"
+                using System.Linq;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+                using Microsoft.Extensions.Logging;
+
+                namespace AspNetIntegration
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
+
+                            //<docsnippet_aspnet_registration>
+                            var host = new HostBuilder()
+                                .ConfigureFunctionsWebApplication()
+                                .Build();
+
+                            host.Run();
+                            //</docsnippet_aspnet_registration>
+                        }
+
+                        public static void Method1()
+                        {
+                        }
+
+                        private static void Method2()
+                        {
+                        }
+                    }
+                }";
+
+
+            var expectedDiagnosticResult = CodeFixVerifier
+                                .Diagnostic("AZFW0014")
+                                .WithSeverity(DiagnosticSeverity.Error)
+                                .WithSpan(18, 34, 18, 66)
+                                .WithArguments(ExpectedRegistrationMethod);
+
+            var test = new CodeFixTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = inputCode,
+                FixedCode = expectedCode
+            };
+
+            test.ExpectedDiagnostics.AddRange(new[] { expectedDiagnosticResult });
             await test.RunAsync();
         }
 

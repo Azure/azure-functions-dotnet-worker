@@ -19,6 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration);
 
         private const string ExpectedRegistrationMethod = "ConfigureFunctionsWebApplication";
+        private const string IncorrectRegistrationMethod = "ConfigureFunctionsWorkerDefaults";
 
         /// Initialization method
         public override void Initialize(AnalysisContext context)
@@ -41,15 +42,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var root = syntaxReference?.SyntaxTree.GetRoot();
 
             var methodCallExpressions = root?.DescendantNodes().OfType<InvocationExpressionSyntax>();
-            var methodInvocationPresent = methodCallExpressions?.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
+            var expectedMethodInvocationPresent = methodCallExpressions?.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
+            var incorrectMethodInvocationPresent = methodCallExpressions?.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == IncorrectRegistrationMethod);
 
-            if (methodInvocationPresent != null && (bool)methodInvocationPresent)
+            if ((bool)incorrectMethodInvocationPresent && !(bool)expectedMethodInvocationPresent)
             {
-                return;
+                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, symbol.Locations.First(), ExpectedRegistrationMethod);
+                context.ReportDiagnostic(diagnostic);
             }
-
-            var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, symbol.Locations.First(), ExpectedRegistrationMethod);
-            context.ReportDiagnostic(diagnostic);
         }
 
         // Checks if a method symbol is a Main method. This also checks for implicit main in top-level statements

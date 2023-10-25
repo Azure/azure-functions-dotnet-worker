@@ -2,6 +2,7 @@
 using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 {
@@ -42,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSeverity(DiagnosticSeverity.Error)
                             .WithSpan(16, 34, 16, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 
@@ -73,6 +74,31 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
                                 .Build();
 
                             host.Run();
+                        }
+                    }
+                }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            // test.ExpectedDiagnostics is an empty collection because ConfigureFunctionsWorkerDefaults() is not present
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task AspNetIntegration_EmptyMain_Diagnostics_NotExpected()
+        {
+            string testCode = @"
+                namespace AspNetIntegration
+                {
+                    class Program
+                    {
+                        static void Main(string[] args)
+                        {
                         }
                     }
                 }";
@@ -135,7 +161,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSeverity(DiagnosticSeverity.Error)
                             .WithSpan(16, 34, 16, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 
@@ -290,7 +316,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             };
 
             test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
-                            .WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Error)
+                            .WithSeverity(DiagnosticSeverity.Error)
                             .WithSpan(18, 34, 18, 66)
                             .WithArguments(ExpectedRegistrationMethod));
 

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
     /// Analyzer to verify whether expected registration is present for ASP.NET Core Integration.
     /// </summary>
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    public class RegistrationExpectedInASPNetIntegration : DiagnosticAnalyzer
+    public sealed class RegistrationExpectedInASPNetIntegration : DiagnosticAnalyzer
     {
         /// Diagnostics supported by the analyzer
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration);
@@ -40,15 +40,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
 
             var syntaxReference = symbol.DeclaringSyntaxReferences.FirstOrDefault();
-            var root = syntaxReference?.SyntaxTree.GetRoot();
-            var methodCallExpressions = root?.DescendantNodes().OfType<InvocationExpressionSyntax>();
+            var root = syntaxReference.SyntaxTree.GetRoot();
+            var methodCallExpressions = root.DescendantNodes().OfType<InvocationExpressionSyntax>();
 
-            var expectedMethodInvocationPresent = methodCallExpressions?.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
+            if (methodCallExpressions is null)
+            {
+                return;
+            }
 
-            var incorrectMethodCallExpressions = methodCallExpressions?.Where(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == IncorrectRegistrationMethod);
-            var incorrectMethodInvocationPresent = incorrectMethodCallExpressions?.Any();
+            var incorrectMethodCallExpressions = methodCallExpressions.Where(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == IncorrectRegistrationMethod);
+            var incorrectMethodInvocationPresent = incorrectMethodCallExpressions.Any();
 
-            if (!(bool)incorrectMethodInvocationPresent)
+            if (!incorrectMethodInvocationPresent)
             {
                 return;
             }
@@ -56,7 +59,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             //Finding exact location of method call
             Location location = GetSymbolLocation(root, incorrectMethodCallExpressions);
 
-            if (!(bool)expectedMethodInvocationPresent)
+            var expectedMethodInvocationPresent = methodCallExpressions.Any(invocation => (invocation.Expression as MemberAccessExpressionSyntax)?.Name.Identifier.ValueText == ExpectedRegistrationMethod);
+
+            if (!expectedMethodInvocationPresent)
             {
                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.CorrectRegistrationExpectedInAspNetIntegration, location, ExpectedRegistrationMethod);
                 context.ReportDiagnostic(diagnostic);

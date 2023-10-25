@@ -7,3 +7,7 @@
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
 - New overload added to `ConfigureFunctionsWebApplication` to take a `HostBuilderContext` (#1925). Thank you @vmcbaptista
+
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers
+
+- Analyzer to detect missing ASP.NET Core Integration registration (#1917)

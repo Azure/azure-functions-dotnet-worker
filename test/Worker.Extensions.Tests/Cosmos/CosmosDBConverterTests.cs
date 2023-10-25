@@ -3,6 +3,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
@@ -103,15 +105,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
             var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
-            var expectedToDoItem = new ToDoItem() { Id = "1", Description = "Take out the rubbish" };
+            var json = @"{""id"":""1"",""description"":""Take out the rubbish""}";
+            var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
-            var mockResponse = new Mock<ItemResponse<ToDoItem>>();
+            var mockResponse = new Mock<ResponseMessage>();
             mockResponse.Setup(x => x.StatusCode).Returns(System.Net.HttpStatusCode.OK);
-            mockResponse.Setup(x => x.Resource).Returns(expectedToDoItem);
+            mockResponse.Setup(x => x.Content).Returns(expectedStream);
 
             var mockContainer = new Mock<Container>();
             mockContainer
-                .Setup(m => m.ReadItemAsync<ToDoItem>(It.IsAny<string>(), It.IsAny<PartitionKey>(), null, CancellationToken.None))
+                .Setup(m => m.ReadItemStreamAsync(It.IsAny<string>(), It.IsAny<PartitionKey>(), null, CancellationToken.None))
                 .ReturnsAsync(mockResponse.Object);
 
             _mockCosmosClient
@@ -119,9 +122,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
                 .Returns(mockContainer.Object);
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+            var result = conversionResult.Value as ToDoItem;
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal(expectedToDoItem, conversionResult.Value);
+            Assert.Equal("Take out the rubbish", result.Description);
         }
 
         [Fact]
@@ -168,21 +172,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
             var grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(query: query, queryParams: queryParams), "CosmosDB");
             var context = new TestConverterContext(typeof(IEnumerable<ToDoItem>), grpcModelBindingData);
 
-            var todo1 = new ToDoItem() { Id = "1", Description = "Take out the rubbish" };
-            var todo2 = new ToDoItem() { Id = "2", Description = "Write unit tests for cosmos converter" };
-            var expectedList = new List<ToDoItem>() { todo1, todo2 };
+            var json = @"{""Documents"":[{""id"":""1"",""description"":""Take out the rubbish""},{""id"":""2"",""description"":""Write unit tests for cosmos converter""}],""_rid"":""ltwyAJGNSgs="",""_count"":2}";
+            var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes(json));
 
-            var mockFeedResponse = new Mock<FeedResponse<ToDoItem>>();
+            var mockFeedResponse = new Mock<ResponseMessage>();
             mockFeedResponse.Setup(x => x.StatusCode).Returns(System.Net.HttpStatusCode.OK);
-            mockFeedResponse.Setup(x => x.Resource).Returns(expectedList);
+            mockFeedResponse.Setup(x => x.Content).Returns(expectedStream);
 
-            var mockFeedIterator = new Mock<FeedIterator<ToDoItem>>();
+            var mockFeedIterator = new Mock<FeedIterator>();
             mockFeedIterator.SetupSequence(x => x.HasMoreResults).Returns(true).Returns(false);
             mockFeedIterator.Setup(x => x.ReadNextAsync(default)).ReturnsAsync(mockFeedResponse.Object);
 
             var mockContainer = new Mock<Container>();
             mockContainer
-                .Setup(m => m.GetItemQueryIterator<ToDoItem>(It.IsAny<QueryDefinition>(), default, It.IsAny<QueryRequestOptions>()))
+                .Setup(m => m.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(), default, It.IsAny<QueryRequestOptions>()))
                 .Returns(mockFeedIterator.Object);
 
             _mockCosmosClient
@@ -190,9 +193,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
                 .Returns(mockContainer.Object);
 
             var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+            var result = conversionResult.Value as IList<ToDoItem>;
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal(expectedList, conversionResult.Value);
+            Assert.Equal(2, result.Count);
+            Assert.Equal("Take out the rubbish", result[0].Description);
+            Assert.Equal("Write unit tests for cosmos converter", result[1].Description);
         }
 
         [Fact]

@@ -11,3 +11,4 @@
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers
 
 - Analyzer to detect missing ASP.NET Core Integration registration (#1917)
+- Code fix suggestion for correct registration in ASP.NET core integration (#1988)

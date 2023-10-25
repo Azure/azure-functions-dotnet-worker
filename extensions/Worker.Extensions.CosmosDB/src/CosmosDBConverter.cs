@@ -142,46 +142,46 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async Task<object> CreatePocoListConcreteAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType, Type targetType)
         {
-            var result = Activator.CreateInstance(targetType);
-            var addMethod = targetType.GetMethod("Add")
-                ?? throw new InvalidOperationException($"Unable to find 'Add' method on type '{targetType.Name}'.");
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            var list = (IList)Activator.CreateInstance(listType);
 
-            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, elementType))
+            var addMethod = listType.GetMethod("Add")
+                ?? throw new InvalidOperationException($"Unable to find 'Add' method on type '{listType.Name}'.");
+
+            await foreach (var documents in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, listType))
             {
-                addMethod.Invoke(result, new[] { item });
+                foreach (var document in (IList)documents)
+                {
+                    addMethod.Invoke(list, new[] { document });
+                }
             }
 
-            return result;
+            return list;
         }
 
         private async Task<IList> CreatePocoListAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType, Type targetType)
         {
-            var resultType = typeof(List<>).MakeGenericType(elementType);
-            var result = (IList)Activator.CreateInstance(resultType);
+            var listType = typeof(List<>).MakeGenericType(elementType);
+            var list = (IList)Activator.CreateInstance(listType);
 
-            await foreach (var item in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, elementType))
+            await foreach (var documents in GetObjectsAsTargetTypeAsync(container, cosmosAttribute, listType))
             {
-                result.Add(item);
+                foreach (var document in (IList)documents)
+                {
+                    list.Add(document);
+                }
             }
 
-            return result;
-        }
-
-        private bool IsSupportedCollectionType(Type targetType)
-        {
-            if (targetType is null)
-            {
-                throw new ArgumentNullException(nameof(targetType));
-            }
-
-            return targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(IList<>);
+            return list;
         }
 
         private async IAsyncEnumerable<object> GetObjectsAsTargetTypeAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type target)
         {
             await foreach (var stream in this.GetCollectionStreamAsync(container, cosmosAttribute))
             {
-                yield return await JsonSerializer.DeserializeAsync(stream, target, _serializerOptions)!;
+                JsonElement content = await JsonSerializer.DeserializeAsync<JsonElement>(stream, _serializerOptions);
+                var documents = content.GetProperty("Documents").ToString();
+                yield return JsonSerializer.Deserialize(documents!, target, _serializerOptions)!;
             }
         }
 
@@ -212,7 +212,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             while (iterator.HasMoreResults)
             {
-                ResponseMessage response = await iterator.ReadNextAsync();
+                using ResponseMessage response = await iterator.ReadNextAsync();
                 yield return response.Content;
             }
         }

@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         }
 
         /// <summary>
-        /// CodeAction implementation which fixes method configuration for ASP.NET Core Integration.
+        /// CodeAction implementation which fixes the method configuration for ASP.NET Core Integration.
         /// </summary>
         private sealed class ChangeConfigurationForASPNetIntegration : CodeAction
         {
@@ -49,18 +49,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             public override string Title => "Change configuration for ASP.Net Core Integration";
 
             /// <summary>
-            /// Returns an updated Document where the async method return type is changed from void to Task.
+            /// Returns an updated Document with correct method configuration for ASP.NET Core Integration.
             /// </summary>
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                var syntaxTree = await _document.GetSyntaxTreeAsync();
+                SyntaxTree syntaxTree = await _document.GetSyntaxTreeAsync();
 
-                var currentNode = syntaxTree.GetRoot().FindNode(this._diagnostic.Location.SourceSpan)
-                                                                .FirstAncestorOrSelf<IdentifierNameSyntax>();
+                var currentNode = syntaxTree.GetRoot().FindNode(this._diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IdentifierNameSyntax>();
 
                 var newNode = currentNode.ReplaceNode(currentNode, SyntaxFactory.IdentifierName(ExpectedRegistrationMethod));
 
                 var newSyntaxRoot = syntaxTree.GetRoot().ReplaceNode(currentNode, newNode);
+
                 return _document.WithSyntaxRoot(newSyntaxRoot);
             }
         }

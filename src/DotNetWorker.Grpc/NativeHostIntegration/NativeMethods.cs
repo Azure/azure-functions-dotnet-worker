@@ -17,36 +17,21 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             NativeLibrary.SetDllImportResolver(typeof(NativeMethods).Assembly, ImportResolver);
         }
 
-        public static NativeHost GetNativeHostData()
-        {
-            NativeHost hostData;
-            var result = get_application_properties(&hostData);
-            if (result == 1)
-            {
-                return hostData;
-            }
-
-            throw new InvalidOperationException($"Invalid result returned from get_application_properties: {result}");
-        }
-
-        public static void RegisterCallbacks(IntPtr nativeApplication,
+        public static void RegisterCallbacks(
             delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
             IntPtr grpcHandler)
         {
-            _ = register_callbacks(nativeApplication, requestCallback, grpcHandler);
+            _ = register_callbacks(IntPtr.Zero, requestCallback, grpcHandler);
         }
 
-        public static void SendStreamingMessage(IntPtr nativeApplication, StreamingMessage streamingMessage)
+        public static void SendStreamingMessage(StreamingMessage streamingMessage)
         {
             byte[] bytes = streamingMessage.ToByteArray();
             fixed (byte* ptr = bytes)
             {
-                _ = send_streaming_message(nativeApplication, ptr, bytes.Length);
+                _ = send_streaming_message(IntPtr.Zero, ptr, bytes.Length);
             }
         }
-
-        [DllImport(NativeWorkerDll)]
-        private static extern int get_application_properties(NativeHost* hostData);
 
         [DllImport(NativeWorkerDll)]
         private static extern int send_streaming_message(IntPtr pInProcessApplication, byte* streamingMessage, int streamingMessageSize);

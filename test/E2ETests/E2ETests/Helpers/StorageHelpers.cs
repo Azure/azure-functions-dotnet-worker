@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         public static Task UploadFileToContainer(string containerName, string fileName)
         {
-            return UploadFileToContainer(containerName, fileName, "Hello World");
+            return UploadFileToContainer(containerName, fileName, "Hello World\n");
         }
 
         public async static Task UploadFileToContainer(string containerName, string fileName, string fileContents, bool containsSubdirectory = false)

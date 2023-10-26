@@ -16,4 +16,5 @@
 
 - Default to source-generated function metadata (#1968)
   - If you had `<FunctionsEnableWorkerIndexing>True</FunctionsEnableWorkerIndexing>` in your `.csproj``, you can remove it after upgrading to this version.
-  
+- Updated source generated versions of FunctionExecutor to use `global::` namespace prefix to avoid build errors for function class with the same name as its containing namespace. (#1993)
+

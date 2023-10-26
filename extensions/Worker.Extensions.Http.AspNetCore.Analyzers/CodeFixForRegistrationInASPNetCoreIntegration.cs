@@ -55,13 +55,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             /// </summary>
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
-                SyntaxTree syntaxTree = await _document.GetSyntaxTreeAsync();
+                SyntaxNode root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                var currentNode = syntaxTree.GetRoot().FindNode(this._diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IdentifierNameSyntax>();
+                var currentNode = root.FindNode(this._diagnostic.Location.SourceSpan).FirstAncestorOrSelf<IdentifierNameSyntax>();
 
                 var newNode = currentNode.ReplaceNode(currentNode, SyntaxFactory.IdentifierName(ExpectedRegistrationMethod));
 
-                var newSyntaxRoot = syntaxTree.GetRoot().ReplaceNode(currentNode, newNode);
+                SyntaxNode newSyntaxRoot = root.ReplaceNode(currentNode, newNode);
 
                 return _document.WithSyntaxRoot(newSyntaxRoot);
             }

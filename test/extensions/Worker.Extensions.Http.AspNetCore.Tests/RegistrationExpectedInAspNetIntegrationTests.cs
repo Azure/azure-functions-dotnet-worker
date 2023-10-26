@@ -408,7 +408,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(
                     new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.19.0"),
-                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.14.1"),
+                    new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.15.1"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.0.0"),
                     new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "5.0.0"),

@@ -390,7 +390,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
             var expectedDiagnosticResult = CodeFixVerifier
                                 .Diagnostic("AZFW0014")
                                 .WithSeverity(DiagnosticSeverity.Error)
-                                .WithSpan(18, 34, 18, 66)
+                                .WithSpan(16, 34, 16, 66)
                                 .WithArguments(ExpectedRegistrationMethod);
 
             var test = new CodeFixTest

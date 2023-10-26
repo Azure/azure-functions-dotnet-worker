@@ -48,6 +48,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             public override string Title => "Change configuration for ASP.Net Core Integration";
 
+            public override string EquivalenceKey => null;
+
             /// <summary>
             /// Returns an updated Document with correct method configuration for ASP.NET Core Integration.
             /// </summary>

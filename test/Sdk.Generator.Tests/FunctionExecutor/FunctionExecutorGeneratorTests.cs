@@ -522,6 +522,12 @@ namespace TestProject
         {
             return r.CreateResponse(System.Net.HttpStatusCode.OK);
         }
+
+        [Function(""FunctionB"")]
+        public static HttpResponseData FooStatic([HttpTrigger(AuthorizationLevel.User, ""get"")] HttpRequestData r, FunctionContext c)
+        {
+            return r.CreateResponse(System.Net.HttpStatusCode.OK);
+        }
     }
 }
 ";
@@ -560,6 +566,10 @@ namespace TestProject
                 var instanceType = types[""TestProject.TestProject""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::TestProject.TestProject;
                 context.GetInvocationResult().Value = i.Foo((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+            }}
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""TestProject.TestProject.FooStatic"", StringComparison.OrdinalIgnoreCase))
+            {{
+                context.GetInvocationResult().Value = global::TestProject.TestProject.FooStatic((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
             }}
         }}
     }}

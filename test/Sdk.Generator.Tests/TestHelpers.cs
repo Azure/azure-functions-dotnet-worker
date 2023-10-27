@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             // Enable SourceGen & Placeholder MSBuild Properties for testing
             var config = $@"is_global = true
                             build_property.FunctionsEnableExecutorSourceGen = {true}
-                            build_property.FunctionsEnableWorkerIndexing = {true}
+                            build_property.FunctionsEnableMetadataSourceGen = {true}
                             build_property.RootNamespace = TestProject";
 
             // Add test specific MSBuild properties.

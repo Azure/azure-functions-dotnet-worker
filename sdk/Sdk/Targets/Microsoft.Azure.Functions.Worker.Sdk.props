@@ -21,7 +21,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </ItemGroup>
 
   <ItemGroup>
-    <CompilerVisibleProperty Include="FunctionsEnableWorkerIndexing" />
+    <CompilerVisibleProperty Include="FunctionsEnableMetadataSourceGen" />
     <CompilerVisibleProperty Include="FunctionsEnableExecutorSourceGen" />
     <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedFunctionsExecutor" />
     <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedMetadataProvider" />

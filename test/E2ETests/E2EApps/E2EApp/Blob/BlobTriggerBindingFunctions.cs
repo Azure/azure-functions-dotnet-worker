@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.IO;
+using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
@@ -55,9 +56,17 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [BlobTrigger("test-trigger-stream-dotnet-isolated/{name}")] Stream stream, string name,
             FunctionContext context)
         {
-            var blobStreamReader = new StreamReader(stream);
+            var blobStreamReader = new StreamReader(stream, Encoding.UTF8);
             string content = await blobStreamReader.ReadToEndAsync();
             _logger.LogInformation("StreamTriggerOutput: {c}", content);
+
+            /*
+            using (StreamReader reader = new StreamReader("yourFile.txt", Encoding.UTF8))
+            {
+                string content = reader.ReadToEnd();
+                // Now content contains the entire file, including newline characters.
+            }
+            */
         }
 
         [Function(nameof(BlobTriggerBlobClientTest))]

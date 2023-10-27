@@ -91,7 +91,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             await StorageHelpers.ClearBlobContainers();
 
             //Trigger
-            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStreamContainer, fileName, "Hello World" + Environment.NewLine);
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStreamContainer, fileName);
 
             //Verify
             IEnumerable<string> logs = null;

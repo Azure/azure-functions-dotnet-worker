@@ -3,9 +3,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.Azure.Functions.Tests;
+using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
@@ -17,57 +22,72 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
 
-public class EndToEndTests : IDisposable
+public class EndToEndTests
 {
+    private const string RoleName = "RoleName";
+
     private readonly TestTelemetryChannel _channel;
-    private readonly IHost _host;
-    private readonly IFunctionsApplication _application;
-    private readonly IInvocationFeaturesFactory _invocationFeaturesFactory;
+    private IFunctionsApplication _application;
+    private IInvocationFeaturesFactory _invocationFeaturesFactory;
     private readonly AppInsightsFunctionDefinition _funcDefinition = new();
+
+    private bool _isSwapped = false;
 
     public EndToEndTests()
     {
         _channel = new TestTelemetryChannel();
-
-        _host = new HostBuilder()
-            .ConfigureServices(services =>
-            {
-                var functionsBuilder = services.AddFunctionsWorkerCore();
-                functionsBuilder.UseDefaultWorkerMiddleware();
-
-                services.AddApplicationInsightsTelemetryWorkerService(options =>
-                {
-#pragma warning disable CS0618 // Obsolete member. Test case, this is fine to use.
-                    options.InstrumentationKey = "abc";
-#pragma warning restore CS0618 // Obsolete member. Test case, this is fine to use.
-
-                    // keep things more deterministic for tests
-                    options.EnableAdaptiveSampling = false;
-                    options.EnableDependencyTrackingTelemetryModule = false;
-                });
-
-                services.ConfigureFunctionsApplicationInsights();
-                services.AddDefaultInputConvertersToWorkerOptions();
-
-                // Register our own in-memory channel
-                services.AddSingleton<ITelemetryChannel>(_channel);
-                services.AddSingleton(_ => new Mock<IWorkerDiagnostics>().Object);
-            })
-            .Build();
-
-        _application = _host.Services.GetService<IFunctionsApplication>();
-        _invocationFeaturesFactory = _host.Services.GetService<IInvocationFeaturesFactory>();
-
-        _application.LoadFunction(_funcDefinition);
     }
 
-    private FunctionContext CreateContext()
+    private IHost InitializeHost()
+    {
+        var host = new HostBuilder()
+           .ConfigureServices(services =>
+           {
+               var functionsBuilder = services.AddFunctionsWorkerCore();
+               functionsBuilder.UseDefaultWorkerMiddleware();
+
+               services.AddApplicationInsightsTelemetryWorkerService(options =>
+               {
+#pragma warning disable CS0618 // Obsolete member. Test case, this is fine to use.
+                   options.InstrumentationKey = "abc";
+#pragma warning restore CS0618 // Obsolete member. Test case, this is fine to use.
+
+                   // keep things more deterministic for tests
+                   options.EnableAdaptiveSampling = false;
+                   options.EnableDependencyTrackingTelemetryModule = false;
+                   options.EnablePerformanceCounterCollectionModule = false;
+                   options.EnableEventCounterCollectionModule = false;
+                   options.EnableHeartbeat = false;
+               });
+
+               services.ConfigureFunctionsApplicationInsights();
+
+               // override this so tests don't have to wait
+               services.AddSingleton(p => new AppServiceEnvironmentVariableMonitor(TimeSpan.FromMilliseconds(50)));
+
+               services.AddDefaultInputConvertersToWorkerOptions();
+
+               // Register our own in-memory channel
+               services.AddSingleton<ITelemetryChannel>(_channel);
+               services.AddSingleton(_ => new Mock<IWorkerDiagnostics>().Object);
+           })
+           .Build();
+
+        _application = host.Services.GetService<IFunctionsApplication>();
+        _invocationFeaturesFactory = host.Services.GetService<IInvocationFeaturesFactory>();
+
+        _application.LoadFunction(_funcDefinition);
+
+        return host;
+    }
+
+    private FunctionContext CreateContext(IHost host)
     {
         var invocation = new TestFunctionInvocation(functionId: _funcDefinition.Id);
 
         var features = _invocationFeaturesFactory.Create();
         features.Set<FunctionInvocation>(invocation);
-        var inputConversionProvider = _host.Services.GetRequiredService<IInputConversionFeatureProvider>();
+        var inputConversionProvider = host.Services.GetRequiredService<IInputConversionFeatureProvider>();
         inputConversionProvider.TryCreate(typeof(DefaultInputConversionFeature), out var inputConversion);
         features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature());
         features.Set<IInputConversionFeature>(inputConversion);
@@ -78,7 +98,10 @@ public class EndToEndTests : IDisposable
     [Fact]
     public async Task Logger_SendsTraceAndDependencyTelemetry()
     {
-        var context = CreateContext();
+        using var _ = SetupDefaultEnvironmentVariables();
+        using var host = InitializeHost();
+
+        var context = CreateContext(host);
 
         await _application.InvokeFunctionAsync(context);
 
@@ -94,7 +117,10 @@ public class EndToEndTests : IDisposable
     [Fact]
     public async Task Logger_Exception_SendsTraceAndExceptionAndDependencyTelemetry()
     {
-        var context = CreateContext();
+        using var _ = SetupDefaultEnvironmentVariables();
+        using var host = InitializeHost();
+
+        var context = CreateContext(host);
         context.Items["_throw"] = true;
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => _application.InvokeFunctionAsync(context));
@@ -107,6 +133,40 @@ public class EndToEndTests : IDisposable
             t => ValidateDependencyTelemetry((DependencyTelemetry)t, context, activity),
             t => ValidateExceptionTelemetry((ExceptionTelemetry)t, context, activity),
             t => ValidateTraceTelemetry((TraceTelemetry)t, context, activity));
+    }
+
+    [Fact]
+    public async Task Telemetry_Updates_After_Swap()
+    {
+        // Env vars can change during a swap. These should automatically update.
+        using var _ = SetupDefaultEnvironmentVariables();
+        using var host = InitializeHost();
+
+        // these tests don't use a running host; explicitly start this hosted service
+        var monitor = host.Services.GetRequiredService<AppServiceEnvironmentVariableMonitor>();
+        await monitor.StartAsync(CancellationToken.None);
+
+        var telemetryClient = host.Services.GetService<TelemetryClient>();
+        telemetryClient.TrackTrace("before swap");
+
+        using var swapped = new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { AppServiceOptionsInitializer.AzureWebsiteName, "SwappedRoleName" },
+            { AppServiceOptionsInitializer.AzureWebsiteSlotName, "staging" }
+        });
+
+        // ensure the monitor has refreshed env var cache
+        await Task.Delay(100);
+
+        telemetryClient.TrackTrace("after swap");
+
+        IEnumerable<ITelemetry> telemetries = await WaitForTelemetries(expectedCount: 2);
+        Assert.Equal(2, telemetries.Count());
+        var beforeSwap = telemetries.Last();
+        var afterSwap = telemetries.First();
+
+        ValidateCommonTelemetry(beforeSwap);
+        ValidateCommonTelemetry(afterSwap, "SwappedRoleName-staging");
     }
 
     private async Task<IEnumerable<ITelemetry>> WaitForTelemetries(int expectedCount)
@@ -133,6 +193,8 @@ public class EndToEndTests : IDisposable
 
         Assert.Equal(context.InvocationId, dependency.Properties[TraceConstants.AttributeFaasExecution]);
         Assert.Contains(TraceConstants.AttributeSchemaUrl, dependency.Properties.Keys);
+
+        ValidateCommonTelemetry(dependency);
     }
 
     private static void ValidateTraceTelemetry(TraceTelemetry trace, FunctionContext context, Activity activity)
@@ -145,6 +207,8 @@ public class EndToEndTests : IDisposable
         Assert.Equal(context.InvocationId, trace.Properties[FunctionInvocationScope.FunctionInvocationIdKey]);
 
         Assert.Equal(activity.RootId, trace.Context.Operation.Id);
+
+        ValidateCommonTelemetry(trace);
     }
 
     private static void ValidateExceptionTelemetry(ExceptionTelemetry exception, FunctionContext context, Activity activity)
@@ -157,10 +221,28 @@ public class EndToEndTests : IDisposable
         Assert.Contains("boom!", edi.Message);
 
         Assert.Equal(activity.RootId, exception.Context.Operation.Id);
+
+        ValidateCommonTelemetry(exception);
     }
-    public void Dispose()
+
+    private static void ValidateCommonTelemetry(ITelemetry telemetry, string expectedSiteName = RoleName)
     {
-        _host?.Dispose();
+        // tests will set this when swapping out env vars        
+        var internalContext = telemetry.Context.GetInternalContext();
+
+        expectedSiteName = expectedSiteName.ToLowerInvariant();
+
+        Assert.Equal(expectedSiteName, telemetry.Context.Cloud.RoleName);
+        Assert.Equal($"{expectedSiteName}{FunctionsRoleEnvironmentTelemetryInitializer.WebAppSuffix}", internalContext.NodeName);
+    }
+
+    private static IDisposable SetupDefaultEnvironmentVariables()
+    {
+        return new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { AppServiceOptionsInitializer.AzureWebsiteName, RoleName },
+            { AppServiceOptionsInitializer.AzureWebsiteSlotName, AppServiceOptionsInitializer.DefaultProductionSlotName }
+        });
     }
 
     internal class AppInsightsFunctionDefinition : FunctionDefinition

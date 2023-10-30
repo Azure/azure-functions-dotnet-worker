@@ -9,7 +9,7 @@ internal class AppServiceOptionsInitializer : IConfigureOptions<AppServiceOption
     internal const string AzureWebsiteCloudRoleName = "WEBSITE_CLOUD_ROLENAME";
     internal const string DefaultProductionSlotName = "production";
 
-    internal static string[] EnvironmentVariablesToMonitor = [AzureWebsiteName, AzureWebsiteSlotName, AzureWebsiteCloudRoleName];
+    internal static string[] EnvironmentVariablesToMonitor = new[] { AzureWebsiteName, AzureWebsiteSlotName, AzureWebsiteCloudRoleName };
 
     public void Configure(AppServiceOptions options)
     {

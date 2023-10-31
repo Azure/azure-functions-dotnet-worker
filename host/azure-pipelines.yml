@@ -52,6 +52,13 @@ stages:
                 libnethost.so
               TargetFolder: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"
 
+          - task: PowerShell@2
+            displayName: 'List Contents of Output Directory'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)/output/linux" -Recurse
+
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"

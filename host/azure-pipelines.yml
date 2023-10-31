@@ -42,6 +42,20 @@ stages:
               arguments: "-c Release -r linux-x64 -o $(Build.ArtifactStagingDirectory)/output/linux"
               workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
 
+          - task: PowerShell@2
+            displayName: 'Print Contents of Output Directory'
+            inputs:
+              targetType: 'inline'
+              script: |
+                Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)/output/linux" -Recurse
+
+          - task: PowerShell@2
+            displayName: 'List Contents of Output Directory'
+            inputs:
+              targetType: 'inline'
+              script: |
+                ls "$(Build.ArtifactStagingDirectory)/output/linux"
+
           - task: CopyFiles@2
             displayName: "Copy needed files"
             inputs:
@@ -51,13 +65,6 @@ stages:
                 FunctionsNetHost
                 libnethost.so
               TargetFolder: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"
-
-          - task: PowerShell@2
-            displayName: 'List Contents of Output Directory'
-            inputs:
-              targetType: 'inline'
-              script: |
-                Get-ChildItem -Path "$(Build.ArtifactStagingDirectory)/output/linux" -Recurse
 
           - task: PublishPipelineArtifact@1
             inputs:

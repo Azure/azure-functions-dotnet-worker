@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 
@@ -26,6 +27,25 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return null;
+        }
+
+        /// <summary>
+        /// Gets the <see cref="HttpRequest"/> for the <see cref="FunctionContext"/>.
+        /// </summary>
+        /// <param name="context">The <see cref="FunctionContext"/>.</param>
+        /// <param name="request">The <see cref="HttpRequest"/> for the context.</param>
+        /// <returns></returns>
+        internal static bool TryGetRequest(this FunctionContext context, [NotNullWhen(true)] out HttpRequest? request)
+        {
+            request = null;
+
+            if (context.Items.TryGetValue(Constants.HttpContextKey, out var requestContext)
+                && requestContext is HttpContext httpContext)
+            {
+                request = httpContext.Request;
+            }
+
+            return request is not null;
         }
     }
 }

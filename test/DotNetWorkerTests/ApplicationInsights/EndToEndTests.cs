@@ -31,8 +31,6 @@ public class EndToEndTests
     private IInvocationFeaturesFactory _invocationFeaturesFactory;
     private readonly AppInsightsFunctionDefinition _funcDefinition = new();
 
-    private bool _isSwapped = false;
-
     public EndToEndTests()
     {
         _channel = new TestTelemetryChannel();

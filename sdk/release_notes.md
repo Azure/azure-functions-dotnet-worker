@@ -15,3 +15,5 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - Default to source-generated function metadata (#1968)
+  - If you had `<FunctionsEnableWorkerIndexing>True</FunctionsEnableWorkerIndexing>` in your `.csproj``, you can remove it after upgrading to this version.
+  

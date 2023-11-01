@@ -46,9 +46,10 @@ stages:
             displayName: "Copy needed files"
             inputs:
               SourceFolder: "$(Build.ArtifactStagingDirectory)/output/linux"
-              # Publish output will include many other files. We only need the FunctionsNetHost & libnethost.so
+              # Publish output will include many other files. We only need the FunctionsNetHost, FunctionsNetHost.dbg & libnethost.so
               Contents: |
                 FunctionsNetHost
+                FunctionsNetHost.dbg
                 libnethost.so
               TargetFolder: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"
 
@@ -80,9 +81,10 @@ stages:
             displayName: "Copy needed files"
             inputs:
               SourceFolder: "$(Build.ArtifactStagingDirectory)/output/windows"
-              # Publish output will include many other files. We only need FunctionsNetHost.exe & nethost.dll
+              # Publish output will include many other files. We only need FunctionsNetHost.exe, pdb & nethost.dll
               Contents: |
                 FunctionsNetHost.exe
+                FunctionsNetHost.pdb
                 nethost.dll
               TargetFolder: "$(Build.ArtifactStagingDirectory)/output/windows_filtered"
 

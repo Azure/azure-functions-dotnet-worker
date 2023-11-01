@@ -3,7 +3,7 @@
     "Values": {
         "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
         "AzureWebJobsStorage": "",
-        "CosmosConnection": "",
+        "CosmosDBConnection": "",
         "CosmosDb": "ItemDb",
         "CosmosContainerIn": "ItemContainerIn",
         "CosmosContainerOut": "ItemContainerOut",

@@ -80,7 +80,7 @@ namespace TestProject
         {{
             var metadataList = new List<IFunctionMetadata>();
             var Function0RawBindings = new List<string>();
-            Function0RawBindings.Add(@""{{""""name"""":""""req"""",""""type"""":""""HttpTrigger"""",""""direction"""":""""In"""",""""authLevel"""":""""Admin"""",""""methods"""":[""""get"""",""""post""""],""""route"""":""""/api2""""}}"");
+            Function0RawBindings.Add(@""{{""""name"""":""""req"""",""""type"""":""""httpTrigger"""",""""direction"""":""""In"""",""""authLevel"""":""""Admin"""",""""methods"""":[""""get"""",""""post""""],""""route"""":""""/api2""""}}"");
 
             var Function0 = new DefaultFunctionMetadata
             {{

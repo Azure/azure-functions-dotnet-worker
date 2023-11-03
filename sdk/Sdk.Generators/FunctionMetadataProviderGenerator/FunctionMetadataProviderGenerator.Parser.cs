@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -552,7 +553,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 string attributeName = bindingAttrData.AttributeClass!.Name;
 
                 // properly format binding types by removing "Attribute" and "Input" descriptors
-                string bindingType = attributeName.TrimStringsFromEnd(_functionsStringNamesToRemove);
+                string bindingType = attributeName.TrimStringsFromEnd(_functionsStringNamesToRemove).ToLowerFirstCharacter();
 
                 // Set binding direction
                 string bindingDirection = SymbolEqualityComparer.Default.Equals(bindingAttrData.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute) ? "Out" : "In";

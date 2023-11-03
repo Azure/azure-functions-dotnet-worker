@@ -100,7 +100,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""One""{{rawBindingSuffix}}
+                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""One""{{rawBindingSuffix}}
 
                 """);
 
@@ -225,7 +225,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""{{rawBindingSuffix}}
+                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""{{rawBindingSuffix}}
 
 
                 """);
@@ -317,7 +317,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""}");
+                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -456,7 +456,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -468,7 +468,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
+                            Function1RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
 
                             var Function1 = new DefaultFunctionMetadata
                             {
@@ -480,7 +480,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
-                            Function2RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
+                            Function2RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
 
                             var Function2 = new DefaultFunctionMetadata
                             {
@@ -492,7 +492,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function2);
                             var Function3RawBindings = new List<string>();
-                            Function3RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
+                            Function3RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""String""}");
 
                             var Function3 = new DefaultFunctionMetadata
                             {
@@ -605,7 +605,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""Binary""}");
+                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""Binary""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -617,7 +617,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""Binary""}");
+                            Function1RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many"",""dataType"":""Binary""}");
 
                             var Function1 = new DefaultFunctionMetadata
                             {
@@ -717,7 +717,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""}");
+                            Function0RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -729,7 +729,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""input"",""type"":""EventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""}");
+                            Function1RawBindings.Add(@"{""name"":""input"",""type"":""eventHubTrigger"",""direction"":""In"",""eventHubName"":""test"",""connection"":""EventHubConnectionAppSetting"",""cardinality"":""Many""}");
 
                             var Function1 = new DefaultFunctionMetadata
                             {

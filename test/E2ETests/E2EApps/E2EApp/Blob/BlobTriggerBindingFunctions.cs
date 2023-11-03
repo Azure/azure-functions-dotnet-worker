@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
             [BlobTrigger("test-trigger-stream-dotnet-isolated/{name}")] Stream stream, string name,
             FunctionContext context)
         {
-            var blobStreamReader = new StreamReader(stream, Encoding.Default);
+            var blobStreamReader = new StreamReader(stream, Encoding.UTF8);
             string content = await blobStreamReader.ReadToEndAsync();
             _logger.LogInformation("StreamTriggerOutput: {c}", content);
         }

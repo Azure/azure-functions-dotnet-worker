@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             if (!string.IsNullOrEmpty(str))
             {
-                return Char.ToLowerInvariant(str.First()) + str.Substring(1);
+                return Char.ToLowerInvariant(str[0]) + str.Substring(1);
             }
             else
             {

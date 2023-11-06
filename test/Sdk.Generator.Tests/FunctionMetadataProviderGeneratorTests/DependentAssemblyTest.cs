@@ -80,7 +80,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function1RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function1 = new DefaultFunctionMetadata
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
-                            Function2RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function2RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function2RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function2 = new DefaultFunctionMetadata
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function2);
                             var Function3RawBindings = new List<string>();
-                            Function3RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function3RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function3RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function3 = new DefaultFunctionMetadata

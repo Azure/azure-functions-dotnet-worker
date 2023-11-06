@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -165,7 +165,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""post""],""route"":""/api2""}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""post""],""route"":""/api2""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -255,7 +255,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
                             Function0RawBindings.Add(@"{""name"":""httpResponseProp"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata

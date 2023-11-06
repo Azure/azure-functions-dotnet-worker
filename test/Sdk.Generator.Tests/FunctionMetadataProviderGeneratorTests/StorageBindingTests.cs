@@ -88,8 +88,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""test-output-dotnet-isolated""}");
-                            Function0RawBindings.Add(@"{""name"":""message"",""type"":""QueueTrigger"",""direction"":""In"",""queueName"":""test-input-dotnet-isolated"",""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""queue"",""direction"":""Out"",""queueName"":""test-output-dotnet-isolated""}");
+                            Function0RawBindings.Add(@"{""name"":""message"",""type"":""queueTrigger"",""direction"":""In"",""queueName"":""test-input-dotnet-isolated"",""dataType"":""String""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -194,8 +194,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""Blob"",""direction"":""Out"",""blobPath"":""container1/hello.txt"",""connection"":""MyOtherConnection""}");
-                            Function0RawBindings.Add(@"{""name"":""queuePayload"",""type"":""QueueTrigger"",""direction"":""In"",""queueName"":""queueName"",""connection"":""MyConnection"",""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""blob"",""direction"":""Out"",""blobPath"":""container1/hello.txt"",""connection"":""MyOtherConnection""}");
+                            Function0RawBindings.Add(@"{""name"":""queuePayload"",""type"":""queueTrigger"",""direction"":""In"",""queueName"":""queueName"",""connection"":""MyConnection"",""dataType"":""String""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -207,8 +207,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function1RawBindings.Add(@"{""name"":""blob"",""type"":""BlobTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""path"":""container2/%file%"",""source"":""EventGrid"",""dataType"":""String""}");
+                            Function1RawBindings.Add(@"{""name"":""$return"",""type"":""queue"",""direction"":""Out"",""queueName"":""queue2""}");
+                            Function1RawBindings.Add(@"{""name"":""blob"",""type"":""blobTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""path"":""container2/%file%"",""source"":""EventGrid"",""dataType"":""String""}");
 
                             var Function1 = new DefaultFunctionMetadata
                             {
@@ -220,8 +220,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
-                            Function2RawBindings.Add(@"{""name"":""$return"",""type"":""Queue"",""direction"":""Out"",""queueName"":""queue2""}");
-                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""Blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""container2""}");
+                            Function2RawBindings.Add(@"{""name"":""$return"",""type"":""queue"",""direction"":""Out"",""queueName"":""queue2""}");
+                            Function2RawBindings.Add(@"{""name"":""blobs"",""type"":""blob"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""blobPath"":""container2""}");
 
                             var Function2 = new DefaultFunctionMetadata
                             {

@@ -110,14 +110,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             var inputArguments = inputBindingResult.Values;
 
                 """);
+                bool first = true;
                 foreach (ExecutableFunction function in functions)
                 {
                     sb.Append($$"""
 
-                        if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.OrdinalIgnoreCase))
+                        {{(first ? string.Empty : "else ")}}if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))
                         {
             """);
 
+                    first = false;
                     int functionParamCounter = 0;
                     var functionParamList = new List<string>();
                     foreach (var argumentTypeName in function.ParameterTypeNames)

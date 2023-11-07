@@ -15,4 +15,5 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - Updated source generated versions of FunctionExecutor to use `global::` namespace prefix to avoid build errors for function class with the same name as its containing namespace. (#1993)
+- Updated source generated versions of FunctionExecutor to use case-sensitive comparison to fix incorrect invocation of functions with method names only differ in casing. (#2003)
 

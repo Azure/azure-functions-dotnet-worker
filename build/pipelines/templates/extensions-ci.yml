@@ -28,9 +28,12 @@ jobs:
     inputs:
       command: 'build'
       arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: |
-        ${{if parameters.Solution}}: ${{ parameters.Solution }}
-        ${{ else }}: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+      ${{if parameters.Solution}}: 
+        projects: |
+          ${{ parameters.Solution }}
+      ${{ else }}: 
+        projects: |
+          ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - ${{ if eq(parameters.RunExtensionTests, true) }}:
     - task: DotNetCoreCLI@2
@@ -85,9 +88,12 @@ jobs:
       command: 'custom'
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: |
-        ${{if parameters.Solution}}: ${{ parameters.Solution }}
-        ${{ else }}: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+      ${{if parameters.Solution}}: 
+        projects: |
+          ${{ parameters.Solution }}
+      ${{ else }}: 
+        projects: |
+          ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

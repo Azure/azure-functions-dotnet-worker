@@ -92,7 +92,8 @@ jobs:
         command: 'custom'
         custom: 'pack'
         arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-        projects: | **\ASPNetCoreIntegration.slnf
+        projects: |
+          **\ASPNetCoreIntegration.slnf
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

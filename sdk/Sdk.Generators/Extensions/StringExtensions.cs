@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -28,6 +29,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             return result;
+        }
+
+        /// <summary>
+        /// Returns a copy of the string where the first character is in lower case.
+        /// </summary>
+        public static string ToLowerFirstCharacter(this string str)
+        {
+            if (!string.IsNullOrEmpty(str))
+            {
+                return Char.ToLowerInvariant(str[0]) + str.Substring(1);
+            }
+            else
+            {
+                return str;
+            }
         }
     }
 }

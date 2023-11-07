@@ -85,7 +85,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""TimerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
+                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""timerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
                 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -175,7 +175,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""TimerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
+                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""timerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
                 
                             var Function0 = new DefaultFunctionMetadata
                             {

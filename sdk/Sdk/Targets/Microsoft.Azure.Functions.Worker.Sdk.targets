@@ -39,7 +39,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <FunctionsEnableMetadataSourceGen>$(FunctionsEnableWorkerIndexing)</FunctionsEnableMetadataSourceGen>
         <FunctionsAutoRegisterGeneratedMetadataProvider>$(FunctionsEnableWorkerIndexing)</FunctionsAutoRegisterGeneratedMetadataProvider>
 
-        <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == ''">false</FunctionsEnableExecutorSourceGen>
+        <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == '' Or $(FunctionsEnableExecutorSourceGen)">true</FunctionsEnableExecutorSourceGen>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
     </PropertyGroup>

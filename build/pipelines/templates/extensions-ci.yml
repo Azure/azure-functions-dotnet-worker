@@ -86,13 +86,13 @@ jobs:
       projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - ${{ if ne(parameters.Solution, "default") }}:
-  - task: DotNetCoreCLI@2
-    displayName: 'Build packages'
-    inputs:
-      command: 'custom'
-      custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: | **\ASPNetCoreIntegration.slnf
+    - task: DotNetCoreCLI@2
+      displayName: 'Build packages'
+      inputs:
+        command: 'custom'
+        custom: 'pack'
+        arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+        projects: | **\ASPNetCoreIntegration.slnf
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

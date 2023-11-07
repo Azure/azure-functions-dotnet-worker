@@ -23,6 +23,6 @@ pr:
 extends:
   template: ../../build/pipelines/templates/extensions-ci.yml
   parameters:
-    Solution: aspnet
+    Solution: ASPNetCoreIntegration.slnf
     ExtensionDirectory: extensions/Worker.Extensions.Http.AspNetCore
     RunExtensionTests: true

@@ -8,7 +8,7 @@ parameters:
   default: false
 - name: Solution
   type: string
-  default: 'default'
+  default: not-specified
 
 jobs:
 - job: "Build_And_Test_Windows"
@@ -77,23 +77,23 @@ jobs:
     inputs:
       contents: '**\CodeSignSummary-*.md'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Build packages'
-    inputs:
-      command: 'custom'
-      custom: 'pack'
-      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
-
-  - ${{ if ne(parameters.Solution, 'default') }}:
+  - ${{if parameters.Solution}}:
     - task: DotNetCoreCLI@2
       displayName: 'Build packages'
       inputs:
         command: 'custom'
         custom: 'pack'
         arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-        projects: |
-          **\ASPNetCoreIntegration.slnf
+        projects: ${{ parameters.Solution }}
+  - ${{ else }}:
+    - task: DotNetCoreCLI@2
+      displayName: 'Build packages'
+      inputs:
+        command: 'custom'
+        custom: 'pack'
+        arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+        projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

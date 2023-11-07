@@ -28,6 +28,7 @@ jobs:
     inputs:
       command: 'build'
       arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      projects: |
         ${{if parameters.Solution}}: ${{ parameters.Solution }}
         ${{ else }}: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 

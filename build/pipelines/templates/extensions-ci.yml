@@ -29,7 +29,8 @@ jobs:
       command: 'build'
       arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       ${{if parameters.Solution}}: 
-        projects: ${{ parameters.Solution }}
+        projects: |
+          **\ASPNetCoreIntegration.slnf
       ${{ else }}: 
         projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 

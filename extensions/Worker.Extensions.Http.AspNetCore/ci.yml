@@ -24,4 +24,5 @@ extends:
   template: ../../build/pipelines/templates/extensions-ci.yml
   parameters:
     Solution: aspnet
+    ExtensionDirectory: extensions/Worker.Extensions.Http.AspNetCore
     RunExtensionTests: true

@@ -86,6 +86,7 @@ jobs:
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: 
+        |
         ${{if parameters.Solution}}: ${{ parameters.Solution }}
         ${{ else }}: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 

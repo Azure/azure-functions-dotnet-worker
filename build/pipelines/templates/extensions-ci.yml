@@ -77,23 +77,15 @@ jobs:
     inputs:
       contents: '**\CodeSignSummary-*.md'
 
-  - ${{if parameters.Solution}}:
-    - task: DotNetCoreCLI@2
-      displayName: 'Build packages'
-      inputs:
-        command: 'custom'
-        custom: 'pack'
-        arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-        projects: ${{ parameters.Solution }}
-  - ${{ else }}:
-    - task: DotNetCoreCLI@2
-      displayName: 'Build packages'
-      inputs:
-        command: 'custom'
-        custom: 'pack'
-        arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-        projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
-
+  - task: DotNetCoreCLI@2
+    displayName: 'Build packages'
+    inputs:
+      command: 'custom'
+      custom: 'pack'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      projects: 
+        ${{if parameters.Solution}}: ${{ parameters.Solution }}
+        ${{ else }}: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

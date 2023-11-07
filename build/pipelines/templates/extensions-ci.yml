@@ -28,7 +28,8 @@ jobs:
     inputs:
       command: 'build'
       arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+        ${{if parameters.Solution}}: ${{ parameters.Solution }}
+        ${{ else }}: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - ${{ if eq(parameters.RunExtensionTests, true) }}:
     - task: DotNetCoreCLI@2

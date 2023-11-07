@@ -8,7 +8,7 @@ parameters:
   default: false
 - name: Solution
   type: string
-  default: not-specified
+  default:
 
 jobs:
 - job: "Build_And_Test_Windows"

@@ -23,5 +23,5 @@ pr:
 extends:
   template: ../../build/pipelines/templates/extensions-ci.yml
   parameters:
-    Solution: ../ASPNetCoreIntegration.slnf
+    Solution: ASPNetCoreIntegration.slnf
     RunExtensionTests: true

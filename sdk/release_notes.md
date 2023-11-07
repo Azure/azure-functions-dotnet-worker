@@ -6,8 +6,13 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk 1.16.0 (meta package)
 
-- Default to optimized function executor.
-    * If you have `<FunctionsEnableExecutorSourceGen>True</FunctionsEnableExecutorSourceGen>` in your `.csproj` file, you can remove that line after upgrading Azure.Functions.Worker.Sdk version 1.16.0 or later.
-- Default to source-generated function metadata (#1968).
-    * If you have `<FunctionsEnableWorkerIndexing>True</FunctionsEnableWorkerIndexing>` in your `.csproj` file, you can remove that line after upgrading Azure.Functions.Worker.Sdk version 1.16.0 or later.
-- Fixed casing bug in source-generation. Binding types were changed from pascal case to camel case to match legacy generation (#2022).
+- <entry>
+
+### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
+
+- <entry>
+
+### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
+
+- Updated source generated versions of FunctionExecutor to use `global::` namespace prefix to avoid build errors for function class with the same name as its containing namespace. (#1993)
+

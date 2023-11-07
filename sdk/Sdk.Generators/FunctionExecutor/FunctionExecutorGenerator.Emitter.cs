@@ -131,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         sb.Append($$"""
 
                                 var instanceType = types["{{function.ParentFunctionClassName}}"];
-                                var i = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionClassName}};
+                                var i = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionFullyQualifiedClassName}};
                 """);
                     }
 
@@ -148,7 +148,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     sb.Append(function.IsStatic
-                        ? @$"{function.ParentFunctionClassName}.{function.MethodName}({methodParamsStr});
+                        ? @$"{function.ParentFunctionFullyQualifiedClassName}.{function.MethodName}({methodParamsStr});
             }}"
                         : $@"i.{function.MethodName}({methodParamsStr});
             }}");

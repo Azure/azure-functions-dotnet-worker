@@ -1,0 +1,9 @@
+{
+  "solution": {
+    "path": "..\\DotNetWorker.sln",
+    "projects": [
+      "extensions\\src\\Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.csproj",
+      "extensions\\Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers.csproj"
+    ]
+  }
+}

@@ -6,6 +6,9 @@ parameters:
   displayName: Run Extension Tests?
   type: boolean
   default: false
+- name: Solution
+  type: string
+  default: "default"
 
 jobs:
 - job: "Build_And_Test_Windows"
@@ -81,6 +84,15 @@ jobs:
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+
+  - ${{ if ne(parameters.Solution, "default") }}:
+  - task: DotNetCoreCLI@2
+    displayName: 'Build packages'
+    inputs:
+      command: 'custom'
+      custom: 'pack'
+      arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
+      projects: | **\ASPNetCoreIntegration.slnf
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

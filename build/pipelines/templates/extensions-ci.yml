@@ -86,10 +86,7 @@ jobs:
       command: 'custom'
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      ${{if parameters.Solution}}: 
-        projects: ${{ parameters.Solution }}
-      ${{ else }}: 
-        projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

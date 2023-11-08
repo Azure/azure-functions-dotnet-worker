@@ -28,6 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          using Microsoft.Azure.Functions.Worker.Invocation;
                          namespace {{FunctionsUtil.GetNamespaceForGeneratedCode(context)}}
                          {
+                             [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                              internal class DirectFunctionExecutor : IFunctionExecutor
                              {
                                  private readonly IFunctionActivator _functionActivator;
@@ -37,11 +38,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                      _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
                                  }
 
+                                 /// <inheritdoc/>
                                  public async ValueTask ExecuteAsync(FunctionContext context)
                                  {
                                      {{GetMethodBody(functions)}}
                                  }
                              }
+
+                             /// <summary>
+                             /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                             /// </summary>
                              public static class FunctionExecutorHostBuilderExtensions
                              {
                                  ///<summary>
@@ -86,8 +92,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     string result = $$"""
 
+                                      /// <summary>
+                                      /// Auto startup class to register the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                                      /// </summary>
+                                      [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                                       public class FunctionExecutorAutoStartup : IAutoConfigureStartup
                                       {
+                                          /// <summary>
+                                          /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                                          /// </summary>
+                                          /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
                                           public void Configure(IHostBuilder hostBuilder)
                                           {
                                               hostBuilder.ConfigureGeneratedFunctionExecutor();

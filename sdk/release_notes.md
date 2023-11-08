@@ -14,5 +14,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
-- Updated source generated versions of FunctionExecutor to use `global::` namespace prefix to avoid build errors for function class with the same name as its containing namespace. (#1993)
 - Reverted: Default to optimized function executor (#2012)
+- Updated source generated versions of IFunctionExecutor to use `global::` namespace prefix to avoid build errors for function class with the same name as its containing namespace. (#1993)
+- Updated source generated versions of IFunctionExecutor to include XML documentation for all public types and members
+- Updated source generated versions of IFunctionMedatadaProvider to include XML documentation for all public types and members

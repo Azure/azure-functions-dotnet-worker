@@ -74,8 +74,13 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 namespace TestProject
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
@@ -136,6 +141,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         }
                     }
 
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>

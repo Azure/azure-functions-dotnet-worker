@@ -34,11 +34,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                          using Microsoft.Extensions.DependencyInjection;
                          using Microsoft.Extensions.Hosting;
-                     
+
                          namespace {{FunctionsUtil.GetNamespaceForGeneratedCode(context)}}
                          {
+                             /// <summary>
+                             /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                             /// </summary>
+                             [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                              public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                              {
+                                 /// <inheritdoc/>
                                  public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                                  {
                                      var metadataList = new List<IFunctionMetadata>();
@@ -46,7 +51,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                      return Task.FromResult(metadataList.ToImmutableArray());
                                  }
                              }
-                     
+
+                             /// <summary>
+                             /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                             /// </summary>
                              public static class WorkerHostBuilderFunctionMetadataProviderExtension
                              {
                                  ///<summary>
@@ -72,8 +80,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     string result = $$"""
 
+                                      /// <summary>
+                                      /// Auto startup class to register the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                                      /// </summary>
+                                      [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                                       public class FunctionMetadataProviderAutoStartup : IAutoConfigureStartup
                                       {
+                                          /// <summary>
+                                          /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                                          /// </summary>
+                                          /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
                                           public void Configure(IHostBuilder hostBuilder)
                                           {
                                               hostBuilder.ConfigureGeneratedFunctionMetadataProvider();

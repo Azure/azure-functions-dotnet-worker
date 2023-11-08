@@ -74,8 +74,13 @@ using Microsoft.Extensions.Hosting;
 
 namespace TestProject
 {{
+    /// <summary>
+    /// Custom <see cref=""IFunctionMetadataProvider""/> implementation that returns function metadata definitions for the current worker.""/>
+    /// </summary>
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
     {{
+        /// <inheritdoc/>
         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {{
             var metadataList = new List<IFunctionMetadata>();
@@ -116,6 +121,9 @@ namespace TestProject
             if (includeAutoStartupType)
             {
                 return """
+                            /// <summary>
+                            /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                            /// </summary>
                             public static class WorkerHostBuilderFunctionMetadataProviderExtension
                             {
                                 ///<summary>
@@ -131,8 +139,16 @@ namespace TestProject
                                     return builder;
                                 }
                             }
+                            /// <summary>
+                            /// Auto startup class to register the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                            /// </summary>
+                            [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                             public class FunctionMetadataProviderAutoStartup : IAutoConfigureStartup
                             {
+                                /// <summary>
+                                /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                                /// </summary>
+                                /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
                                 public void Configure(IHostBuilder hostBuilder)
                                 {
                                     hostBuilder.ConfigureGeneratedFunctionMetadataProvider();
@@ -142,6 +158,9 @@ namespace TestProject
             }
 
             return """
+                        /// <summary>
+                        /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                        /// </summary>
                         public static class WorkerHostBuilderFunctionMetadataProviderExtension
                         {
                             ///<summary>

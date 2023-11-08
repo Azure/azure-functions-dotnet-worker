@@ -14,8 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
 
         public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
         {
-            var nativeHostData = NativeMethods.GetNativeHostData();
-            return new NativeWorkerClient(messageProcessor, _hostChannel, nativeHostData);
+            return new NativeWorkerClient(messageProcessor, _hostChannel);
         }
     }
 }

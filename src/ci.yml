@@ -24,6 +24,7 @@ pr:
     - sdk/
     - samples/FunctionApp
     - tools/
+    - extensions/
 
 jobs:
 - job: "Build_And_Test_Windows"

@@ -96,8 +96,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
        
                    namespace {{namespaceValue}}
                    {
+                       [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                        internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
                        {
+                           /// <summary>
+                           /// Configures the worker to register extension startup services.
+                           /// </summary>
+                           /// <param name="applicationBuilder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
                            public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
                            {
                    {{startupCodeExecutor}}

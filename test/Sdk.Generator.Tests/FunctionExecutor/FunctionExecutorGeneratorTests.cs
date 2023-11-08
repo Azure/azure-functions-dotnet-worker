@@ -110,6 +110,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
@@ -125,6 +126,7 @@ namespace TestProject
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
         }}
 
+        /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
@@ -217,6 +219,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
 namespace MyCompany.MyProject.MyApp
 {{
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
@@ -230,6 +233,7 @@ namespace MyCompany.MyProject.MyApp
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
         }}
 
+        /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
@@ -352,6 +356,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
@@ -361,6 +366,7 @@ namespace TestProject
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
         }}
 
+        /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
@@ -459,6 +465,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
@@ -472,6 +479,7 @@ namespace TestProject
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
         }}
 
+        /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
@@ -542,6 +550,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
@@ -555,6 +564,7 @@ namespace TestProject
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
         }}
 
+        /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
@@ -669,6 +679,10 @@ namespace TestProject
             if (includeAutoStartupType)
             {
                 return """
+
+                            /// <summary>
+                            /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                            /// </summary>
                             public static class FunctionExecutorHostBuilderExtensions
                             {
                                 ///<summary>
@@ -682,8 +696,16 @@ namespace TestProject
                                     });
                                 }
                             }
+                            /// <summary>
+                            /// Auto startup class to register the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                            /// </summary>
+                            [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                             public class FunctionExecutorAutoStartup : IAutoConfigureStartup
                             {
+                                /// <summary>
+                                /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                                /// </summary>
+                                /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
                                 public void Configure(IHostBuilder hostBuilder)
                                 {
                                     hostBuilder.ConfigureGeneratedFunctionExecutor();
@@ -693,6 +715,10 @@ namespace TestProject
             }
 
             return """
+
+                        /// <summary>
+                        /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                        /// </summary>
                         public static class FunctionExecutorHostBuilderExtensions
                         {
                             ///<summary>

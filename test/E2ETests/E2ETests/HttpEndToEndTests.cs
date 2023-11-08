@@ -24,6 +24,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         [Theory]
+        [InlineData("HelloPascal", "", HttpStatusCode.OK, "Hello!")]
+        [InlineData("HelloAllCaps", "", HttpStatusCode.OK, "HELLO!")]
         [InlineData("HelloFromQuery", "?name=Test", HttpStatusCode.OK, "Hello Test")]
         [InlineData("HelloFromQuery", "?name=John&lastName=Doe", HttpStatusCode.OK, "Hello John")]
         [InlineData("HelloFromQuery", "?emptyProperty=&name=Jane", HttpStatusCode.OK, "Hello Jane")]

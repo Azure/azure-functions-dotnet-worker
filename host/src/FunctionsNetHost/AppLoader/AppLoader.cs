@@ -32,29 +32,24 @@ namespace FunctionsNetHost
                     assembly_path = GetCharArrayPointer(assemblyPath)
                 };
 
-                var sw = Stopwatch.StartNew();
                 var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
-                sw.Stop();
-                Logger.LogTrace($"hostfxr path:{hostfxrFullPath}. get_hostfxr_path took {sw.ElapsedMilliseconds}ms");
-                
-                sw.Restart();
+                Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
+
                 _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
-                sw.Stop();
 
                 if (_hostfxrHandle == IntPtr.Zero)
                 {
                     Logger.Log($"Failed to load hostfxr. hostfxrFullPath:{hostfxrFullPath}");
                     return -1;
                 }
-                
-                Logger.LogTrace($"hostfxr loaded in {sw.ElapsedMilliseconds}ms");
+
+                Logger.LogTrace($"hostfxr loaded.");
 
                 var error = HostFxr.Initialize(1, new[] { assemblyPath }, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
                 {
-                    Logger.Log(
-                        $"Failed to initialize the .NET Core runtime. Assembly path:{assemblyPath}");
+                    Logger.Log($"Failed to initialize the .NET Core runtime. Assembly path:{assemblyPath}");
                     return -1;
                 }
 
@@ -103,7 +98,7 @@ namespace FunctionsNetHost
             }
         }
 
-        private static unsafe char*  GetCharArrayPointer(string assemblyPath)
+        private static unsafe char* GetCharArrayPointer(string assemblyPath)
         {
 #if OS_LINUX
             return (char*)Marshal.StringToHGlobalAnsi(assemblyPath).ToPointer();

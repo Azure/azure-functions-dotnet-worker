@@ -633,6 +633,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
+    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
@@ -646,6 +647,7 @@ namespace TestProject
             _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
         }}
 
+        /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;

@@ -113,6 +113,21 @@ namespace Microsoft.Azure.Functions.Worker
         public long LagThreshold { get; set; } = 1000;
 
         /// <summary>
+        /// URL for the Avro Schema Registry
+        /// </summary>
+        public string SchemaRegistryUrl { get; set; }
+
+        /// <summary>
+        /// Username for the Avro Schema Registry
+        /// </summary>
+        public string SchemaRegistryUsername { get; set; }
+
+        /// <summary>
+        /// Password for the Avro Schema Registry
+        /// </summary>
+        public string SchemaRegistryPassword { get; set; }
+
+        /// <summary>
         /// Gets or sets the configuration to enable batch processing of events. Default value is "false".
         /// </summary>
         public bool IsBatched

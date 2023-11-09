@@ -13,12 +13,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         {
         }
 
+        /// <summary>
+        /// Gets the singleton instance of the <see cref="AspNetCoreHttpRequestDataFeature"/> class.
+        /// </summary>
         public static AspNetCoreHttpRequestDataFeature Instance { get; } = new AspNetCoreHttpRequestDataFeature();
 
+        /// <inheritdoc/>
         public ValueTask<HttpRequestData?> GetHttpRequestDataAsync(FunctionContext context)
-        {
-            throw new NotSupportedException($"The method {nameof(GetHttpRequestDataAsync)} " +
-                $"is not supported when using the ASP.NET Core integration. Use the GetHttpContext method of {nameof(FunctionContext)} to access the HttpContext for the request.");
-        }
+            => context.TryGetRequest(out var request) ? new(new AspNetCoreHttpRequestData(request, context)) : default;
     }
 }

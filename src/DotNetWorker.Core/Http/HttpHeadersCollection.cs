@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
     /// <summary>
     /// A collection of HTTP Headers
     /// </summary>
-    public sealed class HttpHeadersCollection : HttpHeaders
+    public class HttpHeadersCollection : HttpHeaders
     {
         /// <summary>
         /// Initializes an empty collection of HTTP Headers

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
@@ -74,5 +75,20 @@ namespace SampleApp
             _logger.LogInformation("Delivery Count: {count}", message.DeliveryCount);
             _logger.LogInformation("Delivery Count: {count}", deliveryCount);
         }
+        //<docsnippet_servicebus_message_actions>
+        [Function(nameof(ServiceBusMessageActionsFunction))]
+        public async Task ServiceBusMessageActionsFunction(
+            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection")]
+            ServiceBusReceivedMessage message,
+            ServiceBusMessageActions messageActions)
+        {
+            _logger.LogInformation("Message ID: {id}", message.MessageId);
+            _logger.LogInformation("Message Body: {body}", message.Body);
+            _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
+
+            // Complete the message
+            await messageActions.CompleteMessageAsync(message);
+        }
+        //</docsnippet_servicebus_message_actions>
     }
 }

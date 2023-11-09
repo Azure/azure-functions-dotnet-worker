@@ -52,17 +52,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     var methodSymbol = model.GetDeclaredSymbol(method)!;
-                    var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString();
+                    var defaultFormatClassName = methodSymbol.ContainingSymbol.ToDisplayString();
+                    var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
                     var function = new ExecutableFunction
                     {
-                        EntryPoint = $"{fullyQualifiedClassName}.{method.Identifier.ValueText}",
+                        EntryPoint = $"{defaultFormatClassName}.{method.Identifier.ValueText}",
                         ParameterTypeNames = methodParameterList,
                         MethodName = methodName,
                         ShouldAwait = IsTaskType(methodSymbol.ReturnType),
                         IsReturnValueAssignable = IsReturnValueAssignable(methodSymbol),
                         IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword),
-                        ParentFunctionClassName = fullyQualifiedClassName
+                        ParentFunctionClassName = defaultFormatClassName,
+                        ParentFunctionFullyQualifiedClassName = fullyQualifiedClassName
                     };
 
                     functionList.Add(function);

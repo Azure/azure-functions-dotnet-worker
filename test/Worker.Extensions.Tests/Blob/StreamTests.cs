@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -54,14 +54,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(Stream), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
@@ -85,14 +81,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(Stream), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockContainer = new Mock<BlobContainerClient>();
             mockContainer.Setup(m => m.GetBlobClient(It.IsAny<string>())).Returns(mockBlobClient.Object);
@@ -136,15 +128,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(IEnumerable<Stream>), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
@@ -174,15 +161,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(Stream[]), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
@@ -211,15 +193,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(Stream[]), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("MyBlobStream"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);
@@ -248,14 +225,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             var context = new TestConverterContext(typeof(Stream[]), grpcModelBindingData);
 
             var expectedStream = new MemoryStream(Encoding.UTF8.GetBytes("[{\"name\": \"Stream1\"}]"));
-            var blobDownloadResult = BlobsModelFactory.BlobDownloadStreamingResult(expectedStream);
-            var mockResponse = new Mock<Response<BlobDownloadStreamingResult>>();
-            mockResponse.SetupGet(r => r.Value).Returns(blobDownloadResult);
-
             var mockBlobClient = new Mock<BlobClient>();
             mockBlobClient
-                .Setup(m => m.DownloadStreamingAsync(It.IsAny<HttpRange>(), It.IsAny<BlobRequestConditions>(), It.IsAny<bool>(), null, default))
-                .ReturnsAsync(mockResponse.Object);
+                .Setup(m => m.OpenReadAsync(0, default, default, default))
+                .ReturnsAsync(expectedStream);
 
             var mockBlobItemResponse = new Mock<Response>();
             var expectedOutput = Page<BlobItem>.FromValues(new List<BlobItem>{ BlobsModelFactory.BlobItem("MyBlob") }, continuationToken: null, mockBlobItemResponse.Object);

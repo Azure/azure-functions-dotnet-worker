@@ -1,3 +1,3 @@
 ## What's Changed
 
-- GA release (no functional changes)
+- Moving hot-path environment variable checks to a background task (#1996)

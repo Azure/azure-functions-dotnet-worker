@@ -17,38 +17,27 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
             NativeLibrary.SetDllImportResolver(typeof(NativeMethods).Assembly, ImportResolver);
         }
 
-        public static NativeHost GetNativeHostData()
-        {
-            var result = get_application_properties(out var hostData);
-            if (result == 1)
-            {
-                return hostData;
-            }
-
-            throw new InvalidOperationException($"Invalid result returned from get_application_properties: {result}");
-        }
-
-        public static void RegisterCallbacks(NativeSafeHandle nativeApplication,
+        public static void RegisterCallbacks(
             delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
             IntPtr grpcHandler)
         {
-            _ = register_callbacks(nativeApplication, requestCallback, grpcHandler);
+            _ = register_callbacks(IntPtr.Zero, requestCallback, grpcHandler);
         }
 
-        public static void SendStreamingMessage(NativeSafeHandle nativeApplication, StreamingMessage streamingMessage)
+        public static void SendStreamingMessage(StreamingMessage streamingMessage)
         {
             byte[] bytes = streamingMessage.ToByteArray();
-            _ = send_streaming_message(nativeApplication, bytes, bytes.Length);
+            fixed (byte* ptr = bytes)
+            {
+                _ = send_streaming_message(IntPtr.Zero, ptr, bytes.Length);
+            }
         }
 
-        [DllImport(NativeWorkerDll, CharSet = CharSet.Auto)]
-        private static extern int get_application_properties(out NativeHost hostData);
+        [DllImport(NativeWorkerDll)]
+        private static extern int send_streaming_message(IntPtr pInProcessApplication, byte* streamingMessage, int streamingMessageSize);
 
-        [DllImport(NativeWorkerDll, CharSet = CharSet.Auto)]
-        private static extern int send_streaming_message(NativeSafeHandle pInProcessApplication, byte[] streamingMessage, int streamingMessageSize);
-
-        [DllImport(NativeWorkerDll, CharSet = CharSet.Auto)]
-        private static extern unsafe int register_callbacks(NativeSafeHandle pInProcessApplication,
+        [DllImport(NativeWorkerDll)]
+        private static extern unsafe int register_callbacks(IntPtr pInProcessApplication,
             delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
             IntPtr grpcHandler);
 

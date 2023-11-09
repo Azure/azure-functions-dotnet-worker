@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 this._diagnostic = diagnostic;
             }
 
-            public override string Title => "Change configuration for ASP.Net Core Integration";
+            public override string Title => "Change configuration for ASP.NET Core Integration";
 
             public override string EquivalenceKey => null;
 

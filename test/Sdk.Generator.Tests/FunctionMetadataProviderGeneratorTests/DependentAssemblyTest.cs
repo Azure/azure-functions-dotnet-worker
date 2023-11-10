@@ -136,6 +136,32 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "DependentAssemblyWithFunctions.dll"
                             };
                             metadataList.Add(Function3);
+                            var Function4RawBindings = new List<string>();
+                            Function4RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function4RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+                
+                            var Function4 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "NestedNamespaceFunc1",
+                                EntryPoint = "MyCompany.MyProduct.MyApp.HttpFunctions.Run",
+                                RawBindings = Function4RawBindings,
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
+                            };
+                            metadataList.Add(Function4);
+                            var Function5RawBindings = new List<string>();
+                            Function5RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function5RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function5 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "NestedTypeFunc",
+                                EntryPoint = "MyCompany.MyProduct.MyApp.Foo.Bar.Run",
+                                RawBindings = Function5RawBindings,
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
+                            };
+                            metadataList.Add(Function5);
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }

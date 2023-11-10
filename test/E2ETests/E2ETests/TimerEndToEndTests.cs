@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
                 // The "RunOnStartup" log should show, and then a true invocation.
                 return Task.FromResult(logs.Count() >= 2);
-            });
+            }, pollingInterval: 4000, timeout: 120 * 1000);
 
             // Check the serialized TimerInfo; they should all be valid values.
             var lastLog = logs.Last();

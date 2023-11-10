@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Queue
         public void TimerTrigger([TimerTrigger("0 * * * * *", RunOnStartup = true)] TimerInfo timerInfo)
         {
             var info = JsonSerializer.Serialize(timerInfo);
-            _logger.LogInformation($"TimerInfo: {info}");
+            _logger.LogInformation($"TimerInfo: {info}\n");
         }
     }
 }

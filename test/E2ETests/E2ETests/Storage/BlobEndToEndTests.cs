@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             {
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
                 return Task.FromResult(logs.Count() >= 1);
-            });
+            }, pollingInterval: 4000, timeout: 120 * 1000);
 
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;

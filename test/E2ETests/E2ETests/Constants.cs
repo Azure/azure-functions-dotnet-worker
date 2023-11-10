@@ -46,6 +46,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             public const string TriggerStringContainer = "test-trigger-string-dotnet-isolated";
             public const string OutputStringContainer = "test-output-string-dotnet-isolated";
             public const string TriggerStreamContainer = "test-trigger-stream-dotnet-isolated";
+            public const string OutputStreamContainer2 = "test-output-stream-dotnet-isolated2";
             public const string OutputStreamContainer = "test-output-stream-dotnet-isolated";
             public const string TriggerBlobClientContainer = "test-trigger-blobclient-dotnet-isolated";
             public const string OutputBlobClientContainer = "test-output-blobclient-dotnet-isolated";

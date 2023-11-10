@@ -82,6 +82,23 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
         }
 
         [Fact]
+        public async Task BlobTrigger_Stream_Succeeds_2()
+        {
+            string fileName = Guid.NewGuid().ToString();
+
+            //Cleanup
+            await StorageHelpers.ClearBlobContainers();
+
+            //Trigger
+            await StorageHelpers.UploadFileToContainer(Constants.Blob.TriggerStreamContainer, fileName);
+
+            //Verify
+            string result = await StorageHelpers.DownloadFileFromContainer(Constants.Blob.OutputStreamContainer2, fileName);
+
+            Assert.Equal("Hello World", result);
+        }
+
+        [Fact]
         public async Task BlobTrigger_Stream_Succeeds()
         {
             string key = "StreamTriggerOutput: ";

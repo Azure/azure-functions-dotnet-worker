@@ -11,6 +11,32 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 {
     public static class BasicHttpFunctions
     {
+        [Function("HelloPascal")]
+        public static HttpResponseData Hello(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(Hello));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString("Hello!");
+            return response;
+        }
+
+        [Function("HelloAllCaps")]
+        public static HttpResponseData HELLO(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(HELLO));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString("HELLO!");
+            return response;
+        }
+
         [Function(nameof(HelloFromQuery))]
         public static HttpResponseData HelloFromQuery(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,

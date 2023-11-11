@@ -1,10 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace FunctionsNetHost
 {
+    // If having problems with the managed host, enable the following:
+    // Environment.SetEnvironmentVariable("COREHOST_TRACE", "1");
+    // In Unix environment, you need to run the below command in the terminal to set the environment variable.
+    // export COREHOST_TRACE=1
+
     /// <summary>
     /// Manages loading hostfxr & worker assembly.
     /// </summary>
@@ -14,43 +20,36 @@ namespace FunctionsNetHost
         private IntPtr _hostContextHandle = IntPtr.Zero;
         private bool _disposed;
 
-        internal AppLoader()
-        {
-            LoadHostfxrLibrary();
-        }
-
-        private void LoadHostfxrLibrary()
-        {
-            // If having problems with the managed host, enable the following:
-            // Environment.SetEnvironmentVariable("COREHOST_TRACE", "1");
-            // In Unix environment, you need to run the below command in the terminal to set the environment variable.
-            // export COREHOST_TRACE=1
-
-            var hostfxrFullPath = NetHost.GetHostFxrPath();
-            Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
-
-            _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
-            if (_hostfxrHandle == IntPtr.Zero)
-            {
-                Logger.Log($"Failed to load hostfxr. hostfxr path:{hostfxrFullPath}");
-                return;
-            }
-
-            Logger.LogTrace($"hostfxr library loaded successfully.");
-        }
-
         internal int RunApplication(string? assemblyPath)
         {
             ArgumentNullException.ThrowIfNull(assemblyPath, nameof(assemblyPath));
 
             unsafe
             {
+                var parameters = new NetHost.get_hostfxr_parameters
+                {
+                    size = sizeof(NetHost.get_hostfxr_parameters),
+                    assembly_path = GetCharArrayPointer(assemblyPath)
+                };
+
+                var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
+                Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
+
+                _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
+
+                if (_hostfxrHandle == IntPtr.Zero)
+                {
+                    Logger.Log($"Failed to load hostfxr. hostfxrFullPath:{hostfxrFullPath}");
+                    return -1;
+                }
+
+                Logger.LogTrace($"hostfxr loaded.");
+
                 var error = HostFxr.Initialize(1, new[] { assemblyPath }, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
                 {
-                    Logger.Log(
-                        $"Failed to initialize the .NET Core runtime. Assembly path:{assemblyPath}");
+                    Logger.Log($"Failed to initialize the .NET Core runtime. Assembly path:{assemblyPath}");
                     return -1;
                 }
 
@@ -97,6 +96,15 @@ namespace FunctionsNetHost
 
                 _disposed = true;
             }
+        }
+
+        private static unsafe char* GetCharArrayPointer(string assemblyPath)
+        {
+#if OS_LINUX
+            return (char*)Marshal.StringToHGlobalAnsi(assemblyPath).ToPointer();
+#else
+            return (char*)Marshal.StringToHGlobalUni(assemblyPath).ToPointer();
+#endif
         }
     }
 }

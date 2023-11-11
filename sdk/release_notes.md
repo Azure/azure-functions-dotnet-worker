@@ -4,15 +4,10 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk 1.16.2 (meta package)
 
-- <entry>
+- Update Microsoft.Azure.Functions.Worker.Sdk.Generators dependency to 1.1.4
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version> (delete if not updated)
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.4
 
-- <entry>
-
-### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
-
-- <entry>
-
+- Adding support for locating functions within nested types and nested namespaces from referenced assemblies (#2054)

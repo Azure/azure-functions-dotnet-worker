@@ -1,10 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests</RootNamespace>
+    <Description>ASP.NET Core extensions for .NET isolated functions</Description>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <SignAssembly>True</SignAssembly>
@@ -27,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
   </ItemGroup>
 
 </Project>

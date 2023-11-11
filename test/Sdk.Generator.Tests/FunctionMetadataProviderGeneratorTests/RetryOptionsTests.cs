@@ -79,13 +79,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 
                 namespace TestProject
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""TimerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
+                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""timerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
                 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -105,7 +110,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
-                
+
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -169,13 +177,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 
                 namespace TestProject
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""TimerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
+                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""timerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
                 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -196,7 +209,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
-                
+
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>

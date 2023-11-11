@@ -95,29 +95,50 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             foreach (var assembly in context.Compilation.SourceModule.ReferencedAssemblySymbols)
             {
-                var namespaceSymbols = assembly.GlobalNamespace.GetMembers();
-
-                foreach (var namespaceSymbol in namespaceSymbols)
+                foreach (var methodSymbol in GetMethodsFromNamespace(context.Compilation, assembly.GlobalNamespace))
                 {
-                    var namespaceMembers = namespaceSymbol.GetMembers();
+                    yield return methodSymbol;
+                }
+            }
+        }
 
-                    foreach (var m in namespaceMembers)
+        private IEnumerable<IMethodSymbol> GetMethodsFromNamespace(Compilation compilation, INamespaceSymbol namespaceSymbol)
+        {
+            foreach (var member in namespaceSymbol.GetMembers())
+            {
+                if (member is INamespaceSymbol nestedNamespace)
+                {
+                    // Recursive call for nested namespaces
+                    foreach (var methodSymbol in GetMethodsFromNamespace(compilation, nestedNamespace))
                     {
-                        if (m is INamedTypeSymbol namedType)
-                        {
-                            var typeMembers = namedType.GetMembers();
+                        yield return methodSymbol;
+                    }
+                }
+                else if (member is INamedTypeSymbol typeSymbol)
+                {
+                    // Recursive call for nested types
+                    foreach (var methodSymbol in GetMethodsFromType(compilation, typeSymbol))
+                    {
+                        yield return methodSymbol;
+                    }
+                }
+            }
+        }
 
-                            foreach (var typeMember in typeMembers)
-                            {
-                                if (typeMember is IMethodSymbol method)
-                                {
-                                    if (FunctionsUtil.IsFunctionSymbol(method, context.Compilation))
-                                    {
-                                        yield return method;
-                                    }
-                                }
-                            }
-                        }
+        private IEnumerable<IMethodSymbol> GetMethodsFromType(Compilation compilation, INamedTypeSymbol typeSymbol)
+        {
+            foreach (var member in typeSymbol.GetMembers())
+            {
+                if (member is IMethodSymbol methodSymbol && FunctionsUtil.IsFunctionSymbol(methodSymbol, compilation))
+                {
+                    yield return methodSymbol;
+                }
+                else if (member is INamedTypeSymbol nestedType)
+                {
+                    // Recursive call for nested types
+                    foreach (var nestedMethodSymbol in GetMethodsFromType(compilation, nestedType))
+                    {
+                        yield return nestedMethodSymbol;
                     }
                 }
             }

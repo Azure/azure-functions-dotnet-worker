@@ -76,7 +76,7 @@ namespace SampleApp
             _logger.LogInformation("Delivery Count: {count}", deliveryCount);
         }
         //<docsnippet_servicebus_message_actions>
-        [Function(nameof(ServiceBusReceivedMessageFunction))]
+        [Function(nameof(ServiceBusMessageActionsFunction))]
         public async Task ServiceBusMessageActionsFunction(
             [ServiceBusTrigger("queue", Connection = "ServiceBusConnection")]
             ServiceBusReceivedMessage message,

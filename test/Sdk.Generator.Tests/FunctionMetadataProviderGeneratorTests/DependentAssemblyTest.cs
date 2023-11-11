@@ -74,13 +74,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 namespace TestProject
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -93,7 +98,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                             var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function1RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function1 = new DefaultFunctionMetadata
@@ -106,7 +111,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
-                            Function2RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function2RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function2RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function2 = new DefaultFunctionMetadata
@@ -119,7 +124,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function2);
                             var Function3RawBindings = new List<string>();
-                            Function3RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function3RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function3RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function3 = new DefaultFunctionMetadata
@@ -131,11 +136,40 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "DependentAssemblyWithFunctions.dll"
                             };
                             metadataList.Add(Function3);
+                            var Function4RawBindings = new List<string>();
+                            Function4RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function4RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+                
+                            var Function4 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "NestedNamespaceFunc1",
+                                EntryPoint = "MyCompany.MyProduct.MyApp.HttpFunctions.Run",
+                                RawBindings = Function4RawBindings,
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
+                            };
+                            metadataList.Add(Function4);
+                            var Function5RawBindings = new List<string>();
+                            Function5RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function5RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function5 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "NestedTypeFunc",
+                                EntryPoint = "MyCompany.MyProduct.MyApp.Foo.Bar.Run",
+                                RawBindings = Function5RawBindings,
+                                ScriptFile = "DependentAssemblyWithFunctions.dll"
+                            };
+                            metadataList.Add(Function5);
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>

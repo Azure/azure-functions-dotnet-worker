@@ -26,6 +26,11 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(services));
             }
 
+            services.AddSingleton<IConfigureOptions<AppServiceOptions>, AppServiceOptionsInitializer>();
+            services.AddSingleton<AppServiceEnvironmentVariableMonitor>();
+            services.AddSingleton<IOptionsChangeTokenSource<AppServiceOptions>>(p => p.GetRequiredService<AppServiceEnvironmentVariableMonitor>());
+            services.AddSingleton<IHostedService>(p => p.GetRequiredService<AppServiceEnvironmentVariableMonitor>());
+
             services.AddSingleton<FunctionsRoleInstanceProvider>();
 
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryInitializer, FunctionsTelemetryInitializer>());

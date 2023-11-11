@@ -37,10 +37,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal string EntryPoint { get; set; } = null!;
 
         /// <summary>
-        /// Fully qualified type name of the parent class.
+        /// Type name of the parent class in default symbol format.
         /// Ex: MyNamespace.MyClass
         /// </summary>
         internal string ParentFunctionClassName { get; set; } = null!;
+
+        /// <summary>
+        /// Fully qualified type name of the parent class.
+        /// Ex: global::MyNamespace.MyClass
+        /// </summary>
+        internal string ParentFunctionFullyQualifiedClassName { get; set; } = null!;
 
         /// <summary>
         /// A collection of fully qualified type names of the parameters of the function.

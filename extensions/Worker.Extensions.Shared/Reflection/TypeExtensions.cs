@@ -40,7 +40,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         public static bool TryGetCollectionElementType(this Type type, out Type? elementType)
         {
             elementType = null;
-
             if (!type.IsCollectionType())
             {
                 return false;
@@ -74,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
                     return true;
                 }
 
-                type = type.BaseType;
+                type = type.BaseType!;
             }
 
             return false;

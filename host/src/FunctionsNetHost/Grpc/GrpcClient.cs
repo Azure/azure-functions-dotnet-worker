@@ -61,12 +61,6 @@ namespace FunctionsNetHost.Grpc
         {
             await foreach (var rpcWriteMsg in _outgoingMessageChannel.Reader.ReadAllAsync())
             {
-                if (rpcWriteMsg.ContentCase == StreamingMessage.ContentOneofCase.InvocationResponse)
-                {
-                    // Assuming we send only one http request(function invocation) during our testing/data collection
-                   //  to do: Log end of cold start.
-                }
-
                 await requestStream.WriteAsync(rpcWriteMsg);
             }
         }

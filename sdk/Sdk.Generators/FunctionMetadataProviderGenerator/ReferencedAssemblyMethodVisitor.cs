@@ -45,9 +45,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             var classesOrNamespaces = symbol.GetMembers()
                 .Where(a => a.Kind is SymbolKind.Namespace or SymbolKind.NamedType);
 
-            foreach (var nsChild in classesOrNamespaces)
+            foreach (var childSymbol in classesOrNamespaces)
             {
-                nsChild.Accept(this);
+                childSymbol.Accept(this);
             }
         }
 

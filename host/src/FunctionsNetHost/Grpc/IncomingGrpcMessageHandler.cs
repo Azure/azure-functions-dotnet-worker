@@ -48,6 +48,8 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
+                    // to do: Start log
+
                     Logger.LogTrace("Specialization request received.");
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;

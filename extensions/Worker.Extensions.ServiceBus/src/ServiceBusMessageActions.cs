@@ -62,6 +62,7 @@ namespace Microsoft.Azure.Functions.Worker
         ///</remarks>
         protected ServiceBusMessageActions()
         {
+            _settlement = null!; // not expected to be used during mocking.
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>

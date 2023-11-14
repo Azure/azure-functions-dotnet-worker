@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Extensions.Logging;
@@ -15,8 +14,8 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
     {
         private readonly IMessageSink _messageSink;
         private ITestOutputHelper _currentTestOutput;
-        ConcurrentBag<string> _logs = new ConcurrentBag<string>(); //new List<string>();
-        
+        IList<string> _logs = new List<string>();
+
         public TestLoggerProvider(IMessageSink messageSink)
         {
             _messageSink = messageSink;

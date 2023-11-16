@@ -5,7 +5,6 @@ using System.Collections;
 using System.Collections.ObjectModel;
 using Moq;
 using Xunit;
-using IAsyncPageable = System.Collections.Generic.IAsyncEnumerable<System.Collections.IEnumerable>;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
 {
@@ -22,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         public Task BindCollection_ThrowsOnNullCollectionType()
         {
             return Assert.ThrowsAsync<ArgumentNullException>(
-                () => ParameterBinder.BindCollectionAsync(e => Mock.Of<IAsyncPageable>(), null!));
+                () => ParameterBinder.BindCollectionAsync(e => Mock.Of<IAsyncEnumerable<object>>(), null!));
         }
 
         [Theory]
@@ -38,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         public Task BindCollection_ThrowsOnUnsupportedType(Type type)
         {
             return Assert.ThrowsAsync<ArgumentException>(
-                () => ParameterBinder.BindCollectionAsync(e => Mock.Of<IAsyncPageable>(), type));
+                () => ParameterBinder.BindCollectionAsync(e => Mock.Of<IAsyncEnumerable<object>>(), type));
         }
 
         [Theory]
@@ -47,16 +46,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(IList<int>))]
         public async Task BindCollection_Interface_GetsList(Type type)
         {
-            object collection = await ParameterBinder.BindCollectionAsync(GetPageableInt, type);
+            object collection = await ParameterBinder.BindCollectionAsync(GetIntEnumerable, type);
             List<int> list = Assert.IsType<List<int>>(collection);
             Assert.Collection(
                 list,
+                i => Assert.Equal(0, i),
                 i => Assert.Equal(1, i),
                 i => Assert.Equal(2, i),
                 i => Assert.Equal(3, i),
                 i => Assert.Equal(4, i),
-                i => Assert.Equal(5, i),
-                i => Assert.Equal(6, i));
+                i => Assert.Equal(5, i));
         }
 
         [Theory]
@@ -65,24 +64,26 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(List<int>))]
         public async Task BindCollection_Concrete_GetsType(Type type)
         {
-            object collection = await ParameterBinder.BindCollectionAsync(GetPageableInt, type);
+            object collection = await ParameterBinder.BindCollectionAsync(GetIntEnumerable, type);
             Assert.IsType(type, collection);
             Assert.Collection(
                 (IEnumerable<int>)collection,
+                i => Assert.Equal(0, i),
                 i => Assert.Equal(1, i),
                 i => Assert.Equal(2, i),
                 i => Assert.Equal(3, i),
                 i => Assert.Equal(4, i),
-                i => Assert.Equal(5, i),
-                i => Assert.Equal(6, i));
+                i => Assert.Equal(5, i));
         }
 
-        private static async IAsyncPageable GetPageableInt(Type t)
+        private static async IAsyncEnumerable<object> GetIntEnumerable(Type t)
         {
             Assert.Equal(typeof(int), t);
             await Task.Yield();
-            yield return new[] { 1, 2, 3 };
-            yield return new[] { 4, 5, 6 };
+            foreach (int i in Enumerable.Range(0, 6))
+            {
+                yield return i;
+            }
         }
 
         private record MyPoco(string Prop);

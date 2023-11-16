@@ -116,14 +116,18 @@ namespace Microsoft.Azure.Functions.Worker
             return (await JsonSerializer.DeserializeAsync(item.Content, targetType, _serializerOptions))!;
         }
 
-        private async IAsyncEnumerable<IEnumerable> GetDocumentsAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType)
+        private async IAsyncEnumerable<object> GetDocumentsAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType)
         {
             await foreach (var stream in GetDocumentsStreamAsync(container, cosmosAttribute))
             {
                 // Cosmos returns a stream of JSON which represents a paged response. The contents are in a property called "Documents".
                 // Deserializing into CosmosStream<T> will extract these documents.
                 Type target = typeof(CosmosStream<>).MakeGenericType(elementType);
-                yield return (IEnumerable)(await JsonSerializer.DeserializeAsync(stream!, target, _serializerOptions))!;
+                CosmosStream page = (CosmosStream)(await JsonSerializer.DeserializeAsync(stream!, target, _serializerOptions))!;
+                foreach (var item in page.GetDocuments())
+                {
+                    yield return item;
+                }
             }
         }
 
@@ -181,11 +185,17 @@ namespace Microsoft.Azure.Functions.Worker
             return (T)cosmosReference;
         }
 
-        private class CosmosStream<T> : IEnumerable
+        // Need a non-generic type to cast to, and can't use IEnumerable directly (breaks json deserialization).
+        private abstract class CosmosStream
+        {
+            public abstract IEnumerable GetDocuments();
+        }
+
+        private class CosmosStream<T> : CosmosStream
         {
             public IEnumerable<T>? Documents { get; set; }
 
-            public IEnumerator GetEnumerator() => ((IEnumerable)Documents!).GetEnumerator();
+            public override IEnumerable GetDocuments() => Documents!;
         }
     }
 }

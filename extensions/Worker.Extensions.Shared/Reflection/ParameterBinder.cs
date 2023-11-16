@@ -6,7 +6,6 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
-using IAsyncPageable = System.Collections.Generic.IAsyncEnumerable<System.Collections.IEnumerable>;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions
 {
@@ -20,14 +19,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         /// <summary>
         /// Binds to a collection type.
         /// </summary>
-        /// <param name="pageableFactory">Factory for producing a pageable given the element type.</param>
+        /// <param name="factory">Factory for producing an enumerable given the element type.</param>
         /// <param name="collectionType">The collection type to bind to.</param>
         /// <returns>The instantiated and populated collection.</returns>
-        public static async Task<object> BindCollectionAsync(Func<Type, IAsyncPageable> pageableFactory, Type collectionType)
+        public static async Task<object> BindCollectionAsync(Func<Type, IAsyncEnumerable<object>> factory, Type collectionType)
         {
-            if (pageableFactory is null)
+            if (factory is null)
             {
-                throw new ArgumentNullException(nameof(pageableFactory));
+                throw new ArgumentNullException(nameof(factory));
             }
 
             if (collectionType is null)
@@ -52,7 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             else if (collectionType.IsArray)
             {
                 collection = Activator.CreateInstance(typeof(List<>).MakeGenericType(elementType!))!;
-                await BindCollectionAsync(pageableFactory(elementType!), collection);
+                await BindCollectionAsync(factory(elementType!), collection);
                 IList list = (IList)collection;
                 Array arrayResult = Array.CreateInstance(elementType!, list.Count);
                 list.CopyTo(arrayResult, 0);
@@ -63,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
                 throw new ArgumentException($"Collection type '{collectionType}' is not supported for parameter binding.", nameof(collectionType));
             }
 
-            await BindCollectionAsync(pageableFactory(elementType!), collection);
+            await BindCollectionAsync(factory(elementType!), collection);
             return collection;
         }
 
@@ -73,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         /// <param name="pageable">The pageable containing the items to populate the collection with.</param>
         /// <param name="collection">The collection to populate.</param>
         /// <returns>A task that completes when the collection has been populated.</returns>
-        public static async Task BindCollectionAsync(IAsyncPageable pageable, object collection)
+        public static async Task BindCollectionAsync(IAsyncEnumerable<object> pageable, object collection)
         {
             if (pageable is null)
             {
@@ -85,13 +84,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
                 throw new ArgumentNullException(nameof(collection));
             }
 
-            Action<object, object> add = GetAddMethod(collection);
-            await foreach (IEnumerable page in pageable)
+            Action<object> add = GetAddMethod(collection);
+            await foreach (object item in pageable)
             {
-                foreach (object item in page)
-                {
-                    add(collection, item);
-                }
+                add(item);
             }
         }
 
@@ -103,16 +99,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
                 || type.GetGenericTypeDefinition() == typeof(IEnumerable<>));
         }
 
-        private static Action<object, object> GetAddMethod(object collection)
+        private static Action<object> GetAddMethod(object collection)
         {
             if (collection is IList list)
             {
-                return (c, e) => list.Add(e);
+                return e => list.Add(e);
             }
 
             MethodInfo method = collection.GetType().GetMethod("Add", DeclaredOnlyLookup)
                 ?? throw new InvalidOperationException($"Could not find an 'Add' method on collection type '{collection.GetType()}'.");
-            return (c, e) => method.Invoke(c, new[] { e });
+            return e => method.Invoke(collection, new[] { e });
         }
     }
 }

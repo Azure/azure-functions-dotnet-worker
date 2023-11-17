@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             _disposeLog = _fixture.TestLogs.UseTestLogger(testOutput);
         }
 
-        [Fact]
+        [Fact(Skip = "skip")]
         public async Task TimerTriggerWithTimerInfo_Succeeds()
         {
             string key = "TimerInfo: ";

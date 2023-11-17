@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Equal("Hello World", result);
         }
 
-        [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1935")]
+        [Fact]
         public async Task BlobTrigger_Stream_Succeeds()
         {
             string key = "StreamTriggerOutput: ";

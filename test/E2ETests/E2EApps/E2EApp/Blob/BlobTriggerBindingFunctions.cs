@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
@@ -57,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var blobStreamReader = new StreamReader(stream);
             string content = await blobStreamReader.ReadToEndAsync();
-            _logger.LogInformation("StreamTriggerOutput: {c}", content);
+            _logger.LogInformation($"StreamTriggerOutput: {content} {Environment.NewLine}");
         }
 
         [Function(nameof(BlobTriggerBlobClientTest))]

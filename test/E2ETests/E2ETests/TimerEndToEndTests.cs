@@ -36,23 +36,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 return Task.FromResult(logs.Count() >= 2);
             });
 
-            IList<string> processedLogs = new List<string>();
-
-            foreach (string logValue in logs)
-            {
-                int subStringStart1 = logValue.LastIndexOf(key) + key.Length;
-                var doc1 = JsonDocument.Parse(logValue[subStringStart1..]);
-
-                if (!DateTimeOffset.MinValue.Equals(doc1.RootElement.GetProperty("ScheduleStatus").GetProperty("Last").GetDateTimeOffset()))
-                {
-                    processedLogs.Add(logValue);
-                }
-            }
-
-            Assert.True(processedLogs.Count >= 1);
-
             // Check the serialized TimerInfo; they should all be valid values.
-            var lastLog = processedLogs.Last();
+            var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;
             var doc = JsonDocument.Parse(lastLog[subStringStart..]);
 

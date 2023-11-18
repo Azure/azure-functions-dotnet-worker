@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Blob
         {
             var blobStreamReader = new StreamReader(stream);
             string content = await blobStreamReader.ReadToEndAsync();
-            _logger.LogInformation($"StreamTriggerOutput: {content} {Environment.NewLine}");
+            _logger.LogInformation($"StreamTriggerOutput: {content}{Environment.NewLine}");
         }
 
         [Function(nameof(BlobTriggerBlobClientTest))]

@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
     {
         private readonly IMessageSink _messageSink;
         private ITestOutputHelper _currentTestOutput;
-        ConcurrentStack<string> _logs = new ConcurrentStack<string>();
+        ConcurrentQueue<string> _logs = new ConcurrentQueue<string>();
 
         public TestLoggerProvider(IMessageSink messageSink)
         {
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
         {
             string formattedString = formatter(state, exception);
             _messageSink.OnMessage(new DiagnosticMessage(formattedString));
-            _logs.Push(formattedString);
+            _logs.Enqueue(formattedString);
             _currentTestOutput?.WriteLine(formattedString);
         }
 

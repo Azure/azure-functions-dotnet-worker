@@ -90,7 +90,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             // Get the "RootNamespace" msbuild property value.(This gets populated in Microsoft.NET.Sdk.props and can be overridden by user in their function app)
             context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.MSBuildRootNamespace, out var rootNamespaceValue);
 
-            return rootNamespaceValue!;
+            return rootNamespaceValue!.Replace(" ", "_").Replace("-", "_");
         }
     }
 }

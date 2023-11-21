@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             Assert.Equal("Hello World", result);
         }
 
-        [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1935")]
+        [Fact]
         public async Task BlobTrigger_Stream_Succeeds()
         {
             string key = "StreamTriggerOutput: ";
@@ -99,7 +99,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             {
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
                 return Task.FromResult(logs.Count() >= 1);
-            });
+            }, pollingInterval: 4000, timeout: 120 * 1000);
 
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;

@@ -6,10 +6,10 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace DependentAssemblyWithFunctions
 {
-    internal class FooInternalClass
+    internal class InternalFunction
     {
-        [Function("InternalClassPublicRun")]
-        public static HttpResponseData PublicRun([HttpTrigger(AuthorizationLevel.Admin, "get")] HttpRequestData r,
+        [Function(nameof(InternalFunction))]
+        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             FunctionContext executionContext)
         {
             throw new NotImplementedException();

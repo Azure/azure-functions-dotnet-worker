@@ -126,9 +126,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 """);
                 bool first = true;
-                foreach (ExecutableFunction function in functions.Where(f=>f.Visibility!= FunctionMethodVisibility.NotPublic))
+                foreach (ExecutableFunction function in functions)
                 {
-                    var fast = function.Visibility == FunctionMethodVisibility.PublicAndVisible ? true: false;
+                    var fast = function.Visibility == FunctionMethodVisibility.PublicAndVisible ? true : false;
                     sb.Append($$"""
 
                         {{(first ? string.Empty : "else ")}}if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))
@@ -206,9 +206,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private static string GetDefaultExecutorFullName(Compilation compilation)
             {
                 var coreAssembly = compilation.SourceModule.ReferencedAssemblySymbols.Where(a => a.Name == "Microsoft.Azure.Functions.Worker.Core").Single();
-                // ex: Microsoft.Azure.Functions.Worker.Core, Version=1.16.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c
-
                 var className = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor";
+
                 return $"{className}, {coreAssembly.OriginalDefinition}";
             }
         }

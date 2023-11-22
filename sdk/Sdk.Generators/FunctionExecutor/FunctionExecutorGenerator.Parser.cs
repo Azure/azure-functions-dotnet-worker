@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var functionList = new List<ExecutableFunction>();
 
-                foreach (IMethodSymbol method in methods)
+                foreach (IMethodSymbol method in methods.Where(m=>m.DeclaredAccessibility == Accessibility.Public))
                 {
                     _context.CancellationToken.ThrowIfCancellationRequested();
 

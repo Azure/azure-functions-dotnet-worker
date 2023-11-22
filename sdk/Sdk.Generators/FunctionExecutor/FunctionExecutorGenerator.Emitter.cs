@@ -31,6 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                              [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                              internal class DirectFunctionExecutor : IFunctionExecutor
                              {
+                                 private IFunctionExecutor _defaultExecutor;
                                  private readonly IFunctionActivator _functionActivator;
                                  {{GetTypesDictionary(functions)}}
                                  public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -41,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  /// <inheritdoc/>
                                  public async ValueTask ExecuteAsync(FunctionContext context)
                                  {
-                                     {{GetMethodBody(functions)}}
+                                     {{GetMethodBody(functions, context)}}
                                  }
                              }
 
@@ -114,7 +115,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return "";
             }
 
-            private static string GetMethodBody(IEnumerable<ExecutableFunction> functions)
+            private static string GetMethodBody(IEnumerable<ExecutableFunction> functions, GeneratorExecutionContext context)
             {
                 var sb = new StringBuilder();
                 sb.Append(
@@ -125,52 +126,90 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 """);
                 bool first = true;
-                foreach (ExecutableFunction function in functions)
+                foreach (ExecutableFunction function in functions.Where(f=>f.Visibility!= FunctionMethodVisibility.NotPublic))
                 {
+                    var fast = function.Visibility == FunctionMethodVisibility.PublicAndVisible ? true: false;
                     sb.Append($$"""
 
                         {{(first ? string.Empty : "else ")}}if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))
                         {
+                           {{(fast ? EmitFastPath(function) : EmitSlowPath(function, context))}}
+                        }
             """);
-
                     first = false;
-                    int functionParamCounter = 0;
-                    var functionParamList = new List<string>();
-                    foreach (var argumentTypeName in function.ParameterTypeNames)
-                    {
-                        functionParamList.Add($"({argumentTypeName})inputArguments[{functionParamCounter++}]");
-                    }
-                    var methodParamsStr = string.Join(", ", functionParamList);
-
-                    if (!function.IsStatic)
-                    {
-                        sb.Append($$"""
-
-                                var instanceType = types["{{function.ParentFunctionClassName}}"];
-                                var i = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionFullyQualifiedClassName}};
-                """);
-                    }
-
-                    sb.Append(@"
-                ");
-
-                    if (function.IsReturnValueAssignable)
-                    {
-                        sb.Append(@$"context.GetInvocationResult().Value = ");
-                    }
-                    if (function.ShouldAwait)
-                    {
-                        sb.Append("await ");
-                    }
-
-                    sb.Append(function.IsStatic
-                        ? @$"{function.ParentFunctionFullyQualifiedClassName}.{function.MethodName}({methodParamsStr});
-            }}"
-                        : $@"i.{function.MethodName}({methodParamsStr});
-            }}");
                 }
 
                 return sb.ToString();
+            }
+
+            private static string EmitFastPath(ExecutableFunction function)
+            {
+                var sb = new StringBuilder();
+                int functionParamCounter = 0;
+                var functionParamList = new List<string>();
+                foreach (var argumentTypeName in function.ParameterTypeNames)
+                {
+                    functionParamList.Add($"({argumentTypeName})inputArguments[{functionParamCounter++}]");
+                }
+                var methodParamsStr = string.Join(", ", functionParamList);
+
+                if (!function.IsStatic)
+                {
+                    sb.Append($$"""
+                 var instanceType = types["{{function.ParentFunctionClassName}}"];
+                                var i = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionFullyQualifiedClassName}};
+                """);
+                }
+
+                if (!function.IsStatic)
+                {
+                    sb.Append(@"
+                ");
+                }
+                else
+                {
+                    sb.Append($$""" """);
+                }
+
+                if (function.IsReturnValueAssignable)
+                {
+                    sb.Append(@$"context.GetInvocationResult().Value = ");
+                }
+                if (function.ShouldAwait)
+                {
+                    sb.Append("await ");
+                }
+
+                sb.Append(function.IsStatic
+                    ? @$"{function.ParentFunctionFullyQualifiedClassName}.{function.MethodName}({methodParamsStr});"
+                    : $@"i.{function.MethodName}({methodParamsStr});");
+                return sb.ToString();
+            }
+
+            private static string EmitSlowPath(ExecutableFunction function, GeneratorExecutionContext context)
+            {
+                return
+                    $$"""
+                      if (_defaultExecutor == null)
+                                     {
+                                         var t = Type.GetType("{{GetDefaultExecutorFullName(context.Compilation)}}");
+                                         _defaultExecutor = ActivatorUtilities.CreateInstance(context.InstanceServices, t) as Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;
+                                     }
+                                     await _defaultExecutor.ExecuteAsync(context);
+                     """;
+            }
+
+            /// <summary>
+            /// Returns the fully qualified name of the default function executor type
+            /// Ex: Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.16.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c
+            /// </summary>
+            private static string GetDefaultExecutorFullName(Compilation compilation)
+            {
+                var coreAssembly = compilation.SourceModule.ReferencedAssemblySymbols.Where(a => a.Name == "Microsoft.Azure.Functions.Worker.Core").Single();
+                // ex: Microsoft.Azure.Functions.Worker.Core, Version=1.16.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c
+
+                var className = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor";
+                return $"{className}, {coreAssembly.OriginalDefinition}";
             }
         }
     }

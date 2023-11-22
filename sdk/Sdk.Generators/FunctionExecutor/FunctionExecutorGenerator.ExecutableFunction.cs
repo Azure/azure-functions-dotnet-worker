@@ -52,5 +52,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// A collection of fully qualified type names of the parameters of the function.
         /// </summary>
         internal IEnumerable<string> ParameterTypeNames { set; get; } = Enumerable.Empty<string>();
+
+        /// <summary>
+        /// Get a value indicating the visibility of the executable function.
+        /// </summary>
+        internal FunctionMethodVisibility Visibility { get; set; }
     }
 }

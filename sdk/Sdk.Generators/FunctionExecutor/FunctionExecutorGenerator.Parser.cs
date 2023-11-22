@@ -3,8 +3,6 @@
 
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
@@ -23,48 +21,38 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private Compilation Compilation => _context.Compilation;
 
-            internal ICollection<ExecutableFunction> GetFunctions(List<MethodDeclarationSyntax> methods)
+            internal ICollection<ExecutableFunction> GetFunctions(IEnumerable<IMethodSymbol> methods)
             {
                 var functionList = new List<ExecutableFunction>();
 
-                foreach (MethodDeclarationSyntax method in methods)
+                foreach (IMethodSymbol method in methods)
                 {
                     _context.CancellationToken.ThrowIfCancellationRequested();
-                    var model = Compilation.GetSemanticModel(method.SyntaxTree);
 
-                    if (!FunctionsUtil.IsValidFunctionMethod(_context, Compilation, model, method))
+                    var methodName = method.Name;
+                    var methodParameterList = new List<string>();
+
+                    foreach (IParameterSymbol parameterSymbol in method.Parameters)
                     {
-                        continue;
-                    }
-
-                    var methodName = method.Identifier.Text;
-                    var methodParameterList = new List<string>(method.ParameterList.Parameters.Count);
-
-                    foreach (var methodParam in method.ParameterList.Parameters)
-                    {
-                        if (model.GetDeclaredSymbol(methodParam) is not IParameterSymbol parameterSymbol)
-                        {
-                            continue;
-                        }
-
                         var fullyQualifiedTypeName = parameterSymbol.Type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
                         methodParameterList.Add(fullyQualifiedTypeName);
                     }
 
-                    var methodSymbol = model.GetDeclaredSymbol(method)!;
+                    var methodSymbol = method;
                     var defaultFormatClassName = methodSymbol.ContainingSymbol.ToDisplayString();
                     var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
                     var function = new ExecutableFunction
                     {
-                        EntryPoint = $"{defaultFormatClassName}.{method.Identifier.ValueText}",
+                        EntryPoint = $"{defaultFormatClassName}.{method.Name}",
                         ParameterTypeNames = methodParameterList,
                         MethodName = methodName,
                         ShouldAwait = IsTaskType(methodSymbol.ReturnType),
                         IsReturnValueAssignable = IsReturnValueAssignable(methodSymbol),
-                        IsStatic = method.Modifiers.Any(SyntaxKind.StaticKeyword),
+                        IsStatic = method.IsStatic,
                         ParentFunctionClassName = defaultFormatClassName,
-                        ParentFunctionFullyQualifiedClassName = fullyQualifiedClassName
+                        ParentFunctionFullyQualifiedClassName = fullyQualifiedClassName,
+                        Visibility = MethodVisibilityChecker.GetVisibility(methodSymbol),
                     };
 
                     functionList.Add(function);

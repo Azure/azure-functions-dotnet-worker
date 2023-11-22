@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
-    public class FunctionExecutorGeneratorTests
+    public partial class FunctionExecutorGeneratorTests
     {
         // A super set of assemblies we need for all tests in the file.
         private readonly Assembly[] _referencedAssemblies = new[]
@@ -113,6 +113,7 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
+        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -222,6 +223,7 @@ namespace MyCompany.MyProject.MyApp
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
+        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -359,6 +361,7 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
+        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -468,6 +471,7 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
+        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -553,6 +557,7 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
+        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -636,6 +641,7 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
+        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -676,7 +682,7 @@ namespace TestProject
                 expectedOutput);
         }
 
-        private static string GetExpectedExtensionMethodCode(bool includeAutoStartupType = false)
+        public static string GetExpectedExtensionMethodCode(bool includeAutoStartupType = false)
         {
             if (includeAutoStartupType)
             {

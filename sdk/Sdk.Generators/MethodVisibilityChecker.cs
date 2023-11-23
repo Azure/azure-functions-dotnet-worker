@@ -35,11 +35,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 // If both the symbol and all containing types are public, return PublicAndVisible
                 return FunctionMethodVisibility.PublicAndVisible;
             }
-            else
-            {
-                // If the symbol itself is not public, return NotPublic
-                return FunctionMethodVisibility.NotPublic;
-            }
+
+            // If the symbol itself is not public, return NotPublic
+            return FunctionMethodVisibility.NotPublic;
         }
     }
 }

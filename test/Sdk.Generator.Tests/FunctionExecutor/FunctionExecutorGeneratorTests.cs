@@ -682,7 +682,7 @@ namespace TestProject
                 expectedOutput);
         }
 
-        public static string GetExpectedExtensionMethodCode(bool includeAutoStartupType = false)
+        private static string GetExpectedExtensionMethodCode(bool includeAutoStartupType = false)
         {
             if (includeAutoStartupType)
             {

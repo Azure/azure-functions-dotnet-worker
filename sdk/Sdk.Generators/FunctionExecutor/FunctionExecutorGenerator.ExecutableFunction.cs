@@ -57,5 +57,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// Get a value indicating the visibility of the executable function.
         /// </summary>
         internal FunctionMethodVisibility Visibility { get; set; }
+
+        /// <summary>
+        /// Gets the assembly identity of the function.
+        /// ex: FooAssembly, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null
+        /// </summary>
+        internal string AssemblyIdentity { get; set; } = null!;
     }
 }

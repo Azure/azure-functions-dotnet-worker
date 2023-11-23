@@ -82,10 +82,10 @@ namespace TestProject
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }},
-            {{ ""DependentAssemblyWithFunctions.DependencyFunction"", Type.GetType(""DependentAssemblyWithFunctions.DependencyFunction"")! }},
-            {{ ""MyCompany.MyProduct.MyApp.HttpFunctions"", Type.GetType(""MyCompany.MyProduct.MyApp.HttpFunctions"")! }},
-            {{ ""MyCompany.MyProduct.MyApp.Foo.Bar"", Type.GetType(""MyCompany.MyProduct.MyApp.Foo.Bar"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
+            {{ ""DependentAssemblyWithFunctions.DependencyFunction"", Type.GetType(""DependentAssemblyWithFunctions.DependencyFunction, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
+            {{ ""MyCompany.MyProduct.MyApp.HttpFunctions"", Type.GetType(""MyCompany.MyProduct.MyApp.HttpFunctions, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
+            {{ ""MyCompany.MyProduct.MyApp.Foo.Bar"", Type.GetType(""MyCompany.MyProduct.MyApp.Foo.Bar, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)

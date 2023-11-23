@@ -70,8 +70,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private static string GetTypesDictionary(IEnumerable<ExecutableFunction> functions)
             {
-                var classNames = functions.Where(f => !f.IsStatic).Select(f => f.ParentFunctionClassName).Distinct();
-                if (!classNames.Any())
+                var typesDict = functions
+                                    .Where(f => !f.IsStatic)
+                                    .GroupBy(f => f.ParentFunctionClassName)
+                                    .ToDictionary(k => k.First().ParentFunctionClassName, v => v.First().AssemblyIdentity);
+
+                if (typesDict.Count == 0)
                 {
                     return """
 
@@ -81,7 +85,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return $$"""
                 private readonly Dictionary<string, Type> types = new()
                         {
-                           {{string.Join($",{Environment.NewLine}           ", classNames.Select(c => $$""" { "{{c}}", Type.GetType("{{c}}")! }"""))}}
+                           {{string.Join($",{Environment.NewLine}           ", typesDict.Select(c => $$""" { "{{c.Key}}", Type.GetType("{{c.Key}}, {{c.Value}}")! }"""))}}
                         };
 
                 """;

@@ -14,5 +14,11 @@ namespace DependentAssemblyWithFunctions
         {
             throw new NotImplementedException();
         }
+
+        [Function("ThisShouldBeSkippedBecauseMethodNotPublic")]
+        internal static HttpResponseData Run2([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

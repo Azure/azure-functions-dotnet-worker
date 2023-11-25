@@ -39,22 +39,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         methodParameterList.Add(fullyQualifiedTypeName);
                     }
 
-                    var methodSymbol = method;
-                    var defaultFormatClassName = methodSymbol.ContainingSymbol.ToDisplayString();
-                    var fullyQualifiedClassName = methodSymbol.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+                    var defaultFormatClassName = method.ContainingSymbol.ToDisplayString();
+                    var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
                     var function = new ExecutableFunction
                     {
                         EntryPoint = $"{defaultFormatClassName}.{method.Name}",
                         ParameterTypeNames = methodParameterList,
                         MethodName = methodName,
-                        ShouldAwait = IsTaskType(methodSymbol.ReturnType),
-                        IsReturnValueAssignable = IsReturnValueAssignable(methodSymbol),
+                        ShouldAwait = IsTaskType(method.ReturnType),
+                        IsReturnValueAssignable = IsReturnValueAssignable(method),
                         IsStatic = method.IsStatic,
                         ParentFunctionClassName = defaultFormatClassName,
                         ParentFunctionFullyQualifiedClassName = fullyQualifiedClassName,
-                        Visibility = MethodVisibilityChecker.GetVisibility(methodSymbol),
-                        AssemblyIdentity = methodSymbol.ContainingAssembly.Identity.GetDisplayName(),
+                        Visibility = MethodVisibilityChecker.GetVisibility(method),
+                        AssemblyIdentity = method.ContainingAssembly.Identity.GetDisplayName(),
                     };
 
                     functionList.Add(function);

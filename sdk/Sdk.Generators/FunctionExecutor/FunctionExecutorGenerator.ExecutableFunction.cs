@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         /// <summary>
         /// Gets the assembly identity of the function.
-        /// ex: FooAssembly, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null
+        /// ex: FooAssembly, Version=1.2.3.4, Culture=neutral, PublicKeyToken=9475d07f10cb09df
         /// </summary>
         internal string AssemblyIdentity { get; set; } = null!;
     }

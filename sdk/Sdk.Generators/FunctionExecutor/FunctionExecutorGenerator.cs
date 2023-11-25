@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Collect methods with Function attributes on them from dependent/referenced assemblies.
         /// </summary>
-        private IEnumerable<IMethodSymbol> GetDependentAssemblyFunctionsSymbols(GeneratorExecutionContext context)
+        private static IEnumerable<IMethodSymbol> GetDependentAssemblyFunctionsSymbols(GeneratorExecutionContext context)
         {
             var visitor = new ReferencedAssemblyMethodVisitor(context.Compilation);
             visitor.Visit(context.Compilation.SourceModule);

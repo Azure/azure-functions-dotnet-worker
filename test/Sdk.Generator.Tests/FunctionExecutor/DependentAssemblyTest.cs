@@ -78,8 +78,8 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
+        private Lazy<IFunctionExecutor> _defaultExecutor;
         private readonly Dictionary<string, Type> types = new()
         {{
             {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
@@ -99,6 +99,7 @@ namespace TestProject
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
             var inputArguments = inputBindingResult.Values;
+            _defaultExecutor = new Lazy<IFunctionExecutor>(() => GetDefaultExecutor(context));
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Foo"", StringComparison.Ordinal))
             {{
@@ -114,12 +115,7 @@ namespace TestProject
             }}
             else if (string.Equals(context.FunctionDefinition.EntryPoint, ""DependentAssemblyWithFunctions.InternalFunction.Run"", StringComparison.Ordinal))
             {{
-                if (_defaultExecutor == null)
-                {{
-                    var t = Type.GetType(""Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.16.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c"");
-                    _defaultExecutor = ActivatorUtilities.CreateInstance(context.InstanceServices, t) as Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;
-                }}
-                await _defaultExecutor.ExecuteAsync(context);
+                await _defaultExecutor.Value.ExecuteAsync(context);
             }}
             else if (string.Equals(context.FunctionDefinition.EntryPoint, ""DependentAssemblyWithFunctions.StaticFunction.Run"", StringComparison.Ordinal))
             {{
@@ -137,6 +133,14 @@ namespace TestProject
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyProduct.MyApp.Foo.Bar;
                 context.GetInvocationResult().Value = i.Run((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
             }}
+        }}
+
+        private IFunctionExecutor GetDefaultExecutor(FunctionContext context)
+        {{
+            var defaultExecutorFullName = $""Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.16.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c"";
+            var defaultExecutorType = Type.GetType(""defaultExecutorFullName"");
+
+            return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;
         }}
     }}
 {GetExpectedExtensionMethodCode()}

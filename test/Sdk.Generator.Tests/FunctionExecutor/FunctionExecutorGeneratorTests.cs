@@ -113,7 +113,6 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -223,7 +222,6 @@ namespace MyCompany.MyProject.MyApp
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -361,7 +359,6 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -471,7 +468,6 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -557,7 +553,6 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
@@ -641,7 +636,6 @@ namespace TestProject
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
-        private IFunctionExecutor _defaultExecutor;
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{

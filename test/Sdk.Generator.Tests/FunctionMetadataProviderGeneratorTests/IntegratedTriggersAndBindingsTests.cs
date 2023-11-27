@@ -135,7 +135,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function1RawBindings = new List<string>();
                             Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function1RawBindings.Add(@"{""name"":""Name"",""type"":""queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
-                            Function1RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
                 
                             var Function1 = new DefaultFunctionMetadata
                             {

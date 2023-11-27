@@ -511,16 +511,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                 }
 
-                if (hasHttpTrigger && !foundHttpOutput && !hasMethodOutputBinding)
+                if (hasHttpTrigger && !foundHttpOutput && !hasMethodOutputBinding && !returnTypeHasOutputBindings)
                 {
-                    if (!returnTypeHasOutputBindings)
-                    {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
-                    }
-                    else
-                    {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.HttpResponseBindingName));
-                    }
+                    bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                 }
 
                 return true;

@@ -220,7 +220,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    testProjectName: "FOO-BAR");
+                    generatedCodeNamespace: "FOO_BAR");
             }
 
             [Fact]

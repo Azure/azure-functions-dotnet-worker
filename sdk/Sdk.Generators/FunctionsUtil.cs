@@ -80,17 +80,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// </summary>
         internal static string GetNamespaceForGeneratedCode(GeneratorExecutionContext context)
         {
-            // If csproj has the msbuild property specified, use it's value.
-            if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.GeneratedCodeNamespace, out var namespaceValue)
-                && !string.IsNullOrWhiteSpace(namespaceValue))
-            {
-                return namespaceValue;
-            }
+            // If user has not provided a custom namespace explicitly,
+            // our msbuild target will set the RootNamespace msbuild property value as the value of this property.
+            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.GeneratedCodeNamespace, out var namespaceValue);
 
-            // Get the "RootNamespace" msbuild property value.(This gets populated in Microsoft.NET.Sdk.props and can be overridden by user in their function app)
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.MSBuildRootNamespace, out var rootNamespaceValue);
+            return namespaceValue!;
 
-            return rootNamespaceValue!.Replace(" ", "_").Replace("-", "_");
         }
     }
 }

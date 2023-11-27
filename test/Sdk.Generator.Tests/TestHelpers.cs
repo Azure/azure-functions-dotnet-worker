@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             string? expectedOutputSource,
             List<DiagnosticResult>? expectedDiagnosticResults = null,
             IDictionary<string, string>? buildPropertiesDictionary = null,
-            string? testProjectName = null) where TSourceGenerator : ISourceGenerator, new()
+            string? generatedCodeNamespace = null) where TSourceGenerator : ISourceGenerator, new()
         {
             CSharpSourceGeneratorVerifier<TSourceGenerator>.Test test = new()
             {
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             var config = $@"is_global = true
                             build_property.FunctionsEnableExecutorSourceGen = {true}
                             build_property.FunctionsEnableMetadataSourceGen = {true}
-                            build_property.RootNamespace = {testProjectName ?? "TestProject"}";
+                            build_property.FunctionsGeneratedCodeNamespace = {generatedCodeNamespace ?? "TestProject"}";
 
             // Add test specific MSBuild properties.
             if (buildPropertiesDictionary is not null)

@@ -165,7 +165,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
 
-                namespace FOO_BAR
+                namespace TestProject
                 {
                     /// <summary>
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
@@ -219,8 +219,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput,
-                    generatedCodeNamespace: "FOO_BAR");
+                    expectedOutput);
             }
 
             [Fact]

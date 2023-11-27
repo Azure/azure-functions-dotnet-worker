@@ -10,4 +10,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.5
 
-- Generate valid namespace when root namespace contains `-` (#2083)
+- Generate valid namespace when root namespace contains `-` (#2097)

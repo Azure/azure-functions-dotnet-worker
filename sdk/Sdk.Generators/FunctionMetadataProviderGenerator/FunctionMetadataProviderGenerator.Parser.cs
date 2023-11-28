@@ -94,9 +94,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 hasHttpTrigger = false;
                 validatedRetryOptions = null;
 
-                if (!TryGetMethodOutputBinding(method, out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
+                if (!TryGetMethodOutputBinding(method, out bool hasMethodOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? methodOutputBindings)
                     || !TryGetParameterInputAndTriggerBindings(method, out bool supportsRetryOptions, out hasHttpTrigger, out IList<IDictionary<string, object>>? parameterInputAndTriggerBindings)
-                    || !TryGetReturnTypeBindings(method, hasHttpTrigger, hasOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
+                    || !TryGetReturnTypeBindings(method, hasHttpTrigger, hasMethodOutputBinding, out IList<IDictionary<string, object>>? returnTypeBindings))
                 {
                     bindings = null;
                     return false;
@@ -129,12 +129,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any OutputBinding attributes associated with the method.
             /// </summary>
-            private bool TryGetMethodOutputBinding(IMethodSymbol method,out bool hasOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetMethodOutputBinding(IMethodSymbol method,out bool hasMethodOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var attributes = method!.GetAttributes(); // methodSymbol is not null here because it's checked in IsValidAzureFunction which is called before bindings are collected/created
 
                 AttributeData? outputBindingAttribute = null;
-                hasOutputBinding = false;
+                hasMethodOutputBinding = false;
                 retryOptions = null;
 
                 foreach (var attribute in attributes)
@@ -149,8 +149,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     if (SymbolEqualityComparer.Default.Equals(attribute.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
                     {
-                        // There can only be one output binding associated with a function. If there is more than one, we return a diagnostic error here.
-                        if (hasOutputBinding)
+                        // There can only be one method output binding associated with a function. If there is more than one, we return a diagnostic error here.
+                        if (hasMethodOutputBinding)
                         {
                             _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Method", method.Name }));
                             bindingsList = null;
@@ -158,7 +158,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
 
                         outputBindingAttribute = attribute;
-                        hasOutputBinding = true;
+                        hasMethodOutputBinding = true;
                     }
                 }
 
@@ -400,7 +400,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any bindings found in the Return Type of the method
             /// </summary>
-            private bool TryGetReturnTypeBindings(IMethodSymbol method, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetReturnTypeBindings(IMethodSymbol method, bool hasHttpTrigger, bool hasMethodOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
             {
                 ITypeSymbol? returnTypeSymbol = method.ReturnType;
                 bindingsList = new List<IDictionary<string, object>>();
@@ -440,7 +440,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        if (!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasOutputBinding, out bindingsList))
+                        if (!TryGetReturnTypePropertyBindings(returnTypeSymbol, hasHttpTrigger, hasMethodOutputBinding, out bindingsList))
                         {
                             bindingsList = null;
                             return false;
@@ -451,10 +451,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetReturnTypePropertyBindings(ITypeSymbol returnTypeSymbol, bool hasHttpTrigger, bool hasMethodOutputBinding, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var members = returnTypeSymbol.GetMembers();
                 var foundHttpOutput = false;
+                var returnTypeHasOutputBindings = false;
                 bindingsList = new List<IDictionary<string, object>>(); // initialize this without size, because it will be difficult to predict how many bindings we can find here in the user code.
 
                 foreach (var prop in returnTypeSymbol.GetMembers().Where(a => a is IPropertySymbol))
@@ -503,23 +504,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                                 bindingsList.Add(bindingDict!);
 
-                                hasOutputBinding = true;
+                                returnTypeHasOutputBindings = true;
                                 foundPropertyOutputAttr = true;
                             }
                         }
                     }
                 }
 
-                if (hasHttpTrigger && !foundHttpOutput)
+                if (hasHttpTrigger && !foundHttpOutput && !hasMethodOutputBinding && !returnTypeHasOutputBindings)
                 {
-                    if (!hasOutputBinding)
-                    {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
-                    }
-                    else
-                    {
-                        bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.HttpResponseBindingName));
-                    }
+                    bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                 }
 
                 return true;

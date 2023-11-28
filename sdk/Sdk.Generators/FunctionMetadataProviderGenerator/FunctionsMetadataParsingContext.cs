@@ -5,6 +5,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal sealed class FunctionsMetadataParsingContext
     {
-        public string? ScriptFileExtension { get; set; }
+        internal string? ScriptFileExtension { get; set; }
     }
 }

@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
                 var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
                 var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
-                var dependentAssembly = Assembly.LoadFrom("DependentAssemblyWithFunctions.NetFx.dll");
+                var dependentAssembly = Assembly.LoadFrom("DependentAssemblyWithFunctions.NetStandard.dll");
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -105,10 +105,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function1 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "NetFxClassLibraryClass1Function1",
-                                EntryPoint = "DependentAssemblyWithFunctions.NetFx.NetFxClassLibraryClass1.Run1",
+                                Name = "NetStandardClassLibraryClass1Function1",
+                                EntryPoint = "DependentAssemblyWithFunctions.NetStandard.NetStandardClassLibraryClass1.Run1",
                                 RawBindings = Function1RawBindings,
-                                ScriptFile = "DependentAssemblyWithFunctions.NetFx.dll"
+                                ScriptFile = "DependentAssemblyWithFunctions.NetStandard.dll"
                             };
                             metadataList.Add(Function1);
                             var Function2RawBindings = new List<string>();
@@ -118,10 +118,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var Function2 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "NetFxClassLibraryClass1Function2Async",
-                                EntryPoint = "DependentAssemblyWithFunctions.NetFx.NetFxClassLibraryClass1.Run2",
+                                Name = "NetStandardClassLibraryClass1Function2Async",
+                                EntryPoint = "DependentAssemblyWithFunctions.NetStandard.NetStandardClassLibraryClass1.Run2",
                                 RawBindings = Function2RawBindings,
-                                ScriptFile = "DependentAssemblyWithFunctions.NetFx.dll"
+                                ScriptFile = "DependentAssemblyWithFunctions.NetStandard.dll"
                             };
                             metadataList.Add(Function2);
 

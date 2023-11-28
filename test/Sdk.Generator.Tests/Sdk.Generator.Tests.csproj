@@ -36,7 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk.Generators\Sdk.Generators.csproj" />
-    <ProjectReference Include="..\DependentAssemblyWithFunctions.NetFx\DependentAssemblyWithFunctions.NetFx.csproj" />
+    <ProjectReference Include="..\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj" />
     <ProjectReference Include="..\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj" />
     <ProjectReference Include="..\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />

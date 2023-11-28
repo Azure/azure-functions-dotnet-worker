@@ -13,6 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     {
         internal static class Emitter
         {
+            private const string WorkerCoreAssemblyName = "Microsoft.Azure.Functions.Worker.Core";
+
             internal static string Emit(GeneratorExecutionContext context, IEnumerable<ExecutableFunction> executableFunctions, bool includeAutoRegistrationCode)
             {
                 var functions = executableFunctions.ToList();
@@ -71,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private static string EmitCreateDefaultExecutorMethod(GeneratorExecutionContext context)
             {
-                var workerCoreAssembly = context.Compilation.SourceModule.ReferencedAssemblySymbols.Single(a => a.Name == "Microsoft.Azure.Functions.Worker.Core");
+                var workerCoreAssembly = context.Compilation.SourceModule.ReferencedAssemblySymbols.Single(a => a.Name == WorkerCoreAssemblyName);
                 var assemblyIdentity = workerCoreAssembly.Identity;
 
                 return $$"""
@@ -88,7 +90,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private static string GetTypesDictionary(IEnumerable<ExecutableFunction> functions)
             {
-                // Build a dictionary of type names and it's full qualified names (including assembly identity)
+                // Build a dictionary of type names and its full qualified names (including assembly identity)
                 var typesDict = functions
                                     .Where(f => !f.IsStatic)
                                     .GroupBy(f => f.ParentFunctionClassName)

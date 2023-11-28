@@ -78,6 +78,7 @@ namespace TestProject
     /// Custom <see cref=""IFunctionMetadataProvider""/> implementation that returns function metadata definitions for the current worker.""/>
     /// </summary>
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute(""Microsoft.Azure.Functions.Worker.Sdk.Generators"", ""1.1.4-local+5ee6e55d820a2ddfc019b1a57553560859c3d01b"")]
     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
     {{
         /// <inheritdoc/>

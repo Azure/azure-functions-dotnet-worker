@@ -60,6 +60,11 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
             _currentTestOutput?.WriteLine(formattedString);
         }
 
+        public void method(string loglines)
+        {
+            _currentTestOutput?.WriteLine(loglines);
+        }
+
         private class DisposableOutput : IDisposable
         {
             private readonly TestLoggerProvider _xunitLogger;

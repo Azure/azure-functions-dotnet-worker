@@ -116,7 +116,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 
             if (!result.Equals("Hello World"))
             {
-                Assert.Fail(string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                _fixture.TestLogs.method("Logging - " + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                Assert.Fail("Test BlobTrigger_Stream_Succeeds" + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
             }
         }
 

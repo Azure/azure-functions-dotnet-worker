@@ -1,14 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests

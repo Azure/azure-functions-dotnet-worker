@@ -2,8 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using System.Text;
 using System.Text.Json;
 using System.Threading;

@@ -29,17 +29,35 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             string key = "TimerInfo: ";
 
             IEnumerable<string> logs = null;
-            await TestUtility.RetryAsync(() =>
+            try
             {
-                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
-                // The "RunOnStartup" log should show, and then a true invocation.
-                return Task.FromResult(logs.Count() >= 2);
-            });
+                await TestUtility.RetryAsync(() =>
+                {
+                    logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
+                    // The "RunOnStartup" log should show, and then a true invocation.
+                    return Task.FromResult(logs.Count() >= 2);
+                });
+            }
+            catch (ApplicationException ex)
+            {
+                _fixture.TestLogs.method("Condition not reached - " + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                Assert.Fail(ex.Message);
+            }
 
             // Check the serialized TimerInfo; they should all be valid values.
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;
-            var doc = JsonDocument.Parse(lastLog[subStringStart..]);
+            JsonDocument doc = null;
+
+            try
+            {
+                doc = JsonDocument.Parse(lastLog[subStringStart..]);
+            }
+            catch (Exception ex)
+            {
+                _fixture.TestLogs.method("Json parsing - " + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                Assert.Fail(ex.Message);
+            }
 
             Assert.NotEqual(DateTimeOffset.MinValue, doc.RootElement.GetProperty("ScheduleStatus").GetProperty("Last").GetDateTimeOffset());
             Assert.NotEqual(DateTimeOffset.MinValue, doc.RootElement.GetProperty("ScheduleStatus").GetProperty("Next").GetDateTimeOffset());

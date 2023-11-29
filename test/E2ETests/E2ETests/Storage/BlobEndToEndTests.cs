@@ -107,7 +107,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
             }
             catch (ApplicationException ex)
             {
-                Assert.Fail(ex.ToString() + Environment.NewLine + "Logs --" + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                _fixture.TestLogs.method("(Condition not reached) - " + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                Assert.Fail(ex.Message);
             }
 
             var lastLog = logs.Last();
@@ -116,8 +117,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 
             if (!result.Equals("Hello World"))
             {
-                _fixture.TestLogs.method("Logging - " + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
-                Assert.Fail("Test BlobTrigger_Stream_Succeeds" + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                _fixture.TestLogs.method("Missing new line - " + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+                Assert.Fail("Missing new line");
             }
         }
 

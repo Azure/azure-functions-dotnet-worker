@@ -18,14 +18,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
         public class IntegratedTriggersAndBindingsTests
         {
             private readonly Assembly[] _referencedExtensionAssemblies;
-            private readonly string _generatorVersion;
 
             public IntegratedTriggersAndBindingsTests()
             {
-                var generatorAssembly = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Sdk.Generators.dll");
-                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(generatorAssembly.Location);
-                _generatorVersion = fileVersionInfo.ProductVersion!;
-
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");

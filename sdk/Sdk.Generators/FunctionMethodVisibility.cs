@@ -9,9 +9,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
     internal enum FunctionMethodVisibility
     {
         /// <summary>
-        /// The method and it's parent classes are public.
+        /// The method and it's parent classes are public & visible.
         /// </summary>
-        PublicAndVisible,
+        Public,
 
         /// <summary>
         /// The method is public, but one or more of its parent classes are not public.

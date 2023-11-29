@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         IsStatic = method.IsStatic,
                         ParentFunctionClassName = defaultFormatClassName,
                         ParentFunctionFullyQualifiedClassName = fullyQualifiedClassName,
-                        Visibility = MethodVisibilityChecker.GetVisibility(method),
+                        Visibility = method.GetVisibility(),
                         AssemblyIdentity = method.ContainingAssembly.Identity.GetDisplayName(),
                     };
 

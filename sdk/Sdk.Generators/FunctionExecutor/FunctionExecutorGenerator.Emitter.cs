@@ -153,7 +153,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (ExecutableFunction function in functions)
                 {
-                    var fast = function.Visibility == FunctionMethodVisibility.PublicAndVisible;
+                    var fast = function.Visibility == FunctionMethodVisibility.Public;
                     sb.Append($$"""
 
                         {{(first ? string.Empty : "else ")}}if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))

@@ -41,6 +41,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == '' Or $(FunctionsEnableExecutorSourceGen)">true</FunctionsEnableExecutorSourceGen>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
         <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
+        <FunctionsGeneratedCodeNamespace Condition="$(FunctionsGeneratedCodeNamespace) == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace> 
     </PropertyGroup>
 
     <UsingTask TaskName="GenerateFunctionMetadata"

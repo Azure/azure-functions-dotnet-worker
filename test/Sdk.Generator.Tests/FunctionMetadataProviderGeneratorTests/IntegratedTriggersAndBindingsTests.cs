@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async Task FunctionWhereOutputBindingIsInTheReturnType()
+            public async Task FunctionsWhereOutputBindingIsInTheReturnType()
             {
                 // test generating function metadata for a simple HttpTrigger
                 string inputCode = """
@@ -67,6 +67,13 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             throw new NotImplementedException();
                         }
+
+                        [Function("OutputTypeNoHttpProp")]
+                        public static MyOutputTypeNoHttpProp Test([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+                            FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
                     }
 
                     public class MyOutputType
@@ -75,6 +82,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         public string Name { get; set; }
 
                         public HttpResponseData HttpResponse { get; set; }
+                    }
+
+                    public class MyOutputTypeNoHttpProp
+                    {
+                        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+                        public string Name { get; set; }
                     }
                 }
                 """;
@@ -119,6 +132,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
+                            var Function1RawBindings = new List<string>();
+                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function1RawBindings.Add(@"{""name"":""Name"",""type"":""queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
+                
+                            var Function1 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "OutputTypeNoHttpProp",
+                                EntryPoint = "FunctionApp.HttpTriggerWithMultipleOutputBindings.Test",
+                                RawBindings = Function1RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function1);
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }

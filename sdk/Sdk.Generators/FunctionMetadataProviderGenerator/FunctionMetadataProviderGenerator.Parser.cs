@@ -40,7 +40,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// Takes in candidate methods from the user compilation and parses them to return function metadata info as GeneratorFunctionMetadata.
             /// </summary>
             /// <param name="methods">List of candidate methods from the syntax receiver.</param>
-            public IReadOnlyList<GeneratorFunctionMetadata> GetFunctionMetadataInfo(List<IMethodSymbol> methods)
+            /// <param name="parsingContext">An instance of <see cref="FunctionsMetadataParsingContext"/>. Optional.</param>
+            public IReadOnlyList<GeneratorFunctionMetadata> GetFunctionMetadataInfo(List<IMethodSymbol> methods, FunctionsMetadataParsingContext? parsingContext = null)
             {
                 var result = ImmutableArray.CreateBuilder<GeneratorFunctionMetadata>();
 
@@ -49,14 +50,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     CancellationToken.ThrowIfCancellationRequested();
 
-                    string? funcName = null;
-                    if (!FunctionsUtil.TryGetFunctionName(method, Compilation, out funcName))
+                    if (!FunctionsUtil.TryGetFunctionName(method, Compilation, out var funcName))
                     {
                         _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.SymbolNotFound, Location.None, method.Name)); // would only reach here if the function attribute or method was not loaded, resulting in failure to retrieve name
                     }
 
                     var assemblyName = method.ContainingAssembly.Name;
-                    var scriptFile = Path.Combine(assemblyName + ".dll");
+                    var scriptFile = $"{assemblyName}{parsingContext?.ScriptFileExtension ?? ".dll"}";
 
                     var newFunction = new GeneratorFunctionMetadata
                     {

@@ -11,5 +11,6 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.5
 - Update worker.config generation to accurate worker executable name (#1053)
+- Fix incorrect value of `ScriptFile` property in function metadata for .Net Framework function apps (#2103)
 - Generate valid namespace when root namespace contains `-` (#2097)
 - Bug fix for scenarios with `$return` output binding and `HttpTrigger` breaking output-binding rules (#2098)

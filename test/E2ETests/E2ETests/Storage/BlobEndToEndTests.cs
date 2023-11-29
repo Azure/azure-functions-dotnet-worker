@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
+using Xunit.Sdk;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 {
@@ -95,17 +96,28 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
 
             //Verify
             IEnumerable<string> logs = null;
-            await TestUtility.RetryAsync(() =>
+
+            try
             {
-                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
-                return Task.FromResult(logs.Count() >= 1);
-            }, pollingInterval: 4000, timeout: 120 * 1000);
+                await TestUtility.RetryAsync(() =>
+                {
+                    logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains(key));
+                    return Task.FromResult(logs.Count() >= 1);
+                }, userMessageCallback: () => string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+            }
+            catch (ApplicationException ex)
+            {
+                Assert.Fail(ex.ToString() + Environment.NewLine + "Logs --" + Environment.NewLine + string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+            }
 
             var lastLog = logs.Last();
             int subStringStart = lastLog.LastIndexOf(key) + key.Length;
             var result = lastLog[subStringStart..];
 
-            Assert.Equal("Hello World", result);
+            if (!result.Equals("Hello World"))
+            {
+                Assert.Fail(string.Join(Environment.NewLine, _fixture.TestLogs.CoreToolsLogs));
+            }
         }
 
         [Fact(Skip = "TODO: https://github.com/Azure/azure-functions-dotnet-worker/issues/1910")]

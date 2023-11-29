@@ -16,7 +16,7 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
-    public class FunctionExecutorGeneratorTests
+    public partial class FunctionExecutorGeneratorTests
     {
         // A super set of assemblies we need for all tests in the file.
         private readonly Assembly[] _referencedAssemblies = new[]
@@ -116,9 +116,9 @@ namespace TestProject
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }},
-            {{ ""MyCompany.MyHttpTriggers2"", Type.GetType(""MyCompany.MyHttpTriggers2"")! }},
-            {{ ""MyCompany.QueueTriggers"", Type.GetType(""MyCompany.QueueTriggers"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
+            {{ ""MyCompany.MyHttpTriggers2"", Type.GetType(""MyCompany.MyHttpTriggers2, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
+            {{ ""MyCompany.QueueTriggers"", Type.GetType(""MyCompany.QueueTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -225,7 +225,7 @@ namespace MyCompany.MyProject.MyApp
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -471,7 +471,7 @@ namespace TestProject
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -556,7 +556,7 @@ namespace TestProject
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""TestProject.TestProject"", Type.GetType(""TestProject.TestProject"")! }}
+            {{ ""TestProject.TestProject"", Type.GetType(""TestProject.TestProject, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -639,7 +639,7 @@ namespace TestProject
         private readonly IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)

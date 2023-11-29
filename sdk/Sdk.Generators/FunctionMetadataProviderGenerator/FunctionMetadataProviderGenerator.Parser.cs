@@ -45,8 +45,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var result = ImmutableArray.CreateBuilder<GeneratorFunctionMetadata>();
 
-                // Loop through the candidate methods (methods with any attribute associated with them)
-                foreach (IMethodSymbol method in methods)
+                // Loop through the candidate methods (methods with any attribute associated with them) which are public.
+                foreach (IMethodSymbol method in methods.Where(m => m.DeclaredAccessibility == Accessibility.Public))
                 {
                     CancellationToken.ThrowIfCancellationRequested();
 
@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             /// <summary>
             /// Checks for and returns any OutputBinding attributes associated with the method.
             /// </summary>
-            private bool TryGetMethodOutputBinding(IMethodSymbol method,out bool hasMethodOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
+            private bool TryGetMethodOutputBinding(IMethodSymbol method, out bool hasMethodOutputBinding, out GeneratorRetryOptions? retryOptions, out IList<IDictionary<string, object>>? bindingsList)
             {
                 var attributes = method!.GetAttributes(); // methodSymbol is not null here because it's checked in IsValidAzureFunction which is called before bindings are collected/created
 

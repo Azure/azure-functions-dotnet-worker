@@ -120,7 +120,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Azure.Functions.Worker.Sdk.Generators", "{{_generatorVersion}}")]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -256,7 +256,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Azure.Functions.Worker.Sdk.Generators", "{{_generatorVersion}}")]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -367,7 +367,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Azure.Functions.Worker.Sdk.Generators", "{{_generatorVersion}}")]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -463,7 +463,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Azure.Functions.Worker.Sdk.Generators", "{{_generatorVersion}}")]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -558,7 +558,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Azure.Functions.Worker.Sdk.Generators", "{{_generatorVersion}}")]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -663,7 +663,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.Azure.Functions.Worker.Sdk.Generators", "{{_generatorVersion}}")]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>

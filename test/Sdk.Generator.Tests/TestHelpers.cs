@@ -22,6 +22,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
     static class TestHelpers
     {
+        // Default language version is the lowest version we support.(C# 7.3 which is default for .NET Framework)
+        // See full matrix here: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version
+        private const LanguageVersion _defaultLanguageVersion = LanguageVersion.CSharp7_3;
+
         public static Task RunTestAsync<TSourceGenerator>(
             IEnumerable<Assembly> extensionAssemblyReferences,
             string inputSource,
@@ -29,10 +33,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             string? expectedOutputSource,
             List<DiagnosticResult>? expectedDiagnosticResults = null,
             IDictionary<string, string>? buildPropertiesDictionary = null,
-            string? generatedCodeNamespace = null) where TSourceGenerator : ISourceGenerator, new()
+            string? generatedCodeNamespace = null,
+            LanguageVersion? languageVersion = null) where TSourceGenerator : ISourceGenerator, new()
         {
             CSharpSourceGeneratorVerifier<TSourceGenerator>.Test test = new()
             {
+                LanguageVersion = languageVersion ?? _defaultLanguageVersion,
                 TestState =
                 {
                     Sources = { inputSource },
@@ -63,6 +69,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 {buildProperty.Key} = {buildProperty.Value}";
                 }
             }
+
 
             test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", config));
 

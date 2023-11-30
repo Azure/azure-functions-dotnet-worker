@@ -3,6 +3,7 @@
 
 using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -40,8 +41,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 };
             }
 
-            [Fact]
-            public async void TestQueueTriggerAndOutput()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void TestQueueTriggerAndOutput(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System.Collections.Generic;
@@ -134,11 +141,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void TestBlobAndQueueInputsAndOutputs()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void TestBlobAndQueueInputsAndOutputs(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -275,11 +289,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void TestQueueOutputWithHttpTrigger()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void TestQueueOutputWithHttpTrigger(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -373,7 +394,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
         }
     }

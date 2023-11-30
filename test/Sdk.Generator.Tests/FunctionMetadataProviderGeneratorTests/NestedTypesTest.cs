@@ -4,6 +4,7 @@
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -35,8 +36,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 };
             }
 
-            [Fact]
-            public async Task NestedNamespace()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task NestedNamespace(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -132,10 +139,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
-            [Fact]
-            public async Task NestedClass()
+
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task NestedClass(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -228,7 +243,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
         }
     }

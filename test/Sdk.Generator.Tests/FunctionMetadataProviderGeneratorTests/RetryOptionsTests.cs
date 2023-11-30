@@ -5,6 +5,7 @@ using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
@@ -40,8 +41,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 };
             }
 
-            [Fact]
-            public async Task FixedDelayRetryPopulated_Success()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task FixedDelayRetryPopulated_Success(LanguageVersion languageVersion)
             {
                 // test generating function metadata for a simple HttpTrigger
                 string inputCode = """
@@ -137,11 +144,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async Task ExponentialBackoffRetryPopulated_Success()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task ExponentialBackoffRetryPopulated_Success(LanguageVersion languageVersion)
             {
                 // test generating function metadata for a simple HttpTrigger
                 string inputCode = """
@@ -237,7 +251,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
         }
     }

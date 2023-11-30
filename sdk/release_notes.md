@@ -17,3 +17,4 @@
 - Fix incorrect value of `ScriptFile` property in function metadata for .Net Framework function apps (#2103)
 - Generate valid namespace when root namespace contains `-` (#2097)
 - Bug fix for scenarios with `$return` output binding and `HttpTrigger` breaking output-binding rules (#2098)
+- Add `CompilerGeneratedAttribute`` to generated code (#2104)

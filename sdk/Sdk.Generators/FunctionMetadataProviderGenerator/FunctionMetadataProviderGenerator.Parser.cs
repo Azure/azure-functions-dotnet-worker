@@ -434,7 +434,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponse)) // If return type is HttpResponseData
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponse) && !hasMethodOutputBinding) // If return type is HttpResponseData
                     {
                         bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }

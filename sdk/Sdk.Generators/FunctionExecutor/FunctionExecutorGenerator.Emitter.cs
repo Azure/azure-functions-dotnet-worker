@@ -103,9 +103,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return $$"""
-                private readonly Dictionary<string, Type> types = new()
+                private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
                         {
-                           {{string.Join($",{Environment.NewLine}           ", typesDict.Select(c => $$""" { "{{c.Key}}", Type.GetType("{{c.Key}}, {{c.Value}}")! }"""))}}
+                           {{string.Join($",{Environment.NewLine}           ", typesDict.Select(c => $$""" { "{{c.Key}}", Type.GetType("{{c.Key}}, {{c.Value}}") }"""))}}
                         };
 
                 """;
@@ -144,8 +144,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var sb = new StringBuilder();
                 sb.Append(
                    $$"""
-                var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-                            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+                var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+                            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
                             var inputArguments = inputBindingResult.Values;
                 {{(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Environment.NewLine}" : string.Empty)}}
                 """);

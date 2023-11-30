@@ -115,11 +115,11 @@ namespace TestProject
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
-        private readonly Dictionary<string, Type> types = new()
+        private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
-            {{ ""MyCompany.MyHttpTriggers2"", Type.GetType(""MyCompany.MyHttpTriggers2, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }},
-            {{ ""MyCompany.QueueTriggers"", Type.GetType(""MyCompany.QueueTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }},
+            {{ ""MyCompany.MyHttpTriggers2"", Type.GetType(""MyCompany.MyHttpTriggers2, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }},
+            {{ ""MyCompany.QueueTriggers"", Type.GetType(""MyCompany.QueueTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -130,8 +130,8 @@ namespace TestProject
         /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Foo"", StringComparison.Ordinal))
@@ -225,9 +225,9 @@ namespace MyCompany.MyProject.MyApp
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
-        private readonly Dictionary<string, Type> types = new()
+        private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -238,8 +238,8 @@ namespace MyCompany.MyProject.MyApp
         /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run1"", StringComparison.Ordinal))
@@ -372,8 +372,8 @@ namespace TestProject
         /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyTaskStaticMethod"", StringComparison.Ordinal))
@@ -473,9 +473,9 @@ namespace TestProject
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
-        private readonly Dictionary<string, Type> types = new()
+        private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -486,8 +486,8 @@ namespace TestProject
         /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run1"", StringComparison.Ordinal))
@@ -559,9 +559,9 @@ namespace TestProject
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
-        private readonly Dictionary<string, Type> types = new()
+        private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
-            {{ ""TestProject.TestProject"", Type.GetType(""TestProject.TestProject, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
+            {{ ""TestProject.TestProject"", Type.GetType(""TestProject.TestProject, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -572,8 +572,8 @@ namespace TestProject
         /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""TestProject.TestProject.Foo"", StringComparison.Ordinal))
@@ -643,9 +643,9 @@ namespace TestProject
     internal class DirectFunctionExecutor : IFunctionExecutor
     {{
         private readonly IFunctionActivator _functionActivator;
-        private readonly Dictionary<string, Type> types = new()
+        private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
-            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"")! }}
+            {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
         public DirectFunctionExecutor(IFunctionActivator functionActivator)
@@ -656,8 +656,8 @@ namespace TestProject
         /// <inheritdoc/>
         public async ValueTask ExecuteAsync(FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>()!;
-            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context)!;
+            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Hello"", StringComparison.Ordinal))

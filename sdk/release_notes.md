@@ -18,3 +18,4 @@
 - Generate valid namespace when root namespace contains `-` (#2097)
 - Bug fix for scenarios with `$return` output binding and `HttpTrigger` breaking output-binding rules (#2098)
 - Add `CompilerGeneratedAttribute`` to generated code (#2104)
+- Add test and fix for scenario with `HttpTrigger` function that returns `HttpResponseData` along with method-level output binding (#2111)

@@ -8,6 +8,7 @@ using Azure.Messaging.EventHubs;
 using Azure.Storage.Queues.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -37,8 +38,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             typeof(IHostBuilder).Assembly
         };
 
-        [Fact]
-        public async Task FunctionsFromMultipleClasses()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task FunctionsFromMultipleClasses(LanguageVersion languageVersion)
         {
             const string inputSourceCode = @"
 using System;
@@ -171,11 +178,18 @@ namespace TestProject
                 _referencedAssemblies,
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
-                expectedOutput);
+                expectedOutput,
+                languageVersion: languageVersion);
         }
 
-        [Fact]
-        public async Task MultipleFunctionsDependencyInjection()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task MultipleFunctionsDependencyInjection(LanguageVersion languageVersion)
         {
             string inputSourceCode = @"
 using System.Net;
@@ -270,11 +284,18 @@ namespace MyCompany.MyProject.MyApp
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
                 expectedOutput,
-                buildPropertiesDictionary: buildPropertiesDict);
+                buildPropertiesDictionary: buildPropertiesDict,
+                languageVersion: languageVersion);
         }
 
-        [Fact]
-        public async Task StaticMethods()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task StaticMethods(LanguageVersion languageVersion)
         {
             var inputSourceCode = @"
 using System;
@@ -322,8 +343,10 @@ namespace FunctionApp26
         [Function(nameof(BlobTriggers))]
         public static async Task Run([BlobTrigger(""items/{name}"", Connection = ""ConStr"")] Stream stream, string name)
         {
-            using var blobStreamReader = new StreamReader(stream);
-            var content = await blobStreamReader.ReadToEndAsync();
+            using (var blobStreamReader = new StreamReader(stream))
+            {
+                var content = await blobStreamReader.ReadToEndAsync();
+            }
         }
     }
     public class EventHubTriggers
@@ -429,13 +452,24 @@ namespace TestProject
                 _referencedAssemblies,
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
-                expectedOutput);
+                expectedOutput,
+                languageVersion: languageVersion);
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task VerifyAutoConfigureStartupTypeEmitted(bool includeAutoStartupType)
+        [InlineData(true, LanguageVersion.CSharp7_3)]
+        [InlineData(true, LanguageVersion.CSharp8)]
+        [InlineData(true, LanguageVersion.CSharp9)]
+        [InlineData(true, LanguageVersion.CSharp10)]
+        [InlineData(true, LanguageVersion.CSharp11)]
+        [InlineData(true, LanguageVersion.Latest)]
+        [InlineData(false, LanguageVersion.CSharp7_3)]
+        [InlineData(false, LanguageVersion.CSharp8)]
+        [InlineData(false, LanguageVersion.CSharp9)]
+        [InlineData(false, LanguageVersion.CSharp10)]
+        [InlineData(false, LanguageVersion.CSharp11)]
+        [InlineData(false, LanguageVersion.Latest)]
+        public async Task VerifyAutoConfigureStartupTypeEmitted(bool includeAutoStartupType, LanguageVersion languageVersion)
         {
             string inputSourceCode = @"
 using System.Net;
@@ -511,11 +545,18 @@ namespace TestProject
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
                 expectedOutput,
-                buildPropertiesDictionary: buildPropertiesDict);
+                buildPropertiesDictionary: buildPropertiesDict,
+                languageVersion: languageVersion);
         }
 
-        [Fact]
-        public async Task ClassWithSameNameAsNamespace()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task ClassWithSameNameAsNamespace(LanguageVersion languageVersion)
         {
             const string inputSourceCode = @"
 using System;
@@ -595,11 +636,18 @@ namespace TestProject
                 _referencedAssemblies,
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
-                expectedOutput);
+                expectedOutput,
+                languageVersion: languageVersion);
         }
 
-        [Fact]
-        public async Task FunctionsWithSameNameExceptForCasing()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task FunctionsWithSameNameExceptForCasing(LanguageVersion languageVersion)
         {
             const string inputSourceCode = @"
 using System;
@@ -679,7 +727,8 @@ namespace TestProject
                 _referencedAssemblies,
                 inputSourceCode,
                 Constants.FileNames.GeneratedFunctionExecutor,
-                expectedOutput);
+                expectedOutput,
+                languageVersion: languageVersion);
         }
 
         private static string GetExpectedExtensionMethodCode(bool includeAutoStartupType = false)

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -38,8 +39,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 };
             }
 
-            [Fact]
-            public async Task FunctionInDependentAssemblyTest()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task FunctionInDependentAssemblyTest(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -160,7 +167,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    buildPropertiesDictionary: buildPropertiesDict);
+                    buildPropertiesDictionary: buildPropertiesDict,
+                    languageVersion: languageVersion);
             }
         }
     }

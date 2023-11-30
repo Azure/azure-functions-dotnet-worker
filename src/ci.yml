@@ -1,12 +1,3 @@
-schedules:
-- cron: '*/30 * * * *'
-  displayName: Daily midnight build
-  branches:
-    include:
-    - surgupta/flakytestfix3
-  always: true
-
-
 trigger:
   branches:
     include:

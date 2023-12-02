@@ -10,4 +10,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.6-preview1
 
-- Avoid executing the source generator outside of an Azure Functions project. (#2119)
+- Avoid executing source generators outside of an Azure Functions project. (#2119)

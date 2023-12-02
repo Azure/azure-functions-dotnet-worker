@@ -18,7 +18,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                  }
                                  """;
 
-
             [Theory]
             [InlineData(LanguageVersion.CSharp7_3)]
             [InlineData(LanguageVersion.CSharp8)]

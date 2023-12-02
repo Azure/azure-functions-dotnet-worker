@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         {
             if (context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.FunctionsExecutionModel, out var value))
             {
-                return string.Equals(value, Constants.Isolated);
+                return string.Equals(value, Constants.ExecutionModel.Isolated);
             }
 
             return false;

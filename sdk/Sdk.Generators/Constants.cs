@@ -5,7 +5,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal static class Constants
     {
-        internal const string Isolated = "isolated";
+        internal static class ExecutionModel
+        {
+            internal const string Isolated = "isolated";
+        }
 
         internal static class Languages
         {

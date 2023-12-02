@@ -21,6 +21,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
+            if (!context.IsRunningInAzureFunctionProject())
+            {
+                return;
+            }
+
             if (!ShouldExecuteGeneration(context))
             {
                 return;

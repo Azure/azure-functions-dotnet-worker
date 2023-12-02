@@ -25,6 +25,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
+            if (!context.IsRunningInAzureFunctionProject())
+            {
+                return;
+            }
+
             if (context.SyntaxReceiver is not FunctionMethodSyntaxReceiver receiver || receiver.CandidateMethods.Count == 0)
             {
                 return;

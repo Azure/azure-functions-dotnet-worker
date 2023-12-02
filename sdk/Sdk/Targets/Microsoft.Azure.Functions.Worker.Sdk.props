@@ -27,6 +27,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <CompilerVisibleProperty Include="FunctionsAutoRegisterGeneratedMetadataProvider" />
     <CompilerVisibleProperty Include="FunctionsGeneratedCodeNamespace" />
     <CompilerVisibleProperty Include="TargetFrameworkIdentifier" />
+    <CompilerVisibleProperty Include="FunctionsExecutionModel" />
   </ItemGroup>
 <!--
   ***********************************************************************************************

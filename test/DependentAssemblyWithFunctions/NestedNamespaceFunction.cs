@@ -4,11 +4,11 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 
-namespace DependentAssemblyWithFunctions
+namespace MyCompany.MyProduct.MyApp
 {
-    public class DependencyFunction
+    public class HttpFunctions
     {
-        [Function("DependencyFunc")]
+        [Function("NestedNamespaceFunc1")]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
             throw new NotImplementedException();

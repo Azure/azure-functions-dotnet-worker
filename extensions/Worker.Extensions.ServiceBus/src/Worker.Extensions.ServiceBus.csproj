@@ -6,7 +6,7 @@
     <Description>Azure Service Bus extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.13.0</VersionPrefix>
+    <VersionPrefix>5.14.1</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -15,12 +15,15 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
-    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.14.0" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.16.2" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.3" />
+    <PackageReference Include="Google.Protobuf" Version="3.23.4" />
+    <PackageReference Include="Grpc.Tools" Version="2.56.2" PrivateAssets="All"/>
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\Worker.Extensions.Rpc\src\Worker.Extensions.Rpc.csproj" />
     <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
 
@@ -28,4 +31,7 @@
     <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Protobuf Include="Proto/settlement.proto" GrpcServices="client" Access="internal" />
+  </ItemGroup>
 </Project>

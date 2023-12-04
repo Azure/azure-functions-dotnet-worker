@@ -15,21 +15,30 @@ using Microsoft.CodeAnalysis.Testing.Verifiers;
 using Microsoft.Azure.Functions.Worker.Core;
 using System.Reflection;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.Versioning;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
     static class TestHelpers
     {
+        // Default language version is the lowest version we support.(C# 7.3 which is default for .NET Framework)
+        // See full matrix here: https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/configure-language-version
+        private const LanguageVersion _defaultLanguageVersion = LanguageVersion.CSharp7_3;
+
         public static Task RunTestAsync<TSourceGenerator>(
             IEnumerable<Assembly> extensionAssemblyReferences,
             string inputSource,
             string? expectedFileName,
             string? expectedOutputSource,
             List<DiagnosticResult>? expectedDiagnosticResults = null,
-            IDictionary<string, string>? buildPropertiesDictionary = null) where TSourceGenerator : ISourceGenerator, new()
+            IDictionary<string, string>? buildPropertiesDictionary = null,
+            string? generatedCodeNamespace = null,
+            LanguageVersion? languageVersion = null) where TSourceGenerator : ISourceGenerator, new()
         {
             CSharpSourceGeneratorVerifier<TSourceGenerator>.Test test = new()
             {
+                LanguageVersion = languageVersion ?? _defaultLanguageVersion,
                 TestState =
                 {
                     Sources = { inputSource },
@@ -49,7 +58,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             var config = $@"is_global = true
                             build_property.FunctionsEnableExecutorSourceGen = {true}
                             build_property.FunctionsEnableMetadataSourceGen = {true}
-                            build_property.RootNamespace = TestProject";
+                            build_property.FunctionsGeneratedCodeNamespace = {generatedCodeNamespace ?? "TestProject"}";
 
             // Add test specific MSBuild properties.
             if (buildPropertiesDictionary is not null)
@@ -60,6 +69,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 {buildProperty.Key} = {buildProperty.Value}";
                 }
             }
+
 
             test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", config));
 
@@ -86,11 +96,16 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
         {
             public Test()
             {
-                // See https://www.nuget.org/packages/Microsoft.NETCore.App.Ref/6.0.0
+                var targetFrameworkAttribute = Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(TargetFrameworkAttribute), false)
+                                                       .SingleOrDefault() as TargetFrameworkAttribute;
+
+                string targetFramework = targetFrameworkAttribute!.FrameworkName;
+                var tfm = ConvertFrameworkMonikerToTfm(targetFramework);
+
                 this.ReferenceAssemblies = new ReferenceAssemblies(
-                    targetFramework: "net6.0",
-                    referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", "6.0.0"),
-                    referenceAssemblyPath: Path.Combine("ref", "net6.0"));
+                    targetFramework: tfm,
+                    referenceAssemblyPackage: new PackageIdentity("Microsoft.NETCore.App.Ref", Environment.Version.ToString()),
+                    referenceAssemblyPath: Path.Combine("ref", tfm));
             }
 
             public LanguageVersion LanguageVersion { get; set; } = LanguageVersion.CSharp9;
@@ -117,6 +132,29 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             protected override ParseOptions CreateParseOptions()
             {
                 return ((CSharpParseOptions)base.CreateParseOptions()).WithLanguageVersion(this.LanguageVersion);
+            }
+
+            /// <summary>
+            /// Example input: .NETCoreApp,Version=v7.0
+            /// Example output: net7.0
+            /// </summary>
+            private static string ConvertFrameworkMonikerToTfm(string frameworkMoniker)
+            {
+                var parts = frameworkMoniker.Split(',');
+                var identifier = parts[0];
+                var version = parts[1].Split('=')[1];
+
+                switch (identifier)
+                {
+                    case ".NETCoreApp":
+                        return $"net{version.Substring(1)}";
+                    case ".NETFramework":
+                        return $"net{version.Replace(".", "")}";
+                    case ".NETStandard":
+                        return $"netstandard{version.Substring(1)}";
+                    default:
+                        throw new NotSupportedException($"Unknown framework identifier: {identifier}");
+                }
             }
         }
     }

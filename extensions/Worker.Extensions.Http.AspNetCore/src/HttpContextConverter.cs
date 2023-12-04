@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Converters;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
@@ -16,15 +18,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         {
             object? target = null;
 
-            if (context.TargetType == typeof(HttpRequest))
+            if (context.TargetType == typeof(HttpRequest)
+                && context.FunctionContext.TryGetRequest(out var request))
             {
-                if (context.FunctionContext.Items.TryGetValue(Constants.HttpContextKey, out var requestContext)
-                    && requestContext is HttpContext httpContext)
-                {
-                    target = httpContext.Request;
-                }
+                target = request;
             }
-
+            else if (context.TargetType == typeof(HttpRequestData)
+                && context.FunctionContext.TryGetRequest(out request))
+            {
+                target = new AspNetCoreHttpRequestData(request, context.FunctionContext);
+            }
+            
             if (target is not null)
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Success(target));

@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
         string? Domain { get; }
 
         /// <summary>
-        /// Gets or sets experation date of the cookie. An experation date sets the 
+        /// Gets or sets expiration date of the cookie. An expiration date sets the 
         /// cookie to expire at a specific date instead of when the client closes.
         /// NOTE: It is generally recommended that you use MaxAge over Expires.
         /// </summary>

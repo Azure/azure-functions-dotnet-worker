@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
 {
@@ -17,13 +18,15 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
     /// </summary>    
     internal class FunctionsRoleEnvironmentTelemetryInitializer : ITelemetryInitializer
     {
-        internal const string AzureWebsiteName = "WEBSITE_SITE_NAME";
-        internal const string AzureWebsiteSlotName = "WEBSITE_SLOT_NAME";
-        internal const string AzureWebsiteCloudRoleName = "WEBSITE_CLOUD_ROLENAME";
-        private const string DefaultProductionSlotName = "production";
-        private const string WebAppSuffix = ".azurewebsites.net";
+        internal const string WebAppSuffix = ".azurewebsites.net";
 
         private readonly ConcurrentDictionary<string, string> _siteNodeNames = new(StringComparer.OrdinalIgnoreCase);
+        private readonly IOptionsMonitor<AppServiceOptions> _appServiceOptions;
+
+        public FunctionsRoleEnvironmentTelemetryInitializer(IOptionsMonitor<AppServiceOptions> appServiceOptions)
+        {
+            _appServiceOptions = appServiceOptions;
+        }
 
         /// <summary>
         /// Initializes <see cref="ITelemetry" /> device context.
@@ -36,49 +39,27 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
                 return;
             }
 
-            var siteSlotName = new Lazy<string?>(() =>
-            {
-                // We cannot cache these values as the environment variables can change on the fly.
-                return GetAzureWebsiteUniqueSlotName();
-            });
+            var options = _appServiceOptions.CurrentValue;
 
-            var websiteCloudRoleName = Environment.GetEnvironmentVariable(AzureWebsiteCloudRoleName);
-
-            if (!string.IsNullOrEmpty(websiteCloudRoleName))
+            if (!string.IsNullOrEmpty(options.AzureWebsiteCloudRoleName))
             {
-                telemetry.Context.Cloud.RoleName = websiteCloudRoleName;
+                telemetry.Context.Cloud.RoleName = options.AzureWebsiteCloudRoleName;
             }
             else
             {
-                telemetry.Context.Cloud.RoleName = siteSlotName.Value;
+                telemetry.Context.Cloud.RoleName = options.AzureWebsiteSlotName;
             }
 
             var internalContext = telemetry.Context.GetInternalContext();
-            if (!string.IsNullOrEmpty(siteSlotName.Value))
+            if (!string.IsNullOrEmpty(options.AzureWebsiteSlotName))
             {
-                internalContext.NodeName = _siteNodeNames.GetOrAdd(siteSlotName.Value!, p =>
+                internalContext.NodeName = _siteNodeNames.GetOrAdd(options.AzureWebsiteSlotName!, p =>
                 {
                     // maintain previous behavior of node having the full url
                     return p += WebAppSuffix;
                 });
             }
         }
-
-        /// <summary>
-        /// Gets a value that uniquely identifies the site and slot.
-        /// </summary>
-        private static string? GetAzureWebsiteUniqueSlotName()
-        {
-            var name = Environment.GetEnvironmentVariable(AzureWebsiteName);
-            var slotName = Environment.GetEnvironmentVariable(AzureWebsiteSlotName);
-
-            if (!string.IsNullOrEmpty(slotName) &&
-                !string.Equals(slotName, DefaultProductionSlotName, StringComparison.OrdinalIgnoreCase))
-            {
-                name += $"-{slotName}";
-            }
-
-            return name?.ToLowerInvariant();
-        }
     }
 }
+

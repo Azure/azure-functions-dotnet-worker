@@ -22,7 +22,7 @@ namespace AspNetIntegration
             {
                 string? displayName = endpoint.DisplayName;
                 string? routePattern = endpoint.RoutePattern.RawText;
-                IReadOnlyList<string>? httpMethods = (endpoint.Metadata.Single() as HttpMethodMetadata)?.HttpMethods;
+                IReadOnlyList<string>? httpMethods = (endpoint.Metadata.Single(b=>b is HttpMethodMetadata) as HttpMethodMetadata)?.HttpMethods;
             }
 
             // continue along with function execution

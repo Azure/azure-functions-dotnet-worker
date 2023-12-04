@@ -2,6 +2,13 @@ parameters:
 - name: ExtensionDirectory
   type: string
   default: not-specified
+- name: RunExtensionTests
+  displayName: Run Extension Tests?
+  type: boolean
+  default: false
+- name: Solution
+  type: string
+  default:
 
 jobs:
 - job: "Build_And_Test_Windows"
@@ -23,14 +30,14 @@ jobs:
       arguments: '-c Release -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
       projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
-  #  Extensions test structure must be defined
-  # - task: DotNetCoreCLI@2
-  #   displayName: 'Run tests'
-  #   inputs:
-  #     command: 'test'
-  #     arguments: '--no-build -c Release'
-  #     projects: |
-  #       test/**/*Tests.csproj
+  - ${{ if eq(parameters.RunExtensionTests, true) }}:
+    - task: DotNetCoreCLI@2
+      displayName: 'Run tests'
+      inputs:
+        command: 'test'
+        arguments: '-c Release'
+        projects: |
+          test/${{ parameters.ExtensionDirectory }}.Tests/**/*Tests.csproj
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning - Authenticode'
@@ -76,7 +83,11 @@ jobs:
       command: 'custom'
       custom: 'pack'
       arguments: '--no-build -c Release -o packages -p:BuildNumber=$(buildNumber) -p:IsLocalBuild=False'
-      projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
+      ${{if parameters.Solution}}: 
+        projects: |
+          **\${{ parameters.Solution }}
+      ${{ else }}: 
+        projects: ${{ parameters.ExtensionDirectory }}/src/*.csproj
 
   - task: SFP.build-tasks.custom-build-task-1.EsrpCodeSigning@2
     displayName: 'ESRP CodeSigning: Nupkg'

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -36,8 +37,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 };
             }
 
-            [Fact]
-            public async Task GenerateSimpleHttpTriggerMetadataTest()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task GenerateSimpleHttpTriggerMetadataTest(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -73,13 +80,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 namespace TestProject
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -96,6 +109,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         }
                     }
 
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -118,11 +134,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void BasicHttpFunctionWithNoResponse()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -159,13 +182,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 namespace TestProject
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""post""],""route"":""/api2""}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""post""],""route"":""/api2""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
@@ -181,6 +210,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         }
                     }
 
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -203,11 +235,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void ReturnTypeJustHttp()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void ReturnTypeJustHttp(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -249,13 +288,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
                 namespace MyCompany.MyProject.MyApp
                 {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
+                        /// <inheritdoc/>
                         public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""HttpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
                             Function0RawBindings.Add(@"{""name"":""httpResponseProp"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
@@ -272,6 +317,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         }
                     }
 
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
                     public static class WorkerHostBuilderFunctionMetadataProviderExtension
                     {
                         ///<summary>
@@ -300,7 +348,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    buildPropertiesDictionary: buildPropertiesDict);
+                    buildPropertiesDictionary: buildPropertiesDict,
+                    languageVersion: languageVersion);
             }
         }
     }

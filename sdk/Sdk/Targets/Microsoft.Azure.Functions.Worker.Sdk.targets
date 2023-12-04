@@ -19,9 +19,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v8.0'">net8-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
-    <_FunctionsTaskFramework Condition=" '$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
-    <_FunctionsTaskFramework Condition=" '$(_FunctionsTaskFramework)' == ''">net472</_FunctionsTaskFramework>
-    <_FunctionsTasksDir Condition=" '$(_FunctionsTasksDir)'=='' ">$(MSBuildThisFileDirectory)..\tools\$(_FunctionsTaskFramework)\</_FunctionsTasksDir>
+    <_FunctionsTaskFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
+    <_FunctionsTaskFramework Condition="'$(_FunctionsTaskFramework)' == ''">net472</_FunctionsTaskFramework>
+    <_FunctionsTasksDir Condition="'$(_FunctionsTasksDir)'==''">$(MSBuildThisFileDirectory)..\tools\$(_FunctionsTaskFramework)\</_FunctionsTasksDir>
     <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(_FunctionsTasksDir)\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
 
     <_FunctionsExtensionCommonProps>ImportDirectoryBuildProps=false;ImportDirectoryBuildTargets=false;ImportDirectoryPackagesProps=false</_FunctionsExtensionCommonProps>
@@ -32,17 +32,16 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
     <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
 
-    <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
-    <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnablePlaceholder)">true</FunctionsEnableWorkerIndexing>
-    <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' And !$(FunctionsEnablePlaceholder)">false</FunctionsEnableWorkerIndexing>
-    <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableWorkerIndexing) And $(FunctionsEnableMetadataSourceGen) == ''">true</FunctionsEnableMetadataSourceGen>
-    <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == ''">false</FunctionsEnableExecutorSourceGen>
-    <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
-    <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
-    <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == ''">false</FunctionsAutoRegisterGeneratedMetadataProvider>
-    <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
+    <FunctionsEnablePlaceholder Condition="'$(FunctionsEnablePlaceholder)' == ''">false</FunctionsEnablePlaceholder>
+    <FunctionsEnableWorkerIndexing Condition="'$(FunctionsEnableWorkerIndexing)' == ''">true</FunctionsEnableWorkerIndexing>
+    <FunctionsEnableMetadataSourceGen>$(FunctionsEnableWorkerIndexing)</FunctionsEnableMetadataSourceGen>
+    <FunctionsAutoRegisterGeneratedMetadataProvider>$(FunctionsEnableWorkerIndexing)</FunctionsAutoRegisterGeneratedMetadataProvider> 
+
+    <FunctionsEnableExecutorSourceGen Condition="'$(FunctionsEnableExecutorSourceGen)' == ''">false</FunctionsEnableExecutorSourceGen>
+    <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="'$(FunctionsAutoRegisterGeneratedFunctionsExecutor)' == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
 
     <_FunctionsGenerateExtensionProject Condition="'$(DesignTimeBuild)' != 'true'">true</_FunctionsGenerateExtensionProject>
+    <FunctionsGeneratedCodeNamespace Condition="'$(FunctionsGeneratedCodeNamespace)' == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace>
   </PropertyGroup>
 
   <UsingTask TaskName="GenerateFunctionMetadata" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>

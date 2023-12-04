@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
@@ -43,8 +44,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 };
             }
 
-            [Fact]
-            public async void MultipleOutputBindingsOnMethodFails()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void MultipleOutputBindingsOnMethodFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Net;
@@ -85,11 +92,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    expectedDiagnosticResults);
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void MultipleOutputBindingsOnPropertyFails()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void MultipleOutputBindingsOnPropertyFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System.Net;
                 using Microsoft.Azure.Functions.Worker;
@@ -139,11 +153,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    expectedDiagnosticResults);
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void MultipleHttpResponseBindingsFails()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void MultipleHttpResponseBindingsFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Threading.Tasks;
@@ -188,11 +209,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    expectedDiagnosticResults);
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void InvalidRetryOptionsFailure()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void InvalidRetryOptionsFailure(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Threading.Tasks;
@@ -225,7 +253,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    expectedDiagnosticResults);
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
             }
         }
     }

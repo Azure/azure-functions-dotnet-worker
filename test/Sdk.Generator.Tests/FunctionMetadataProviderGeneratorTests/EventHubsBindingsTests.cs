@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 
@@ -98,6 +99,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -231,6 +233,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -286,8 +289,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     expectedOutputBuilder.ToString());
             }
 
-            [Fact]
-            public async void EnumerableGenericInputFunction()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void EnumerableGenericInputFunction(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -331,6 +340,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -379,11 +389,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void EnumerableStringClassesAsInputFunctions()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void EnumerableStringClassesAsInputFunctions(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -478,6 +495,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -562,11 +580,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void EnumerableBinaryClassesAsInputFunctions()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void EnumerableBinaryClassesAsInputFunctions(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -635,6 +660,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -695,11 +721,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void PocoInputFunctions()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void PocoInputFunctions(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -755,6 +788,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                     public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                     {
                         /// <inheritdoc/>
@@ -815,11 +849,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
-                    expectedOutput);
+                    expectedOutput,
+                    languageVersion: languageVersion);
             }
 
-            [Fact]
-            public async void CardinalityManyWithNonIterableInputFails()
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async void CardinalityManyWithNonIterableInputFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Net;
@@ -858,7 +899,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    expectedDiagnosticResults);
+                    expectedDiagnosticResults,
+                    languageVersion: languageVersion);
             }
         }
     }

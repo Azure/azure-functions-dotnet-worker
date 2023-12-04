@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests.WorkerExtensionsSample;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
 using Worker.Extensions.Sample_IncorrectImplementation;
 using Xunit;
@@ -19,8 +20,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                  }
                                  """;
 
-        [Fact]
-        public async Task StartupExecutorCodeGetsGenerated()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task StartupExecutorCodeGetsGenerated(LanguageVersion languageVersion)
         {
             // Source generation is based on referenced assembly.
             var referencedExtensionAssemblies = new[]
@@ -40,6 +47,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                     namespace TestProject
                                     {
                                         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                                        [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                                         internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
                                         {
                                             /// <summary>
@@ -65,11 +73,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 referencedExtensionAssemblies,
                 InputCode,
                 expectedGeneratedFileName,
-                expectedOutput);
+                expectedOutput,
+                languageVersion: languageVersion);
         }
 
-        [Fact]
-        public async Task StartupExecutorCodeDoesNotGetsGeneratedWheNoExtensionAssembliesAreReferenced()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task StartupExecutorCodeDoesNotGetsGeneratedWheNoExtensionAssembliesAreReferenced(LanguageVersion languageVersion)
         {
             // source gen will happen only when an assembly with worker startup type is defined.
             var referencedExtensionAssemblies = Array.Empty<System.Reflection.Assembly>();
@@ -81,11 +96,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 referencedExtensionAssemblies,
                 InputCode,
                 expectedGeneratedFileName,
-                expectedOutput);
+                expectedOutput,
+                languageVersion: languageVersion);
         }
 
-        [Fact]
-        public async Task DiagnosticErrorsAreReportedWhenStartupTypeIsInvalid()
+        [Theory]
+        [InlineData(LanguageVersion.CSharp7_3)]
+        [InlineData(LanguageVersion.CSharp8)]
+        [InlineData(LanguageVersion.CSharp9)]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.Latest)]
+        public async Task DiagnosticErrorsAreReportedWhenStartupTypeIsInvalid(LanguageVersion languageVersion)
         {
             var referencedExtensionAssemblies = new[]
             {
@@ -109,6 +131,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                     namespace MyCompany.MyProject.MyApp
                                     {
                                         [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                                        [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                                         internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
                                         {
                                             /// <summary>
@@ -152,7 +175,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 expectedGeneratedFileName,
                 expectedOutput,
                 expectedDiagnosticResults,
-                buildPropertiesDict);
+                buildPropertiesDict,
+                languageVersion: languageVersion);
         }
     }
 }

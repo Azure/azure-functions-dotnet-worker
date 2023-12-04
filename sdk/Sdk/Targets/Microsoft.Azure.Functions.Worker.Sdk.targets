@@ -102,7 +102,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- Helper target to granularly order more targets. -->
   <Target Name="_FunctionsGenerateMetadata"
     Condition="'$(_FunctionsGenerateExtensionProject)' == 'true'"
-    DependsOnTargets="_FunctionsGenerateCommon;_FunctionsCopyMetadataLoader;_FunctionsGenerateNetApp;_FunctionsGenerateNetFx" />
+    DependsOnTargets="_FunctionsGenerateCommon;_FunctionsCopyMetadataLoader;_FunctionsGenerateWorkerConfig" />
 
   <!-- Generates the extension files. Generates functions.metadata and the WorkerExtension.csproj -->
   <Target Name="_FunctionsGenerateCommon" Inputs="@(IntermediateAssembly);@(ReferencePath)" Outputs="$(_FunctionsMetadataPath);$(ExtensionsCsProj)">
@@ -125,36 +125,23 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       OverwriteReadOnlyFiles="true" />
   </Target>
 
-  <!-- Generates the worker.config.json for .NET apps -->
-  <Target Name="_FunctionsGenerateNetApp" Condition="$(TargetFrameworkIdentifier) != '.NETFramework'">
-    <WriteLinesToFile
-      Condition="$(SelfContained)"
-      File="$(_FunctionsWorkerConfigPath)"
-      Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
-        .Replace('$functionExe$', '{WorkerRoot}$(TargetName)')
-        .Replace('$functionWorker$', '$(TargetName).dll')
-        .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-        Overwrite="true" />
+  <!-- Generate worker.config.json. -->
+  <Target Name="_FunctionsGenerateWorkerConfig">
+    <PropertyGroup>
+      <_FunctionsExecutable>dotnet</_FunctionsExecutable>
 
-      <WriteLinesToFile
-        Condition="!$(SelfContained)"
-        File="$(_FunctionsWorkerConfigPath)"
-        Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
-          .Replace('$functionExe$', 'dotnet')
-          .Replace('$functionWorker$', '$(TargetName).dll')
-          .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-        Overwrite="true" />
-  </Target>
+      <!-- If self-contained, get the name of the .exe to run. This also covers PublishAot scenarios. -->
+      <_FunctionsExecutable Condition="'$(SelfContained)' == 'true' AND '%(Identity)' == '$(AppHostIntermediatePath)'">{WorkerRoot}%(None.Link)</_FunctionsExecutable>
+      <_FunctionsExecutable Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">{WorkerRoot}$(TargetName)$(TargetExt)</_FunctionsExecutable>
+    </PropertyGroup>
 
-  <!-- Generates the worker.config.json for netfx apps -->
-  <Target Name="_FunctionsGenerateNetFx" Condition="$(TargetFrameworkIdentifier) == '.NETFramework'">
     <WriteLinesToFile
       File="$(_FunctionsWorkerConfigPath)"
       Lines="$([System.IO.File]::ReadAllText($(_FunctionsWorkerConfigInputFile))
-        .Replace('$functionExe$', '{WorkerRoot}$(TargetName).exe')
-        .Replace('$functionWorker$', '$(TargetName).exe')
+        .Replace('$functionExe$', '$(_FunctionsExecutable)')
+        .Replace('$functionWorker$', '$(TargetName)$(TargetExt)')
         .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-      Overwrite="true" />
+        Overwrite="true" />
   </Target>
 
   <!-- Invoke restore on WorkerExtension.csproj.

@@ -4,8 +4,8 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.14.1
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.15.0
 
-- Fixed issue where deadlettering a message without specifying properties to modify could throw
-  an exception from out of proc extension.
-- Include underlying exception details in RpcException when a failure occurs.
+- Update `Microsoft.Azure.WebJobs.Extensions.ServiceBus` dependency to `5.13.4`
+- Update `Azure.Identity` to `1.10.2`
+- Update `Azure.Messaging.ServiceBus` to `7.17.0`

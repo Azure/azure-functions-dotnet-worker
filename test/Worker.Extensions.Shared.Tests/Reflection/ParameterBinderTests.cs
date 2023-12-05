@@ -76,6 +76,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
                 i => Assert.Equal(5, i));
         }
 
+        [Fact]
+        public async Task BindCollection_Array_GetsArray()
+        {
+            object collection = await ParameterBinder.BindCollectionAsync(GetPocoArray, typeof(MyPoco[]));
+            Assert.IsType(typeof(MyPoco[]), collection);
+            Assert.Collection(
+                (MyPoco[])collection,
+                i => Assert.Equal("a", i.Prop),
+                i => Assert.Equal("b", i.Prop),
+                i => Assert.Equal("c", i.Prop));
+        }
+
         private static async IAsyncEnumerable<object> GetIntEnumerable(Type t)
         {
             Assert.Equal(typeof(int), t);
@@ -83,6 +95,19 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
             foreach (int i in Enumerable.Range(0, 6))
             {
                 yield return i;
+            }
+        }
+
+        private static async IAsyncEnumerable<object> GetPocoArray(Type t)
+        {
+            Assert.Equal(typeof(MyPoco), t);
+            await Task.Yield();
+
+            var pocoList = new MyPoco[] { new MyPoco("a"), new MyPoco("b"), new MyPoco("c") };
+
+            foreach (var item in pocoList)
+            {
+                yield return item;
             }
         }
 

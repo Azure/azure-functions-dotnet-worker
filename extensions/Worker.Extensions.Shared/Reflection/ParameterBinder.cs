@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             }
 
             object? collection = null;
-            if (collectionType.IsConcreteType())
+            if (collectionType.IsConcreteType() && !collectionType.IsArray)
             {
                 collection = Activator.CreateInstance(collectionType)!;
             }

@@ -5,6 +5,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal static class Constants
     {
+        internal static class ExecutionModel
+        {
+            internal const string Isolated = "isolated";
+        }
+
         internal static class Languages
         {
             internal const string DotnetIsolated = "dotnet-isolated";
@@ -12,8 +17,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         internal static class BuildProperties
         {
+            internal const string FunctionsExecutionModel = "build_property.FunctionsExecutionModel";
             internal const string MSBuildTargetFrameworkIdentifier = "build_property.TargetFrameworkIdentifier";
-            internal const string MSBuildRootNamespace = "build_property.RootNamespace";
             internal const string GeneratedCodeNamespace = "build_property.FunctionsGeneratedCodeNamespace";
             internal const string EnableSourceGen = "build_property.FunctionsEnableMetadataSourceGen";
             internal const string EnablePlaceholder = "build_property.FunctionsEnableExecutorSourceGen";

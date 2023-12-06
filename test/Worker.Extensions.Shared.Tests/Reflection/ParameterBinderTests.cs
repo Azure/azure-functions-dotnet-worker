@@ -62,6 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(MyEnumerable))]
         [InlineData(typeof(Collection<int>))]
         [InlineData(typeof(List<int>))]
+        [InlineData(typeof(int[]))]
         public async Task BindCollection_Concrete_GetsType(Type type)
         {
             object collection = await ParameterBinder.BindCollectionAsync(GetIntEnumerable, type);
@@ -77,15 +78,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         }
 
         [Fact]
-        public async Task BindCollection_Array_GetsArray()
+        public async Task BindCollection_PocoArray_GetsArray()
         {
-            object collection = await ParameterBinder.BindCollectionAsync(GetPocoArray, typeof(MyPoco[]));
-            Assert.IsType(typeof(MyPoco[]), collection);
+            object collection = await ParameterBinder.BindCollectionAsync(GetPocoEnumerable, typeof(MyPoco[]));
+            Assert.IsType<MyPoco[]>(collection);
             Assert.Collection(
                 (MyPoco[])collection,
-                i => Assert.Equal("a", i.Prop),
-                i => Assert.Equal("b", i.Prop),
-                i => Assert.Equal("c", i.Prop));
+                i => Assert.Equal("0", i.Prop),
+                i => Assert.Equal("1", i.Prop),
+                i => Assert.Equal("2", i.Prop),
+                i => Assert.Equal("3", i.Prop),
+                i => Assert.Equal("4", i.Prop),
+                i => Assert.Equal("5", i.Prop));
         }
 
         private static async IAsyncEnumerable<object> GetIntEnumerable(Type t)
@@ -98,16 +102,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
             }
         }
 
-        private static async IAsyncEnumerable<object> GetPocoArray(Type t)
+        private static async IAsyncEnumerable<object> GetPocoEnumerable(Type t)
         {
             Assert.Equal(typeof(MyPoco), t);
             await Task.Yield();
-
-            var pocoList = new MyPoco[] { new MyPoco("a"), new MyPoco("b"), new MyPoco("c") };
-
-            foreach (var item in pocoList)
+            foreach (int i in Enumerable.Range(0, 6))
             {
-                yield return item;
+                yield return new MyPoco(i.ToString());
             }
         }
 

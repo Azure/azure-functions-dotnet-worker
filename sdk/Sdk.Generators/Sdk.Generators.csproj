@@ -11,7 +11,6 @@
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <MinorProductVersion>1</MinorProductVersion>
     <PatchProductVersion>6</PatchProductVersion>
-    <VersionSuffix>-preview1</VersionSuffix>
     <IsRoslynComponent>true</IsRoslynComponent>
   </PropertyGroup>
 

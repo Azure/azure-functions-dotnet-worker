@@ -87,7 +87,13 @@ namespace FunctionsNetHost.Grpc
 
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
-                    Logger.LogTrace($"Received worker loaded signal. Forwarding environment reload request to worker.");
+
+                    var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
+                    if (OperatingSystem.IsWindows())
+                    {
+                        logMessage += $", AppPoolId:{Environment.GetEnvironmentVariable(EnvironmentVariables.AppPoolId)}";
+                    }
+                    Logger.Log(logMessage);
 
                     await MessageChannel.Instance.SendInboundAsync(msg);
                     _specializationDone = true;

@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Kafka <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Kafka 3.10.1
 
-- <entry>
+- Add `DefaultValue` attribute to Kafka Trigger's `IsBatched` prop to signal default cardinality value to source generators (#2139)

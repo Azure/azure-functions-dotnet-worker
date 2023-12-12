@@ -53,7 +53,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             {
                 ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
 
-                await actionResult.ExecuteResultAsync(actionContext);
+                if (!httpContext.RequestAborted.IsCancellationRequested)
+                {
+                    await actionResult.ExecuteResultAsync(actionContext);
+                }            
             }
             else if (invocationResult?.Value is AspNetCoreHttpResponseData)
             {

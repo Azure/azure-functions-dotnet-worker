@@ -4,6 +4,7 @@
 using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMiddleware;
@@ -64,6 +65,12 @@ namespace Microsoft.Extensions.Hosting
             builder.ConfigureServices(services =>
             {
                 services.AddSingleton<FunctionsEndpointDataSource>();
+                services.Configure<ForwardedHeadersOptions>(options =>
+                {
+                    // By default, the X-Forwarded-For, X-Forwarded-Host, and X-Forwarded-Proto headers
+                    // are sent by the host and will be processed by the worker.
+                    options.ForwardedHeaders = ForwardedHeaders.All;
+                });
             });
 
             builder.ConfigureWebHostDefaults(webBuilder =>
@@ -71,6 +78,7 @@ namespace Microsoft.Extensions.Hosting
                 webBuilder.UseUrls(HttpUriProvider.HttpUriString);
                 webBuilder.Configure(b =>
                 {
+                    b.UseForwardedHeaders();
                     b.UseRouting();
                     b.UseMiddleware<WorkerRequestServicesMiddleware>();
                     // TODO: provide a way for customers to configure their middleware pipeline here                   

@@ -72,6 +72,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         {
                             parameterValues[i] = parameter.DefaultValue;
                         }
+                        else if (parameter.IsReferenceOrNullableType)
+                        {
+                            // If the parameter is a reference type or nullable type, set it to null.
+                            parameterValues[i] = null;
+                        }
                         else
                         {
                             // We could not find a value for this param. should throw.

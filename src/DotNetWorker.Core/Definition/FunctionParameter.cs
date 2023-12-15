@@ -44,6 +44,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             Name = name ?? throw new ArgumentNullException(nameof(name));
             Type = type ?? throw new ArgumentNullException(nameof(type));
+            IsReferenceOrNullableType = !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
@@ -61,6 +62,7 @@ namespace Microsoft.Azure.Functions.Worker
             Type = type ?? throw new ArgumentNullException(nameof(type));
             DefaultValue = defaultValue ?? default;
             HasDefaultValue = hasDefaultValue;
+            IsReferenceOrNullableType = !type.IsValueType || Nullable.GetUnderlyingType(type) != null;
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }
 
@@ -78,6 +80,11 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets a value that indicates whether this parameter has a default value.
         /// </summary>
         public bool HasDefaultValue { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether or not the parameter allows null values.
+        /// </summary>
+        public bool IsReferenceOrNullableType { get; }
 
         /// <summary>
         /// Gets the default value of the parameter if exists, else null.

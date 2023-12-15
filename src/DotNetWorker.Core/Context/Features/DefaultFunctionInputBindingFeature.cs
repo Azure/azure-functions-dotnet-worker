@@ -79,10 +79,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         }
                         else
                         {
+                            // Non nullable value type with no default value.
                             // We could not find a value for this param. should throw.
                             errors ??= new List<string>();
                             errors.Add(
-                                $"Could not populate the value for '{parameter.Name}' parameter. Consider updating the parameter with a default value.");
+                                $"Could not populate the value for '{parameter.Name}' parameter. Consider adding a default value or making the parameter nullable.");
                         }
                     }
                 }
@@ -111,7 +112,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             var converterContextFactory = context.InstanceServices.GetRequiredService<IConverterContextFactory>();
             var inputConversionFeature = context.Features.Get<IInputConversionFeature>()
-                ?? throw new InvalidOperationException($"The {nameof(IInputConversionFeature)} is not availabe in the current context.");
+                ?? throw new InvalidOperationException($"The {nameof(IInputConversionFeature)} is not available in the current context.");
 
             TryGetBindingSource(parameter.Name, context, out object? source);
 

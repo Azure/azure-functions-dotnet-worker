@@ -74,7 +74,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             inputBindings: new Dictionary<string, BindingMetadata>
             {
                  { "req", new TestBindingMetadata("req","httpTrigger",BindingDirection.In) }
-            }); ;
+            }); 
             features.Set<FunctionDefinition>(httpFunctionDefinition);
 
             var functionContext = new TestFunctionContext(httpFunctionDefinition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
@@ -107,12 +107,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                  new("req", typeof(HttpRequestData)),
                  new("bar", typeof(string)),
-                 new("fooId", typeof(int?))
+                 new("fooId", typeof(int?)),
+                 new("bazDate", typeof(DateTime?))
             },
             inputBindings: new Dictionary<string, BindingMetadata>
             {
                  { "req", new TestBindingMetadata("req","httpTrigger",BindingDirection.In) }
-             }); ;
+             }); 
             features.Set<FunctionDefinition>(httpFunctionDefinition);
 
             var functionContext = new TestFunctionContext(httpFunctionDefinition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
@@ -132,12 +133,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var httpReqData = TestUtility.AssertIsTypeAndConvert<HttpRequestData>(parameterValuesArray[0]);
             Assert.NotNull(httpReqData);
 
-            // The input binding data does not have values for "bar" and "fooId",
+            // The input binding data does not have values for "bar","fooId" and "bazDate"
             // but since the are nullable or reference types, they should be populated with null.
             var bar = parameterValuesArray[1];
             Assert.Null(bar);
             var fooId = parameterValuesArray[2];
             Assert.Null(fooId);
+            var bazDate = parameterValuesArray[3];
+            Assert.Null(bazDate);
         }
 
         [Fact]
@@ -155,7 +158,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             inputBindings: new Dictionary<string, BindingMetadata>
             {
                  { "req", new TestBindingMetadata("req","httpTrigger",BindingDirection.In) }
-            }); ;
+            }); 
             features.Set<FunctionDefinition>(httpFunctionDefinition);
 
             var functionContext = new TestFunctionContext(httpFunctionDefinition, invocation: null, CancellationToken.None, serviceProvider: _serviceProvider, features: features);
@@ -169,7 +172,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             // Assert
             var exception = await Assert.ThrowsAsync<FunctionInputConverterException>(async () => await _functionInputBindingFeature.BindFunctionInputAsync(functionContext));
-            Assert.Equal("Error converting 1 input parameters for Function 'TestName': Could not populate the value for 'fooId' parameter. Consider updating the parameter with a default value.", exception.Message);
+            Assert.Equal("Error converting 1 input parameters for Function 'TestName': Could not populate the value for 'fooId' parameter. Consider adding a default value or making the parameter nullable.", exception.Message);
         }
 
         [Fact]

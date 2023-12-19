@@ -25,6 +25,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsTaskAssemblyFullPath Condition=" '$(_FunctionsTaskAssemblyFullPath)'=='' ">$(_FunctionsTasksDir)\Microsoft.Azure.Functions.Worker.Sdk.dll</_FunctionsTaskAssemblyFullPath>
 
     <_FunctionsExtensionCommonProps>ImportDirectoryBuildProps=false;ImportDirectoryBuildTargets=false;ImportDirectoryPackagesProps=false</_FunctionsExtensionCommonProps>
+    <_FunctionsExtensionRemoveProps>TargetFramework;Configuration;Platform;RuntimeIdentifier;SelfContained;PublishSingleFile;PublishReadyToRun;WebPublishMethod;UseCurrentRuntimeIdentifier;DeployOnBuild;PublishDir;OutputPath</_FunctionsExtensionRemoveProps>
     <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
 
     <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
@@ -37,7 +38,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsEnableMetadataSourceGen>$(FunctionsEnableWorkerIndexing)</FunctionsEnableMetadataSourceGen>
     <FunctionsAutoRegisterGeneratedMetadataProvider>$(FunctionsEnableWorkerIndexing)</FunctionsAutoRegisterGeneratedMetadataProvider> 
 
-    <FunctionsEnableExecutorSourceGen Condition="'$(FunctionsEnableExecutorSourceGen)' == ''">false</FunctionsEnableExecutorSourceGen>
+    <FunctionsEnableExecutorSourceGen Condition="'$(FunctionsEnableExecutorSourceGen)' == ''">true</FunctionsEnableExecutorSourceGen>
     <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="'$(FunctionsAutoRegisterGeneratedFunctionsExecutor)' == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
 
     <_FunctionsGenerateExtensionProject Condition="'$(DesignTimeBuild)' != 'true'">true</_FunctionsGenerateExtensionProject>
@@ -148,12 +149,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     We depend on _GetRestoreSettings, which is a task from nuget targets that will resolve various nuget restore settings.
     Namely we want to know what restore sources ($(_OutputSources)) to use. -->
   <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_GetRestoreSettings">
-    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
+    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <!-- Invoke build on WorkerExtension.csproj -->
   <Target Name="_WorkerExtensionsBuild" DependsOnTargets="_WorkerExtensionsRestore">
-    <MSbuild Projects="$(ExtensionsCsProj)" Targets="Build" RemoveProperties="DeployOnBuild" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjDirectory)\buildout;$(_FunctionsExtensionCommonProps)" />
+    <MSbuild Projects="$(ExtensionsCsProj)" Targets="Build" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjDirectory)\buildout;$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <!-- Touch up the extensions.json file as needed for .NET isolated -->

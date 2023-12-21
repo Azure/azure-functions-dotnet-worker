@@ -77,10 +77,13 @@ namespace FunctionsNetHost.Grpc
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                        if(string.Equals(kv.Key, "ASPNETCORE_HTTPS_PORT"))
+                        {
+                            EnvironmentUtils.SetValue("PORT", kv.Value);
+                        }
                     }
 
-                    EnvironmentUtils.SetValue("HOST", "12345");
-                    EnvironmentUtils.SetValue("PORT", "6789");
+                    EnvironmentUtils.SetValue("HOST", "127.0.0.1");
 
 #pragma warning disable CS4014
                     Task.Run(() =>

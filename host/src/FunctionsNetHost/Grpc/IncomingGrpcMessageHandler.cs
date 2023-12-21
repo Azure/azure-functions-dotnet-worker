@@ -73,10 +73,14 @@ namespace FunctionsNetHost.Grpc
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
                     Logger.LogTrace($"application path {applicationExePath}");
 
+
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
-                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                        EnvironmentUtils.SetValue(kv.Key, "val" + kv.Value);
                     }
+
+                    EnvironmentUtils.SetValue("HOST", "12345");
+                    EnvironmentUtils.SetValue("PORT", "6789");
 
 #pragma warning disable CS4014
                     Task.Run(() =>

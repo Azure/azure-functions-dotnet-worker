@@ -76,7 +76,7 @@ namespace FunctionsNetHost.Grpc
 
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
-                        EnvironmentUtils.SetValue(kv.Key, "val" + kv.Value);
+                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
                     EnvironmentUtils.SetValue("HOST", "12345");

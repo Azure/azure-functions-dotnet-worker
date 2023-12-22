@@ -10,10 +10,12 @@ namespace FunctionsNetHost.Grpc
     {
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
+        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
 
-        internal IncomingGrpcMessageHandler(AppLoader appLoader)
+        internal IncomingGrpcMessageHandler(AppLoader appLoader, GrpcWorkerStartupOptions grpcWorkerStartupOptions)
         {
             _appLoader = appLoader;
+            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -77,6 +79,9 @@ namespace FunctionsNetHost.Grpc
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
+
+                    EnvironmentUtils.SetValue("HOST", _grpcWorkerStartupOptions.ServerUri.Host.ToString());
+                    EnvironmentUtils.SetValue("PORT", _grpcWorkerStartupOptions.ServerUri.Port.ToString());
 
 #pragma warning disable CS4014
                     Task.Run(() =>

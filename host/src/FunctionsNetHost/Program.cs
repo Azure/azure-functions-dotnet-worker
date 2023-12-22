@@ -29,8 +29,6 @@ namespace FunctionsNetHost
 
         private static async Task<GrpcWorkerStartupOptions> GetStartupOptionsFromCmdLineArgs(string[] args)
         {
-            var hostOption = new Option<string>("--host") { IsRequired = true };
-            var portOption = new Option<int>("--port") { IsRequired = true };
             var uriOption = new Option<string>("--functions-uri") { IsRequired = true };
             var requestIdOption = new Option<string>("--functions-request-id") { IsRequired = true };
             var workerIdOption = new Option<string>("--functions-worker-id") { IsRequired = true };
@@ -41,8 +39,6 @@ namespace FunctionsNetHost
                 TreatUnmatchedTokensAsErrors = false
             };
 
-            rootCommand.AddOption(portOption);
-            rootCommand.AddOption(hostOption);
             rootCommand.AddOption(uriOption);
             rootCommand.AddOption(requestIdOption);
             rootCommand.AddOption(workerIdOption);
@@ -59,8 +55,6 @@ namespace FunctionsNetHost
                 }
 
                 workerStartupOptions.ServerUri = endpointUri;
-                workerStartupOptions.Host = context.ParseResult.GetValueForOption(hostOption);
-                workerStartupOptions.Port = context.ParseResult.GetValueForOption(portOption);
                 workerStartupOptions.GrpcMaxMessageLength = context.ParseResult.GetValueForOption(grpcMaxMessageLengthOption);
                 workerStartupOptions.RequestId = context.ParseResult.GetValueForOption(requestIdOption);
                 workerStartupOptions.WorkerId = context.ParseResult.GetValueForOption(workerIdOption);

@@ -80,8 +80,7 @@ namespace FunctionsNetHost.Grpc
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
-                    EnvironmentUtils.SetValue("HOST", _grpcWorkerStartupOptions.ServerUri.Host.ToString());
-                    EnvironmentUtils.SetValue("PORT", _grpcWorkerStartupOptions.ServerUri.Port.ToString());
+                    EnvironmentUtils.SetValue("HostEndpoint", _grpcWorkerStartupOptions.ServerUri.ToString());
 
 #pragma warning disable CS4014
                     Task.Run(() =>

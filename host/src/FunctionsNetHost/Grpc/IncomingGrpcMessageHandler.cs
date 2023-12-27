@@ -11,6 +11,7 @@ namespace FunctionsNetHost.Grpc
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
+        private const string HostEndpoint = "Functions:Worker:HostEndpoint";
 
         internal IncomingGrpcMessageHandler(AppLoader appLoader, GrpcWorkerStartupOptions grpcWorkerStartupOptions)
         {
@@ -80,7 +81,7 @@ namespace FunctionsNetHost.Grpc
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
-                    EnvironmentUtils.SetValue("Functions:Worker:HostEndpoint", _grpcWorkerStartupOptions.ServerUri.ToString());
+                    EnvironmentUtils.SetValue(HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 
 #pragma warning disable CS4014
                     Task.Run(() =>

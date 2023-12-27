@@ -14,4 +14,9 @@ internal static class EnvironmentVariables
     /// Application pool Id for the placeholder app. Only available in Windows(when running in IIS).
     /// </summary>
     internal const string AppPoolId  = "APP_POOL_ID";
+
+    /// <summary>
+    /// Environment variable for sending ServerUri to the worker.
+    /// </summary>
+    internal const string HostEndpoint = "Functions:Worker:HostEndpoint";
 }

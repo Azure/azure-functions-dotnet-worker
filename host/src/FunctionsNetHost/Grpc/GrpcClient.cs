@@ -28,7 +28,7 @@ namespace FunctionsNetHost.Grpc
 
             _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
 
-            _messageHandler = new IncomingGrpcMessageHandler(appLoader);
+            _messageHandler = new IncomingGrpcMessageHandler(appLoader, _grpcWorkerStartupOptions);
         }
 
         internal async Task InitAsync()

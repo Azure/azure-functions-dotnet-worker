@@ -96,7 +96,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             return type.IsGenericType &&
                 (type.GetGenericTypeDefinition() == typeof(IList<>)
                 || type.GetGenericTypeDefinition() == typeof(ICollection<>)
-                || type.GetGenericTypeDefinition() == typeof(IEnumerable<>));
+                || type.GetGenericTypeDefinition() == typeof(IEnumerable<>)
+                || type.GetGenericTypeDefinition() == typeof(IReadOnlyList<>));
         }
 
         private static Action<object> GetAddMethod(object collection)

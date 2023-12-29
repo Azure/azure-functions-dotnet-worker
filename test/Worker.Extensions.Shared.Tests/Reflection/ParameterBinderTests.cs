@@ -44,6 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(IEnumerable<int>))]
         [InlineData(typeof(ICollection<int>))]
         [InlineData(typeof(IList<int>))]
+        [InlineData(typeof(IReadOnlyList<int>))]
         public async Task BindCollection_Interface_GetsList(Type type)
         {
             object collection = await ParameterBinder.BindCollectionAsync(GetIntEnumerable, type);

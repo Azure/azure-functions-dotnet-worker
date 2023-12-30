@@ -4,6 +4,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -14,6 +15,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
     /// </summary>
     internal static class ParameterBinder
     {
+        /// <summary>
+        /// An array of types that reasonably map back to a class that implements a generic list data structure. 
+        /// </summary>
+        private static Type[] validListInterfaceTypes = new Type[] {typeof(IList<>), typeof(ICollection<>), typeof(IEnumerable<>)};
+
         private const BindingFlags DeclaredOnlyLookup = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
         /// <summary>
@@ -94,10 +100,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         private static bool IsListInterface(Type type)
         {
             return type.IsGenericType &&
-                (type.GetGenericTypeDefinition() == typeof(IList<>)
-                || type.GetGenericTypeDefinition() == typeof(ICollection<>)
-                || type.GetGenericTypeDefinition() == typeof(IEnumerable<>)
-                || type.GetGenericTypeDefinition() == typeof(IReadOnlyList<>));
+                (validListInterfaceTypes.Contains(type.GetGenericTypeDefinition()) ||
+                 type.GetInterfaces().Select(t => t.GetGenericTypeDefinition()).Intersect(validListInterfaceTypes).Any());
         }
 
         private static Action<object> GetAddMethod(object collection)

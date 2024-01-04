@@ -33,7 +33,8 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             Type? functionType = assembly.GetType(typeName);
             IEnumerable<MethodInfo> possibleEntryPoints = functionType?.GetMethods().Where(x => x.Name.Equals(methodName)) ?? Enumerable.Empty<MethodInfo>();
 
-            MethodInfo? methodInfo =  possibleEntryPoints.FirstOrDefault(m => m.CustomAttributes.Any(ca => ca.AttributeType.FullName == "Microsoft.Azure.Functions.Worker.FunctionAttribute"))
+            MethodInfo? methodInfo =  
+                   possibleEntryPoints.FirstOrDefault(m => m.CustomAttributes.Any(ca => ca.AttributeType.FullName == "Microsoft.Azure.Functions.Worker.FunctionAttribute"))
                 ?? possibleEntryPoints.FirstOrDefault();
 
             if (methodInfo == null)

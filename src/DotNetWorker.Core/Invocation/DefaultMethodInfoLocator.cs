@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 #if NET5_0_OR_GREATER
 using System.Runtime.Loader;
@@ -29,7 +30,10 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             Type? functionType = assembly.GetType(typeName);
 
-            MethodInfo? methodInfo = functionType?.GetMethod(methodName);
+            MethodInfo? methodInfo = functionType?
+                .GetMethods()
+                .Where(x => x.Name.Equals(methodName))
+                .FirstOrDefault(m => m.CustomAttributes.Any(ca => ca.AttributeType.FullName == "Microsoft.Azure.Functions.Worker.FunctionAttribute"));
 
             if (methodInfo == null)
             {

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 #if NET5_0_OR_GREATER
@@ -29,11 +31,10 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 #endif
 
             Type? functionType = assembly.GetType(typeName);
+            IEnumerable<MethodInfo> possibleEntryPoints = functionType?.GetMethods().Where(x => x.Name.Equals(methodName)) ?? Enumerable.Empty<MethodInfo>();
 
-            MethodInfo? methodInfo = functionType?
-                .GetMethods()
-                .Where(x => x.Name.Equals(methodName))
-                .FirstOrDefault(m => m.CustomAttributes.Any(ca => ca.AttributeType.FullName == "Microsoft.Azure.Functions.Worker.FunctionAttribute"));
+            MethodInfo? methodInfo =  possibleEntryPoints.FirstOrDefault(m => m.CustomAttributes.Any(ca => ca.AttributeType.FullName == "Microsoft.Azure.Functions.Worker.FunctionAttribute"))
+                ?? possibleEntryPoints.FirstOrDefault();
 
             if (methodInfo == null)
             {

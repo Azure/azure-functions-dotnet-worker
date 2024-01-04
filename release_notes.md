@@ -3,6 +3,7 @@
 <!-- Please add your release notes in the following format:
 - My change description (#PR/#issue)
 -->
+- Locate the Azure Function Entrypoint first by name and take the method with the FunctionAttribute (#2124)
 
 ### Microsoft.Azure.Functions.Worker (metapackage) 1.20.1
 

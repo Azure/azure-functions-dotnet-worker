@@ -16,9 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
     internal static class ParameterBinder
     {
         /// <summary>
-        /// An array of types that reasonably map back to a class that implements a generic list data structure. 
+        /// Read only property that contains all of the generic interfaces implemented by <see cref="System.Collections.Generic.List"/>.
         /// </summary>
-        private static Type[] validListInterfaceTypes = new Type[] {typeof(IList<>), typeof(ICollection<>), typeof(IEnumerable<>)};
+        /// <remarks>This property calls ToList at the end to force the resolution of the LINQ methods that leverage deferred execution.</remarks>
+        private static readonly IEnumerable<Type> validListInterfaceTypes = typeof(List<>).GetInterfaces().Where(t => t.IsGenericType).Select(t => t.GetGenericTypeDefinition()).ToList();
 
         private const BindingFlags DeclaredOnlyLookup = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
@@ -97,11 +98,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
             }
         }
 
+        /// <summary>
+        /// A method that determines if a Type is a generic interface of the <see cref="System.Collections.Generic.List"/> concrete class.
+        /// </summary>
+        /// <param name="type">A generic interface type to be tested against the types available on the generic <see cref="System.Collections.Generic.List"/> type.</param>
+        /// <returns>True if the type is a generic type and it's an interface of the generic <see cref="System.Collections.Generic.List"/> type otherwise false.</returns>
         private static bool IsListInterface(Type type)
         {
             return type.IsGenericType &&
-                (validListInterfaceTypes.Contains(type.GetGenericTypeDefinition()) ||
-                 type.GetInterfaces().Select(t => t.GetGenericTypeDefinition()).Intersect(validListInterfaceTypes).Any());
+                validListInterfaceTypes.Any(t => t == type.GetGenericTypeDefinition());
         }
 
         private static Action<object> GetAddMethod(object collection)

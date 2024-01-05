@@ -40,11 +40,23 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
                 () => ParameterBinder.BindCollectionAsync(e => Mock.Of<IAsyncEnumerable<object>>(), type));
         }
 
+        [Fact]
+        public async Task BindCollection_Interface_AllListInterfacesSupported()
+        {
+            var interfaceTypes = new List<int>().GetType().GetInterfaces().Where(t => t.IsGenericType);
+
+            foreach(Type interfaceType in interfaceTypes)
+            {
+                Assert.IsType<List<int>>(await ParameterBinder.BindCollectionAsync(GetIntEnumerable, interfaceType));
+            }
+        }
+
         [Theory]
         [InlineData(typeof(IEnumerable<int>))]
         [InlineData(typeof(ICollection<int>))]
         [InlineData(typeof(IList<int>))]
         [InlineData(typeof(IReadOnlyList<int>))]
+        [InlineData(typeof(IReadOnlyCollection<int>))]
         public async Task BindCollection_Interface_GetsList(Type type)
         {
             object collection = await ParameterBinder.BindCollectionAsync(GetIntEnumerable, type);

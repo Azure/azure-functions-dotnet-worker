@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             {
                 if (_httpContextValueSource.Task.IsCanceled || _token.IsCancellationRequested)
                 {
-                    _functionCompletionTask.SetCanceled();
+                    _functionCompletionTask.TrySetCanceled();
                 }
                 else
                 {

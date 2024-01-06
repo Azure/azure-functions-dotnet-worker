@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             {
                 ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
 
-                if (!httpContext.RequestAborted.IsCancellationRequested)
+                if (!httpContext.RequestAborted.IsCancellationRequested && !context.CancellationToken.IsCancellationRequested)
                 {
                     await actionResult.ExecuteResultAsync(actionContext);
                 }            

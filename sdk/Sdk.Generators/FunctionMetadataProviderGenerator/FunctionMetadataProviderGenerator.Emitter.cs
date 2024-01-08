@@ -66,6 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  {
                                      builder.ConfigureServices(s => 
                                      {
+                                         s.TryAddSingleton<IFunctionMetadataProviderAggregator, SkipDefaultFunctionMetadataProviderAggregator>();
                                          s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
                                      });
                                      return builder;
@@ -130,7 +131,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     builder.Append(BuildRetryOptions(function.Retry));
 
-                    builder.AppendLine($$"""                
+                    builder.AppendLine($$"""
                                     ScriptFile = "{{function.ScriptFile}}"
                     """);
                     builder.AppendLine($$"""            };""");

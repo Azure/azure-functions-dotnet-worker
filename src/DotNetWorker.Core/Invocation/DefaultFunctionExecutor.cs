@@ -25,7 +25,11 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
         public async ValueTask ExecuteAsync(FunctionContext context)
         {
             var invoker = _invokerCache.GetOrAdd(context.FunctionId,
-                _ => _invokerFactory.Create(context.FunctionDefinition));
+                static (_, state) =>
+                {
+                    var (factory, context) = state;
+                    return factory.Create(context.FunctionDefinition);
+                }, (_invokerFactory, context));
 
             object? instance = invoker.CreateInstance(context);
             var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();

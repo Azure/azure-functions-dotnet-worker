@@ -38,7 +38,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             _tokenRegistration = _token.Register(() =>
             {
                 _functionStartTask.TrySetCanceled();
-                _functionCompletionTask.TrySetCanceled();
                 _functionContextValueSource.TrySetCanceled();
                 _httpContextValueSource.TrySetCanceled();
             });

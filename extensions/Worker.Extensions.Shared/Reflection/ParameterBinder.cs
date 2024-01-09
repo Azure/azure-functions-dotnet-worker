@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         /// Read only property that contains all of the generic interfaces implemented by <see cref="System.Collections.Generic.List"/>.
         /// </summary>
         /// <remarks>This property calls ToList at the end to force the resolution of the LINQ methods that leverage deferred execution.</remarks>
-        private static readonly IEnumerable<Type> validListInterfaceTypes = typeof(List<>).GetInterfaces().Where(t => t.IsGenericType).Select(t => t.GetGenericTypeDefinition()).ToList();
+        private static readonly HashSet<Type> validListInterfaceTypes = new HashSet<Type>(typeof(List<>).GetInterfaces().Where(t => t.IsGenericType).Select(t => t.GetGenericTypeDefinition()));
 
         private const BindingFlags DeclaredOnlyLookup = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
@@ -106,7 +106,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         private static bool IsListInterface(Type type)
         {
             return type.IsGenericType &&
-                validListInterfaceTypes.Any(t => t == type.GetGenericTypeDefinition());
+                validListInterfaceTypes.Contains(type.GetGenericTypeDefinition());
         }
 
         private static Action<object> GetAddMethod(object collection)

@@ -29,8 +29,18 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Converters
             var convertedDateTimeOffset = TestUtility.AssertIsTypeAndConvert<DateTimeOffset>(conversionResult.Value);
 
             // when no offset info is present in input value, offset of local timezone will be set as the offset of the DateTimeOffSet instance.
-            var expectedOffSetHours = expectedOffsetHours ?? TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow).Hours;
-            Assert.Equal(expectedOffSetHours, convertedDateTimeOffset.Offset.Hours);
+
+            if (expectedOffsetHours is null)
+            {
+                DateTimeOffset offsetCheck = DateTimeOffset.UtcNow;
+                expectedOffsetHours = TimeZoneInfo.Local.GetUtcOffset(offsetCheck).Hours;
+                if (TimeZoneInfo.Local.IsDaylightSavingTime(offsetCheck) != TimeZoneInfo.Local.IsDaylightSavingTime(convertedDateTimeOffset))
+                {
+                    expectedOffsetHours += TimeZoneInfo.Local.IsDaylightSavingTime(offsetCheck) ? -1 : +1;
+                }
+            }
+
+            Assert.Equal(expectedOffsetHours.Value, convertedDateTimeOffset.Offset.Hours);
             Assert.Equal(DateTimeOffset.Parse(source.ToString()), convertedDateTimeOffset);
         }
 

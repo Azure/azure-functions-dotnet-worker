@@ -11,3 +11,8 @@
 ### Microsoft.Azure.Functions.Worker.Core 1.16.1
 
 - Populating parameter value for nullable types (#1868)
+- Remove closure in DefaultFunctionExecutor (#2182) (contributed by @danielmarbach)
+
+## Contributions Thanks
+
+- @danielmarbach

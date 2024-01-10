@@ -32,6 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
         [InlineData(typeof(IEnumerable))] // do not support non-generic IEnumerable
         [InlineData(typeof(ICollection))] // do not support non-generic ICollection
         [InlineData(typeof(IList))] // do not support non-generic IList
+        [InlineData(typeof(ICustomList<object>))] // do not support custom derived IList
         [InlineData(typeof(AbstractCollection))] // do not support abstract IEnumerable
         [InlineData(typeof(NonGenericCollection))] // do not support non-generic IEnumerable
         public Task BindCollection_ThrowsOnUnsupportedType(Type type)
@@ -123,6 +124,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Shared.Tests
             {
                 yield return new MyPoco(i.ToString());
             }
+        }
+
+        private interface ICustomList<T> : IList<T>
+        {
         }
 
         private record MyPoco(string Prop);

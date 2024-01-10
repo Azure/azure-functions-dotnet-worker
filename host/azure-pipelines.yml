@@ -42,6 +42,15 @@ stages:
               arguments: "-c Release -r linux-x64 -o $(Build.ArtifactStagingDirectory)/output/linux"
               workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
 
+          - task: DotnetCoreCLI@2
+            displayName: "Publish NET8 app"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              arguments: "-c Release -r win-x64 -o $(Build.ArtifactStagingDirectory)/output/preloadapps/net8.0/linux"
+              workingDirectory: $(Build.SourcesDirectory)/host/src/PreloadApps/net8.0
+
           - task: CopyFiles@2
             displayName: "Copy needed files"
             inputs:
@@ -52,6 +61,12 @@ stages:
                 FunctionsNetHost.dbg
                 libnethost.so
               TargetFolder: "$(Build.ArtifactStagingDirectory)/output/linux_filtered"
+
+          - task: CopyFiles@2
+            displayName: "Copy needed files2"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/output/preloadapps/net8.0/linux"
+              TargetFolder: "$(Build.ArtifactStagingDirectory)/output/linux_filtered/PreloadAppsOut/net8.0"
 
           - task: PublishPipelineArtifact@1
             inputs:
@@ -67,6 +82,15 @@ stages:
             inputs:
               version: "8.x"
               includePreviewVersions: true
+                  
+          - task: DotnetCoreCLI@2
+            displayName: "Publish NET8 app"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              arguments: "-c Release -r win-x64 -o $(Build.ArtifactStagingDirectory)/output/preloadapps/net8.0/windows"
+              workingDirectory: $(Build.SourcesDirectory)/host/src/PreloadApps/net8.0
 
           - task: DotnetCoreCLI@2
             displayName: "Dotnet Publish"
@@ -87,6 +111,12 @@ stages:
                 FunctionsNetHost.pdb
                 nethost.dll
               TargetFolder: "$(Build.ArtifactStagingDirectory)/output/windows_filtered"
+              
+          - task: CopyFiles@2
+            displayName: "Copy needed files2"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/output/preloadapps/net8.0/windows"
+              TargetFolder: "$(Build.ArtifactStagingDirectory)/output/windows_filtered/PreloadAppsOut/net8.0"
 
           - task: PublishPipelineArtifact@1
             inputs:

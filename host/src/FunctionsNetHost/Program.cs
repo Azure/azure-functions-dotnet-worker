@@ -20,7 +20,7 @@ namespace FunctionsNetHost
                 using var appLoader = new AppLoader();
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
-                var minimalAppBinaryPath = Path.Combine(Path.Combine("preload", "net8.0"),"app.dll");
+                var minimalAppBinaryPath = Path.Combine(Path.Combine("PreloadAppsOut", "net8.0"),"App.dll");
 
                 PreLoader.Load(minimalAppBinaryPath);
                 await grpcClient.InitAsync();

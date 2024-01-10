@@ -3,6 +3,7 @@
 
 using System.CommandLine;
 using FunctionsNetHost.Grpc;
+using FunctionsNetHost.PreLoad;
 
 namespace FunctionsNetHost
 {
@@ -19,6 +20,9 @@ namespace FunctionsNetHost
                 using var appLoader = new AppLoader();
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
+                var minimalAppBinaryPath = Path.Combine(Path.Combine("preload", "net8.0"),"app.dll");
+
+                PreLoader.Load(minimalAppBinaryPath);
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)

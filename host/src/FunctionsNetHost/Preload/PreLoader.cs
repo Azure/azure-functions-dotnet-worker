@@ -4,10 +4,17 @@ namespace FunctionsNetHost.PreLoad
 {
     internal static class PreLoader
     {
-        internal static void Load(string path)
+        internal static void Load(string executableDir)
         {
+            string platform = "windows";
+#if OS_LINUX
+            platform = "linux";
+#endif
+            string path = string.Empty;
             try
             {
+                path = Path.Combine(executableDir, Path.Combine(Path.Combine(Path.Combine("PreloadAppsOut", platform), "net8.0"), "App.dll"));
+
                 if (!File.Exists(path))
                 {
                     Logger.Log($"File not found: {path}");

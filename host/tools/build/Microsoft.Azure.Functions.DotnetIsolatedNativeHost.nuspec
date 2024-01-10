@@ -17,8 +17,10 @@
     </contentFiles>
   </metadata>
   <files>
-    <file src="..\..\dist\windows\**" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
-    <file src="..\..\dist\linux\**" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
+    <file src="..\..\dist\windows\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
+    <file src="..\..\dist\windows\PreloadAppsOut\net8.0\*" target="contentFiles/any/any/workers/dotnet-isolated/bin/PreloadAppsOut/windows/net8.0" />
+    <file src="..\..\dist\linux\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
+    <file src="..\..\dist\linux\PreloadAppsOut\net8.0\*" target="contentFiles/any/any/workers/dotnet-isolated/bin/PreloadAppsOut/linux/net8.0" />
     <file src="worker.config.json" target="contentFiles/any/any/workers/dotnet-isolated" />
   </files>
 </package>

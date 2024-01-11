@@ -4,15 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 1.20.1
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Updated to `Microsoft.Azure.Functions.Worker.Core` 1.16.1
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Core 1.16.1
+### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Populating parameter value for nullable types (#1868)
-- Remove closure in DefaultFunctionExecutor (#2182) (contributed by @danielmarbach)
+- <entry>
 
-## Contributions Thanks
+### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- @danielmarbach
+- <etnry>

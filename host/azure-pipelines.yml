@@ -43,12 +43,12 @@ stages:
               workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
 
           - task: DotnetCoreCLI@2
-            displayName: "Publish NET8 app"
+            displayName: "Publish NET8 Preload App"
             inputs:
               command: "publish"
               publishWebProjects: false
               zipAfterPublish: false
-              arguments: "-c Release -r win-x64 -o $(Build.ArtifactStagingDirectory)/output/preloadapps/net8.0/linux"
+              arguments: "-c Release -r linux-x64 -o $(Build.ArtifactStagingDirectory)/output/preloadapps/net8.0/linux"
               workingDirectory: $(Build.SourcesDirectory)/host/src/PreloadApps/net8.0
 
           - task: CopyFiles@2

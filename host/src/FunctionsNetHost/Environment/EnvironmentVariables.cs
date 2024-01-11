@@ -11,6 +11,12 @@ internal static class EnvironmentVariables
     internal const string FunctionsNetHostTrace = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE";
 
     /// <summary>
+    /// Set value to "1" will prevent the log entries to have the prefix "LanguageWorkerConsoleLog".
+    /// Set this to see when you are debugging the FunctionsNetHost locally with WebHost.
+    /// </summary>
+    internal const string FunctionsNetHostDisableLogPrefix = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_DISABLE_LOGPREFIX";
+
+    /// <summary>
     /// Application pool Id for the placeholder app. Only available in Windows(when running in IIS).
     /// </summary>
     internal const string AppPoolId  = "APP_POOL_ID";

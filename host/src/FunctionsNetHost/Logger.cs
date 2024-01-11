@@ -11,9 +11,11 @@ namespace FunctionsNetHost
 
         static Logger()
         {
+            var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsNetHostDisableLogPrefix), "1");
 #if !DEBUG
-            LogPrefix = "LanguageWorkerConsoleLog";
+            LogPrefix = disableLogPrefix ? "" : "LanguageWorkerConsoleLog";
 #else
+            // For a debug build, we always skip log prefix.
             LogPrefix = "";
 #endif
         }

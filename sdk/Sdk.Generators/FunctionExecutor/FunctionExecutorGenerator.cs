@@ -92,12 +92,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private static bool ShouldExecuteGeneration(GeneratorExecutionContext context)
         {
             if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
-                    Constants.BuildProperties.EnablePlaceholder, out var value))
+                    Constants.BuildProperties.EnableExecutorSourceGen, out var sourceGenSwitch))
             {
                 return false;
             }
 
-            return string.Equals(value, bool.TrueString, System.StringComparison.OrdinalIgnoreCase);
+            bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
+            return enableSourceGen;
         }
     }
 }

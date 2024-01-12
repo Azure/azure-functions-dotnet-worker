@@ -30,16 +30,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
-            if (context.SyntaxReceiver is not FunctionMethodSyntaxReceiver receiver || receiver.CandidateMethods.Count == 0)
+            if (!ShouldExecuteGeneration(context))
             {
                 return;
             }
-
-            context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(Constants.BuildProperties.EnableSourceGen, out var sourceGenSwitch);
-
-            bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
-
-            if (!enableSourceGen)
+            
+            if (context.SyntaxReceiver is not FunctionMethodSyntaxReceiver receiver || receiver.CandidateMethods.Count == 0)
             {
                 return;
             }
@@ -97,6 +93,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             }
 
             return string.Equals(value, bool.TrueString, System.StringComparison.OrdinalIgnoreCase);
+        }
+        
+        private static bool ShouldExecuteGeneration(GeneratorExecutionContext context)
+        {
+            if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
+                    Constants.BuildProperties.EnableMetadataSourceGen, out var sourceGenSwitch))
+            {
+                return false;
+            }
+
+            bool.TryParse(sourceGenSwitch, out bool enableSourceGen);
+            return enableSourceGen;
         }
 
         private IEnumerable<IMethodSymbol> GetEntryAssemblyFunctions(List<MethodDeclarationSyntax> candidateMethods, GeneratorExecutionContext context)

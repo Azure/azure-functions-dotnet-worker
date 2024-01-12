@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (FunctionsUtil.IsValidFunctionMethod(context, context.Compilation, model, method))
                 {
-                    IMethodSymbol? methodSymbol = (IMethodSymbol)model.GetDeclaredSymbol(method)!;
+                    var methodSymbol = (IMethodSymbol)model.GetDeclaredSymbol(method)!;
                     yield return methodSymbol;
                 }
             }

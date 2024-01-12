@@ -37,9 +37,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         <FunctionsEnablePlaceholder Condition="$(FunctionsEnablePlaceholder) == ''">false</FunctionsEnablePlaceholder>
         <FunctionsEnableWorkerIndexing Condition="$(FunctionsEnableWorkerIndexing) == '' Or $(FunctionsEnableWorkerIndexing)">true</FunctionsEnableWorkerIndexing>
         <FunctionsEnableMetadataSourceGen Condition="$(FunctionsEnableMetadataSourceGen) == '' Or $(FunctionsEnableMetadataSourceGen)">true</FunctionsEnableMetadataSourceGen>
-        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == '' Or (FunctionsAutoRegisterGeneratedMetadataProvider)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
+        <FunctionsAutoRegisterGeneratedMetadataProvider Condition="$(FunctionsAutoRegisterGeneratedMetadataProvider) == '' Or $(FunctionsAutoRegisterGeneratedMetadataProvider)">true</FunctionsAutoRegisterGeneratedMetadataProvider>
         <FunctionsEnableExecutorSourceGen Condition="$(FunctionsEnableExecutorSourceGen) == '' Or $(FunctionsEnableExecutorSourceGen)">true</FunctionsEnableExecutorSourceGen>
-        <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == '' Or (FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
+        <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="$(FunctionsAutoRegisterGeneratedFunctionsExecutor) == '' Or $(FunctionsAutoRegisterGeneratedFunctionsExecutor)">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
         <FunctionsGeneratedCodeNamespace Condition="$(FunctionsGeneratedCodeNamespace) == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace> 
     </PropertyGroup>
 

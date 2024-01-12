@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 DictionaryKeyPolicy = JsonNamingPolicy.CamelCase
             };
 
-            public string Emit(GeneratorExecutionContext context, IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, bool includeAutoRegistrationCode)
+            public static string Emit(GeneratorExecutionContext context, IReadOnlyList<GeneratorFunctionMetadata> funcMetadata, bool includeAutoRegistrationCode)
             {
                 string functionMetadataInfo = AddFunctionMetadataInfo(funcMetadata, context.CancellationToken);
 
@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
                 return "";
             }
-            private string AddFunctionMetadataInfo(IReadOnlyList<GeneratorFunctionMetadata> functionMetadata, CancellationToken cancellationToken)
+            private static string AddFunctionMetadataInfo(IReadOnlyList<GeneratorFunctionMetadata> functionMetadata, CancellationToken cancellationToken)
             {
                 var functionCount = 0;
                 var builder = new StringBuilder();
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return builder.ToString();
             }
 
-            private string BuildBindingInfo(string bindingListVariableName, IList<IDictionary<string, object>> bindings)
+            private static string BuildBindingInfo(string bindingListVariableName, IList<IDictionary<string, object>> bindings)
             {
                 var builder = new StringBuilder();
                 foreach (var binding in bindings)
@@ -154,7 +154,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return builder.ToString();
             }
 
-            private StringBuilder BuildRetryOptions(GeneratorRetryOptions? retry)
+            private static StringBuilder BuildRetryOptions(GeneratorRetryOptions? retry)
             {
                 var builder = new StringBuilder();
 

@@ -75,7 +75,9 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (sp.GetService<TelemetryClient>() == null)
                 {
-                    throw new InvalidOperationException("Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information.");
+                    throw new OptionsValidationException(nameof(TelemetryClient),
+                        typeof(FunctionsApplicationInsightsOptions),
+                        new[] { "Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information." });
                 }
             }
 

@@ -82,5 +82,5 @@ namespace Microsoft.Azure.Functions.Worker
 
             public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
-    }    
+    }
 }

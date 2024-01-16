@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+using FunctionsNetHost.Diagnostics;
 
 namespace FunctionsNetHost
 {
@@ -35,6 +35,7 @@ namespace FunctionsNetHost
                 var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
                 Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
 
+                AppLoaderEventSource.Log.HostFxrLoadStart(hostfxrFullPath);
                 _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
 
                 if (_hostfxrHandle == IntPtr.Zero)
@@ -42,9 +43,10 @@ namespace FunctionsNetHost
                     Logger.Log($"Failed to load hostfxr. hostfxrFullPath:{hostfxrFullPath}");
                     return -1;
                 }
-
+                AppLoaderEventSource.Log.HostFxrLoadStop();
                 Logger.LogTrace($"hostfxr loaded.");
 
+                AppLoaderEventSource.Log.HostFxrInitializeForDotnetCommandLineStart(assemblyPath);
                 var error = HostFxr.Initialize(1, new[] { assemblyPath }, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
@@ -57,9 +59,12 @@ namespace FunctionsNetHost
                 {
                     return error;
                 }
+                AppLoaderEventSource.Log.HostFxrInitializeForDotnetCommandLineStop();
 
                 Logger.LogTrace($"hostfxr initialized with {assemblyPath}");
                 HostFxr.SetAppContextData(_hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
+
+                AppLoaderEventSource.Log.HostFxrRunAppStart();
 
                 return HostFxr.Run(_hostContextHandle);
             }

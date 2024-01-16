@@ -16,6 +16,7 @@
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
+    <PackageReference Include="Azure.Identity" Version="1.10.2" />
     <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.21.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
   </ItemGroup>

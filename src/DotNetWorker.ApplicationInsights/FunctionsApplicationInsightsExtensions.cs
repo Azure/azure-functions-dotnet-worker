@@ -25,6 +25,7 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 throw new ArgumentNullException(nameof(services));
             }
+            services.AddSingleton<IConfigureOptions<FunctionsApplicationInsightsOptions>, FunctionsApplicationInsightsOptionsInitializer>();
 
             services.AddSingleton<IConfigureOptions<AppServiceOptions>, AppServiceOptionsInitializer>();
             services.AddSingleton<AppServiceEnvironmentVariableMonitor>();
@@ -52,11 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
                 return ActivatorUtilities.CreateInstance<FunctionsRoleEnvironmentTelemetryInitializer>(provider);
             });
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());
-            services.AddOptions<FunctionsApplicationInsightsOptions>()
-                .Validate<IServiceProvider>(
-                    (_, sp) => sp.GetService<TelemetryClient>() is not null,
-                    "Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information.");
-
+            
             services.AddHostedService<ApplicationInsightsValidationService>();
 
             // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
@@ -65,32 +62,26 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// Options for configuring Functions Application Insights.
-        /// </summary>
-        /// <remarks>
-        /// This is a private nested class as we have no public options to expose (yet). This is just a vessel to trigger validating that
-        /// an Application Insights SDK has also been configured.
-        /// When we do have options to configure, this can be moved to be a public top-level class.
-        /// </remarks>
-        private class FunctionsApplicationInsightsOptions
-        {
-        }
-
-        /// <summary>
         /// This services is for a singular purpose: trigger validation of <see cref="FunctionsApplicationInsightsOptions" /> on startup.
         /// </summary>
         private class ApplicationInsightsValidationService : IHostedService
         {
-            private readonly FunctionsApplicationInsightsOptions _options;
-
-            public ApplicationInsightsValidationService(IOptions<FunctionsApplicationInsightsOptions> options)
+            public ApplicationInsightsValidationService(IOptions<FunctionsApplicationInsightsOptions> options, IServiceProvider sp)
             {
-                _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+                if (options.Value == null)
+                {
+                    throw new ArgumentNullException(nameof(options));
+                }
+
+                if (sp.GetService<TelemetryClient>() == null)
+                {
+                    throw new InvalidOperationException("Application Insights SDK has not been added. Please add and configure the Application Insights SDK. See https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service for more information.");
+                }
             }
 
             public Task StartAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
             public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
         }
-    }
+    }    
 }

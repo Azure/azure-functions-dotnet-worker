@@ -25,15 +25,13 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 throw new ArgumentNullException(nameof(services));
             }
-            services.AddSingleton<IConfigureOptions<FunctionsApplicationInsightsOptions>, FunctionsApplicationInsightsOptionsInitializer>();
 
+            services.AddSingleton<IConfigureOptions<FunctionsApplicationInsightsOptions>, FunctionsApplicationInsightsOptionsInitializer>();
             services.AddSingleton<IConfigureOptions<AppServiceOptions>, AppServiceOptionsInitializer>();
             services.AddSingleton<AppServiceEnvironmentVariableMonitor>();
             services.AddSingleton<IOptionsChangeTokenSource<AppServiceOptions>>(p => p.GetRequiredService<AppServiceEnvironmentVariableMonitor>());
             services.AddSingleton<IHostedService>(p => p.GetRequiredService<AppServiceEnvironmentVariableMonitor>());
-
             services.AddSingleton<FunctionsRoleInstanceProvider>();
-
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryInitializer, FunctionsTelemetryInitializer>());
             services.AddSingleton<ITelemetryInitializer>(provider =>
             {
@@ -52,8 +50,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 return ActivatorUtilities.CreateInstance<FunctionsRoleEnvironmentTelemetryInitializer>(provider);
             });
-            services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());
-            
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ITelemetryModule, FunctionsTelemetryModule>());            
             services.AddHostedService<ApplicationInsightsValidationService>();
 
             // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.

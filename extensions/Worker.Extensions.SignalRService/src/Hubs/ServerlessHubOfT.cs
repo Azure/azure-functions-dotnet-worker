@@ -47,7 +47,8 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         protected override async Task<BinaryData> NegotiateAsync(NegotiationOptions? options = null)
         {
             var negotiateResponse = await HubContext.NegotiateAsync(options ?? DefaultNegotiateOptiosn);
-            return ObjectSerializer.Serialize(new SignalRConnectionInfo() {
+            return ObjectSerializer.Serialize(new SignalRConnectionInfo()
+            {
                 Url = negotiateResponse.Url,
                 AccessToken = negotiateResponse.AccessToken,
             });

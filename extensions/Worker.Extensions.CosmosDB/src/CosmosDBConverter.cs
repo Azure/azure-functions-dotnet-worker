@@ -2,9 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -12,8 +14,8 @@ using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
-using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Extensions;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -25,6 +27,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         private readonly IOptionsMonitor<CosmosDBBindingOptions> _cosmosOptions;
         private readonly ILogger<CosmosDBConverter> _logger;
+        private static readonly JsonSerializerOptions _serializerOptions = new() { PropertyNameCaseInsensitive = true };
 
         public CosmosDBConverter(IOptionsMonitor<CosmosDBBindingOptions> cosmosOptions, ILogger<CosmosDBConverter> logger)
         {
@@ -85,55 +88,53 @@ namespace Microsoft.Azure.Functions.Worker
 
         private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBInputAttribute cosmosAttribute)
         {
-            MethodInfo createPOCOMethod;
-
-            if (targetType.GenericTypeArguments.Any())
-            {
-                targetType = targetType.GenericTypeArguments.FirstOrDefault();
-
-                createPOCOMethod = GetType()
-                                    .GetMethod(nameof(CreatePOCOCollectionAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                    .MakeGenericMethod(targetType);
-            }
-            else
-            {
-                createPOCOMethod = GetType()
-                                    .GetMethod(nameof(CreatePOCOAsync), BindingFlags.Instance | BindingFlags.NonPublic)
-                                    .MakeGenericMethod(targetType);
-            }
-
-
-            var container = CreateCosmosClient<Container>(cosmosAttribute) as Container;
-
-            if (container is null)
+            if (CreateCosmosClient<Container>(cosmosAttribute) is not Container container)
             {
                 throw new InvalidOperationException($"Unable to create Cosmos container client for '{cosmosAttribute.ContainerName}'.");
             }
 
-            return await (Task<object>)createPOCOMethod.Invoke(this, new object[] { container, cosmosAttribute });
+            if (targetType.IsCollectionType())
+            {
+                return await ParameterBinder.BindCollectionAsync(
+                    elementType => GetDocumentsAsync(container, cosmosAttribute, elementType), targetType);
+            }
+            else
+            {
+                return await CreatePocoAsync(container, cosmosAttribute, targetType);
+            }
         }
 
-        private async Task<object> CreatePOCOAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute)
+        private async Task<object> CreatePocoAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type targetType)
         {
-            if (String.IsNullOrEmpty(cosmosAttribute.Id) || String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
+            if (string.IsNullOrEmpty(cosmosAttribute.Id) || string.IsNullOrEmpty(cosmosAttribute.PartitionKey))
             {
                 throw new InvalidOperationException("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.");
             }
 
-            ItemResponse<T> item = await container.ReadItemAsync<T>(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
-
-            if (item is null || item?.StatusCode is not System.Net.HttpStatusCode.OK || item.Resource is null)
-            {
-                throw new InvalidOperationException($"Unable to retrieve document with ID '{cosmosAttribute.Id}' and PartitionKey '{cosmosAttribute.PartitionKey}'");
-            }
-
-            return item.Resource;
+            ResponseMessage item = await container.ReadItemStreamAsync(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
+            item.EnsureSuccessStatusCode();
+            return (await JsonSerializer.DeserializeAsync(item.Content, targetType, _serializerOptions))!;
         }
 
-        private async Task<object> CreatePOCOCollectionAsync<T>(Container container, CosmosDBInputAttribute cosmosAttribute)
+        private async IAsyncEnumerable<object> GetDocumentsAsync(Container container, CosmosDBInputAttribute cosmosAttribute, Type elementType)
+        {
+            await foreach (var stream in GetDocumentsStreamAsync(container, cosmosAttribute))
+            {
+                // Cosmos returns a stream of JSON which represents a paged response. The contents are in a property called "Documents".
+                // Deserializing into CosmosStream<T> will extract these documents.
+                Type target = typeof(CosmosStream<>).MakeGenericType(elementType);
+                CosmosStream page = (CosmosStream)(await JsonSerializer.DeserializeAsync(stream!, target, _serializerOptions))!;
+                foreach (var item in page.GetDocuments())
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        private async IAsyncEnumerable<Stream> GetDocumentsStreamAsync(Container container, CosmosDBInputAttribute cosmosAttribute)
         {
             QueryDefinition queryDefinition = null!;
-            if (!String.IsNullOrEmpty(cosmosAttribute.SqlQuery))
+            if (!string.IsNullOrEmpty(cosmosAttribute.SqlQuery))
             {
                 queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
                 if (cosmosAttribute.SqlQueryParameters?.Count() > 0)
@@ -146,32 +147,21 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             QueryRequestOptions queryRequestOptions = new();
-            if (!String.IsNullOrEmpty(cosmosAttribute.PartitionKey))
+            if (!string.IsNullOrEmpty(cosmosAttribute.PartitionKey))
             {
-                var partitionKey =  new PartitionKey(cosmosAttribute.PartitionKey);
+                var partitionKey = new PartitionKey(cosmosAttribute.PartitionKey);
                 queryRequestOptions = new() { PartitionKey = partitionKey };
             }
 
-            using (var iterator = container.GetItemQueryIterator<T>(queryDefinition: queryDefinition, requestOptions: queryRequestOptions))
-            {
-                if (iterator is null)
-                {
-                    throw new InvalidOperationException($"Unable to retrieve documents for container '{container.Id}'.");
-                }
+            using FeedIterator iterator = container.GetItemQueryStreamIterator(queryDefinition: queryDefinition, requestOptions: queryRequestOptions)
+                ?? throw new InvalidOperationException($"Unable to retrieve documents for container '{container.Id}'.");
 
-                return await ExtractCosmosDocumentsAsync(iterator);
-            }
-        }
-
-        private async Task<IList<T>> ExtractCosmosDocumentsAsync<T>(FeedIterator<T> iterator)
-        {
-            var documentList = new List<T>();
             while (iterator.HasMoreResults)
             {
-                FeedResponse<T> response = await iterator.ReadNextAsync();
-                documentList.AddRange(response.Resource);
+                using ResponseMessage response = await iterator.ReadNextAsync();
+                response.EnsureSuccessStatusCode();
+                yield return response.Content;
             }
-            return documentList;
         }
 
         private T CreateCosmosClient<T>(CosmosDBInputAttribute cosmosAttribute)
@@ -193,6 +183,19 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             return (T)cosmosReference;
+        }
+
+        // Need a non-generic type to cast to, and can't use IEnumerable directly (breaks json deserialization).
+        private abstract class CosmosStream
+        {
+            public abstract IEnumerable GetDocuments();
+        }
+
+        private class CosmosStream<T> : CosmosStream
+        {
+            public IEnumerable<T>? Documents { get; set; }
+
+            public override IEnumerable GetDocuments() => Documents!;
         }
     }
 }

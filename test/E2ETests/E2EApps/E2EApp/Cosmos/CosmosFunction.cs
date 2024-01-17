@@ -156,7 +156,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 containerName: "%CosmosCollIn%",
                 Connection = "CosmosConnection",
                 SqlQuery = "SELECT * FROM ItemDb t where t.id = {id}")]
-                IEnumerable<MyDocument> myDocs)
+                MyDocument[] myDocs)
         {
             var output = myDocs.FirstOrDefault().Text;
             var response = req.CreateResponse(HttpStatusCode.OK);

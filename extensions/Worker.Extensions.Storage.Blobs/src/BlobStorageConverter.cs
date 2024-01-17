@@ -145,22 +145,10 @@ namespace Microsoft.Azure.Functions.Worker
 
         private bool IsCollectionBinding(Type targetType, string blobName, out Type? elementType)
         {
-            elementType = null;
-
-            // Edge case: These two types should be treated as a single blob binding
-            // string implements IEnumerable<char> and byte[] would pass the IsArray check
-            if (targetType == typeof(string) || targetType == typeof(byte[]))
+            if (!targetType.TryGetCollectionElementType(out elementType))
             {
                 return false;
             }
-
-            if (!(targetType.IsArray || typeof(IEnumerable).IsAssignableFrom(targetType)))
-            {
-                return false;
-            }
-
-            // At this stage, we know we have a collection type binding
-            elementType = targetType.IsArray ? targetType.GetElementType() : targetType.GenericTypeArguments[0];
 
             if (elementType == typeof(BlobContainerClient))
             {

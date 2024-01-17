@@ -12,7 +12,7 @@ using Worker.Extensions.Sample_IncorrectImplementation;
 using Xunit;
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
-    public class ExtensionStartupRunnerGeneratorTests
+    public partial class ExtensionStartupRunnerGeneratorTests
     {
         const string InputCode = """
                                  public class Foo

@@ -10,10 +10,12 @@ namespace FunctionsNetHost.Grpc
     {
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
+        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
 
-        internal IncomingGrpcMessageHandler(AppLoader appLoader)
+        internal IncomingGrpcMessageHandler(AppLoader appLoader, GrpcWorkerStartupOptions grpcWorkerStartupOptions)
         {
             _appLoader = appLoader;
+            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -78,6 +80,8 @@ namespace FunctionsNetHost.Grpc
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
+                    EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
+
 #pragma warning disable CS4014
                     Task.Run(() =>
 #pragma warning restore CS4014
@@ -87,7 +91,13 @@ namespace FunctionsNetHost.Grpc
 
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
-                    Logger.LogTrace($"Received worker loaded signal. Forwarding environment reload request to worker.");
+
+                    var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
+                    if (OperatingSystem.IsWindows())
+                    {
+                        logMessage += $", AppPoolId:{Environment.GetEnvironmentVariable(EnvironmentVariables.AppPoolId)}";
+                    }
+                    Logger.Log(logMessage);
 
                     await MessageChannel.Instance.SendInboundAsync(msg);
                     _specializationDone = true;

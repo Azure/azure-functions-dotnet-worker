@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         public const string DefaultConnectionStringName = "AzureSignalRConnectionString";
 
         internal static readonly ObjectSerializer ObjectSerializer = new JsonObjectSerializer(new(JsonSerializerDefaults.Web));
-        internal static readonly NegotiationOptions DefaultNegotiateOptiosn = new();
+        internal static readonly NegotiationOptions DefaultNegotiateOptions = new();
         internal readonly object? _hubContext;
 
         [ActivatorUtilitiesConstructor]
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.SignalRService
         /// </summary>
         protected virtual async Task<BinaryData> NegotiateAsync(NegotiationOptions? options = null)
         {
-            var negotiateResponse = await HubContext.NegotiateAsync(options ?? DefaultNegotiateOptiosn);
+            var negotiateResponse = await HubContext.NegotiateAsync(options ?? DefaultNegotiateOptions);
             return ObjectSerializer.Serialize(new SignalRConnectionInfo()
             {
                 Url = negotiateResponse.Url,

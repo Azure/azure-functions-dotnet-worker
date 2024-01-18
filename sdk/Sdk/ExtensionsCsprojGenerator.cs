@@ -91,6 +91,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""{netSdkVersion}"" />
         {extensionReferences}
     </ItemGroup>
+
+    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+        <Error Condition=""'$(TargetFramework)' != '{targetFramework}'"" Text=""The target framework '$(TargetFramework)' must be '{targetFramework}'. Verify if target framework has been overridden by a global property."" />
+    </Target>
 </Project>
 ";
         }

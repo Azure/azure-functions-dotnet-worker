@@ -2,6 +2,8 @@
   "IsEncrypted": false,
   "Values": {
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "AzureWebJobsStorage": "UseDevelopmentStorage=true"
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "APPLICATIONINSIGHTS_LOG_DIAGNOSTICS": "C:\\home\\LogFiles\\Application\\Functions\\",
+    "APPLICATIONINSIGHTS_AUTHENTICATION_STRING": "Authorization=AAD;ClientId=822a5453-60b8-4d54-b8c5-d77719ba0ba5;"
   }
 }

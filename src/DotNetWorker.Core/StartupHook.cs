@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
 
 /// <summary>
 /// This code is called by the .NET infrastructure the following MUST remain unchanged:
@@ -25,6 +26,8 @@ internal class StartupHook
 
     public static void Initialize()
     {
+        WorkerEventSource.Log.StartupHookInit();
+
         // Time to wait between checks, in ms.
         const int SleepTime = 500;
         const int MaxWaitCycles = (60 * 1000) / SleepTime;
@@ -57,12 +60,12 @@ internal class StartupHook
 
         if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { processId } }}");
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : {processId} }}");
         }
 
         if (string.Equals(debuggerWaitEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"Azure Functions .NET Worker (PID: { processId }) initialized in debug mode. Waiting for debugger to attach...");
+            Console.WriteLine($"Azure Functions .NET Worker (PID: {processId}) initialized in debug mode. Waiting for debugger to attach...");
 
             for (int i = 0; WaitOnDebugger(i); i++)
             {

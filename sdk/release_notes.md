@@ -4,10 +4,12 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.16.4 (meta package)
 
-- Update Microsoft.Azure.Functions.Worker.Sdk.Generators dependency to 1.1.6
+### Microsoft.Azure.Functions.Worker.Sdk 1.17.0-preview1 (meta package)
 
-### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.6
-
-- Avoid executing source generators outside of an Azure Functions project. (#2119)
+- Improve incremental build support for worker extension project inner build (https://github.com/Azure/azure-functions-dotnet-worker/pull/1749) 
+  - Now builds to intermediate output path
+- Resolve and pass nuget restore sources as explicit property to inner build (https://github.com/Azure/azure-functions-dotnet-worker/pull/1937)
+- Integrate inner build with existing .NET SDK targets (https://github.com/Azure/azure-functions-dotnet-worker/pull/1861)
+  - Targets have been refactored to participate with `CopyToOutputDirectory` and `CopyToPublishDirectory` instead of manually copying
+  - Incremental build support further improved

@@ -43,6 +43,7 @@ namespace FunctionsNetHost
                     Logger.Log($"Failed to load hostfxr. hostfxrFullPath:{hostfxrFullPath}");
                     return -1;
                 }
+                
                 AppLoaderEventSource.Log.HostFxrLoadStop();
                 Logger.LogTrace($"hostfxr loaded.");
 
@@ -59,8 +60,8 @@ namespace FunctionsNetHost
                 {
                     return error;
                 }
+                
                 AppLoaderEventSource.Log.HostFxrInitializeForDotnetCommandLineStop();
-
                 Logger.LogTrace($"hostfxr initialized with {assemblyPath}");
                 HostFxr.SetAppContextData(_hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
 

@@ -978,7 +978,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.13.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.13.4" },
             });
 
             var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));

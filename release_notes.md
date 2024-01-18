@@ -4,19 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 1.20.0
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Updated to `Microsoft.Azure.Functions.Worker.Core` 1.16.0
-- Updated to `Microsoft.Azure.Functions.Worker.Grpc` 1.15.0
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Core 1.16.0
+### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Adding optional parameter support (#1868)
-- Unsealed `Microsoft.Azure.Functions.Worker.Http.HttpHeadersCollection`
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Grpc 1.15.0
+### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- Added support for handling the new command line arguments with "functions-" prefix. (#1897)
-- Adding optional parameter support (#1868)
-- Enhancements to interop in hosted placeholder scenarios
-  
+- <etnry>

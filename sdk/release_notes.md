@@ -5,7 +5,7 @@
 -->
 
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.17.0-preview1
+### Microsoft.Azure.Functions.Worker.Sdk 1.17.0-preview1 (meta package)
 
 - Improve incremental build support for worker extension project inner build (https://github.com/Azure/azure-functions-dotnet-worker/pull/1749) 
   - Now builds to intermediate output path

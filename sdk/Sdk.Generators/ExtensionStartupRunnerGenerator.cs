@@ -62,6 +62,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public void Execute(GeneratorExecutionContext context)
         {
+            if (!context.IsRunningInAzureFunctionProject())
+            {
+                return;
+            }
+            
             var extensionStartupTypeNames = GetExtensionStartupTypes(context);
 
             if (!extensionStartupTypeNames.Any())

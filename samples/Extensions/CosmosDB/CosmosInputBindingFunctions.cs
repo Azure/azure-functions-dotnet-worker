@@ -36,14 +36,14 @@ namespace SampleApp
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
             var iterator = client.GetContainer("ToDoItems", "Items")
-                                 .GetItemQueryIterator<dynamic>("SELECT * FROM c");
+                                 .GetItemQueryIterator<ToDoItem>("SELECT * FROM c");
 
             while (iterator.HasMoreResults)
             {
                 var documents = await iterator.ReadNextAsync();
-                foreach (dynamic d in documents)
+                foreach (ToDoItem item in documents)
                 {
-                    _logger.LogInformation((string)d.description);
+                    _logger.LogInformation(item.Description);
                 }
             }
 
@@ -62,14 +62,14 @@ namespace SampleApp
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var iterator = database.GetContainerQueryIterator<dynamic>("SELECT * FROM c");
+            var iterator = database.GetContainerQueryIterator<ContainerProperties>("SELECT * FROM c");
 
             while (iterator.HasMoreResults)
             {
                 var containers = await iterator.ReadNextAsync();
-                foreach (dynamic c in containers)
+                foreach (ContainerProperties c in containers)
                 {
-                    _logger.LogInformation((string)c.id);
+                    _logger.LogInformation(c.Id);
                 }
             }
 
@@ -88,14 +88,14 @@ namespace SampleApp
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            var iterator = container.GetItemQueryIterator<dynamic>("SELECT * FROM c");
+            var iterator = container.GetItemQueryIterator<ToDoItem>("SELECT * FROM c");
 
             while (iterator.HasMoreResults)
             {
                 var documents = await iterator.ReadNextAsync();
-                foreach (dynamic d in documents)
+                foreach (ToDoItem item in documents)
                 {
-                    _logger.LogInformation("Found ToDo item, Description={desc}", (string)d.description);
+                    _logger.LogInformation("Found ToDo item, Description={desc}", item.Description);
                 }
             }
 

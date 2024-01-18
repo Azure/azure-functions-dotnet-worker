@@ -7,7 +7,7 @@ namespace FunctionsNetHost.Diagnostics
 {
     // Use 8000-8999 for events from FunctionsNetHost.
 
-    [EventSource(Name = Constants.AzureFunctionsEventSourceName)]
+    [EventSource(Name = Constants.EventSourceName, Guid = Constants.EventSourceGuid)]
     public sealed class AppLoaderEventSource : EventSource
     {
         [Event(8001)]

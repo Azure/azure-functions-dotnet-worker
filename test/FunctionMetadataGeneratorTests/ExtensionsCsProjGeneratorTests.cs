@@ -83,23 +83,17 @@ namespace Microsoft.Azure.Functions.SdkTests
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
-        <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions</RootNamespace>
-        <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
-        <Version>$(MajorMinorProductVersion).0</Version>
-        <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-        <FileVersion>$(Version)</FileVersion>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.1.2"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
-<PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
-<PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
-
+        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
+        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
     </ItemGroup>
 
     <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
@@ -116,23 +110,17 @@ namespace Microsoft.Azure.Functions.SdkTests
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
         <TargetFramework>net6.0</TargetFramework>
-        <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions</RootNamespace>
-        <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
-        <Version>$(MajorMinorProductVersion).0</Version>
-        <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-        <FileVersion>$(Version)</FileVersion>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.2.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
-<PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
-<PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
-
+        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
+        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
     </ItemGroup>
 
     <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">

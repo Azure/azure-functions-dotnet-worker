@@ -76,21 +76,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
         <TargetFramework>{targetFramework}</TargetFramework>
-        <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions</RootNamespace>
-        <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
-        <Version>$(MajorMinorProductVersion).0</Version>
-        <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-        <FileVersion>$(Version)</FileVersion>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""{netSdkVersion}"" />
-        {extensionReferences}
-    </ItemGroup>
+{extensionReferences}    </ItemGroup>
 
     <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
         <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
@@ -114,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static string GetPackageReferenceFromExtension(string name, string version)
         {
-            return $@"<PackageReference Include=""{name}"" Version=""{version}"" />";
+            return $"        <PackageReference Include=\"{name}\" Version=\"{version}\" />";
         }
     }
 }

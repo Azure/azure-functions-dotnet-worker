@@ -7,12 +7,13 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
 {
     internal class TelemetryConfigurationSetup : IConfigureOptions<TelemetryConfiguration>
     {
+        private const string AppInsightsAuthenticationString = "APPLICATIONINSIGHTS_AUTHENTICATION_STRING";
         private readonly IConfiguration _configuration;
+        
         public TelemetryConfigurationSetup(IConfiguration configuration)
         {
             _configuration = configuration;
         }
-        private const string AppInsightsAuthenticationString = "APPLICATIONINSIGHTS_AUTHENTICATION_STRING";
 
         public void Configure(TelemetryConfiguration telemetryConfiguration)
         {

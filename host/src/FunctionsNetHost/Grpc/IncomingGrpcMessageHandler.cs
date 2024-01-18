@@ -78,7 +78,12 @@ namespace FunctionsNetHost.Grpc
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
-                    }
+
+                        if (string.Equals(kv.Key, "ENABLE_WORKER_STARTUPHOOK_ASSEMBLY"))
+                        {
+                            EnvironmentUtils.SetValue("DOTNET_STARTUP_HOOKS", kv.Value);
+                        }
+                    }                    
 
                     EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 

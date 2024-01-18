@@ -11,11 +11,8 @@ namespace FunctionsNetHost
 
         static Logger()
         {
-#if !DEBUG
-            LogPrefix = "LanguageWorkerConsoleLog";
-#else
-            LogPrefix = "";
-#endif
+            var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsNetHostDisableLogPrefix), "1");
+            LogPrefix = disableLogPrefix ? string.Empty : "LanguageWorkerConsoleLog";
         }
 
         internal static bool IsTraceLogEnabled

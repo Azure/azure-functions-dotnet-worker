@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
-using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
 {
@@ -19,24 +17,13 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights
     {
         private const string DependencyTelemetryKey = "_tel";
         private const string DependencyTypeInProc = "InProc";
-        private readonly FunctionsApplicationInsightsOptions _options;
 
         private TelemetryClient? _telemetryClient;
         private ActivityListener? _listener;
 
-        public FunctionsTelemetryModule(IOptions<FunctionsApplicationInsightsOptions> options)
-        {
-            _options = options.Value;
-        }
-
         public void Initialize(TelemetryConfiguration configuration)
         {
             _telemetryClient = new TelemetryClient(configuration);
-
-            if (_options.TokenCredentialOptions != null)
-            {
-                configuration.SetAzureTokenCredential(_options.TokenCredentialOptions.CreateTokenCredential());
-            }
 
             _listener = new ActivityListener
             {

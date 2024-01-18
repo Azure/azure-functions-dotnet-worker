@@ -1,4 +1,5 @@
-﻿using System.Diagnostics.Tracing;
+﻿using System;
+using System.Diagnostics.Tracing;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
 {
@@ -6,7 +7,16 @@ namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
     internal sealed class WorkerEventSource : EventSource
     {
         [Event(1001)]
-        public void StartupHookInit() { WriteEvent(1001); }
+        public void StartupHookInit() 
+        {
+            Console.WriteLine("Inside StartupHookInit");
+            if (IsEnabled())
+            {
+                Console.WriteLine("Inside StartupHookInit - calling WriteEvent");
+
+                WriteEvent(1001);
+            }
+        }
 
         internal static readonly WorkerEventSource Log = new WorkerEventSource();
     }

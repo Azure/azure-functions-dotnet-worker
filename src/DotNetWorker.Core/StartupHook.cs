@@ -26,6 +26,7 @@ internal class StartupHook
 
     public static void Initialize()
     {
+        Console.WriteLine("Inside StartupHook.Initialize()");
         WorkerEventSource.Log.StartupHookInit();
 
         // Time to wait between checks, in ms.

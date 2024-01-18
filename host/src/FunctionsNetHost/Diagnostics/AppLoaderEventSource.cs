@@ -7,15 +7,15 @@ namespace FunctionsNetHost.Diagnostics
 {
     // Use 8000-8999 for events from FunctionsNetHost.
 
-    [EventSource(Name = Constants.AzureFunctionsEventSourceName, Guid = Constants.AzureFunctionsEventSourceGuid)]
+    [EventSource(Name = Constants.AzureFunctionsEventSourceName)]
     public sealed class AppLoaderEventSource : EventSource
     {
         [Event(8001)]
-        public void HostFxrLoadStart(string HostFxrPath)
+        public void HostFxrLoadStart(string hostFxrPath)
         {
             if (IsEnabled())
             {
-                WriteEvent(8001, HostFxrPath);
+                WriteEvent(8001, hostFxrPath);
             }
         }
 
@@ -29,11 +29,11 @@ namespace FunctionsNetHost.Diagnostics
         }
 
         [Event(8003)]
-        public void HostFxrInitializeForDotnetCommandLineStart(string AssemblyPath)
+        public void HostFxrInitializeForDotnetCommandLineStart(string assemblyPath)
         {
             if (IsEnabled())
             {
-                WriteEvent(8003, AssemblyPath);
+                WriteEvent(8003, assemblyPath);
             }
         }
 

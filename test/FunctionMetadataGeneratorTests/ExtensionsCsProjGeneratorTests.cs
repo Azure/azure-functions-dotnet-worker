@@ -101,6 +101,11 @@ namespace Microsoft.Azure.Functions.SdkTests
 <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
 
     </ItemGroup>
+
+    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+        <Error Condition=""'$(TargetFramework)' != 'netcoreapp3.1'"" Text=""The target framework '$(TargetFramework)' must be 'netcoreapp3.1'. Verify if target framework has been overridden by a global property."" />
+    </Target>
 </Project>
 ";
         }
@@ -129,6 +134,11 @@ namespace Microsoft.Azure.Functions.SdkTests
 <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
 
     </ItemGroup>
+
+    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+        <Error Condition=""'$(TargetFramework)' != 'net6.0'"" Text=""The target framework '$(TargetFramework)' must be 'net6.0'. Verify if target framework has been overridden by a global property."" />
+    </Target>
 </Project>
 ";
         }

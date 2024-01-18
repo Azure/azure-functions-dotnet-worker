@@ -13,3 +13,4 @@
 - Integrate inner build with existing .NET SDK targets (https://github.com/Azure/azure-functions-dotnet-worker/pull/1861)
   - Targets have been refactored to participate with `CopyToOutputDirectory` and `CopyToPublishDirectory` instead of manually copying
   - Incremental build support further improved
+- Explicitly error out if inner-builds TFM is altered. (https://github.com/Azure/azure-functions-dotnet-worker/pull/2222)

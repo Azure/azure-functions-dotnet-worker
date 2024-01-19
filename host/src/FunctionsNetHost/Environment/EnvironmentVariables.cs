@@ -9,7 +9,17 @@ internal static class EnvironmentVariables
     /// Set value to "1" will prevent the log entries to have the prefix "LanguageWorkerConsoleLog".
     /// Set this to see logs when you are debugging FunctionsNetHost locally with WebHost.
     /// </summary>
-    internal const string FunctionsNetHostDisableLogPrefix = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_DISABLE_LOGPREFIX";
+    internal const string DisableLogPrefix = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_DISABLE_LOGPREFIX";
+
+    /// <summary>
+    /// This env variable is used by runtime to load startup hooks.
+    /// </summary>
+    internal const string DotnetStartupHooks = "DOTNET_STARTUP_HOOKS";
+
+    /// <summary>
+    /// Set value to "1" for enabling worker startup hook.
+    /// </summary>
+    internal const string EnableWorkerStartupHook = "ENABLE_WORKER_STARTUPHOOK_ASSEMBLY";
 
     /// <summary>
     /// Set value to "1" for enabling extra trace logs in FunctionsNetHost.

@@ -11,7 +11,7 @@ namespace FunctionsNetHost
 
         static Logger()
         {
-            var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsNetHostDisableLogPrefix), "1");
+            var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix), "1");
             LogPrefix = disableLogPrefix ? string.Empty : "LanguageWorkerConsoleLog";
         }
 

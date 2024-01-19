@@ -8,6 +8,7 @@ namespace FunctionsNetHost.Grpc
 {
     internal sealed class IncomingGrpcMessageHandler
     {
+        private const string WorkerStartupHookAssemblyName = "Microsoft.Azure.Functions.Worker.Core";
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
@@ -78,12 +79,15 @@ namespace FunctionsNetHost.Grpc
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                    }
 
-                        if (string.Equals(kv.Key, "ENABLE_WORKER_STARTUPHOOK_ASSEMBLY"))
+                    if (envReloadRequest.EnvironmentVariables.TryGetValue(EnvironmentVariables.EnableWorkerStartupHook, out var value))
+                    {
+                        if (string.Equals(value, "1", StringComparison.InvariantCultureIgnoreCase))
                         {
-                            EnvironmentUtils.SetValue("DOTNET_STARTUP_HOOKS", kv.Value);
+                            EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, WorkerStartupHookAssemblyName);
                         }
-                    }                    
+                    }
 
                     EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 

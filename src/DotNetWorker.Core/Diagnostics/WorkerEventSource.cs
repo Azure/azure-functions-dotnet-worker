@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 using System.Diagnostics.Tracing;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
@@ -9,11 +11,8 @@ namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
         [Event(1001)]
         public void StartupHookInit() 
         {
-            Console.WriteLine("Inside StartupHookInit");
             if (IsEnabled())
             {
-                Console.WriteLine("Inside StartupHookInit - calling WriteEvent");
-
                 WriteEvent(1001);
             }
         }

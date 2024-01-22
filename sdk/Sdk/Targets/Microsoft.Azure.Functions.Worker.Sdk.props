@@ -24,8 +24,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="host.json" CopyToOutputDirectory="PreserveNewest" CopyToPublisDirectory="PreserveNewest" />
-    <None Include="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublisDirectory="Never" />
+    <None Include="host.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <None Include="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" />
   </ItemGroup>
 
   <ItemGroup>

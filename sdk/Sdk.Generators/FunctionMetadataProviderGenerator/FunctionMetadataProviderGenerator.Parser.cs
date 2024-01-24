@@ -573,7 +573,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
                     else
                     {
-                        bindings[propertyName] = prop.Value!.ToString();
+                        bindings[propertyName] = prop.Value!; // this value has already been parsed by "TryParseValueByType" during the call to "TryGetAttributeProperties" earlier in this method
                     }
                 }
 

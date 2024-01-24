@@ -101,7 +101,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""message"",""type"":""serviceBusTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""queueName"":""queue"",""connection"":""ServiceBusConnection"",""isSessionsEnabled"":true,""cardinality"":""One""}");                
+                            Function0RawBindings.Add(@"{""name"":""message"",""type"":""serviceBusTrigger"",""direction"":""In"",""properties"":{""supportsDeferredBinding"":""True""},""queueName"":""queue"",""connection"":""ServiceBusConnection"",""isSessionsEnabled"":true,""cardinality"":""One""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",

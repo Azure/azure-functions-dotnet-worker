@@ -23,6 +23,11 @@
   <PropertyGroup>
     <EventSourceSupport>true</EventSourceSupport>
   </PropertyGroup>
+
+    <!--! Temp to capture events-->
+    <PropertyGroup>
+        <UseWindowsThreadPool>false</UseWindowsThreadPool>
+    </PropertyGroup>
     
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.23.2" />

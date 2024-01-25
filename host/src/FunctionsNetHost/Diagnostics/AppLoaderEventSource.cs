@@ -13,7 +13,7 @@ namespace FunctionsNetHost.Diagnostics
         [Event(8001)]
         public void HostFxrLoadStart(string hostFxrPath)
         {
-            if (IsEnabled())
+            //if (IsEnabled())
             {
                 WriteEvent(8001, hostFxrPath);
             }
@@ -22,7 +22,7 @@ namespace FunctionsNetHost.Diagnostics
         [Event(8002)]
         public void HostFxrLoadStop()
         {
-            if (IsEnabled())
+            //if (IsEnabled())
             {
                 WriteEvent(8002);
             }
@@ -31,7 +31,7 @@ namespace FunctionsNetHost.Diagnostics
         [Event(8003)]
         public void HostFxrInitializeForDotnetCommandLineStart(string assemblyPath)
         {
-            if (IsEnabled())
+            //if (IsEnabled())
             {
                 WriteEvent(8003, assemblyPath);
             }
@@ -40,7 +40,7 @@ namespace FunctionsNetHost.Diagnostics
         [Event(8004)]
         public void HostFxrInitializeForDotnetCommandLineStop()
         {
-            if (IsEnabled())
+            //if (IsEnabled())
             {
                 WriteEvent(8004);
             }
@@ -49,7 +49,7 @@ namespace FunctionsNetHost.Diagnostics
         [Event(8005)]
         public void HostFxrRunAppStart()
         {
-            if (IsEnabled())
+            //if (IsEnabled())
             {
                 WriteEvent(8005);
             }

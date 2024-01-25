@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
         [Event(1001)]
         public void StartupHookInit() 
         {
-            if (IsEnabled())
+            //if (IsEnabled())
             {
                 WriteEvent(1001);
             }

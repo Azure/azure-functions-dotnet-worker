@@ -92,7 +92,6 @@ namespace FunctionsNetHost.Grpc
                         }
                     }
 
-                    AppLoaderEventSource.Log.SpecializationRequestReceived(applicationExePath);
 
                     EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 

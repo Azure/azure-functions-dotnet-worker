@@ -10,15 +10,6 @@ namespace FunctionsNetHost.Diagnostics
     [EventSource(Name = Constants.EventSourceName)]
     public sealed class AppLoaderEventSource : EventSource
     {
-        [Event(8000)]
-        public void SpecializationRequestReceived(string customerAssembly)
-        {
-            if (IsEnabled())
-            {
-                WriteEvent(8000, customerAssembly);
-            }
-        }
-
         [Event(8001)]
         public void HostFxrLoadStart(string hostFxrPath)
         {

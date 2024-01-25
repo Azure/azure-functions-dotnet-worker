@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using FunctionsNetHost.Diagnostics;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -90,6 +91,8 @@ namespace FunctionsNetHost.Grpc
                             Logger.LogTrace($"Set env variable {EnvironmentVariables.DotnetStartupHooks} to {WorkerStartupHookAssemblyName}");
                         }
                     }
+
+                    AppLoaderEventSource.Log.SpecializationRequestReceived(applicationExePath);
 
                     EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 

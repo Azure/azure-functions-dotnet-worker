@@ -7,9 +7,18 @@ namespace FunctionsNetHost.Diagnostics
 {
     // Use 8000-8999 for events from FunctionsNetHost.
 
-    [EventSource(Name = Constants.EventSourceName, Guid = Constants.EventSourceGuid)]
+    [EventSource(Name = Constants.EventSourceName)]
     public sealed class AppLoaderEventSource : EventSource
     {
+        [Event(8000)]
+        public void SpecializationRequestReceived(string customerAssembly)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8000, customerAssembly);
+            }
+        }
+
         [Event(8001)]
         public void HostFxrLoadStart(string hostFxrPath)
         {

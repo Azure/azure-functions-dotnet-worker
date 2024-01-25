@@ -214,7 +214,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 builder.Append($$"""
                                     try
                                     {
-                                        new {{typeName}}().Configure(applicationBuilder);
+                                        new global::{{typeName}}().Configure(applicationBuilder);
                                     }
                                     catch (Exception ex)
                                     {

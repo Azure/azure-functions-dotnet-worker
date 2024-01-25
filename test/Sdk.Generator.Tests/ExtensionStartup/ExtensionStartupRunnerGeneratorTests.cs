@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                             {
                                                 try
                                                 {
-                                                    new Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup().Configure(applicationBuilder);
+                                                    new global::Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup().Configure(applicationBuilder);
                                                 }
                                                 catch (Exception ex)
                                                 {
@@ -142,7 +142,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                             {
                                                 try
                                                 {
-                                                    new Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup().Configure(applicationBuilder);
+                                                    new global::Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup().Configure(applicationBuilder);
                                                 }
                                                 catch (Exception ex)
                                                 {

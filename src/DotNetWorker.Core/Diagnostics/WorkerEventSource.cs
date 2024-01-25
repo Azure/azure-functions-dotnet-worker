@@ -5,11 +5,11 @@ using System.Diagnostics.Tracing;
 
 namespace Microsoft.Azure.Functions.Worker.Core.Diagnostics
 {
-    [EventSource(Name = "Microsoft-AzureFunctions-Worker")]
+    [EventSource(Name = "Microsoft-AzureFunctions-Worker", Guid = "DCCCCC7B-F393-4852-96AE-BB6769A266C4")]
     internal sealed class WorkerEventSource : EventSource
     {
         [Event(1001)]
-        public void StartupHookInit() 
+        public void StartupHookInit()
         {
             //if (IsEnabled())
             {

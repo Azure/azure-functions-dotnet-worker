@@ -12,3 +12,4 @@
 
 - Fix namespace conflict in `ExtensionStartupRunnerGenerator` (#2192).
   - Thank you to @llJochemll for the contribution!
+- Fix bug parsing booleans in named arguments of attributes (#2234)

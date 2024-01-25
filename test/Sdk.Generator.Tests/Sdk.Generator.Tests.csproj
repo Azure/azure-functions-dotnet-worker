@@ -12,6 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.17.2" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.SourceGenerators.Testing.XUnit" Version="1.1.*" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.4.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.4.0" PrivateAssets="all" />
@@ -46,7 +47,7 @@
     <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
-    <ProjectReference Include ="..\..\extensions\Worker.Extensions.Kafka\src\Worker.Extensions.Kafka.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Kafka\src\Worker.Extensions.Kafka.csproj" />
     <ProjectReference Include="..\DependentAssemblyWithFunctions\DependentAssemblyWithFunctions.csproj" />
   </ItemGroup>
 

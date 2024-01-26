@@ -14,7 +14,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <!--Our source generators rely on the FunctionsExecutionModel property.-->
     <FunctionsExecutionModel>isolated</FunctionsExecutionModel>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
-    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
     <DefaultExcludesInProjectFolder>$(DefaultExcludesInProjectFolder);host.json;local.settings.json</DefaultExcludesInProjectFolder>
   </PropertyGroup>
 

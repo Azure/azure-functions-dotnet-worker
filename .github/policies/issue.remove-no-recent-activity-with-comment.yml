@@ -7,6 +7,8 @@ configuration:
     - description: Remove no recent activity label when issue is commented on
       if:
       - payloadType: Issue_Comment
+      - isAction:
+          action: Created
       - hasLabel:
           label: no-recent-activity
       then:

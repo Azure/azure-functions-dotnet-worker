@@ -1,9 +1,10 @@
-name: Remove needs triage label
-description: Removes the needs triage label from closed issues
+name: Remove triage labels on close
+description: Removes "needs:*" labels from closed issues
 resource: repository
 configuration:
   resourceManagementConfiguration:
     eventResponderTasks:
+
     - description: Remove needs triage label from closed issues
       if:
       - payloadType: Issues
@@ -14,5 +15,31 @@ configuration:
       then:
       - removeLabel:
           label: 'Needs: Triage (Functions)'
+      triggerOnOwnActions: true
+
+    - description: Remove needs attention label from closed issues
+      if:
+      - payloadType: Issues
+      - isAction:
+          action: Closed
+      - hasLabel:
+          label: 'Needs: Attention :wave:'
+      then:
+      - removeLabel:
+          label: 'Needs: Attention :wave:'
+      triggerOnOwnActions: true
+
+    - description: Remove needs author feedback label from closed issues
+      if:
+      - payloadType: Issues
+      - isAction:
+          action: Closed
+      - hasLabel:
+          label: 'Needs: Author Feedback'
+      then:
+      - removeLabel:
+          label: 'Needs: Author Feedback'
+      triggerOnOwnActions: true
+
 onFailure: 
 onSuccess: 

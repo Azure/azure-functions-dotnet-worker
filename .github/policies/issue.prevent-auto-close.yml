@@ -7,6 +7,11 @@ configuration:
     - description: Prevents issue from being closed by the automation
       if:
       - payloadType: Issue_Comment
+      - or :
+        - isAction:
+            action: Created
+        - isAction:
+            action: Edited
       - commentContains:
           pattern: /bot not-stale
           isRegex: False
@@ -15,6 +20,8 @@ configuration:
             label: 'Needs: Author Feedback'
         - hasLabel:
             label: no-recent-activity
+        - not:
+            hasLabel: 'bot: do not close'
       then:
       - addLabel:
           label: 'bot: do not close'

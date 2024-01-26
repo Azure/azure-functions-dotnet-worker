@@ -6,7 +6,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.ApplicationInsights</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.ApplicationInsights</RootNamespace>
     <MajorProductVersion>1</MajorProductVersion>
-    <MinorProductVersion>1</MinorProductVersion>
+    <MinorProductVersion>2</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <VersionSuffix></VersionSuffix>
@@ -16,7 +16,7 @@
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.21.0" />
+    <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.22.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
   </ItemGroup>
 

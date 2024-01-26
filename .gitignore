@@ -363,3 +363,4 @@ MigrationBackup/
 Migrations/
 local.settings.json
 /tools/localpack.ps1
+/.vscode

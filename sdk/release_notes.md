@@ -6,12 +6,9 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
 
-- <entry>
+- Updating `Microsoft.Azure.Functions.Worker.Sdk.Generators` to 1.2.0
+- Dependency updates in Metadata Loader extension
 
-### Microsoft.Azure.Functions.Worker.Sdk.Analyzers <version>
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.2.0
 
-- <entry>
-
-### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
-
-- <entry>
+- Updating private references

@@ -82,16 +82,7 @@ namespace FunctionsNetHost.Grpc
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
-                    // To enable event instrumentation from worker startup hook.This is not a production use case, but useful for deeper walltime analysis.
-                    if (envReloadRequest.EnvironmentVariables.TryGetValue(EnvironmentVariables.EnableWorkerStartupHook, out var value))
-                    {
-                        if (string.Equals(value, "1", StringComparison.InvariantCultureIgnoreCase))
-                        {
-                            EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, WorkerStartupHookAssemblyName);
-                            Logger.LogTrace($"Set env variable {EnvironmentVariables.DotnetStartupHooks} to {WorkerStartupHookAssemblyName}");
-                        }
-                    }
-
+                    EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, WorkerStartupHookAssemblyName);
 
                     EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 

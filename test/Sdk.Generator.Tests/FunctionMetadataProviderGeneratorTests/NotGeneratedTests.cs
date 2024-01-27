@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             {
                 typeof(HttpTriggerAttribute).Assembly, typeof(FunctionAttribute).Assembly,
                 typeof(LoggingServiceCollectionExtensions).Assembly,
-                typeof(ServiceProviderServiceExtensions).Assembly, typeof(ServiceCollection).Assembly,
+                typeof(ServiceProviderServiceExtensions).Assembly,
                 typeof(ILogger).Assembly, typeof(IConfiguration).Assembly, typeof(HostBuilder).Assembly,
                 typeof(IHostBuilder).Assembly
             };

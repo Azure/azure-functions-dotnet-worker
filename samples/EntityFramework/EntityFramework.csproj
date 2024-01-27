@@ -8,7 +8,6 @@
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.1.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.4" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.20.1" />
-    
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -18,7 +17,6 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="System.Net.NameResolution" Version="4.3.0" />
 
-      
     <!--
     The following references have been promoted from transitive dependencies due to CVE impacted versions
     brought by Microsoft.EntityFrameworkCore.SqlServer 8.0.1. Once there's a new version with updated dependencies, these

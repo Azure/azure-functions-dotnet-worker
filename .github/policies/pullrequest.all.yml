@@ -126,21 +126,6 @@ configuration:
       description: 
     - if:
       - payloadType: Pull_Request
-      - hasLabel:
-          label: AutoMerge
-      then:
-      - enableAutoMerge:
-          mergeMethod: Squash
-      description: 
-    - if:
-      - payloadType: Pull_Request
-      - labelRemoved:
-          label: AutoMerge
-      then:
-      - disableAutoMerge
-      description: 
-    - if:
-      - payloadType: Pull_Request
       - isOpen
       - hasLabel:
           label: stale

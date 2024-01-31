@@ -4,11 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk 1.17.0-preview4 (meta package)
 
-- Updating `Microsoft.Azure.Functions.Worker.Sdk.Generators` to 1.2.0
-- Dependency updates in Metadata Loader extension
-
-### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.2.0
-
-- Updating private references
+- Updating extension project generator to use `Microsoft.NET.Sdk.Functions` 4.3.0 (#2247)

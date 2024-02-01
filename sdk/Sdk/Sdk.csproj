@@ -65,8 +65,8 @@
       <PrivateAssets>all</PrivateAssets>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
-    <ProjectReference Include="..\Sdk.Analyzers\Sdk.Analyzers.csproj" />
-    <ProjectReference Include="..\Sdk.Generators\Sdk.Generators.csproj" />
+    <ProjectReference Include="..\Sdk.Analyzers\Sdk.Analyzers.csproj" ReferenceOutputAssembly="false" />
+    <ProjectReference Include="..\Sdk.Generators\Sdk.Generators.csproj" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
 </Project>

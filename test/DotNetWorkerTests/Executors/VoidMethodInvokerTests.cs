@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
     public class VoidMethodInvokerTests
     {
         [Fact]
-        public void InvokeAsync_DelegatesToLambda()
+        public async Task InvokeAsync_DelegatesToLambda()
         {
             // Arrange
             object expectedInstance = new object();
@@ -29,10 +29,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             IMethodInvoker<object, object> invoker = CreateProductUnderTest(lambda);
 
             // Act
-            Task task = invoker.InvokeAsync(expectedInstance, expectedArguments);
+            await invoker.InvokeAsync(expectedInstance, expectedArguments);
 
             // Assert
-            task.GetAwaiter().GetResult();
             Assert.True(invoked);
             Assert.Same(expectedInstance, instance);
             Assert.Same(expectedArguments, arguments);

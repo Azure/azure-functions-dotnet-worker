@@ -54,6 +54,15 @@ namespace FunctionsNetHost.Diagnostics
             }
         }
 
+        [Event(8006)]
+        public void AssembliesPreloaded(int assemblyCount)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8006, assemblyCount);
+            }
+        }
+
         public static readonly AppLoaderEventSource Log = new();
     }
 }

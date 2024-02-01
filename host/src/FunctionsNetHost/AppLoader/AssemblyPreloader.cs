@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Runtime.InteropServices;
+using FunctionsNetHost.Diagnostics;
 
 namespace FunctionsNetHost
 {
@@ -17,6 +18,8 @@ namespace FunctionsNetHost
                 var loaded = NativeLibrary.TryLoad(assembly, out _);
                 Logger.LogTrace($"Preloaded {assembly} : {loaded}");
             }
+
+            AppLoaderEventSource.Log.AssembliesPreloaded(assemblies.Length);
         }
 
         private static string[] GetAssembliesToPreload()

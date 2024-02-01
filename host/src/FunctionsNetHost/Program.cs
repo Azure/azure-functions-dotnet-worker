@@ -16,9 +16,11 @@ namespace FunctionsNetHost
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-                using var appLoader = new AppLoader();
-                var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
+                AssemblyPreloader.Preload();
 
+                using var appLoader = new AppLoader();              
+                var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
+                
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)

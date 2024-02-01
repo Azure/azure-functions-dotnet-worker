@@ -50,6 +50,17 @@ namespace FunctionsNetHost.Grpc
                         responseMessage.FunctionMetadataResponse = BuildFunctionMetadataResponse();
                         break;
                     }
+                case StreamingMessage.ContentOneofCase.WorkerWarmupRequest:
+                    {
+                        Logger.LogTrace("Worker warmup request received.");
+                        AssemblyPreloader.Preload();
+
+                        responseMessage.WorkerWarmupResponse = new WorkerWarmupResponse
+                        {
+                            Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                        };
+                        break;
+                    }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
                     Logger.LogTrace("Specialization request received.");
@@ -163,6 +174,7 @@ namespace FunctionsNetHost.Grpc
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success }
             };
             response.Capabilities[WorkerCapabilities.EnableUserCodeException] = bool.TrueString;
+            response.Capabilities[WorkerCapabilities.HandlesWorkerWarmupMessage] = bool.TrueString;
 
             return response;
         }

@@ -12,11 +12,12 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost");
+                Logger.Log("Starting FunctionsNetHost1803");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-                AssemblyPreloader.Preload();
+                var executableDir = Path.GetDirectoryName(args[0])!;
+                AssemblyPreloader.Preload(executableDir);
 
                 using var appLoader = new AppLoader();              
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);

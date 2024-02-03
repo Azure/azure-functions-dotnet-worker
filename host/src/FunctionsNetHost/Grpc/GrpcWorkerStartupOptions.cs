@@ -12,5 +12,7 @@ namespace FunctionsNetHost.Grpc
         public string? RequestId { get; set; }
 
         public int GrpcMaxMessageLength { get; set; }
+
+        public string RawCommandLineArgs { get; set; }
     }
 }

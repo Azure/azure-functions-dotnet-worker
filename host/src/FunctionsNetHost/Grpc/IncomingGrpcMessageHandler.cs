@@ -80,8 +80,6 @@ namespace FunctionsNetHost.Grpc
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
-                    EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
-
 #pragma warning disable CS4014
                     Task.Run(() =>
 #pragma warning restore CS4014

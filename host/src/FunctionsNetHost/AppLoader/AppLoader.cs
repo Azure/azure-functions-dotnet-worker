@@ -52,7 +52,8 @@ namespace FunctionsNetHost
 
                 Logger.LogTrace($"hostfxr loaded.");
 
-                var error = HostFxr.Initialize(2, new[] { assemblyPath, _workerStartupOptions.RawCommandLineArgs }, IntPtr.Zero, out _hostContextHandle);
+                var argv = _workerStartupOptions.CommandLineArgs.Prepend(assemblyPath).ToArray();
+                var error = HostFxr.Initialize(argv.Length, argv, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
                 {

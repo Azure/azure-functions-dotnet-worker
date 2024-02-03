@@ -65,7 +65,7 @@ namespace FunctionsNetHost
             var argsWithoutExecutableName = args.Skip(1).ToArray();
             await rootCommand.InvokeAsync(argsWithoutExecutableName);
 
-            workerStartupOptions.RawCommandLineArgs = string.Join(" ", argsWithoutExecutableName);
+            workerStartupOptions.CommandLineArgs = argsWithoutExecutableName;
 
             return workerStartupOptions;
         }

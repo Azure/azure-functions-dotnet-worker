@@ -13,6 +13,6 @@ namespace FunctionsNetHost.Grpc
 
         public int GrpcMaxMessageLength { get; set; }
 
-        public string RawCommandLineArgs { get; set; }
+        public string[] CommandLineArgs { get; set; }
     }
 }

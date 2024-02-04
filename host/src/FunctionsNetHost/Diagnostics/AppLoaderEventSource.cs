@@ -55,11 +55,11 @@ namespace FunctionsNetHost.Diagnostics
         }
 
         [Event(8006)]
-        public void AssembliesPreloaded(int assemblyCount, int successfulPreloads, int failedPreloads)
+        public void AssembliesPreloaded(int assemblyCount, int successfulPreloadCount, int failedPreloadCount)
         {
             if (IsEnabled())
             {
-                WriteEvent(8006, assemblyCount, successfulPreloads, failedPreloads);
+                WriteEvent(8006, assemblyCount, successfulPreloadCount, failedPreloadCount);
             }
         }
 

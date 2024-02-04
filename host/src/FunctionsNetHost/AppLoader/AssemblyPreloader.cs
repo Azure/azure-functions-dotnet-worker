@@ -8,7 +8,8 @@ namespace FunctionsNetHost
 {
     internal static class AssemblyPreloader
     {
-        static private string? _basePath;
+        private const string _preloadAssemblyListFile = "assemblies.txt";
+        private static string? _basePath;
         private static List<string>? _assemblyList;
 
         internal static void Preload(string? applicationBasePath = null)
@@ -18,7 +19,7 @@ namespace FunctionsNetHost
                 _basePath = applicationBasePath;
             }
 
-            var filePath = $"{_basePath}\\assemblies.txt";
+            var filePath = Path.Combine(_basePath!, _preloadAssemblyListFile);
             var assemblies = GetAssembliesToPreload(filePath);
 
             if (assemblies.Count == 0)
@@ -29,23 +30,23 @@ namespace FunctionsNetHost
 
             Logger.Log($"Preloading {assemblies.Count} assemblies");
 
-            var successfulPreloads = 0;
-            var failedPreloads = 0;
+            var successfulPreloadCount = 0;
+            var failedPreloadCount = 0;
             foreach (var assembly in assemblies)
             {
                 var loaded = NativeLibrary.TryLoad(assembly, out _);
                 Logger.Log($"Preloaded {assembly} : {loaded}");
                 if (loaded)
                 {
-                    successfulPreloads++;
+                    successfulPreloadCount++;
                 }
                 else
                 {
-                    failedPreloads++;
+                    failedPreloadCount++;
                 }
             }
-
-            AppLoaderEventSource.Log.AssembliesPreloaded(assemblies.Count, successfulPreloads, failedPreloads);
+            Logger.Log($"Assembly preload summary: {successfulPreloadCount} out of {assemblies.Count} assemblies preloaded");
+            AppLoaderEventSource.Log.AssembliesPreloaded(assemblies.Count, successfulPreloadCount, failedPreloadCount);
         }
 
         private static ICollection<string> GetAssembliesToPreload(string filePath)
@@ -63,14 +64,14 @@ namespace FunctionsNetHost
             {
                 Logger.Log($"Reading assembly list from file: {filePath}");
                 var lines = File.ReadAllLines(filePath);
-                _assemblyList = new List<string>(lines);
+                _assemblyList = new List<string>(lines.Where(line=>string.IsNullOrWhiteSpace(line) == false));
             }
             else
             {
                 _assemblyList = new List<string>();
             }
 
-            return Array.Empty<string>();
+            return _assemblyList;
         }
     }
 }

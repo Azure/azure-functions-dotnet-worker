@@ -16,7 +16,15 @@ namespace FunctionsNetHost
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
+                var executableDir = Path.GetDirectoryName(args[0])!;
+
+                var managedLoaderAssemblyPath = Path.Combine(executableDir, "loader","FunctionsNetHost.ManagedLoader.dll");
+                var fileExist = File.Exists(managedLoaderAssemblyPath);
+                
                 using var appLoader = new AppLoader();
+
+                _ = Task.Run(() => appLoader.RunApplication(managedLoaderAssemblyPath));
+
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
                 await grpcClient.InitAsync();

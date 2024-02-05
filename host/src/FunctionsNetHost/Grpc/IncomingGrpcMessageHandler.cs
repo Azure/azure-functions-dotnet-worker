@@ -1,7 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using FunctionsNetHost.Diagnostics;
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -83,14 +83,15 @@ namespace FunctionsNetHost.Grpc
                     }
 
                     EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, WorkerStartupHookAssemblyName);
-
                     EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
 
 #pragma warning disable CS4014
                     Task.Run(() =>
 #pragma warning restore CS4014
                     {
-                        _ = _appLoader.RunApplication(applicationExePath);
+                        var bytes = Encoding.UTF8.GetBytes(applicationExePath);
+                        var length = bytes.Length;
+                        NativeHostApplication.Instance.SendToAppLoader(bytes, length);
                     });
 
                     Logger.LogTrace($"Will wait for worker loaded signal.");

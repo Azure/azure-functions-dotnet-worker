@@ -1,4 +1,5 @@
 EXPORTS
+   register_apploader_callbacks
    get_application_properties
    register_callbacks
    send_streaming_message

@@ -63,6 +63,42 @@ namespace FunctionsNetHost.Diagnostics
             }
         }
 
+        [Event(8007)]
+        public void ApplicationMainStartedSignalReceived()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8007);
+            }
+        }
+
+        [Event(8008)]
+        public void SpecializationRequestReceived()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8008);
+            }
+        }
+
+        [Event(8009)]
+        public void ColdStartRequestFunctionInvocationStart()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8009);
+            }
+        }
+
+        [Event(8010)]
+        public void ColdStartRequestFunctionInvocationStop()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8010);
+            }
+        }
+
         public static readonly AppLoaderEventSource Log = new();
     }
 }

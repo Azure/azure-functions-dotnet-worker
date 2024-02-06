@@ -2,14 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using FunctionsNetHost.Diagnostics;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace FunctionsNetHost.Grpc
 {
     internal sealed class IncomingGrpcMessageHandler
     {
-        private const string WorkerStartupHookAssemblyName = "Microsoft.Azure.Functions.Worker.Core";
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
         private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
@@ -31,6 +29,12 @@ namespace FunctionsNetHost.Grpc
         {
             if (_specializationDone)
             {
+                // For our tests, we will issue only one invocation request(cold start request)
+                if (msg.ContentCase == StreamingMessage.ContentOneofCase.InvocationRequest)
+                {
+                    AppLoaderEventSource.Log.ColdStartRequestFunctionInvocationStart();
+                }
+
                 // Specialization done. So forward all messages to customer payload.
                 await MessageChannel.Instance.SendInboundAsync(msg);
                 return;
@@ -63,50 +67,22 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
+                    AppLoaderEventSource.Log.SpecializationRequestReceived();
                     Logger.LogTrace("Specialization request received.");
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
-
-                    var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
-
-                    if (workerConfig?.Description is null)
-                    {
-                        Logger.LogTrace($"Could not find a worker config in {envReloadRequest.FunctionAppDirectory}");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse();
-                        break;
-                    }
-
-                    // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
-                    if (!workerConfig.Description.CanUsePlaceholder)
-                    {
-                        Logger.LogTrace("App payload uses an older version of Microsoft.Azure.Functions.Worker SDK which does not support placeholder.");
-                        var e = new EnvironmentReloadNotSupportedException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(e);
-                        break;
-                    }
-
-                    var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
-                    Logger.LogTrace($"application path {applicationExePath}");
 
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
-
-                    EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, WorkerStartupHookAssemblyName);
-
-                    EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
-
-#pragma warning disable CS4014
-                    Task.Run(() =>
-#pragma warning restore CS4014
-                    {
-                        _ = _appLoader.RunApplication(applicationExePath);
-                    });
+                    //  signal the wait handle so that startup hook can continue executing
+                    SpecializationSyncManager.WaitHandle.Set();
 
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
 
+                    AppLoaderEventSource.Log.ApplicationMainStartedSignalReceived();
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
                     if (OperatingSystem.IsWindows())
                     {
@@ -123,21 +99,6 @@ namespace FunctionsNetHost.Grpc
             {
                 await MessageChannel.Instance.SendOutboundAsync(responseMessage);
             }
-        }
-
-        private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)
-        {
-            var response = new FunctionEnvironmentReloadResponse
-            {
-                Result = new StatusResult
-                {
-                    Status = StatusResult.Types.Status.Failure
-                }
-            };
-
-            response.Result.Exception = ToUserRpcException(exception);
-
-            return response;
         }
 
         internal static RpcException? ToUserRpcException(Exception? exception)

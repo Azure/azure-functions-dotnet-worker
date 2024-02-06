@@ -4,9 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Logging;
 
 /// <summary>
 /// This code is called by the .NET infrastructure the following MUST remain unchanged:
@@ -19,12 +23,27 @@ using System.Threading;
 /// </summary>
 internal class StartupHook
 {
+    // FNH will signal this handle when it receives env reload req. 
+    static readonly EventWaitHandle WaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset, "AzureFunctionsNetHostSpecializationWaitHandle");
+
     const string StartupHooksEnvVar = "DOTNET_STARTUP_HOOKS";
     private static readonly string _startupSeparator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ";" : ":";
     private static readonly string? _assemblyName = typeof(StartupHook).Assembly.GetName().Name;
 
     public static void Initialize()
     {
+        WorkerEventSource.Log.StartupHookInit();
+
+        PreJitPrepare();
+
+        Console.WriteLine("STARTUP HOOK - Going to wait for specialization signal from NetHost");
+        WorkerEventSource.Log.StartupHookWaitForSpecializationRequestStart();
+        WaitHandle.WaitOne();
+
+        WorkerEventSource.Log.StartupHookReceivedContinueExecutionSignalFromFunctionsNetHost();
+        Console.WriteLine("STARTUP HOOK - Waithandle signal received. Will continue to execute app main code.");
+
+        // Below code is only for IDE debugging. 
         // Time to wait between checks, in ms.
         const int SleepTime = 500;
         const int MaxWaitCycles = (60 * 1000) / SleepTime;
@@ -33,7 +52,7 @@ internal class StartupHook
         string? debuggerWaitEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_DEBUGGER_WAIT");
         string? jsonOutputEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_JSON_OUTPUT");
 #if NET5_0_OR_GREATER
-        int processId = Environment.ProcessId;
+            int processId = Environment.ProcessId;
 #else
         int processId = Process.GetCurrentProcess().Id;
 #endif
@@ -57,18 +76,35 @@ internal class StartupHook
 
         if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { processId } }}");
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : {processId} }}");
         }
 
         if (string.Equals(debuggerWaitEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"Azure Functions .NET Worker (PID: { processId }) initialized in debug mode. Waiting for debugger to attach...");
+            Console.WriteLine($"Azure Functions .NET Worker (PID: {processId}) initialized in debug mode. Waiting for debugger to attach...");
 
             for (int i = 0; WaitOnDebugger(i); i++)
             {
                 Thread.Sleep(SleepTime);
             }
         }
+    }
+
+    private static void PreJitPrepare()
+    {
+        var filePath = Environment.GetEnvironmentVariable("FUNCTIONS_PREJIT_FILE_PATH");
+        var file = new FileInfo(filePath);
+        var fileExist = file.Exists;
+
+        if (!file.Exists)
+        {
+            Console.WriteLine($"STARTUP HOOK - JIT file path: {filePath}. fileExist:{fileExist}");
+            return;
+        }
+
+        WorkerEventSource.Log.StartupHookPreJitStart(filePath);
+        JitTraceRuntime.Prepare(file, out int successfulPrepares, out int failedPrepares);
+        WorkerEventSource.Log.StartupHookPreJitStop(successfulPrepares, failedPrepares);
     }
 
     internal static void RemoveSelfFromStartupHooks()

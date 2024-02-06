@@ -16,6 +16,10 @@ internal static class EnvironmentVariables
     /// </summary>
     internal const string DotnetStartupHooks = "DOTNET_STARTUP_HOOKS";
 
+    internal const string AppEntryPoint = "FUNCTIONS_APP_ENTRYPOINT";
+
+    internal const string PreJitFilePath = "FUNCTIONS_PREJIT_FILE_PATH";
+
     /// <summary>
     /// Set value to "1" for enabling worker startup hook.
     /// </summary>

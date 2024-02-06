@@ -16,7 +16,7 @@ namespace FunctionsNetHost
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-                using var appLoader = new AppLoader();
+                using var appLoader = new AppLoader(workerStartupOptions);
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
                 await grpcClient.InitAsync();
@@ -64,6 +64,8 @@ namespace FunctionsNetHost
 
             var argsWithoutExecutableName = args.Skip(1).ToArray();
             await rootCommand.InvokeAsync(argsWithoutExecutableName);
+
+            workerStartupOptions.CommandLineArgs = argsWithoutExecutableName;
 
             return workerStartupOptions;
         }

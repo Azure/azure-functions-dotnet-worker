@@ -99,6 +99,41 @@ namespace FunctionsNetHost.Diagnostics
             }
         }
 
+        [Event(8011)]
+        public void FunctionMetadataReqStart()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8011);
+            }
+        }
+        [Event(8012)]
+        public void FunctionMetadataReqStop()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8012);
+            }
+        }
+
+        [Event(8013)]
+        public void FunctionLoadReqStart(string functionId)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8013, functionId);
+            }
+        }
+
+        [Event(8014)]
+        public void FunctionLoadReqStop(string functionId)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8014, functionId);
+            }
+        }
+
         public static readonly AppLoaderEventSource Log = new();
     }
 }

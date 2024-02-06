@@ -121,6 +121,10 @@ namespace FunctionsNetHost.Grpc
                 {
                     AppLoaderEventSource.Log.ColdStartRequestFunctionInvocationStop();
                 }
+                else if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionLoadResponse)
+                {
+                    AppLoaderEventSource.Log.FunctionLoadReqStop(outboundMessage.FunctionLoadResponse.FunctionId);
+                }
 
                 await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
             }

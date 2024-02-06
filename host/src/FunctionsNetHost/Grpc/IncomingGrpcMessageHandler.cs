@@ -34,6 +34,10 @@ namespace FunctionsNetHost.Grpc
                 {
                     AppLoaderEventSource.Log.ColdStartRequestFunctionInvocationStart();
                 }
+                else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionLoadRequest)
+                {
+                    AppLoaderEventSource.Log.FunctionLoadReqStart(msg.FunctionLoadRequest.FunctionId);
+                }
 
                 // Specialization done. So forward all messages to customer payload.
                 await MessageChannel.Instance.SendInboundAsync(msg);

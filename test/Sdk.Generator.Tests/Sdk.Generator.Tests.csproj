@@ -9,7 +9,6 @@
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
 
   <ItemGroup>

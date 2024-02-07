@@ -102,8 +102,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Storage.B
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Generators", "sdk\Sdk.Generators\Sdk.Generators.csproj", "{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Generator.Tests", "test\Sdk.Generator.Tests\Sdk.Generator.Tests.csproj", "{18A09B24-8646-40A6-BD85-2773AF567453}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Sample", "test\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj", "{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleExtensions", "SampleExtensions", "{922A387F-8595-4C74-ABF1-AEFF9530950C}"
@@ -136,13 +134,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFuncti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspNetCore.Tests", "test\extensions\Worker.Extensions.Http.AspNetCore.Tests\Worker.Extensions.Http.AspNetCore.Tests.csproj", "{D8E79B53-9A44-46CC-9D7A-E9494FC8CAF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worker.Extensions.Shared.Tests", "test\Worker.Extensions.Shared.Tests\Worker.Extensions.Shared.Tests.csproj", "{B6342174-5436-4846-B43C-39D8E34AE5CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Shared.Tests", "test\Worker.Extensions.Shared.Tests\Worker.Extensions.Shared.Tests.csproj", "{B6342174-5436-4846-B43C-39D8E34AE5CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspNetCore.Analyzers", "extensions\Worker.Extensions.Http.AspNetCore.Analyzers\Worker.Extensions.Http.AspNetCore.Analyzers.csproj", "{7B6C2920-7A02-43B2-8DA0-7B76B9FAFC6B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Net7Worker", "samples\Net7Worker\Net7Worker.csproj", "{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{198DA072-F94F-4585-A744-97B3DAC21686}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{198DA072-F94F-4585-A744-97B3DAC21686}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -286,10 +284,6 @@ Global
 		{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{18A09B24-8646-40A6-BD85-2773AF567453}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{18A09B24-8646-40A6-BD85-2773AF567453}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{18A09B24-8646-40A6-BD85-2773AF567453}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{18A09B24-8646-40A6-BD85-2773AF567453}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -346,10 +340,6 @@ Global
 		{D8E79B53-9A44-46CC-9D7A-E9494FC8CAF4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D8E79B53-9A44-46CC-9D7A-E9494FC8CAF4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D8E79B53-9A44-46CC-9D7A-E9494FC8CAF4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B6342174-5436-4846-B43C-39D8E34AE5CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B6342174-5436-4846-B43C-39D8E34AE5CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B6342174-5436-4846-B43C-39D8E34AE5CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -358,6 +348,10 @@ Global
 		{7B6C2920-7A02-43B2-8DA0-7B76B9FAFC6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7B6C2920-7A02-43B2-8DA0-7B76B9FAFC6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7B6C2920-7A02-43B2-8DA0-7B76B9FAFC6B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BE1F79C3-24FA-4BC8-BAB2-C1AD321B13FF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{198DA072-F94F-4585-A744-97B3DAC21686}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{198DA072-F94F-4585-A744-97B3DAC21686}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{198DA072-F94F-4585-A744-97B3DAC21686}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -404,7 +398,6 @@ Global
 		{1D2A2B02-BFA8-4E53-9844-88359C5B2671} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{FC352905-BD72-4049-8D32-3CBB9304FDC8} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{F77CCCE6-2DC3-48AA-8FE8-1B135B76B90E} = {4B0D77E7-FA83-4FDD-9E67-CC95EAD21348}
-		{18A09B24-8646-40A6-BD85-2773AF567453} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
 		{9E23C9B2-7C0A-4F09-987F-0E5BDC8BE28C} = {922A387F-8595-4C74-ABF1-AEFF9530950C}
 		{922A387F-8595-4C74-ABF1-AEFF9530950C} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
 		{22FCE0DF-65FE-4650-8202-765832C40E6D} = {922A387F-8595-4C74-ABF1-AEFF9530950C}

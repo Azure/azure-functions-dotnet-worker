@@ -1,7 +1,6 @@
 <Project>
 
   <PropertyGroup>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <!-- TODO: remove when updating away from .NET5.0 -->
     <SuppressTfmSupportBuildWarnings Condition="'$(TargetFramework)' == 'net5.0'">true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>

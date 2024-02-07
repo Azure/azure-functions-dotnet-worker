@@ -65,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var request = CreateGrpcHttpRequestData(headerDict);
 
-            Assert.Equal(0, request.Cookies.Count);
+            Assert.Empty(request.Cookies);
             // Header should still be populated with raw value(empty string)
             Assert.Equal(2, request.Headers.Count());
             Assert.Equal("", request.Headers.GetValues("cookie").First());

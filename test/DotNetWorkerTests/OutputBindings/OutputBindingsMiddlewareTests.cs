@@ -31,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
 
             context.GetBindings().InvocationResult = result;
 
-            Assert.Equal(0, context.GetBindings().OutputBindingData.Count);
+            Assert.Empty(context.GetBindings().OutputBindingData);
 
             OutputBindingsMiddleware.AddOutputBindings(context);
             object returnedVal = context.GetBindings().InvocationResult;
@@ -130,7 +130,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings
             object returnedVal = context.GetBindings().InvocationResult;
 
             Assert.Equal("abc", returnedVal);
-            Assert.Equal(0, context.GetBindings().OutputBindingData.Count);
+            Assert.Empty(context.GetBindings().OutputBindingData);
         }
 
         private static void AssertDictionary<K, V>(IDictionary<K, V> dict, IDictionary<K, V> expected)

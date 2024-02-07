@@ -12,6 +12,7 @@
         <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers</RootNamespace>
         <Nullable>disable</Nullable>
         <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
 
     <Import Project="..\..\build\Common.props" />

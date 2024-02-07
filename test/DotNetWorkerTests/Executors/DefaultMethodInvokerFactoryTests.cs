@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.InstanceTestIntStringObjectArray))]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.StaticTestIntStringObjectArray))]
-        public void Create_IfMultipleInputParameters_PassesInputArguments(string functionName)
+        public async Task Create_IfMultipleInputParameters_PassesInputArguments(string functionName)
         {
             // Arrange
             MethodInfo method = GetMethodInfo(functionName);
@@ -96,14 +96,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
             DefaultMethodInvokerFactoryTests instance = GetInstance(!method.IsStatic);
             object[] arguments = new object[] { expectedA, expectedB, expectedC, callback };
-            invoker.InvokeAsync(instance, arguments).GetAwaiter().GetResult();
+            await invoker.InvokeAsync(instance, arguments);
             Assert.True(callbackCalled);
         }
 
         [Theory]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.InstanceTestOutIntStringObjectArray))]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.StaticTestOutIntStringObjectArray))]
-        public void Create_IfMultipleOutputParameters_SetsOutputArguments(string functionName)
+        public async Task Create_IfMultipleOutputParameters_SetsOutputArguments(string functionName)
         {
             // Arrange
             MethodInfo method = GetMethodInfo(functionName);
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
             DefaultMethodInvokerFactoryTests instance = GetInstance(!method.IsStatic);
             object[] arguments = new object[] { default(int), null, null, callback };
-            invoker.InvokeAsync(instance, arguments).GetAwaiter().GetResult();
+            await invoker.InvokeAsync(instance, arguments);
             Assert.True(callbackCalled);
             Assert.Equal(expectedA, arguments[0]);
             Assert.Same(expectedB, arguments[1]);
@@ -137,7 +137,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.InstanceTestByRefIntStringObjectArray))]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.StaticTestByRefIntStringObjectArray))]
-        public void Create_IfMultipleReferenceParameters_RoundtripsArguments(string functionName)
+        public async Task Create_IfMultipleReferenceParameters_RoundTripsArguments(string functionName)
         {
             // Arrange
             MethodInfo method = GetMethodInfo(functionName);
@@ -167,7 +167,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
             DefaultMethodInvokerFactoryTests instance = GetInstance(!method.IsStatic);
             object[] arguments = new object[] { expectedInitialA, expectedInitialB, expectedInitialC, callback };
-            invoker.InvokeAsync(instance, arguments).GetAwaiter().GetResult();
+            await invoker.InvokeAsync(instance, arguments);
             Assert.True(callbackCalled);
             Assert.Equal(expectedFinalA, arguments[0]);
             Assert.Same(expectedFinalB, arguments[1]);
@@ -177,7 +177,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.InstanceTestInOutByRefReturnTask))]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.StaticTestInOutByRefReturnTask))]
-        public void Create_IfInOutByRefMethodReturnsTask_RoundtripsArguments(string functionName)
+        public async Task Create_IfInOutByRefMethodReturnsTask_RoundTripsArguments(string functionName)
         {
             // Arrange
             MethodInfo method = GetMethodInfo(functionName);
@@ -204,7 +204,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             };
             DefaultMethodInvokerFactoryTests instance = GetInstance(!method.IsStatic);
             object[] arguments = new object[] { expectedA, expectedInitialB, null, callback };
-            invoker.InvokeAsync(instance, arguments).GetAwaiter().GetResult();
+            await invoker.InvokeAsync(instance, arguments);
             Assert.True(callbackCalled);
             Assert.Same(expectedFinalB, arguments[1]);
             Assert.Same(expectedC, arguments[2]);
@@ -233,7 +233,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.InstanceParameterlessMethod))]
         [InlineData(nameof(DefaultMethodInvokerFactoryTests.StaticParameterlessMethod))]
-        public void Create_IfParameterlessMethod_CanInvoke(string functionName)
+        public async Task Create_IfParameterlessMethod_CanInvoke(string functionName)
         {
             // Arrange
             MethodInfo method = GetMethodInfo(functionName);
@@ -246,7 +246,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 // Assert
                 DefaultMethodInvokerFactoryTests instance = GetInstance(!method.IsStatic);
-                invoker.InvokeAsync(instance, null).GetAwaiter().GetResult();
+                await invoker.InvokeAsync(instance, null);
                 Assert.True(_parameterlessMethodCalled);
             }
             finally

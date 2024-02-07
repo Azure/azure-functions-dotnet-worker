@@ -108,13 +108,12 @@ namespace Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader
                 throw new FileNotFoundException($"The file '{workerConfigPath}' was not found.");
             }
 
-            WorkerConfigDescription workerDescription;
-
+            WorkerConfigDescription? workerDescription;
             using (var fs = File.OpenText(workerConfigPath))
             using (var js = new JsonTextReader(fs))
             {
-                JObject workerDescriptionJObject = (JObject)JToken.ReadFrom(js)["description"];
-                workerDescription = workerDescriptionJObject.ToObject<WorkerConfigDescription>();
+                JObject? workerDescriptionJObject = JToken.ReadFrom(js)["description"] as JObject;
+                workerDescription = workerDescriptionJObject?.ToObject<WorkerConfigDescription>();
 
                 if (workerDescription is null)
                 {

@@ -32,16 +32,17 @@ internal class StartupHook
 
     public static void Initialize()
     {
+        //Console.WriteLine("LanguageWorkerConsoleLog STARTUP HOOK Initialize");
         WorkerEventSource.Log.StartupHookInit();
 
         PreJitPrepare();
 
-        Console.WriteLine("STARTUP HOOK - Going to wait for specialization signal from NetHost");
+        //Console.WriteLine("LanguageWorkerConsoleLog STARTUP HOOK - Going to wait for specialization signal from NetHost");
         WorkerEventSource.Log.StartupHookWaitForSpecializationRequestStart();
         WaitHandle.WaitOne();
 
         WorkerEventSource.Log.StartupHookReceivedContinueExecutionSignalFromFunctionsNetHost();
-        Console.WriteLine("STARTUP HOOK - Waithandle signal received. Will continue to execute app main code.");
+        //Console.WriteLine("LanguageWorkerConsoleLog STARTUP HOOK - Waithandle signal received. Will continue to execute app main code.");
 
         // Below code is only for IDE debugging. 
         // Time to wait between checks, in ms.
@@ -98,7 +99,7 @@ internal class StartupHook
 
         if (!file.Exists)
         {
-            Console.WriteLine($"STARTUP HOOK - JIT file path: {filePath}. fileExist:{fileExist}");
+            Console.WriteLine($"LanguageWorkerConsoleLog STARTUP HOOK - JIT file path: {filePath}. fileExist:{fileExist}");
             return;
         }
 

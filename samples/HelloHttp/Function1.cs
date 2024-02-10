@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Functions.Worker;
+﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 
@@ -20,7 +18,7 @@ namespace HelloHttp
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            response.WriteString("Hello, World");
+            response.WriteString("Hello Http. Published on 20240209");
             return response;
         }
     }

@@ -16,10 +16,17 @@ namespace HelloHttp
         [Function("hellohttp")]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
-            _logger.LogInformation("C# HTTP trigger function processed a request.");
+            var buildConfiguration = string.Empty;
+#if DEBUG
+            buildConfiguration = "Debug";
+#else
+        buildConfiguration = "Release";
+#endif
+
+            _logger.LogInformation($"C# HTTP trigger function processed a request.buildConfiguration:{buildConfiguration}");
 
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            response.WriteString("Hello Http!. Published on 2024 02 11");
+            response.WriteString($"Hello Http!. Published on 2024 02 11. buildConfiguration:{buildConfiguration}");
             return response;
         }
     }

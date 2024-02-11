@@ -17,8 +17,9 @@ namespace HelloHttp
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
+
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            response.WriteString("Hello Http!. Published on 2024 02 10");
+            response.WriteString("Hello Http!. Published on 2024 02 11");
             return response;
         }
     }

@@ -125,6 +125,13 @@ namespace FunctionsNetHost.Grpc
                 {
                     AppLoaderEventSource.Log.FunctionLoadReqStop(outboundMessage.FunctionLoadResponse.FunctionId);
                 }
+                else if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionMetadataResponse)
+                {
+                    if (!outboundMessage.FunctionMetadataResponse.UseDefaultMetadataIndexing)
+                    {
+                        AppLoaderEventSource.Log.FunctionMetadataReqStop();
+                    }
+                }
 
                 await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
             }

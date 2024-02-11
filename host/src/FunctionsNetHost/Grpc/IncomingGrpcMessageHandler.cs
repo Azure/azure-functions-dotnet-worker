@@ -38,6 +38,10 @@ namespace FunctionsNetHost.Grpc
                 {
                     AppLoaderEventSource.Log.FunctionLoadReqStart(msg.FunctionLoadRequest.FunctionId);
                 }
+                else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionsMetadataRequest)
+                {
+                    AppLoaderEventSource.Log.FunctionMetadataReqStart();
+                }
 
                 // Specialization done. So forward all messages to customer payload.
                 await MessageChannel.Instance.SendInboundAsync(msg);

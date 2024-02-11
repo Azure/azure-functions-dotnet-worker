@@ -18,7 +18,7 @@ namespace HelloHttp
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            response.WriteString("Hello Http. Published on 20240209");
+            response.WriteString("Hello Http!. Published on 2024 02 10");
             return response;
         }
     }

@@ -19,7 +19,7 @@ Write-Host
 Write-Host "Building packages with BuildNumber $buildNumber"
 
 $rootPath = Split-Path -Parent $PSScriptRoot
-$project = "$rootPath/samples/HelloHttp/HelloHttp.csproj"
+$project = "$rootPath/samples/FunctionApp44/FunctionApp44.csproj"
 $sdkProject = "$rootPath/build/DotNetWorker.Core.slnf"
 
 if($E2E -eq $true)

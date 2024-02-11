@@ -32,17 +32,30 @@ internal class StartupHook
 
     public static void Initialize()
     {
-        //Console.WriteLine("LanguageWorkerConsoleLog STARTUP HOOK Initialize");
         WorkerEventSource.Log.StartupHookInit();
+        var buildConfiguration = string.Empty;
+#if DEBUG
+        buildConfiguration = "Debug";
+#else
+        buildConfiguration = "Release";
+#endif
 
-        PreJitPrepare();
+        var filePath = Environment.GetEnvironmentVariable("FUNCTIONS_PREJIT_FILE_PATH");
 
-        //Console.WriteLine("LanguageWorkerConsoleLog STARTUP HOOK - Going to wait for specialization signal from NetHost");
+        if (string.IsNullOrEmpty(filePath))
+        {
+            Console.WriteLine($"LanguageWorkerConsoleLog Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} Exiting because FUNCTIONS_PREJIT_FILE_PATH env variable is empty.");
+            return;
+        }
+
+        Console.WriteLine($"LanguageWorkerConsoleLog Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} FUNCTIONS_PREJIT_FILE_PATH env variable is not empty. Prejitting...");
+
+        PreJitPrepare(filePath);
+
         WorkerEventSource.Log.StartupHookWaitForSpecializationRequestStart();
         WaitHandle.WaitOne();
 
         WorkerEventSource.Log.StartupHookReceivedContinueExecutionSignalFromFunctionsNetHost();
-        //Console.WriteLine("LanguageWorkerConsoleLog STARTUP HOOK - Waithandle signal received. Will continue to execute app main code.");
 
         // Below code is only for IDE debugging. 
         // Time to wait between checks, in ms.
@@ -91,9 +104,8 @@ internal class StartupHook
         }
     }
 
-    private static void PreJitPrepare()
+    private static void PreJitPrepare(string filePath)
     {
-        var filePath = Environment.GetEnvironmentVariable("FUNCTIONS_PREJIT_FILE_PATH");
         var file = new FileInfo(filePath);
         var fileExist = file.Exists;
 

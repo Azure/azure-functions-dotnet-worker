@@ -12,7 +12,7 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost747");
+                Logger.Log("Starting FunctionsNetHost111035");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
@@ -25,7 +25,7 @@ namespace FunctionsNetHost
                 EnvironmentUtils.SetValue(EnvironmentVariables.PreJitFilePath, preJitFilePath);
                 EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, "Microsoft.Azure.Functions.Worker.Core");
 
-                var dummyAppEntryPoint = Path.Combine(executableDir, "FunctionApp44", "HelloHttp.dll");
+                var dummyAppEntryPoint = Path.Combine(executableDir, "FunctionApp44", "FunctionApp44.dll");
                 if (!File.Exists(dummyAppEntryPoint))
                 {
                     Logger.Log($"Dummy app entry point not found: {dummyAppEntryPoint}");

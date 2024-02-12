@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             AddHttpContextToFunctionContext(context, httpContext);
 
             // Register additional context features
-            context.Features.Set<IFromBodyConversionFeature>(FromBodyConverstionFeature.Instance);
+            context.Features.Set<IFromBodyConversionFeature>(FromBodyConversionFeature.Instance);
 
             await next(context);
 

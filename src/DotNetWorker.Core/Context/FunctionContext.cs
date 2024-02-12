@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker
         public abstract BindingContext BindingContext { get; }
 
         /// <summary>
-        /// Gets the retry context containing information about retry acvitity for the event that triggered
+        /// Gets the retry context containing information about retry activity for the event that triggered
         /// the current function invocation.
         /// </summary>
         public abstract RetryContext RetryContext { get; }

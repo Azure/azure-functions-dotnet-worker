@@ -44,11 +44,11 @@ internal class StartupHook
 
         if (string.IsNullOrEmpty(filePath))
         {
-            Console.WriteLine($"LanguageWorkerConsoleLog Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} Exiting because FUNCTIONS_PREJIT_FILE_PATH env variable is empty.");
+            LogToStandardOutput($"Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} Exiting because FUNCTIONS_PREJIT_FILE_PATH env variable is empty.");
             return;
         }
 
-        Console.WriteLine($"LanguageWorkerConsoleLog Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} FUNCTIONS_PREJIT_FILE_PATH env variable is not empty. Prejitting...");
+        LogToStandardOutput($"Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} FUNCTIONS_PREJIT_FILE_PATH env variable is not empty. Prejitting...");
 
         PreJitPrepare(filePath);
 
@@ -66,7 +66,7 @@ internal class StartupHook
         string? debuggerWaitEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_DEBUGGER_WAIT");
         string? jsonOutputEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_JSON_OUTPUT");
 #if NET5_0_OR_GREATER
-            int processId = Environment.ProcessId;
+        int processId = Environment.ProcessId;
 #else
         int processId = Process.GetCurrentProcess().Id;
 #endif
@@ -104,6 +104,12 @@ internal class StartupHook
         }
     }
 
+    static string logPrefix = "LanguageWorkerConsoleLog";
+    private static void LogToStandardOutput(string message)
+    {
+        Console.WriteLine($"{logPrefix} {message}");
+    }
+
     private static void PreJitPrepare(string filePath)
     {
         var file = new FileInfo(filePath);
@@ -111,12 +117,13 @@ internal class StartupHook
 
         if (!file.Exists)
         {
-            Console.WriteLine($"LanguageWorkerConsoleLog STARTUP HOOK - JIT file path: {filePath}. fileExist:{fileExist}");
+            LogToStandardOutput($"StartupHook.PreJitPrepare - JIT file path: {filePath}. fileExist:{fileExist}");
             return;
         }
 
         WorkerEventSource.Log.StartupHookPreJitStart(filePath);
         JitTraceRuntime.Prepare(file, out int successfulPrepares, out int failedPrepares);
+        LogToStandardOutput($"StartupHook.PreJitPrepare > successfulPrepares: {successfulPrepares}, failedPrepares:{failedPrepares}");
         WorkerEventSource.Log.StartupHookPreJitStop(successfulPrepares, failedPrepares);
     }
 

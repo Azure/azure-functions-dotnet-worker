@@ -12,11 +12,12 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost02121305");
+                Logger.Log("Starting FunctionsNetHost0213");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
                 var executableDir = Path.GetDirectoryName(args[0])!;
+                AssemblyPreloader.Preload(executableDir);
 
                 var preJitFilePath = Path.Combine(executableDir, "PreJit", "coldstart.jittrace");
                 var exist = File.Exists(preJitFilePath);

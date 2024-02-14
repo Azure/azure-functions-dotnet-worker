@@ -65,7 +65,7 @@ namespace FunctionsNetHost.Grpc
                 case StreamingMessage.ContentOneofCase.WorkerWarmupRequest:
                     {
                         Logger.LogTrace("Worker warmup request received.");
-                        //AssemblyPreloader.Preload();
+                        AssemblyPreloader.Preload();
 
                         responseMessage.WorkerWarmupResponse = new WorkerWarmupResponse
                         {

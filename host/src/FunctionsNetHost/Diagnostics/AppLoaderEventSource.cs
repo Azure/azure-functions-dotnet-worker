@@ -63,6 +63,77 @@ namespace FunctionsNetHost.Diagnostics
             }
         }
 
+        [Event(8007)]
+        public void ApplicationMainStartedSignalReceived()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8007);
+            }
+        }
+
+        [Event(8008)]
+        public void SpecializationRequestReceived()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8008);
+            }
+        }
+
+        [Event(8009)]
+        public void ColdStartRequestFunctionInvocationStart()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8009);
+            }
+        }
+
+        [Event(8010)]
+        public void ColdStartRequestFunctionInvocationStop()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8010);
+            }
+        }
+
+        [Event(8011)]
+        public void FunctionMetadataReqStart()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8011);
+            }
+        }
+        [Event(8012)]
+        public void FunctionMetadataReqStop()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8012);
+            }
+        }
+
+        [Event(8013)]
+        public void FunctionLoadReqStart(string functionId)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8013, functionId);
+            }
+        }
+
+        [Event(8014)]
+        public void FunctionLoadReqStop(string functionId)
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8014, functionId);
+            }
+        }
+
         public static readonly AppLoaderEventSource Log = new();
     }
 }

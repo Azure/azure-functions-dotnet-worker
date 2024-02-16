@@ -10,7 +10,6 @@ namespace FunctionsNetHost
     {
         private const string _preloadAssemblyListFile = "assemblies.txt";
         private static string? _basePath;
-        private static List<string>? _assemblyList;
 
         internal static void Preload(string? applicationBasePath = null)
         {
@@ -51,12 +50,6 @@ namespace FunctionsNetHost
 
         private static ICollection<string> GetAssembliesToPreload(string filePath)
         {
-            if (_assemblyList != null)
-            {
-                Logger.Log($"Reading cached assembly list({_assemblyList.Count} items).");
-                return _assemblyList;
-            }
-
             var fileExists = File.Exists(filePath);
             Logger.Log($"File {filePath} exist:{fileExists}");
 
@@ -64,14 +57,12 @@ namespace FunctionsNetHost
             {
                 Logger.Log($"Reading assembly list from file: {filePath}");
                 var lines = File.ReadAllLines(filePath);
-                _assemblyList = new List<string>(lines.Where(line=>string.IsNullOrWhiteSpace(line) == false));
+                return new List<string>(lines.Where(line=>string.IsNullOrWhiteSpace(line) == false));
             }
             else
             {
-                _assemblyList = new List<string>();
+                return new List<string>();
             }
-
-            return _assemblyList;
         }
     }
 }

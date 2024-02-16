@@ -35,4 +35,9 @@ internal static class EnvironmentVariables
     /// Environment variable for sending ServerUri to the worker.
     /// </summary>
     internal const string HostEndpoint = "Functions:Worker:HostEndpoint";
+
+    /// <summary>
+    /// Path to the log file to which logs will be written to.
+    /// </summary>
+    internal const string LogFilePath = "AZURE_FUNCTIONS_LOGFILE_PATH";
 }

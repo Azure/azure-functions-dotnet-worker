@@ -29,8 +29,23 @@ namespace FunctionsNetHost.Grpc
 
         private async Task Process(StreamingMessage msg)
         {
+            Logger.Log($"Received message from functions host runtime. Type:{msg.ContentCase}");
             if (_specializationDone)
             {
+                // For our tests, we will issue only one invocation request(cold start request)
+                if (msg.ContentCase == StreamingMessage.ContentOneofCase.InvocationRequest)
+                {
+                    AppLoaderEventSource.Log.ColdStartRequestFunctionInvocationStart();
+                }
+                else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionLoadRequest)
+                {
+                    AppLoaderEventSource.Log.FunctionLoadReqStart(msg.FunctionLoadRequest.FunctionId);
+                }
+                else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionsMetadataRequest)
+                {
+                    AppLoaderEventSource.Log.FunctionMetadataReqStart();
+                }
+
                 // Specialization done. So forward all messages to customer payload.
                 await MessageChannel.Instance.SendInboundAsync(msg);
                 return;
@@ -64,6 +79,7 @@ namespace FunctionsNetHost.Grpc
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
                     Logger.LogTrace("Specialization request received.");
+                    AppLoaderEventSource.Log.SpecializationRequestReceived();
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
 
@@ -107,6 +123,7 @@ namespace FunctionsNetHost.Grpc
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
 
+                    AppLoaderEventSource.Log.ApplicationMainStartedSignalReceived();
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
                     if (OperatingSystem.IsWindows())
                     {

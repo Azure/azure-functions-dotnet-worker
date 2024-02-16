@@ -12,16 +12,16 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost1803");
+                Logger.Log($"Starting FunctionsNetHost");
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
                 var executableDir = Path.GetDirectoryName(args[0])!;
                 AssemblyPreloader.Preload(executableDir);
 
-                using var appLoader = new AppLoader();              
+                using var appLoader = new AppLoader();
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
-                
+
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)

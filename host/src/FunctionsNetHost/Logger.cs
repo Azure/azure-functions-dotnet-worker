@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics;
 using System.Globalization;
 
 namespace FunctionsNetHost
@@ -9,12 +10,46 @@ namespace FunctionsNetHost
     {
         private static readonly string LogPrefix;
         private static readonly bool IsTraceLogEnabled;
+        private static string? _logFilePath;
 
         static Logger()
         {
             IsTraceLogEnabled = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.EnableTraceLogs), "1");
             var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix), "1");
             LogPrefix = disableLogPrefix ? string.Empty : "LanguageWorkerConsoleLog";
+
+            CreateLogFile();
+        }
+
+        private static void CreateLogFile()
+        {
+            var logFilePath = EnvironmentUtils.GetValue(EnvironmentVariables.LogFilePath);
+
+            if (logFilePath == null)
+            {
+                return;
+            }
+            var pid = Process.GetCurrentProcess().Id;
+            var fileExist = File.Exists(logFilePath);
+            if (!fileExist)
+            {
+                try
+                {
+                    File.AppendAllText(logFilePath, $"{Environment.NewLine}Log file created at {DateTime.UtcNow}(UTC){Environment.NewLine}PID:{pid}{Environment.NewLine}");
+                    fileExist = true;
+                    _logFilePath = logFilePath;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error creating log file at {logFilePath}: {ex.Message}");
+                }
+                return;
+            }
+            else
+            {
+                _logFilePath = logFilePath;
+                File.AppendAllText(_logFilePath, $"{Environment.NewLine}{Environment.NewLine}PID:{pid}{Environment.NewLine}");
+            }
         }
 
         /// <summary>
@@ -31,7 +66,22 @@ namespace FunctionsNetHost
         internal static void Log(string message)
         {
             var ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Console.WriteLine($"{LogPrefix}[{ts}] [FunctionsNetHost] {message}");
+            var logMessage = $"{LogPrefix}[{ts}] [FunctionsNetHost] {message}";
+            Console.WriteLine(logMessage);
+
+            if (string.IsNullOrEmpty(_logFilePath))
+            {
+                return;
+            }
+
+            try
+            {
+                File.AppendAllText(_logFilePath, $"{logMessage}{Environment.NewLine}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error writing to log file: {ex.Message}");
+            }
         }
     }
 }

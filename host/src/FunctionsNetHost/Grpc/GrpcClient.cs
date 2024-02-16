@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Channels;
+using FunctionsNetHost.Diagnostics;
 using Google.Protobuf;
 using Grpc.Core;
 using Grpc.Net.Client;
@@ -109,12 +110,34 @@ namespace FunctionsNetHost.Grpc
         }
 
         /// <summary>
-        /// Listens to messages in the inbound message channel and forward them the customer payload via interop layer.
+        /// Listens to messages in the outbound message channel and forward them the functions runtime.
         /// </summary>
         private async Task StartOutboundMessageForwarding()
         {
             await foreach (var outboundMessage in MessageChannel.Instance.OutboundChannel.Reader.ReadAllAsync())
             {
+                if (outboundMessage.ContentCase != StreamingMessage.ContentOneofCase.RpcLog)
+                {
+                    Logger.Log($"Received message from function app. Type:{outboundMessage.ContentCase}");
+                }
+
+                // For our tests, we will issue only one invocation request(cold start request)
+                if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.InvocationResponse)
+                {
+                    AppLoaderEventSource.Log.ColdStartRequestFunctionInvocationStop();
+                }
+                else if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionLoadResponse)
+                {
+                    AppLoaderEventSource.Log.FunctionLoadReqStop(outboundMessage.FunctionLoadResponse.FunctionId);
+                }
+                else if (outboundMessage.ContentCase == StreamingMessage.ContentOneofCase.FunctionMetadataResponse)
+                {
+                    if (!outboundMessage.FunctionMetadataResponse.UseDefaultMetadataIndexing)
+                    {
+                        AppLoaderEventSource.Log.FunctionMetadataReqStop();
+                    }
+                }
+
                 await _outgoingMessageChannel.Writer.WriteAsync(outboundMessage);
             }
         }

@@ -4,9 +4,13 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Core.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Logging;
 
 /// <summary>
 /// This code is called by the .NET infrastructure the following MUST remain unchanged:
@@ -19,12 +23,41 @@ using System.Threading;
 /// </summary>
 internal class StartupHook
 {
+    // FNH will signal this handle when it receives env reload req. 
+    static readonly EventWaitHandle WaitHandle = new EventWaitHandle(false, EventResetMode.ManualReset, "AzureFunctionsNetHostSpecializationWaitHandle");
+
     const string StartupHooksEnvVar = "DOTNET_STARTUP_HOOKS";
     private static readonly string _startupSeparator = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ";" : ":";
     private static readonly string? _assemblyName = typeof(StartupHook).Assembly.GetName().Name;
 
     public static void Initialize()
     {
+        WorkerEventSource.Log.StartupHookInit();
+        var buildConfiguration = string.Empty;
+#if DEBUG
+        buildConfiguration = "Debug";
+#else
+        buildConfiguration = "Release";
+#endif
+
+        var filePath = Environment.GetEnvironmentVariable("FUNCTIONS_PREJIT_FILE_PATH");
+
+        if (string.IsNullOrEmpty(filePath))
+        {
+            LogToStandardOutput($"Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} Exiting because FUNCTIONS_PREJIT_FILE_PATH env variable is empty.");
+            return;
+        }
+
+        LogToStandardOutput($"Inside StartupHook.Initialize().buildConfiguration:{buildConfiguration} FUNCTIONS_PREJIT_FILE_PATH env variable is not empty. Prejitting...");
+
+        PreJitPrepare(filePath);
+
+        WorkerEventSource.Log.StartupHookWaitForSpecializationRequestStart();
+        WaitHandle.WaitOne();
+
+        WorkerEventSource.Log.StartupHookReceivedContinueExecutionSignalFromFunctionsNetHost();
+
+        // Below code is only for IDE debugging. 
         // Time to wait between checks, in ms.
         const int SleepTime = 500;
         const int MaxWaitCycles = (60 * 1000) / SleepTime;
@@ -57,18 +90,41 @@ internal class StartupHook
 
         if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { processId } }}");
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : {processId} }}");
         }
 
         if (string.Equals(debuggerWaitEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"Azure Functions .NET Worker (PID: { processId }) initialized in debug mode. Waiting for debugger to attach...");
+            Console.WriteLine($"Azure Functions .NET Worker (PID: {processId}) initialized in debug mode. Waiting for debugger to attach...");
 
             for (int i = 0; WaitOnDebugger(i); i++)
             {
                 Thread.Sleep(SleepTime);
             }
         }
+    }
+
+    static string logPrefix = "LanguageWorkerConsoleLog";
+    private static void LogToStandardOutput(string message)
+    {
+        Console.WriteLine($"{logPrefix} {message}");
+    }
+
+    private static void PreJitPrepare(string filePath)
+    {
+        var file = new FileInfo(filePath);
+        var fileExist = file.Exists;
+
+        if (!file.Exists)
+        {
+            LogToStandardOutput($"StartupHook.PreJitPrepare - JIT file path: {filePath}. fileExist:{fileExist}");
+            return;
+        }
+
+        WorkerEventSource.Log.StartupHookPreJitStart(filePath);
+        JitTraceRuntime.Prepare(file, out int successfulPrepares, out int failedPrepares);
+        LogToStandardOutput($"StartupHook.PreJitPrepare > successfulPrepares: {successfulPrepares}, failedPrepares:{failedPrepares}");
+        WorkerEventSource.Log.StartupHookPreJitStop(successfulPrepares, failedPrepares);
     }
 
     internal static void RemoveSelfFromStartupHooks()

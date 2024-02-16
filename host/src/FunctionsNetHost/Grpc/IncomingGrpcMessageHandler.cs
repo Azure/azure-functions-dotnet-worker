@@ -79,47 +79,17 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
-                    Logger.LogTrace("Specialization request received.");
                     AppLoaderEventSource.Log.SpecializationRequestReceived();
+                    Logger.Log("Specialization request received.");
 
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
-
-                    var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
-
-                    if (workerConfig?.Description is null)
-                    {
-                        Logger.LogTrace($"Could not find a worker config in {envReloadRequest.FunctionAppDirectory}");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse();
-                        break;
-                    }
-
-                    // function app payload which uses an older version of Microsoft.Azure.Functions.Worker package does not support specialization.
-                    if (!workerConfig.Description.CanUsePlaceholder)
-                    {
-                        Logger.LogTrace("App payload uses an older version of Microsoft.Azure.Functions.Worker SDK which does not support placeholder.");
-                        var e = new EnvironmentReloadNotSupportedException("This app is not using the latest version of Microsoft.Azure.Functions.Worker SDK and therefore does not leverage all performance optimizations. See https://aka.ms/azure-functions/dotnet/placeholders for more information.");
-                        responseMessage.FunctionEnvironmentReloadResponse = BuildFailedEnvironmentReloadResponse(e);
-                        break;
-                    }
-
-                    var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
-                    Logger.LogTrace($"application path {applicationExePath}");
 
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
-
-                    EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, WorkerStartupHookAssemblyName);
-
-                    EnvironmentUtils.SetValue(EnvironmentVariables.HostEndpoint, _grpcWorkerStartupOptions.ServerUri.ToString());
-
-#pragma warning disable CS4014
-                    Task.Run(() =>
-#pragma warning restore CS4014
-                    {
-                        _ = _appLoader.RunApplication(applicationExePath);
-                    });
+                    //  signal the wait handle so that startup hook can continue executing
+                    SpecializationSyncManager.WaitHandle.Set();
 
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();

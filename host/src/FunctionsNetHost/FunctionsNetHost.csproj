@@ -46,4 +46,10 @@
     <Protobuf Include="..\..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" ProtoRoot="..\..\..\protos\azure-functions-language-worker-protobuf\src\proto" GrpcServices="Client" Access="internal" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="PreJit\coldstart.jittrace">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

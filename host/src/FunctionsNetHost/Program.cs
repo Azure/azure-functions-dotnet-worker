@@ -19,7 +19,26 @@ namespace FunctionsNetHost
                 var executableDir = Path.GetDirectoryName(args[0])!;
                 AssemblyPreloader.Preload(executableDir);
 
+                var preJitFilePath = Path.Combine(executableDir, "PreJit", "coldstart.jittrace");
+                var exist = File.Exists(preJitFilePath);
+                Logger.Log($"PreJit file {preJitFilePath} exist: {exist}");
+
+                EnvironmentUtils.SetValue(EnvironmentVariables.PreJitFilePath, preJitFilePath);
+                EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, "Microsoft.Azure.Functions.Worker.Core");
+
+                var dummyAppEntryPoint = Path.Combine(executableDir, "FunctionApp44", "FunctionApp44.dll");
+                if (!File.Exists(dummyAppEntryPoint))
+                {
+                    Logger.Log($"Dummy app entry point not found: {dummyAppEntryPoint}");
+                    throw new FileNotFoundException($"Dummy app entry point not found: {dummyAppEntryPoint}");
+                }
+
+                EnvironmentUtils.SetValue(EnvironmentVariables.AppEntryPoint, dummyAppEntryPoint);
+
                 using var appLoader = new AppLoader();
+
+                _ = Task.Run(() => appLoader.RunApplication(dummyAppEntryPoint));
+
                 var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
                 await grpcClient.InitAsync();

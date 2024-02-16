@@ -13,7 +13,7 @@ namespace HelloHttp
             _logger = logger;
         }
 
-        [Function("hellohttp")]
+        [Function("HelloHttp")]
         public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req)
         {
             var buildConfiguration = string.Empty;
@@ -26,7 +26,7 @@ namespace HelloHttp
             _logger.LogInformation($"C# HTTP trigger function processed a request.buildConfiguration:{buildConfiguration}");
 
             var response = req.CreateResponse(System.Net.HttpStatusCode.OK);
-            response.WriteString($"Hello Http!. Published on 2024 02 11. buildConfiguration:{buildConfiguration}");
+            response.WriteString($"Hello World!");
             return response;
         }
     }

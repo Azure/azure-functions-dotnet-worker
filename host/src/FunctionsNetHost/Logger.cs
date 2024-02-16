@@ -9,12 +9,41 @@ namespace FunctionsNetHost
     {
         private static readonly string LogPrefix;
         private static readonly bool IsTraceLogEnabled;
+        private static string? _logFilePath;
 
         static Logger()
         {
             IsTraceLogEnabled = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.EnableTraceLogs), "1");
             var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix), "1");
             LogPrefix = disableLogPrefix ? string.Empty : "LanguageWorkerConsoleLog";
+
+            CreateLogFile();
+        }
+
+        private static void CreateLogFile()
+        {
+            var logFilePath = EnvironmentUtils.GetValue(EnvironmentVariables.LogFilePath);
+
+            if (logFilePath == null)
+            {
+                return;
+            }
+
+            if (File.Exists(logFilePath))
+            {
+                _logFilePath = logFilePath;
+                return;
+            }
+
+            try
+            {
+                File.AppendAllText(logFilePath, $"{Environment.NewLine}Starting new session at {DateTime.Now}{Environment.NewLine}{Environment.NewLine}");
+                _logFilePath = logFilePath;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error creating log file at {logFilePath}: {ex.Message}");
+            }
         }
 
         /// <summary>
@@ -31,7 +60,22 @@ namespace FunctionsNetHost
         internal static void Log(string message)
         {
             var ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Console.WriteLine($"{LogPrefix}[{ts}] [FunctionsNetHost] {message}");
+            var logMessage = $"{LogPrefix}[{ts}] [FunctionsNetHost] {message}";
+            Console.WriteLine(logMessage);
+
+            if (string.IsNullOrEmpty(_logFilePath))
+            {
+                return;
+            }
+
+            try
+            {
+                File.AppendAllText(_logFilePath, $"{logMessage}{Environment.NewLine}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error writing to log file: {ex.Message}");
+            }
         }
     }
 }

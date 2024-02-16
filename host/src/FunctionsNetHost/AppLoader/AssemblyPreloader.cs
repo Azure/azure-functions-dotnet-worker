@@ -46,6 +46,8 @@ namespace FunctionsNetHost
             }
             Logger.Log($"Assembly preload summary: {successfulPreloadCount} out of {assemblies.Count} assemblies preloaded");
             AppLoaderEventSource.Log.AssembliesPreloaded(assemblies.Count, successfulPreloadCount, failedPreloadCount);
+
+            ReadRuntimeAssemblyFiles(assemblies);
         }
 
         private static ICollection<string> GetAssembliesToPreload(string filePath)
@@ -57,11 +59,59 @@ namespace FunctionsNetHost
             {
                 Logger.Log($"Reading assembly list from file: {filePath}");
                 var lines = File.ReadAllLines(filePath);
-                return new List<string>(lines.Where(line=>string.IsNullOrWhiteSpace(line) == false));
+                return new List<string>(lines.Where(line => string.IsNullOrWhiteSpace(line) == false));
             }
             else
             {
                 return new List<string>();
+            }
+        }
+
+        internal static void ReadRuntimeAssemblyFiles(ICollection<string> assemblies)
+        {
+            int readCounter = 0;
+            try
+            {
+                // Read File content in 4K chunks
+                int maxBuffer = 4 * 1024;
+                byte[] chunk = new byte[maxBuffer];
+                Random random = new Random();
+                foreach (string file in assemblies)
+                {
+                    // Read file content to avoid disk reads during specialization. This is only to page-in bytes.
+                    ReadFileInChunks(file, chunk, maxBuffer, random);
+                    readCounter++;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error in ReadRuntimeAssemblyFiles. {ex}");
+            }
+            finally
+            {
+                Logger.Log($"ReadRuntimeAssemblyFiles summary. Number of files read:{readCounter}");
+            }
+        }
+
+        private static void ReadFileInChunks(string file, byte[] chunk, int maxBuffer, Random random)
+        {
+            try
+            {
+                using (FileStream fileStream = new FileStream(file, FileMode.Open, FileAccess.Read))
+                {
+                    int bytesRead;
+                    while ((bytesRead = fileStream.Read(chunk, 0, maxBuffer)) != 0)
+                    {
+                        // Read one random byte for every 4K bytes - 4K is default OS page size. This will help avoid disk read during specialization
+                        // see for details on OS page buffering in Windows - https://docs.microsoft.com/en-us/windows/win32/fileio/file-buffering
+                        var randomByte = Convert.ToInt32(chunk[random.Next(0, bytesRead - 1)]);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error reading file '{file}'.{ex}");
             }
         }
     }

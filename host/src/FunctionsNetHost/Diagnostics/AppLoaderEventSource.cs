@@ -133,7 +133,14 @@ namespace FunctionsNetHost.Diagnostics
                 WriteEvent(8014, functionId);
             }
         }
-
+        [Event(8015)]
+        public void NetHostWorkerInitCompleted()
+        {
+            if (IsEnabled())
+            {
+                WriteEvent(8015);
+            }
+        }
         public static readonly AppLoaderEventSource Log = new();
     }
 }

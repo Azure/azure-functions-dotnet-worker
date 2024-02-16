@@ -58,6 +58,7 @@ namespace FunctionsNetHost.Grpc
                 case StreamingMessage.ContentOneofCase.WorkerInitRequest:
                     {
                         responseMessage.WorkerInitResponse = BuildWorkerInitResponse();
+                        AppLoaderEventSource.Log.NetHostWorkerInitCompleted();
                         break;
                     }
                 case StreamingMessage.ContentOneofCase.FunctionsMetadataRequest:

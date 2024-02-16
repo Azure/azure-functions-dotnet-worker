@@ -67,20 +67,22 @@ namespace FunctionsNetHost
         {
             var ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
             var logMessage = $"{LogPrefix}[{ts}] [FunctionsNetHost] {message}";
-            Console.WriteLine(logMessage);
 
-            if (string.IsNullOrEmpty(_logFilePath))
+            if (!string.IsNullOrEmpty(_logFilePath))
             {
-                return;
+                try
+                {
+                    File.AppendAllText(_logFilePath, $"{logMessage}{Environment.NewLine}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error writing to log file: {ex.Message}");
+                }
             }
-
-            try
+            else
             {
-                File.AppendAllText(_logFilePath, $"{logMessage}{Environment.NewLine}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error writing to log file: {ex.Message}");
+                // When file logging is enabled, don't write to stdout
+                Console.WriteLine(logMessage);
             }
         }
     }

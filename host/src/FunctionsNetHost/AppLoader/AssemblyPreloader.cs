@@ -11,6 +11,27 @@ namespace FunctionsNetHost
         private const string _preloadAssemblyListFile = "assemblies.txt";
         private static string? _basePath;
 
+        internal static string? GetMaxDotNetVersionDirName()
+        {
+            // Determine the base path depending on the operating system
+            string basePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+                ? Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles)
+                : "/usr/share/dotnet/shared/Microsoft.AspNetCore.App";
+
+            string path = Path.Combine(basePath, "dotnet", "shared", "Microsoft.AspNetCore.App");
+
+            if (Directory.Exists(path))
+            {
+                var topVersion = Directory.EnumerateDirectories(path)
+                                .Select(d => new DirectoryInfo(d).Name)
+                                .OrderByDescending(d => d).FirstOrDefault();
+
+                return topVersion;
+            }
+
+            return null;
+        }
+
         internal static void Preload(string? applicationBasePath = null)
         {
             if (applicationBasePath != null)
@@ -52,19 +73,28 @@ namespace FunctionsNetHost
 
         private static ICollection<string> GetAssembliesToPreload(string filePath)
         {
+            var resultList = new List<string>();
             var fileExists = File.Exists(filePath);
-            Logger.Log($"File {filePath} exist:{fileExists}");
+            Logger.Log($"Preload assembly list file {filePath} exist:{fileExists}");
 
-            if (File.Exists(filePath))
+            if (fileExists)
             {
-                Logger.Log($"Reading assembly list from file: {filePath}");
+                var maxDotNetVersionDirName = GetMaxDotNetVersionDirName();
                 var lines = File.ReadAllLines(filePath);
-                return new List<string>(lines.Where(line => string.IsNullOrWhiteSpace(line) == false));
+
+                foreach (var line in lines.Where(l => string.IsNullOrWhiteSpace(l) == false))
+                {
+                    var newLine = line;
+                    if (maxDotNetVersionDirName != null)
+                    {
+                        newLine = line.Replace("8.0.1", maxDotNetVersionDirName);
+                    }
+
+                    resultList.Add(newLine);
+                }
             }
-            else
-            {
-                return new List<string>();
-            }
+
+            return resultList;
         }
 
         internal static void ReadRuntimeAssemblyFiles(ICollection<string> assemblies)

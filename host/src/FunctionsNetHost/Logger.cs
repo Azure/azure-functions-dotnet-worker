@@ -29,7 +29,7 @@ namespace FunctionsNetHost
             {
                 return;
             }
-            var pid = Process.GetCurrentProcess().Id;
+            var pid = Environment.ProcessId;
             var fileExist = File.Exists(logFilePath);
             if (!fileExist)
             {

@@ -434,7 +434,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponse)) // If return type is HttpResponseData
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponseData) || 
+                        returnTypeSymbol.IsOrDerivedFrom(_knownFunctionMetadataTypes.IActionResult) ||
+                        returnTypeSymbol.IsOrDerivedFrom(_knownFunctionMetadataTypes.IResult)) // If return type is HttpResponseData
                     {
                         bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }
@@ -468,7 +470,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     // Check if this attribute is an HttpResponseData type attribute
-                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponse))
+                    if (prop is IPropertySymbol property && 
+                        (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData) ||
+                         property.Type.IsOrDerivedFrom(_knownFunctionMetadataTypes.IActionResult) ||
+                         property.Type.IsOrDerivedFrom(_knownFunctionMetadataTypes.IResult)
+                        ))
                     {
                         if (foundHttpOutput)
                         {

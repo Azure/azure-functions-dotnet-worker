@@ -192,7 +192,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             public async void BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
             {
                 string inputCode = """
+                using System;
+                using System.Net;
                 using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
                 using Microsoft.AspNetCore.Http;
                 using Microsoft.AspNetCore.Mvc;
 

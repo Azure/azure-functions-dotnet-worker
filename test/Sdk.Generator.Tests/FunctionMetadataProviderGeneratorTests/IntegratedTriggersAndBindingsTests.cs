@@ -189,7 +189,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             [Theory]
             [InlineData(LanguageVersion.Latest)]
-            public async void BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
+            public async void FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;

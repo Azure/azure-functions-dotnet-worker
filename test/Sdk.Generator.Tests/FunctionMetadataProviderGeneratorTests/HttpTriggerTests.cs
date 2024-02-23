@@ -18,7 +18,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             public HttpTriggerTests()
             {
-                // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");

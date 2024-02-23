@@ -52,12 +52,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     diExtension,
                     diAbExtension,
                     actionResult,
-<<<<<<< HEAD
                     aspnetHtpp,
                     httpRequest
-=======
-                    aspnetHtpp
->>>>>>> c33e78f0 (test wip)
                 };
             }
 
@@ -208,8 +204,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             public async void BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
             {
                 string inputCode = """
+                using System;
+                using System.Net;
                 using Microsoft.Azure.Functions.Worker;
+<<<<<<< HEAD
 >>>>>>> c33e78f0 (test wip)
+=======
+                using Microsoft.Azure.Functions.Worker.Http;
+>>>>>>> f036086b (fix tests)
                 using Microsoft.AspNetCore.Http;
                 using Microsoft.AspNetCore.Mvc;
 

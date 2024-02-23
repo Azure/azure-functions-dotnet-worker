@@ -191,7 +191,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             [Theory]
             [InlineData(LanguageVersion.Latest)]
-<<<<<<< HEAD
             public async void FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
             {
                 string inputCode = """
@@ -200,21 +199,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Net;
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
-=======
-            public async void BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
-            {
-                string inputCode = """
-                using System;
-                using System.Net;
-                using Microsoft.Azure.Functions.Worker;
-<<<<<<< HEAD
->>>>>>> c33e78f0 (test wip)
-=======
-                using Microsoft.Azure.Functions.Worker.Http;
->>>>>>> f036086b (fix tests)
-                using Microsoft.AspNetCore.Http;
-                using Microsoft.AspNetCore.Mvc;
-
                 namespace FunctionApp
                 {
                     public static class FunctionsMultipleOutputBindingWithActionResult
@@ -225,7 +209,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             throw new NotImplementedException();
                         }
-<<<<<<< HEAD
 
                         [Function("OutputTypeHttpHasTwoAttributes")]
                         public static MyOutputType2 Test([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
@@ -233,8 +216,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             throw new NotImplementedException();
                         }
-=======
->>>>>>> c33e78f0 (test wip)
                     }
 
                     public class MyOutputType
@@ -242,7 +223,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
                         public string Name { get; set; }
 
-<<<<<<< HEAD
                         [HttpResult]
                         public IActionResult HttpResponse { get; set; }
                     }
@@ -254,8 +234,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 
                         [SuppressMessage("Microsoft.Naming", "Foo", Justification = "Bar")]
                         [HttpResult]
-=======
->>>>>>> c33e78f0 (test wip)
                         public IActionResult HttpResponse { get; set; }
                     }
                 }
@@ -302,7 +280,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
-<<<<<<< HEAD
                             var Function1RawBindings = new List<string>();
                             Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
                             Function1RawBindings.Add(@"{""name"":""Name"",""type"":""queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
@@ -317,8 +294,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function1);
-=======
->>>>>>> c33e78f0 (test wip)
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }

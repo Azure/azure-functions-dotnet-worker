@@ -3,7 +3,9 @@
 
 using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -46,6 +48,35 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return request is not null;
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="result"></param>
+        /// <returns></returns>
+        public static bool TryGetIActionResult(this FunctionContext context, [NotNullWhen(true)] out IActionResult? result)
+        {
+            result = null;
+
+            var httpInvocationResult = context.GetInvocationResult();
+            if (httpInvocationResult.Value is IActionResult actionResult)
+            {
+                result = actionResult;
+                return true;
+            }
+
+            // see output binding entries have a property of type HttpResponseData;
+            var httpOutputBinding = context.GetOutputBindings<IActionResult>().FirstOrDefault();
+
+            if (httpOutputBinding is IActionResult actionResultOutput)
+            {
+                result = actionResultOutput;
+                return true;
+            }
+
+            return false;
         }
     }
 }

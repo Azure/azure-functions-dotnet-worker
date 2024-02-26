@@ -36,6 +36,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diAbExtension = typeof(IServiceCollection).Assembly;
                 var actionResult = typeof(IActionResult).Assembly;
                 var aspnetHtpp = typeof(HttpContextAccessor).Assembly;
+                var httpRequest = typeof(HttpRequest).Assembly;
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -51,7 +52,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     diExtension,
                     diAbExtension,
                     actionResult,
-                    aspnetHtpp
+                    aspnetHtpp,
+                    httpRequest
                 };
             }
 

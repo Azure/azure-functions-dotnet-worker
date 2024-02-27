@@ -37,8 +37,7 @@ namespace FunctionsNetHost
             if (applicationBasePath != null)
             {
                 _basePath = applicationBasePath;
-            }
-            
+            }            
 
             if (OperatingSystem.IsWindows())
             {
@@ -100,15 +99,10 @@ namespace FunctionsNetHost
                         assemblyPath = line.Replace("8.0.1", maxDotNetVersionDirName);
                     }
 
-                    var fileExist = File.Exists(assemblyPath);
-                    Logger.Log($"Preload assembly {assemblyPath} exist:{fileExist}");
+                    var assemblyPathAbsolute = Path.GetFullPath(assemblyPath);
+                    Logger.Log($"Preload assembly {assemblyPathAbsolute} exist:{File.Exists(assemblyPathAbsolute)}");
 
-                    var assemblyPathNew = Path.GetFullPath(assemblyPath);
-                    var newFileExist = File.Exists(assemblyPathNew);
-                    Logger.Log($"Preload assembly {assemblyPathNew} exist:{newFileExist}");
-
-                    resultList.Add(assemblyPathNew);
-
+                    resultList.Add(assemblyPathAbsolute);
                 }
             }
 

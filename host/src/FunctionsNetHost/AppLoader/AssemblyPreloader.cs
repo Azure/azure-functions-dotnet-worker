@@ -8,7 +8,7 @@ namespace FunctionsNetHost
 {
     internal static class AssemblyPreloader
     {
-        private const string _preloadAssemblyListFile = "assemblies.txt";
+        private static string _preloadAssemblyListFile = string.Empty;
         private static string? _basePath;
 
         internal static string? GetMaxDotNetVersionDirName()
@@ -37,6 +37,16 @@ namespace FunctionsNetHost
             if (applicationBasePath != null)
             {
                 _basePath = applicationBasePath;
+            }
+            
+
+            if (OperatingSystem.IsWindows())
+            {
+                _preloadAssemblyListFile = "assemblies-win.txt";
+            }
+            else
+            {
+                _preloadAssemblyListFile = "assemblies-linux.txt";
             }
 
             var filePath = Path.Combine(_basePath!, _preloadAssemblyListFile);

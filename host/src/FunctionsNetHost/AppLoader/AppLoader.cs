@@ -33,7 +33,7 @@ namespace FunctionsNetHost
                 };
 
                 var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
-                Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
+                Logger.Log($"hostfxr path:{hostfxrFullPath}");
 
                 AppLoaderEventSource.Log.HostFxrLoadStart(hostfxrFullPath);
                 _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);

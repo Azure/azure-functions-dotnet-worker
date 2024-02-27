@@ -94,15 +94,25 @@ namespace FunctionsNetHost
 
                 foreach (var line in lines.Where(l => string.IsNullOrWhiteSpace(l) == false))
                 {
-                    var newLine = line;
+                    var assemblyPath = line;
                     if (maxDotNetVersionDirName != null)
                     {
-                        newLine = line.Replace("8.0.1", maxDotNetVersionDirName);
+                        assemblyPath = line.Replace("8.0.1", maxDotNetVersionDirName);
                     }
 
-                    resultList.Add(newLine);
+                    var fileExist = File.Exists(assemblyPath);
+                    Logger.Log($"Preload assembly {assemblyPath} exist:{fileExist}");
+
+                    var assemblyPathNew = Path.GetFullPath(assemblyPath);
+                    var newFileExist = File.Exists(assemblyPathNew);
+                    Logger.Log($"Preload assembly {assemblyPathNew} exist:{newFileExist}");
+
+                    resultList.Add(assemblyPathNew);
+
                 }
             }
+
+
 
             return resultList;
         }

@@ -10,4 +10,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.2.1
 
+  - Minor refactoring and cleanup (#2208)
   - Fixed metadata generator not producing metadata when the entry assembly lacked functions but dependent assemblies had them (#2300)

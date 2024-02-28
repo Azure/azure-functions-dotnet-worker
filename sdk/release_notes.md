@@ -4,10 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.16.4 (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk 1.17.0 (meta package)
 
-- Update Microsoft.Azure.Functions.Worker.Sdk.Generators dependency to 1.1.6
-
-### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.1.6
-
-- Avoid executing source generators outside of an Azure Functions project. (#2119)
+- Updating extension project generator to use `Microsoft.NET.Sdk.Functions` 4.3.0 (#2247)
+- Fix build when `local.settings.json` is not present (#2251)

@@ -14,11 +14,17 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <!--Our source generators rely on the FunctionsExecutionModel property.-->
     <FunctionsExecutionModel>isolated</FunctionsExecutionModel>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>
+    <DefaultExcludesInProjectFolder>$(DefaultExcludesInProjectFolder);host.json;local.settings.json</DefaultExcludesInProjectFolder>
   </PropertyGroup>
 
   <!--Enable Azure Functions project capability to enable tools-->
   <ItemGroup>
-        <ProjectCapability Include="AzureFunctions"/>
+    <ProjectCapability Include="AzureFunctions"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="host.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('host.json')" />
+    <None Include="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Condition="Exists('local.settings.json')" />
   </ItemGroup>
 
   <ItemGroup>

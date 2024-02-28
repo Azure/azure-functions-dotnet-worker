@@ -85,6 +85,13 @@ namespace Microsoft.Azure.Functions.Worker
             set => _isBatched = value;
         }
 
+        /// <summary>
+        /// Gets or sets a value indicating whether the trigger should automatically complete the message after successful processing.
+        /// If not explicitly set, the behavior will be based on the autoCompleteMessages configuration in host.json.
+        /// For more information, <see cref="https://aka.ms/AAp8dm9"/>"
+        /// </summary>
+        public bool AutoCompleteMessages { get; set; }
+
         Cardinality ISupportCardinality.Cardinality
         {
             get

@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             if (target is not T converted)
             {
-                throw new AssertActualExpectedException(typeof(T), target?.GetType(), string.Empty);
+                throw new XunitException($"The type {typeof(T).FullName} does no, match expected {target?.GetType().FullName}");
             }
 
             return converted;

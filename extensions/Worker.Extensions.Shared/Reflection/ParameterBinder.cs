@@ -16,10 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
     internal static class ParameterBinder
     {
         /// <summary>
-        /// Read only property that contains all of the generic interfaces implemented by <see cref="System.Collections.Generic.List"/>.
+        /// Read only property that contains all of the generic interfaces implemented by <see cref="List{T}"/>.
         /// </summary>
         /// <remarks>This property calls ToList at the end to force the resolution of the LINQ methods that leverage deferred execution.</remarks>
-        private static readonly HashSet<Type> validListInterfaceTypes = new HashSet<Type>(typeof(List<>).GetInterfaces().Where(t => t.IsGenericType).Select(t => t.GetGenericTypeDefinition()));
+        private static readonly HashSet<Type> validListInterfaceTypes = new(typeof(List<>).GetInterfaces().Where(t => t.IsGenericType).Select(t => t.GetGenericTypeDefinition()));
 
         private const BindingFlags DeclaredOnlyLookup = BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly;
 
@@ -99,10 +99,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions
         }
 
         /// <summary>
-        /// A method that determines if a Type is a generic interface of the <see cref="System.Collections.Generic.List"/> concrete class.
+        /// A method that determines if a Type is a generic interface of the <see cref="List{T}"/> concrete class.
         /// </summary>
-        /// <param name="type">A generic interface type to be tested against the types available on the generic <see cref="System.Collections.Generic.List"/> type.</param>
-        /// <returns>True if the type is a generic type and it's an interface of the generic <see cref="System.Collections.Generic.List"/> type otherwise false.</returns>
+        /// <param name="type">A generic interface type to be tested against the types available on the generic <see cref="List{T}"/> type.</param>
+        /// <returns>True if the type is a generic type and it's an interface of the generic <see cref="List{T}"/> type otherwise false.</returns>
         private static bool IsListInterface(Type type)
         {
             return type.IsGenericType &&

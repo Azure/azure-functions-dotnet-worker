@@ -13,14 +13,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
-    internal sealed class FromBodyConverstionFeature : IFromBodyConversionFeature
+    internal sealed class FromBodyConversionFeature : IFromBodyConversionFeature
     {
-        public static FromBodyConverstionFeature Instance { get; } = new();
+        public static FromBodyConversionFeature Instance { get; } = new();
 
         public async ValueTask<object?> ConvertAsync(FunctionContext context, Type targetType)
         {
             var httpContext = context.GetHttpContext()
-                ?? throw new InvalidOperationException($"The '{nameof(FromBodyConverstionFeature)} expects an '{nameof(HttpContext)}' instance in the current context.");
+                ?? throw new InvalidOperationException($"The '{nameof(FromBodyConversionFeature)} expects an '{nameof(HttpContext)}' instance in the current context.");
 
             var metadata = httpContext.RequestServices
                            .GetService<IModelMetadataProvider>()?
@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (metadata is null)
             {
-                context.GetLogger<FromBodyConverstionFeature>()
+                context.GetLogger<FromBodyConversionFeature>()
                     .LogWarning("Unable to resolve a model metadata provider for the target type ({TargetType}).", targetType);
 
                 return null;
@@ -91,7 +91,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 throw new InvalidOperationException(messageBuilder.ToString());
             }
 
-            context.GetLogger<FromBodyConverstionFeature>()
+            context.GetLogger<FromBodyConversionFeature>()
                 .LogWarning("Unable to bind the request body to the target type ({TargetType}).", targetType);
 
             return null;

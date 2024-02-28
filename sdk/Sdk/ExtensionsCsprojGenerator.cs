@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class ExtensionsCsprojGenerator
     {
-        private const string ExtensionsProjectName = "WorkerExtensions.csproj";
+        internal const string ExtensionsProjectName = "WorkerExtensions.csproj";
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
@@ -31,9 +31,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var extensionsCsprojFilePath = Path.Combine(_outputPath, ExtensionsProjectName);
 
-            RecreateDirectory(_outputPath);
+            string csproj = GetCsProjContent();
+            if (File.Exists(extensionsCsprojFilePath))
+            {
+                string existing = File.ReadAllText(extensionsCsprojFilePath);
+                if (string.Equals(csproj, existing, StringComparison.Ordinal))
+                {
+                    // If contents are the same, only touch the file to update timestamp.
+                    File.SetLastWriteTimeUtc(extensionsCsprojFilePath, DateTime.UtcNow);
+                    return;
+                }
+            }
 
-            WriteExtensionsCsProj(extensionsCsprojFilePath);
+            RecreateDirectory(_outputPath);
+            File.WriteAllText(extensionsCsprojFilePath, csproj);
         }
 
         private void RecreateDirectory(string directoryPath)
@@ -44,13 +55,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             Directory.CreateDirectory(directoryPath);
-        }
-
-        private void WriteExtensionsCsProj(string filePath)
-        {
-            string csprojContent = GetCsProjContent();
-
-            File.WriteAllText(filePath, csprojContent);
         }
 
         internal string GetCsProjContent()
@@ -66,27 +70,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
-            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.2.0";
+            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.3.0";
 
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
         <TargetFramework>{targetFramework}</TargetFramework>
-        <LangVersion>preview</LangVersion>
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions</RootNamespace>
-        <MajorMinorProductVersion>1.0</MajorMinorProductVersion>
-        <Version>$(MajorMinorProductVersion).0</Version>
-        <AssemblyVersion>$(MajorMinorProductVersion).0.0</AssemblyVersion>
-        <FileVersion>$(Version)</FileVersion>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     </PropertyGroup>
+
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
         <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""{netSdkVersion}"" />
-        {extensionReferences}
-    </ItemGroup>
+{extensionReferences}    </ItemGroup>
+
+    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+        <Error Condition=""'$(TargetFramework)' != '{targetFramework}'"" Text=""The target framework '$(TargetFramework)' must be '{targetFramework}'. Verify if target framework has been overridden by a global property."" />
+    </Target>
 </Project>
 ";
         }
@@ -105,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static string GetPackageReferenceFromExtension(string name, string version)
         {
-            return $@"<PackageReference Include=""{name}"" Version=""{version}"" />";
+            return $"        <PackageReference Include=\"{name}\" Version=\"{version}\" />";
         }
     }
 }

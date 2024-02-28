@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using FunctionsNetHost.Grpc;
 
 namespace FunctionsNetHost
 {
@@ -19,6 +20,12 @@ namespace FunctionsNetHost
         private IntPtr _hostfxrHandle = IntPtr.Zero;
         private IntPtr _hostContextHandle = IntPtr.Zero;
         private bool _disposed;
+        private GrpcWorkerStartupOptions _workerStartupOptions;
+
+        internal AppLoader(GrpcWorkerStartupOptions workerStartupOptions)
+        {
+            _workerStartupOptions = workerStartupOptions;
+        }
 
         internal int RunApplication(string? assemblyPath)
         {
@@ -45,7 +52,8 @@ namespace FunctionsNetHost
 
                 Logger.LogTrace($"hostfxr loaded.");
 
-                var error = HostFxr.Initialize(1, new[] { assemblyPath }, IntPtr.Zero, out _hostContextHandle);
+                var commandLineArguments = _workerStartupOptions.CommandLineArgs.Prepend(assemblyPath).ToArray();
+                var error = HostFxr.Initialize(commandLineArguments.Length, commandLineArguments, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
                 {

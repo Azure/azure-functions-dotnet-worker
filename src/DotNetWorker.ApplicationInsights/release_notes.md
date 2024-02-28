@@ -1,3 +1,4 @@
 ## What's Changed
 
-- Moving hot-path environment variable checks to a background task (#1996)
+### Microsoft.Azure.Functions.Worker.ApplicationInsights 1.2.0
+- Updating `Microsoft.ApplicationInsights.PerfCounterCollector` to 2.22.0

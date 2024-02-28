@@ -34,24 +34,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 return;
             }
-            
-            if (context.SyntaxReceiver is not FunctionMethodSyntaxReceiver receiver || receiver.CandidateMethods.Count == 0)
+
+            if (context.SyntaxReceiver is not FunctionMethodSyntaxReceiver receiver)
             {
                 return;
             }
 
-            // attempt to parse user compilation
-            var p = new Parser(context);
-
-            var entryAssemblyFunctionSymbols = GetEntryAssemblyFunctions(receiver.CandidateMethods, context);
+            var entryAssemblyFunctionSymbols = GetEntryAssemblyFunctions(receiver.CandidateMethods, context).ToList();
             var dependentAssemblyFunctionSymbols = GetDependentAssemblyFunctions(context);
 
+            if (entryAssemblyFunctionSymbols.Count == 0 && dependentAssemblyFunctionSymbols.Count == 0)
+            {
+                return;
+            }
+
+            var parser = new Parser(context);
             var entryAssemblyParsingContext = new FunctionsMetadataParsingContext
             {
                 ScriptFileExtension = GetScriptFileExtensionForEntryPointAssemblyFunctions(context)
             };
-            var entryAssemblyFunctions = p.GetFunctionMetadataInfo(entryAssemblyFunctionSymbols.ToList(), entryAssemblyParsingContext);
-            var dependentAssemblyFunctions = p.GetFunctionMetadataInfo(dependentAssemblyFunctionSymbols.ToList());
+
+            var entryAssemblyFunctions = parser.GetFunctionMetadataInfo(entryAssemblyFunctionSymbols, entryAssemblyParsingContext);
+            var dependentAssemblyFunctions = parser.GetFunctionMetadataInfo(dependentAssemblyFunctionSymbols);
 
             IReadOnlyList<GeneratorFunctionMetadata> functionMetadataInfo = entryAssemblyFunctions.Concat(dependentAssemblyFunctions).ToList();
 
@@ -94,7 +98,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             bool.TryParse(autoRegisterSwitch, out bool enableRegistration);
             return enableRegistration;
         }
-        
+
         private static bool ShouldExecuteGeneration(GeneratorExecutionContext context)
         {
             if (!context.AnalyzerConfigOptions.GlobalOptions.TryGetValue(
@@ -124,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Collect methods with Function attributes on them from dependent/referenced assemblies.
         /// </summary>
-        private IEnumerable<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
+        private List<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
         {
             var visitor = new ReferencedAssemblyMethodVisitor(context.Compilation);
             visitor.Visit(context.Compilation.SourceModule);

@@ -40,8 +40,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return;
             }
 
-            var entryAssemblyFunctionSymbols = GetEntryAssemblyFunctions(receiver.CandidateMethods, context).AsList();
-            var dependentAssemblyFunctionSymbols = GetDependentAssemblyFunctions(context).AsList();
+            var entryAssemblyFunctionSymbols = GetEntryAssemblyFunctions(receiver.CandidateMethods, context).ToList();
+            var dependentAssemblyFunctionSymbols = GetDependentAssemblyFunctions(context);
 
             if (entryAssemblyFunctionSymbols.Count == 0 && dependentAssemblyFunctionSymbols.Count == 0)
             {
@@ -128,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// <summary>
         /// Collect methods with Function attributes on them from dependent/referenced assemblies.
         /// </summary>
-        private IEnumerable<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
+        private List<IMethodSymbol> GetDependentAssemblyFunctions(GeneratorExecutionContext context)
         {
             var visitor = new ReferencedAssemblyMethodVisitor(context.Compilation);
             visitor.Visit(context.Compilation.SourceModule);

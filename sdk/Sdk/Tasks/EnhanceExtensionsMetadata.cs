@@ -34,6 +34,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
             string newJson = JsonSerializer.Serialize(extensionsMetadata, _serializerOptions);
             File.WriteAllText(OutputPath, newJson);
 
+            File.Delete(ExtensionsJsonPath);
+
             return true;
         }
     }

@@ -8,22 +8,13 @@ namespace FunctionsNetHost
     internal static class Logger
     {
         private static readonly string LogPrefix;
+        private static readonly bool IsTraceLogEnabled;
 
         static Logger()
         {
-#if !DEBUG
-            LogPrefix = "LanguageWorkerConsoleLog";
-#else
-            LogPrefix = "";
-#endif
-        }
-
-        internal static bool IsTraceLogEnabled
-        {
-            get
-            {
-                return string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsNetHostTrace), "1");
-            }
+            IsTraceLogEnabled = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.EnableTraceLogs), "1");
+            var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix), "1");
+            LogPrefix = disableLogPrefix ? string.Empty : "LanguageWorkerConsoleLog";
         }
 
         /// <summary>

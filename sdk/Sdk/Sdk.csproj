@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>16</MinorProductVersion>
-    <PatchProductVersion>4</PatchProductVersion>
+    <MinorProductVersion>17</MinorProductVersion>
+    <PatchProductVersion>2</PatchProductVersion>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>
     <Description>This package provides development time support for the Azure Functions .NET Worker.</Description>
@@ -34,6 +34,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.3" />
     <PackageReference Include="SharpZipLib" Version="1.4.1" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />
+    <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
 
     <!-- Marks all packages as 'local only' so they don't end up in the nuspec. -->

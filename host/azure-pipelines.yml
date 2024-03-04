@@ -35,7 +35,7 @@ stages:
               command: "publish"
               publishWebProjects: false
               zipAfterPublish: false
-              arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/PrelaunchApp/8.0 --framework net8.0 -p:UseAppHost=false"
+              arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/out/8.0 --framework net8.0 -p:UseAppHost=false"
               projects: "host/src/PrelaunchApp/App.csproj"
 
           - task: DotNetCoreCLI@2
@@ -44,12 +44,12 @@ stages:
               command: "publish"
               publishWebProjects: false
               zipAfterPublish: false
-              arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/PrelaunchApp/7.0 --framework net7.0 -p:UseAppHost=false"
+              arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/out/7.0 --framework net7.0 -p:UseAppHost=false"
               projects: "host/src/PrelaunchApp/App.csproj"
 
           - task: PublishPipelineArtifact@1
             inputs:
-              targetPath: "$(Build.ArtifactStagingDirectory)"
+              targetPath: "$(Build.ArtifactStagingDirectory)/out"
               artifact: "prelaunch_app_publish_output"
 
   - stage: BuildAndPublish

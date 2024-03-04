@@ -8,12 +8,12 @@ namespace Microsoft.Azure.Functions.Worker
     /// <summary>
     /// Attribute used to mark an HTTP Response on an HTTP Trigger function with multiple output bindings.
     /// </summary>
-    public sealed class HttpResponseAttribute : OutputBindingAttribute
+    public sealed class HttpResponseOutputAttribute : OutputBindingAttribute
     {
         /// <summary>
-        /// Creates an instance of the <see cref="HttpResponseAttribute"/>.
+        /// Creates an instance of the <see cref="HttpResponseOutputAttribute"/>.
         /// </summary>
-        public HttpResponseAttribute()
+        public HttpResponseOutputAttribute()
         {
         }
     }

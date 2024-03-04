@@ -56,23 +56,21 @@ namespace Microsoft.Azure.Functions.Worker
         /// <param name="context"></param>
         /// <param name="result"></param>
         /// <returns></returns>
-        public static bool TryGetIActionResult(this FunctionContext context, [NotNullWhen(true)] out IActionResult? result)
+        public static bool TryGetHttpResponse<T>(this FunctionContext context, [NotNullWhen(true)] out T? result)
         {
-            result = null;
+            result = default(T);
 
             var httpInvocationResult = context.GetInvocationResult();
-            if (httpInvocationResult.Value is IActionResult actionResult)
+            if (httpInvocationResult.Value is T invocationResult)
             {
-                result = actionResult;
+                result = invocationResult;
                 return true;
             }
 
-            // see output binding entries have a property of type HttpResponseData;
-            var httpOutputBinding = context.GetOutputBindings<IActionResult>().FirstOrDefault();
-
-            if (httpOutputBinding is IActionResult actionResultOutput)
+            var httpOutputBinding = context.GetOutputBindings<T>().FirstOrDefault();
+            if (httpOutputBinding is not null && httpOutputBinding.Value is not null)
             {
-                result = actionResultOutput;
+                result = httpOutputBinding.Value;
                 return true;
             }
 

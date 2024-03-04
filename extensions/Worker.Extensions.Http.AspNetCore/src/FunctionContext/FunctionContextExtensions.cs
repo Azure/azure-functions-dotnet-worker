@@ -51,10 +51,10 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// 
+        /// Tries to get an HTTP Response of type T by first checking the invocation result then the output bindings of a function.
         /// </summary>
-        /// <param name="context"></param>
-        /// <param name="result"></param>
+        /// <param name="context">The <see cref="FunctionContext"/></param>
+        /// <param name="result">The HTTP response for the respective function.</param>
         /// <returns></returns>
         public static bool TryGetHttpResponse<T>(this FunctionContext context, [NotNullWhen(true)] out T? result)
         {

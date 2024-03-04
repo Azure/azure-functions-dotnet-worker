@@ -47,13 +47,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             await next(context);
 
-            if (context.TryGetIActionResult(out var actionResult))
+            if (context.TryGetHttpResponse<IActionResult>(out var httpOutput))
             {
                 ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
 
-                await actionResult.ExecuteResultAsync(actionContext);
+                await httpOutput.ExecuteResultAsync(actionContext);
             }
-            else if (context.GetInvocationResult()?.Value is AspNetCoreHttpResponseData)
+            else if (context.GetHttpResponseData() is HttpResponseData httpResponseData)
             {
                 // The AspNetCoreHttpResponseData implementation is
                 // simply a wrapper over the underlying HttpResponse and
@@ -61,6 +61,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 // There's no need to return this result as no additional
                 // processing is required.
                 context.GetInvocationResult().Value = null;
+            }
+            else if (context.TryGetHttpResponse<IResult>(out var httpIResult))
+            {
+                await httpIResult.ExecuteAsync(httpContext);
             }
 
             // allows asp.net middleware to continue

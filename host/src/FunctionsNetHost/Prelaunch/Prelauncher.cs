@@ -9,7 +9,7 @@ namespace FunctionsNetHost.Prelaunch
     {
         private const string DotNet = "dotnet";
         private const string AssemblyName = "App.dll";
-        private const string PrelaunchAppsDirName = "PrelaunchApps";
+        private const string PrelaunchAppsDirName = "prelaunchapps";
         private const int ProcessWaitForExitTimeInMilliSeconds = 10000;
 
         /// <summary>

@@ -17,33 +17,34 @@ pr:
     include:
       - host/src/
 stages:
-  - stage:PublisPreLaunchAppsProject
-  - displayName: "Publish PrelaunchApps/App.csproj for NET 8.0 and NET 7.0"  
-   jobs:
-      - job: PublishPreLaunchAppsProject
-        displayName: "Publish PrelaunchApps/App.csproj for NET 8.0 and NET 7.0"
+  - stage: BuildAndPublishPrelaunchApps
+    displayName: "Publish PrelaunchApps/App.csproj for NET 8.0 and NET 7.0"
+    jobs:
+      - job: BuildAndPublishLinux
+        displayName: "Publish on Linux"
         pool:
           vmImage: "windows-latest"
         steps:
           - task: UseDotNet@2
             inputs:
               version: "8.x"
-              includePreviewVersions: true
+
           - task: DotNetCoreCLI@2
+            displayName: "Dotnet publish(NET8) App.csproj"
             inputs:
               command: "publish"
               publishWebProjects: false
               arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/prelaunchapps/8.0 --framework net8.0"
               projects: "host/src/PrelaunchApps/App.csproj"
-          - task: UseDotNet@2
-            inputs:
-              version: "7.x"
+
           - task: DotNetCoreCLI@2
+            displayName: "Dotnet publish(NET7) App.csproj"
             inputs:
               command: "publish"
               publishWebProjects: false
               arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/prelaunchapps/7.0 --framework net7.0"
               projects: "host/src/PrelaunchApps/App.csproj"
+
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: "$(Build.ArtifactStagingDirectory)/prelaunchapps"
@@ -99,9 +100,6 @@ stages:
             inputs:
               version: "8.x"
               includePreviewVersions: true
-
-
-
 
           - task: DotnetCoreCLI@2
             displayName: "Dotnet Publish"

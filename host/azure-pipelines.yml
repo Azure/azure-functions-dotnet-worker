@@ -18,7 +18,7 @@ pr:
       - host/src/
 stages:
   - stage: BuildAndPublishPrelaunchApps
-    displayName: "Publish PrelaunchApps/App.csproj for NET 8.0 and NET 7.0"
+    displayName: "Publish pre-launch app for NET 8.0 and NET 7.0"
     jobs:
       - job: BuildAndPublishLinux
         displayName: "Publish on Prelaunch apps"
@@ -44,12 +44,12 @@ stages:
               command: "publish"
               publishWebProjects: false
               zipAfterPublish: false
-              arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/PrelaunchApp/7.0 --framework net7.0"
+              arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/PrelaunchApp/7.0 --framework net7.0 -p:UseAppHost=false"
               projects: "host/src/PrelaunchApp/App.csproj"
 
           - task: PublishPipelineArtifact@1
             inputs:
-              targetPath: "$(Build.ArtifactStagingDirectory)/PrelaunchApp"
+              targetPath: "$(Build.ArtifactStagingDirectory)"
               artifact: "prelaunch_app_publish_output"
 
   - stage: BuildAndPublish

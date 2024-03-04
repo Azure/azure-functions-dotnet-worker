@@ -434,9 +434,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponseData) || 
-                        returnTypeSymbol.IsOrDerivedFrom(_knownFunctionMetadataTypes.IActionResult) ||
-                        returnTypeSymbol.IsOrDerivedFrom(_knownFunctionMetadataTypes.IResult)) // If return type is HttpResponseData
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponseData))
                     {
                         bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }
@@ -469,12 +467,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
-                    // Check if this attribute is an HttpResponseData type attribute
+                    // Check if this property is an HttpResponseData type or has an HttpResponseAttribute on it
                     if (prop is IPropertySymbol property && 
-                        (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData) ||
-                         property.Type.IsOrDerivedFrom(_knownFunctionMetadataTypes.IActionResult) ||
-                         property.Type.IsOrDerivedFrom(_knownFunctionMetadataTypes.IResult)
-                        ))
+                        (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData) || HasHttpResponseattribute(property)))
                     {
                         if (foundHttpOutput)
                         {
@@ -523,6 +518,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private bool HasHttpResponseattribute(IPropertySymbol prop)
+            {
+                var attributes = prop.GetAttributes();
+                if (attributes.Length == 1)
+                {
+                    var attribute = attributes.FirstOrDefault();
+                    if (SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass, _knownFunctionMetadataTypes.HttpResponseAtribute))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private IDictionary<string, object> GetHttpReturnBinding(string returnBindingName)

@@ -14,7 +14,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _functionName;
         private readonly Lazy<INamedTypeSymbol?> _bindingPropertyNameAttribute;
         private readonly Lazy<INamedTypeSymbol?> _defaultValue;
-        private readonly Lazy<INamedTypeSymbol?> _httpResponse;
+        private readonly Lazy<INamedTypeSymbol?> _httpResponseData;
         private readonly Lazy<INamedTypeSymbol?> _httpTriggerBinding;
         private readonly Lazy<INamedTypeSymbol?> _retryAttribute;
         private readonly Lazy<INamedTypeSymbol?> _bindingCapabilitiesAttribute;
@@ -23,8 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _inputConverterAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportedTargetTypeAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
-        private readonly Lazy<INamedTypeSymbol?> _iActionResult;
-        private readonly Lazy<INamedTypeSymbol?> _iResult;
+        private readonly Lazy<INamedTypeSymbol?> _httpResponseAttribute;
 
         internal KnownFunctionMetadataTypes(Compilation compilation)
         {
@@ -33,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _functionName = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.FunctionName));
             _bindingPropertyNameAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.BindingPropertyNameAttribute));
             _defaultValue = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.DefaultValue));
-            _httpResponse = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponseData));
+            _httpResponseData = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponseData));
             _httpTriggerBinding = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpTriggerBinding));
             _retryAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.RetryAttribute));
             _bindingCapabilitiesAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.BindingCapabilitiesAttribute));
@@ -42,8 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _inputConverterAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttributeType));
             _supportedTargetTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedTargetTypeAttributeType));
             _supportsDeferredBindingAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportsDeferredBindingAttributeType));
-            _iActionResult = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.IActionResult));
-            _iResult = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.IResult));
+            _httpResponseAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponseAttribute));
         }
 
         public INamedTypeSymbol? BindingAttribute { get => _bindingAttribute.Value; }
@@ -56,11 +54,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public INamedTypeSymbol? DefaultValue { get => _defaultValue.Value; }
 
-        public INamedTypeSymbol? HttpResponseData { get => _httpResponse.Value; }
+        public INamedTypeSymbol? HttpResponseData { get => _httpResponseData.Value; }
 
-        public INamedTypeSymbol? IActionResult { get => _iActionResult.Value; }
-
-        public INamedTypeSymbol? IResult { get => _iResult.Value; }
+        public INamedTypeSymbol? HttpResponseAtribute { get => _httpResponseAttribute.Value; }
 
         public INamedTypeSymbol? HttpTriggerBinding { get => _httpTriggerBinding.Value; }
 

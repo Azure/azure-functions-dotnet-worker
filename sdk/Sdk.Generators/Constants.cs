@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string DefaultValue = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.DefaultValueAttribute";
 
             internal const string HttpResponseData = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
-            internal const string HttpResponseAttribute = "Microsoft.Azure.Functions.Worker.HttpResponseAttribute";
+            internal const string HttpResponseAttribute = "Microsoft.Azure.Functions.Worker.HttpResponseOutputAttribute";
             internal const string HttpTriggerBinding = "Microsoft.Azure.Functions.Worker.HttpTriggerAttribute";
 
             internal const string BindingCapabilitiesAttribute = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.BindingCapabilitiesAttribute";

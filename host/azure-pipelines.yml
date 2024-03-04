@@ -34,6 +34,7 @@ stages:
             inputs:
               command: "publish"
               publishWebProjects: false
+              zipAfterPublish: false
               arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/PrelaunchApp/8.0 --framework net8.0 -p:UseAppHost=false"
               projects: "host/src/PrelaunchApp/App.csproj"
 
@@ -42,13 +43,14 @@ stages:
             inputs:
               command: "publish"
               publishWebProjects: false
+              zipAfterPublish: false
               arguments: "--configuration Release --output $(Build.ArtifactStagingDirectory)/PrelaunchApp/7.0 --framework net7.0"
               projects: "host/src/PrelaunchApp/App.csproj"
 
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: "$(Build.ArtifactStagingDirectory)/PrelaunchApp"
-              artifact: "PrelaunchApp"
+              artifact: "prelaunch_app_publish_output"
 
   - stage: BuildAndPublish
     displayName: "Dotnet Publish(W+L)"
@@ -151,6 +153,12 @@ stages:
               artifactName: "windows_publish_output"
               path: "$(Build.ArtifactStagingDirectory)/windows_output"
 
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download Artifacts from Prelaunch app publish"
+            inputs:
+              artifactName: "prelaunch_app_publish_output"
+              path: "$(Build.ArtifactStagingDirectory)/prelaunch_app_output"
+
           - task: CopyFiles@2
             displayName: "Copy files from linux artifacts to dist dir"
             inputs:
@@ -162,6 +170,12 @@ stages:
             inputs:
               SourceFolder: "$(Build.ArtifactStagingDirectory)/windows_output"
               TargetFolder: "$(Build.SourcesDirectory)/host/dist/windows"
+
+          - task: CopyFiles@2
+            displayName: "Copy prelaunch app files to dist dir"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/prelaunch_app_output"
+              TargetFolder: "$(Build.SourcesDirectory)/host/dist/portable"
 
           - task: NuGetCommand@2
             displayName: "Nuget pack"

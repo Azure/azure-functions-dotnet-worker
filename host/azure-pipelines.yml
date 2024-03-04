@@ -55,7 +55,7 @@ stages:
               artifact: "prelaunch_app_publish_output"
 
   - stage: BuildAndPublish
-    displayName: "Dotnet Publish(W+L)"
+    displayName: "Publish FunctionsNetHost"
     jobs:
       - job: BuildAndPublishLinux
         displayName: "Publish on Linux"
@@ -65,7 +65,6 @@ stages:
           - task: UseDotNet@2
             inputs:
               version: "8.x"
-              includePreviewVersions: true
 
           - script: |
               sudo apt-get install clang zlib1g-dev
@@ -103,7 +102,6 @@ stages:
           - task: UseDotNet@2
             inputs:
               version: "8.x"
-              includePreviewVersions: true
 
           - task: DotnetCoreCLI@2
             displayName: "Dotnet Publish"
@@ -141,7 +139,7 @@ stages:
         steps:
           - task: UseDotNet@2
             inputs:
-              version: "7.x"
+              version: "8.x"
 
           - task: DownloadPipelineArtifact@2
             displayName: "Download Artifacts from Linux build"

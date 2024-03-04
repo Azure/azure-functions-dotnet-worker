@@ -29,7 +29,7 @@ namespace AspNetIntegration
 
         public class MyOutputType
         {
-            [HttpResponseOutput()]
+            [HttpResponseOutput]
             public IActionResult HttpResponse { get; set; }
 
             [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]

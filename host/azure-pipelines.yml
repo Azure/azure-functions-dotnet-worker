@@ -20,8 +20,8 @@ stages:
   - stage: BuildAndPublishPrelaunchApps
     displayName: "Publish pre-launch app for NET 8.0 and NET 7.0"
     jobs:
-      - job: BuildAndPublishLinux
-        displayName: "Publish on Prelaunch apps"
+      - job: PublishPrelaunchApp
+        displayName: "Publish Prelaunch apps"
         pool:
           vmImage: "windows-latest"
         steps:
@@ -172,7 +172,7 @@ stages:
               TargetFolder: "$(Build.SourcesDirectory)/host/dist/windows"
 
           - task: CopyFiles@2
-            displayName: "Copy prelaunch app files to dist dir"
+            displayName: "Copy pre-launch app files to dist dir"
             inputs:
               SourceFolder: "$(Build.ArtifactStagingDirectory)/prelaunch_app_output"
               TargetFolder: "$(Build.SourcesDirectory)/host/dist/portable"

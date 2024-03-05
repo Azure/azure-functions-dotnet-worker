@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -46,6 +47,17 @@ namespace FunctionsNetHost.Grpc
                 case StreamingMessage.ContentOneofCase.FunctionsMetadataRequest:
                     {
                         responseMessage.FunctionMetadataResponse = BuildFunctionMetadataResponse();
+                        break;
+                    }
+                case StreamingMessage.ContentOneofCase.WorkerWarmupRequest:
+                    {
+                        Logger.LogTrace("Worker warmup request received.");
+                        Prelauncher.Run();
+
+                        responseMessage.WorkerWarmupResponse = new WorkerWarmupResponse
+                        {
+                            Result = new StatusResult { Status = StatusResult.Types.Status.Success }
+                        };
                         break;
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
@@ -158,6 +170,7 @@ namespace FunctionsNetHost.Grpc
                 Result = new StatusResult { Status = StatusResult.Types.Status.Success }
             };
             response.Capabilities[WorkerCapabilities.EnableUserCodeException] = bool.TrueString;
+            response.Capabilities[WorkerCapabilities.HandlesWorkerWarmupMessage] = bool.TrueString;
 
             return response;
         }

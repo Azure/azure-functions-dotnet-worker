@@ -49,6 +49,16 @@ stages:
               arguments: "-c Release -o $(Build.ArtifactStagingDirectory)/out/7.0 -f net7.0 -p:UseAppHost=false"
               projects: "host/src/PrelaunchApp/App.csproj"
 
+          - task: DotNetCoreCLI@2
+            displayName: "Dotnet publish(NET6) App.csproj"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              modifyOutputPath: false
+              arguments: "-c Release -o $(Build.ArtifactStagingDirectory)/out/6.0 -f net6.0 -p:UseAppHost=false"
+              projects: "host/src/PrelaunchApp/App.csproj"
+
           - task: PublishPipelineArtifact@1
             inputs:
               targetPath: "$(Build.ArtifactStagingDirectory)/out"

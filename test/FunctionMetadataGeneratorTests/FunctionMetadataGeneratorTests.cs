@@ -15,6 +15,8 @@ using Azure.Messaging.EventHubs;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
 using Azure.Storage.Queues.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -42,6 +44,50 @@ namespace Microsoft.Azure.Functions.SdkTests
             });
 
             ValidateFunction(functions.Single(), BasicHttp.FunctionName, GetEntryPoint(nameof(BasicHttp), nameof(BasicHttp.Http)),
+                b => ValidateTrigger(b),
+                b => ValidateReturn(b));
+
+            void ValidateTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "myReq" },
+                    { "Type", "httpTrigger" },
+                    { "Direction", "In" },
+                    { "authLevel", "Admin" },
+                    { "methods", new[] { "get", "Post" } },
+                    { "Route", "/api2" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+
+            void ValidateReturn(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "$return" },
+                    { "Type", "http" },
+                    { "Direction", "Out" }
+                });
+            }
+
+            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+        }
+
+        [Fact]
+        public void BasicHttpAspNetFunction()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttpAspNet));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+            });
+
+            ValidateFunction(functions.Single(), BasicHttpAspNet.FunctionName, GetEntryPoint(nameof(BasicHttpAspNet), nameof(BasicHttpAspNet.Http)),
                 b => ValidateTrigger(b),
                 b => ValidateReturn(b));
 
@@ -711,6 +757,66 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void MultiOutput_OnReturnType_WithHttp_AspNet()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_ReturnType_Http_AspNet));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Single(functions);
+
+            var HttpAndQueue = functions.Single(p => p.Name == "HttpAndQueue");
+
+            ValidateFunction(HttpAndQueue, "HttpAndQueue", GetEntryPoint(nameof(MultiOutput_ReturnType_Http_AspNet), nameof(MultiOutput_ReturnType_Http_AspNet.HttpAndQueue)),
+                b => ValidateHttpTrigger(b),
+                b => ValidateQueueOutput(b),
+                b => ValidateHttpOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.2.1" }
+            });
+
+            void ValidateHttpTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "req" },
+                    { "Type", "httpTrigger" },
+                    { "Direction", "In" },
+                    { "methods", new[] { "get" } },
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+
+            void ValidateHttpOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "httpResponseProp" },
+                    { "Type", "http" },
+                    { "Direction", "Out" }
+                });
+            }
+
+            void ValidateQueueOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "queueOutput" },
+                    { "Type", "queue" },
+                    { "Direction", "Out" },
+                    { "queueName", "queue2" },
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
         public void JustHttp_OnReturnTypeProperty()
         {
             var generator = new FunctionMetadataGenerator();
@@ -1124,6 +1230,17 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class BasicHttpAspNet
+        {
+            public const string FunctionName = "BasicHttpAspNetFunction";
+
+            [Function(FunctionName)]
+            public IActionResult Http([HttpTrigger(AuthorizationLevel.Admin, "get", "Post", Route = "/api2")] HttpRequest myReq)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class BasicHttpWithNoResponse
         {
             public const string FunctionName = "BasicHttpWithNoResponse";
@@ -1401,6 +1518,16 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class MultiOutput_ReturnType_Http_AspNet
+        {
+            [Function("HttpAndQueue")]
+            public MultiReturn_Http_AspNet HttpAndQueue(
+    [HttpTrigger("get")] HttpRequest req)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class MultiReturn
         {
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
@@ -1416,6 +1543,15 @@ namespace Microsoft.Azure.Functions.SdkTests
             public string queueOutput { get; set; }
 
             public HttpResponseData httpResponseProp { get; set; }
+        }
+
+        private class MultiReturn_Http_AspNet
+        {
+            [QueueOutput("queue2")]
+            public string queueOutput { get; set; }
+
+            [HttpResponseOutput]
+            public IActionResult httpResponseProp { get; set; }
         }
 
         private class JustHttp

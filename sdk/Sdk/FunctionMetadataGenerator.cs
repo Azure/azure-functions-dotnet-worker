@@ -323,7 +323,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var attribute = property.CustomAttributes.FirstOrDefault(); // should only have one binding attribute on a property
 
-            if (string.Equals(attribute.AttributeType.FullName, Constants.HttpResponseOutputBindingType, StringComparison.Ordinal))
+            if (attribute is not null && string.Equals(attribute.AttributeType.FullName, Constants.HttpResponseOutputBindingType, StringComparison.Ordinal))
             {
                 return true;
             }

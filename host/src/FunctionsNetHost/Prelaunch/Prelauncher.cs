@@ -37,7 +37,9 @@ namespace FunctionsNetHost.Prelaunch
 
                 var process = Process.Start(new ProcessStartInfo
                 {
-                    FileName = DotNet, Arguments = $"\"{appAssemblyPath}\"", UseShellExecute = false
+                    FileName = DotNet,
+                    Arguments = $"\"{appAssemblyPath}\"",
+                    UseShellExecute = false
                 });
 
                 if (process == null)

@@ -526,7 +526,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 if (attributes.Length == 1)
                 {
                     var attribute = attributes.FirstOrDefault();
-                    if (SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass, _knownFunctionMetadataTypes.HttpResponseAtribute))
+                    if (SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass, _knownFunctionMetadataTypes.HttpResponseOutputAtribute))
                     {
                         return true;
                     }

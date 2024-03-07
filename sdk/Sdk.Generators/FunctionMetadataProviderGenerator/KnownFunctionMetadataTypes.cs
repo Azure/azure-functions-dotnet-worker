@@ -23,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol?> _inputConverterAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportedTargetTypeAttributeType;
         private readonly Lazy<INamedTypeSymbol?> _supportsDeferredBindingAttributeType;
-        private readonly Lazy<INamedTypeSymbol?> _httpResponseAttribute;
+        private readonly Lazy<INamedTypeSymbol?> _httpResponseOutputAttribute;
 
         internal KnownFunctionMetadataTypes(Compilation compilation)
         {
@@ -41,7 +41,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _inputConverterAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.InputConverterAttributeType));
             _supportedTargetTypeAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportedTargetTypeAttributeType));
             _supportsDeferredBindingAttributeType = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.SupportsDeferredBindingAttributeType));
-            _httpResponseAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponseAttribute));
+            _httpResponseOutputAttribute = new Lazy<INamedTypeSymbol?>(() => compilation.GetTypeByMetadataName(Constants.Types.HttpResponseOutputAttribute));
         }
 
         public INamedTypeSymbol? BindingAttribute { get => _bindingAttribute.Value; }
@@ -56,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
         public INamedTypeSymbol? HttpResponseData { get => _httpResponseData.Value; }
 
-        public INamedTypeSymbol? HttpResponseAtribute { get => _httpResponseAttribute.Value; }
+        public INamedTypeSymbol? HttpResponseOutputAtribute { get => _httpResponseOutputAttribute.Value; }
 
         public INamedTypeSymbol? HttpTriggerBinding { get => _httpTriggerBinding.Value; }
 

@@ -787,7 +787,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Type", "httpTrigger" },
                     { "Direction", "In" },
                     { "methods", new[] { "get" } },
-                    { "DataType", "String" },
                     { "Properties", new Dictionary<String, Object>() }
                 });
             }

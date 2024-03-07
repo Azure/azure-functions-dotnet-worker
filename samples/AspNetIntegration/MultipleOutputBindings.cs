@@ -5,35 +5,35 @@ using Microsoft.Extensions.Logging;
 
 namespace AspNetIntegration
 {
+    //<docsnippet_aspnetcore_multiple_outputs>
     public class MultipleOutputBindings
     {
         private readonly ILogger<MultipleOutputBindings> _logger;
-
         public MultipleOutputBindings(ILogger<MultipleOutputBindings> logger)
         {
             _logger = logger;
         }
-
         [Function("MultipleOutputBindings")]
-        public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequest req)
+        public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
             var myObject = new MyOutputType
             {
-                HttpResponse = new OkObjectResult("C# HTTP trigger function processed a request."),
-                Name = "some name"
+                Result = new OkObjectResult("C# HTTP trigger function processed a request."),
+                MessageText = "some output"
             };
-
             return myObject;
         }
-
         public class MyOutputType
         {
             [HttpResponseOutput]
-            public IActionResult HttpResponse { get; set; }
+            public IActionResult Result { get; set; }
 
-            [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
-            public string Name { get; set; }
+            [QueueOutput("myQueue")]
+            public string MessageText { get; set; }
         }
     }
+    //</docsnippet_aspnetcore_multiple_outputs>
 }
+
+

@@ -623,11 +623,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Value.Value != null)
+                    if (namedArgument.Value.Kind is TypedConstantKind.Array || namedArgument.Value.Value != null)
                     {
                         if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality"))
                         {
-                            var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
+                            var argValue = (bool)namedArgument.Value.Value!; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
                             attrProperties["cardinality"] = argValue ? "Many" : "One";
                         }

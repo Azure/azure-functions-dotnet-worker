@@ -54,6 +54,7 @@
     <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Kafka\src\Worker.Extensions.Kafka.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.SignalRService\src\Worker.Extensions.SignalRService.csproj" />
     <ProjectReference Include="..\DependentAssemblyWithFunctions\DependentAssemblyWithFunctions.csproj" />
   </ItemGroup>
 

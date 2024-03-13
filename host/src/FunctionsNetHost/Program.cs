@@ -15,7 +15,7 @@ namespace FunctionsNetHost
             {
                 Logger.Log("Starting FunctionsNetHost");
 
-                Prelauncher.Run();
+                PreLauncher.Run();
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 

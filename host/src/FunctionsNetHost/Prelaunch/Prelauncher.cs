@@ -5,7 +5,7 @@ using System.Diagnostics;
 
 namespace FunctionsNetHost.Prelaunch
 {
-    internal static class Prelauncher
+    internal static class PreLauncher
     {
         private const string DotNet = "dotnet";
         private const string AssemblyName = "App.dll";

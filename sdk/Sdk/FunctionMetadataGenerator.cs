@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
+using Microsoft.Build.Framework;
 using Mono.Cecil;
 using Mono.Collections.Generic;
 
@@ -42,21 +43,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
         }
 
-        public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath, IEnumerable<string> referencePaths)
+        public IEnumerable<SdkFunctionMetadata> GenerateFunctionMetadata(string assemblyPath, IEnumerable<ITaskItem> referencePaths)
         {
-            string sourcePath = Path.GetDirectoryName(assemblyPath);
+            var targetAssemblies = new List<string>() { assemblyPath };
 
-            var targetAssemblies = new List<string>(Directory.GetFiles(sourcePath, "*.dll"));
+            // We don't need to scan assemblies that come from a framework (.NET, AspNetCore), they won't have functions types in them.
+            targetAssemblies.AddRange(referencePaths.Where(x => x.GetMetadata("FrameworkReferenceName") == "").Select(x => x.ItemSpec));
+            _logger.LogMessage($"Found {targetAssemblies.Count} assemblies to evaluate.");
 
-            if (!assemblyPath.EndsWith(".dll"))
+            var resolver = new DefaultAssemblyResolver();
+            foreach (string referencePath in referencePaths.Select(p => Path.GetDirectoryName(p.ItemSpec)).Distinct())
             {
-                targetAssemblies.Add(assemblyPath);
+                resolver.AddSearchDirectory(referencePath);
             }
 
+            ReaderParameters readerParams = new ReaderParameters { AssemblyResolver = resolver };
             var functions = new List<SdkFunctionMetadata>();
-
-            _logger.LogMessage($"Found {targetAssemblies.Count} assemblies to evaluate in '{sourcePath}':");
-
             foreach (var path in targetAssemblies)
             {
                 using (_logger.Indent())
@@ -67,19 +69,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                     {
                         try
                         {
-                            BaseAssemblyResolver resolver = new DefaultAssemblyResolver();
-
-                            foreach (string referencePath in referencePaths.Select(p => Path.GetDirectoryName(p)).Distinct())
-                            {
-                                resolver.AddSearchDirectory(referencePath);
-                            }
-
-                            resolver.AddSearchDirectory(Path.GetDirectoryName(path));
-
-                            ReaderParameters readerParams = new ReaderParameters { AssemblyResolver = resolver };
-
                             var moduleDefinition = ModuleDefinition.ReadModule(path, readerParams);
-
                             functions.AddRange(GenerateFunctionMetadata(moduleDefinition));
                         }
                         catch (BadImageFormatException)

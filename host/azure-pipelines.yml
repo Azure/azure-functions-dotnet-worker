@@ -27,7 +27,7 @@ stages:
         steps:
           - task: UseDotNet@2
             inputs:
-              version: "8.x"
+              useGlobalJson: true
 
           - task: DotNetCoreCLI@2
             displayName: "Dotnet publish(NET8) App.csproj"

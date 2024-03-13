@@ -140,7 +140,9 @@ stages:
 
   - stage: ConsolidateArtifacts
     displayName: "Nuget Publish"
-    dependsOn: BuildAndPublish
+    dependsOn: 
+    - BuildAndPublish
+    - BuildAndPublishPrelaunchApps
     jobs:
       - job: ConsolidateArtifacts
         displayName: "Consolidate Artifacts"

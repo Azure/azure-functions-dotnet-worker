@@ -95,7 +95,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {LocalPackages} -s {NuGetOrgPackages}";
+            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {LocalPackages} -s {NuGetOrgPackages}";
+            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -162,7 +162,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"remove {projectFile} package {WorkerSdkPackageName}", PathToRepoRoot, testOutputHelper: testOutputHelper);
             // If a previous run failed, this may have a -1 exit code. We'll continue anyway.
 
-            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"add {projectFile} package {WorkerSdkPackageName} -s {LocalPackages} --prerelease", SdkProjectRoot, testOutputHelper: testOutputHelper);
+            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"add {projectFile} package {WorkerSdkPackageName} -s {NuGetOrgPackages} -s {LocalPackages} --prerelease", SdkProjectRoot, testOutputHelper: testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
         }
     }

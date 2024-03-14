@@ -37,6 +37,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         public static readonly string LocalPackages = Path.Combine(PathToRepoRoot, "local");
         public static readonly string TestOutputDir = Path.Combine(Path.GetTempPath(), "FunctionsWorkerSdkE2ETests");
         public static readonly string DevPackPath = Path.Combine(PathToRepoRoot, "tools", "devpack.ps1");
+        public static readonly string TestResourcesProjectsRoot = Path.Combine(TestRoot, "Resources", "Projects");
 
         public static readonly string NuGetPackageSource = LocalPackages;
 
@@ -82,10 +83,33 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             }
         }
 
+        public static async Task RestoreAndBuildProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)
+        {
+            await PackWorkerSdk(outputHelper);
+            await UpdateNugetPackagesForApp(fullPathToProjFile, outputHelper);
+
+            // Name of the csproj
+            string projectNameToTest = Path.GetFileName(fullPathToProjFile);
+            string projectFileDirectory = Path.GetDirectoryName(fullPathToProjFile);
+
+            // Restore
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
+            string dotnetArgs = $"restore {projectNameToTest} --source {TestUtility.LocalPackages}";
+            int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            Assert.True(exitCode.HasValue && exitCode.Value == 0);
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
+
+            // Build
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Building...");
+            dotnetArgs = $"build {projectNameToTest} --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
+            exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            Assert.True(exitCode.HasValue && exitCode.Value == 0);
+            outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
+        }
+
         public static async Task RestoreAndPublishProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)
         {
             await PackWorkerSdk(outputHelper);
-
             await UpdateNugetPackagesForApp(fullPathToProjFile, outputHelper);
 
             // Name of the csproj

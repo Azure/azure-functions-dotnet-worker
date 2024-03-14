@@ -162,7 +162,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"remove {projectFile} package {WorkerSdkPackageName}", PathToRepoRoot, testOutputHelper: testOutputHelper);
             // If a previous run failed, this may have a -1 exit code. We'll continue anyway.
 
-            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"add {projectFile} package {WorkerSdkPackageName} -s {NuGetOrgPackages} -s {LocalPackages} --prerelease", SdkProjectRoot, testOutputHelper: testOutputHelper);
+            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"add {projectFile} package {WorkerSdkPackageName} -s {LocalPackages} --prerelease --no-restore", SdkProjectRoot, testOutputHelper: testOutputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
         }
     }

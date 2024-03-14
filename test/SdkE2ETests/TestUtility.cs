@@ -39,6 +39,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         public static readonly string DevPackPath = Path.Combine(PathToRepoRoot, "tools", "devpack.ps1");
         public static readonly string TestResourcesProjectsRoot = Path.Combine(TestRoot, "Resources", "Projects");
 
+        public static readonly string NuGetOrgPackages = "https://api.nuget.org/v3/index.json";
         public static readonly string NuGetPackageSource = LocalPackages;
 
         private static bool _isInitialized = false;
@@ -94,15 +95,15 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} --source {TestUtility.LocalPackages}";
-            int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            string dotnetArgs = $"restore {projectNameToTest} -s {LocalPackages} -s {NuGetOrgPackages}";
+            int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
 
             // Build
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Building...");
-            dotnetArgs = $"build {projectNameToTest} --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
-            exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            dotnetArgs = $"build {projectNameToTest} --configuration {Configuration} -o {outputDir} {additionalParams}";
+            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
         }
@@ -118,15 +119,15 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} --source {TestUtility.LocalPackages}";
-            int? exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            string dotnetArgs = $"restore {projectNameToTest} -s {LocalPackages} -s {NuGetOrgPackages}";
+            int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
 
             // Publish
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
-            dotnetArgs = $"publish {projectNameToTest} --configuration {TestUtility.Configuration} -o {outputDir} {additionalParams}";
-            exitCode = await new ProcessWrapper().RunProcess(TestUtility.DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
+            dotnetArgs = $"publish {projectNameToTest} --configuration {Configuration} -o {outputDir} {additionalParams}";
+            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
         }

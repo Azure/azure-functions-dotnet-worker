@@ -20,4 +20,9 @@ internal static class EnvironmentVariables
     /// Application pool Id for the placeholder app. Only available in Windows(when running in IIS).
     /// </summary>
     internal const string AppPoolId  = "APP_POOL_ID";
+
+    /// <summary>
+    /// The worker runtime version. Example value: "8.0" (for a .NET8 placeholder)
+    /// </summary>
+    internal const string FunctionsWorkerRuntimeVersion = "FUNCTIONS_WORKER_RUNTIME_VERSION";
 }

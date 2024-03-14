@@ -17,8 +17,55 @@ pr:
     include:
       - host/src/
 stages:
+  - stage: BuildAndPublishPrelaunchApps
+    displayName: "Publish pre-launch app for NET 8.0 and NET 7.0"
+    jobs:
+      - job: PublishPrelaunchApp
+        displayName: "Publish Prelaunch apps"
+        pool:
+          vmImage: "windows-latest"
+        steps:
+          - task: UseDotNet@2
+            inputs:
+              useGlobalJson: true
+
+          - task: DotNetCoreCLI@2
+            displayName: "Dotnet publish(NET8) App.csproj"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              modifyOutputPath: false
+              arguments: "-c Release -o $(Build.ArtifactStagingDirectory)/out/8.0 -f net8.0 -p:UseAppHost=false"
+              projects: "host/src/PrelaunchApp/App.csproj"
+
+          - task: DotNetCoreCLI@2
+            displayName: "Dotnet publish(NET7) App.csproj"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              modifyOutputPath: false
+              arguments: "-c Release -o $(Build.ArtifactStagingDirectory)/out/7.0 -f net7.0 -p:UseAppHost=false"
+              projects: "host/src/PrelaunchApp/App.csproj"
+
+          - task: DotNetCoreCLI@2
+            displayName: "Dotnet publish(NET6) App.csproj"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              zipAfterPublish: false
+              modifyOutputPath: false
+              arguments: "-c Release -o $(Build.ArtifactStagingDirectory)/out/6.0 -f net6.0 -p:UseAppHost=false"
+              projects: "host/src/PrelaunchApp/App.csproj"
+
+          - task: PublishPipelineArtifact@1
+            inputs:
+              targetPath: "$(Build.ArtifactStagingDirectory)/out"
+              artifact: "prelaunch_app_publish_output"
+
   - stage: BuildAndPublish
-    displayName: "Dotnet Publish(W+L)"
+    displayName: "Publish FunctionsNetHost"
     jobs:
       - job: BuildAndPublishLinux
         displayName: "Publish on Linux"
@@ -28,7 +75,6 @@ stages:
           - task: UseDotNet@2
             inputs:
               version: "8.x"
-              includePreviewVersions: true
 
           - script: |
               sudo apt-get install clang zlib1g-dev
@@ -66,7 +112,6 @@ stages:
           - task: UseDotNet@2
             inputs:
               version: "8.x"
-              includePreviewVersions: true
 
           - task: DotnetCoreCLI@2
             displayName: "Dotnet Publish"
@@ -95,7 +140,9 @@ stages:
 
   - stage: ConsolidateArtifacts
     displayName: "Nuget Publish"
-    dependsOn: BuildAndPublish
+    dependsOn: 
+    - BuildAndPublish
+    - BuildAndPublishPrelaunchApps
     jobs:
       - job: ConsolidateArtifacts
         displayName: "Consolidate Artifacts"
@@ -104,7 +151,7 @@ stages:
         steps:
           - task: UseDotNet@2
             inputs:
-              version: "7.x"
+              version: "8.x"
 
           - task: DownloadPipelineArtifact@2
             displayName: "Download Artifacts from Linux build"
@@ -118,6 +165,12 @@ stages:
               artifactName: "windows_publish_output"
               path: "$(Build.ArtifactStagingDirectory)/windows_output"
 
+          - task: DownloadPipelineArtifact@2
+            displayName: "Download Artifacts from Prelaunch app publish"
+            inputs:
+              artifactName: "prelaunch_app_publish_output"
+              path: "$(Build.ArtifactStagingDirectory)/prelaunch_app_output"
+
           - task: CopyFiles@2
             displayName: "Copy files from linux artifacts to dist dir"
             inputs:
@@ -129,6 +182,12 @@ stages:
             inputs:
               SourceFolder: "$(Build.ArtifactStagingDirectory)/windows_output"
               TargetFolder: "$(Build.SourcesDirectory)/host/dist/windows"
+
+          - task: CopyFiles@2
+            displayName: "Copy pre-launch app files to dist dir"
+            inputs:
+              SourceFolder: "$(Build.ArtifactStagingDirectory)/prelaunch_app_output"
+              TargetFolder: "$(Build.SourcesDirectory)/host/dist/portable"
 
           - task: NuGetCommand@2
             displayName: "Nuget pack"

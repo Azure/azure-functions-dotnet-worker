@@ -63,7 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 using (_logger.Indent())
                 {
-                    _logger.LogMessage($"{Path.GetFileName(path)}");
+                    _logger.LogMessage($"Collecting function metadata from {Path.GetFileName(path)}.");
 
                     using (_logger.Indent())
                     {

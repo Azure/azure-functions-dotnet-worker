@@ -5,6 +5,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <SdkVersion>1.17.2</SdkVersion>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +15,7 @@
     <!-- DurableTask has an implicit extension, which we want to validate -->
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.1.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask.SqlServer " Version="1.2.2" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.2" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="$(SdkVersion)" />
   </ItemGroup>
 
   <ItemGroup>

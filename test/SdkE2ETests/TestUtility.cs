@@ -27,7 +27,6 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         // Paths and executables
         public static readonly string DotNetExecutable = "dotnet";
-
         public static readonly string PathToRepoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\..\"));
         public static readonly string SrcRoot = Path.Combine(PathToRepoRoot, "src");
         public static readonly string SdkSolutionRoot = Path.Combine(PathToRepoRoot, "sdk");
@@ -36,11 +35,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         public static readonly string SamplesRoot = Path.Combine(PathToRepoRoot, "samples");
         public static readonly string LocalPackages = Path.Combine(PathToRepoRoot, "local");
         public static readonly string TestOutputDir = Path.Combine(Path.GetTempPath(), "FunctionsWorkerSdkE2ETests");
-        public static readonly string DevPackPath = Path.Combine(PathToRepoRoot, "tools", "devpack.ps1");
         public static readonly string TestResourcesProjectsRoot = Path.Combine(TestRoot, "Resources", "Projects");
 
         public static readonly string NuGetOrgPackages = "https://api.nuget.org/v3/index.json";
         public static readonly string NuGetPackageSource = LocalPackages;
+        public static readonly string SdkVersion = "99.99.99-test";
+        public static readonly string SdkBuildProj = Path.Combine(PathToRepoRoot, "build", "Sdk.slnf");
 
         private static bool _isInitialized = false;
 
@@ -48,14 +48,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         {
             if (!_isInitialized)
             {
-                testOutputHelper.WriteLine($"Running {DevPackPath}");
+                testOutputHelper.WriteLine($"Packing {SdkBuildProj} with version {SdkVersion}");
+                string arguments = $"pack {SdkBuildProj} -c {Configuration} -o {LocalPackages} -p:Version={SdkVersion}";
 
-                int? exitCode = await new ProcessWrapper().RunProcess("powershell", DevPackPath, SrcRoot, testOutputHelper);
-                Assert.True(exitCode.HasValue && exitCode.Value == 0);
-
-                // Build .NET Worker
-                string dotnetArgs = $"build --configuration {Configuration}";
-                exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, Path.Combine(SrcRoot, "DotNetWorker"), testOutputHelper: testOutputHelper);
+                int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, arguments, SrcRoot, testOutputHelper);
                 Assert.True(exitCode.HasValue && exitCode.Value == 0);
 
                 _isInitialized = true;
@@ -86,23 +82,20 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         public static async Task RestoreAndBuildProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)
         {
-            await PackWorkerSdk(outputHelper);
-            await UpdateNugetPackagesForApp(fullPathToProjFile, outputHelper);
-
             // Name of the csproj
             string projectNameToTest = Path.GetFileName(fullPathToProjFile);
             string projectFileDirectory = Path.GetDirectoryName(fullPathToProjFile);
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages}";
+            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages} -p:SdkVersion={SdkVersion}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
 
             // Build
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Building...");
-            dotnetArgs = $"build {projectNameToTest} --configuration {Configuration} -o {outputDir} {additionalParams}";
+            dotnetArgs = $"build {projectNameToTest} --configuration {Configuration} -o {outputDir} --no-restore -p:SdkVersion={SdkVersion} {additionalParams}";
             exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -110,23 +103,20 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         public static async Task RestoreAndPublishProjectAsync(string fullPathToProjFile, string outputDir, string additionalParams, ITestOutputHelper outputHelper)
         {
-            await PackWorkerSdk(outputHelper);
-            await UpdateNugetPackagesForApp(fullPathToProjFile, outputHelper);
-
             // Name of the csproj
             string projectNameToTest = Path.GetFileName(fullPathToProjFile);
             string projectFileDirectory = Path.GetDirectoryName(fullPathToProjFile);
 
             // Restore
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Restoring...");
-            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages}";
+            string dotnetArgs = $"restore {projectNameToTest} -s {NuGetOrgPackages} -s {LocalPackages} -p:SdkVersion={SdkVersion}";
             int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
 
             // Publish
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Publishing...");
-            dotnetArgs = $"publish {projectNameToTest} --configuration {Configuration} -o {outputDir} {additionalParams}";
+            dotnetArgs = $"publish {projectNameToTest} --configuration {Configuration} -o {outputDir} --no-restore -p:SdkVersion={SdkVersion} {additionalParams}";
             exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");
@@ -144,26 +134,6 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             Directory.CreateDirectory(outputDir);
 
             return outputDir;
-        }
-
-        private static async Task PackWorkerSdk(ITestOutputHelper testOutputHelper)
-        {
-            // Build solution
-            int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"build --configuration {Configuration}", SdkProjectRoot, testOutputHelper: testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
-
-            // Pack Sdk project
-            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"pack --configuration {Configuration} -o {LocalPackages} --no-build", SdkProjectRoot, testOutputHelper: testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
-        }
-
-        private static async Task UpdateNugetPackagesForApp(string projectFile, ITestOutputHelper testOutputHelper)
-        {
-            int? exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"remove {projectFile} package {WorkerSdkPackageName}", PathToRepoRoot, testOutputHelper: testOutputHelper);
-            // If a previous run failed, this may have a -1 exit code. We'll continue anyway.
-
-            exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, $"add {projectFile} package {WorkerSdkPackageName} -s {LocalPackages} --prerelease --no-restore", SdkProjectRoot, testOutputHelper: testOutputHelper);
-            Assert.True(exitCode.HasValue && exitCode.Value == 0);
         }
     }
 }

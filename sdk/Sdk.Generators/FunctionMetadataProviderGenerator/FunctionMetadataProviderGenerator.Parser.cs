@@ -467,9 +467,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
-                    // Check if this property is an HttpResponseData type or has an HttpResponseAttribute on it
-                    if (prop is IPropertySymbol property && 
-                        (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData) || HasHttpResponseattribute(property)))
+                    // Check for HttpResponseData type for legacy apps
+                    if (prop is IPropertySymbol property &&
+                            (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData)))
                     {
                         if (foundHttpOutput)
                         {
@@ -481,35 +481,47 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         foundHttpOutput = true;
                         bindingsList.Add(GetHttpReturnBinding(prop.Name));
                     }
-                    else if (prop.GetAttributes().Length > 0) // check if this property has any attributes
+
+                    if (prop.GetAttributes().Length > 0)
                     {
-                        var foundPropertyOutputAttr = false;
+                        var bindingAttributes = prop.GetAttributes().Where(p => p.AttributeClass!.IsOrDerivedFrom(_knownFunctionMetadataTypes.BindingAttribute));
 
-                        foreach (var attr in prop.GetAttributes()) // now loop through and check if any of the attributes are Binding attributes
+                        if (bindingAttributes.Count() > 1)
                         {
-                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
-                            {
-                                // validate that there's only one binding attribute per property
-                                if (foundPropertyOutputAttr)
-                                {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Property", prop.Name.ToString() }));
-                                    bindingsList = null;
-                                    return false;
-                                }
-
-                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
-                                {
-                                    bindingsList = null;
-                                    return false;
-                                }
-
-                                bindingsList.Add(bindingDict!);
-
-                                returnTypeHasOutputBindings = true;
-                                foundPropertyOutputAttr = true;
-                            }
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Property", prop.Name.ToString() }));
+                            bindingsList = null;
+                            return false;
                         }
+
+                        // Check if this property has an HttpResultAttribute on it
+                        if (HasHttpResultAttribute(prop))
+                        {
+                            if (foundHttpOutput)
+                            {
+                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, Location.None, new object[] { returnTypeSymbol.Name }));
+                                bindingsList = null;
+                                return false;
+                            }
+
+                            foundHttpOutput = true;
+                            bindingsList.Add(GetHttpReturnBinding(prop.Name));
+                        }
+                        else
+                        {
+                            if (!TryCreateBindingDict(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
+                            {
+                                bindingsList = null;
+                                return false;
+                            }
+
+                            bindingsList.Add(bindingDict!);
+
+                            returnTypeHasOutputBindings = true;
+                        }
+
                     }
+
+                    
                 }
 
                 if (hasHttpTrigger && !foundHttpOutput && !hasMethodOutputBinding && !returnTypeHasOutputBindings)
@@ -520,16 +532,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool HasHttpResponseattribute(IPropertySymbol prop)
+            private bool HasHttpResultAttribute(ISymbol prop)
             {
                 var attributes = prop.GetAttributes();
-                if (attributes.Length == 1)
+                var attribute = attributes.FirstOrDefault();
+                if (SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass, _knownFunctionMetadataTypes.HttpResultAttribute))
                 {
-                    var attribute = attributes.FirstOrDefault();
-                    if (SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass, _knownFunctionMetadataTypes.HttpResponseOutputAtribute))
-                    {
-                        return true;
-                    }
+                    return true;
                 }
 
                 return false;

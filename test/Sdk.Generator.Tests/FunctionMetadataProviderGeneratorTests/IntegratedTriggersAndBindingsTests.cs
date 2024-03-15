@@ -218,7 +218,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
                         public string Name { get; set; }
 
-                        [HttpResponseOutput]
+                        [HttpResult]
                         public IActionResult HttpResponse { get; set; }
                     }
                 }

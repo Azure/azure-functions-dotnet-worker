@@ -63,11 +63,7 @@ namespace FunctionApp
                     //    {
                     //        o.ConnectionString = "<>";
                     //    });
-                    //    builder.AddOtlpExporter(o =>
-                    //    {
-                    //        o.Endpoint = new Uri("http://localhost:9411/zipkin/");
-                    //        //o.Headers = "<>";
-                    //    });
+                    //    builder.AddOtlpExporter();
                     //})
                     //.WithTracing(builder =>
                     //{
@@ -79,15 +75,8 @@ namespace FunctionApp
 
                     //    //builder.AddSource("Durable");
                     //    //builder.ConfigureResource(x => x.AddDetector(new FunctionsResourceDetector()));
-                    //    builder.AddAzureMonitorTraceExporter(o =>
-                    //    {
-                    //        o.ConnectionString = "InstrumentationKey=6b000bc9-319a-4bd6-8856-1666c666433a;IngestionEndpoint=https://westus3-1.in.applicationinsights.azure.com/";
-                    //    });
-                    //    builder.AddOtlpExporter(o =>
-                    //    {
-                    //        o.Endpoint = new Uri("https://otlp.nr-data.net:4317/");
-                    //        o.Headers = "api-key=c280daef74d31d0b56dc6c1995c0dd38FFFFNRAL";
-                    //    });
+                    //    builder.AddAzureMonitorTraceExporter();
+                    //    builder.AddOtlpExporter();
                     //    //builder.AddZipkinExporter(o => o.HttpClientFactory = () =>
                     //    //{
                     //    //    HttpClient client = new HttpClient();

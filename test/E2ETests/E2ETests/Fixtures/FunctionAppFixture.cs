@@ -63,6 +63,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                     _funcProcess.StartInfo.ArgumentList.Add("PocoWithoutBindingSource");
                     _funcProcess.StartInfo.ArgumentList.Add("HelloPascal");
                     _funcProcess.StartInfo.ArgumentList.Add("HelloAllCaps");
+                    _funcProcess.StartInfo.ArgumentList.Add("RequiredQueryParameter");
                 }
 
                 await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);

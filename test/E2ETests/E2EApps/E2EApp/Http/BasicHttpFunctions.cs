@@ -149,11 +149,25 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
             response.WriteString($"{region} {category} {caller.Name}");
             return response;
         }
+        
+        [Function(nameof(RequiredQueryParameter))]
+        public static HttpResponseData RequiredQueryParameter(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = nameof(RequiredQueryParameter))] HttpRequestData req,
+            [RequiredQueryParameter] string region,
+            string category,
+            FunctionContext context)
+        {
+            var logger = context.GetLogger(nameof(RequiredQueryParameter));
+            logger.LogInformation(".NET Worker HTTP trigger function processed a request");
+
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            response.WriteString($"{region} {category}");
+            return response;
+        }
 
         public class MyResponse
         {
             public string Name { get; set; }
         }
-
     }
 }

@@ -83,6 +83,17 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             Assert.Equal(expectedStatusCode, response.StatusCode);
         }
 
+        [Theory]
+        [InlineData("?region=eu",  HttpStatusCode.OK)]
+        [InlineData("?region=eu&category=caller",  HttpStatusCode.OK)]
+        [InlineData("?category=caller",  HttpStatusCode.InternalServerError)]
+        public async Task HttpTriggerTests_RequiredQueryParameter(string queryString, HttpStatusCode expectedStatusCode)
+        {
+            HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger("RequiredQueryParameter", queryString);
+
+            Assert.Equal(expectedStatusCode, response.StatusCode);
+        }
+        
         [Fact]
         public async Task HttpTriggerTestsPocoResult()
         {

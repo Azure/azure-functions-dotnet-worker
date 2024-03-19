@@ -66,7 +66,21 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         public async Task InvokeFunctionAsync(FunctionContext context)
-        {
+        {   
+            using Activity activity = new Activity("InternalActivity");
+            activity.Start();
+
+            activity.AddTag("invocationId", context.InvocationId);
+
+            if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
+            {
+                activity.SetId(context.TraceContext.TraceParent);
+                activity.SetSpanId(activityContext.SpanId.ToString());
+                activity.SetTraceId(activityContext.TraceId.ToString());
+                activity.SetRootId(activityContext.TraceId.ToString());
+                // activity.HasRemoteParent = true;
+            }
+
             var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);
 
             using var logScope = _logger.BeginScope(scope);

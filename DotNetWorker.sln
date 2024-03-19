@@ -136,11 +136,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFuncti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspNetCore.Tests", "test\extensions\Worker.Extensions.Http.AspNetCore.Tests\Worker.Extensions.Http.AspNetCore.Tests.csproj", "{D8E79B53-9A44-46CC-9D7A-E9494FC8CAF4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worker.Extensions.Shared.Tests", "test\Worker.Extensions.Shared.Tests\Worker.Extensions.Shared.Tests.csproj", "{B6342174-5436-4846-B43C-39D8E34AE5CF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Shared.Tests", "test\Worker.Extensions.Shared.Tests\Worker.Extensions.Shared.Tests.csproj", "{B6342174-5436-4846-B43C-39D8E34AE5CF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspNetCore.Analyzers", "extensions\Worker.Extensions.Http.AspNetCore.Analyzers\Worker.Extensions.Http.AspNetCore.Analyzers.csproj", "{7B6C2920-7A02-43B2-8DA0-7B76B9FAFC6B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{198DA072-F94F-4585-A744-97B3DAC21686}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{198DA072-F94F-4585-A744-97B3DAC21686}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorker.OpenTelemetry", "src\DotNetWorker.OpenTelemetry\DotNetWorker.OpenTelemetry.csproj", "{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -356,6 +358,10 @@ Global
 		{198DA072-F94F-4585-A744-97B3DAC21686}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{198DA072-F94F-4585-A744-97B3DAC21686}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{198DA072-F94F-4585-A744-97B3DAC21686}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -418,6 +424,7 @@ Global
 		{B6342174-5436-4846-B43C-39D8E34AE5CF} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
 		{7B6C2920-7A02-43B2-8DA0-7B76B9FAFC6B} = {A7B4FF1E-3DF7-4F28-9333-D0961CDDF702}
 		{198DA072-F94F-4585-A744-97B3DAC21686} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
+		{D3EC16AA-4F65-4A6A-9B2A-4A6157598874} = {083592CA-7DAB-44CE-8979-44FAFA46AEC3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

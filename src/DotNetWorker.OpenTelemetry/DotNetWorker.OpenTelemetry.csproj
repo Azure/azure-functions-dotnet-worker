@@ -18,6 +18,7 @@
     <ItemGroup>
         <PackageReference Include="OpenTelemetry" Version="1.7.0" />
         <PackageReference Include="OpenTelemetry.Api" Version="1.7.0" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.7.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -26,12 +27,6 @@
 
     <ItemGroup>
         <Content Include="README.md" Pack="true" PackagePath="/" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="OpenTelemetry.Extensions.Hosting">
-        <HintPath>D:\NUGET_PACKAGES\opentelemetry.extensions.hosting\1.7.0\lib\net8.0\OpenTelemetry.Extensions.Hosting.dll</HintPath>
-      </Reference>
     </ItemGroup>
 
     <Target Name="GetReleaseNotes">

@@ -3,14 +3,9 @@
 
 using System;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+
 using OpenTelemetry;
 using OpenTelemetry.Resources;
 
@@ -32,7 +27,8 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 .ConfigureResource(r =>
                 {
                     var assembly = typeof(WorkerOptions).Assembly.GetName();
-                    r.AddService(assembly.Name, serviceVersion: assembly.Version?.ToString());
+                    var version = assembly.Version?.ToString();
+                    r.AddService(assembly.Name, serviceVersion: version);
                     r.AddAttributes([
                         new("ai.sdk.prefix", $@"azurefunctionscoretools: {version} "),
                         new("azurefunctionscoretools_version", version),

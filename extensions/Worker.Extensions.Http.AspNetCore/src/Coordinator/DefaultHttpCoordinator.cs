@@ -5,16 +5,23 @@ using System;
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class DefaultHttpCoordinator : IHttpCoordinator
     {
-        private readonly ConcurrentDictionary<string, ContextReference> _contextReferenceList;
+        private const int HttpContextTimeoutInSeconds = 5;
+        private const int FunctionContextTimeoutInSeconds = 5;
+        private const int FunctionStartTimeoutInSeconds = 15;
 
-        public DefaultHttpCoordinator()
+        private readonly ConcurrentDictionary<string, ContextReference> _contextReferenceList;
+        private readonly ExtensionTrace _logger;
+
+        public DefaultHttpCoordinator(ExtensionTrace extensionTrace)
         {
             _contextReferenceList = new ConcurrentDictionary<string, ContextReference>();
+            _logger = extensionTrace;
         }
 
         public Task<FunctionContext> SetHttpContextAsync(string invocationId, HttpContext context)
@@ -22,7 +29,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
             contextRef.HttpContextValueSource.SetResult(context);
 
-            return contextRef.FunctionContextValueSource.Task;
+            _logger.HttpContextSet(invocationId, context.TraceIdentifier);
+
+            try
+            {
+                return contextRef.FunctionContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(FunctionContextTimeoutInSeconds));
+            }
+            catch (TimeoutException e)
+            {
+                throw new TimeoutException($"Timed out waiting for the function context to be set. Invocation: '{invocationId}'.", e);
+            }
         }
 
         public async Task<HttpContext> SetFunctionContextAsync(string invocationId, FunctionContext context)
@@ -31,9 +47,25 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             contextRef.SetCancellationToken(context.CancellationToken);
             contextRef.FunctionContextValueSource.SetResult(context);
 
-            // block here until it's time to start the function
-            await contextRef.FunctionStartTask.Task;
-            return await contextRef.HttpContextValueSource.Task;
+            _logger.FunctionContextSet(invocationId);
+
+            int waitStep = 0;
+            try
+            {
+                // block here until it's time to start the function
+                _ = await contextRef.FunctionStartTask.Task.WaitAsync(TimeSpan.FromSeconds(FunctionStartTimeoutInSeconds));
+
+                waitStep = 1;
+                return await contextRef.HttpContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(HttpContextTimeoutInSeconds));
+            }
+            catch (TimeoutException e)
+            {
+                string message = waitStep == 0
+                    ? $"Timed out waiting for the function start call. Invocation: '{invocationId}'."
+                    : $"Timed out waiting for the HTTP context to be set. Invocation: '{invocationId}'.";
+
+                throw new TimeoutException(message, e);
+            }
         }
 
         public Task RunFunctionInvocationAsync(string invocationId)

@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMiddleware;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.Hosting
@@ -65,6 +66,7 @@ namespace Microsoft.Extensions.Hosting
             builder.ConfigureServices(services =>
             {
                 services.AddSingleton<FunctionsEndpointDataSource>();
+                services.AddSingleton<ExtensionTrace>();
                 services.Configure<ForwardedHeadersOptions>(options =>
                 {
                     // By default, the X-Forwarded-For, X-Forwarded-Host, and X-Forwarded-Proto headers

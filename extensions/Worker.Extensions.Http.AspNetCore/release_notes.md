@@ -4,9 +4,9 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 1.2.1
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 1.3.0
 
-- Dependency updates for the analyzer package
-  - `Microsoft.CodeAnalysis.Analyzers` moved to 3.3.4
-  - Removal of unnecessary test dependencies
+- Improvements to context coordination/synchronization handling and observability
+  - Failure to receive any of the expected context synchronization calls will now result in a `TimeoutException` thrown with the appropriate exception information. Previously this would block indefinitely and failures here were difficult to diagnose.
+  - Debug logs are now emitted in the context coordination calls, improving observability.
 

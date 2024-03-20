@@ -482,9 +482,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         bindingsList.Add(GetHttpReturnBinding(prop.Name));
                     }
 
-                    if (prop.GetAttributes().Length > 0)
+                    var propAttributes = prop.GetAttributes();
+
+                    if (propAttributes.Length > 0)
                     {
-                        var bindingAttributes = prop.GetAttributes().Where(p => p.AttributeClass!.IsOrDerivedFrom(_knownFunctionMetadataTypes.BindingAttribute));
+                        var bindingAttributes = propAttributes.Where(p => p.AttributeClass!.IsOrDerivedFrom(_knownFunctionMetadataTypes.BindingAttribute));
 
                         if (bindingAttributes.Count() > 1)
                         {
@@ -535,10 +537,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private bool HasHttpResultAttribute(ISymbol prop)
             {
                 var attributes = prop.GetAttributes();
-                var attribute = attributes.FirstOrDefault();
-                if (SymbolEqualityComparer.Default.Equals(attribute?.AttributeClass, _knownFunctionMetadataTypes.HttpResultAttribute))
+                foreach (var attribute in attributes)
                 {
-                    return true;
+                    if (attribute.AttributeClass is not null && 
+                        attribute.AttributeClass.IsOrDerivedFrom(_knownFunctionMetadataTypes.HttpResultAttribute))
+                    {
+                        return true;
+                    }
                 }
 
                 return false;

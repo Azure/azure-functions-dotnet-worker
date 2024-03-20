@@ -195,6 +195,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             {
                 string inputCode = """
                 using System;
+                using System.Diagnostics.CodeAnalysis;
                 using System.Net;
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
@@ -211,6 +212,13 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             throw new NotImplementedException();
                         }
+
+                        [Function("OutputTypeHttpHasTwoAttributes")]
+                        public static MyOutputType2 Test([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+                            FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
                     }
 
                     public class MyOutputType
@@ -218,6 +226,16 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
                         public string Name { get; set; }
 
+                        [HttpResult]
+                        public IActionResult HttpResponse { get; set; }
+                    }
+
+                    public class MyOutputType2
+                    {
+                        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+                        public string Name { get; set; }
+                
+                        [SuppressMessage("Microsoft.Naming", "Foo", Justification = "Bar")]
                         [HttpResult]
                         public IActionResult HttpResponse { get; set; }
                     }
@@ -265,6 +283,20 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
+                            var Function1RawBindings = new List<string>();
+                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function1RawBindings.Add(@"{""name"":""Name"",""type"":""queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
+                            Function1RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
+                
+                            var Function1 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "OutputTypeHttpHasTwoAttributes",
+                                EntryPoint = "FunctionApp.FunctionsMultipleOutputBindingWithActionResult.Test",
+                                RawBindings = Function1RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function1);
 
                             return Task.FromResult(metadataList.ToImmutableArray());
                         }

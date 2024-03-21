@@ -105,7 +105,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
                     {
                         DisplayName = functionName
                     };
-                    endpointBuilder.Metadata.Add(new HttpMethodMetadata(functionBinding.Methods));
+
+                    var methods = functionBinding.Methods ?? [];
+                    endpointBuilder.Metadata.Add(new HttpMethodMetadata(methods));
 
                     // no need to look at other bindings for this function
                     return endpointBuilder.Build();

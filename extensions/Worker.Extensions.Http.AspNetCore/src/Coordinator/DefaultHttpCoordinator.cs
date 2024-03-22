@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
             catch (TimeoutException e)
             {
-                throw new TimeoutException($"Timed out waiting for the function context to be set. Invocation: '{invocationId}'.", e);
+                throw new TimeoutException($"Timed out waiting for the HTTP context to be set. Invocation: '{invocationId}'.", e);
             }
         }
 

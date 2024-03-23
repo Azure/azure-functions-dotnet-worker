@@ -42,10 +42,10 @@ configuration:
         - labelAdded:
             label: 'Needs: Attention :wave:'
       then:
-        - assignIcmUsers:
-            teamId: 114785
-            primary: true
-            secondary: false
+      - assignIcmUsers:
+          teamId: 114785
+          primary: true
+          secondary: false
       triggerOnOwnActions: true
 
 onFailure: 

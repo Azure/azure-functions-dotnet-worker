@@ -1,0 +1,46 @@
+name: Migration issue or question
+description: Ask questions or raise issues related to migration from the in-process model
+labels: ["area: migration"]
+body: 
+- type: dropdown
+  id: startingDotnetVersion
+  attributes:
+    label: What version of .NET does your existing project use?
+    options:
+      - .NET Framework 4.8
+      - .NET Core 2.1
+      - .NET Core 3.1
+      - .NET 6
+  validations:
+    required: true
+- type: dropdown
+  id: targetDotnetVersion
+  attributes:
+    label: What version of .NET are you attempting to target?
+    options:
+      - .NET 6
+      - .NET 7
+      - .NET 8
+  validations:
+    required: true
+- id: description
+  type: textarea
+  attributes:
+    label: Description
+    placeholder: Please provide a succinct description of the question or issue.
+  validations:
+    required: true
+- id: dependencies
+  type: textarea
+  attributes:
+    label: Project configuration and dependencies
+    placeholder: Please share your starting .csproj file, including any package references or other dependencies.
+  validations:
+    required: false
+- id: repro
+  type: input
+  attributes:
+    label: Link to a repository that reproduces the issue
+    placeholder: If you have a repository that reproduces the issue, please provide a link to it.
+  validations:
+    required: false

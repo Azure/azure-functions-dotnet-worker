@@ -4,9 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 1.2.1
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 1.3.0
 
-- Dependency updates for the analyzer package
-  - `Microsoft.CodeAnalysis.Analyzers` moved to 3.3.4
-  - Removal of unnecessary test dependencies
-
+- Introduces fix to properly handle multiple output binding scenarios.

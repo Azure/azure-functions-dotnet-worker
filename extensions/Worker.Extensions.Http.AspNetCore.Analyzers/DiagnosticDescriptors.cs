@@ -18,5 +18,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public static DiagnosticDescriptor CorrectRegistrationExpectedInAspNetIntegration { get; }
             = Create(id: "AZFW0014", title: "Missing expected registration of ASP.NET Core Integration services", messageFormat: "The registration for method '{0}' is expected for ASP.NET Core Integration.",
                 category: Usage, severity: DiagnosticSeverity.Error);
+
+        public static DiagnosticDescriptor MultipleOutputHttpTriggerWithoutHttpResultAttribute { get; }
+            = Create(id: "AZF-----", title: "todo", messageFormat: "todo",
+                category: Usage, severity: DiagnosticSeverity.Error);
     }
 }

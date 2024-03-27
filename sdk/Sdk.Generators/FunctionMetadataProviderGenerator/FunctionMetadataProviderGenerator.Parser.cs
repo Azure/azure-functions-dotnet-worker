@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDictionary(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindingDict))
                     {
                         bindingsList = null;
                         return false;
@@ -288,7 +288,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Name;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, Location.None, out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
+                            if (!TryCreateBindingDictionary(attribute, bindingName, Location.None, out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
                             {
                                 bindingsList = null;
                                 return false;
@@ -468,8 +468,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     }
 
                     // Check for HttpResponseData type for legacy apps
-                    if (prop is IPropertySymbol property &&
-                            (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData)))
+                    if (prop is IPropertySymbol property
+                             && (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData)))
                     {
                         if (foundHttpOutput)
                         {
@@ -480,6 +480,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         foundHttpOutput = true;
                         bindingsList.Add(GetHttpReturnBinding(prop.Name));
+                        continue;
                     }
 
                     var propAttributes = prop.GetAttributes();
@@ -510,7 +511,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else
                         {
-                            if (!TryCreateBindingDict(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
+                            if (!TryCreateBindingDictionary(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
                             {
                                 bindingsList = null;
                                 return false;
@@ -520,10 +521,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             returnTypeHasOutputBindings = true;
                         }
-
-                    }
-
-                    
+                    }                    
                 }
 
                 if (hasHttpTrigger && !foundHttpOutput && !hasMethodOutputBinding && !returnTypeHasOutputBindings)
@@ -561,7 +559,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return httpBinding;
             }
 
-            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings, bool supportsDeferredBinding = false)
+            private bool TryCreateBindingDictionary(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings, bool supportsDeferredBinding = false)
             {
                 // Get binding info as a dictionary with keys as the property name and value as the property value
                 if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object?>? attributeProperties))

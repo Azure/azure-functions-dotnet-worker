@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,8 +19,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
     {
         private const string HttpTrigger = "httpTrigger";
 
+        private static readonly Type[] _httpResponseTypes = new Type[]
+        {
+            typeof(HttpResponseData),
+            typeof(IActionResult),
+            typeof(IResult)
+        };
+
         private readonly IHttpCoordinator _coordinator;
         private readonly ConcurrentDictionary<string, bool> _isHttpTrigger = new();
+
+        private const string HttpBindingType = "http";
 
         public FunctionsHttpProxyingMiddleware(IHttpCoordinator httpCoordinator)
         {
@@ -47,28 +57,53 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             await next(context);
 
-            if (context.TryGetHttpResponse<IActionResult>(out var httpOutput))
-            {
-                ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
+            var invocationResult = context.GetInvocationResult();
 
-                await httpOutput.ExecuteResultAsync(actionContext);
-            }
-            else if (context.GetHttpResponseData() is HttpResponseData httpResponseData)
+            if (_httpResponseTypes.Any(type => invocationResult?.Value?.GetType() == type))
             {
-                // The AspNetCoreHttpResponseData implementation is
-                // simply a wrapper over the underlying HttpResponse and
-                // all APIs manipulate the request.
-                // There's no need to return this result as no additional
-                // processing is required.
-                context.GetInvocationResult().Value = null;
+                HandleHttpResult(invocationResult.Value, context, httpContext);
             }
-            else if (context.TryGetHttpResponse<IResult>(out var httpIResult))
+            else
             {
-                await httpIResult.ExecuteAsync(httpContext);
+                HandleHttpResultInOutputBindings(context, httpContext);
             }
 
             // allows asp.net middleware to continue
             _coordinator.CompleteFunctionInvocation(invocationId);
+        }
+
+        private static async void HandleHttpResult(object? httpResult, FunctionContext context, HttpContext httpContext)
+        {
+            switch (httpResult)
+            {
+                case HttpResponseData httpResponseData:
+                    context.GetInvocationResult().Value = null;
+                    break;
+
+                case IActionResult actionResult:
+                    ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
+                    await actionResult.ExecuteResultAsync(actionContext);
+                    break;
+
+                case IResult iResult:
+                    await iResult.ExecuteAsync(httpContext);
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unexpected return type {httpResult?.GetType()} for HTTP function {context.FunctionDefinition.Name}.");
+            }
+        }
+
+        private static void HandleHttpResultInOutputBindings(FunctionContext context, HttpContext httpContext)
+        {
+            var httpOutputBinding = context.GetOutputBindings<object>().FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
+
+            if (httpOutputBinding is null)
+            {
+                throw new InvalidOperationException($"No HTTP Response type could be found in the function {context.FunctionDefinition.Name}'s output bindings.");
+            }
+
+            HandleHttpResult(httpOutputBinding.Value, context, httpContext);
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

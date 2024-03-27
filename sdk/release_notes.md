@@ -11,3 +11,4 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.2.2
 
 - Introduces handling for `HttpResultAttribute`.
+

@@ -3,11 +3,14 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Identity;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Channel;
 using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
@@ -167,6 +170,23 @@ public class EndToEndTests
         ValidateCommonTelemetry(afterSwap, "SwappedRoleName-staging");
     }
 
+    [Fact]
+    public void Telemetry_AADAuth()
+    {
+        // Env vars can change during a swap. These should automatically update.
+        using var _ = SetupAADAuthEnvironmentVariables();
+        using var host = InitializeHost();
+
+        var config = host.Services.GetService<TelemetryConfiguration>();
+
+        var property = typeof(TelemetryConfiguration).GetProperty("CredentialEnvelope", BindingFlags.NonPublic | BindingFlags.Instance);
+        var propertyValue = property.GetValue(config);
+
+        var credentialProperty = propertyValue.GetType().GetProperty("Credential", BindingFlags.NonPublic | BindingFlags.Instance);
+        var credentialValue = credentialProperty.GetValue(propertyValue);
+        Assert.IsType<ManagedIdentityCredential>(credentialValue);
+    }
+
     private async Task<IEnumerable<ITelemetry>> WaitForTelemetries(int expectedCount)
     {
         IEnumerable<ITelemetry> telemetries = null;
@@ -240,6 +260,14 @@ public class EndToEndTests
         {
             { AppServiceOptionsInitializer.AzureWebsiteName, RoleName },
             { AppServiceOptionsInitializer.AzureWebsiteSlotName, AppServiceOptionsInitializer.DefaultProductionSlotName }
+        });
+    }
+
+    private static IDisposable SetupAADAuthEnvironmentVariables()
+    {
+        return new TestScopedEnvironmentVariable(new Dictionary<string, string>
+        {
+            { "APPLICATIONINSIGHTS_AUTHENTICATION_STRING", "Authorization=AAD;"}
         });
     }
 

@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class ExtensionsCsprojGenerator
     {
-        internal const string ExtensionsProjectName = "WorkerExtensions.csproj";
+        private const string ExtensionsProjectName = "WorkerExtensions.csproj";
 
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
@@ -31,20 +31,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             var extensionsCsprojFilePath = Path.Combine(_outputPath, ExtensionsProjectName);
 
-            string csproj = GetCsProjContent();
-            if (File.Exists(extensionsCsprojFilePath))
-            {
-                string existing = File.ReadAllText(extensionsCsprojFilePath);
-                if (string.Equals(csproj, existing, StringComparison.Ordinal))
-                {
-                    // If contents are the same, only touch the file to update timestamp.
-                    File.SetLastWriteTimeUtc(extensionsCsprojFilePath, DateTime.UtcNow);
-                    return;
-                }
-            }
-
             RecreateDirectory(_outputPath);
-            File.WriteAllText(extensionsCsprojFilePath, csproj);
+
+            WriteExtensionsCsProj(extensionsCsprojFilePath);
         }
 
         private void RecreateDirectory(string directoryPath)
@@ -55,6 +44,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             Directory.CreateDirectory(directoryPath);
+        }
+
+        private void WriteExtensionsCsProj(string filePath)
+        {
+            string csprojContent = GetCsProjContent();
+
+            File.WriteAllText(filePath, csprojContent);
         }
 
         internal string GetCsProjContent()

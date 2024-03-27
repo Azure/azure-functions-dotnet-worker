@@ -7,31 +7,12 @@ namespace FunctionsNetHost
 {
     internal static class Logger
     {
-        private static readonly string LogPrefix;
-
-        static Logger()
-        {
-#if !DEBUG
-            LogPrefix = "LanguageWorkerConsoleLog";
-#else
-            LogPrefix = "";
-#endif
-        }
-
-        internal static bool IsTraceLogEnabled
-        {
-            get
-            {
-                return string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsNetHostTrace), "1");
-            }
-        }
-
         /// <summary>
-        /// Logs a trace message if "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE" environment variable value is set to "1"
+        /// Logs a trace message if trace level logging is enabled.
         /// </summary>
         internal static void LogTrace(string message)
         {
-            if (IsTraceLogEnabled)
+            if (Configuration.IsTraceLogEnabled)
             {
                 Log(message);
             }
@@ -40,7 +21,7 @@ namespace FunctionsNetHost
         internal static void Log(string message)
         {
             var ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
-            Console.WriteLine($"{LogPrefix}[{ts}] [FunctionsNetHost] {message}");
+            Console.WriteLine($"{Configuration.LogPrefix}[{ts}] [FunctionsNetHost] {message}");
         }
     }
 }

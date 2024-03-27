@@ -26,6 +26,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(services));
             }
 
+            services.ConfigureOptions<TelemetryConfigurationSetup>();
             services.AddSingleton<IConfigureOptions<AppServiceOptions>, AppServiceOptionsInitializer>();
             services.AddSingleton<AppServiceEnvironmentVariableMonitor>();
             services.AddSingleton<IOptionsChangeTokenSource<AppServiceOptions>>(p => p.GetRequiredService<AppServiceEnvironmentVariableMonitor>());

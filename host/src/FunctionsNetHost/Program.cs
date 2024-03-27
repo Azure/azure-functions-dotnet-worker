@@ -3,6 +3,7 @@
 
 using System.CommandLine;
 using FunctionsNetHost.Grpc;
+using FunctionsNetHost.Prelaunch;
 
 namespace FunctionsNetHost
 {
@@ -13,6 +14,8 @@ namespace FunctionsNetHost
             try
             {
                 Logger.Log("Starting FunctionsNetHost");
+
+                PreLauncher.Run();
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 

@@ -98,6 +98,34 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
         }
 
         [Fact]
+        public void MapHttpFunction_CustomRoute_NoHttpMethodSpecified()
+        {
+            string rawBinding = """
+            {
+                "name": "req",
+                "direction": "In",
+                "type": "httpTrigger",
+                "route": "customRoute/function",
+                "authLevel": "Anonymous",
+                "properties": { }
+            }
+            """;
+
+            var metadata = new DefaultFunctionMetadata
+            {
+                Name = "TestFunction",
+                RawBindings = new List<string> { rawBinding },
+            };
+
+            RouteEndpoint endpoint = FunctionsEndpointDataSource.MapHttpFunction(metadata, "api") as RouteEndpoint;
+
+            Assert.Equal("TestFunction", endpoint.DisplayName);
+            Assert.Equal($"api/customRoute/function", endpoint.RoutePattern.RawText);
+            var endpointMetadata = endpoint.Metadata.Single() as HttpMethodMetadata;
+            Assert.Equal([], endpointMetadata.HttpMethods);
+        }
+
+        [Fact]
         public void GetRoutePrefix()
         {
             string hostJson = """

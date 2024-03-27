@@ -78,7 +78,7 @@ namespace SampleApp
         //<docsnippet_servicebus_message_actions>
         [Function(nameof(ServiceBusMessageActionsFunction))]
         public async Task ServiceBusMessageActionsFunction(
-            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection")]
+            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", AutoCompleteMessages = false)]
             ServiceBusReceivedMessage message,
             ServiceBusMessageActions messageActions)
         {

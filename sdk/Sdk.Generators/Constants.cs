@@ -20,8 +20,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             internal const string FunctionsExecutionModel = "build_property.FunctionsExecutionModel";
             internal const string MSBuildTargetFrameworkIdentifier = "build_property.TargetFrameworkIdentifier";
             internal const string GeneratedCodeNamespace = "build_property.FunctionsGeneratedCodeNamespace";
-            internal const string EnableSourceGen = "build_property.FunctionsEnableMetadataSourceGen";
-            internal const string EnablePlaceholder = "build_property.FunctionsEnableExecutorSourceGen";
+            internal const string EnableMetadataSourceGen = "build_property.FunctionsEnableMetadataSourceGen";
+            internal const string EnableExecutorSourceGen = "build_property.FunctionsEnableExecutorSourceGen";
             internal const string AutoRegisterGeneratedFunctionsExecutor = "build_property.FunctionsAutoRegisterGeneratedFunctionsExecutor";
             internal const string AutoRegisterGeneratedMetadataProvider = "build_property.FunctionsAutoRegisterGeneratedMetadataProvider";
         }

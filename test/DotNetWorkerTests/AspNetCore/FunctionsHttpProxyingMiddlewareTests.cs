@@ -54,7 +54,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
                 { "test", new TestBindingMetadata("test", triggerType, BindingDirection.In ) }
             };
 
-            var functionDef = new TestFunctionDefinition(inputBindings: inputBindings);
+            var outputBindings = new Dictionary<string, BindingMetadata>()
+            {
+                { "outputBinding", new TestBindingMetadata("$return", "http", BindingDirection.Out ) }
+            };
+
+            var functionDef = new TestFunctionDefinition(inputBindings: inputBindings, outputBindings: outputBindings);
 
             var functionContext = new TestFunctionContext(functionDef, new TestFunctionInvocation(), CancellationToken.None)
             {

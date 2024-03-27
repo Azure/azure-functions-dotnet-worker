@@ -6,6 +6,9 @@ using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -23,11 +26,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
-                var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
-                var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
-                var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
-                var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
-                var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
+                var loggerExtension = typeof(NullLogger).Assembly;
+                var hostingExtension = typeof(HostBuilder).Assembly;
+                var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
+                var hostingAbExtension = typeof(IHost).Assembly;
+                var diAbExtension = typeof(IServiceCollection).Assembly;
 
                 referencedExtensionAssemblies = new[]
                 {

@@ -3,7 +3,13 @@
 
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -23,11 +29,14 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
-                var loggerExtension = Assembly.LoadFrom("Microsoft.Extensions.Logging.Abstractions.dll");
-                var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
-                var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
-                var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
-                var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
+                var loggerExtension = typeof(NullLogger).Assembly;
+                var hostingExtension = typeof(HostBuilder).Assembly;
+                var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
+                var hostingAbExtension = typeof(IHost).Assembly;
+                var diAbExtension = typeof(IServiceCollection).Assembly;
+                var actionResult = typeof(IActionResult).Assembly;
+                var aspnetHtpp = typeof(HttpContextAccessor).Assembly;
+                var httpRequest = typeof(HttpRequest).Assembly;
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -41,7 +50,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     hostingExtension,
                     hostingAbExtension,
                     diExtension,
-                    diAbExtension
+                    diAbExtension,
+                    actionResult,
+                    aspnetHtpp,
+                    httpRequest
                 };
             }
 
@@ -175,6 +187,147 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput);
+            }
+
+            [Theory]
+            [InlineData(LanguageVersion.Latest)]
+            public async void FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
+            {
+                string inputCode = """
+                using System;
+                using System.Diagnostics.CodeAnalysis;
+                using System.Net;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using Microsoft.AspNetCore.Http;
+                using Microsoft.AspNetCore.Mvc;
+
+                namespace FunctionApp
+                {
+                    public static class FunctionsMultipleOutputBindingWithActionResult
+                    {
+                        [Function(nameof(FunctionsMultipleOutputBindingWithActionResult))]
+                        public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+                            FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+
+                        [Function("OutputTypeHttpHasTwoAttributes")]
+                        public static MyOutputType2 Test([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+                            FunctionContext context)
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+
+                    public class MyOutputType
+                    {
+                        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+                        public string Name { get; set; }
+
+                        [HttpResult]
+                        public IActionResult HttpResponse { get; set; }
+                    }
+
+                    public class MyOutputType2
+                    {
+                        [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
+                        public string Name { get; set; }
+                
+                        [SuppressMessage("Microsoft.Naming", "Foo", Justification = "Bar")]
+                        [HttpResult]
+                        public IActionResult HttpResponse { get; set; }
+                    }
+                }
+                """;
+
+
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = """
+                // <auto-generated/>
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace TestProject
+                {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                    {
+                        /// <inheritdoc/>
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                        {
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""Name"",""type"":""queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
+                            Function0RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "FunctionsMultipleOutputBindingWithActionResult",
+                                EntryPoint = "FunctionApp.FunctionsMultipleOutputBindingWithActionResult.Run",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+                            var Function1RawBindings = new List<string>();
+                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function1RawBindings.Add(@"{""name"":""Name"",""type"":""queue"",""direction"":""Out"",""queueName"":""functionstesting2"",""connection"":""AzureWebJobsStorage""}");
+                            Function1RawBindings.Add(@"{""name"":""HttpResponse"",""type"":""http"",""direction"":""Out""}");
+                
+                            var Function1 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "OutputTypeHttpHasTwoAttributes",
+                                EntryPoint = "FunctionApp.FunctionsMultipleOutputBindingWithActionResult.Test",
+                                RawBindings = Function1RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function1);
+
+                            return Task.FromResult(metadataList.ToImmutableArray());
+                        }
+                    }
+
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    _referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput, languageVersion: languageVersion);
             }
 
             [Fact]

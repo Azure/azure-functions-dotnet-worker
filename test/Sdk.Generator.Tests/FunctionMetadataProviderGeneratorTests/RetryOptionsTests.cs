@@ -6,6 +6,8 @@ using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using System.Threading.Tasks;
 using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
@@ -20,10 +22,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
-                var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
-                var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
-                var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
+                var hostingExtension = typeof(HostBuilder).Assembly;
+                var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
+                var hostingAbExtension = typeof(IHost).Assembly;
+                var diAbExtension = typeof(IServiceCollection).Assembly;
                 var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
                 var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
 

@@ -10,26 +10,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
     internal class FunctionsHttpProxyingMiddleware : IFunctionsWorkerMiddleware
     {
         private const string HttpTrigger = "httpTrigger";
-
-        private static readonly Type[] _httpResponseTypes = new Type[]
-        {
-            typeof(HttpResponseData),
-            typeof(IActionResult),
-            typeof(IResult)
-        };
+        private const string HttpBindingType = "http";
 
         private readonly IHttpCoordinator _coordinator;
         private readonly ConcurrentDictionary<string, bool> _isHttpTrigger = new();
-
-        private const string HttpBindingType = "http";
 
         public FunctionsHttpProxyingMiddleware(IHttpCoordinator httpCoordinator)
         {
@@ -57,67 +51,67 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             await next(context);
 
-            var invocationResult = context.GetInvocationResult();
-
-            if (_httpResponseTypes.Any(type => invocationResult?.Value?.GetType() == type))
+            var responseHandled = await TryHandleHttpResult(context.GetInvocationResult().Value, context, httpContext, true)
+                || await TryHandleOutputBindingsHttpResult(context, httpContext);
+            
+            if (!responseHandled)
             {
-                HandleHttpResult(invocationResult.Value, context, httpContext);
-            }
-            else
-            {
-                HandleHttpResultInOutputBindings(context, httpContext);
+                var logger = context.InstanceServices.GetRequiredService<ExtensionTrace>();
+                logger.NoHttpResponseReturned(context.FunctionDefinition.Name, context.InvocationId);
             }
 
-            // allows asp.net middleware to continue
+            // Allow ASP.NET Core middleware to continue
             _coordinator.CompleteFunctionInvocation(invocationId);
         }
 
-        private static async void HandleHttpResult(object? httpResult, FunctionContext context, HttpContext httpContext)
+        private static async Task<bool> TryHandleHttpResult(object? result, FunctionContext context, HttpContext httpContext, bool isInvocationResult = false)
         {
-            switch (httpResult)
+            switch (result)
             {
-                case HttpResponseData httpResponseData:
-                    context.GetInvocationResult().Value = null;
-                    break;
-
                 case IActionResult actionResult:
                     ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
                     await actionResult.ExecuteResultAsync(actionContext);
                     break;
-
+                case AspNetCoreHttpRequestData when isInvocationResult:
+                    // The AspNetCoreHttpResponseData implementation is
+                    // simply a wrapper over the underlying HttpResponse and
+                    // all APIs manipulate the request.
+                    // There's no need to return this result as no additional
+                    // processing is required.
+                    context.GetInvocationResult().Value = null;
+                    break;
                 case IResult iResult:
                     await iResult.ExecuteAsync(httpContext);
                     break;
-
                 default:
-                    throw new InvalidOperationException($"Unexpected return type {httpResult?.GetType()} for HTTP function {context.FunctionDefinition.Name}.");
+                    return false;
             }
+
+            return true;
         }
 
-        private static void HandleHttpResultInOutputBindings(FunctionContext context, HttpContext httpContext)
+        private static Task<bool> TryHandleOutputBindingsHttpResult(FunctionContext context, HttpContext httpContext)
         {
-            var httpOutputBinding = context.GetOutputBindings<object>().FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
+            var httpOutputBinding = context.GetOutputBindings<object>()
+                .FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
 
-            if (httpOutputBinding is null)
-            {
-                throw new InvalidOperationException($"No HTTP Response type could be found in the function {context.FunctionDefinition.Name}'s output bindings.");
-            }
-
-            HandleHttpResult(httpOutputBinding.Value, context, httpContext);
+            return httpOutputBinding is null
+                ? Task.FromResult(false)
+                : TryHandleHttpResult(httpOutputBinding.Value, context, httpContext);
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)
         {
             funcContext.Items.Add(Constants.HttpContextKey, httpContext);
 
-            // add asp net version of httprequestdata feature
+            // Add ASP.NET Core integration version of IHttpRequestDataFeature
             funcContext.Features.Set<IHttpRequestDataFeature>(AspNetCoreHttpRequestDataFeature.Instance);
         }
 
         private static bool IsHttpTriggerFunction(FunctionContext funcContext)
         {
             return funcContext.FunctionDefinition.InputBindings
-                .Any(p => p.Value.Type.Equals(HttpTrigger, System.StringComparison.OrdinalIgnoreCase));
+                .Any(p => p.Value.Type.Equals(HttpTrigger, StringComparison.OrdinalIgnoreCase));
         }
     }
 }

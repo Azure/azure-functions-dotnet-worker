@@ -6,7 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
 using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Xunit;
 
@@ -61,9 +64,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
             var functionDef = new TestFunctionDefinition(inputBindings: inputBindings, outputBindings: outputBindings);
 
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton<ExtensionTrace>()
+                .AddLogging()
+                .BuildServiceProvider();
+
             var functionContext = new TestFunctionContext(functionDef, new TestFunctionInvocation(), CancellationToken.None)
             {
-                Items = new Dictionary<object, object>()
+                Items = new Dictionary<object, object>(),
+                InstanceServices = serviceProvider
             };
 
             var httpContext = new DefaultHttpContext();

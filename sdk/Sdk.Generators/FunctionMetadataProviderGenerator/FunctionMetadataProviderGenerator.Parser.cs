@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDictionary(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDictionary(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindings))
                     {
                         bindingsList = null;
                         return false;
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     bindingsList = new List<IDictionary<string, object>>(capacity: 1)
                     {
-                        bindingDict!
+                        bindings!
                     };
 
                     return true;
@@ -288,22 +288,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Name;
 
-                            if (!TryCreateBindingDictionary(attribute, bindingName, Location.None, out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
+                            if (!TryCreateBindingDictionary(attribute, bindingName, Location.None, out IDictionary<string, object>? bindings, supportsDeferredBinding))
                             {
-                                bindingsList = null;
+                                bindings = null;
                                 return false;
                             }
 
                             // If cardinality is supported and validated, but was not found in named args, constructor args, or default value attributes
                             // default to Cardinality: One to stay in sync with legacy generator.
-                            if (cardinalityValidated && !bindingDict!.Keys.Contains("cardinality"))
+                            if (cardinalityValidated && !bindings!.Keys.Contains("cardinality"))
                             {
-                                bindingDict!.Add("cardinality", "One");
+                                bindings!.Add("cardinality", "One");
                             }
 
                             if (dataType is not DataType.Undefined)
                             {
-                                bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
+                                bindings!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
                             }
 
                             // check for binding capabilities
@@ -318,7 +318,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 }
                             }
 
-                            bindingsList.Add(bindingDict!);
+                            bindingsList.Add(bindings!);
                         }
                     }
                 }
@@ -511,17 +511,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                         else
                         {
-                            if (!TryCreateBindingDictionary(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
+                            if (!TryCreateBindingDictionary(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindings))
                             {
                                 bindingsList = null;
                                 return false;
                             }
 
-                            bindingsList.Add(bindingDict!);
+                            bindingsList.Add(bindings!);
 
                             returnTypeHasOutputBindings = true;
                         }
-                    }                    
+                    }
                 }
 
                 if (hasHttpTrigger && !foundHttpOutput && !hasMethodOutputBinding && !returnTypeHasOutputBindings)

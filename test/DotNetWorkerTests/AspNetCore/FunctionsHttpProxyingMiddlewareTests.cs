@@ -62,14 +62,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
                 { "outputBinding", new TestBindingMetadata("$return", "http", BindingDirection.Out ) }
             };
 
-            var functionDef = new TestFunctionDefinition(inputBindings: inputBindings, outputBindings: outputBindings);
+            var functionDefinition = new TestFunctionDefinition(inputBindings: inputBindings, outputBindings: outputBindings);
 
             var serviceProvider = new ServiceCollection()
                 .AddSingleton<ExtensionTrace>()
                 .AddLogging()
                 .BuildServiceProvider();
 
-            var functionContext = new TestFunctionContext(functionDef, new TestFunctionInvocation(), CancellationToken.None)
+            var functionContext = new TestFunctionContext(functionDefinition, new TestFunctionInvocation(), CancellationToken.None)
             {
                 Items = new Dictionary<object, object>(),
                 InstanceServices = serviceProvider

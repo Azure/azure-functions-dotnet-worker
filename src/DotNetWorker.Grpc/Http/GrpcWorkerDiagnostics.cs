@@ -7,7 +7,14 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker.Grpc
 {
+#if NET6_0_OR_GREATER
+    [JsonSourceGenerationOptions(WriteIndented = true)]
+    [JsonSerializable(typeof(WorkerInformation))]
+    internal partial class WorkerInformationSourceGenerationContext : JsonSerializerContext
+    {
+    }
 
+#endif
     internal class GrpcWorkerDiagnostics : IWorkerDiagnostics
     {
         private readonly ChannelWriter<StreamingMessage> _outputChannel;
@@ -52,6 +59,12 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
                     Message = JsonSerializer.Serialize(workerInfo, SerializerOptions)
                 }
             };
+
+#if NET6_0_OR_GREATER
+            message.RpcLog.Message = JsonSerializer.Serialize(workerInfo, WorkerInformationSourceGenerationContext.Default.WorkerInformation);
+#else
+            message.RpcLog.Message = JsonSerializer.Serialize(workerInfo, SerializerOptions);
+#endif
 
             _outputChannel.TryWrite(message);
         }

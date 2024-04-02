@@ -4,11 +4,10 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.17.3
+### Microsoft.Azure.Functions.Worker.Sdk 1.18.0
 
 - Updating to use `Microsoft.NET.Sdk.Functions.Generators` 1.2.2 (#2247)
 
-### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.2.2
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.0
 
 - Introduces handling for `HttpResultAttribute`.
-

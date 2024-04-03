@@ -20,100 +20,42 @@ namespace FunctionApp
     class Program
     {
         static async Task Main(string[] args)
-        {          
-
-            // #if DEBUG
-            //     Debugger.Launch();
-            // #endif
-            //<docsnippet_startup>
+        {    
             var host = new HostBuilder()
-
-                .ConfigureFunctionsWorkerDefaults()
+                .ConfigureFunctionsWebApplication()
                 .ConfigureServices(s =>
                 {
+
+                    // Classic SDK
                     //s.AddApplicationInsightsTelemetryWorkerService();
                     //s.ConfigureFunctionsApplicationInsights();
 
-                    
-                    
-                    s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
-                    //s.AddOpenTelemetry().UseAzureMonitor();
-                    //s.Configure<LoggerFilterOptions>(options =>
-                    //{
-                    //    // The Application Insights SDK adds a default logging filter that instructs ILogger to capture only Warning and more severe logs. Application Insights requires an explicit override.
-                    //    // Log levels can also be configured using appsettings.json. For more information, see https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service#ilogger-logs
-                    //    LoggerFilterRule toRemove = options.Rules.FirstOrDefault(rule => rule.ProviderName
-                    //        == "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider");
-
-                    //    if (toRemove is not null)
-                    //    {
-                    //        options.Rules.Remove(toRemove);
-                    //    }
-                    //});
-
-                    //s.ConfigureFunctionsOpenTelemetry();
-                    //s.AddOpenTelemetry()
-                    //.ConfigureFunctionsOpenTelemetry()
-                    //.ConfigureResource(configureResource)
-                    //.WithMetrics(builder =>
-                    //{
-                    //    builder.AddMeter("Azure.Functions");
-                    //    //builder.AddConsoleExporter();
-                    //    builder.AddAzureMonitorMetricExporter(o =>
-                    //    {
-                    //        o.ConnectionString = "<>";
-                    //    });
-                    //    builder.AddOtlpExporter();
-                    //})
-                    //.WithTracing(builder =>
-                    //{
-                    //    //builder.AddAspNetCoreInstrumentation();
-                    //    builder.AddHttpClientInstrumentation();
-                    //    builder.AddSource("Hola");
-                    //    builder.AddConsoleExporter();
-                    //    //builder.AddGrpcClientInstrumentation();
-
-                    //    //builder.AddSource("Durable");
-                    //    //builder.ConfigureResource(x => x.AddDetector(new FunctionsResourceDetector()));
-                    //    builder.AddAzureMonitorTraceExporter();
-                    //    builder.AddOtlpExporter();
-                    //    //builder.AddZipkinExporter(o => o.HttpClientFactory = () =>
-                    //    //{
-                    //    //    HttpClient client = new HttpClient();
-                    //    //    client.DefaultRequestHeaders.Add("X-MyCustomHeader", "value");
-                    //    //    return client;
-                    //    //});
-                    //});
+                    // OTEL
                     s.AddOpenTelemetry()
-                    .ConfigureFunctions()
+                    .UseFunctionsWorkerDefaults()
                     .WithTracing(builder =>
                     {
-                        builder.AddAspNetCoreInstrumentation();
                         builder.AddHttpClientInstrumentation();
-                        builder.AddAzureMonitorTraceExporter();
                         builder.AddOtlpExporter();
-                    });
+                    })
+                    .UseAzureMonitor();
 
+                    s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();                    
+
+                    s.AddHttpClient();
                 })
+
                 .ConfigureLogging((context, loggingBuilder) =>
                 {
                     loggingBuilder.AddOpenTelemetry(options =>
                     {
-                        // Configure OpenTelemetry logging
                         options.IncludeScopes = true;
-
-                        // Assuming OTLP as the protocol for logs as well
                         options.AddOtlpExporter();
-                        options.AddAzureMonitorLogExporter();
                     });
                 })
-                //</docsnippet_dependency_injection>
-                .Build();
-            //</docsnippet_startup>
 
-            //<docsnippet_host_run>
+                .Build();
             await host.RunAsync();
-            //</docsnippet_host_run>
         }
     }
 }

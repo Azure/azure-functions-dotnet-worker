@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     public static class ConfigureFunctionsOpenTelemetry
     {
-        public static OpenTelemetryBuilder ConfigureFunctions(this OpenTelemetryBuilder builder)
+        public static OpenTelemetryBuilder UseFunctionsWorkerDefaults(this OpenTelemetryBuilder builder)
         {
             if (builder is null)
             {
@@ -22,18 +22,19 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
             builder.Services
                 // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
-                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerApplicationInsightsLoggingEnabled"] = bool.TrueString);
+                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerOpenTelemetryEnabled"] = bool.TrueString);
             builder
                 .ConfigureResource(r =>
                 {
-                    var assembly = typeof(WorkerOptions).Assembly.GetName();
-                    var version = assembly.Version?.ToString();
-                    r.AddService(assembly.Name, serviceVersion: version);
+                    string serviceName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.SiteNameEnvVar) ?? "azureFunctions";
+                    string version = typeof(ConfigureFunctionsOpenTelemetry).Assembly.GetName().Version.ToString();
+                    r.AddService(serviceName, serviceVersion: version);
+
+                    // Set the AI SDK to a key so we know all the telemetry came from the Functions Host
+                    // NOTE: This ties to \azure-sdk-for-net\sdk\monitor\Azure.Monitor.OpenTelemetry.Exporter\src\Internals\ResourceExtensions.cs :: AiSdkPrefixKey used in CreateAzureMonitorResource()
                     r.AddAttributes([
-                        new("ai.sdk.prefix", $@"azurefunctionscoretools: {version} "),
-                        new("azurefunctionscoretools_version", version),
-                        //new("RoleInstanceId", hostOptions?.CurrentValue.InstanceId ?? string.Empty),
-                        new("ProcessId", Process.GetCurrentProcess().Id)
+                        new(ResourceAttributeConstants.AttributeSDKPrefix, $@"{ResourceAttributeConstants.SDKPrefix}: {version}"),
+                        new(ResourceAttributeConstants.AttributeProcessId, Process.GetCurrentProcess().Id)
                     ]);
                 });
 

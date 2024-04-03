@@ -6,38 +6,31 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     internal sealed class ResourceAttributeConstants
     {
-        // AppService resource attributes
-        internal const string AzureAppServiceStamp = "azure.app.service.stamp";
-
-        // Azure VM resource attributes
-        internal const string AzureVmScaleSetName = "azure.vm.scaleset.name";
-        internal const string AzureVmSku = "azure.vm.sku";
-
-        // AppService environment variables
-        internal const string AppServiceHostNameEnvVar = "WEBSITE_HOSTNAME";
-        internal const string AppServiceInstanceIdEnvVar = "WEBSITE_INSTANCE_ID";
-        internal const string AppServiceOwnerNameEnvVar = "WEBSITE_OWNER_NAME";
-        internal const string AppServiceRegionNameEnvVar = "REGION_NAME";
-        internal const string AppServiceResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
-        internal const string AppServiceSiteNameEnvVar = "WEBSITE_SITE_NAME";
-        internal const string AppServiceSlotNameEnvVar = "WEBSITE_SLOT_NAME";
-        internal const string AppServiceStampNameEnvVar = "WEBSITE_HOME_STAMPNAME";
-
-        // Azure Container Apps environment variables
-        internal const string AzureContainerAppsNameEnvVar = "CONTAINER_APP_NAME";
-        internal const string AzureContainerAppsReplicaNameEnvVar = "CONTAINER_APP_REPLICA_NAME";
-        internal const string AzureContainerAppsRevisionEnvVar = "CONTAINER_APP_REVISION";
-
-        // Azure resource attributes constant values
-        internal const string AzureAppServicePlatformValue = "azure_app_service";
-        internal const string AzureCloudProviderValue = "azure";
-        internal const string AzureVmCloudPlatformValue = "azure_vm";
-        internal const string AzureContainerAppsPlatformValue = "azure_container_apps";
-        internal const string AttributeCloudRegion = "cloud.region";
-
         internal const string AttributeCloudProvider = "cloud.provider";
         internal const string AttributeCloudPlatform = "cloud.platform";
+
+        internal const string AttributeCloudRegion = "cloud.region";
         internal const string AttributeCloudResourceId = "cloud.resource.id";
-        
+        // http
+        internal const string AttributeTrigger = "faas.trigger";
+        internal const string AttributeInvocationId = "faas.invocation_id";
+        // true
+        internal const string AttributeColdStart = "faas.coldstart";
+
+        // Function name myazurefunctionapp/some-function-name
+        internal const string AttributeName = "faas.name";
+        internal const string AttributeVersion = "faas.version";
+        internal const string AttributeInstance = "faas.instance";
+
+        internal const string AzureCloudProviderValue = "azure";
+        internal const string AzurePlatformValue = "azure_functions";
+        internal const string AttributeSDKPrefix = "ai.sdk.prefix";
+        internal const string AttributeProcessId = "process.pid";
+
+        internal const string SDKPrefix = "azurefunctions";
+        internal const string SiteNameEnvVar = "WEBSITE_SITE_NAME";
+        internal const string RegionNameEnvVar = "REGION_NAME";
+        internal const string ResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
+        internal const string OwnerNameEnvVar = "WEBSITE_OWNER_NAME";
     }
 }

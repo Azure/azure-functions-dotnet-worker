@@ -142,7 +142,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Http.AspN
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{198DA072-F94F-4585-A744-97B3DAC21686}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorker.OpenTelemetry", "src\DotNetWorker.OpenTelemetry\DotNetWorker.OpenTelemetry.csproj", "{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry", "src\DotNetWorker.OpenTelemetry\DotNetWorker.OpenTelemetry.csproj", "{D3EC16AA-4F65-4A6A-9B2A-4A6157598874}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

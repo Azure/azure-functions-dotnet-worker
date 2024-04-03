@@ -82,6 +82,33 @@ public class EndToEndTests
         return host;
     }
 
+    private IHost InitializeHostWithoutApplicationInsights()
+    {
+        var host = new HostBuilder()
+           .ConfigureServices(services =>
+           {
+               var functionsBuilder = services.AddFunctionsWorkerCore();
+               functionsBuilder.UseDefaultWorkerMiddleware();
+
+               // override this so tests don't have to wait
+               services.AddSingleton(p => new AppServiceEnvironmentVariableMonitor(TimeSpan.FromMilliseconds(50)));
+
+               services.AddDefaultInputConvertersToWorkerOptions();
+
+               // Register our own in-memory channel
+               services.AddSingleton<ITelemetryChannel>(_channel);
+               services.AddSingleton(_ => new Mock<IWorkerDiagnostics>().Object);
+           })
+           .Build();
+
+        _application = host.Services.GetService<IFunctionsApplication>();
+        _invocationFeaturesFactory = host.Services.GetService<IInvocationFeaturesFactory>();
+
+        _application.LoadFunction(_funcDefinition);
+
+        return host;
+    }
+
     private FunctionContext CreateContext(IHost host)
     {
         var invocation = new TestFunctionInvocation(functionId: _funcDefinition.Id);
@@ -98,7 +125,7 @@ public class EndToEndTests
 
     [Fact]
     public async Task Logger_SendsTraceAndDependencyTelemetry()
-    {
+    {   
         using var _ = SetupDefaultEnvironmentVariables();
         using var host = InitializeHost();
 
@@ -185,6 +212,23 @@ public class EndToEndTests
         var credentialProperty = propertyValue.GetType().GetProperty("Credential", BindingFlags.NonPublic | BindingFlags.Instance);
         var credentialValue = credentialProperty.GetValue(propertyValue);
         Assert.IsType<ManagedIdentityCredential>(credentialValue);
+    }
+
+    [Fact]
+    public async Task ContextPropagation()
+    {
+        using var _ = SetupDefaultEnvironmentVariables();
+        using var host = InitializeHostWithoutApplicationInsights();
+
+        var context = CreateContext(host);
+
+        await _application.InvokeFunctionAsync(context);
+
+        var activity = AppInsightsFunctionDefinition.LastActivity;
+
+        
+        Assert.Equal(activity.Id, context.TraceContext.TraceParent);
+        Assert.Equal(activity.OperationName, "InvokeFunctionAsync");
     }
 
     private async Task<IEnumerable<ITelemetry>> WaitForTelemetries(int expectedCount)

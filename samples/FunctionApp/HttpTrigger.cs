@@ -11,10 +11,12 @@ namespace FunctionApp
     public class HttpTrigger
     {
         private readonly ILogger<HttpTrigger> _logger;
+        private readonly HttpClient _httpClient;
 
-        public HttpTrigger(ILogger<HttpTrigger> logger)
+        public HttpTrigger(ILogger<HttpTrigger> logger, HttpClient httpClient)
         {
             _logger = logger;
+            _httpClient = httpClient;
         }
 
         [Function("HttpTrigger")]
@@ -22,10 +24,9 @@ namespace FunctionApp
         {
             
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            _logger.LogInformation("1");
             _logger.LogInformation("Current Activity - " + Activity.Current?.Id);
-            HttpClient client = new HttpClient();
-            client.GetAsync("https://www.bing.com").GetAwaiter().GetResult();
+
+            _httpClient.GetAsync("https://www.bing.com").GetAwaiter().GetResult();
             return new OkObjectResult("Welcome to Azure Functions! " + DateTime.Now);
         }
     }

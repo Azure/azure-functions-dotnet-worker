@@ -66,11 +66,10 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         public async Task InvokeFunctionAsync(FunctionContext context)
-        {   
-            using Activity activity = new Activity("InternalActivity");
+        {
+            // This will act as an internal activity that represents remote Host activity. This cannot be tracked as this is not associate to an ActivitySource. 
+            using Activity activity = new Activity(nameof(InvokeFunctionAsync));
             activity.Start();
-
-            activity.AddTag("invocationId", context.InvocationId);
 
             if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
             {
@@ -78,7 +77,6 @@ namespace Microsoft.Azure.Functions.Worker
                 activity.SetSpanId(activityContext.SpanId.ToString());
                 activity.SetTraceId(activityContext.TraceId.ToString());
                 activity.SetRootId(activityContext.TraceId.ToString());
-                // activity.HasRemoteParent = true;
             }
 
             var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);

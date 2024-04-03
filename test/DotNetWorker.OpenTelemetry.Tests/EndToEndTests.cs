@@ -1,26 +1,26 @@
-﻿﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.OpenTelemetry;
 using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Trace;
-using OpenTelemetry;
-using OpenTelemetry.Resources;
-using Xunit;
-using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Moq;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using System.Reflection;
-using Microsoft.Azure.Functions.Worker;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Xunit;
 
 namespace DotNetWorker.OpenTelemetry.Tests;
 
@@ -112,7 +112,6 @@ public class EndToEndTests
             { "WEBSITE_RESOURCE_GROUP", "rg" },
             { "WEBSITE_OWNER_NAME", "AAAAA-AAAAA-AAAAA-AAA+appName-EastUSwebspace" },
             { "REGION_NAME", "EastUS" }
-
         });
     }
 

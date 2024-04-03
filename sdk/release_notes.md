@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.17.2 (meta package)
+### Microsoft.Azure.Functions.Worker.Sdk 1.17.13-preview1 (meta package)
 
-- Revert changes from #1946
-
+- Re-add SDK refactors that were reverted in #2313 (#2347)
+- Address assembly scanning regression (#2347)

@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     public static class ConfigureFunctionsOpenTelemetry
     {
-        private const string DefaultServiceName = "azureFunctions";
+        private const string DefaultServiceName = "iso";
         public static OpenTelemetryBuilder UseFunctionsWorkerDefaults(this OpenTelemetryBuilder builder)
         {
             if (builder is null)

@@ -8,7 +8,7 @@ namespace FunctionApp
 {
     public static class QueueTrigger
     {
-        //[Function(nameof(QueueTrigger))]
+        [Function(nameof(QueueTrigger))]
         public static Book Run(
             [QueueTrigger("functionstesting2", Connection = "AzureWebJobsStorage")] Book myQueueItem,
             [BlobInput("test-samples/sample1.txt", Connection = "AzureWebJobsStorage")] string myBlob)

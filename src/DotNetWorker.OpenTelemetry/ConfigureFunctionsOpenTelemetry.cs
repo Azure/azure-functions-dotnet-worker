@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
 using OpenTelemetry.Resources;
@@ -11,8 +12,7 @@ using OpenTelemetry.Resources;
 namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     public static class ConfigureFunctionsOpenTelemetry
-    {
-        private const string DefaultServiceName = "dotnetiso";
+    {   
         public static OpenTelemetryBuilder UseFunctionsWorkerDefaults(this OpenTelemetryBuilder builder)
         {
             if (builder is null)
@@ -33,10 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
             return builder;
         }
 
-        private static string GetServiceName()
-        {
-            return Environment.GetEnvironmentVariable(ResourceAttributeConstants.SiteNameEnvVar) ?? DefaultServiceName;
-        }
+        private static string GetServiceName() => Environment.GetEnvironmentVariable(ResourceAttributeConstants.SiteNameEnvVar) ?? Assembly.GetEntryAssembly()?.GetName().Name ?? ResourceAttributeConstants.SDKPrefix;
 
         private static void ConfigureResourceAttributes(ResourceBuilder r, string version)
         {

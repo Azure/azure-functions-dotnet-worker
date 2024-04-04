@@ -143,7 +143,7 @@ public class EndToEndTests
 
         public static Activity LastActivity;
 
-        public void TestFunction(FunctionContext context)
+        public async Task TestFunction(FunctionContext context)
         {
             LastActivity = Activity.Current;
             Activity.Current.ActivityTraceFlags = ActivityTraceFlags.Recorded;
@@ -153,7 +153,7 @@ public class EndToEndTests
             logger.LogWarning("Test");
 
             HttpClient httpClient = new HttpClient();
-            httpClient.GetAsync("https://www.bing.com").GetAwaiter().GetResult();
+            await httpClient.GetAsync("https://www.bing.com");
 
             if (context.Items.ContainsKey("_throw"))
             {

@@ -5,8 +5,8 @@
         <PackageId>Microsoft.Azure.Functions.Worker.OpenTelemetry</PackageId>
         <AssemblyName>Microsoft.Azure.Functions.Worker.OpenTelemetry</AssemblyName>
         <RootNamespace>Microsoft.Azure.Functions.Worker.OpenTelemetry</RootNamespace>
-        <MajorProductVersion>1</MajorProductVersion>
-        <MinorProductVersion>0</MinorProductVersion>
+        <MajorProductVersion>0</MajorProductVersion>
+        <MinorProductVersion>1</MinorProductVersion>
         <PatchProductVersion>0</PatchProductVersion>
         <PackageReadmeFile>README.md</PackageReadmeFile>
         <VersionSuffix></VersionSuffix>

@@ -8,7 +8,8 @@
       "src\\DotNetWorker.ApplicationInsights\\DotNetWorker.ApplicationInsights.csproj",
       "src\\DotNetWorker.Core\\DotNetWorker.Core.csproj",
       "src\\DotNetWorker.Grpc\\DotNetWorker.Grpc.csproj",
-      "src\\DotNetWorker\\DotNetWorker.csproj"
+      "src\\DotNetWorker\\DotNetWorker.csproj",
+      "src\\DotNetWorker.OpenTelemetry\\DotNetWorker.OpenTelemetry.csproj"
     ]
   }
 }

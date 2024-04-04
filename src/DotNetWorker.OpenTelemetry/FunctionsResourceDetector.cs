@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
 using OpenTelemetry.Resources;
 
 namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
@@ -24,8 +25,8 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 var siteName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.SiteNameEnvVar);
                 attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue));
                 attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeCloudPlatform, ResourceAttributeConstants.AzurePlatformValue));
-
-                var version = typeof(FunctionsResourceDetector).Assembly.GetName().Version.ToString();
+                
+                var version = Assembly.GetEntryAssembly()?.GetName().Version.ToString() ?? "0:0:0";
                 attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeVersion, version)); 
                 if (!string.IsNullOrEmpty(siteName))
                 {

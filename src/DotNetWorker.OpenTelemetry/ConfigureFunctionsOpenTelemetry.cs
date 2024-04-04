@@ -38,11 +38,12 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         private static void ConfigureResourceAttributes(ResourceBuilder r, string version)
         {
             r.AddService(GetServiceName(), serviceVersion: version)
-             .AddAttributes(new[]
-             {
-                new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeSDKPrefix, $"{ResourceAttributeConstants.SDKPrefix}: {version}"),
-                new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeProcessId, Process.GetCurrentProcess().Id.ToString())
-             });
+                .AddDetector(new FunctionsResourceDetector())
+                .AddAttributes(
+                 [
+                    new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeSDKPrefix, $"{ResourceAttributeConstants.SDKPrefix}: {version}"),
+                    new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeProcessId, Process.GetCurrentProcess().Id.ToString())
+                 ]);
         }
     }
 }

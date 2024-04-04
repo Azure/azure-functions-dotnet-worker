@@ -144,7 +144,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFuncti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry", "src\DotNetWorker.OpenTelemetry\DotNetWorker.OpenTelemetry.csproj", "{745EF501-2BFB-4774-83C3-7F7C5CC8B402}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetWorker.OpenTelemetry.Tests", "test\DotNetWorker.OpenTelemetry.Tests\DotNetWorker.OpenTelemetry.Tests.csproj", "{6F38C15F-EAAF-402C-8E79-1111EBEDCBAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry.Tests", "test\DotNetWorker.OpenTelemetry.Tests\DotNetWorker.OpenTelemetry.Tests.csproj", "{6F38C15F-EAAF-402C-8E79-1111EBEDCBAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

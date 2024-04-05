@@ -164,7 +164,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 if (outputBindingAttribute != null)
                 {
-                    if (!TryCreateBindingDict(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindingDict))
+                    if (!TryCreateBindingDictionary(outputBindingAttribute, Constants.FunctionMetadataBindingProps.ReturnBindingName, Location.None, out IDictionary<string, object>? bindings))
                     {
                         bindingsList = null;
                         return false;
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                     bindingsList = new List<IDictionary<string, object>>(capacity: 1)
                     {
-                        bindingDict!
+                        bindings!
                     };
 
                     return true;
@@ -288,22 +288,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                             string bindingName = parameter.Name;
 
-                            if (!TryCreateBindingDict(attribute, bindingName, Location.None, out IDictionary<string, object>? bindingDict, supportsDeferredBinding))
+                            if (!TryCreateBindingDictionary(attribute, bindingName, Location.None, out IDictionary<string, object>? bindings, supportsDeferredBinding))
                             {
-                                bindingsList = null;
+                                bindings = null;
                                 return false;
                             }
 
                             // If cardinality is supported and validated, but was not found in named args, constructor args, or default value attributes
                             // default to Cardinality: One to stay in sync with legacy generator.
-                            if (cardinalityValidated && !bindingDict!.Keys.Contains("cardinality"))
+                            if (cardinalityValidated && !bindings!.Keys.Contains("cardinality"))
                             {
-                                bindingDict!.Add("cardinality", "One");
+                                bindings!.Add("cardinality", "One");
                             }
 
                             if (dataType is not DataType.Undefined)
                             {
-                                bindingDict!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
+                                bindings!.Add("dataType", Enum.GetName(typeof(DataType), dataType));
                             }
 
                             // check for binding capabilities
@@ -318,7 +318,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                 }
                             }
 
-                            bindingsList.Add(bindingDict!);
+                            bindingsList.Add(bindings!);
                         }
                     }
                 }
@@ -434,7 +434,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         }
                     }
 
-                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponse)) // If return type is HttpResponseData
+                    if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownFunctionMetadataTypes.HttpResponseData))
                     {
                         bindingsList.Add(GetHttpReturnBinding(Constants.FunctionMetadataBindingProps.ReturnBindingName));
                     }
@@ -467,8 +467,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         return false;
                     }
 
-                    // Check if this attribute is an HttpResponseData type attribute
-                    if (prop is IPropertySymbol property && SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponse))
+                    // Check for HttpResponseData type for legacy apps
+                    if (prop is IPropertySymbol property
+                             && (SymbolEqualityComparer.Default.Equals(property.Type, _knownFunctionMetadataTypes.HttpResponseData)))
                     {
                         if (foundHttpOutput)
                         {
@@ -479,34 +480,46 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         foundHttpOutput = true;
                         bindingsList.Add(GetHttpReturnBinding(prop.Name));
+                        continue;
                     }
-                    else if (prop.GetAttributes().Length > 0) // check if this property has any attributes
+
+                    var propAttributes = prop.GetAttributes();
+
+                    if (propAttributes.Length > 0)
                     {
-                        var foundPropertyOutputAttr = false;
+                        var bindingAttributes = propAttributes.Where(p => p.AttributeClass!.IsOrDerivedFrom(_knownFunctionMetadataTypes.BindingAttribute));
 
-                        foreach (var attr in prop.GetAttributes()) // now loop through and check if any of the attributes are Binding attributes
+                        if (bindingAttributes.Count() > 1)
                         {
-                            if (SymbolEqualityComparer.Default.Equals(attr.AttributeClass?.BaseType, _knownFunctionMetadataTypes.OutputBindingAttribute))
+                            _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Property", prop.Name.ToString() }));
+                            bindingsList = null;
+                            return false;
+                        }
+
+                        // Check if this property has an HttpResultAttribute on it
+                        if (HasHttpResultAttribute(prop))
+                        {
+                            if (foundHttpOutput)
                             {
-                                // validate that there's only one binding attribute per property
-                                if (foundPropertyOutputAttr)
-                                {
-                                    _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleBindingsGroupedTogether, Location.None, new object[] { "Property", prop.Name.ToString() }));
-                                    bindingsList = null;
-                                    return false;
-                                }
-
-                                if (!TryCreateBindingDict(attr, prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindingDict))
-                                {
-                                    bindingsList = null;
-                                    return false;
-                                }
-
-                                bindingsList.Add(bindingDict!);
-
-                                returnTypeHasOutputBindings = true;
-                                foundPropertyOutputAttr = true;
+                                _context.ReportDiagnostic(Diagnostic.Create(DiagnosticDescriptors.MultipleHttpResponseTypes, Location.None, new object[] { returnTypeSymbol.Name }));
+                                bindingsList = null;
+                                return false;
                             }
+
+                            foundHttpOutput = true;
+                            bindingsList.Add(GetHttpReturnBinding(prop.Name));
+                        }
+                        else
+                        {
+                            if (!TryCreateBindingDictionary(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindings))
+                            {
+                                bindingsList = null;
+                                return false;
+                            }
+
+                            bindingsList.Add(bindings!);
+
+                            returnTypeHasOutputBindings = true;
                         }
                     }
                 }
@@ -517,6 +530,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private bool HasHttpResultAttribute(ISymbol prop)
+            {
+                var attributes = prop.GetAttributes();
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.AttributeClass is not null && 
+                        attribute.AttributeClass.IsOrDerivedFrom(_knownFunctionMetadataTypes.HttpResultAttribute))
+                    {
+                        return true;
+                    }
+                }
+
+                return false;
             }
 
             private IDictionary<string, object> GetHttpReturnBinding(string returnBindingName)
@@ -531,7 +559,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return httpBinding;
             }
 
-            private bool TryCreateBindingDict(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings, bool supportsDeferredBinding = false)
+            private bool TryCreateBindingDictionary(AttributeData bindingAttrData, string bindingName, Location? bindingLocation, out IDictionary<string, object>? bindings, bool supportsDeferredBinding = false)
             {
                 // Get binding info as a dictionary with keys as the property name and value as the property value
                 if (!TryGetAttributeProperties(bindingAttrData, bindingLocation, out IDictionary<string, object?>? attributeProperties))

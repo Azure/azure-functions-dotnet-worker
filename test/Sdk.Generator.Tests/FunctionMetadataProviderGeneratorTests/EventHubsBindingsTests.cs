@@ -7,6 +7,8 @@ using System.Text;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
@@ -23,11 +25,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var eventHubsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.EventHubs.dll");
-                var hostingExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.dll");
-                var diExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.dll");
-                var hostingAbExtension = Assembly.LoadFrom("Microsoft.Extensions.Hosting.Abstractions.dll");
-                var diAbExtension = Assembly.LoadFrom("Microsoft.Extensions.DependencyInjection.Abstractions.dll");
-
+                var hostingExtension = typeof(HostBuilder).Assembly;
+                var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
+                var hostingAbExtension = typeof(IHost).Assembly;
+                var diAbExtension = typeof(IServiceCollection).Assembly;
                 _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,

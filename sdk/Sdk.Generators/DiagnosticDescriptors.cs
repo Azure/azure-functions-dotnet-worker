@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public static DiagnosticDescriptor MultipleHttpResponseTypes { get; }
                   = Create(id: "AZFW0007",
                     title: "Symbol could not be found in user compilation.",
-                    messageFormat: "Found multiple public properties of type HttpResponseData defined in return type '{0}'. Only one HTTP response binding type is supported in your return type definition.",
+                    messageFormat: "Found multiple HTTP Response types (properties with HttpResultAttribute or properties of type HttpResponseData) defined in return type '{0}'. Only one HTTP response binding type is supported in your return type definition.",
                     category: "FunctionMetadataGeneration",
                     severity: DiagnosticSeverity.Error);
 

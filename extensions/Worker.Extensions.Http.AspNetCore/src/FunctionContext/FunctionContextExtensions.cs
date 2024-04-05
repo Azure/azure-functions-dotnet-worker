@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 
@@ -46,33 +46,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             return request is not null;
-        }
-
-        /// <summary>
-        /// Tries to get an HTTP Response of type T by first checking the invocation result then the output bindings of a function.
-        /// </summary>
-        /// <param name="context">The <see cref="FunctionContext"/></param>
-        /// <param name="result">The HTTP response for the respective function.</param>
-        /// <returns></returns>
-        public static bool TryGetHttpResponse<T>(this FunctionContext context, [NotNullWhen(true)] out T? result)
-        {
-            result = default(T);
-
-            var httpInvocationResult = context.GetInvocationResult();
-            if (httpInvocationResult.Value is T invocationResult)
-            {
-                result = invocationResult;
-                return true;
-            }
-
-            var httpOutputBinding = context.GetOutputBindings<T>().FirstOrDefault();
-            if (httpOutputBinding is not null && httpOutputBinding.Value is not null)
-            {
-                result = httpOutputBinding.Value;
-                return true;
-            }
-
-            return false;
         }
     }
 }

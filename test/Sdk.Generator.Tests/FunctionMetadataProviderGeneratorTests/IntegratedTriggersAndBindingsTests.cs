@@ -199,6 +199,9 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using System.Net;
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
+                using Microsoft.AspNetCore.Http;
+                using Microsoft.AspNetCore.Mvc;
+
                 namespace FunctionApp
                 {
                     public static class FunctionsMultipleOutputBindingWithActionResult

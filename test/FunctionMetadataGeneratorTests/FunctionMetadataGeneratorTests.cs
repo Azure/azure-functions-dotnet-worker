@@ -1549,7 +1549,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             [QueueOutput("queue2")]
             public string queueOutput { get; set; }
 
-            [HttpResponseOutput]
+            [HttpResult]
             public IActionResult httpResponseProp { get; set; }
         }
 

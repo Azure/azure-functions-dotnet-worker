@@ -45,7 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
             {
                 var functionGenerator = new FunctionMetadataGenerator(MSBuildLogger);
 
-                var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths.Select(p => p.ItemSpec));
+                var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths ?? Enumerable.Empty<ITaskItem>());
 
                 var extensions = functionGenerator.Extensions;
                 var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!, TargetFrameworkIdentifier!, TargetFrameworkVersion!);

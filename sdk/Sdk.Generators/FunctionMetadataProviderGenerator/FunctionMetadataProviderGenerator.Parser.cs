@@ -623,7 +623,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Value.Kind is TypedConstantKind.Array || namedArgument.Value.Value != null)
+                    if (IsNamedArgumentValid(namedArgument.Value))
                     {
                         if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
                         {
@@ -670,6 +670,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private bool IsNamedArgumentValid(TypedConstant? namedArgument)
+            {
+                if (namedArgument is null)
+                {
+                    return false;
+                }
+
+                if (namedArgument.Value.Kind is TypedConstantKind.Array)
+                {
+                    return true;
+                }
+                else
+                {
+                    return namedArgument.Value.Value != null;
+                }
             }
 
             private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> arguments, Location? attributeLocation)

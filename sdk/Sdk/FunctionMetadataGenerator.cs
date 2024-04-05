@@ -300,7 +300,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (PropertyDefinition property in typeDefinition.Properties)
             {
-                if (string.Equals(property.PropertyType.FullName, Constants.HttpResponseType, StringComparison.Ordinal) || HasHttpAttribute(property))
+                if (string.Equals(property.PropertyType.FullName, Constants.HttpResponseType, StringComparison.Ordinal) || HasHttpResultAttribute(property))
                 {
                     if (foundHttpOutput)
                     {
@@ -319,7 +319,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return bindingMetadata.Count > beforeCount;
         }
 
-        private bool HasHttpAttribute(PropertyDefinition property)
+        private bool HasHttpResultAttribute(PropertyDefinition property)
         {
             var attribute = property.CustomAttributes.FirstOrDefault(); // should only have one binding attribute on a property
 

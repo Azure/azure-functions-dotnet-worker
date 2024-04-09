@@ -1,0 +1,35 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+      <IsPackable>false</IsPackable>
+      <AssemblyName>Microsoft.Azure.Functions.Worker.Tests</AssemblyName>
+      <RootNamespace>Microsoft.Azure.Functions.Worker.Tests</RootNamespace>
+      <SignAssembly>true</SignAssembly>
+      <LangVersion>preview</LangVersion>
+      <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+      <Nullable>disable</Nullable>
+      <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Core.NewtonsoftJson" Version="1.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="xunit" Version="2.7.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\src\DotNetWorker.OpenTelemetry\DotNetWorker.OpenTelemetry.csproj" />
+    <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -5,6 +5,7 @@ using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Dynamic;
 using System.IO;
 using System.Linq;
@@ -859,6 +860,66 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
+        public void MultiReturn_MultiAttribute_IsValid()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(MultiOutput_ReturnType_MultiAttribute));
+
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+            var extensions = generator.Extensions;
+
+            Assert.Single(functions);
+
+            var HttpAndQueue = functions.Single(p => p.Name == "HttpAndQueue");
+
+            ValidateFunction(HttpAndQueue, "HttpAndQueue", GetEntryPoint(nameof(MultiOutput_ReturnType_MultiAttribute), nameof(MultiOutput_ReturnType_MultiAttribute.HttpAndQueue)),
+                b => ValidateHttpTrigger(b),
+                b => ValidateQueueOutput(b),
+                b => ValidateHttpOutput(b));
+
+            AssertDictionary(extensions, new Dictionary<string, string>
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage.Queues", "5.2.1" }
+            });
+
+            void ValidateHttpTrigger(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "req" },
+                    { "Type", "httpTrigger" },
+                    { "Direction", "In" },
+                    { "methods", new[] { "get" } },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+
+            void ValidateHttpOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "httpResponseProp" },
+                    { "Type", "http" },
+                    { "Direction", "Out" }
+                });
+            }
+
+            void ValidateQueueOutput(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "queueOutput" },
+                    { "Type", "queue" },
+                    { "Direction", "Out" },
+                    { "queueName", "queue2" },
+                    { "DataType", "String" },
+                    { "Properties", new Dictionary<String, Object>() }
+                });
+            }
+        }
+
+        [Fact]
         public void MultiOutput_OnMethod_Throws()
         {
             var generator = new FunctionMetadataGenerator();
@@ -867,7 +928,19 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             var exception = Assert.Throws<FunctionsMetadataGenerationException>(() => generator.GenerateFunctionMetadata(typeDef));
 
-            Assert.Contains($"Found multiple Output bindings on method", exception.Message);
+            Assert.Contains($"Found multiple output bindings on method", exception.Message);
+        }
+
+        [Fact]
+        public void MultiOutput_OnReturnTypeProperty_Throws()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(MultiReturn_MultiBinding));
+
+            var exception = Assert.Throws<FunctionsMetadataGenerationException>(() => generator.GenerateFunctionMetadata(typeDef));
+
+            Assert.Contains($"Found multiple output attributes on property", exception.Message);
         }
 
         [Theory]
@@ -1487,6 +1560,16 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class MultiReturn_MultiBinding
+        {
+            [Function("QueueToBlobFunction")]
+            public MultiReturn_MultiBindingOnProp QueueToBlob(
+    [QueueTrigger("queueName", Connection = "MyConnection")] string queuePayload)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class MultiOutput_ReturnType
         {
             [Function("QueueToBlobFunction")]
@@ -1527,6 +1610,16 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
         }
 
+        private class MultiOutput_ReturnType_MultiAttribute
+        {
+            [Function("HttpAndQueue")]
+            public MultiReturn_MultiAttribute HttpAndQueue(
+[HttpTrigger("get")] HttpRequest req)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         private class MultiReturn
         {
             [BlobOutput("container1/hello.txt", Connection = "MyOtherConnection")]
@@ -1546,6 +1639,26 @@ namespace Microsoft.Azure.Functions.SdkTests
 
         private class MultiReturn_Http_AspNet
         {
+            [QueueOutput("queue2")]
+            public string queueOutput { get; set; }
+
+            [HttpResult]
+            public IActionResult httpResponseProp { get; set; }
+        }
+
+        private class MultiReturn_MultiAttribute
+        {
+            [QueueOutput("queue2")]
+            public string queueOutput { get; set; }
+
+            [SuppressMessage("Microsoft.Naming", "Foo", Justification = "Bar")]
+            [HttpResult]
+            public IActionResult httpResponseProp { get; set; }
+        }
+
+        private class MultiReturn_MultiBindingOnProp
+        {
+            [BlobOutput("./result")]
             [QueueOutput("queue2")]
             public string queueOutput { get; set; }
 

@@ -363,7 +363,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (foundBinding)
                     {
-                        throw new FunctionsMetadataGenerationException($"Found multiple Output bindings on method '{method.FullName}'. " +
+                        throw new FunctionsMetadataGenerationException($"Found multiple output bindings on method '{method.FullName}'. " +
                             "Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 

@@ -321,11 +321,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private bool HasHttpResultAttribute(PropertyDefinition property)
         {
-            var attribute = property.CustomAttributes.FirstOrDefault(); // should only have one binding attribute on a property
-
-            if (attribute is not null && string.Equals(attribute.AttributeType.FullName, Constants.HttpResultAttributeType, StringComparison.Ordinal))
+           foreach (var attribute in property.CustomAttributes)
             {
-                return true;
+                if (string.Equals(attribute.AttributeType.FullName, Constants.HttpResultAttributeType, StringComparison.Ordinal))
+                {
+                    return true;
+                }
             }
 
             return false;

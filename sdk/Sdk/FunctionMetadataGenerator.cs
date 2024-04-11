@@ -300,7 +300,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             foreach (PropertyDefinition property in typeDefinition.Properties)
             {
-                if (string.Equals(property.PropertyType.FullName, Constants.HttpResponseType, StringComparison.Ordinal))
+                if (string.Equals(property.PropertyType.FullName, Constants.HttpResponseType, StringComparison.Ordinal) || HasHttpResultAttribute(property))
                 {
                     if (foundHttpOutput)
                     {
@@ -317,6 +317,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             }
 
             return bindingMetadata.Count > beforeCount;
+        }
+
+        private bool HasHttpResultAttribute(PropertyDefinition property)
+        {
+           foreach (var attribute in property.CustomAttributes)
+            {
+                if (string.Equals(attribute.AttributeType.FullName, Constants.HttpResultAttributeType, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private void AddOutputBindingFromProperty(IList<ExpandoObject> bindingMetadata, PropertyDefinition property, string typeName)
@@ -351,7 +364,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 {
                     if (foundBinding)
                     {
-                        throw new FunctionsMetadataGenerationException($"Found multiple Output bindings on method '{method.FullName}'. " +
+                        throw new FunctionsMetadataGenerationException($"Found multiple output bindings on method '{method.FullName}'. " +
                             "Please use an encapsulation to define the bindings in properties. For more information: https://aka.ms/dotnet-worker-poco-binding.");
                     }
 

@@ -1653,7 +1653,13 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             [SuppressMessage("Microsoft.Naming", "Foo", Justification = "Bar")]
             [HttpResult]
+            [CustomTest]
             public IActionResult httpResponseProp { get; set; }
+        }
+
+        private class CustomTestAttribute: Attribute
+        {
+
         }
 
         private class MultiReturn_MultiBindingOnProp

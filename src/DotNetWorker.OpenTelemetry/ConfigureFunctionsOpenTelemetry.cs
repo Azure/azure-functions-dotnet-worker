@@ -26,24 +26,10 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
             builder.ConfigureResource(r =>
             {
-                string version = typeof(ConfigureFunctionsOpenTelemetry).Assembly.GetName().Version.ToString();
-                ConfigureResourceAttributes(r, version);
+                r.AddDetector(new FunctionsResourceDetector());
             });
 
             return builder;
-        }
-
-        private static string GetServiceName() => Environment.GetEnvironmentVariable(ResourceAttributeConstants.SiteNameEnvVar) ?? Assembly.GetEntryAssembly()?.GetName().Name ?? ResourceAttributeConstants.SDKPrefix;
-
-        private static void ConfigureResourceAttributes(ResourceBuilder r, string version)
-        {
-            r.AddService(GetServiceName(), serviceVersion: version)
-                .AddDetector(new FunctionsResourceDetector())
-                .AddAttributes(
-                 [
-                    new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeSDKPrefix, $"{ResourceAttributeConstants.SDKPrefix}: {version}"),
-                    new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeProcessId, Process.GetCurrentProcess().Id.ToString())
-                 ]);
         }
     }
 }

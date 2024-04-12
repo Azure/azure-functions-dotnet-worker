@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.Features
+namespace DotNetWorker.OpenTelemetry.Tests
 {
     internal class TestFunctionBindingsFeature : IFunctionBindingsFeature
     {

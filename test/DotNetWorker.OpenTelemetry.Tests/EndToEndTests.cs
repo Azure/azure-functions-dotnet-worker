@@ -6,14 +6,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.OpenTelemetry;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -75,8 +76,17 @@ public class EndToEndTests
         await _application.InvokeFunctionAsync(context);
         var activity = OtelFunctionDefinition.LastActivity;
 
-        Assert.Equal(activity.Id, context.TraceContext.TraceParent);
-        Assert.Equal("InvokeFunctionAsync", activity.OperationName);
+        if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
+        {
+            Assert.Equal(activity.Id, context.TraceContext.TraceParent);
+            Assert.Equal("InvokeFunctionAsync", activity.OperationName);
+            Assert.Equal(activity.SpanId, activityContext.SpanId);
+            Assert.Equal(activity.TraceId, activityContext.TraceId);
+        }
+        else
+        {
+            Assert.Fail("Failed to parse ActivityContext");
+        }   
     }
 
     [Fact]
@@ -85,17 +95,15 @@ public class EndToEndTests
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
-        Assert.Equal(3, resource.Attributes.Count());
-        var attribute = resource.Attributes.FirstOrDefault(a => a.Key == "cloud.provider");
-        Assert.Equal("azure", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.provider").Value);
-        Assert.Equal("azure_functions", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.platform").Value);
+        Assert.Equal(4, resource.Attributes.Count());
+        Assert.Equal("testhost", resource.Attributes.FirstOrDefault(a => a.Key == "service.name").Value);
+        Assert.Contains("dotnetiso", resource.Attributes.FirstOrDefault(a => a.Key == "ai.sdk.prefix").Value as string);
     }
 
     [Fact]
-    public void ResourceDetectorLocalDevelopment2()
+    public void ResourceDetector()
     {
         using var _ = SetupDefaultEnvironmentVariables();
-
         FunctionsResourceDetector detector = new FunctionsResourceDetector();
         Resource resource = detector.Detect();
 
@@ -149,16 +157,25 @@ public class EndToEndTests
             Activity.Current.ActivityTraceFlags = ActivityTraceFlags.Recorded;
             Activity.Current.AddTag("CustomKey", "CustomValue");
 
-            var logger = context.GetLogger("TestFunction");
-            logger.LogWarning("Test");
+            var response = new HttpResponseMessage(HttpStatusCode.OK);
+            var handler = new MockHttpMessageHandler(response);
+            var httpClient = new HttpClient(handler);
+            await httpClient.GetAsync("http://localhost:5500");
+        }
+    }
 
-            HttpClient httpClient = new HttpClient();
-            await httpClient.GetAsync("https://www.bing.com");
+    public class MockHttpMessageHandler : HttpMessageHandler
+    {
+        private readonly HttpResponseMessage _response;
 
-            if (context.Items.ContainsKey("_throw"))
-            {
-                throw new InvalidOperationException("boom!");
-            }
+        public MockHttpMessageHandler(HttpResponseMessage response)
+        {
+            _response = response;
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            return await Task.FromResult(_response);
         }
     }
 }

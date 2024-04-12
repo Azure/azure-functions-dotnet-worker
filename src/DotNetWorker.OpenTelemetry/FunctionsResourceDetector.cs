@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using OpenTelemetry.Resources;
 
@@ -10,40 +11,41 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
 
     public sealed class FunctionsResourceDetector : IResourceDetector
-    {  
-        internal static readonly IReadOnlyDictionary<string, string> ResourceAttributes = new Dictionary<string, string>(1)
-        {
-            { ResourceAttributeConstants.AttributeCloudRegion, ResourceAttributeConstants.RegionNameEnvVar },
-        };
-
-        /// <inheritdoc/>
+    {
         public Resource Detect()
         {
-            List<KeyValuePair<string, object>> attributeList = new(5);
+            List<KeyValuePair<string, object>> attributeList = new(8);
             try
             {
-                var siteName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.SiteNameEnvVar);
-                attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeCloudProvider, ResourceAttributeConstants.AzureCloudProviderValue));
-                attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeCloudPlatform, ResourceAttributeConstants.AzurePlatformValue));
-                
-                var version = Assembly.GetEntryAssembly()?.GetName().Version.ToString() ?? "0:0:0";
-                attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeVersion, version)); 
-                if (!string.IsNullOrEmpty(siteName))
+                string serviceName = Environment.GetEnvironmentVariable(OpenTelemetryConstants.SiteNameEnvVar);
+                string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
+
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.ServiceVersion, version));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AISDKPrefix, $@"{OpenTelemetryConstants.SDKPrefix}:{version}"));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.ProcessId, Process.GetCurrentProcess().Id));
+
+                // Add these attributes only if running in Azure.
+                if (!string.IsNullOrEmpty(serviceName))
                 {
-                    var azureResourceUri = GetAzureResourceURI(siteName);
-                    if (azureResourceUri != null)
+                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.ServiceName, serviceName));
+                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.CloudProvider, OpenTelemetryConstants.AzureCloudProviderValue));
+                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.CloudPlatform, OpenTelemetryConstants.AzurePlatformValue));
+
+                    string region = Environment.GetEnvironmentVariable(OpenTelemetryConstants.RegionNameEnvVar);
+                    if (!string.IsNullOrEmpty(region))
                     {
-                        attributeList.Add(new KeyValuePair<string, object>(ResourceAttributeConstants.AttributeCloudResourceId, azureResourceUri));
+                        attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.CloudRegion, region));
                     }
 
-                    foreach (var kvp in ResourceAttributes)
+                    var azureResourceUri = GetAzureResourceURI(serviceName);
+                    if (!string.IsNullOrEmpty(azureResourceUri))
                     {
-                        var attributeValue = Environment.GetEnvironmentVariable(kvp.Value);
-                        if (attributeValue != null)
-                        {
-                            attributeList.Add(new KeyValuePair<string, object>(kvp.Key, attributeValue));
-                        }
+                        attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.CloudResourceId, azureResourceUri));
                     }
+                }
+                else
+                {
+                    attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.ServiceName, Assembly.GetEntryAssembly().GetName().Name));
                 }
             }
             catch
@@ -51,25 +53,19 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 // return empty resource.
                 return Resource.Empty;
             }
-
             return new Resource(attributeList);
         }
-        private static string? GetAzureResourceURI(string websiteSiteName)
+
+        private static string GetAzureResourceURI(string websiteSiteName)
         {
-            string? websiteResourceGroup = Environment.GetEnvironmentVariable(ResourceAttributeConstants.ResourceGroupEnvVar);
-            string? websiteOwnerName = Environment.GetEnvironmentVariable(ResourceAttributeConstants.OwnerNameEnvVar);
-
-            if (string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(websiteOwnerName))
-            {
-                return null;
-            }
-
+            string websiteResourceGroup = Environment.GetEnvironmentVariable(OpenTelemetryConstants.ResourceGroupEnvVar);
+            string websiteOwnerName = Environment.GetEnvironmentVariable(OpenTelemetryConstants.OwnerNameEnvVar) ?? string.Empty;
             int idx = websiteOwnerName.IndexOf("+", StringComparison.Ordinal);
             string subscriptionId = idx > 0 ? websiteOwnerName.Substring(0, idx) : websiteOwnerName;
 
-            if (string.IsNullOrEmpty(subscriptionId))
+            if (string.IsNullOrEmpty(websiteResourceGroup) || string.IsNullOrEmpty(subscriptionId))
             {
-                return null;
+                return string.Empty;
             }
 
             return $"/subscriptions/{subscriptionId}/resourceGroups/{websiteResourceGroup}/providers/Microsoft.Web/sites/{websiteSiteName}";

@@ -20,7 +20,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             public SignalRTests()
             {
-                // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var hostingExtension = typeof(HostBuilder).Assembly;
                 var diExtension = typeof(DefaultServiceProviderFactory).Assembly;

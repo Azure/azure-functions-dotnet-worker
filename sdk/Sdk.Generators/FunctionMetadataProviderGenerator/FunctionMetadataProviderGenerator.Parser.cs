@@ -623,7 +623,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (IsNamedArgumentValid(namedArgument.Value))
+                    if (WriteArgumentToMetadata(namedArgument.Value))
                     {
                         if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
                         {
@@ -672,20 +672,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool IsNamedArgumentValid(TypedConstant? namedArgument)
+            private bool WriteArgumentToMetadata(TypedConstant? namedArgument)
             {
                 if (namedArgument is null)
                 {
                     return false;
                 }
 
+                // special handling required for array types which store values differently
                 if (namedArgument.Value.Kind is TypedConstantKind.Array)
                 {
                     return true;
                 }
                 else
                 {
-                    return namedArgument.Value.Value != null;
+                    return namedArgument.Value.Value != null; // similar to legacy generator, arguments with null values are not written to function metadata
                 }
             }
 

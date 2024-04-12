@@ -10,7 +10,7 @@ This package does **not** add OpenTelemetry services directly. This must be done
 
 ``` CSharp
 dotnet add package Azure.Monitor.OpenTelemetry.AspNetCore
-dotnet add package Microsoft.Azure.Functions.Worker.OpenTelemetry
+dotnet add package Microsoft.Azure.Functions.Worker.OpenTelemetry --prerelease
 ```
 
 2. Configure ApplicationInsights using Azure Monitor OpenTelemetry Distro

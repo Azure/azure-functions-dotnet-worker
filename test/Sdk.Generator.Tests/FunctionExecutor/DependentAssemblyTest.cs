@@ -132,7 +132,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                        
                                                private IFunctionExecutor CreateDefaultExecutorInstance(FunctionContext context)
                                                {
-                                                   var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.17.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
+                                                   var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.18.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
                                                    var defaultExecutorType = Type.GetType(defaultExecutorFullName);
                                        
                                                    return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as IFunctionExecutor;

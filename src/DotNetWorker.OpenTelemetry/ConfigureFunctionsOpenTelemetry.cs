@@ -2,12 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Reflection;
 using Microsoft.Extensions.DependencyInjection;
 using OpenTelemetry;
-using OpenTelemetry.Resources;
 
 namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
@@ -24,11 +20,10 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
                 .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerOpenTelemetryEnabled"] = bool.TrueString);
 
-            builder.ConfigureResource(r =>
+            builder.ConfigureResource((resourceBuilder) =>
             {
-                r.AddDetector(new FunctionsResourceDetector());
+                resourceBuilder.AddDetector(new FunctionsResourceDetector());
             });
-
             return builder;
         }
     }

@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
                 string version = Assembly.GetEntryAssembly().GetName().Version.ToString();
 
                 attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.ServiceVersion, version));
-                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AISDKPrefix, $@"{OpenTelemetryConstants.SDKPrefix}:{version}"));
+                attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.AISDKPrefix, $@"{OpenTelemetryConstants.SDKPrefix}:{typeof(FunctionsResourceDetector).Assembly.GetName().Version}"));
                 attributeList.Add(new KeyValuePair<string, object>(ResourceSemanticConventions.ProcessId, Process.GetCurrentProcess().Id));
 
                 // Add these attributes only if running in Azure.

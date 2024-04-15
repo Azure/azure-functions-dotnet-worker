@@ -19,6 +19,16 @@
     <ExportsFile>$(MSBuildThisFileDirectory)exports.def</ExportsFile>
   </PropertyGroup>
 
+  <!--! Need to enable event source support in net8.0 AOT-->
+  <PropertyGroup>
+    <EventSourceSupport>true</EventSourceSupport>
+  </PropertyGroup>
+
+  <!--! Temp to capture events-->
+  <PropertyGroup>
+    <UseWindowsThreadPool>false</UseWindowsThreadPool>
+  </PropertyGroup>
+  
   <ItemGroup>
     <PackageReference Include="Google.Protobuf" Version="3.23.2" />
     <PackageReference Include="Grpc.Net.Client" Version="2.53.0" />

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using FunctionsNetHost.Diagnostics;
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -30,6 +31,20 @@ namespace FunctionsNetHost.Grpc
         {
             if (_specializationDone)
             {
+                // For our tests, we will issue only one invocation request(cold start request)
+                if (msg.ContentCase == StreamingMessage.ContentOneofCase.InvocationRequest)
+                {
+                    AppLoaderEventSource.Log.ColdStartRequestFunctionInvocationStart();
+                }
+                else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionLoadRequest)
+                {
+                    AppLoaderEventSource.Log.FunctionLoadReqStart(msg.FunctionLoadRequest.FunctionId);
+                }
+                else if (msg.ContentCase == StreamingMessage.ContentOneofCase.FunctionsMetadataRequest)
+                {
+                    AppLoaderEventSource.Log.FunctionMetadataReqStart();
+                }
+
                 // Specialization done. So forward all messages to customer payload.
                 await MessageChannel.Instance.SendInboundAsync(msg);
                 return;
@@ -62,6 +77,7 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
+                    AppLoaderEventSource.Log.SpecializationRequestReceived();
                     Configuration.Reload();
                     Logger.LogTrace("Specialization request received.");
 
@@ -103,6 +119,7 @@ namespace FunctionsNetHost.Grpc
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
 
+                    AppLoaderEventSource.Log.ApplicationMainStartedSignalReceived();
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
                     if (OperatingSystem.IsWindows())
                     {

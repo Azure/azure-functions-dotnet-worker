@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using FunctionsNetHost.Diagnostics;
 using FunctionsNetHost.Grpc;
 
 namespace FunctionsNetHost
@@ -42,6 +43,7 @@ namespace FunctionsNetHost
                 var hostfxrFullPath = NetHost.GetHostFxrPath(&parameters);
                 Logger.LogTrace($"hostfxr path:{hostfxrFullPath}");
 
+                AppLoaderEventSource.Log.HostFxrLoadStart(hostfxrFullPath);
                 _hostfxrHandle = NativeLibrary.Load(hostfxrFullPath);
 
                 if (_hostfxrHandle == IntPtr.Zero)
@@ -50,9 +52,11 @@ namespace FunctionsNetHost
                     return -1;
                 }
 
+                AppLoaderEventSource.Log.HostFxrLoadStop();
                 Logger.LogTrace($"hostfxr loaded.");
 
                 var commandLineArguments = _workerStartupOptions.CommandLineArgs.Prepend(assemblyPath).ToArray();
+                AppLoaderEventSource.Log.HostFxrInitializeForDotnetCommandLineStart(assemblyPath);
                 var error = HostFxr.Initialize(commandLineArguments.Length, commandLineArguments, IntPtr.Zero, out _hostContextHandle);
 
                 if (_hostContextHandle == IntPtr.Zero)
@@ -66,8 +70,11 @@ namespace FunctionsNetHost
                     return error;
                 }
 
+                AppLoaderEventSource.Log.HostFxrInitializeForDotnetCommandLineStop();
                 Logger.LogTrace($"hostfxr initialized with {assemblyPath}");
                 HostFxr.SetAppContextData(_hostContextHandle, "AZURE_FUNCTIONS_NATIVE_HOST", "1");
+
+                AppLoaderEventSource.Log.HostFxrRunAppStart();
 
                 return HostFxr.Run(_hostContextHandle);
             }

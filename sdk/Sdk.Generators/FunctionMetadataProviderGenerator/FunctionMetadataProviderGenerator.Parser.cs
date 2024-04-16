@@ -623,7 +623,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (WriteArgumentToMetadata(namedArgument.Value))
+                    if (IsNamedArgumentValid(namedArgument.Value))
                     {
                         if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
                         {
@@ -672,14 +672,14 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private bool WriteArgumentToMetadata(TypedConstant? namedArgument)
+            private static bool IsNamedArgumentValid(TypedConstant? namedArgument)
             {
                 if (namedArgument is null)
                 {
                     return false;
                 }
 
-                // special handling required for array types which store values differently
+                // special handling required for array types which store values differently (cannot check namedArgument.Value.Value)
                 if (namedArgument.Value.Kind is TypedConstantKind.Array)
                 {
                     return true;

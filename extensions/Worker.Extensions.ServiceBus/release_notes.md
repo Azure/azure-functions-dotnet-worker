@@ -4,7 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.17.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.17.1
 
-- Added the `AutoCompleteMessages` property to the `ServiceBusTriggerAttribute`, enabling automatic completion
-to be configured for each function.
+- Update `Azure.Identity` to 1.11.0

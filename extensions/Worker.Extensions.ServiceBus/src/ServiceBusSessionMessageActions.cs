@@ -15,10 +15,12 @@ namespace Microsoft.Azure.Functions.Worker
 
         private readonly string _sessionId;
 
-        internal ServiceBusSessionMessageActions(Settlement.SettlementClient settlement, string sessionId)
+        internal ServiceBusSessionMessageActions(Settlement.SettlementClient settlement, string sessionId, DateTimeOffset sessionLockedUntil)
         {
             _settlement = settlement;
             _sessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
+            SessionLockedUntil = sessionLockedUntil;
+
         }
 
         /// <summary>
@@ -33,18 +35,7 @@ namespace Microsoft.Azure.Functions.Worker
             _settlement = null!; // not expected to be used during mocking.
         }
 
-        public virtual DateTimeOffset SessionLockedUntil
-        {
-            get
-            {
-                var request = new SessionLockedUntil()
-                {
-                    SessionId = _sessionId,
-                };
-                var sessionLockedRequest = _settlement.SessionLocked(request);
-                return sessionLockedRequest.LockedUntil.ToDateTimeOffset();
-            }
-        }
+        public virtual DateTimeOffset SessionLockedUntil { get; private set; }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task<BinaryData> GetSessionStateAsync(
@@ -96,7 +87,9 @@ namespace Microsoft.Azure.Functions.Worker
                 SessionId = _sessionId,
             };
 
-            await _settlement.RenewAsync(request, cancellationToken: cancellationToken);
+            var result = await _settlement.RenewAsync(request, cancellationToken: cancellationToken);
+            SessionLockedUntil = result.LockedUntil.ToDateTimeOffset();
+            
         }
     }
 }

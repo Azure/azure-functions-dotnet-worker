@@ -2,16 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Linq;
 using System.Threading.Tasks;
-using Azure.Core.Amqp;
-using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Core;
-using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
 using Microsoft.Azure.ServiceBus.Grpc;
+using System.Text.Json;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -35,7 +30,14 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
-                var result = ConversionResult.Success(new ServiceBusSessionMessageActions(_settlement, sessionId?.ToString()));
+
+                // Get the sessionLockedUntil property from the SessionActions binding data
+                context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionActions", out object? sessionActions);
+                JsonDocument jsonDocument = JsonDocument.Parse(sessionActions.ToString());
+                jsonDocument.RootElement.TryGetProperty("SessionLockedUntil", out JsonElement sessionLockedUntil);
+
+                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, sessionId?.ToString(), sessionLockedUntil.GetDateTimeOffset());
+                var result = ConversionResult.Success(sessionActionResult);
                 return new ValueTask<ConversionResult>(result);
             }
             catch (Exception exception)

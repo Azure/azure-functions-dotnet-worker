@@ -43,32 +43,5 @@ namespace Microsoft.Azure.Functions.Worker
                 return new ValueTask<ConversionResult>(ConversionResult.Failed(exception));
             }
         }
-
-        private ServiceBusReceivedMessage ConvertToServiceBusReceivedMessage(ModelBindingData binding)
-        {
-            if (binding is null)
-            {
-                throw new ArgumentNullException(nameof(binding));
-            }
-
-            if (binding.Source is not Constants.BindingSource)
-            {
-                throw new InvalidBindingSourceException(binding.Source, Constants.BindingSource);
-            }
-
-            if (binding.ContentType is not Constants.BinaryContentType)
-            {
-                throw new InvalidContentTypeException(binding.ContentType, Constants.BinaryContentType);
-            }
-
-            // The lock token is a 16 byte GUID
-            const int lockTokenLength = 16;
-
-            ReadOnlyMemory<byte> bytes = binding.Content.ToMemory();
-            ReadOnlyMemory<byte> lockTokenBytes = bytes.Slice(0, lockTokenLength);
-            ReadOnlyMemory<byte> messageBytes = bytes.Slice(lockTokenLength, bytes.Length - lockTokenLength);
-            return ServiceBusReceivedMessage.FromAmqpMessage(AmqpAnnotatedMessage.FromBytes(BinaryData.FromBytes(messageBytes)),
-                BinaryData.FromBytes(lockTokenBytes));
-        }
     }
 }

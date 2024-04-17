@@ -1,6 +1,6 @@
 name: Bug Report
 description: Create a report to help us improve
-labels: ["bug"]
+labels: ["potential-bug"]
 body: 
 - id: description
   type: textarea

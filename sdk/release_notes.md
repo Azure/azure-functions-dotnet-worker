@@ -36,3 +36,5 @@ public class MyOutputType
     public IActionResult HttpResponse { get; set; }
 }
 ```
+
+- Fix bug causing compiler error when named arguments in function attributes are array types (#2344).

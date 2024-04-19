@@ -10,7 +10,6 @@
         <PatchProductVersion>0</PatchProductVersion>
         <VersionSuffix>-preview1</VersionSuffix>
         <PackageReadmeFile>README.md</PackageReadmeFile>
-        <VersionSuffix></VersionSuffix>
         <BeforePack>$(BeforePack);GetReleaseNotes</BeforePack>
     </PropertyGroup>
 

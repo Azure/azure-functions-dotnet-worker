@@ -623,9 +623,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (IsNamedArgumentValid(namedArgument.Value))
+                    if (IsArrayOrNotNull(namedArgument.Value))
                     {
-                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
+                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) 
+                            && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
@@ -672,7 +673,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return true;
             }
 
-            private static bool IsNamedArgumentValid(TypedConstant? namedArgument)
+            private static bool IsArrayOrNotNull(TypedConstant? namedArgument)
             {
                 if (namedArgument is null)
                 {

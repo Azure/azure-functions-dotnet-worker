@@ -6,7 +6,7 @@
     <Description>Azure Queue Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.3.0</VersionPrefix>
+    <VersionPrefix>5.4.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

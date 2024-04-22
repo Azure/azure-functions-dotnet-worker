@@ -11,9 +11,9 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.4.0
 
-- Updated `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` host extension to 3.3.0
-- Updated `Azure.Storage.Blobs` to `12.19.1` />
-- Updated `Microsoft.Extensions.Azure` to `1.7.3` />
+- Updated `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` host extension to 5.3.0
+- Updated `Azure.Storage.Blobs` to `12.19.1`
+- Updated `Microsoft.Extensions.Azure` to `1.7.3`
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.4.0
 

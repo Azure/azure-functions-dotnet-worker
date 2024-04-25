@@ -6,7 +6,7 @@
     <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.8.0</VersionPrefix>
+    <VersionPrefix>4.8.1</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -15,8 +15,8 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.38.1" />
-    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.2" />
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.1" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.3" />
     <!-- Transitive dependency promoted to address CVE:-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>

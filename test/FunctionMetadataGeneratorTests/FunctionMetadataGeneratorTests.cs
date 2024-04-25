@@ -501,7 +501,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.2.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.3.1" },
             });
 
             var tableEntityFunction = functions.Single(p => p.Name == "TableEntityFunction");
@@ -984,7 +984,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.2.0" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.1" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)
@@ -1156,7 +1156,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.13.5" },
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.15.1" },
             });
 
             var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));
@@ -1209,7 +1209,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.2.0" },
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.1" },
             });
 
             var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));

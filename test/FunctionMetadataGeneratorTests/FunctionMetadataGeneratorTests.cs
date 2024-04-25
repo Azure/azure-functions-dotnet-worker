@@ -501,7 +501,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.2.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.Tables", "1.3.1" },
             });
 
             var tableEntityFunction = functions.Single(p => p.Name == "TableEntityFunction");

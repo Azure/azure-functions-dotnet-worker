@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
@@ -26,22 +25,22 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
             Diagnostic diagnostic = context.Diagnostics.First();
-            context.RegisterCodeFix(new ChangeConfigurationForASPNetIntegration(context.Document, diagnostic), diagnostic);
+            context.RegisterCodeFix(new AddHttpResultAttribute(context.Document, diagnostic), diagnostic);
 
             return Task.CompletedTask;
         }
 
         /// <summary>
-        /// CodeAction implementation which fixes the method configuration for ASP.NET Core Integration.
+        /// CodeAction implementation which adds the HttpResultAttribute on the return type of a function using the multi-output bindings pattern.
         /// </summary>
-        private sealed class ChangeConfigurationForASPNetIntegration : CodeAction
+        private sealed class AddHttpResultAttribute : CodeAction
         {
             private readonly Document _document;
             private readonly Diagnostic _diagnostic;
             private readonly string ExpectedAttributeName = "HttpResultAttribute";
 
 
-            internal ChangeConfigurationForASPNetIntegration(Document document, Diagnostic diagnostic)
+            internal AddHttpResultAttribute(Document document, Diagnostic diagnostic)
             {
                 this._document = document;
                 this._diagnostic = diagnostic;
@@ -58,19 +57,33 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             {
                 // Get the syntax root of the document
                 var root = await _document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                var semanticModel = await _document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-                // Find the property that needs the attribute
-                var propertyNode = root.DescendantNodes()
+                var typeNode = root.FindNode(this._diagnostic.Location.SourceSpan)
+                    .FirstAncestorOrSelf<TypeSyntax>();
+
+                var typeSymbol = semanticModel.GetSymbolInfo(typeNode).Symbol;
+                var typeDeclarationSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
+                if (typeDeclarationSyntaxReference == null)
+                {
+                    return _document;
+                }
+
+                var typeDeclarationNode = await typeDeclarationSyntaxReference.GetSyntaxAsync(cancellationToken);
+
+                var propertyNode = typeDeclarationNode.DescendantNodes()
                     .OfType<PropertyDeclarationSyntax>()
-                    .First(); // Adjust this to find the correct property
+                    .First(prop =>
+                    {
+                        var propertyType = semanticModel.GetTypeInfo(prop.Type).Type;
+                        return propertyType != null && propertyType.Name == "IActionResult";
+                    });
 
                 var attribute = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(ExpectedAttributeName));
 
-                // Add the attribute to the property
-                var newPropertyNode = propertyNode.AddAttributeLists(
-                    SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute)));
+                var newPropertyNode = propertyNode
+                    .AddAttributeLists(SyntaxFactory.AttributeList(SyntaxFactory.SingletonSeparatedList(attribute)));
 
-                // Replace the old property with the new property in the syntax root
                 var newRoot = root.ReplaceNode(propertyNode, newPropertyNode);
 
                 return _document.WithSyntaxRoot(newRoot);

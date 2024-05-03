@@ -1,7 +1,7 @@
 ﻿using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer>;
-using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
@@ -10,8 +10,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
 {
     public class HttpResultAttributeExpectedTests
     {
-        private const string ExpectedAttribute = "HttpResultAttribute";
-
         [Fact]
         public async Task HttpResultAttribute_WhenUsingIActionResultAndMultiOutput_Expected()
         {
@@ -55,9 +53,47 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
+        public async Task HttpResultAttributeUsedCorrectly_NoDiagnostic()
+        {
+            string testCode = @"
+            using System;
+            using Microsoft.AspNetCore.Http;
+            using Microsoft.AspNetCore.Mvc;
+            using Microsoft.Azure.Functions.Worker;
+
+            namespace AspNetIntegration
+            {
+                public class MultipleOutputBindings
+                {
+                    [Function(""MultipleOutputBindings"")]
+                    public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    public class MyOutputType
+                    {
+                        [HttpResult]
+                        public IActionResult Result { get; set; }
+
+                        [BlobOutput(""test-samples-output/{name}-output.txt"")]
+                        public string MessageText { get; set; }
+                    }
+                }
+            }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         public async Task HttpResultAttribute_WhenUsingHttpRequestDataAndMultiOutput_NotExpected()
         {
-                        string testCode = @"
+            string testCode = @"
             using System;
             using Microsoft.AspNetCore.Http;
             using Microsoft.Azure.Functions.Worker.Http;
@@ -92,72 +128,67 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
-        public async Task AspNetIntegration_WithIncorrectRegistration_Diagnostics_Expected_CodeFixWorks()
+        public async Task HttpResultAttributeExpected_CodeFixWorks()
         {
             string inputCode = @"
-                using System.Linq;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Extensions.DependencyInjection;
-                using Microsoft.Extensions.Hosting;
-                using Microsoft.Extensions.Logging;
-                namespace AspNetIntegration
+            using System;
+            using Microsoft.AspNetCore.Http;
+            using Microsoft.AspNetCore.Mvc;
+            using Microsoft.Azure.Functions.Worker;
+
+            namespace AspNetIntegration
+            {
+                public class MultipleOutputBindings
                 {
-                    class Program
+                    [Function(""MultipleOutputBindings"")]
+                    public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
                     {
-                        static void Main(string[] args)
-                        {
-                            //<docsnippet_aspnet_registration>
-                            var host = new HostBuilder()
-                                .ConfigureFunctionsWorkerDefaults()
-                                .Build();
-                            host.Run();
-                            //</docsnippet_aspnet_registration>
-                        }
-                        public static void Method1()
-                        {
-                        }
-                        private static void Method2()
-                        {
-                        }
+                        throw new NotImplementedException();
                     }
-                }";
+
+                    public class MyOutputType
+                    {
+                        public IActionResult Result { get; set; }
+
+                        [BlobOutput(""test-samples-output/{name}-output.txt"")]
+                        public string MessageText { get; set; }
+                    }
+                }
+            }";
 
             string expectedCode = @"
-                using System.Linq;
-                using System.Threading.Tasks;
-                using Microsoft.Azure.Functions.Worker;
-                using Microsoft.Extensions.DependencyInjection;
-                using Microsoft.Extensions.Hosting;
-                using Microsoft.Extensions.Logging;
-                namespace AspNetIntegration
+            using System;
+            using Microsoft.AspNetCore.Http;
+            using Microsoft.AspNetCore.Mvc;
+            using Microsoft.Azure.Functions.Worker;
+
+            namespace AspNetIntegration
+            {
+                public class MultipleOutputBindings
                 {
-                    class Program
+                    [Function(""MultipleOutputBindings"")]
+                    public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
                     {
-                        static void Main(string[] args)
-                        {
-                            //<docsnippet_aspnet_registration>
-                            var host = new HostBuilder()
-                                .ConfigureFunctionsWebApplication()
-                                .Build();
-                            host.Run();
-                            //</docsnippet_aspnet_registration>
-                        }
-                        public static void Method1()
-                        {
-                        }
-                        private static void Method2()
-                        {
-                        }
+                        throw new NotImplementedException();
                     }
-                }";
+
+                    public class MyOutputType
+                    {
+                        [HttpResultAttribute]
+                        public IActionResult Result { get; set; }
+
+                        [BlobOutput(""test-samples-output/{name}-output.txt"")]
+                        public string MessageText { get; set; }
+                    }
+                }
+            }";
 
 
             var expectedDiagnosticResult = CodeFixVerifier
                                 .Diagnostic("AZFW0015")
                                 .WithSeverity(DiagnosticSeverity.Error)
-                                .WithSpan(16, 34, 16, 66)
-                                .WithArguments(ExpectedAttribute);
+                                .WithLocation(12, 28)
+                                .WithArguments("\"MultipleOutputBindings\"");
 
             var test = new CodeFixTest
             {
@@ -179,8 +210,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.2.1"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "5.0.0"),
                 new PackageIdentity("Microsoft.AspNetCore.Mvc.Core", "2.2.5"),
-                new PackageIdentity("Microsoft.AspNetCore.Http.Abstractions", "2.2.0"),
-                new PackageIdentity("Microsoft.Extensions.Hosting.Abstractions", "6.0.0")));
+                new PackageIdentity("Microsoft.Extensions.Hosting.Abstractions", "6.0.0"),
+                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.2.0-local")));
 
             return referenceAssemblies;
         }

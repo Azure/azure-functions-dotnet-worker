@@ -1,6 +1,8 @@
-﻿using System.Collections.Immutable;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -19,7 +21,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute);
 
-
         public override void Initialize(AnalysisContext context)
         {
             context.EnableConcurrentExecution();
@@ -30,10 +31,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         private static void AnalyzeMethod(SyntaxNodeAnalysisContext context)
         {
             var semanticModel = context.SemanticModel;
-            var methodDeclaration = (MethodDeclarationSyntax)context.Node;
+            var methodDeclaration = (MethodDeclarationSyntax) context.Node;
 
             var functionAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(FunctionAttributeFullName);
-
             var functionNameAttribute = methodDeclaration.AttributeLists
                 .SelectMany(attrList => attrList.Attributes)
                 .Where(attr => SymbolEqualityComparer.Default.Equals(semanticModel.GetTypeInfo(attr).Type, functionAttributeSymbol));
@@ -43,10 +43,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 return;
             }
 
-            var functionName = functionNameAttribute.First().ArgumentList.Arguments[0]; // only one argument for FunctionAttribute
+            var functionName = functionNameAttribute.First().ArgumentList.Arguments[0]; // only one argument in FunctionAttribute which is the function name
 
             var httpTriggerAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(HttpTriggerAttributeFullName);
-
             var hasHttpTriggerAttribute = methodDeclaration.ParameterList.Parameters
                 .SelectMany(param => param.AttributeLists)
                 .SelectMany(attrList => attrList.Attributes)
@@ -60,8 +59,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             var returnType = methodDeclaration.ReturnType;
             var returnTypeSymbol = semanticModel.GetTypeInfo(returnType).Type;
-            var taskSymbol = semanticModel.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
 
+            var taskSymbol = semanticModel.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
             var isGenericTask = returnTypeSymbol != null && returnTypeSymbol.OriginalDefinition.Equals(taskSymbol, SymbolEqualityComparer.Default);
             var isTaskOfCustomType = isGenericTask && returnTypeSymbol is INamedTypeSymbol genericSymbol
                 && IsCustomType(genericSymbol.TypeArguments[0]);
@@ -73,18 +72,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
 
             var httpResponseDataSymbol = semanticModel.Compilation.GetTypeByMetadataName(HttpResponseDataFullName);
-
-            var hasHttpRequestData = returnTypeSymbol.GetMembers()
+            var hasHttpResponseData = returnTypeSymbol.GetMembers()
                 .OfType<IPropertySymbol>()
                 .Any(prop => SymbolEqualityComparer.Default.Equals(prop.Type, httpResponseDataSymbol));
 
             var httpResultAttributeSymbol = semanticModel.Compilation.GetTypeByMetadataName(HttpResultAttributeFullName);
-
             var hasHttpResultAttribute = returnTypeSymbol.GetMembers()
                 .SelectMany(member => member.GetAttributes())
                 .Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, httpResultAttributeSymbol));
 
-            if (!hasHttpResultAttribute && !hasHttpRequestData)
+            if (!hasHttpResultAttribute && !hasHttpResponseData)
             {
                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute, methodDeclaration.ReturnType.GetLocation(), functionName.ToString());
                 context.ReportDiagnostic(diagnostic);

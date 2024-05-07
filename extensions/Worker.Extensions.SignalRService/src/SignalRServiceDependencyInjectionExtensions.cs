@@ -44,7 +44,7 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 var genericDefinition = typeof(ServiceHubContextInitializer<>);
                 var genericType = genericDefinition.MakeGenericType(hubType);
-                return services.AddHostedService(sp => (IHostedService)ActivatorUtilities.CreateInstance(sp, genericType, configure));
+                return services.AddSingleton(sp => (IHostedService)ActivatorUtilities.CreateInstance(sp, genericType, configure));
             }
         }
 

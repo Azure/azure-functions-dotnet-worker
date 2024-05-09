@@ -6,6 +6,7 @@ using System.Linq;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Xunit;
+using Moq;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
 {

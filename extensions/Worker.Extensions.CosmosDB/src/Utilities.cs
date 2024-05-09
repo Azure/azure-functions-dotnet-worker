@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Azure.Cosmos;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
 {
@@ -20,6 +21,33 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.CosmosDB
                 .Select((region) => region.Trim())
                 .Where((region) => !string.IsNullOrEmpty(region))
                 .ToList();
+        }
+
+        internal static CosmosClientOptions BuildClientOptions(ConnectionMode? connectionMode, CosmosSerializer serializer, string preferredLocations, string userAgent)
+        {
+            CosmosClientOptions cosmosClientOptions = new ();
+
+            if (connectionMode.HasValue)
+            {
+                cosmosClientOptions.ConnectionMode = connectionMode.Value;
+            }
+
+            if (!string.IsNullOrEmpty(preferredLocations))
+            {
+                cosmosClientOptions.ApplicationPreferredRegions = ParsePreferredLocations(preferredLocations);
+            }
+
+            if (!string.IsNullOrEmpty(userAgent))
+            {
+                cosmosClientOptions.ApplicationName = userAgent;
+            }
+
+            if (serializer != null)
+            {
+                cosmosClientOptions.Serializer = serializer;
+            }
+
+            return cosmosClientOptions;
         }
     }
 }

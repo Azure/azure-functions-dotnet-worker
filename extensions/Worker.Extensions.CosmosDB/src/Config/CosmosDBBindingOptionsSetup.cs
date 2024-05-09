@@ -15,12 +15,14 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
         private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
+        private readonly IOptionsMonitor<CosmosDBOptions> _cosmosDBOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions)
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosDBOptions> cosmosDBOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
+            _cosmosDBOptions = cosmosDBOptions ?? throw new ArgumentNullException(nameof(cosmosDBOptions));
         }
 
         public void Configure(CosmosDBBindingOptions options)
@@ -57,6 +59,8 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             options.Serializer = new WorkerCosmosSerializer(_workerOptions.CurrentValue.Serializer);
+            options.ConnectionMode = _cosmosDBOptions.CurrentValue.ConnectionMode;
+            options.UserAgentSuffix = _cosmosDBOptions.CurrentValue.UserAgentSuffix;
         }
     }
 }

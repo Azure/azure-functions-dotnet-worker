@@ -34,18 +34,17 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddAzureClientsCore();
             services.TryAddSingleton<HubContextProvider>();
             services.TryAddSingleton<ServiceManagerOptionsSetup>();
-            if (TryGetClientType(hubType, out var clientType))
+            var genericType = TryGetClientType(hubType, out var clientType) ?
+                typeof(ServiceHubContextInitializer<,>).MakeGenericType(hubType, clientType) :
+                typeof(ServiceHubContextInitializer<>).MakeGenericType(hubType);
+            // If we find a singleton generic type, then the hub is already registered, skip adding the hosted service.
+            if (!services.Any(s => s.ServiceType == genericType && s.Lifetime == ServiceLifetime.Singleton))
             {
-                var genericDefinition = typeof(ServiceHubContextInitializer<,>);
-                var genericType = genericDefinition.MakeGenericType(hubType, clientType);
-                return services.AddSingleton(sp => (IHostedService)ActivatorUtilities.CreateInstance(sp, genericType, configure));
+                services
+                    .AddSingleton(genericType, sp => ActivatorUtilities.CreateInstance(sp, genericType, configure))
+                    .AddSingleton(sp => (IHostedService)sp.GetRequiredService(genericType));
             }
-            else
-            {
-                var genericDefinition = typeof(ServiceHubContextInitializer<>);
-                var genericType = genericDefinition.MakeGenericType(hubType);
-                return services.AddSingleton(sp => (IHostedService)ActivatorUtilities.CreateInstance(sp, genericType, configure));
-            }
+            return services;
         }
 
         private static bool TryGetClientType(Type hubType, out Type clientType)

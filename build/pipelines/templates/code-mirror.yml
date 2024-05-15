@@ -1,0 +1,21 @@
+trigger:
+  branches:
+    include:
+    # Keep this set limited as appropriate (don't mirror individual user branches).
+    - main
+    - release/v1.x
+    - release/sdk
+    - release/extensions
+
+resources:
+  repositories:
+  - repository: eng
+    type: git
+    name: engineering
+    ref: refs/tags/release
+
+variables:
+  - template: ci/variables/cfs.yml@eng
+
+extends:
+  template: ci/code-mirror.yml@eng

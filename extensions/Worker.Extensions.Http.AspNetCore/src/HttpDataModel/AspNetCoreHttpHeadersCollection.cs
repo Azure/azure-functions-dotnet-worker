@@ -38,7 +38,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             // Even though we're replacing the response feature headers, we need to make sure
             // headers are written back to the original reference before sent to the client as
             // that reference is still used.
-            request.OnStarting(ProcessResponseStarting);
+            if (!request.HasStarted)
+            {
+                request.OnStarting(ProcessResponseStarting);
+            }
         }
 
         public AspNetCoreHttpResponseHeadersCollection(HttpResponse request, HttpHeadersCollection headers)

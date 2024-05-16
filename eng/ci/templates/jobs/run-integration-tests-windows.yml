@@ -1,14 +1,11 @@
 jobs:
-- job: RunIntegrationTests
-  displayName: Run Integration Tests
+- job: RunIntegrationTests_Windows
+  displayName: '[Windows] Run Integration Tests'
 
   pool:
     name: 1es-pool-azfunc
     image: 1es-windows-2022
     os: windows
-
-  variables:
-    IsReleaseBranch: $[contains(variables['Build.SourceBranch'], 'release/')]
 
   steps:
   - task: NuGetAuthenticate@1
@@ -17,12 +14,13 @@ jobs:
   - pwsh: . "tools/start-emulators.ps1" -NoWait
     displayName: "Start emulators (NoWait)"
 
-  - template: /eng/ci/templates/install-dotnet.yml@self
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2
     displayName: Build DotNetWorker
     inputs:
       command: build
+      arguments: '-c Release'
       projects: DotNetWorker.sln
 
   - pwsh: |
@@ -34,14 +32,14 @@ jobs:
       ./setup-e2e-tests.ps1 -DotnetVersion 'net7' `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
                             -SkipBuildOnPack
-    displayName: "Setup E2E tests - Net7"
+    displayName: '[NET 7] Setup E2E tests'
 
   - task: DotNetCoreCLI@2
-    displayName: E2E Tests - NET 7
+    displayName: '[NET 7] E2E Tests'
     inputs:
       command: test
       testRunTitle: E2E Tests
-      arguments: -v n --no-build
+      arguments: -v n --no-build -c Release
       projects: |
         **\E2ETests.csproj
         **\SdkE2ETests.csproj
@@ -55,14 +53,14 @@ jobs:
       ./setup-e2e-tests.ps1 -DotnetVersion 'netfx' `
                             -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
                             -SkipBuildOnPack
-    displayName: "Setup E2E tests - NetFramework"
+    displayName: '[NET Fx] Setup E2E tests'
 
   - task: DotNetCoreCLI@2
-    displayName: E2E Tests - NET Framework
+    displayName: '[NET Fx] E2E Tests'
     inputs:
       command: test
       testRunTitle: E2E Tests
-      arguments: -v n --no-build
+      arguments: -v n --no-build -c Release
       projects: |
         **\E2ETests.csproj
         **\SdkE2ETests.csproj

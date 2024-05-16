@@ -1,6 +1,7 @@
 jobs:
-- job: BuildArtifactsWindows
-  displayName: Build Windows Artifacts
+- job: BuildArtifacts
+  displayName: Build Artifacts
+  condition: eq(variables.IsReleaseBranch, True)
 
   templateContext:
     outputParentDirectory: $(Build.ArtifactStagingDirectory)
@@ -16,15 +17,10 @@ jobs:
     os: windows
 
   variables:
-    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
-      buildNumberTemp: $(Build.BuildNumber)
-    ${{ if or( contains(variables['Build.SourceBranch'], '/release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags') ) }}:
-      isReleaseBuildTemp: true
-    buildNumber: $[variables.buildNumberTemp]
-    isReleaseBuild: $[variables.isReleaseBuildTemp]
+    buildNumber: $(Build.BuildNumber)
 
   steps:
-  - template: /eng/ci/templates/install-dotnet.yml@self
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2
     displayName: Build worker solution
@@ -148,18 +144,18 @@ jobs:
     inputs:
       command: custom
       custom: pack
-      arguments: '--no-build -c release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\packages -p:BuildNumber=$(buildNumber)'
+      arguments: '--no-build -c release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\out\pkg\release -p:BuildNumber=$(buildNumber)'
       projects: |
-        **/Sdk.csproj
+        sdk/**/Sdk*.csproj
 
   - task: DotNetCoreCLI@2
     displayName: Pack DotNetWorker
     inputs:
       command: custom
       custom: pack
-      arguments: '--no-build -c release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\packages -p:BuildNumber=$(buildNumber)'
+      arguments: '--no-build -c release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\out\pkg\release -p:BuildNumber=$(buildNumber)'
       projects: |
-        **/DotNetWorker.csproj
+        src/**/DotNetWorker*.csproj
 
   - task: EsrpCodeSigning@2
     displayName: Sign nuget packages

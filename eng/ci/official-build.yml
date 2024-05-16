@@ -23,6 +23,8 @@ resources:
 variables:
   - template: ci/variables/build.yml@eng
   - template: ci/variables/cfs.yml@eng
+  - name: IsReleaseBranch
+    value: $[or(contains(variables['Build.SourceBranch'], 'release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags'))]
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -36,11 +38,12 @@ extends:
     - stage: Build
 
       jobs:
-      - template: /eng/ci/templates/official/jobs/build-artifacts-windows.yml@self
-      - template: /eng/ci/templates/official/jobs/build-artifacts-linux.yml@self
+      - template: /eng/ci/templates/official/jobs/build-artifacts.yml@self
 
     - stage: Test
 
       jobs:
-      - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
-      - template: /eng/ci/templates/official/jobs/run-integration-tests.yml@self
+      - template: /eng/ci/templates/jobs/run-unit-tests-windows.yml@self
+      - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
+      - template: /eng/ci/templates/jobs/run-unit-tests-linux.yml@self
+      - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self

@@ -1,0 +1,16 @@
+jobs:
+- job: RunUnitTests_Linux
+  displayName: '[Linux] Run Unit Tests'
+
+  pool:
+    name: 1es-pool-azfunc
+    image: 1es-ubuntu-22.04
+    os: linux
+
+  steps:
+  - task: NuGetAuthenticate@1
+    displayName: NuGet Authenticate
+
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - template: /eng/ci/templates/steps/run-unit-tests.yml@self

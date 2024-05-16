@@ -1,7 +1,6 @@
 jobs:
 - job: BuildArtifacts
   displayName: Build Artifacts
-  condition: eq(variables.IsReleaseBranch, True)
 
   templateContext:
     outputParentDirectory: $(Build.ArtifactStagingDirectory)

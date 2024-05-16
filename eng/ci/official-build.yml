@@ -23,8 +23,6 @@ resources:
 variables:
   - template: ci/variables/build.yml@eng
   - template: ci/variables/cfs.yml@eng
-  - name: IsReleaseBranch
-    value: $[or(contains(variables['Build.SourceBranch'], 'release/'), startsWith(variables['Build.SourceBranch'], 'refs/tags'))]
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es

@@ -1,0 +1,67 @@
+jobs:
+- job: RunUnitTests
+  displayName: 'Run unit tests -'
+
+  strategy:
+    matrix:
+      linux:
+        imageName: '1es-ubuntu-22.04'
+        osName: 'linux'
+      windows:
+        imageName: '1es-windows-2022'
+        osName: 'windows'
+
+  pool:
+    name: 1es-pool-azfunc
+    image: $(imageName)
+    os: $(osName)
+
+  steps:
+
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - task: DotNetCoreCLI@2
+    displayName: Worker Tests
+    inputs:
+      command: test
+      arguments: -v n
+      projects: |
+        **\DotNetWorkerTests.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: OpenTelemetry Tests
+    inputs:
+      command: test
+      arguments: -v n
+      projects: |
+        **\DotNetWorker.Opentelemetry.Tests.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: Application Insights Tests
+    inputs:
+      command: test
+      arguments: -v n
+      projects: |
+        **\DotNetWorker.ApplicationInsights.Tests.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: Sdk Tests
+    inputs:
+      command: test
+      arguments: -v n
+      projects: |
+        **\SdkTests.csproj
+        **\Sdk.Analyzers.Tests.csproj
+        **\Sdk.Generatior.Tests.csproj
+
+  - task: DotNetCoreCLI@2
+    displayName: Extension Tests
+    inputs:
+      command: test
+      arguments: -v n
+      projects: |
+        **\Worker.Extensions.Http.AspNetCore.Tests.csproj
+        **\Worker.Extensions.Rpc.Tests.csproj
+        **\Worker.Extensions.Shared.Tests.csproj
+        **\Worker.Extensions.SignalRService.Tests.csproj
+        **\Worker.Extensions.Tests.csproj

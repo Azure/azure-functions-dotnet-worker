@@ -1,0 +1,44 @@
+jobs:
+- job: RunIntegrationTests_Windows
+  displayName: 'Run integration tests - windows -'
+
+  strategy:
+    matrix:
+      net7:
+        dotnetVersion: 'net7'
+      netfx:
+        dotnetVersion: 'netfx'
+
+  pool:
+    name: 1es-pool-azfunc
+    image: 1es-windows-2022
+    os: windows
+
+  steps:
+
+  - pwsh: . "tools/start-emulators.ps1" -NoWait
+    displayName: "Start emulators (NoWait)"
+
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - task: DotNetCoreCLI@2
+    displayName: Build DotNetWorker
+    inputs:
+      command: build
+      arguments: '-c Release'
+      projects: DotNetWorker.sln
+
+  - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
+    parameters:
+      DotnetVersion: $(dotnetVersion)
+      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
+      SkipBuildOnPack: true
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run E2E Tests'
+    inputs:
+      command: test
+      arguments: -v n --no-build -c Release
+      projects: |
+        **\E2ETests.csproj
+        **\SdkE2ETests.csproj

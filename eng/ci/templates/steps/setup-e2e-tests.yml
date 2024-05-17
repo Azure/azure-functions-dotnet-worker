@@ -1,0 +1,22 @@
+parameters:
+  - name: UseCoreToolsBuildFromIntegrationTests
+    type: string
+    default: 'false'
+  - name: DotnetVersion
+    type: string
+    default: 'net7'
+  - name: AdditionalArguments
+    type: string
+    default: ''
+
+steps:
+
+- task: PowerShell@2
+  displayName: 'Setup E2E tests'
+  inputs:
+    filePath: setup-e2e-tests.ps1
+    arguments: |
+      -DotnetVersion ${{ parameters.DotnetVersion }} \
+      -UseCoreToolsBuildFromIntegrationTests ${{ parameters.UseCoreToolsBuildFromIntegrationTests }} \
+      -SkipBuildOnPack \
+      ${{ parameters.AdditionalArguments }} \

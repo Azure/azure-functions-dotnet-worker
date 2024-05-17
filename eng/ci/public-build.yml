@@ -39,7 +39,6 @@ extends:
     - stage: Test
 
       jobs:
-      - template: /eng/ci/templates/jobs/run-unit-tests-windows.yml@self
+      - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
       - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
-      - template: /eng/ci/templates/jobs/run-unit-tests-linux.yml@self
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self

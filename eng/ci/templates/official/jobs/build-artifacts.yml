@@ -1,4 +1,5 @@
 jobs:
+
 - job: BuildArtifacts
   displayName: Build Artifacts
 
@@ -16,7 +17,9 @@ jobs:
     os: windows
 
   variables:
-    buildNumber: $(Build.BuildNumber)
+    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
+      buildNumberTemp: $(Build.BuildNumber)
+    buildNumber: $[variables.buildNumberTemp]
 
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
@@ -143,7 +146,7 @@ jobs:
     inputs:
       command: custom
       custom: pack
-      arguments: '--no-build -c release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\out\pkg\release -p:BuildNumber=$(buildNumber)'
+      arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
       projects: |
         sdk/**/Sdk*.csproj
 
@@ -152,7 +155,7 @@ jobs:
     inputs:
       command: custom
       custom: pack
-      arguments: '--no-build -c release -p:PackageOutputPath=$(System.DefaultWorkingDirectory)\out\pkg\release -p:BuildNumber=$(buildNumber)'
+      arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
       projects: |
         src/**/DotNetWorker*.csproj
 
@@ -160,7 +163,7 @@ jobs:
     displayName: Sign nuget packages
     inputs:
       ConnectedServiceName: ESRP Service-internal
-      FolderPath: out/pkg/release
+      FolderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
       Pattern: Microsoft.Azure.Functions.Worker*.nupkg
       signConfigType: inlineSignParams
       inlineOperation: |
@@ -185,9 +188,3 @@ jobs:
     displayName: Delete CodeSignSummary files
     inputs:
       contents: '**/CodeSignSummary-*.md'
-
-  - task: CopyFiles@2
-    inputs:
-      SourceFolder: out/pkg/release
-      Contents: '**/*.nupkg'
-      TargetFolder: $(Build.ArtifactStagingDirectory)/NugetPackages

@@ -1,4 +1,24 @@
-steps:
+jobs:
+- job: RunUnitTests
+  displayName: 'Run Unit Tests'
+
+  strategy:
+    matrix:
+      linux:
+        imageName: '1es-ubuntu-22.04'
+        osName: 'linux'
+      windows:
+        imageName: '1es-windows-2022'
+        osName: 'windows'
+
+  pool:
+    name: 1es-pool-azfunc
+    image: $(imageName)
+    os: $(osName)
+
+  steps:
+
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2
     displayName: Worker Tests

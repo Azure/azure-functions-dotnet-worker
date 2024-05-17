@@ -2,14 +2,19 @@ jobs:
 - job: RunIntegrationTests_Windows
   displayName: '[Windows] Run Integration Tests'
 
+  strategy:
+    matrix:
+      net7:
+        dotnetVersion: net7
+      netFx:
+        dotnetVersion: netfx
+
   pool:
     name: 1es-pool-azfunc
     image: 1es-windows-2022
     os: windows
 
   steps:
-  - task: NuGetAuthenticate@1
-    displayName: NuGet Authenticate
 
   - pwsh: . "tools/start-emulators.ps1" -NoWait
     displayName: "Start emulators (NoWait)"
@@ -23,43 +28,15 @@ jobs:
       arguments: '-c Release'
       projects: DotNetWorker.sln
 
-  - pwsh: |
-      $useIntegrationTestingCoreTools = $null
-      if (-not ([bool]::TryParse($env:USECORETOOLSBUILDFROMINTEGRATIONTESTS, [ref] $useIntegrationTestingCoreTools)))
-      {
-        throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
-      }
-      ./setup-e2e-tests.ps1 -DotnetVersion 'net7' `
-                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                            -SkipBuildOnPack
-    displayName: '[NET 7] Setup E2E tests'
+  - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
+    parameters:
+      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
+      DotnetVersion: $(dotnetVersion)
 
   - task: DotNetCoreCLI@2
-    displayName: '[NET 7] E2E Tests'
+    displayName: 'Run E2E Tests'
     inputs:
       command: test
-      testRunTitle: E2E Tests
-      arguments: -v n --no-build -c Release
-      projects: |
-        **\E2ETests.csproj
-        **\SdkE2ETests.csproj
-
-  - pwsh: |
-      $useIntegrationTestingCoreTools = $null
-      if (-not ([bool]::TryParse($env:USECORETOOLSBUILDFROMINTEGRATIONTESTS, [ref] $useIntegrationTestingCoreTools)))
-      {
-        throw "UseCoreToolsBuildFromIntegrationTests can only be set to True or False. Current value is set to $env:USECORETOOLSBUILDFROMINTEGRATIONTESTS"
-      }
-      ./setup-e2e-tests.ps1 -DotnetVersion 'netfx' `
-                            -UseCoreToolsBuildFromIntegrationTests:$useIntegrationTestingCoreTools `
-                            -SkipBuildOnPack
-    displayName: '[NET Fx] Setup E2E tests'
-
-  - task: DotNetCoreCLI@2
-    displayName: '[NET Fx] E2E Tests'
-    inputs:
-      command: test
-      testRunTitle: E2E Tests
       arguments: -v n --no-build -c Release
       projects: |
         **\E2ETests.csproj

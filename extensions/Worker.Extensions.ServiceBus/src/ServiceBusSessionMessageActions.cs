@@ -17,10 +17,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal ServiceBusSessionMessageActions(Settlement.SettlementClient settlement, string sessionId, DateTimeOffset sessionLockedUntil)
         {
-            _settlement = settlement;
+            _settlement = settlement ?? throw new ArgumentNullException(nameof(settlement));
             _sessionId = sessionId ?? throw new ArgumentNullException(nameof(sessionId));
             SessionLockedUntil = sessionLockedUntil;
-
         }
 
         /// <summary>
@@ -41,12 +40,12 @@ namespace Microsoft.Azure.Functions.Worker
         public virtual async Task<BinaryData> GetSessionStateAsync(
             CancellationToken cancellationToken = default)
         {
-            var request = new GetRequest()
+            var request = new GetSessionStateRequest()
             {
                 SessionId = _sessionId,
             };
 
-            GetResponse result = await _settlement.GetAsync(request, cancellationToken: cancellationToken);
+            GetSessionStateResponse result = await _settlement.GetSessionStateAsync(request, cancellationToken: cancellationToken);
             byte[] byteArray = result.SessionState.ToByteArray();
             BinaryData binaryData = BinaryData.FromBytes(byteArray);
             return await Task.FromResult(binaryData);
@@ -57,37 +56,37 @@ namespace Microsoft.Azure.Functions.Worker
             BinaryData sessionState,
             CancellationToken cancellationToken = default)
         {
-            var request = new SetRequest()
+            var request = new SetSessionStateRequest()
             {
                 SessionId = _sessionId,
                 SessionState = ByteString.CopyFrom(sessionState.ToArray()),
             };
 
-            await _settlement.SetAsync(request, cancellationToken: cancellationToken);
+            await _settlement.SetSessionStateAsync(request, cancellationToken: cancellationToken);
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task ReleaseSession(
             CancellationToken cancellationToken = default)
         {
-            var request = new ReleaseSession()
+            var request = new ReleaseSessionRequest()
             {
                 SessionId = _sessionId,
             };
 
-            await _settlement.ReleaseAsync(request, cancellationToken: cancellationToken);
+            await _settlement.ReleaseSessionAsync(request, cancellationToken: cancellationToken);
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task RenewSessionLockAsync(
             CancellationToken cancellationToken = default)
         {
-            var request = new RenewSessionLock()
+            var request = new RenewSessionLockRequest()
             {
                 SessionId = _sessionId,
             };
 
-            var result = await _settlement.RenewAsync(request, cancellationToken: cancellationToken);
+            var result = await _settlement.RenewSessionLockAsync(request, cancellationToken: cancellationToken);
             SessionLockedUntil = result.LockedUntil.ToDateTimeOffset();
             
         }

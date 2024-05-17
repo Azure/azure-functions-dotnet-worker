@@ -29,14 +29,27 @@ namespace Microsoft.Azure.Functions.Worker
         {
             try
             {
-                context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
+                var foundSessionId = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
+                if (!foundSessionId)
+                {
+                    throw new InvalidOperationException("Expecting SessionId within binding data and value was not present.");
+                }
 
                 // Get the sessionLockedUntil property from the SessionActions binding data
-                context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionActions", out object? sessionActions);
-                JsonDocument jsonDocument = JsonDocument.Parse(sessionActions.ToString());
-                jsonDocument.RootElement.TryGetProperty("SessionLockedUntil", out JsonElement sessionLockedUntil);
+                var foundSessionActions = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionActions", out object? sessionActions);
+                if (!foundSessionActions)
+                {
+                    throw new InvalidOperationException("Expecting SessionActions within binding data and value was not present.");
+                }
 
-                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, sessionId?.ToString(), sessionLockedUntil.GetDateTimeOffset());
+                JsonDocument jsonDocument = JsonDocument.Parse(sessionActions!.ToString());
+                var foundSessionLockedUntil = jsonDocument.RootElement.TryGetProperty("SessionLockedUntil", out JsonElement sessionLockedUntil);
+                if (!foundSessionLockedUntil)
+                {
+                    throw new InvalidOperationException("Expecting SessionLockedUntil within binding data of session actions and value was not present.");
+                }
+
+                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, sessionId!.ToString(), sessionLockedUntil.GetDateTimeOffset());
                 var result = ConversionResult.Success(sessionActionResult);
                 return new ValueTask<ConversionResult>(result);
             }

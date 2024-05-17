@@ -1,6 +1,6 @@
 jobs:
 - job: RunUnitTests
-  displayName: 'Run Unit Tests'
+  displayName: 'Run unit tests -'
 
   strategy:
     matrix:

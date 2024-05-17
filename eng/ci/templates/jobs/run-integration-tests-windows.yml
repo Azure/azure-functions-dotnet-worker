@@ -1,13 +1,13 @@
 jobs:
 - job: RunIntegrationTests_Windows
-  displayName: '[Windows] Run Integration Tests'
+  displayName: 'Run integration tests - windows -'
 
   strategy:
     matrix:
       net7:
-        dotnetVersion: net7
-      netFx:
-        dotnetVersion: netfx
+        dotnetVersion: 'net7'
+      netfx:
+        dotnetVersion: 'netfx'
 
   pool:
     name: 1es-pool-azfunc
@@ -30,8 +30,9 @@ jobs:
 
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
-      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
       DotnetVersion: $(dotnetVersion)
+      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
+      SkipBuildOnPack: true
 
   - task: DotNetCoreCLI@2
     displayName: 'Run E2E Tests'

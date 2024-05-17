@@ -1,22 +1,35 @@
 parameters:
-  - name: UseCoreToolsBuildFromIntegrationTests
-    type: string
-    default: 'false'
   - name: DotnetVersion
     type: string
     default: 'net7'
-  - name: AdditionalArguments
+  - name: UseCoreToolsBuildFromIntegrationTests
     type: string
-    default: ''
+    default: 'false'
+  - name: SkipStorageEmulator
+    type: boolean
+    default: false
+  - name: SkipCosmosDBEmulator
+    type: boolean
+    default: false
+  - name: SkipCoreTools
+    type: boolean
+    default: false
+  - name: SkipBuildOnPack
+    type: boolean
+    default: false
 
 steps:
 
 - task: PowerShell@2
   displayName: 'Setup E2E tests'
   inputs:
+    targetType: filePath
     filePath: setup-e2e-tests.ps1
-    arguments: |
-      -DotnetVersion ${{ parameters.DotnetVersion }} \
-      -UseCoreToolsBuildFromIntegrationTests ${{ parameters.UseCoreToolsBuildFromIntegrationTests }} \
-      -SkipBuildOnPack \
-      ${{ parameters.AdditionalArguments }} \
+    arguments: >
+      -DotnetVersion ${{ parameters.DotnetVersion }}
+      -SkipStorageEmulator:$${{ parameters.SkipStorageEmulator }}
+      -SkipCosmosDBEmulator:$${{ parameters.SkipCosmosDBEmulator }}
+      -SkipCoreTools:$${{ parameters.SkipCoreTools }}
+      -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuildFromIntegrationTests }}
+      -SkipBuildOnPack:$${{ parameters.SkipBuildOnPack }}
+    pwsh: true

@@ -1,0 +1,47 @@
+parameters:
+  - name: ExtensionProjectName
+    type: string
+  - name: HasOwnTestProject
+    type: boolean
+    default: false
+
+jobs:
+
+- job: RunTests
+  displayName: 'Run Tests'
+
+  strategy:
+    matrix:
+      linux:
+        imageName: '1es-ubuntu-22.04'
+        osName: 'linux'
+      windows:
+        imageName: '1es-windows-2022'
+        osName: 'windows'
+
+  pool:
+    name: 1es-pool-azfunc
+    image: $(imageName)
+    os: $(osName)
+
+  steps:
+
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - ${{ if eq(parameters.HasOwnTestProject, true) }}:
+    - task: DotNetCoreCLI@2
+      displayName: 'Run tests'
+      inputs:
+        command: test
+        arguments: -v n
+        projects: |
+          **/${{ parameters.ExtensionProjectName }}.Tests.csproj
+
+  - ${{ if eq(parameters.HasOwnTestProject, false) }}:
+    - task: DotNetCoreCLI@2
+      displayName: 'Run tests'
+      inputs:
+        command: test
+        arguments: -v n
+        projects: |
+          **/Worker.Extensions.Tests.csproj

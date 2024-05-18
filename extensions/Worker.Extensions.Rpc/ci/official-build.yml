@@ -37,13 +37,6 @@ extends:
       os: windows
 
     stages:
-    - stage: Build
-
-      jobs:
-      - template: /eng/ci/templates/official/jobs/build-extension-artifacts.yml@self
-        parameters:
-          ExtensionProjectName: $(ExtensionProjectName)
-
     - stage: Test
 
       jobs:
@@ -51,3 +44,10 @@ extends:
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)
           HasOwnTestProject: true
+
+    - stage: Build
+
+      jobs:
+      - template: /eng/ci/templates/official/jobs/build-extension-artifacts.yml@self
+        parameters:
+          ExtensionProjectName: $(ExtensionProjectName)

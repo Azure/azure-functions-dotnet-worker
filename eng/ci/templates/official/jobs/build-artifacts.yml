@@ -1,7 +1,7 @@
 jobs:
 
 - job: BuildArtifacts
-  displayName: Build Artifacts
+  displayName: Build artifacts
 
   templateContext:
     outputParentDirectory: $(Build.ArtifactStagingDirectory)
@@ -37,7 +37,7 @@ jobs:
     displayName: Sign SDK assemblies
     inputs:
       ConnectedServiceName: ESRP Service-internal
-      FolderPath: sdk\sdk\bin\Release
+      FolderPath: sdk/Sdk/bin/Release
       Pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
       signConfigType: inlineSignParams
       inlineOperation: |
@@ -73,7 +73,7 @@ jobs:
     displayName: Sign SDK Analyzers assemblies
     inputs:
       ConnectedServiceName: ESRP Service-internal
-      FolderPath: sdk\Sdk.Analyzers\bin\Release
+      FolderPath: sdk/Sdk.Analyzers/bin/Release
       Pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
       signConfigType: inlineSignParams
       inlineOperation: |

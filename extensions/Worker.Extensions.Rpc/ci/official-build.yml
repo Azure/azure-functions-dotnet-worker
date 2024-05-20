@@ -1,9 +1,3 @@
-variables:
-  - template: ci/variables/build.yml@eng
-  - template: ci/variables/cfs.yml@eng
-  - name: ExtensionProjectName
-    value: Worker.Extensions.Rpc
-
 trigger:
   batch: true
   branches:
@@ -12,7 +6,7 @@ trigger:
     - release/*
   paths:
     include:
-      - extensions/$(ExtensionProjectName)/
+      - extensions/Worker.Extensions.Rpc/
 
 # CI only, does not trigger on PRs.
 pr: none
@@ -28,6 +22,12 @@ resources:
     name: engineering
     ref: refs/tags/release
 
+variables:
+  - template: ci/variables/build.yml@eng
+  - template: ci/variables/cfs.yml@eng
+  - name: ExtensionProjectName
+    value: Worker.Extensions.Rpc
+
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
   parameters:
@@ -37,17 +37,16 @@ extends:
       os: windows
 
     stages:
-    - stage: Test
 
-      jobs:
-      - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
-        parameters:
-          ExtensionProjectName: $(ExtensionProjectName)
-          HasOwnTestProject: true
-
-    - stage: Build
+    - stage: BuildTest
+      displayName: 'Build & Test'
 
       jobs:
       - template: /eng/ci/templates/official/jobs/build-extension-artifacts.yml@self
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)
+
+      - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
+        parameters:
+          ExtensionProjectName: $(ExtensionProjectName)
+          HasOwnTestProject: true

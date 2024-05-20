@@ -29,13 +29,13 @@ jobs:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2
-    displayName: Build project
+    displayName: Build project(s)
     inputs:
       command: custom
       custom: build
       arguments: -p:BuildNumber=$(buildNumber) -c release
       projects: |
-        extensions/**/${{ parameters.ExtensionProjectName }}.csproj
+        extensions/${{ parameters.ExtensionProjectName }}/src/*.csproj
 
   - task: EsrpCodeSigning@2
     displayName: Sign assemblies
@@ -74,20 +74,20 @@ jobs:
       contents: '**/CodeSignSummary-*.md'
 
   - task: DotNetCoreCLI@2
-    displayName: Pack extension
+    displayName: Pack extension(s)
     inputs:
       command: custom
       custom: pack
       arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
       projects: |
-        extensions/**/${{ parameters.ExtensionProjectName }}.csproj
+        extensions/${{ parameters.ExtensionProjectName }}/src/*.csproj
 
   - task: EsrpCodeSigning@2
     displayName: Sign nuget packages
     inputs:
       ConnectedServiceName: ESRP Service-internal
       FolderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
-      Pattern: Microsoft.Azure.Functions.Worker*.nupkg
+      Pattern: Microsoft.Azure.Functions.Worker.Extensions*.nupkg
       signConfigType: inlineSignParams
       inlineOperation: |
         [

@@ -4,7 +4,7 @@ variables:
   DOTNET_NOLOGO: 1
   DOTNET_SKIP_FIRST_TIME_EXPERIENCE: 1
   DOTNET_CLI_TELEMETRY_OPTOUT: 1
-  ExtensionProjectName: Worker.Extensions.Cosmos
+  ExtensionProjectName: Worker.Extensions.CosmosDB
 
 trigger:
   batch: true
@@ -15,7 +15,7 @@ trigger:
     - feature/*
   paths:
     include:
-      - extensions/Worker.Extensions.Cosmos/
+      - extensions/Worker.Extensions.CosmosDB/
 
 pr:
   branches:
@@ -24,7 +24,7 @@ pr:
     - release/*
     - feature/*
   include:
-    - extensions/Worker.Extensions.Cosmos/
+    - extensions/Worker.Extensions.CosmosDB/
 
 resources:
   repositories:

@@ -59,10 +59,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 var logger = context.InstanceServices.GetRequiredService<ExtensionTrace>();
                 logger.NoHttpResponseReturned(context.FunctionDefinition.Name, context.InvocationId);
             }
-            else if (context.TryGetHttpResponse<IResult>(out var httpIResult))
-            {
-                await httpIResult.ExecuteAsync(httpContext);
-            }
 
             // Allow ASP.NET Core middleware to continue
             _coordinator.CompleteFunctionInvocation(invocationId);

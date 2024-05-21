@@ -9,8 +9,7 @@ trigger:
     - feature/*
   paths:
     include:
-    - sdk/
-    - src/
+      - extensions/Worker.Extensions.Rpc/
 
 pr:
   branches:
@@ -18,19 +17,8 @@ pr:
     - main
     - release/*
     - feature/*
-  paths:
-    include:
-    - eng/
-    - extensions/
-    - samples/FunctionApp
-    - sdk/
-    - src/
-    - test/DotNetWorkerTests
-    - test/Worker.Extensions.Tests
-    - test/E2ETests
-    - test/TestUtility
-    - tools/
-
+  include:
+    - extensions/Worker.Extensions.Rpc/
 
 resources:
   repositories:
@@ -41,6 +29,8 @@ resources:
 
 variables:
   - template: /eng/ci/templates/variables/build.yml@self
+  - name: ExtensionProjectName
+    value: Worker.Extensions.Rpc
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1es
@@ -54,6 +44,7 @@ extends:
     - stage: Test
 
       jobs:
-      - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
-      - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
-      - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
+      - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
+        parameters:
+          ExtensionProjectName: $(ExtensionProjectName)
+          HasOwnTestProject: true

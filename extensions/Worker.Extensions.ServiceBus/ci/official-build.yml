@@ -7,8 +7,8 @@ trigger:
   paths:
     include:
       - eng/
-      - extensions/Worker.Extensions.Rpc/
-      - test/Worker.Extensions.Rpc.Tests/
+      - extensions/Worker.Extensions.ServiceBus/
+      - test/Worker.Extensions.Tests/
 
 # CI only, does not trigger on PRs.
 pr: none
@@ -28,7 +28,7 @@ variables:
   - template: ci/variables/build.yml@eng
   - template: ci/variables/cfs.yml@eng
   - name: ExtensionProjectName
-    value: Worker.Extensions.Rpc
+    value: Worker.Extensions.ServiceBus
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -51,4 +51,4 @@ extends:
       - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)
-          HasOwnTestProject: true
+          HasOwnTestProject: false

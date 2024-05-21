@@ -10,8 +10,8 @@ trigger:
   paths:
     include:
       - eng/
-      - extensions/Worker.Extensions.Rpc/
-      - test/Worker.Extensions.Rpc.Tests/
+      - extensions/Worker.Extensions.SignalRService/
+      - test/Worker.Extensions.SignalRService.Tests/
 
 pr:
   branches:
@@ -21,8 +21,8 @@ pr:
     - feature/*
   include:
     - eng/
-    - extensions/Worker.Extensions.Rpc/
-    - test/Worker.Extensions.Rpc.Tests/
+    - extensions/Worker.Extensions.SignalRService/
+    - test/Worker.Extensions.SignalRService.Tests/
 
 resources:
   repositories:
@@ -34,7 +34,7 @@ resources:
 variables:
   - template: /eng/ci/templates/variables/build.yml@self
   - name: ExtensionProjectName
-    value: Worker.Extensions.Rpc
+    value: Worker.Extensions.SignalRService
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1es

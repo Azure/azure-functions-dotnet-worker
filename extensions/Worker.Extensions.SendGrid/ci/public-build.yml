@@ -10,8 +10,8 @@ trigger:
   paths:
     include:
       - eng/
-      - extensions/Worker.Extensions.Rpc/
-      - test/Worker.Extensions.Rpc.Tests/
+      - extensions/Worker.Extensions.SendGrid/
+      - test/Worker.Extensions.Tests/
 
 pr:
   branches:
@@ -21,8 +21,8 @@ pr:
     - feature/*
   include:
     - eng/
-    - extensions/Worker.Extensions.Rpc/
-    - test/Worker.Extensions.Rpc.Tests/
+    - extensions/Worker.Extensions.SendGrid/
+    - test/Worker.Extensions.Tests/
 
 resources:
   repositories:
@@ -34,7 +34,7 @@ resources:
 variables:
   - template: /eng/ci/templates/variables/build.yml@self
   - name: ExtensionProjectName
-    value: Worker.Extensions.Rpc
+    value: Worker.Extensions.SendGrid
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1es
@@ -51,4 +51,4 @@ extends:
       - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)
-          HasOwnTestProject: true
+          HasOwnTestProject: false

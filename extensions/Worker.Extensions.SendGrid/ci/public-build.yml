@@ -11,6 +11,7 @@ trigger:
     include:
       - eng/
       - extensions/Worker.Extensions.SendGrid/
+      - test/Worker.Extensions.Tests/
 
 pr:
   branches:
@@ -21,6 +22,7 @@ pr:
   include:
     - eng/
     - extensions/Worker.Extensions.SendGrid/
+    - test/Worker.Extensions.Tests/
 
 resources:
   repositories:

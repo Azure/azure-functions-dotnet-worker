@@ -11,6 +11,7 @@ trigger:
     include:
       - eng/
       - extensions/Worker.Extensions.Http.AspNetCore/
+      - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
 
 pr:
   branches:
@@ -21,6 +22,7 @@ pr:
   include:
     - eng/
     - extensions/Worker.Extensions.Http.AspNetCore/
+    - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
 
 resources:
   repositories:
@@ -49,4 +51,4 @@ extends:
       - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)
-          HasOwnTestProject: false
+          HasOwnTestProject: true

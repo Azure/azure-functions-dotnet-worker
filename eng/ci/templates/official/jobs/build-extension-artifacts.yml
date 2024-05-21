@@ -35,7 +35,7 @@ jobs:
       custom: build
       arguments: -p:BuildNumber=$(buildNumber) -c release
       projects: |
-        extensions/${{ parameters.ExtensionProjectName }}/src/*.csproj
+        extensions/${{ parameters.ExtensionProjectName }}*/**/*.csproj
 
   - task: EsrpCodeSigning@2
     displayName: Sign assemblies
@@ -80,7 +80,7 @@ jobs:
       custom: pack
       arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
       projects: |
-        extensions/${{ parameters.ExtensionProjectName }}/src/*.csproj
+        extensions/${{ parameters.ExtensionProjectName }}*/**/*.csproj
 
   - task: EsrpCodeSigning@2
     displayName: Sign nuget packages

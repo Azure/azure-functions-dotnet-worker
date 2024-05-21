@@ -48,10 +48,6 @@ extends:
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)
 
-      - template: /eng/ci/templates/official/jobs/build-extension-artifacts.yml@self
-        parameters:
-          ExtensionProjectName: '$(ExtensionProjectName).Analyzers'
-
       - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
         parameters:
           ExtensionProjectName: $(ExtensionProjectName)

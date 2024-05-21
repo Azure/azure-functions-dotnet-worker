@@ -9,6 +9,7 @@ trigger:
     - feature/*
   paths:
     include:
+      - eng/
       - extensions/Worker.Extensions.Warmup/
 
 pr:
@@ -18,6 +19,7 @@ pr:
     - release/*
     - feature/*
   include:
+    - eng/
     - extensions/Worker.Extensions.Warmup/
 
 resources:

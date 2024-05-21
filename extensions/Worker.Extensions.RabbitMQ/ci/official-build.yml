@@ -6,6 +6,7 @@ trigger:
     - release/*
   paths:
     include:
+      - eng/
       - extensions/Worker.Extensions.RabbitMQ/
 
 # CI only, does not trigger on PRs.

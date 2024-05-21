@@ -7,6 +7,10 @@ trigger:
     - main
     - release/*
     - feature/*
+  paths:
+    include:
+    - sdk/
+    - src/
 
 pr:
   branches:
@@ -14,6 +18,19 @@ pr:
     - main
     - release/*
     - feature/*
+  paths:
+    include:
+    - eng/
+    - extensions/
+    - samples/FunctionApp
+    - sdk/
+    - src/
+    - test/DotNetWorkerTests
+    - test/Worker.Extensions.Tests
+    - test/E2ETests
+    - test/TestUtility
+    - tools/
+
 
 resources:
   repositories:

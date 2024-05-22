@@ -63,11 +63,11 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
                         // Don't initialize this list unless we have to
                         errors ??= new List<string>();
 
-                        errors.Add($"Cannot convert input parameter '{parameter.Name}' to type '{parameter.Type.FullName}' from type '{source.GetType().FullName}'. Error:{bindingResult.Error}");
+                        errors.Add($"Converter '{bindingResult.Name}' could not convert input parameter '{parameter.Name}' to type '{parameter.Type.FullName}' from type '{source.GetType().FullName}'. Error:{bindingResult.Error}");
                     }
                     else if (bindingResult.Status == ConversionStatus.Unhandled)
                     {
-                        // If still unhandled after going through all converters,check an explicit default value was provided for the parameter.
+                        // If still unhandled after going through all converters, check an explicit default value was provided for the parameter.
                         if (parameter.HasDefaultValue)
                         {
                             parameterValues[i] = parameter.DefaultValue;

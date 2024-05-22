@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                 if (conversionResult.Status != ConversionStatus.Unhandled)
                 {
-                    return conversionResult;
+                    return ResultWithConverterName(conversionResult, converterFromContext.GetType().Name);
                 }
             }
 
@@ -61,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                         if (conversionResult.Status != ConversionStatus.Unhandled)
                         {
-                            return conversionResult;
+                            return ResultWithConverterName(conversionResult, converterType.Key.GetType().Name);
                         }
                     }
                 }
@@ -76,7 +76,7 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                     if (conversionResult.Status != ConversionStatus.Unhandled)
                     {
-                        return conversionResult;
+                        return ResultWithConverterName(conversionResult, converter.GetType().Name);
                     }
 
                     // If "Status" is Unhandled, we move on to the next converter and try to convert with that.
@@ -215,5 +215,12 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
             // If types are explicitly advertised by the converter then we should send only those types for conversion.
             return supportedTypes.Any(a => a.AssemblyQualifiedName == targetType.AssemblyQualifiedName);
         }
+
+        private ConversionResult ResultWithConverterName(ConversionResult result, string converterName) => result.Status switch
+        {
+            ConversionStatus.Succeeded => ConversionResult.Success(result.Value, converterName),
+            ConversionStatus.Failed => ConversionResult.Failed(result.Error!, converterName),
+            _ => result // Return the original result for other status types
+        };
     }
 }

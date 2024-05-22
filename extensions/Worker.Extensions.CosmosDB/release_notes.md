@@ -4,8 +4,27 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.8.1
+### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 5.0.0
 
-- Updating `Microsoft.Azure.WebJobs.Extensions.CosmosDB` reference to 4.6.1
-- Updating `Microsoft.Extensions.Azure` reference to 1.7.3
-- Updating `Microsoft.Azure.Cosmos` reference to 3.39.1
+- Expose `CosmosClientOptions` to allow configuration of the CosmosDB client (#2483)
+
+#### Breaking Change
+
+- **Default `ConnectionMode` Change:** The default `ConnectionMode` for `CosmosClientOptions` has been changed from `Gateway` to `Direct`.
+  This change is due to `Direct` being the default value for `ConnectionMode` in the Cosmos SDK; now that we are exposing those options,
+  it is not possible for us to tell whether the user has explicitly set the connection mode to `Direct` or not, so we must default to the
+  SDK's default value
+
+##### How to Maintain Previous Behavior
+
+To continue using `Gateway` mode, configure the `CosmosClientOptions` in your `Program` class as shown below:
+
+```csharp
+.ConfigureFunctionsWorkerDefaults((builder) =>
+{
+    builder.Services.Configure<CosmosClientOptions>((options) =>
+    {
+        options.ConnectionMode = ConnectionMode.Gateway;
+    });
+})
+```

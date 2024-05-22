@@ -21,6 +21,8 @@ namespace Microsoft.Azure.Functions.Worker
 
         public CosmosSerializer? Serializer { get; set; }
 
+        public CosmosClientOptions? CosmosClientOptions { get; set; }
+
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 
         internal ConcurrentDictionary<string, CosmosClient> ClientCache { get; } = new ConcurrentDictionary<string, CosmosClient>();
@@ -34,29 +36,26 @@ namespace Microsoft.Azure.Functions.Worker
 
             string cacheKey = BuildCacheKey(ConnectionName!, preferredLocations);
 
-            CosmosClientOptions cosmosClientOptions = new ()
+            // Do not override if preferred locations is configured via CosmosClientOptions
+            if (!string.IsNullOrEmpty(preferredLocations) && CosmosClientOptions.ApplicationPreferredRegions is null)
             {
-                ConnectionMode = ConnectionMode.Gateway
-            };
-
-            if (!string.IsNullOrEmpty(preferredLocations))
-            {
-                cosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
+                CosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
             }
 
-            if (Serializer is not null)
+            // Do not override if the serializer is configured via CosmosClientOptions
+            if (Serializer is not null && CosmosClientOptions.Serializer is null)
             {
-                cosmosClientOptions.Serializer = Serializer;
+                CosmosClientOptions.Serializer = Serializer;
             }
 
-            return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(cosmosClientOptions));
+            return ClientCache.GetOrAdd(cacheKey, (c) => CreateService());
         }
 
-        private CosmosClient CreateService(CosmosClientOptions cosmosClientOptions)
+        private CosmosClient CreateService()
         {
             return string.IsNullOrEmpty(ConnectionString)
-                    ? new CosmosClient(AccountEndpoint, Credential, cosmosClientOptions) // AAD auth
-                    : new CosmosClient(ConnectionString, cosmosClientOptions); // Connection string based auth
+                    ? new CosmosClient(AccountEndpoint, Credential, CosmosClientOptions) // AAD auth
+                    : new CosmosClient(ConnectionString, CosmosClientOptions); // Connection string based auth
         }
     }
 }

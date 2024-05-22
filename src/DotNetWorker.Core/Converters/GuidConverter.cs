@@ -18,11 +18,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             {
                 if (context.Source is string sourceString && Guid.TryParse(sourceString, out Guid parsedGuid))
                 {
-                    return new ValueTask<ConversionResult>(ConversionResult.Success(parsedGuid));
+                    return new ValueTask<ConversionResult>(ConversionResult.Success(parsedGuid, nameof(DateTimeConverter)));
                 }
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(DateTimeConverter)));
         }
     }
 }

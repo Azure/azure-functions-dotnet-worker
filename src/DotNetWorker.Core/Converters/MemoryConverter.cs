@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (context.Source is not ReadOnlyMemory<byte> sourceMemory)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(MemoryConverter)));
             }
 
             if (context.TargetType.IsAssignableFrom(typeof(string)))
@@ -23,16 +23,16 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 #else
                 var target = Encoding.UTF8.GetString(sourceMemory.Span.ToArray());
 #endif
-                return new ValueTask<ConversionResult>(ConversionResult.Success(target));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(target, nameof(MemoryConverter)));
             }
 
             if (context.TargetType.IsAssignableFrom(typeof(byte[])))
             {
                 var target = sourceMemory.ToArray();
-                return new ValueTask<ConversionResult>(ConversionResult.Success(target));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(target, nameof(MemoryConverter)));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(MemoryConverter)));
         }
     }
 }

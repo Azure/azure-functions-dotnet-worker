@@ -15,11 +15,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             if (sourceType is not null &&
                 context.TargetType.IsAssignableFrom(sourceType))
             {
-                var conversionResult = ConversionResult.Success(context.Source);
+                var conversionResult = ConversionResult.Success(context.Source, nameof(TypeConverter));
                 return new ValueTask<ConversionResult>(conversionResult);
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(TypeConverter)));
         }
     }
 }

@@ -13,10 +13,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             // Special handling for the context.
             if (context.TargetType == typeof(FunctionContext))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(context.FunctionContext));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(context.FunctionContext, nameof(DateTimeConverter)));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(DateTimeConverter)));
         }
     }
 }

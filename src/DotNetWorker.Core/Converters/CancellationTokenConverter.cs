@@ -12,10 +12,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (context.TargetType == typeof(CancellationToken) || context.TargetType == typeof(CancellationToken?))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(context.FunctionContext.CancellationToken));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(context.FunctionContext.CancellationToken, nameof(CancellationTokenConverter)));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(CancellationTokenConverter)));
         }
     }
 }

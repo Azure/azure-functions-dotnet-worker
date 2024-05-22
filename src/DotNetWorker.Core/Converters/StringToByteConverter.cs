@@ -14,11 +14,11 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             if (!(context.TargetType.IsAssignableFrom(typeof(byte[])) &&
                   context.Source is string sourceString))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(StringToByteConverter)));
             }
 
             var byteArray = Encoding.UTF8.GetBytes(sourceString);
-            var conversionResult = ConversionResult.Success(byteArray);
+            var conversionResult = ConversionResult.Success(byteArray, nameof(StringToByteConverter));
 
             return new ValueTask<ConversionResult>(conversionResult);
         }

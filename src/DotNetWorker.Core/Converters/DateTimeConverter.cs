@@ -15,21 +15,21 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (!IsValidTargetType(context) || context.Source is not string source)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+                return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(DateTimeConverter)));
             }
 
             if ((context.TargetType == typeof(DateTimeOffset) || context.TargetType == typeof(DateTimeOffset?))
                 && DateTimeOffset.TryParse(source, out var parsedDateTimeOffset))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDateTimeOffset));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDateTimeOffset, nameof(DateTimeConverter)));
             }
 
             if (DateTime.TryParse(source, out DateTime parsedDate))
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDate));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(parsedDate, nameof(DateTimeConverter)));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(DateTimeConverter)));
         }
 
         private static bool IsValidTargetType(ConverterContext context)

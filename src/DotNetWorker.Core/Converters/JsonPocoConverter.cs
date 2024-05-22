@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
         {
             if (context.TargetType == typeof(string))
             {
-                return ConversionResult.Unhandled();
+                return ConversionResult.Unhandled(nameof(JsonPocoConverter));
             }
 
             byte[]? bytes = null;
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (bytes == null)
             {
-                return ConversionResult.Unhandled();
+                return ConversionResult.Unhandled(nameof(JsonPocoConverter));
             }
 
             return await GetConversionResultFromDeserialization(bytes, context.TargetType);
@@ -64,16 +64,16 @@ namespace Microsoft.Azure.Functions.Worker.Converters
                 stream = new MemoryStream(bytes);
 
                 var deserializedObject = await _serializer.DeserializeAsync(stream, type, CancellationToken.None);
-                return ConversionResult.Success(deserializedObject);
+                return ConversionResult.Success(deserializedObject, nameof(JsonPocoConverter));
 
             }
             catch (Exception ex)
             {
-                return ConversionResult.Failed(ex);
+                return ConversionResult.Failed(ex, nameof(JsonPocoConverter));
             }
             finally
             {
-                if (stream != null) 
+                if (stream != null)
                 {
 #if NET5_0_OR_GREATER
 

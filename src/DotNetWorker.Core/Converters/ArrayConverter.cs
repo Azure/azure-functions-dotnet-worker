@@ -42,10 +42,10 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (target is not null)
             {
-                return new ValueTask<ConversionResult>(ConversionResult.Success(target));
+                return new ValueTask<ConversionResult>(ConversionResult.Success(target, nameof(ArrayConverter)));
             }
 
-            return new ValueTask<ConversionResult>(ConversionResult.Unhandled());
+            return new ValueTask<ConversionResult>(ConversionResult.Unhandled(nameof(ArrayConverter)));
         }
 
         private static object? GetBinaryData(IEnumerable<ReadOnlyMemory<byte>> source, Type targetType)

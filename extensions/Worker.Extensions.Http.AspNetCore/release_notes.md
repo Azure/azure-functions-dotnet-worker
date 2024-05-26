@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- <entry>
+- The `HttpContext` instance is directly injectable into an HTTP trigger. (#2259)

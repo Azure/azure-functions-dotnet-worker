@@ -72,9 +72,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     ActionContext actionContext = new ActionContext(httpContext, httpContext.GetRouteData(), new ActionDescriptor());
                     await actionResult.ExecuteResultAsync(actionContext);
                     break;
-                case AspNetCoreHttpRequestData when isInvocationResult:
-                    // The AspNetCoreHttpResponseData implementation is
-                    // simply a wrapper over the underlying HttpResponse and
+                case AspNetCoreHttpResponseData when isInvocationResult:
+                    // The AspNetCoreHttpResponseData implementation
+                    // is simply a wrapper over the underlying HttpResponse and
                     // all APIs manipulate the request.
                     // There's no need to return this result as no additional
                     // processing is required.

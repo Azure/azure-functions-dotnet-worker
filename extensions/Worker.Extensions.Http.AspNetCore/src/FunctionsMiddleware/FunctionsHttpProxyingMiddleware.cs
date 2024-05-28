@@ -73,8 +73,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     await actionResult.ExecuteResultAsync(actionContext);
                     break;
                 case AspNetCoreHttpResponseData when isInvocationResult:
-                    // The AspNetCoreHttpResponseData implementation
-                    // is simply a wrapper over the underlying HttpResponse and
+                    // The AspNetCoreHttpResponseData implementation is
+                    // simply a wrapper over the underlying HttpResponse and
                     // all APIs manipulate the request.
                     // There's no need to return this result as no additional
                     // processing is required.

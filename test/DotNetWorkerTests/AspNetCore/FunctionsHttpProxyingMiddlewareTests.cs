@@ -129,7 +129,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             var test = SetupTest("httpTrigger", GetMultiOutputTypeOutputBindings());
             var mockDelegate = new Mock<FunctionExecutionDelegate>();
 
-            SetUpAspNetCoreHttpRequestDataBindingInfo(test.FunctionContext, false);
+            SetUpAspNetCoreHttpResponseDataBindingInfo(test.FunctionContext, false);
 
             var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
             await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
@@ -138,12 +138,27 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
         }
 
         [Fact]
-        public async Task InvocationResultNull_WhenResultIsTypeAspNetCoreHttpRequestData()
+        public async Task InvocationResultNullInMultiOutput_WhenResultIsTypeAspNetCoreHttpResponseData()
         {
             var test = SetupTest("httpTrigger", GetMultiOutputTypeOutputBindings());
             var mockDelegate = new Mock<FunctionExecutionDelegate>();
 
-            SetUpAspNetCoreHttpRequestDataBindingInfo(test.FunctionContext, true);
+            SetUpAspNetCoreHttpResponseDataBindingInfo(test.FunctionContext, true);
+
+            var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
+            await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
+
+            Assert.Null(test.FunctionContext.GetInvocationResult().Value);
+            test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
+        }
+
+        [Fact]
+        public async Task InvocationResultNull_WhenResultIsTypeAspNetCoreHttpResponseData()
+        {
+            var test = SetupTest("httpTrigger");
+            var mockDelegate = new Mock<FunctionExecutionDelegate>();
+
+            SetUpAspNetCoreHttpResponseDataBindingInfo(test.FunctionContext, false);
 
             var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
             await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
@@ -203,29 +218,25 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
         }
 
         /// <summary>
-        /// Sets up an AspNetCoreHttpRequestData object using a mock HTTP request and stores it in the appropriate location in a FunctionContext instance.
+        /// Sets up an AspNetCoreHttpResponseData object using a mock HTTP response and stores it in the appropriate location in a FunctionContext instance.
         /// </summary>
         /// <param name="functionContext">The function context used for testing.</param>
         /// <param name="isInvocationResult">True if the object is expected to be in the invocation result, false if the object is expected in the output bindings (which is the case for
         /// multi-output scenarios).</param>
-        private void SetUpAspNetCoreHttpRequestDataBindingInfo(FunctionContext functionContext, bool isInvocationResult)
+        private void SetUpAspNetCoreHttpResponseDataBindingInfo(FunctionContext functionContext, bool isInvocationResult)
         {
-            var mockRequest = new Mock<HttpRequest>();
-            mockRequest.SetupGet(req => req.Path).Returns("/test");
-            mockRequest.SetupGet(req => req.QueryString).Returns(new QueryString("?param=value"));
-            mockRequest.SetupGet(req => req.Scheme).Returns("http");
-            mockRequest.SetupGet(req => req.Host).Returns(new HostString("localhost"));
+            var mockResponse = new Mock<HttpResponse>();
 
             var bindingFeatures = functionContext.Features.Get<IFunctionBindingsFeature>();
-            var aspNetCoreHttpRequestData = new AspNetCoreHttpRequestData(mockRequest.Object, functionContext);
+            var aspNetCoreHttpResponseData = new AspNetCoreHttpResponseData(mockResponse.Object, functionContext);
 
             if (isInvocationResult)
             {
-                bindingFeatures.InvocationResult = aspNetCoreHttpRequestData;
+                bindingFeatures.InvocationResult = aspNetCoreHttpResponseData;
             }
             else
             {
-                bindingFeatures.OutputBindingData.Add("result", aspNetCoreHttpRequestData);
+                bindingFeatures.OutputBindingData.Add("result", aspNetCoreHttpResponseData);
             }
         }
 

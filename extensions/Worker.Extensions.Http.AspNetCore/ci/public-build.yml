@@ -11,6 +11,7 @@ trigger:
     include:
       - eng/
       - extensions/Worker.Extensions.Http.AspNetCore/
+      - extensions/Worker.Extensions.Http.AspNetCore.Analyzers/
       - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
 
 pr:
@@ -22,6 +23,7 @@ pr:
   include:
     - eng/
     - extensions/Worker.Extensions.Http.AspNetCore/
+    - extensions/Worker.Extensions.Http.AspNetCore.Analyzers/
     - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
 
 resources:

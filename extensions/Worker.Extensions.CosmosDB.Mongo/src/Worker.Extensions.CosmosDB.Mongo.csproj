@@ -1,0 +1,34 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo</RootNamespace>
+    <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
+
+    <!--Version information-->
+    <VersionPrefix>4.8.1</VersionPrefix>
+
+    <!--Temporarily opting out of documentation. Pending documentation-->
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <Import Project="..\..\..\build\Extensions.props" />
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.1" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.3" />
+    <PackageReference Include="MongoDB.Driver" Version="2.17.1" />
+    <!-- Transitive dependency promoted to address CVE:-->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

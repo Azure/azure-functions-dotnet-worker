@@ -47,8 +47,13 @@ extends:
   parameters:
     pool:
       name: 1es-pool-azfunc-public
-      image: 1es-windows-2022
-      os: windows
+      image: 1es-ubuntu-22.04
+      os: linux
+    sdl:
+      sourceAnalysisPool:
+        name: 1es-pool-azfunc-public
+        image: 1es-windows-2022
+        os: windows
 
     stages:
     - stage: Test
@@ -56,10 +61,10 @@ extends:
       jobs:
       - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
         parameters:
-          poolName: 1es-pool-azfunc-public
+          PoolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
         parameters:
-          poolName: 1es-pool-azfunc-public
+          PoolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
         parameters:
-          poolName: 1es-pool-azfunc-public
+          PoolName: 1es-pool-azfunc-public

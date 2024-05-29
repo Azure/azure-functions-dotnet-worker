@@ -2,9 +2,6 @@ parameters:
   - name: Projects
     type: object
     default: []
-  - name: ExtensionProjectName
-    type: string
-    default: ''
 
 jobs:
 
@@ -31,11 +28,6 @@ jobs:
 
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
-
-  - ${{ if ne(parameters.ExtensionProjectName, '') }}:
-    - template: /eng/ci/templates/steps/build-extension-project.yml@self
-      parameters:
-        ExtensionProjectName: ${{ parameters.ExtensionProjectName }}
 
   - ${{ if not(eq(length(parameters.Projects), 0)) }}:
     - ${{ each Project in parameters.Projects }}:

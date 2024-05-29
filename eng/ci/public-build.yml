@@ -55,5 +55,11 @@ extends:
 
       jobs:
       - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
+        parameters:
+          poolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
+        parameters:
+          poolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
+        parameters:
+          poolName: 1es-pool-azfunc-public

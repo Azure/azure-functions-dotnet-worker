@@ -1,3 +1,8 @@
+parameters:
+  name: PoolName
+  type: string
+  default: 1es-pool-azfunc
+
 jobs:
 - job: RunIntegrationTests_Windows
   displayName: 'Run integration tests - windows -'
@@ -10,7 +15,7 @@ jobs:
         dotnetVersion: 'netfx'
 
   pool:
-    name: 1es-pool-azfunc
+    name: ${{ parameters.PoolName }}
     image: 1es-windows-2022
     os: windows
 

@@ -1,3 +1,18 @@
+# Runtime parameters (visible in UI)
+parameters:
+- name: UseCoreToolsBuildFromIntegrationTests
+  displayName: UseCoreToolsBuildFromIntegrationTests
+  type: boolean
+  default: false
+- name: CORE_TOOLS_URL
+  displayName: CORE_TOOLS_URL
+  type: string
+  default: ' '
+- name: CORE_TOOLS_URL_LINUX
+  displayName: CORE_TOOLS_URL_LINUX
+  type: string
+  default: ' '
+
 trigger:
   batch: true
   branches:
@@ -27,6 +42,9 @@ resources:
 variables:
   - template: ci/variables/build.yml@eng
   - template: ci/variables/cfs.yml@eng
+  - template: /eng/ci/templates/variables/build.yml@self
+  - name: UseCoreToolsBuildFromIntegrationTests
+    value: ${{ parameters.UseCoreToolsBuildFromIntegrationTests }}
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es

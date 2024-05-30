@@ -79,7 +79,10 @@ namespace SampleApp
             _logger.LogInformation("Delivery Count: {count}", deliveryCount);
         }
 
+
         //<docsnippet_servicebus_message_actions>
+        /// This function demonstrates binding to <see cref="ServiceBusMessageActions"/>.
+        /// </summary>
         [Function(nameof(ServiceBusMessageActionsFunction))]
         public async Task ServiceBusMessageActionsFunction(
             [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", AutoCompleteMessages = false)]
@@ -90,11 +93,11 @@ namespace SampleApp
             _logger.LogInformation("Message Body: {body}", message.Body);
             _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
 
-            // Complete the message
-            await messageActions.CompleteMessageAsync(message);
+            await messageActions.RenewMessageLockAsync(message);
         }
-        //</docsnippet_servicebus_message_actions>
 
+        //</docsnippet_servicebus_message_actions>
+        /// This function demonstrates binding to <see cref="ServiceBusSessionMessageActions"/>.
         //<docsnippet_servicebus_session_message_actions>
         [Function(nameof(ServiceBusSessionMessageActionsFunction))]
         public async Task ServiceBusSessionMessageActionsFunction(

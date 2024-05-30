@@ -7,7 +7,7 @@ using MongoDB.Driver;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class CosmosDBBindingOptions
+    internal class CosmosDBMongoBindingOptions
     {
         public string? ConnectionName  { get; set; }
 
@@ -15,9 +15,9 @@ namespace Microsoft.Azure.Functions.Worker
 
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 
-        internal ConcurrentDictionary<string, MongoClient> ClientCache { get; } = new ConcurrentDictionary<string, MongoClient>();
+        internal ConcurrentDictionary<string, IMongoClient> ClientCache { get; } = new ConcurrentDictionary<string, IMongoClient>();
 
-        internal virtual MongoClient GetClient(string preferredLocations = "")
+        internal virtual IMongoClient GetClient(string preferredLocations = "")
         {
             if (string.IsNullOrEmpty(ConnectionName))
             {
@@ -29,7 +29,7 @@ namespace Microsoft.Azure.Functions.Worker
             return ClientCache.GetOrAdd(cacheKey, (c) => CreateService());
         }
 
-        private MongoClient CreateService()
+        private IMongoClient CreateService()
         {
             return new MongoClient(ConnectionString);
         }

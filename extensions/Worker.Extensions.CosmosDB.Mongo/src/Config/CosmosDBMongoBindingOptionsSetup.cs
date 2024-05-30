@@ -3,32 +3,31 @@
 
 using System;
 using Microsoft.Azure.Functions.Worker.Extensions;
-using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class CosmosDBBindingOptionsSetup : IConfigureNamedOptions<CosmosDBBindingOptions>
+    internal class CosmosDBMongoBindingOptionsSetup : IConfigureNamedOptions<CosmosDBMongoBindingOptions>
     {
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
         private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions)
+        public CosmosDBMongoBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
         }
 
-        public void Configure(CosmosDBBindingOptions options)
+        public void Configure(CosmosDBMongoBindingOptions options)
         {
             Configure(Options.DefaultName, options);
         }
 
-        public void Configure(string connectionName, CosmosDBBindingOptions options)
+        public void Configure(string connectionName, CosmosDBMongoBindingOptions options)
         {
             IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(connectionName);
 

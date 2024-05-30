@@ -3,10 +3,10 @@
   <PropertyGroup>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo</RootNamespace>
-    <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
+    <Description>Azure Cosmos DB Mongo extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.8.1</VersionPrefix>
+    <VersionPrefix>1.0.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.3" />
-    <PackageReference Include="MongoDB.Driver" Version="2.25.0" />
+    <PackageReference Include="MongoDB.Driver" Version="2.17.1" />
     <!-- Transitive dependency promoted to address CVE:-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>

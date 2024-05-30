@@ -26,8 +26,8 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             builder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
-            builder.Services.AddOptions<CosmosDBBindingOptions>();
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<CosmosDBBindingOptions>, CosmosDBBindingOptionsSetup>());
+            builder.Services.AddOptions<CosmosDBMongoBindingOptions>();
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<CosmosDBMongoBindingOptions>, CosmosDBMongoBindingOptionsSetup>());
 
             return builder;
         }

@@ -52,15 +52,20 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         internal void CompleteFunction()
         {
+            if (_functionCompletionTask.Task.IsCompleted)
+            {
+                return;
+            }
+
             if (_httpContextValueSource.Task.IsCompleted)
             {
                 if (_httpContextValueSource.Task.IsCanceled || _token.IsCancellationRequested)
                 {
-                    _functionCompletionTask.SetCanceled();
+                    _functionCompletionTask.TrySetCanceled();
                 }
                 else
                 {
-                    _functionCompletionTask.SetResult(true);
+                    _functionCompletionTask.TrySetResult(true);
                 }
             }
             else

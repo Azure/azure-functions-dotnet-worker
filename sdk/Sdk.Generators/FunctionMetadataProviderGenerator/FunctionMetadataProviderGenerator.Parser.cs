@@ -623,9 +623,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (var namedArgument in attributeData.NamedArguments)
                 {
-                    if (namedArgument.Value.Value != null)
+                    if (IsArrayOrNotNull(namedArgument.Value))
                     {
-                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) && !attrProperties.ContainsKey("cardinality"))
+                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) 
+                            && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line
 
@@ -670,6 +671,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 return true;
+            }
+
+            private static bool IsArrayOrNotNull(TypedConstant? namedArgument)
+            {
+                if (namedArgument is null)
+                {
+                    return false;
+                }
+
+                // special handling required for array types which store values differently (cannot check namedArgument.Value.Value)
+                if (namedArgument.Value.Kind is TypedConstantKind.Array)
+                {
+                    return true;
+                }
+                else
+                {
+                    return namedArgument.Value.Value != null; // similar to legacy generator, arguments with null values are not written to function metadata
+                }
             }
 
             private bool TryLoadConstructorArguments(AttributeData attributeData, IDictionary<string, object?> arguments, Location? attributeLocation)

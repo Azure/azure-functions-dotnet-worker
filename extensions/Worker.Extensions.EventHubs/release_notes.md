@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventHubs <version>
+### Microsoft.Azure.Functions.Worker.Extensions.EventHubs 6.3.1
 
-- <entry>
+- Updating `Microsoft.Azure.WebJobs.Extensions.EventHubs` reference to 6.3.2

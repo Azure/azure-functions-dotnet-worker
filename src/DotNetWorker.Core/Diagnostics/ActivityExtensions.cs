@@ -11,18 +11,19 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
     internal static class ActivityExtensions
     {
 
-        private static readonly Action<Activity, string> s_setSpanId;
-        private static readonly Action<Activity, string> s_setId;
-        private static readonly Action<Activity, string> s_setTraceId;
-        private static readonly Action<Activity, string> s_setRootId;
+        private static readonly Action<Activity, string> _setSpanId;
+        private static readonly Action<Activity, string> _setId;
+        private static readonly Action<Activity, string> _setTraceId;
+        private static readonly Action<Activity, string> _setRootId;
 
         static ActivityExtensions()
         {
             BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
-            s_setSpanId = typeof(Activity).GetField("_spanId", flags).CreateSetter<Activity, string>();
-            s_setId = typeof(Activity).GetField("_id", flags).CreateSetter<Activity, string>();
-            s_setRootId = typeof(Activity).GetField("_rootId", flags).CreateSetter<Activity, string>();
-            s_setTraceId = typeof(Activity).GetField("_traceId", flags).CreateSetter<Activity, string>();
+            var activityType = typeof(Activity);
+            _setSpanId = activityType.GetField("_spanId", flags).CreateSetter<Activity, string>();
+            _setId = activityType.GetField("_id", flags).CreateSetter<Activity, string>();
+            _setRootId = activityType.GetField("_rootId", flags).CreateSetter<Activity, string>();
+            _setTraceId = activityType.GetField("_traceId", flags).CreateSetter<Activity, string>();
         }
 
         /// <summary>
@@ -60,16 +61,16 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         }
 
         public static void SetId(this Activity activity, string id)
-            => s_setId(activity, id);
+            => _setId(activity, id);
 
         public static void SetSpanId(this Activity activity, string spanId)
-            => s_setSpanId(activity, spanId);
+            => _setSpanId(activity, spanId);
 
         public static void SetRootId(this Activity activity, string rootId)
-            => s_setRootId(activity, rootId);
+            => _setRootId(activity, rootId);
 
         public static void SetTraceId(this Activity activity, string traceId)
-            => s_setTraceId(activity, traceId);
+            => _setTraceId(activity, traceId);
     }
 
     internal static class FieldInfoExtensionMethods

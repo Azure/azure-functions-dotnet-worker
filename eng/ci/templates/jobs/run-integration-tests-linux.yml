@@ -1,0 +1,35 @@
+jobs:
+- job: RunIntegrationTests_Linux
+  displayName: 'Run integration tests - linux'
+
+  pool:
+    name: 1es-pool-azfunc
+    image: 1es-ubuntu-22.04
+    os: linux
+
+  steps:
+
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - task: DotNetCoreCLI@2
+    displayName: Build DotNetWorker
+    inputs:
+      command: build
+      arguments: '-c Release'
+      projects: DotNetWorker.sln
+
+  - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
+    parameters:
+      DotnetVersion: 'net7'
+      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
+      SkipCosmosDBEmulator: true
+      SkipBuildOnPack: true
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run E2E tests'
+    inputs:
+      command: 'test'
+      arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' # only run http tests to avoid emulators on Linux
+      projects: |
+        test/**/*Tests.csproj
+        !test/**/Worker.Extensions.Rpc.Tests.csproj

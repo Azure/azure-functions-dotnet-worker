@@ -6,7 +6,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.ApplicationInsights</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.ApplicationInsights</RootNamespace>
     <MajorProductVersion>1</MajorProductVersion>
-    <MinorProductVersion>2</MinorProductVersion>
+    <MinorProductVersion>3</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <VersionSuffix></VersionSuffix>

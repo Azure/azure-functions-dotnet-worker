@@ -2,13 +2,8 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo;
@@ -16,7 +11,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
-using System.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -41,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker
             return context?.Source switch
             {
                 ModelBindingData binding => await ConvertFromBindingDataAsync(context, binding),
-                _ => ConversionResult.Unhandled(),
+                _ => throw new ArgumentOutOfRangeException(nameof(context.Source), context.Source, "Invalid source type.")
             };
         }
 
@@ -79,124 +73,10 @@ namespace Microsoft.Azure.Functions.Worker
             };
         }
 
-        private async Task<object> ToTargetTypeAsync(Type targetType, CosmosDBMongoInputAttribute cosmosAttribute) => targetType switch
+        private async Task<object> ToTargetTypeAsync(Type targetType, CosmosDBMongoInputAttribute cosmosAttribute)
         {
-            Type _ when targetType == typeof(CosmosClient) => CreateCosmosClient<CosmosClient>(cosmosAttribute),
-            Type _ when targetType == typeof(Database) => CreateCosmosClient<Database>(cosmosAttribute),
-            Type _ when targetType == typeof(Container) => CreateCosmosClient<Container>(cosmosAttribute),
-            _ => await CreateTargetObjectAsync(targetType, cosmosAttribute)
-        };
-
-        private async Task<object> CreateTargetObjectAsync(Type targetType, CosmosDBMongoInputAttribute cosmosAttribute)
-        {
-            if (CreateCosmosClient<Container>(cosmosAttribute) is not Container container)
-            {
-                throw new InvalidOperationException($"Unable to create Cosmos container client for '{cosmosAttribute.CollectionName}'.");
-            }
-
-            if (targetType.IsCollectionType())
-            {
-                return await ParameterBinder.BindCollectionAsync(
-                    elementType => GetDocumentsAsync(container, cosmosAttribute, elementType), targetType);
-            }
-            else
-            {
-                return await CreatePocoAsync(container, cosmosAttribute, targetType);
-            }
-        }
-
-        private async Task<object> CreatePocoAsync(Container container, CosmosDBMongoInputAttribute cosmosAttribute, Type targetType)
-        {
-            if (string.IsNullOrEmpty(cosmosAttribute.Id) || string.IsNullOrEmpty(cosmosAttribute.PartitionKey))
-            {
-                throw new InvalidOperationException("The 'Id' and 'PartitionKey' properties of a CosmosDB single-item input binding cannot be null or empty.");
-            }
-
-            ResponseMessage item = await container.ReadItemStreamAsync(cosmosAttribute.Id, new PartitionKey(cosmosAttribute.PartitionKey));
-            item.EnsureSuccessStatusCode();
-            return (await JsonSerializer.DeserializeAsync(item.Content, targetType, _serializerOptions))!;
-        }
-
-        private async IAsyncEnumerable<object> GetDocumentsAsync(Container container, CosmosDBMongoInputAttribute cosmosAttribute, Type elementType)
-        {
-            await foreach (var stream in GetDocumentsStreamAsync(container, cosmosAttribute))
-            {
-                // Cosmos returns a stream of JSON which represents a paged response. The contents are in a property called "Documents".
-                // Deserializing into CosmosStream<T> will extract these documents.
-                Type target = typeof(CosmosStream<>).MakeGenericType(elementType);
-                CosmosStream page = (CosmosStream)(await JsonSerializer.DeserializeAsync(stream!, target, _serializerOptions))!;
-                foreach (var item in page.GetDocuments())
-                {
-                    yield return item;
-                }
-            }
-        }
-
-        private async IAsyncEnumerable<Stream> GetDocumentsStreamAsync(Container container, CosmosDBMongoInputAttribute cosmosAttribute)
-        {
-            QueryDefinition queryDefinition = null!;
-            if (!string.IsNullOrEmpty(cosmosAttribute.SqlQuery))
-            {
-                queryDefinition = new QueryDefinition(cosmosAttribute.SqlQuery);
-                if (cosmosAttribute.SqlQueryParameters?.Count() > 0)
-                {
-                    foreach (var parameter in cosmosAttribute.SqlQueryParameters)
-                    {
-                        queryDefinition.WithParameter(parameter.Key, parameter.Value.ToString());
-                    }
-                }
-            }
-
-            QueryRequestOptions queryRequestOptions = new();
-            if (!string.IsNullOrEmpty(cosmosAttribute.PartitionKey))
-            {
-                var partitionKey = new PartitionKey(cosmosAttribute.PartitionKey);
-                queryRequestOptions = new() { PartitionKey = partitionKey };
-            }
-
-            using FeedIterator iterator = container.GetItemQueryStreamIterator(queryDefinition: queryDefinition, requestOptions: queryRequestOptions)
-                ?? throw new InvalidOperationException($"Unable to retrieve documents for container '{container.Id}'.");
-
-            while (iterator.HasMoreResults)
-            {
-                using ResponseMessage response = await iterator.ReadNextAsync();
-                response.EnsureSuccessStatusCode();
-                yield return response.Content;
-            }
-        }
-
-        private T CreateCosmosClient<T>(CosmosDBMongoInputAttribute cosmosAttribute)
-        {
-            if (cosmosAttribute is null)
-            {
-                throw new ArgumentNullException(nameof(cosmosAttribute));
-            }
-
-            var cosmosDBOptions = _cosmosOptions.Get(cosmosAttribute.ConnectionStringKey);
-            CosmosClient cosmosClient = cosmosDBOptions.GetClient(cosmosAttribute.PreferredLocations!);
-
-            Type targetType = typeof(T);
-            object cosmosReference = targetType switch
-            {
-                Type _ when targetType == typeof(Database) => cosmosClient.GetDatabase(cosmosAttribute.DatabaseName),
-                Type _ when targetType == typeof(Container) => cosmosClient.GetContainer(cosmosAttribute.DatabaseName, cosmosAttribute.CollectionName),
-                _ => cosmosClient
-            };
-
-            return (T)cosmosReference;
-        }
-
-        // Need a non-generic type to cast to, and can't use IEnumerable directly (breaks json deserialization).
-        private abstract class CosmosStream
-        {
-            public abstract IEnumerable GetDocuments();
-        }
-
-        private class CosmosStream<T> : CosmosStream
-        {
-            public IEnumerable<T>? Documents { get; set; }
-
-            public override IEnumerable GetDocuments() => Documents!;
+            // TODO: Implement
+            throw new NotImplementedException();
         }
     }
 }

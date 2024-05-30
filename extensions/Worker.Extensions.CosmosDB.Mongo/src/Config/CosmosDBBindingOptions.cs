@@ -3,9 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
-using Azure.Core;
-using Microsoft.Azure.Cosmos;
-using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.Mongo;
+using MongoDB.Driver;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -15,17 +13,11 @@ namespace Microsoft.Azure.Functions.Worker
 
         public string? ConnectionString { get; set; }
 
-        public string? AccountEndpoint { get; set; }
-
-        public TokenCredential? Credential { get; set; }
-
-        public CosmosSerializer? Serializer { get; set; }
-
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 
-        internal ConcurrentDictionary<string, CosmosClient> ClientCache { get; } = new ConcurrentDictionary<string, CosmosClient>();
+        internal ConcurrentDictionary<string, MongoClient> ClientCache { get; } = new ConcurrentDictionary<string, MongoClient>();
 
-        internal virtual CosmosClient GetClient(string preferredLocations = "")
+        internal virtual MongoClient GetClient(string preferredLocations = "")
         {
             if (string.IsNullOrEmpty(ConnectionName))
             {
@@ -34,29 +26,12 @@ namespace Microsoft.Azure.Functions.Worker
 
             string cacheKey = BuildCacheKey(ConnectionName!, preferredLocations);
 
-            CosmosClientOptions cosmosClientOptions = new ()
-            {
-                ConnectionMode = ConnectionMode.Gateway
-            };
-
-            if (!string.IsNullOrEmpty(preferredLocations))
-            {
-                cosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
-            }
-
-            if (Serializer is not null)
-            {
-                cosmosClientOptions.Serializer = Serializer;
-            }
-
-            return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(cosmosClientOptions));
+            return ClientCache.GetOrAdd(cacheKey, (c) => CreateService());
         }
 
-        private CosmosClient CreateService(CosmosClientOptions cosmosClientOptions)
+        private MongoClient CreateService()
         {
-            return string.IsNullOrEmpty(ConnectionString)
-                    ? new CosmosClient(AccountEndpoint, Credential, cosmosClientOptions) // AAD auth
-                    : new CosmosClient(ConnectionString, cosmosClientOptions); // Connection string based auth
+            return new MongoClient(ConnectionString);
         }
     }
 }

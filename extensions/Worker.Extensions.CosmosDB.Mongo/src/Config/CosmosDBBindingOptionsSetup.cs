@@ -35,28 +35,12 @@ namespace Microsoft.Azure.Functions.Worker
             if (!connectionSection.Exists())
             {
                 throw new InvalidOperationException($"Cosmos DB connection configuration '{connectionName}' does not exist. " +
-                                                    "Make sure that it is a defined App Setting.");
+                    "Make sure that it is a defined App Setting.");
             }
 
             options.ConnectionName = connectionName;
 
-            if (!string.IsNullOrWhiteSpace(connectionSection.Value))
-            {
-                options.ConnectionString = connectionSection.Value;
-            }
-            else
-            {
-                options.AccountEndpoint = connectionSection[Constants.AccountEndpoint];
-                if (string.IsNullOrWhiteSpace(options.AccountEndpoint))
-                {
-                    throw new InvalidOperationException($"Connection should have an '{Constants.AccountEndpoint}' property or be a " +
-                        $"string representing a connection string.");
-                }
-
-                options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
-            }
-
-            options.Serializer = new WorkerCosmosSerializer(_workerOptions.CurrentValue.Serializer);
+            options.ConnectionString = connectionSection.Value;
         }
     }
 }

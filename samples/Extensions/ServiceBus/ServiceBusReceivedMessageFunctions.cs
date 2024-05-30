@@ -101,7 +101,7 @@ namespace SampleApp
         //<docsnippet_servicebus_session_message_actions>
         [Function(nameof(ServiceBusSessionMessageActionsFunction))]
         public async Task ServiceBusSessionMessageActionsFunction(
-            [ServiceBusTrigger("bro", Connection = "ServiceBusConnection", AutoCompleteMessages = false, IsSessionsEnabled = true)]
+            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", AutoCompleteMessages = false, IsSessionsEnabled = true)]
             ServiceBusReceivedMessage message,
             ServiceBusSessionMessageActions messageActions)
         {

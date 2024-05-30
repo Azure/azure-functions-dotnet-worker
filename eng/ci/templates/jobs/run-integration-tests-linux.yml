@@ -26,7 +26,7 @@ jobs:
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
       DotnetVersion: 'net7'
-      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
+      UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipCosmosDBEmulator: true
       SkipBuildOnPack: true
 

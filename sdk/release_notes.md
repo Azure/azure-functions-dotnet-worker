@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk <version> (meta package)
 
-- <entry>
+- Removing redefining of msbuild target `_FunctionsPreBuild` (#2498)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

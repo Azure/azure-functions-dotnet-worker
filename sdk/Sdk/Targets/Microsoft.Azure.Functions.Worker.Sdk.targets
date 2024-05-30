@@ -92,7 +92,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <!-- We have a few files we can tell the .NET SDK targets to copy for us early on in the build. -->
-  <Target Name="_FunctionsPreBuild" DependsOnTargets="_FunctionsGetPaths" BeforeTargets="AssignTargetPaths">
+  <Target Name="_FunctionsAssignTargetPaths" DependsOnTargets="_FunctionsGetPaths" BeforeTargets="AssignTargetPaths">
     <ItemGroup>
       <None Include="$(_FunctionsMetadataPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="functions.metadata"  />
       <None Include="$(_FunctionsWorkerConfigPath)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" TargetPath="worker.config.json" />

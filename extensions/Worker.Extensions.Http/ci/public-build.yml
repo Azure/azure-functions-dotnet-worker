@@ -9,9 +9,9 @@ trigger:
     - feature/*
   paths:
     include:
-      - eng/
-      - extensions/Worker.Extensions.Http/
-      - test/Worker.Extensions.Tests/
+    - eng/
+    - extensions/Worker.Extensions.Http/
+    - test/Worker.Extensions.Tests/
 
 pr:
   branches:
@@ -19,7 +19,8 @@ pr:
     - main
     - release/*
     - feature/*
-  include:
+  paths:
+    include:
     - eng/
     - extensions/Worker.Extensions.Http/
     - test/Worker.Extensions.Tests/

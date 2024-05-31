@@ -7,6 +7,7 @@
 ### Microsoft.Azure.Functions.Worker.Sdk 1.17.3
 
 - Removing redefining of msbuild target `_FunctionsPreBuild` (#2498)
+- SDK changes for .NET 9.0 support (#2497)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.1
 

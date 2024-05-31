@@ -1,5 +1,20 @@
 # This build is used for public PR and CI builds.
 
+# Runtime parameters (visible in UI)
+parameters:
+- name: UseCoreToolsBuildFromIntegrationTests
+  displayName: UseCoreToolsBuildFromIntegrationTests
+  type: boolean
+  default: false
+- name: CORE_TOOLS_URL
+  displayName: CORE_TOOLS_URL
+  type: string
+  default: ' '
+- name: CORE_TOOLS_URL_LINUX
+  displayName: CORE_TOOLS_URL_LINUX
+  type: string
+  default: ' '
+
 trigger:
   batch: true
   branches:
@@ -41,19 +56,32 @@ resources:
 
 variables:
   - template: /eng/ci/templates/variables/build.yml@self
+  - name: UseCoreToolsBuildFromIntegrationTests
+    value: ${{ parameters.UseCoreToolsBuildFromIntegrationTests }}
 
 extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1es
   parameters:
     pool:
       name: 1es-pool-azfunc-public
-      image: 1es-windows-2022
-      os: windows
+      image: 1es-ubuntu-22.04
+      os: linux
+    sdl:
+      sourceAnalysisPool:
+        name: 1es-pool-azfunc-public
+        image: 1es-windows-2022
+        os: windows
 
     stages:
     - stage: Test
 
       jobs:
       - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc-public

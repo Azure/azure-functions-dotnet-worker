@@ -16,11 +16,6 @@ jobs:
       path: $(Build.ArtifactStagingDirectory)/NugetPackages
       artifact: NugetPackages
 
-  pool:
-    name: 1es-pool-azfunc
-    image: 1es-ubuntu-22.04
-    os: linux
-
   variables:
     ${{ if and(not(contains(variables['Build.SourceBranch'], '/release/')), not(startsWith(variables['Build.SourceBranch'], 'refs/tags'))) }}:
       buildNumberTemp: $(Build.BuildNumber)

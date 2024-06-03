@@ -16,7 +16,4 @@
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
-  </ItemGroup>
 </Project>

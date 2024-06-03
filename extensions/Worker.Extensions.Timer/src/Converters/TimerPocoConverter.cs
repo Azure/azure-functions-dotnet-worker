@@ -12,6 +12,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Timer.Converters
 {
     internal sealed class TimerPocoConverter : IInputConverter
     {
+        private static readonly JsonSerializerOptions _serializerOptions = new()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            PropertyNameCaseInsensitive = true
+        };
+
         public async ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
             if (context.TargetType != typeof(TimerInfo))
@@ -43,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Timer.Converters
             try
             {
                 using var stream = new MemoryStream(bytes);
-                var deserializedObject = await JsonSerializer.DeserializeAsync<TimerInfo>(stream, JsonSerializerOptionsProvider.Options);
+                var deserializedObject = await JsonSerializer.DeserializeAsync<TimerInfo>(stream, _serializerOptions);
                 return ConversionResult.Success(deserializedObject);
             }
             catch (Exception ex)

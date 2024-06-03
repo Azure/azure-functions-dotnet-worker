@@ -9,10 +9,10 @@ trigger:
     - feature/*
   paths:
     include:
-      - eng/
-      - extensions/Worker.Extensions.Http.AspNetCore/
-      - extensions/Worker.Extensions.Http.AspNetCore.Analyzers/
-      - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
+    - eng/
+    - extensions/Worker.Extensions.Http.AspNetCore/
+    - extensions/Worker.Extensions.Http.AspNetCore.Analyzers/
+    - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
 
 pr:
   branches:
@@ -20,7 +20,8 @@ pr:
     - main
     - release/*
     - feature/*
-  include:
+  paths:
+    include:
     - eng/
     - extensions/Worker.Extensions.Http.AspNetCore/
     - extensions/Worker.Extensions.Http.AspNetCore.Analyzers/

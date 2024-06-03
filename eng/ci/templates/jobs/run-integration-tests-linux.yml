@@ -1,7 +1,6 @@
 parameters:
   name: PoolName
   type: string
-  default: 1es-pool-azfunc
 
 jobs:
 - job: RunIntegrationTests_Linux

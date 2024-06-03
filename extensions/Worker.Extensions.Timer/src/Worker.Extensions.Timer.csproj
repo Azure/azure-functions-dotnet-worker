@@ -12,7 +12,11 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
+  </ItemGroup>
 </Project>

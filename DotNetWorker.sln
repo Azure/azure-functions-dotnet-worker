@@ -148,6 +148,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry.Tests", "test\DotNetWorker.OpenTelemetry.Tests\DotNetWorker.OpenTelemetry.Tests.csproj", "{9AE6E00C-5E6F-4615-9C69-464E9B208E8C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Worker.Extensions.Timer.Tests", "test\extensions\Worker.Extensions.Timer.Tests\Worker.Extensions.Timer.Tests.csproj", "{5B21BAA3-0B29-4715-9FA2-138AA3DF3E92}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -374,6 +376,14 @@ Global
 		{9AE6E00C-5E6F-4615-9C69-464E9B208E8C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9AE6E00C-5E6F-4615-9C69-464E9B208E8C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9AE6E00C-5E6F-4615-9C69-464E9B208E8C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{66DECE16-A439-4B89-AA6C-5F57B668050D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{66DECE16-A439-4B89-AA6C-5F57B668050D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{66DECE16-A439-4B89-AA6C-5F57B668050D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{66DECE16-A439-4B89-AA6C-5F57B668050D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5B21BAA3-0B29-4715-9FA2-138AA3DF3E92}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5B21BAA3-0B29-4715-9FA2-138AA3DF3E92}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5B21BAA3-0B29-4715-9FA2-138AA3DF3E92}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5B21BAA3-0B29-4715-9FA2-138AA3DF3E92}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -439,6 +449,8 @@ Global
 		{198DA072-F94F-4585-A744-97B3DAC21686} = {B5821230-6E0A-4535-88A9-ED31B6F07596}
 		{82157559-DF60-496D-817F-84B34CFF76FD} = {083592CA-7DAB-44CE-8979-44FAFA46AEC3}
 		{9AE6E00C-5E6F-4615-9C69-464E9B208E8C} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
+		{66DECE16-A439-4B89-AA6C-5F57B668050D} = {9D6603BD-7EA2-4D11-A69C-0D9E01317FD6}
+		{5B21BAA3-0B29-4715-9FA2-138AA3DF3E92} = {AA4D318D-101B-49E7-A4EC-B34165AEDB33}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

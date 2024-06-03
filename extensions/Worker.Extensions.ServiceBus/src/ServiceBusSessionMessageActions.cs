@@ -34,14 +34,13 @@ namespace Microsoft.Azure.Functions.Worker
         /// This constructor exists only to support mocking. When used, class state is not fully initialized, and
         /// will not function correctly; virtual members are meant to be mocked.
         ///</remarks>
-        #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         protected ServiceBusSessionMessageActions()
-        #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _settlement = null!; // not expected to be used during mocking.
+            _sessionId = null!; // not expected to be used during mocking.
         }
 
-        public virtual DateTimeOffset SessionLockedUntil { get; private set; }
+        public virtual DateTimeOffset SessionLockedUntil { get; protected set; }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>
         public virtual async Task<BinaryData> GetSessionStateAsync(
@@ -54,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             GetSessionStateResponse result = await _settlement.GetSessionStateAsync(request, cancellationToken: cancellationToken);
             BinaryData binaryData = new BinaryData(result.SessionState.Memory);
-            return await Task.FromResult(binaryData);
+            return binaryData;
         }
 
         ///<inheritdoc cref="ServiceBusReceiver.CompleteMessageAsync(ServiceBusReceivedMessage, CancellationToken)"/>

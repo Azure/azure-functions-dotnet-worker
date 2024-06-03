@@ -11,7 +11,7 @@ using System.Text.Json;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Converter to bind to <see cref="ServiceBusSessionMessageActions" /> or <see cref="ServiceBusSessionMessageActions[]" /> type parameters.
+    /// Converter to bind to <see cref="ServiceBusSessionMessageActions" /> or <see cref="ServiceBusSessionMessageActions{}" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedTargetType(typeof(ServiceBusSessionMessageActions))]

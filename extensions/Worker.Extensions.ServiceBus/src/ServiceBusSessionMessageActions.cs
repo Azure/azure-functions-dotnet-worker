@@ -1,4 +1,7 @@
-﻿using System;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
@@ -8,11 +11,13 @@ using Microsoft.Azure.ServiceBus.Grpc;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    /// <summary>
+    /// Converter to bind to <see cref="ServiceBusSessionMessageActions" /> type parameters.
+    /// </summary>
     [InputConverter(typeof(ServiceBusSessionMessageActionsConverter))]
     public class ServiceBusSessionMessageActions
     {
         private readonly Settlement.SettlementClient _settlement;
-
         private readonly string _sessionId;
 
         internal ServiceBusSessionMessageActions(Settlement.SettlementClient settlement, string sessionId, DateTimeOffset sessionLockedUntil)
@@ -29,7 +34,9 @@ namespace Microsoft.Azure.Functions.Worker
         /// This constructor exists only to support mocking. When used, class state is not fully initialized, and
         /// will not function correctly; virtual members are meant to be mocked.
         ///</remarks>
+        #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         protected ServiceBusSessionMessageActions()
+        #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             _settlement = null!; // not expected to be used during mocking.
         }
@@ -46,8 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             GetSessionStateResponse result = await _settlement.GetSessionStateAsync(request, cancellationToken: cancellationToken);
-            byte[] byteArray = result.SessionState.ToByteArray();
-            BinaryData binaryData = BinaryData.FromBytes(byteArray);
+            BinaryData binaryData = new BinaryData(result.SessionState.Memory);
             return await Task.FromResult(binaryData);
         }
 
@@ -59,7 +65,7 @@ namespace Microsoft.Azure.Functions.Worker
             var request = new SetSessionStateRequest()
             {
                 SessionId = _sessionId,
-                SessionState = ByteString.CopyFrom(sessionState.ToArray()),
+                SessionState = ByteString.CopyFrom(sessionState.ToMemory().Span),
             };
 
             await _settlement.SetSessionStateAsync(request, cancellationToken: cancellationToken);
@@ -88,7 +94,6 @@ namespace Microsoft.Azure.Functions.Worker
 
             var result = await _settlement.RenewSessionLockAsync(request, cancellationToken: cancellationToken);
             SessionLockedUntil = result.LockedUntil.ToDateTimeOffset();
-            
         }
     }
 }

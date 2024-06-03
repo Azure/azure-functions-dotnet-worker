@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Text;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Functions.Worker;
@@ -22,7 +21,6 @@ namespace SampleApp
         {
             _logger = logger;
         }
-
         //</docsnippet_servicebusmessage_createlogger>
         /// <summary>
         /// This function demonstrates binding to a single <see cref="ServiceBusReceivedMessage"/>.
@@ -40,7 +38,6 @@ namespace SampleApp
             var outputMessage = $"Output message created at {DateTime.Now}";
             return outputMessage;
         }
-        
         //</docsnippet_servicebus_readmessage>
         /// <summary>
         /// This function demonstrates binding to an array of <see cref="ServiceBusReceivedMessage"/>.
@@ -78,11 +75,7 @@ namespace SampleApp
             _logger.LogInformation("Delivery Count: {count}", message.DeliveryCount);
             _logger.LogInformation("Delivery Count: {count}", deliveryCount);
         }
-
-
         //<docsnippet_servicebus_message_actions>
-        /// This function demonstrates binding to <see cref="ServiceBusMessageActions"/>.
-        /// </summary>
         [Function(nameof(ServiceBusMessageActionsFunction))]
         public async Task ServiceBusMessageActionsFunction(
             [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", AutoCompleteMessages = false)]
@@ -93,39 +86,9 @@ namespace SampleApp
             _logger.LogInformation("Message Body: {body}", message.Body);
             _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
 
-            await messageActions.RenewMessageLockAsync(message);
+            // Complete the message
+            await messageActions.CompleteMessageAsync(message);
         }
-
         //</docsnippet_servicebus_message_actions>
-        /// This function demonstrates binding to <see cref="ServiceBusSessionMessageActions"/>.
-        //<docsnippet_servicebus_session_message_actions>
-        [Function(nameof(ServiceBusSessionMessageActionsFunction))]
-        public async Task ServiceBusSessionMessageActionsFunction(
-            [ServiceBusTrigger("queue", Connection = "ServiceBusConnection", AutoCompleteMessages = false, IsSessionsEnabled = true)]
-            ServiceBusReceivedMessage message,
-            ServiceBusSessionMessageActions messageActions)
-        {
-            _logger.LogInformation("Message ID: {id}", message.MessageId);
-            _logger.LogInformation("Message Body: {body}", message.Body);
-            _logger.LogInformation("Message Content-Type: {contentType}", message.ContentType);
-
-            // Set the session state
-            await messageActions.SetSessionStateAsync(new BinaryData(Encoding.UTF8.GetBytes("your_session_state")));
-
-            // Get the session state
-            var sessionState = await messageActions.GetSessionStateAsync();
-
-            _logger.LogInformation("Session state: {}", sessionState.ToString());
-            _logger.LogInformation("Session locked until before renewal: {value}", messageActions.SessionLockedUntil);
-
-            // Renew session lock
-            await messageActions.RenewSessionLockAsync();
-
-            _logger.LogInformation("Session locked until after renewal: {value}", messageActions.SessionLockedUntil);
-
-            // Release session
-            await messageActions.ReleaseSession();
-        }
-        //<docsnippet_servicebus_session_message_actions>
     }
 }

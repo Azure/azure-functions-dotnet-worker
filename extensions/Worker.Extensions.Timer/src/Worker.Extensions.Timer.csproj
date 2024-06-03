@@ -6,7 +6,7 @@
     <Description>Timer extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.3.0</VersionPrefix>
+    <VersionPrefix>4.3.1</VersionPrefix>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Extensions.props" />

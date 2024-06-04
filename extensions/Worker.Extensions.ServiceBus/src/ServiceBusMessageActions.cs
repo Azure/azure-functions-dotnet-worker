@@ -1,3 +1,6 @@
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -146,6 +149,24 @@ namespace Microsoft.Azure.Functions.Worker
                 request.PropertiesToModify = ConvertToByteString(propertiesToModify);
             }
             await _settlement.DeferAsync(request, cancellationToken: cancellationToken);
+        }
+
+        ///<inheritdoc cref="ServiceBusReceiver.RenewMessageLockAsync(ServiceBusReceivedMessage, CancellationToken)"/>
+        public virtual async Task RenewMessageLockAsync(
+            ServiceBusReceivedMessage message,
+            CancellationToken cancellationToken = default)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            var request = new RenewMessageLockRequest()
+            {
+                Locktoken = message.LockToken,
+            };
+
+            await _settlement.RenewMessageLockAsync(request, cancellationToken: cancellationToken);
         }
 
         internal static ByteString ConvertToByteString(IDictionary<string, object> propertiesToModify)

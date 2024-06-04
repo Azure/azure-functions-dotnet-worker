@@ -26,7 +26,7 @@ namespace AspNetIntegration
         }
         public class MyOutputType
         {
-            [HttpResponseOutput]
+            [HttpResult]
             public IActionResult Result { get; set; }
 
             [QueueOutput("myQueue")]

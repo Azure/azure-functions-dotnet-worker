@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker
                 var foundSessionId = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
                 if (!foundSessionId)
                 {
-                    throw new InvalidOperationException("Expecting SessionId within binding data and value was not present.");
+                    throw new InvalidOperationException($"Expecting SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }
 
                 // Get the sessionLockedUntil property from the SessionActions binding data

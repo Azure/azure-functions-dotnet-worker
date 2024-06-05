@@ -9,7 +9,7 @@ using Moq;
 
 namespace Worker.Extensions.Timer.Tests
 {
-    public sealed class TimerPocoConverterTests
+    public sealed class TimerInfoConverterTests
     {
         [Fact]
         public async Task ConvertAsync_ShouldConvertJsonStringToTimerInfo()

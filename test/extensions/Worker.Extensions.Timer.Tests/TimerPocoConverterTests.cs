@@ -26,7 +26,7 @@ namespace Worker.Extensions.Timer.Tests
   },
   ""IsPastDue"": true
 }";
-            var converter = new TimerPocoConverter();
+            var converter = new TimerInfoConverter();
             var contextMock = new Mock<ConverterContext>();
             contextMock.SetupGet(c => c.TargetType).Returns(typeof(TimerInfo));
             contextMock.SetupGet(c => c.Source).Returns(timerTriggerSourceJson);
@@ -42,7 +42,7 @@ namespace Worker.Extensions.Timer.Tests
         [Fact]
         public async Task ConvertAsync_ShouldReturnUnhandledWhenTargetTypeIsNotTimerInfo()
         {
-            var converter = new TimerPocoConverter();
+            var converter = new TimerInfoConverter();
             var contextMock = new Mock<ConverterContext>();
             contextMock.SetupGet(c => c.TargetType).Returns(typeof(HttpRequestData));
             contextMock.SetupGet(c => c.Source).Returns("{\"ScheduleStatus\": {\"Last\": \"2022-01-01T00:00:00Z\"}}");

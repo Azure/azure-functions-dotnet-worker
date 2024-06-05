@@ -10,7 +10,7 @@ using Microsoft.Azure.Functions.Worker.Converters;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Timer.Converters
 {
-    internal sealed class TimerPocoConverter : IInputConverter
+    internal sealed class TimerInfoConverter : IInputConverter
     {
         private static readonly JsonSerializerOptions _serializerOptions = new()
         {

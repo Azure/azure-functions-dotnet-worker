@@ -16,14 +16,14 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IConfiguration _configuration;
         private readonly AzureComponentFactory _componentFactory;
         private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
-        private readonly IOptionsMonitor<CosmosClientOptions> _cosmosClientOptions;
+        private readonly IOptionsMonitor<CosmosDBOptions> _cosmosDBOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosClientOptions> cosmosClientOptions)
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosDBOptions> cosmosClientOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
-            _cosmosClientOptions = cosmosClientOptions ?? throw new ArgumentNullException(nameof(cosmosClientOptions));
+            _cosmosDBOptions = cosmosClientOptions ?? throw new ArgumentNullException(nameof(cosmosClientOptions));
         }
 
         public void Configure(CosmosDBBindingOptions options)
@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             options.Serializer = new WorkerCosmosSerializer(_workerOptions.CurrentValue.Serializer);
-            options.CosmosClientOptions = _cosmosClientOptions.CurrentValue;
+            options.CosmosDBOptions = _cosmosDBOptions.CurrentValue;
         }
     }
 }

@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 5.0.0
 
-- Expose `CosmosClientOptions` to allow configuration of the CosmosDB client (#2483)
+- Implement `CosmosDBOptions` to allow configuration of the CosmosDB service client via `CosmosClientOptions` (#2483)
 
 #### Breaking Change
 
@@ -22,9 +22,9 @@ To continue using `Gateway` mode, configure the `CosmosClientOptions` in your `P
 ```csharp
 .ConfigureFunctionsWorkerDefaults((builder) =>
 {
-    builder.Services.Configure<CosmosClientOptions>((options) =>
+    builder.ConfigureCosmosDBExtensionOptions((options) =>
     {
-        options.ConnectionMode = ConnectionMode.Gateway;
+        options.ClientOptions.ConnectionMode = ConnectionMode.Gateway;
     });
 })
 ```

@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
+using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.Timer.Converters;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -11,6 +13,8 @@ namespace Microsoft.Azure.Functions.Worker
     /// a timer schedule.
     /// </summary>
     [BindingCapabilities(KnownBindingCapabilities.FunctionLevelRetry)]
+    [InputConverter(typeof(TimerInfoConverter))]
+    [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public sealed class TimerTriggerAttribute : TriggerBindingAttribute
     {
         /// <summary>

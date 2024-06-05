@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 5.0.0
 
-- Implement `CosmosDBOptions` to allow configuration of the CosmosDB service client via `CosmosClientOptions` (#2483)
+- Implement `CosmosDBExtensionOptions` to allow configuration of the CosmosDB service client via `CosmosClientOptions` (#2483)
 
 #### Breaking Change
 

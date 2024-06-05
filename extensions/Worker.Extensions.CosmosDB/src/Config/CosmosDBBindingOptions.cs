@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker
     /// Internal options for configuring the CosmosDB binding.
     /// This class is used internally by the Azure Functions runtime to manage the CosmosDB connection and clients.
     /// It is not intended to be used directly in user code.
-    /// Any public configuration options should be set on the <see cref="CosmosDBOptions"/> class, which is publicly accessible.
+    /// Any public configuration options should be set on the <see cref="CosmosDBExtensionOptions"/> class, which is publicly accessible.
     /// </summary>
     internal class CosmosDBBindingOptions
     {
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public CosmosSerializer? Serializer { get; set; }
 
-        public CosmosDBOptions? CosmosDBOptions { get; set; }
+        public CosmosDBExtensionOptions? CosmosExtensionOptions { get; set; }
 
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 
@@ -40,23 +40,23 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new ArgumentNullException(nameof(ConnectionName));
             }
 
-            if (CosmosDBOptions is null)
+            if (CosmosExtensionOptions is null)
             {
-                CosmosDBOptions = new CosmosDBOptions();
+                CosmosExtensionOptions = new CosmosExtensionOptions();
             }
 
             string cacheKey = BuildCacheKey(ConnectionName!, preferredLocations);
 
             // Do not override if preferred locations is configured via CosmosClientOptions
-            if (!string.IsNullOrEmpty(preferredLocations) && CosmosDBOptions.ClientOptions.ApplicationPreferredRegions is null)
+            if (!string.IsNullOrEmpty(preferredLocations) && CosmosExtensionOptions.ClientOptions.ApplicationPreferredRegions is null)
             {
-                CosmosDBOptions.ClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
+                CosmosExtensionOptions.ClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
             }
 
             // Do not override if the serializer is configured via CosmosClientOptions
-            if (Serializer is not null && CosmosDBOptions.ClientOptions.Serializer is null)
+            if (Serializer is not null && CosmosExtensionOptions.ClientOptions.Serializer is null)
             {
-                CosmosDBOptions.ClientOptions.Serializer = Serializer;
+                CosmosExtensionOptions.ClientOptions.Serializer = Serializer;
             }
 
             return ClientCache.GetOrAdd(cacheKey, (c) => CreateService());
@@ -65,8 +65,8 @@ namespace Microsoft.Azure.Functions.Worker
         private CosmosClient CreateService()
         {
             return string.IsNullOrEmpty(ConnectionString)
-                    ? new CosmosClient(AccountEndpoint, Credential, CosmosDBOptions?.ClientOptions) // AAD auth
-                    : new CosmosClient(ConnectionString, CosmosDBOptions?.ClientOptions); // Connection string based auth
+                    ? new CosmosClient(AccountEndpoint, Credential, CosmosExtensionOptions?.ClientOptions) // AAD auth
+                    : new CosmosClient(ConnectionString, CosmosExtensionOptions?.ClientOptions); // Connection string based auth
         }
     }
 }

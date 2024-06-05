@@ -35,12 +35,12 @@ namespace Microsoft.Azure.Functions.Worker
         }
 
         /// <summary>
-        /// Configures the CosmosDBOptions for the Functions Worker Cosmos extension.
+        /// Configures the CosmosDBExtensionOptions for the Functions Worker Cosmos extension.
         /// </summary>
         /// <param name="builder">The IFunctionsWorkerApplicationBuilder to add the configuration to.</param>
-        /// <param name="options">An Action to configure the CosmosDBOptions.</param>
+        /// <param name="options">An Action to configure the CosmosDBExtensionOptions.</param>
         /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
-        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtensionOptions(this IFunctionsWorkerApplicationBuilder builder, Action<CosmosDBOptions> options)
+        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtensionOptions(this IFunctionsWorkerApplicationBuilder builder, Action<CosmosDBExtensionOptions> options)
         {
             builder.Services.Configure(options);
             return builder;

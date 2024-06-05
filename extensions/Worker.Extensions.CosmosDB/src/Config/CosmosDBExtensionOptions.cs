@@ -5,7 +5,7 @@ using Microsoft.Azure.Cosmos;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    public class CosmosDBOptions
+    public class CosmosDBExtensionOptions
     {
         /// <summary>
         /// Gets or sets the CosmosClientOptions.

@@ -18,12 +18,12 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptionsMonitor<WorkerOptions> _workerOptions;
         private readonly IOptionsMonitor<CosmosDBOptions> _cosmosDBOptions;
 
-        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosDBOptions> cosmosClientOptions)
+        public CosmosDBBindingOptionsSetup(IConfiguration configuration, AzureComponentFactory componentFactory, IOptionsMonitor<WorkerOptions> workerOptions, IOptionsMonitor<CosmosDBOptions> cosmosOptions)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _componentFactory = componentFactory ?? throw new ArgumentNullException(nameof(componentFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
-            _cosmosDBOptions = cosmosClientOptions ?? throw new ArgumentNullException(nameof(cosmosClientOptions));
+            _cosmosDBOptions = cosmosOptions ?? throw new ArgumentNullException(nameof(cosmosOptions));
         }
 
         public void Configure(CosmosDBBindingOptions options)

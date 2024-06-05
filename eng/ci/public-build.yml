@@ -46,7 +46,6 @@ pr:
     - test/TestUtility
     - tools/
 
-
 resources:
   repositories:
   - repository: 1es

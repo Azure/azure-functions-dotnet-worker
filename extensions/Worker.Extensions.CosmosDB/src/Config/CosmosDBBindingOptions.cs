@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             if (CosmosExtensionOptions is null)
             {
-                CosmosExtensionOptions = new CosmosExtensionOptions();
+                CosmosExtensionOptions = new CosmosDBExtensionOptions();
             }
 
             string cacheKey = BuildCacheKey(ConnectionName!, preferredLocations);

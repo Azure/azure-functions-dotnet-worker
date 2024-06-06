@@ -10,6 +10,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets or sets the CosmosClientOptions.
         /// </summary>
-        public CosmosClientOptions ClientOptions { get; set; } = new CosmosClientOptions();
+        public CosmosClientOptions ClientOptions { get; set; } = new() { ConnectionMode = ConnectionMode.Gateway };
     }
 }

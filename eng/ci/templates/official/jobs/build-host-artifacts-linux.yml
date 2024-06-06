@@ -8,8 +8,8 @@ jobs:
     outputs:
     - output: pipelineArtifact
       displayName: Publish FunctionsNetHost packages
-      path: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackagesLinux
-      artifact: FunctionsNetHostPackagesLinux
+      path: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesLinux
+      artifact: _functionsNetHostPackagesLinux
 
   pool:
     name: 1es-pool-azfunc
@@ -44,4 +44,4 @@ jobs:
         FunctionsNetHost
         FunctionsNetHost.dbg
         libnethost.so
-      TargetFolder: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackagesLinux
+      TargetFolder: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesLinux

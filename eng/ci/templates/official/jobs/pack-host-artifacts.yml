@@ -25,19 +25,19 @@ jobs:
   - task: DownloadPipelineArtifact@2
     displayName: Download prelaunch artifacts
     inputs:
-      artifactName: PreLaunchAppPackages
+      artifactName: _preLaunchAppPackages
       path: $(Build.SourcesDirectory)/host/dist/portable
 
   - task: DownloadPipelineArtifact@2
     displayName: Download host artifacts - linux
     inputs:
-      artifactName: FunctionsNetHostPackagesLinux
+      artifactName: _functionsNetHostPackagesLinux
       path: $(Build.SourcesDirectory)/host/dist/linux
 
   - task: DownloadPipelineArtifact@2
     displayName: Download host artifacts - windows
     inputs:
-      artifactName: FunctionsNetHostPackagesWindows
+      artifactName: _functionsNetHostPackagesWindows
       path: $(Build.SourcesDirectory)/host/dist/windows
 
   - task: NuGetCommand@2

@@ -8,8 +8,8 @@ jobs:
     outputs:
     - output: pipelineArtifact
       displayName: Publish FunctionsNetHost packages
-      path: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackagesWindows
-      artifact: FunctionsNetHostPackagesWindows
+      path: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesWindows
+      artifact: _functionsNetHostPackagesWindows
 
   pool:
     name: 1es-pool-azfunc
@@ -40,4 +40,4 @@ jobs:
         FunctionsNetHost.exe
         FunctionsNetHost.pdb
         nethost.dll
-      TargetFolder: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackagesWindows
+      TargetFolder: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesWindows

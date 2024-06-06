@@ -1,0 +1,43 @@
+jobs:
+
+- job: BuildFunctionsNetHostWindows
+  displayName: '[Windows] Build FunctionsNetHost'
+
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish FunctionsNetHost packages
+      path: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackagesWindows
+      artifact: FunctionsNetHostPackagesWindows
+
+  pool:
+    name: 1es-pool-azfunc
+    image: 1es-windows-2022
+    os: windows
+
+  steps:
+  - task: UseDotNet@2
+    displayName: Install .NET SDK from global.json
+    inputs:
+      useGlobalJson: true
+
+  - task: DotnetCoreCLI@2
+    displayName: Dotnet Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      zipAfterPublish: false
+      arguments: -c Release -r win-x64 -o $(Build.SourcesDirectory)/pkg_output/windows
+      workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
+
+  - task: CopyFiles@2
+    displayName: Copy files
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)/pkg_output/windows
+      # Publish output will include many other files. We only need FunctionsNetHost.exe, pdb & nethost.dll
+      Contents: |
+        FunctionsNetHost.exe
+        FunctionsNetHost.pdb
+        nethost.dll
+      TargetFolder: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackagesWindows

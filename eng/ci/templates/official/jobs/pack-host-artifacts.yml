@@ -1,0 +1,50 @@
+jobs:
+
+- job: PackArtifacts
+  displayName: Pack artifacts
+
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish nuget packages
+      path: $(Build.ArtifactStagingDirectory)/NugetPackages
+      artifact: NugetPackages
+
+  pool:
+    name: 1es-pool-azfunc
+    image: 1es-windows-2022
+    os: windows
+
+  steps:
+  - task: UseDotNet@2
+    displayName: Install .NET SDK from global.json
+    inputs:
+      useGlobalJson: true
+
+  - task: DownloadPipelineArtifact@2
+    displayName: Download prelaunch artifacts
+    inputs:
+      artifactName: PreLaunchAppPackages
+      path: $(Build.SourcesDirectory)/host/dist/portable
+
+  - task: DownloadPipelineArtifact@2
+    displayName: Download host artifacts - linux
+    inputs:
+      artifactName: FunctionsNetHostPackagesLinux
+      path: $(Build.SourcesDirectory)/host/dist/linux
+
+  - task: DownloadPipelineArtifact@2
+    displayName: Download host artifacts - windows
+    inputs:
+      artifactName: FunctionsNetHostPackagesWindows
+      path: $(Build.SourcesDirectory)/host/dist/windows
+
+  - task: NuGetCommand@2
+    displayName: Nuget pack
+    inputs:
+      command: pack
+      packagesToPack: $(Build.SourcesDirectory)/host/tools/build/Microsoft.Azure.Functions.DotnetIsolatedNativeHost.nuspec
+      versioningScheme: off
+      packDestination: $(Build.ArtifactStagingDirectory)/NugetPackages
+      basePath: $(Build.SourcesDirectory)/host/tools/build

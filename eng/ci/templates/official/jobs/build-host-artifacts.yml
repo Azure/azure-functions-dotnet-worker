@@ -1,0 +1,78 @@
+jobs:
+
+- job: BuildFunctionsNetHost
+  displayName: Build FunctionsNetHost
+
+  strategy:
+    matrix:
+      windows:
+        poolName: '1es-pool-azfunc'
+        poolImage: '1es-windows-2022'
+        poolOS: 'windows'
+        runtime: 'win-x64'
+      linux:
+        poolName: '1es-pool-azfunc'
+        poolImage: '1es-ubuntu-22.04'
+        poolOS: 'linux'
+        runtime: 'linux-x64'
+
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish FunctionsNetHost windows packages
+      path: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackages/windows
+      artifact: FunctionsNetHostPackages_Windows
+    - output: pipelineArtifact
+      displayName: Publish FunctionsNetHost linux packages
+      path: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackages/linux
+      artifact: FunctionsNetHostPackages_Linux
+
+  pool:
+    name: $(poolName)
+    image: $(poolImage)
+    os: $(poolOS)
+
+  steps:
+  - task: UseDotNet@2
+    displayName: Install .NET SDK from global.json
+    inputs:
+      useGlobalJson: true
+
+  - script: |
+      sudo apt-get install clang zlib1g-dev
+    condition: eq(variables['poolOS'], 'linux')
+    displayName: Install dependencies
+
+  - task: DotnetCoreCLI@2
+    displayName: Dotnet Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      zipAfterPublish: false
+      arguments: -c Release -r $(runtime) -o $(Build.SourcesDirectory)/pkg_output/$(poolOS)
+      workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
+
+  - task: CopyFiles@2
+    displayName: Copy files
+    condition: eq(variables['poolOS'], 'windows')
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)/pkg_output/windows
+      # Publish output will include many other files. We only need FunctionsNetHost.exe, pdb & nethost.dll
+      Contents: |
+        FunctionsNetHost.exe
+        FunctionsNetHost.pdb
+        nethost.dll
+      TargetFolder: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackages/windows
+
+  - task: CopyFiles@2
+    displayName: Copy files
+    condition: eq(variables['poolOS'], 'linux')
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)/pkg_output/linux
+      # Publish output will include many other files. We only need the FunctionsNetHost, FunctionsNetHost.dbg & libnethost.so
+      Contents: |
+        FunctionsNetHost
+        FunctionsNetHost.dbg
+        libnethost.so
+      TargetFolder: $(Build.ArtifactStagingDirectory)/FunctionsNetHostPackages/linux

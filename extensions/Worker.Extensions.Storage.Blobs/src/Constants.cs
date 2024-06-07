@@ -10,5 +10,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs
 
         // Media content types
         internal const string JsonContentType = "application/json";
+
+        // hello world
     }
 }

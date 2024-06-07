@@ -45,6 +45,4 @@ extends:
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-linux.yml@self
         parameters:
           PoolName: 1es-pool-azfunc-public
-      - template: /eng/ci/templates/official/jobs/build-host-artifacts-windows.yml@self
-        parameters:
-          SkipPublish: true
+      - template: /eng/ci/templates/jobs/build-net-host.yml

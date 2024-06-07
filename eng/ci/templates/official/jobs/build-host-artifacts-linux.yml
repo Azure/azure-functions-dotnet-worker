@@ -1,3 +1,7 @@
+parameters:
+  name: PoolName
+  type: string
+
 jobs:
 
 - job: BuildFunctionsNetHostLinux
@@ -12,7 +16,7 @@ jobs:
       artifact: _functionsNetHostPackagesLinux
 
   pool:
-    name: 1es-pool-azfunc
+    name: ${{ parameters.PoolName }}
     image: 1es-ubuntu-22.04
     os: linux
 

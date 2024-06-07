@@ -11,11 +11,6 @@ jobs:
       path: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesWindows
       artifact: _functionsNetHostPackagesWindows
 
-  pool:
-    name: 1es-pool-azfunc
-    image: 1es-windows-2022
-    os: windows
-
   steps:
   - task: UseDotNet@2
     displayName: Install .NET SDK from global.json

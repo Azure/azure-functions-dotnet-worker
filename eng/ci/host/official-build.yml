@@ -32,13 +32,8 @@ extends:
   parameters:
     pool:
       name: 1es-pool-azfunc
-      image: 1es-ubuntu-22.04
-      os: linux
-    sdl:
-      sourceAnalysisPool:
-        name: 1es-pool-azfunc
-        image: 1es-windows-2022
-        os: windows
+      image: 1es-windows-2022
+      os: windows
 
     stages:
     - stage: Build
@@ -46,6 +41,8 @@ extends:
       jobs:
       - template: /eng/ci/templates/official/jobs/build-host-prelaunch-artifacts.yml@self
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-linux.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-windows.yml@self
 
     - stage: Pack

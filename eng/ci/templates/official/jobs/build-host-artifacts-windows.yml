@@ -1,3 +1,8 @@
+parameters:
+  name: SkipPublish
+  type: boolean
+  default: false
+
 jobs:
 
 - job: BuildFunctionsNetHostWindows
@@ -7,6 +12,7 @@ jobs:
     outputParentDirectory: $(Build.ArtifactStagingDirectory)
     outputs:
     - output: pipelineArtifact
+      condition: eq(variables['SkipPublish'], false)
       displayName: Publish FunctionsNetHost packages
       path: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesWindows
       artifact: _functionsNetHostPackagesWindows

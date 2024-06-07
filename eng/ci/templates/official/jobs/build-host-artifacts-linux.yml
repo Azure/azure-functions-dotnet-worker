@@ -1,0 +1,47 @@
+jobs:
+
+- job: BuildFunctionsNetHostLinux
+  displayName: '[Linux] Build FunctionsNetHost'
+
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish FunctionsNetHost packages
+      path: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesLinux
+      artifact: _functionsNetHostPackagesLinux
+
+  pool:
+    name: 1es-pool-azfunc
+    image: 1es-ubuntu-22.04
+    os: linux
+
+  steps:
+  - task: UseDotNet@2
+    displayName: Install .NET SDK from global.json
+    inputs:
+      useGlobalJson: true
+
+  - script: |
+      sudo apt-get install clang zlib1g-dev
+    displayName: Install dependencies
+
+  - task: DotnetCoreCLI@2
+    displayName: Dotnet Publish
+    inputs:
+      command: publish
+      publishWebProjects: false
+      zipAfterPublish: false
+      arguments: -c Release -r linux-x64 -o $(Build.SourcesDirectory)/pkg_output/linux
+      workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost
+
+  - task: CopyFiles@2
+    displayName: Copy files
+    inputs:
+      SourceFolder: $(Build.SourcesDirectory)/pkg_output/linux
+      # Publish output will include many other files. We only need the FunctionsNetHost, FunctionsNetHost.dbg & libnethost.so
+      Contents: |
+        FunctionsNetHost
+        FunctionsNetHost.dbg
+        libnethost.so
+      TargetFolder: $(Build.ArtifactStagingDirectory)/_functionsNetHostPackagesLinux

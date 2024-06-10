@@ -59,7 +59,6 @@ namespace Microsoft.Azure.Functions.Worker
                 options.Credential = _componentFactory.CreateTokenCredential(connectionSection);
             }
 
-            options.Serializer = new WorkerCosmosSerializer(_workerOptions.CurrentValue.Serializer);
             options.CosmosExtensionOptions = _cosmosExtensionOptions.CurrentValue;
         }
     }

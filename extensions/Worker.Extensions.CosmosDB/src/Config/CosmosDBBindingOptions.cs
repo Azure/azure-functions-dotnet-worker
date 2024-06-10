@@ -25,8 +25,6 @@ namespace Microsoft.Azure.Functions.Worker
 
         public TokenCredential? Credential { get; set; }
 
-        public CosmosSerializer? Serializer { get; set; }
-
         public CosmosDBExtensionOptions? CosmosExtensionOptions { get; set; }
 
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
@@ -50,23 +48,20 @@ namespace Microsoft.Azure.Functions.Worker
             // Do not override if preferred locations is configured via CosmosClientOptions
             if (!string.IsNullOrEmpty(preferredLocations) && CosmosExtensionOptions.ClientOptions.ApplicationPreferredRegions is null)
             {
-                CosmosExtensionOptions.ClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
+                // Copy to avoid modifying the original options
+                var cosmosClientOptions = CosmosExtensionOptions.ClientOptions;
+                cosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
+                return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(cosmosClientOptions));
             }
 
-            // Do not override if the serializer is configured via CosmosClientOptions
-            if (Serializer is not null && CosmosExtensionOptions.ClientOptions.Serializer is null)
-            {
-                CosmosExtensionOptions.ClientOptions.Serializer = Serializer;
-            }
-
-            return ClientCache.GetOrAdd(cacheKey, (c) => CreateService());
+            return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(CosmosExtensionOptions.ClientOptions));
         }
 
-        private CosmosClient CreateService()
+        private CosmosClient CreateService(CosmosClientOptions cosmosClientOptions)
         {
             return string.IsNullOrEmpty(ConnectionString)
-                    ? new CosmosClient(AccountEndpoint, Credential, CosmosExtensionOptions?.ClientOptions) // AAD auth
-                    : new CosmosClient(ConnectionString, CosmosExtensionOptions?.ClientOptions); // Connection string based auth
+                    ? new CosmosClient(AccountEndpoint, Credential, cosmosClientOptions) // AAD auth
+                    : new CosmosClient(ConnectionString, cosmosClientOptions); // Connection string based auth
         }
     }
 }

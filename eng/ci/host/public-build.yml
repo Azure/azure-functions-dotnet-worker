@@ -8,6 +8,7 @@ trigger:
     - release/*
   paths:
     include:
+    - eng/
     - host/src/
 
 pr:
@@ -17,6 +18,7 @@ pr:
     - release/*
   paths:
     include:
+    - eng/
     - host/src/
 
 resources:

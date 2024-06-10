@@ -6,6 +6,7 @@ trigger:
     - release/*
   paths:
     include:
+    - eng/
     - host/src/
 
 # CI only, does not trigger on PRs.

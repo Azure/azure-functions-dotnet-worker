@@ -30,7 +30,13 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             builder.Services.AddOptions<CosmosDBBindingOptions>();
             builder.Services.AddOptions<CosmosDBExtensionOptions>()
-                            .Configure<IOptions<WorkerOptions>>((cosmos, worker) => cosmos.ClientOptions.Serializer = new WorkerCosmosSerializer(worker.Value.Serializer));
+                            .Configure<IOptions<WorkerOptions>>((cosmos, worker) =>
+                            {
+                                if (cosmos.ClientOptions.Serializer is null)
+                                {
+                                    cosmos.ClientOptions.Serializer = new WorkerCosmosSerializer(worker.Value.Serializer);
+                                }
+                            });
 
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<CosmosDBBindingOptions>, CosmosDBBindingOptionsSetup>());
 

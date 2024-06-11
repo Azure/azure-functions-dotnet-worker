@@ -48,8 +48,8 @@ namespace Microsoft.Azure.Functions.Worker
             // Do not override if preferred locations is configured via CosmosClientOptions
             if (!string.IsNullOrEmpty(preferredLocations) && CosmosExtensionOptions.ClientOptions.ApplicationPreferredRegions is null)
             {
-                // Copy to avoid modifying the original options
-                var cosmosClientOptions = CosmosExtensionOptions.ClientOptions;
+                // Clone to avoid modifying the original options
+                var cosmosClientOptions = CosmosExtensionOptions.Clone().ClientOptions;
                 cosmosClientOptions.ApplicationPreferredRegions = Utilities.ParsePreferredLocations(preferredLocations);
                 return ClientCache.GetOrAdd(cacheKey, (c) => CreateService(cosmosClientOptions));
             }

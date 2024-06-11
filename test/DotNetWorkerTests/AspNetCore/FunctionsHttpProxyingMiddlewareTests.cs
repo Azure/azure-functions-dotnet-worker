@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -50,6 +51,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             test.MockCoordinator.Verify(p => p.SetFunctionContextAsync(It.IsAny<string>(), It.IsAny<FunctionContext>()), Times.Never());
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Never());
         }
+
 
         [Fact]
         public async Task SimpleHttpTrigger_ActionResultHandled()
@@ -258,6 +260,22 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
                 .Verifiable();
 
             return mockResult;
+        }
+
+        [Fact]
+        public async Task CompleteFunctionInvocation_RunsWhen_FunctionThrowsException()
+        {
+            var test = SetupTest("httpTrigger");
+            var mockDelegate = new Mock<FunctionExecutionDelegate>();
+            mockDelegate.Setup(d => d.Invoke(It.IsAny<FunctionContext>()))
+                .Throws(new Exception("Custom exception message"));
+
+            var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
+
+            await Assert.ThrowsAsync<Exception>(async () => await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object));
+
+            mockDelegate.Verify(p => p.Invoke(test.FunctionContext), Times.Once());
+            test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
     }
 }

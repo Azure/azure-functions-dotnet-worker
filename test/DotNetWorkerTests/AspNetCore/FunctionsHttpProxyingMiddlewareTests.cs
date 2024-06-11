@@ -52,7 +52,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Never());
         }
 
-
         [Fact]
         public async Task SimpleHttpTrigger_ActionResultHandled()
         {

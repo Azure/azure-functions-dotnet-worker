@@ -49,19 +49,24 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             // Register additional context features
             context.Features.Set<IFromBodyConversionFeature>(FromBodyConversionFeature.Instance);
 
-            await next(context);
-
-            var responseHandled = await TryHandleHttpResult(context.GetInvocationResult().Value, context, httpContext, true)
-                || await TryHandleOutputBindingsHttpResult(context, httpContext);
-            
-            if (!responseHandled)
+            try
             {
-                var logger = context.InstanceServices.GetRequiredService<ExtensionTrace>();
-                logger.NoHttpResponseReturned(context.FunctionDefinition.Name, context.InvocationId);
-            }
+                await next(context);
 
-            // Allow ASP.NET Core middleware to continue
-            _coordinator.CompleteFunctionInvocation(invocationId);
+                var responseHandled = await TryHandleHttpResult(context.GetInvocationResult().Value, context, httpContext, true)
+                    || await TryHandleOutputBindingsHttpResult(context, httpContext);
+
+                if (!responseHandled)
+                {
+                    var logger = context.InstanceServices.GetRequiredService<ExtensionTrace>();
+                    logger.NoHttpResponseReturned(context.FunctionDefinition.Name, context.InvocationId);
+                }
+            }
+            finally
+            {
+                // Allow ASP.NET Core middleware to continue
+                _coordinator.CompleteFunctionInvocation(invocationId);
+            }
         }
 
         private static async Task<bool> TryHandleHttpResult(object? result, FunctionContext context, HttpContext httpContext, bool isInvocationResult = false)

@@ -11,10 +11,5 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets the CosmosClientOptions.
         /// </summary>
         public CosmosClientOptions ClientOptions { get; set; } = new() { ConnectionMode = ConnectionMode.Gateway };
-
-        internal CosmosDBExtensionOptions Clone()
-        {
-            return (CosmosDBExtensionOptions)this.MemberwiseClone();
-        }
     }
 }

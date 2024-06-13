@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Timer 4.3.1
+### Microsoft.Azure.Functions.Worker.Extensions.Timer <version>
 
-- Adding a new converter for POCO serialization. (#2411)
+- <entry>

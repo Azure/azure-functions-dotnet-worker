@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 1.3.2
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- Fixes a bug where the invocation hangs when the function has an unhandled exception (#2527).
+- <entry>

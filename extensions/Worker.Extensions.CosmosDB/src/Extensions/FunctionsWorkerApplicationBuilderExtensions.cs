@@ -1,6 +1,8 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -27,8 +29,29 @@ namespace Microsoft.Azure.Functions.Worker
 
             builder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             builder.Services.AddOptions<CosmosDBBindingOptions>();
+            builder.Services.AddOptions<CosmosDBExtensionOptions>()
+                            .Configure<IOptions<WorkerOptions>>((cosmos, worker) =>
+                            {
+                                if (cosmos.ClientOptions.Serializer is null)
+                                {
+                                    cosmos.ClientOptions.Serializer = new WorkerCosmosSerializer(worker.Value.Serializer);
+                                }
+                            });
+
             builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<CosmosDBBindingOptions>, CosmosDBBindingOptionsSetup>());
 
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the CosmosDBExtensionOptions for the Functions Worker Cosmos extension.
+        /// </summary>
+        /// <param name="builder">The IFunctionsWorkerApplicationBuilder to add the configuration to.</param>
+        /// <param name="options">An Action to configure the CosmosDBExtensionOptions.</param>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtensionOptions(this IFunctionsWorkerApplicationBuilder builder, Action<CosmosDBExtensionOptions> options)
+        {
+            builder.Services.Configure(options);
             return builder;
         }
     }

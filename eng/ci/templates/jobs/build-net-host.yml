@@ -1,0 +1,16 @@
+jobs:
+
+- job: BuildFunctionsNetHostW
+  displayName: '[Windows] Build FunctionsNetHost'
+
+  steps:
+  - task: UseDotNet@2
+    displayName: Install .NET SDK from global.json
+    inputs:
+      useGlobalJson: true
+
+  - task: DotnetCoreCLI@2
+    displayName: Dotnet build
+    inputs:
+      command: build
+      workingDirectory: $(Build.SourcesDirectory)/host/src/FunctionsNetHost

@@ -24,6 +24,7 @@ trigger:
     - feature/*
   paths:
     include:
+    - eng/
     - sdk/
     - src/
 

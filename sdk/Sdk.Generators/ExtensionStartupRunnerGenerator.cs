@@ -216,7 +216,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     {
                                         new global::{{typeName}}().Configure(applicationBuilder);
                                     }
-                                    catch (Exception ex)
+                                    catch (global::System.Exception ex)
                                     {
                                         Console.Error.WriteLine("Error calling Configure on {{typeName}} instance."+ex.ToString());
                                     }

@@ -19,11 +19,6 @@ trigger:
     include:
     - main
     - release/*
-  paths:
-    include:
-    - eng/
-    - sdk/
-    - src/
 
 # CI only, does not trigger on PRs.
 pr: none

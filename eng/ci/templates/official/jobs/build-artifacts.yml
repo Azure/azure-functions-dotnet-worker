@@ -33,36 +33,12 @@ jobs:
       projects: |
         DotNetWorker.sln
 
-  - task: EsrpCodeSigning@2
-    displayName: Sign SDK assemblies
-    inputs:
-      ConnectedServiceName: ESRP Service-internal
-      FolderPath: sdk
-      Pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolSign",
-            "Parameters": {
-              "OpusName": "Microsoft",
-              "OpusInfo": "http://www.microsoft.com",
-              "FileDigest": "/fd \"SHA256\"",
-              "PageHash": "/NPH",
-              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          },
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolVerify",
-            "Parameters": {},
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          }
-        ]
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign SDK assemblies
+      folderPath: sdk
+      pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
+      signType: dll
 
   - task: DeleteFiles@1
     displayName: Delete CodeSignSummary files
@@ -70,36 +46,12 @@ jobs:
       sourceFolder: sdk
       contents: '**/CodeSignSummary-*.md'
 
-  - task: EsrpCodeSigning@2
-    displayName: Sign DotNetWorker assemblies
-    inputs:
-      ConnectedServiceName: ESRP Service-internal
-      FolderPath: src
-      Pattern: Microsoft.Azure.Functions.Worker*.dll
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolSign",
-            "Parameters": {
-              "OpusName": "Microsoft",
-              "OpusInfo": "http://www.microsoft.com",
-              "FileDigest": "/fd \"SHA256\"",
-              "PageHash": "/NPH",
-              "TimeStamp": "/tr \"http://rfc3161.gtm.corp.microsoft.com/TSS/HttpTspServer\" /td sha256"
-            },
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          },
-          {
-            "KeyCode": "CP-230012",
-            "OperationCode": "SigntoolVerify",
-            "Parameters": {},
-            "ToolName": "sign",
-            "ToolVersion": "1.0"
-          }
-        ]
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign DotNetWorker assemblies
+      folderPath: sdk
+      pattern: Microsoft.Azure.Functions.Worker*.dll
+      signType: dll
 
   - task: DeleteFiles@1
     displayName: Delete CodeSignSummary files
@@ -125,30 +77,12 @@ jobs:
       projects: |
         src/**/DotNetWorker*.csproj
 
-  - task: EsrpCodeSigning@2
-    displayName: Sign nuget packages
-    inputs:
-      ConnectedServiceName: ESRP Service-internal
-      FolderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
-      Pattern: Microsoft.Azure.Functions.Worker*.nupkg
-      signConfigType: inlineSignParams
-      inlineOperation: |
-        [
-            {
-              "KeyCode": "CP-401405",
-              "OperationCode": "NuGetSign",
-              "Parameters": {},
-              "ToolName": "sign",
-              "ToolVersion": "1.0"
-            },
-            {
-              "KeyCode": "CP-401405",
-              "OperationCode": "NuGetVerify",
-              "Parameters": {},
-              "ToolName": "sign",
-              "ToolVersion": "1.0"
-            }
-        ]
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign nuget packages
+      folderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
+      pattern: Microsoft.Azure.Functions.Worker*.nupkg
+      signType: nuget
 
   - task: DeleteFiles@1
     displayName: Delete CodeSignSummary files

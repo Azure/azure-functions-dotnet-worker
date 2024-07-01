@@ -10,4 +10,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
-- <entry>
+- ExtensionStartupRunnerGenerator generating code which conflicts with customer code (namespace) (#2542)

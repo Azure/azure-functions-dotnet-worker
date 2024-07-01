@@ -60,7 +60,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                                 {
                                                     new global::Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup().Configure(applicationBuilder);
                                                 }
-                                                catch (Exception ex)
+                                                catch (global::System.Exception ex)
                                                 {
                                                     Console.Error.WriteLine("Error calling Configure on Microsoft.Azure.Functions.Tests.WorkerExtensionsSample.SampleExtensionStartup instance."+ex.ToString());
                                                 }

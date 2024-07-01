@@ -44,8 +44,10 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IUserMetricWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>());
             services.AddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
 
+            // Default aggregator that collects metadata from all the metadata providers
+            services.TryAddSingleton<IFunctionMetadataProviderAggregator, DefaultFunctionMetadataProviderAggregator>();
             // FunctionMetadataProvider for worker driven function-indexing
-            services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
+            services.AddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
 
             // gRPC Core services
             services.AddSingleton<IWorker, GrpcWorker>();

@@ -29,7 +29,10 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         {
             ObjectDisposedThrowHelper.ThrowIf(_disposed, this);
 
-            await _semaphoreSlim.WaitAsync(WaitTimeInMilliSeconds, context.CancellationToken);
+            // Setting second parameter to CancellationToken.None to prevent a TaskCancelledException if the 
+            // pipeline cancels the code before the function is invoked. This way the customer code will be invoked
+            // and they can handle the cancellation token.
+            await _semaphoreSlim.WaitAsync(WaitTimeInMilliSeconds, CancellationToken.None);
 
             try
             {

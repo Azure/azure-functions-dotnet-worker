@@ -68,7 +68,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var parameters = new List<FunctionParameter>()
             {
                 new("myQueueItem",typeof(Book)),
-                new ("myGuid", typeof(Guid))
+                new ("myGuid", typeof(Guid)),
+                new ("token", typeof(CancellationToken))
             };
             IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
             features.Set(_serviceProvider.GetService<IInputConversionFeature>());
@@ -100,6 +101,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal("foo", book.Id);
             var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
             Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
+            var cancellationToken = TestUtility.AssertIsTypeAndConvert<CancellationToken>(parameterValuesArray[2]);
+            Assert.True(cancellationToken.IsCancellationRequested);
         }
 
         [Fact]

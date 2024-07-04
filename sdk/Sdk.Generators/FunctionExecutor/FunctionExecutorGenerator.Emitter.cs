@@ -34,17 +34,17 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          {
                              [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                              [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-                             internal class DirectFunctionExecutor : IFunctionExecutor
+                             internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
                              {
-                                 private readonly IFunctionActivator _functionActivator;{{(defaultExecutorNeeded ? $"{Environment.NewLine}        private Lazy<IFunctionExecutor> _defaultExecutor;" : string.Empty)}}
+                                 private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;{{(defaultExecutorNeeded ? $"{Environment.NewLine}        private Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor> _defaultExecutor;" : string.Empty)}}
                                  {{GetTypesDictionary(functions)}}
-                                 public DirectFunctionExecutor(IFunctionActivator functionActivator)
+                                 public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
                                  {
-                                     _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+                                     _functionActivator = functionActivator ?? throw new global::System.ArgumentNullException(nameof(functionActivator));
                                  }
 
                                  /// <inheritdoc/>
-                                 public async ValueTask ExecuteAsync(FunctionContext context)
+                                 public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                                  {
                                      {{GetMethodBody(functions, defaultExecutorNeeded)}}
                                  }{{(defaultExecutorNeeded ? $"{Environment.NewLine}{EmitCreateDefaultExecutorMethod(context)}" : string.Empty)}}
@@ -58,11 +58,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  ///<summary>
                                  /// Configures an optimized function executor to the invocation pipeline.
                                  ///</summary>
-                                 public static IHostBuilder ConfigureGeneratedFunctionExecutor(this IHostBuilder builder)
+                                 public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionExecutor(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
                                  {
                                      return builder.ConfigureServices(s => 
                                      {
-                                         s.AddSingleton<IFunctionExecutor, DirectFunctionExecutor>();
+                                         s.AddSingleton<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor, DirectFunctionExecutor>();
                                      });
                                  }
                              }{{GetAutoConfigureStartupClass(includeAutoRegistrationCode)}}
@@ -79,12 +79,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 return $$"""
 
-                            private IFunctionExecutor CreateDefaultExecutorInstance(FunctionContext context)
+                            private global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor CreateDefaultExecutorInstance(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                             {
                                 var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, {{assemblyIdentity}}";
-                                var defaultExecutorType = Type.GetType(defaultExecutorFullName);
+                                var defaultExecutorType = global.System.Type.GetType(defaultExecutorFullName);
 
-                                return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as IFunctionExecutor;
+                                return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;
                             }
                     """;
             }
@@ -121,13 +121,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                       /// Auto startup class to register the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                                       /// </summary>
                                       [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                                      public class FunctionExecutorAutoStartup : IAutoConfigureStartup
+                                      public class FunctionExecutorAutoStartup : global::Microsoft.Azure.Functions.Worker.IAutoConfigureStartup
                                       {
                                           /// <summary>
                                           /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                                           /// </summary>
                                           /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
-                                          public void Configure(IHostBuilder hostBuilder)
+                                          public void Configure(global::Microsoft.Extensions.Hosting.IHostBuilder hostBuilder)
                                           {
                                               hostBuilder.ConfigureGeneratedFunctionExecutor();
                                           }
@@ -144,10 +144,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var sb = new StringBuilder();
                 sb.Append(
                    $$"""
-                var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+                var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
                             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
                             var inputArguments = inputBindingResult.Values;
-                {{(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Environment.NewLine}" : string.Empty)}}
+                {{(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Environment.NewLine}" : string.Empty)}}
                 """);
 
                 bool first = true;

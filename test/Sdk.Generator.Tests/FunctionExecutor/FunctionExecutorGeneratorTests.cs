@@ -595,23 +595,23 @@ namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class DirectFunctionExecutor : IFunctionExecutor
+    internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
-        private readonly IFunctionActivator _functionActivator;
+        private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
             {{ ""TestProject.TestProject"", Type.GetType(""TestProject.TestProject, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
-        public DirectFunctionExecutor(IFunctionActivator functionActivator)
+        public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
         {{
-            _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+            _functionActivator = functionActivator ?? throw new global::System.ArgumentNullException(nameof(functionActivator));
         }}
 
         /// <inheritdoc/>
-        public async ValueTask ExecuteAsync(FunctionContext context)
+        public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
@@ -743,11 +743,11 @@ namespace TestProject
                                 ///<summary>
                                 /// Configures an optimized function executor to the invocation pipeline.
                                 ///</summary>
-                                public static IHostBuilder ConfigureGeneratedFunctionExecutor(this IHostBuilder builder)
+                                public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionExecutor(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
                                 {
                                     return builder.ConfigureServices(s => 
                                     {
-                                        s.AddSingleton<IFunctionExecutor, DirectFunctionExecutor>();
+                                        s.AddSingleton<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor, DirectFunctionExecutor>();
                                     });
                                 }
                             }
@@ -779,11 +779,11 @@ namespace TestProject
                             ///<summary>
                             /// Configures an optimized function executor to the invocation pipeline.
                             ///</summary>
-                            public static IHostBuilder ConfigureGeneratedFunctionExecutor(this IHostBuilder builder)
+                            public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionExecutor(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
                             {
                                 return builder.ConfigureServices(s => 
                                 {
-                                    s.AddSingleton<IFunctionExecutor, DirectFunctionExecutor>();
+                                    s.AddSingleton<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor, DirectFunctionExecutor>();
                                 });
                             }
                         }

@@ -117,9 +117,9 @@ namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class DirectFunctionExecutor : IFunctionExecutor
+    internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
-        private readonly IFunctionActivator _functionActivator;
+        private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
             {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }},
@@ -127,15 +127,15 @@ namespace TestProject
             {{ ""MyCompany.QueueTriggers"", Type.GetType(""MyCompany.QueueTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
-        public DirectFunctionExecutor(IFunctionActivator functionActivator)
+        public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
         {{
-            _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+            _functionActivator = functionActivator ?? throw new global::System.ArgumentNullException(nameof(functionActivator));
         }}
 
         /// <inheritdoc/>
-        public async ValueTask ExecuteAsync(FunctionContext context)
+        public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
@@ -234,23 +234,23 @@ namespace MyCompany.MyProject.MyApp
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class DirectFunctionExecutor : IFunctionExecutor
+    internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
-        private readonly IFunctionActivator _functionActivator;
+        private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
             {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
-        public DirectFunctionExecutor(IFunctionActivator functionActivator)
+        public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
         {{
-            _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+            _functionActivator = functionActivator ?? throw new global::System.ArgumentNullException(nameof(functionActivator));
         }}
 
         /// <inheritdoc/>
-        public async ValueTask ExecuteAsync(FunctionContext context)
+        public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
@@ -686,23 +686,23 @@ namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class DirectFunctionExecutor : IFunctionExecutor
+    internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
-        private readonly IFunctionActivator _functionActivator;
+        private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
         private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
         {{
             {{ ""MyCompany.MyHttpTriggers"", Type.GetType(""MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"") }}
         }};
 
-        public DirectFunctionExecutor(IFunctionActivator functionActivator)
+        public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
         {{
-            _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+            _functionActivator = functionActivator ?? throw new global::System.ArgumentNullException(nameof(functionActivator));
         }}
 
         /// <inheritdoc/>
-        public async ValueTask ExecuteAsync(FunctionContext context)
+        public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
         {{
-            var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+            var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
             var inputArguments = inputBindingResult.Values;
 
@@ -736,7 +736,7 @@ namespace TestProject
                 return """
 
                             /// <summary>
-                            /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                            /// Extension methods to enable registration of the custom <see cref="global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor"/> implementation generated for the current worker.
                             /// </summary>
                             public static class FunctionExecutorHostBuilderExtensions
                             {
@@ -752,10 +752,10 @@ namespace TestProject
                                 }
                             }
                             /// <summary>
-                            /// Auto startup class to register the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
+                            /// Extension methods to enable registration of the custom <see cref="global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor"/> implementation generated for the current worker.
                             /// </summary>
                             [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                            public class FunctionExecutorAutoStartup : IAutoConfigureStartup
+                            public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionExecutor(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
                             {
                                 /// <summary>
                                 /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.

@@ -82,7 +82,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             private global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor CreateDefaultExecutorInstance(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                             {
                                 var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, {{assemblyIdentity}}";
-                                var defaultExecutorType = global.System.Type.GetType(defaultExecutorFullName);
+                                var defaultExecutorType = global::System.Type.GetType(defaultExecutorFullName);
 
                                 return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;
                             }

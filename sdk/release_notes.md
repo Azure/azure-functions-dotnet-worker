@@ -11,3 +11,4 @@
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - ExtensionStartupRunnerGenerator generating code which conflicts with customer code (namespace) (#2542)
+- Enhanced function metadata generation to include `$return` binding for HTTP trigger functions. (#1619)

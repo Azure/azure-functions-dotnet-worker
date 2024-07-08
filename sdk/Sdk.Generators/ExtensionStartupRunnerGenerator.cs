@@ -103,13 +103,13 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                    {
                        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                        [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-                       internal class WorkerExtensionStartupCodeExecutor : WorkerExtensionStartup
+                       internal class WorkerExtensionStartupCodeExecutor : global::Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartup
                        {
                            /// <summary>
                            /// Configures the worker to register extension startup services.
                            /// </summary>
                            /// <param name="applicationBuilder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
-                           public override void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder)
+                           public override void Configure(global::Microsoft.Azure.Functions.Worker.IFunctionsWorkerApplicationBuilder applicationBuilder)
                            {
                    {{startupCodeExecutor}}
                            }
@@ -216,9 +216,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                     {
                                         new global::{{typeName}}().Configure(applicationBuilder);
                                     }
-                                    catch (Exception ex)
+                                    catch (global::System.Exception ex)
                                     {
-                                        Console.Error.WriteLine("Error calling Configure on {{typeName}} instance."+ex.ToString());
+                                        global::System.Console.Error.WriteLine("Error calling Configure on {{typeName}} instance."+ex.ToString());
                                     }
                         """);
             }

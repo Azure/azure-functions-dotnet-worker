@@ -125,7 +125,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
                         /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
                         ///</summary>
-                        public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                         {
                             builder.ConfigureServices(s => 
                             {
@@ -229,7 +229,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         /// Adds the GeneratedFunctionMetadataProvider to the service collection.
                         /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
                         ///</summary>
-                        public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                         {
                             builder.ConfigureServices(s => 
                             {

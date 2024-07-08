@@ -743,7 +743,7 @@ namespace TestProject
                                 ///<summary>
                                 /// Configures an optimized function executor to the invocation pipeline.
                                 ///</summary>
-                                public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionExecutor(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
+                                public static IHostBuilder ConfigureGeneratedFunctionExecutor(this IHostBuilder builder)
                                 {
                                     return builder.ConfigureServices(s => 
                                     {
@@ -761,7 +761,7 @@ namespace TestProject
                                 /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                                 /// </summary>
                                 /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
-                                public void Configure(global::Microsoft.Extensions.Hosting.IHostBuilder hostBuilder)
+                                public void Configure(IHostBuilder hostBuilder)
                                 {
                                     hostBuilder.ConfigureGeneratedFunctionExecutor();
                                 }
@@ -779,7 +779,7 @@ namespace TestProject
                             ///<summary>
                             /// Configures an optimized function executor to the invocation pipeline.
                             ///</summary>
-                            public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionExecutor(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
+                            public static IHostBuilder ConfigureGeneratedFunctionExecutor(this IHostBuilder builder)
                             {
                                 return builder.ConfigureServices(s => 
                                 {

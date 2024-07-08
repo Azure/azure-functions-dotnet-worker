@@ -62,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  /// Adds the GeneratedFunctionMetadataProvider to the service collection.
                                  /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
                                  ///</summary>
-                                 public static global::Microsoft.Extensions.Hosting.IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this global::Microsoft.Extensions.Hosting.IHostBuilder builder)
+                                 public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                                  {
                                      builder.ConfigureServices(s => 
                                      {
@@ -90,8 +90,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                           /// <summary>
                                           /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
                                           /// </summary>
-                                          /// <param name="hostBuilder">The <see cref="global::Microsoft.Extensions.Hosting.IHostBuilder"/> instance to use for service registration.</param>
-                                          public void Configure(global::Microsoft.Extensions.Hosting.IHostBuilder hostBuilder)
+                                          /// <param name="hostBuilder">The <see cref="IHostBuilder"/> instance to use for service registration.</param>
+                                          public void Configure(IHostBuilder hostBuilder)
                                           {
                                               hostBuilder.ConfigureGeneratedFunctionMetadataProvider();
                                           }

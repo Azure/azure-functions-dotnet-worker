@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- <entry>
+- Fixed a bug that would lead to an empty exception message in some model binding failures.

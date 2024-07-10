@@ -413,7 +413,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 }
 
                 if (!SymbolEqualityComparer.Default.Equals(returnTypeSymbol, _knownTypes.VoidType) &&
-                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol.OriginalDefinition, _knownTypes.TaskType))
+                    !SymbolEqualityComparer.Default.Equals(returnTypeSymbol.OriginalDefinition, _knownTypes.TaskType) ||
+                    // For HTTP triggers, include the return binding even if the return type is void or Task.
+                    hasHttpTrigger)
                 {
                     // If there is a Task<T> return type, inspect T, the inner type.
                     if (SymbolEqualityComparer.Default.Equals(returnTypeSymbol.OriginalDefinition, _knownTypes.TaskOfTType))
@@ -509,7 +511,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                             foundHttpOutput = true;
                             bindingsList.Add(GetHttpReturnBinding(prop.Name));
                         }
-                        else
+                        else if (bindingAttributes.Any())
                         {
                             if (!TryCreateBindingDictionary(bindingAttributes.FirstOrDefault(), prop.Name, prop.Locations.FirstOrDefault(), out IDictionary<string, object>? bindings))
                             {
@@ -537,7 +539,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var attributes = prop.GetAttributes();
                 foreach (var attribute in attributes)
                 {
-                    if (attribute.AttributeClass is not null && 
+                    if (attribute.AttributeClass is not null &&
                         attribute.AttributeClass.IsOrDerivedFrom(_knownFunctionMetadataTypes.HttpResultAttribute))
                     {
                         return true;
@@ -625,7 +627,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 {
                     if (IsArrayOrNotNull(namedArgument.Value))
                     {
-                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey) 
+                        if (string.Equals(namedArgument.Key, Constants.FunctionMetadataBindingProps.IsBatchedKey)
                             && !attrProperties.ContainsKey("cardinality") && namedArgument.Value.Value != null)
                         {
                             var argValue = (bool)namedArgument.Value.Value; // isBatched only takes in booleans and the generator will parse it as a bool so we can type cast this to use in the next line

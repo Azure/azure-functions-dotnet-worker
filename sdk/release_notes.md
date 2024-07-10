@@ -10,4 +10,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
-- <entry>
+- Enhanced function metadata generation to include `$return` binding for HTTP trigger functions. (#1619)
+- Updating generators to fix the namespace conflict with customer code (#2582)

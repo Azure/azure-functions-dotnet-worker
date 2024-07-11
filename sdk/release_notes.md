@@ -4,12 +4,11 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.17.3
+### Microsoft.Azure.Functions.Worker.Sdk 1.17.4
 
-- Removing redefining of msbuild target `_FunctionsPreBuild` (#2498)
+- Upgrade Microsoft.Azure.Functions.Worker.Sdk.Generators to 1.3.2
 
-### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.1
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.2
 
-- ExtensionStartupRunnerGenerator generating code which conflicts with customer code (namespace) (#2542)
 - Enhanced function metadata generation to include `$return` binding for HTTP trigger functions. (#1619)
 - Updating generators to fix the namespace conflict with customer code (#2582)

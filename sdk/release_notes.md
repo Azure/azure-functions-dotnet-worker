@@ -8,6 +8,8 @@
 
 - Fix incorrect function version in build message (#2606)
 - Fix inner build failures when central package management is enabled (#2689)
+- Setting _ToolingSuffix for TargetFrameworkVersion v9.0
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

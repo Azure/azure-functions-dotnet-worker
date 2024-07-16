@@ -62,6 +62,50 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
+        public async void BindFunctionInputAsync_IgnoreCancellationToken()
+        {
+            // Arrange
+            var parameters = new List<FunctionParameter>()
+            {
+                new("myQueueItem",typeof(Book)),
+                new ("myGuid", typeof(Guid)),
+                new ("token", typeof(CancellationToken))
+            };
+            IInvocationFeatures features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
+            features.Set(_serviceProvider.GetService<IInputConversionFeature>());
+            features.Set<IFunctionBindingsFeature>(new TestFunctionBindingsFeature()
+            {
+                InputData = new Dictionary<string, object>
+                {
+                    { "myQueueItem","{\"id\":\"foo\", \"title\":\"bar\"}" },
+                    { "myGuid","0ab4800e-1308-4e9f-be5f-4372717e68eb" }
+                }
+            });
+
+            var definition = new TestFunctionDefinition(parameters: parameters, inputBindings: new Dictionary<string, BindingMetadata>
+            {
+                { "myQueueItem", new TestBindingMetadata("myQueueItem","queueTrigger",BindingDirection.In) },
+                { "myGuid", new TestBindingMetadata("myGuid","queueTrigger",BindingDirection.In) }
+            });
+
+            // Register a cancellation token
+            var cts = new CancellationTokenSource();
+            cts.Cancel();
+            var functionContext = new TestFunctionContext(definition, invocation: null, cts.Token, serviceProvider: _serviceProvider, features: features);
+
+            // Act
+            var bindingResult = await _functionInputBindingFeature.BindFunctionInputAsync(functionContext);
+            var parameterValuesArray = bindingResult.Values;
+            // Assert
+            var book = TestUtility.AssertIsTypeAndConvert<Book>(parameterValuesArray[0]);
+            Assert.Equal("foo", book.Id);
+            var guid = TestUtility.AssertIsTypeAndConvert<Guid>(parameterValuesArray[1]);
+            Assert.Equal("0ab4800e-1308-4e9f-be5f-4372717e68eb", guid.ToString());
+            var cancellationToken = TestUtility.AssertIsTypeAndConvert<CancellationToken>(parameterValuesArray[2]);
+            Assert.True(cancellationToken.IsCancellationRequested);
+        }
+
+        [Fact]
         public async void BindFunctionInputAsync_Populates_Parameter_Using_DefaultValue_When_CouldNot_Populate_From_InputData()
         {
             var features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());

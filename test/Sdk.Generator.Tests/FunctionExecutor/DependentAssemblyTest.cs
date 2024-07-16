@@ -71,10 +71,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                        {
                                            [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                                            [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-                                           internal class DirectFunctionExecutor : IFunctionExecutor
+                                           internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
                                            {
-                                               private readonly IFunctionActivator _functionActivator;
-                                               private Lazy<IFunctionExecutor> _defaultExecutor;
+                                               private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
+                                               private Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor> _defaultExecutor;
                                                private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
                                                {
                                                    { "MyCompany.MyHttpTriggers", Type.GetType("MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null") },
@@ -83,19 +83,19 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                                    { "MyCompany.MyProduct.MyApp.Foo.Bar", Type.GetType("MyCompany.MyProduct.MyApp.Foo.Bar, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null") }
                                                };
                                        
-                                               public DirectFunctionExecutor(IFunctionActivator functionActivator)
+                                               public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
                                                {
-                                                   _functionActivator = functionActivator ?? throw new ArgumentNullException(nameof(functionActivator));
+                                                   _functionActivator = functionActivator ?? throw new global::System.ArgumentNullException(nameof(functionActivator));
                                                }
-                                       
+
                                                /// <inheritdoc/>
-                                               public async ValueTask ExecuteAsync(FunctionContext context)
+                                               public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                                                {
-                                                   var inputBindingFeature = context.Features.Get<IFunctionInputBindingFeature>();
+                                                   var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
                                                    var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
                                                    var inputArguments = inputBindingResult.Values;
-                                                   _defaultExecutor = new Lazy<IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));
-                                       
+                                                   _defaultExecutor = new Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));
+
                                                    if (string.Equals(context.FunctionDefinition.EntryPoint, "MyCompany.MyHttpTriggers.Foo", StringComparison.Ordinal))
                                                    {
                                                        var instanceType = types["MyCompany.MyHttpTriggers"];
@@ -130,12 +130,12 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                                    }
                                                }
                                        
-                                               private IFunctionExecutor CreateDefaultExecutorInstance(FunctionContext context)
+                                               private global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor CreateDefaultExecutorInstance(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                                                {
                                                    var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.18.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
-                                                   var defaultExecutorType = Type.GetType(defaultExecutorFullName);
-                                       
-                                                   return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as IFunctionExecutor;
+                                                   var defaultExecutorType = global::System.Type.GetType(defaultExecutorFullName);
+
+                                                   return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;
                                                }
                                            }
                                        {{GetExpectedExtensionMethodCode()}}

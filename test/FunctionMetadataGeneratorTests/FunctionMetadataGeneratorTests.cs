@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Mono.Cecil;
@@ -1154,9 +1155,11 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             Assert.Equal(2, functions.Count());
 
+            var extensionReference = typeof(ServiceBusExtensionStartup).Assembly.GetCustomAttribute<ExtensionInformationAttribute>();
+
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", "5.15.1" },
+                { "Microsoft.Azure.WebJobs.Extensions.ServiceBus", extensionReference.ExtensionVersion },
             });
 
             var serviceBusTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_ServiceBus.ServiceBusTriggerFunction));

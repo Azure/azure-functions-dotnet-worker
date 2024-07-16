@@ -85,7 +85,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                       /// Auto startup class to register the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
                                       /// </summary>
                                       [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                                      public class FunctionMetadataProviderAutoStartup : IAutoConfigureStartup
+                                      public class FunctionMetadataProviderAutoStartup : global::Microsoft.Azure.Functions.Worker.IAutoConfigureStartup
                                       {
                                           /// <summary>
                                           /// Configures the <see cref="IHostBuilder"/> to use the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.

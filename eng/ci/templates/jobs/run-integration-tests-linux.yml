@@ -1,9 +1,13 @@
+parameters:
+  name: PoolName
+  type: string
+
 jobs:
 - job: RunIntegrationTests_Linux
   displayName: 'Run integration tests - linux'
 
   pool:
-    name: 1es-pool-azfunc
+    name: ${{ parameters.PoolName }}
     image: 1es-ubuntu-22.04
     os: linux
 
@@ -21,7 +25,7 @@ jobs:
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
       DotnetVersion: 'net7'
-      UseCoreToolsBuildFromIntegrationTests: $(UseCoreToolsBuildFromIntegrationTests)
+      UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipCosmosDBEmulator: true
       SkipBuildOnPack: true
 

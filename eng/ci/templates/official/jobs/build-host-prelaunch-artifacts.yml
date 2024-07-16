@@ -1,0 +1,29 @@
+jobs:
+
+- job: BuildPrelaunchApp
+  displayName: Build PrelaunchApp
+
+  templateContext:
+    outputParentDirectory: $(Build.ArtifactStagingDirectory)
+    outputs:
+    - output: pipelineArtifact
+      displayName: Publish PrelaunchApp packages
+      path: $(Build.ArtifactStagingDirectory)/_preLaunchAppPackages
+      artifact: _preLaunchAppPackages
+
+  variables:
+    dotnetVersions: 'net8.0,net7.0,net6.0'
+
+  steps:
+  - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - ${{ each version in split(variables.dotnetVersions, ',') }}:
+    - task: DotNetCoreCLI@2
+      displayName: Publish prelaunch App.csproj
+      inputs:
+        command: publish
+        publishWebProjects: false
+        zipAfterPublish: false
+        modifyOutputPath: false
+        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preLaunchAppPackages/${{ version }} -f ${{ version }} -p:UseAppHost=false
+        projects: host/src/PrelaunchApp/App.csproj

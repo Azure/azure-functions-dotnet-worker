@@ -2,9 +2,9 @@ parameters:
   - name: DotnetVersion
     type: string
     default: 'net7'
-  - name: UseCoreToolsBuildFromIntegrationTests
+  - name: UseCoreToolsBuild
     type: string
-    default: 'false'
+    default: 'False'
   - name: SkipStorageEmulator
     type: boolean
     default: false
@@ -30,6 +30,6 @@ steps:
       -SkipStorageEmulator:$${{ parameters.SkipStorageEmulator }}
       -SkipCosmosDBEmulator:$${{ parameters.SkipCosmosDBEmulator }}
       -SkipCoreTools:$${{ parameters.SkipCoreTools }}
-      -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuildFromIntegrationTests }}
+      -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuild }}
       -SkipBuildOnPack:$${{ parameters.SkipBuildOnPack }}
     pwsh: true

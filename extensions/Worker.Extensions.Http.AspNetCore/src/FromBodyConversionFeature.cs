@@ -84,7 +84,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
                     foreach (var error in dictionary.Errors)
                     {
-                        messageBuilder.AppendLine(error.ErrorMessage);
+                        if (error is null)
+                        {
+                           continue;
+                        }
+
+                        var message = string.IsNullOrEmpty(error.ErrorMessage)
+                            ? error.Exception?.Message
+                            : error.ErrorMessage;
+
+                        messageBuilder.AppendLine(message);
                     }
                 }
 

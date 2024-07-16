@@ -8,6 +8,7 @@ trigger:
     include:
       - eng/
       - extensions/Worker.Extensions.Http.AspNetCore/
+      - extensions/Worker.Extensions.Http.AspNetCore.Analyzers/
       - test/extensions/Worker.Extensions.Http.AspNetCore.Tests/
 
 # CI only, does not trigger on PRs.
@@ -35,8 +36,13 @@ extends:
   parameters:
     pool:
       name: 1es-pool-azfunc
-      image: 1es-windows-2022
-      os: windows
+      image: 1es-ubuntu-22.04
+      os: linux
+    sdl:
+      sourceAnalysisPool:
+        name: 1es-pool-azfunc
+        image: 1es-windows-2022
+        os: windows
 
     stages:
 
@@ -46,11 +52,9 @@ extends:
       jobs:
       - template: /eng/ci/templates/official/jobs/build-extension-artifacts.yml@self
         parameters:
-          ExtensionProjectName: $(ExtensionProjectName)
-
-      - template: /eng/ci/templates/official/jobs/build-extension-artifacts.yml@self
-        parameters:
-          ExtensionProjectName: '$(ExtensionProjectName).Analyzers'
+          Projects:
+            - $(ExtensionProjectName)
+            - $(ExtensionProjectName).Analyzers
 
       - template: /eng/ci/templates/jobs/run-extension-tests.yml@self
         parameters:

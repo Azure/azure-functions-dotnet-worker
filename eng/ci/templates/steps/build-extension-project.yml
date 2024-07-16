@@ -1,0 +1,49 @@
+parameters:
+  - name: ExtensionProjectName
+    type: string
+
+steps:
+
+  - task: DotNetCoreCLI@2
+    displayName: Build project
+    inputs:
+      command: custom
+      custom: build
+      arguments: -p:BuildNumber=$(buildNumber) -c release
+      projects: |
+        extensions/${{ parameters.ExtensionProjectName }}/**/*.csproj
+
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign assemblies
+      folderPath: sdk
+      pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
+      signType: dll
+
+  - task: DeleteFiles@1
+    displayName: Delete CodeSignSummary files
+    inputs:
+      sourceFolder: $(Build.ArtifactStagingDirectory)/NugetPackages
+      contents: '**/CodeSignSummary-*.md'
+
+  - task: DotNetCoreCLI@2
+    displayName: Pack extension
+    inputs:
+      command: custom
+      custom: pack
+      arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
+      projects: |
+        extensions/${{ parameters.ExtensionProjectName }}/**/*.csproj
+
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign nuget packages
+      folderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
+      pattern: Microsoft.Azure.Functions.Worker.Extensions*.nupkg
+      signType: nuget
+
+  - task: DeleteFiles@1
+    displayName: Delete CodeSignSummary files
+    inputs:
+      sourceFolder: $(Build.ArtifactStagingDirectory)/NugetPackages
+      contents: '**/CodeSignSummary-*.md'

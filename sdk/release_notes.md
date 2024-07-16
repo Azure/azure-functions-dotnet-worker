@@ -8,6 +8,7 @@
 
 - Fix incorrect function version in build message (#2606)
 
+- Setting _ToolingSuffix for TargetFrameworkVersion v9.0
 - <entry>
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>

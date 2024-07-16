@@ -55,7 +55,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- Validating some expectations for the function app early on. -->
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
-    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
+    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(AzureFunctionsVersion)'"/>
     <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
     <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
     <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version"/>

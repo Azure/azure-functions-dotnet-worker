@@ -17,11 +17,7 @@ namespace AspNetIntegration
         public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, "post")] HttpRequest req)
         {
             _logger.LogInformation("C# HTTP trigger function processed a request.");
-            var myObject = new MyOutputType
-            {
-                Result = new OkObjectResult("C# HTTP trigger function processed a request."),
-                MessageText = "some output"
-            };
+            var myObject = new MyOutputType { Result = new OkObjectResult("C# HTTP trigger function processed a request."), MessageText = "some output"};
             return myObject;
         }
         public class MyOutputType

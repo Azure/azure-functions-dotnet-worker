@@ -61,13 +61,16 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- Validating some expectations for the function app early on. -->
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
     <PropertyGroup>
-      <_ValidAzureFunctionsVersion Condition="'%(_SupportedFunctionsVersion.Identity)' == '$(AzureFunctionsVersion.ToLowerInvariant())'">true</_ValidAzureFunctionsVersion>
+      <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant())</_AzureFunctionsVersionStandardized>
+      <_ValidAzureFunctionsVersion Condition="'%(_SupportedFunctionsVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'">true</_ValidAzureFunctionsVersion>
+      <WarnOnDeprecatedFunctionsVersion Condition="'$(WarnOnDeprecatedFunctionsVersion)' == ''">true</WarnOnDeprecatedFunctionsVersion>
     </PropertyGroup>
 
-    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'"/>
-    <Error Condition="'$(_ValidAzureFunctionsVersion)' != 'true'" Text="AzureFunctionsVersion is set to an unsupported value '$(AzureFunctionsVersion)'. Allowed values are: @(_SupportedFunctionsVersions, ', ')"/>
-    <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set."/>
-    <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
+    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'" />
+    <Error Condition="'$(_ValidAzureFunctionsVersion)' != 'true'" Text="AzureFunctionsVersion is set to an unsupported value '$(AzureFunctionsVersion)'. Allowed values are: @(_SupportedFunctionsVersions, ', ')" />
+    <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
+    <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
+    <Warning Condition="'$(WarnOnDeprecatedFunctionsVersion)' == 'true' AND '$(_AzureFunctionsVersionStandardized)' == 'v3'" Text="AzureFunctionsVersion v3 is out of support. Please consider upgrading to v4. https://aka.ms/azure-functions-retired-versions. Suppress this warning by adding '&lt;WarnOnDeprecatedFunctionsVersion&gt;false&lt;/WarnOnDeprecatedFunctionsVersion&gt;' to the project.'" />
   </Target>
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->

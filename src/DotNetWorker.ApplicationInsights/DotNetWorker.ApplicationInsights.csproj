@@ -7,7 +7,7 @@
     <RootNamespace>Microsoft.Azure.Functions.Worker.ApplicationInsights</RootNamespace>
     <MajorProductVersion>1</MajorProductVersion>
     <MinorProductVersion>3</MinorProductVersion>
-    <PatchProductVersion>1</PatchProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <VersionSuffix></VersionSuffix>
     <BeforePack>$(BeforePack);GetReleaseNotes</BeforePack>

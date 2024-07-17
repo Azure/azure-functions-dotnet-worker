@@ -7,3 +7,9 @@
 ### Microsoft.Azure.Functions.Worker.Sdk <version>
 
 - Fix incorrect function version in build message (#2606)
+
+- <entry>
+
+### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
+
+- <entry>

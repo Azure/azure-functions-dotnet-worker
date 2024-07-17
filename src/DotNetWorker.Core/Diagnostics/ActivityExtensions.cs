@@ -20,10 +20,12 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         {
             BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
             var activityType = typeof(Activity);
-            _setSpanId = activityType.GetField("_spanId", flags).CreateSetter<Activity, string>();
-            _setId = activityType.GetField("_id", flags).CreateSetter<Activity, string>();
-            _setRootId = activityType.GetField("_rootId", flags).CreateSetter<Activity, string>();
-            _setTraceId = activityType.GetField("_traceId", flags).CreateSetter<Activity, string>();
+
+            // Empty setter serves as a safe fallback mechanism to handle cases where the field is not available.
+            _setSpanId = activityType.GetField("_spanId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setId = activityType.GetField("_id", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setRootId = activityType.GetField("_rootId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setTraceId = activityType.GetField("_traceId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
         }
 
         /// <summary>

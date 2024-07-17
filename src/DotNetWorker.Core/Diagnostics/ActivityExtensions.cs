@@ -15,7 +15,6 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         private static readonly Action<Activity, string> _setId;
         private static readonly Action<Activity, string> _setTraceId;
         private static readonly Action<Activity, string> _setRootId;
-        private static readonly Action<Activity, string> _setState;
 
         static ActivityExtensions()
         {
@@ -27,7 +26,6 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
             _setId = activityType.GetField("_id", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
             _setRootId = activityType.GetField("_rootId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
             _setTraceId = activityType.GetField("_traceId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
-            _setState = activityType.GetField("_traceState", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
         }
 
         /// <summary>
@@ -75,9 +73,6 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 
         public static void SetTraceId(this Activity activity, string traceId)
             => _setTraceId(activity, traceId);
-
-        public static void SetState(this Activity activity, string state)
-            => _setState(activity, state);
     }
 
     internal static class FieldInfoExtensionMethods

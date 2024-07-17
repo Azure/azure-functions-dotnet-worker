@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 
         static ActivityExtensions()
         {
-             BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
             var activityType = typeof(Activity);
 
             // Empty setter serves as a safe fallback mechanism to handle cases where the field is not available.

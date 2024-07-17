@@ -11,8 +11,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <_ToolingSuffix></_ToolingSuffix>
+    <_DefaultAzureFunctionsVersion>v4</_DefaultAzureFunctionsVersion>
     <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
-    <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">v4</AzureFunctionsVersion>
+    <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">$(_DefaultAzureFunctionsVersion)</AzureFunctionsVersion>
     <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
@@ -45,6 +46,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsGeneratedCodeNamespace Condition="'$(FunctionsGeneratedCodeNamespace)' == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <_SupportedFunctionsVersion Include="v3;v4" />
+  </ItemGroup>
+
   <UsingTask TaskName="GenerateFunctionMetadata" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
   <UsingTask TaskName="CreateZipFileTask" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
   <UsingTask TaskName="ZipDeployTask" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
@@ -55,10 +60,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- Validating some expectations for the function app early on. -->
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
-    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(AzureFunctionsVersion)'"/>
-    <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
-    <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
-    <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version"/>
+    <PropertyGroup>
+      <_ValidAzureFunctionsVersion Condition="'%(_SupportedFunctionsVersion.Identity)' == '$(AzureFunctionsVersion.ToLowerInvariant())'">true</_ValidAzureFunctionsVersion>
+    </PropertyGroup>
+
+    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'"/>
+    <Error Condition="'$(_ValidAzureFunctionsVersion)' != 'true'" Text="AzureFunctionsVersion is set to an unsupported value '$(AzureFunctionsVersion)'. Allowed values are: @(_SupportedFunctionsVersions, ', ')"/>
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set."/>
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
   </Target>

@@ -77,6 +77,8 @@ namespace Microsoft.Azure.Functions.Worker
                 activity.SetSpanId(activityContext.SpanId.ToString());
                 activity.SetTraceId(activityContext.TraceId.ToString());
                 activity.SetRootId(activityContext.TraceId.ToString());
+                activity.ActivityTraceFlags = activityContext.TraceFlags;
+                activity.TraceStateString = activityContext.TraceState;
             }
 
             var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);

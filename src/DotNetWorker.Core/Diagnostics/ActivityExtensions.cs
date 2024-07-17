@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
             => _setTraceId(activity, traceId);
 
         public static void SetState(this Activity activity, string state)
-            => _setState(activity, arg2: state);
+            => _setState(activity, state);
     }
 
     internal static class FieldInfoExtensionMethods

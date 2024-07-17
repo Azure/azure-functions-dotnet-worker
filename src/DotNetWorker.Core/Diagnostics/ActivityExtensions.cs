@@ -15,15 +15,19 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
         private static readonly Action<Activity, string> _setId;
         private static readonly Action<Activity, string> _setTraceId;
         private static readonly Action<Activity, string> _setRootId;
+        private static readonly Action<Activity, string> _setState;
 
         static ActivityExtensions()
         {
-            BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
+             BindingFlags flags = BindingFlags.NonPublic | BindingFlags.Instance;
             var activityType = typeof(Activity);
-            _setSpanId = activityType.GetField("_spanId", flags).CreateSetter<Activity, string>();
-            _setId = activityType.GetField("_id", flags).CreateSetter<Activity, string>();
-            _setRootId = activityType.GetField("_rootId", flags).CreateSetter<Activity, string>();
-            _setTraceId = activityType.GetField("_traceId", flags).CreateSetter<Activity, string>();
+
+            // Empty setter serves as a safe fallback mechanism to handle cases where the field is not available.
+            _setSpanId = activityType.GetField("_spanId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setId = activityType.GetField("_id", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setRootId = activityType.GetField("_rootId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setTraceId = activityType.GetField("_traceId", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
+            _setState = activityType.GetField("_traceState", flags)?.CreateSetter<Activity, string>() ?? ((_, _) => { /* Ignore */ });
         }
 
         /// <summary>
@@ -71,6 +75,9 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
 
         public static void SetTraceId(this Activity activity, string traceId)
             => _setTraceId(activity, traceId);
+
+        public static void SetState(this Activity activity, string state)
+            => _setState(activity, arg2: state);
     }
 
     internal static class FieldInfoExtensionMethods

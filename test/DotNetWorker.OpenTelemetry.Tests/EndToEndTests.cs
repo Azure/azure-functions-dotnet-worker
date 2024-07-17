@@ -82,6 +82,8 @@ public class EndToEndTests
             Assert.Equal("InvokeFunctionAsync", activity.OperationName);
             Assert.Equal(activity.SpanId, activityContext.SpanId);
             Assert.Equal(activity.TraceId, activityContext.TraceId);
+            Assert.Equal(activity.ActivityTraceFlags, activityContext.TraceFlags);
+            Assert.Equal(activity.TraceStateString, activityContext.TraceState);
         }
         else
         {
@@ -154,7 +156,6 @@ public class EndToEndTests
         public async Task TestFunction(FunctionContext context)
         {
             LastActivity = Activity.Current;
-            Activity.Current.ActivityTraceFlags = ActivityTraceFlags.Recorded;
             Activity.Current.AddTag("CustomKey", "CustomValue");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK);

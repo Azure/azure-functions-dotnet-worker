@@ -13,15 +13,46 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost");
+                Logger.Log($"Starting FunctionsNetHost");
 
                 PreLauncher.Run();
-
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-                using var appLoader = new AppLoader(workerStartupOptions);
-                var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
+                string executableDir = Path.GetDirectoryName(workerStartupOptions.CommandLineArgs[0])!;
 
+                if (string.IsNullOrEmpty(executableDir))
+                {
+                    string fallbackDir = "<Fallback directory goes here>";
+                    Console.WriteLine("Executable Dir was null. Setting it to"
+                                      + $" {fallbackDir}...");
+                }
+
+                Logger.Log($"Executable Dir Value: {executableDir}");
+
+                string preJitFilePath = Path.GetFullPath(Path.Combine(executableDir, "PreJit", "coldstart.jittrace"));
+
+                Logger.Log($"{preJitFilePath} exist: {File.Exists(preJitFilePath)}");
+
+                var runtimeVersion = EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsWorkerRuntimeVersion)!;
+
+                string dummyAppEntryPoint = Path.Combine(executableDir, "PlaceholderApp", runtimeVersion, "PlaceholderApp.dll");
+
+                EnvironmentUtils.SetValue(EnvironmentVariables.PreJitFilePath, preJitFilePath);
+                EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, dummyAppEntryPoint);
+
+                if (!File.Exists(dummyAppEntryPoint))
+                {
+                    Logger.Log($"Dummy app entry point not found: {dummyAppEntryPoint}");
+                    throw new FileNotFoundException($"Dummy app entry point not found: {dummyAppEntryPoint}");
+                }
+
+                EnvironmentUtils.SetValue(EnvironmentVariables.AppEntryPoint, dummyAppEntryPoint);
+
+                using var appLoader = new AppLoader(workerStartupOptions);
+
+                _ = Task.Run(() => appLoader.RunApplication(dummyAppEntryPoint));
+
+                GrpcClient grpcClient = new GrpcClient(workerStartupOptions, appLoader);
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)

@@ -12,7 +12,21 @@ internal static class EnvironmentVariables
     internal const string DisableLogPrefix = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_DISABLE_LOGPREFIX";
 
     /// <summary>
-    /// Set value to "1" for enabling additional trace logs in FunctionsNetHost.
+    /// This env variable is used by runtime to load startup hooks.
+    /// </summary>
+    internal const string DotnetStartupHooks = "DOTNET_STARTUP_HOOKS";
+
+    internal const string AppEntryPoint = "FUNCTIONS_APP_ENTRYPOINT";
+
+    internal const string PreJitFilePath = "PREJIT_FILE_PATH";
+
+    /// <summary>
+    /// Set value to "1" for enabling worker startup hook.
+    /// </summary>
+    internal const string EnableWorkerStartupHook = "ENABLE_WORKER_STARTUPHOOK_ASSEMBLY";
+
+    /// <summary>
+    /// Set value to "1" for enabling extra trace logs in FunctionsNetHost.
     /// </summary>
     internal const string EnableTraceLogs = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_TRACE";
 

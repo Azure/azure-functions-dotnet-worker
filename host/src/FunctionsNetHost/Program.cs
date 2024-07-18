@@ -3,6 +3,7 @@
 
 using System.CommandLine;
 using FunctionsNetHost.Grpc;
+using FunctionsNetHost.Prejit;
 using FunctionsNetHost.Prelaunch;
 
 namespace FunctionsNetHost
@@ -18,10 +19,19 @@ namespace FunctionsNetHost
                 PreLauncher.Run();
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
+                var executableDirectory = Path.GetDirectoryName(args[0]);
+
+                var netHostOptions = new NetHostRunOptions(workerStartupOptions, executableDirectory);
+                Logger.Log($"Pre-jitting is {(netHostOptions.IsPreJitSupported ? "supported" : "not supported")}.");
 
                 using var appLoader = new AppLoader(workerStartupOptions);
-                var grpcClient = new GrpcClient(workerStartupOptions, appLoader);
 
+                if (netHostOptions.IsPreJitSupported)
+                {
+                    PreJitManager.InitializeAndRunPreJitPlaceholderApp(netHostOptions, appLoader);
+                }
+
+                GrpcClient grpcClient = new GrpcClient(netHostOptions, appLoader);
                 await grpcClient.InitAsync();
             }
             catch (Exception exception)

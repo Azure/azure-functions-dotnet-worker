@@ -14,11 +14,11 @@ namespace FunctionsNetHost.Grpc
     {
         private readonly Channel<StreamingMessage> _outgoingMessageChannel;
         private readonly IncomingGrpcMessageHandler _messageHandler;
-        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
+        private readonly NetHostRunOptions _netHostRunOptions;
 
-        internal GrpcClient(GrpcWorkerStartupOptions grpcWorkerStartupOptions, AppLoader appLoader)
+        internal GrpcClient(NetHostRunOptions netHostRunOptions, AppLoader appLoader)
         {
-            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
+            _netHostRunOptions = netHostRunOptions;
             var channelOptions = new UnboundedChannelOptions
             {
                 SingleWriter = false,
@@ -28,12 +28,12 @@ namespace FunctionsNetHost.Grpc
 
             _outgoingMessageChannel = Channel.CreateUnbounded<StreamingMessage>(channelOptions);
 
-            _messageHandler = new IncomingGrpcMessageHandler(appLoader, _grpcWorkerStartupOptions);
+            _messageHandler = new IncomingGrpcMessageHandler(appLoader, _netHostRunOptions);
         }
 
         internal async Task InitAsync()
         {
-            var endpoint = _grpcWorkerStartupOptions.ServerUri.AbsoluteUri;
+            var endpoint = _netHostRunOptions.WorkerStartupOptions.ServerUri.AbsoluteUri;
             Logger.LogTrace($"Grpc service endpoint:{endpoint}");
 
             var functionRpcClient = CreateFunctionRpcClient(endpoint);
@@ -69,7 +69,7 @@ namespace FunctionsNetHost.Grpc
         {
             var startStreamMsg = new StartStream()
             {
-                WorkerId = _grpcWorkerStartupOptions.WorkerId
+                WorkerId = _netHostRunOptions.WorkerStartupOptions.WorkerId
             };
 
             var startStream = new StreamingMessage()
@@ -89,8 +89,8 @@ namespace FunctionsNetHost.Grpc
 
             var grpcChannel = GrpcChannel.ForAddress(grpcUri, new GrpcChannelOptions()
             {
-                MaxReceiveMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
-                MaxSendMessageSize = _grpcWorkerStartupOptions.GrpcMaxMessageLength,
+                MaxReceiveMessageSize = _netHostRunOptions.WorkerStartupOptions.GrpcMaxMessageLength,
+                MaxSendMessageSize = _netHostRunOptions.WorkerStartupOptions.GrpcMaxMessageLength,
                 Credentials = ChannelCredentials.Insecure
             });
 

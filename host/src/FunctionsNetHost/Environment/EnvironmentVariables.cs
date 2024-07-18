@@ -19,10 +19,15 @@ internal static class EnvironmentVariables
     /// <summary>
     /// Application pool Id for the placeholder app. Only available in Windows(when running in IIS).
     /// </summary>
-    internal const string AppPoolId  = "APP_POOL_ID";
+    internal const string AppPoolId = "APP_POOL_ID";
 
     /// <summary>
     /// The worker runtime version. Example value: "8.0" (for a .NET8 placeholder)
     /// </summary>
     internal const string FunctionsWorkerRuntimeVersion = "FUNCTIONS_WORKER_RUNTIME_VERSION";
+
+    /// <summary>
+    /// The environment variable that disables prejit. If set to "1," prejit will be disabled.
+    /// </summary>
+    internal const string DisablePrejit = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_DISABLE_PREJIT";
 }

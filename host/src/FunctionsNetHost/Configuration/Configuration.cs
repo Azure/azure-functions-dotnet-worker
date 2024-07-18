@@ -8,8 +8,6 @@ namespace FunctionsNetHost
     /// </summary>
     internal static class Configuration
     {
-        private const string DefaultLogPrefix = "LanguageWorkerConsoleLog";
-
         static Configuration()
         {
             Reload();
@@ -22,7 +20,7 @@ namespace FunctionsNetHost
         {
             IsTraceLogEnabled = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.EnableTraceLogs), "1");
             var disableLogPrefix = string.Equals(EnvironmentUtils.GetValue(EnvironmentVariables.DisableLogPrefix), "1");
-            LogPrefix = disableLogPrefix ? string.Empty : DefaultLogPrefix;
+            LogPrefix = disableLogPrefix ? string.Empty : Shared.Constants.DefaultLogPrefix;
         }
 
         /// <summary>

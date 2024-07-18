@@ -11,12 +11,12 @@ namespace FunctionsNetHost.Grpc
     {
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
-        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
+        private readonly NetHostRunOptions _netHostRunOptions;
 
-        internal IncomingGrpcMessageHandler(AppLoader appLoader, GrpcWorkerStartupOptions grpcWorkerStartupOptions)
+        internal IncomingGrpcMessageHandler(AppLoader appLoader, NetHostRunOptions netHostRunOptions)
         {
             _appLoader = appLoader;
-            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
+            _netHostRunOptions = netHostRunOptions;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -62,10 +62,13 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
+                    var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
+                    foreach (var kv in envReloadRequest.EnvironmentVariables)
+                    {
+                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                    }
                     Configuration.Reload();
                     Logger.LogTrace("Specialization request received.");
-
-                    var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
 
                     var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
 
@@ -88,19 +91,20 @@ namespace FunctionsNetHost.Grpc
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
                     Logger.LogTrace($"application path {applicationExePath}");
 
-                    foreach (var kv in envReloadRequest.EnvironmentVariables)
+                    if (_netHostRunOptions.IsPreJitSupported)
                     {
-                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                        EnvironmentUtils.SetValue(Shared.EnvironmentVariables.SpecializedEntryAssembly, applicationExePath);
+                        // Signal so that startup hook load the payload assembly.
+                        SpecializationSyncManager.WaitHandle.Set();
+                    }
+                    else
+                    {
+#pragma warning disable CS4014
+                        Task.Run(() => _appLoader.RunApplication(applicationExePath));
+#pragma warning restore CS4014
                     }
 
-#pragma warning disable CS4014
-                    Task.Run(() =>
-#pragma warning restore CS4014
-                    {
-                        _ = _appLoader.RunApplication(applicationExePath);
-                    });
-
-                    Logger.LogTrace($"Will wait for worker loaded signal.");
+                    Logger.LogTrace("Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
 
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";

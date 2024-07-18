@@ -2,7 +2,9 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
+    <EnablePreviewFeatures>True</EnablePreviewFeatures>
+    <LangVersion>preview</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -28,12 +30,16 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.0-preview.4.23259.5" />
-    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="8.0.0-preview.4.23259.5" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0-rc.1.24431.7" />
+    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="9.0.0-rc.1.24431.7" />
   </ItemGroup>
 
   <ItemGroup>
     <Protobuf Include="..\..\..\protos\azure-functions-language-worker-protobuf\**\*.proto" ProtoRoot="..\..\..\protos\azure-functions-language-worker-protobuf\src\proto" GrpcServices="Client" Access="internal" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FunctionsNetHost.Shared\FunctionsNetHost.Shared.csproj" />
   </ItemGroup>
 
 </Project>

@@ -20,7 +20,7 @@ namespace FunctionsNetHost
 
         internal static void Log(string message)
         {
-            var ts = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss.fff", CultureInfo.InvariantCulture);
+            var ts = DateTime.UtcNow.ToString(Shared.Constants.LogTimeStampFormat, CultureInfo.InvariantCulture);
             Console.WriteLine($"{Configuration.LogPrefix}[{ts}] [FunctionsNetHost] {message}");
         }
     }

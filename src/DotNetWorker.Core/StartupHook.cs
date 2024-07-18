@@ -57,12 +57,12 @@ internal class StartupHook
 
         if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { processId } }}");
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : {processId} }}");
         }
 
         if (string.Equals(debuggerWaitEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"Azure Functions .NET Worker (PID: { processId }) initialized in debug mode. Waiting for debugger to attach...");
+            Console.WriteLine($"Azure Functions .NET Worker (PID: {processId}) initialized in debug mode. Waiting for debugger to attach...");
 
             for (int i = 0; WaitOnDebugger(i); i++)
             {

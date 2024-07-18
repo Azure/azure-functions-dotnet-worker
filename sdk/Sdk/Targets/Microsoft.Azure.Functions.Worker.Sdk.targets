@@ -9,10 +9,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 ***********************************************************************************************
 -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup>
     <_ToolingSuffix></_ToolingSuffix>
     <_DefaultAzureFunctionsVersion>v4</_DefaultAzureFunctionsVersion>
-    <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
+    <_AzureFunctionsVersionNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsVersionNotSet>
     <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">$(_DefaultAzureFunctionsVersion)</AzureFunctionsVersion>
     <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
@@ -47,7 +48,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </PropertyGroup>
 
   <ItemGroup>
-    <_SupportedFunctionsVersion Include="v3;v4" />
+    <_FunctionsVersion Include="v3" InSupport="false" />
+    <_FunctionsVersion Include="$(_DefaultAzureFunctionsVersion)" InSupport="true" />
   </ItemGroup>
 
   <UsingTask TaskName="GenerateFunctionMetadata" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
@@ -62,15 +64,18 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
     <PropertyGroup>
       <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant())</_AzureFunctionsVersionStandardized>
-      <_ValidAzureFunctionsVersion Condition="'%(_SupportedFunctionsVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'">true</_ValidAzureFunctionsVersion>
-      <WarnOnDeprecatedFunctionsVersion Condition="'$(WarnOnDeprecatedFunctionsVersion)' == ''">true</WarnOnDeprecatedFunctionsVersion>
+      <CheckEolAzureFunctionsVersion Condition="'$(CheckEolAzureFunctionsVersion)' == ''">true</CheckEolAzureFunctionsVersion>
     </PropertyGroup>
 
-    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'" />
-    <Error Condition="'$(_ValidAzureFunctionsVersion)' != 'true'" Text="AzureFunctionsVersion is set to an unsupported value '$(AzureFunctionsVersion)'. Allowed values are: @(_SupportedFunctionsVersions, ', ')" />
+    <ItemGroup>
+      <_SelectedFunctionVersion Include="@(_FunctionsVersion)" Condition="'%(_FunctionsVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'" />
+    </ItemGroup>
+
+    <Message Condition="'$(_AzureFunctionsVersionNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'." />
+    <Error Condition="'@(_SelectedFunctionVersion)' == ''" Text="The AzureFunctionsVersion value '$(AzureFunctionsVersion)' was not recognized. Allowed values are: @(_FunctionsVersion, ', ')." />
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
-    <Warning Condition="'$(WarnOnDeprecatedFunctionsVersion)' == 'true' AND '$(_AzureFunctionsVersionStandardized)' == 'v3'" Text="AzureFunctionsVersion v3 is out of support. Please consider upgrading to v4. https://aka.ms/azure-functions-retired-versions. Suppress this warning by adding '&lt;WarnOnDeprecatedFunctionsVersion&gt;false&lt;/WarnOnDeprecatedFunctionsVersion&gt;' to the project.'" />
+    <Warning Condition="'$(CheckEolAzureFunctionsVersion)' == 'true' AND '%(_SelectedFunctionVersion.InSupport)' == 'false'" Text="Azure Functions '%(Identity)' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy." />
   </Target>
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->

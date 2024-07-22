@@ -8,9 +8,9 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>16</MinorProductVersion>
+    <MinorProductVersion>17</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix></VersionSuffix>
+    <VersionSuffix>-preview1</VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
@@ -27,10 +27,23 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
   </ItemGroup>
 
+  <Choose>
+    <When Condition="'$(TargetFramework)' == 'net9.0'">
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.*" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.*" />
+      </ItemGroup>
+    </When>
+    <Otherwise>
+      <ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+      </ItemGroup>
+    </Otherwise>
+  </Choose>
+  
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
     <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
     <PackageReference Include="Grpc.Net.ClientFactory" Version="2.60.0" />

@@ -28,25 +28,28 @@ internal class StartupHook
         
         if (!string.IsNullOrWhiteSpace(jitTraceFile))
         {
-            LogMessage($"{PrejitFileEnvVar} env was set. Will attempt to carry out"
-                       + $" the prejitting process using '{jitTraceFile}'.");
+            LogMessage($"{PrejitFileEnvVar} env was set. Will attempt to carry out the prejitting process using '{jitTraceFile}'.");
             PreJitPrepare(jitTraceFile);
         }
 
+        // Wait for the cold start request.
         s_waitHandle.WaitOne();
 
         string specEntryAsmName = SysEnv.GetEnvironmentVariable(SpecEntryAssemblyEnvVar);
 
-        
-       // string specEntryAsmName = SysEnv.GetEnvironmentVariable(SpecEntryAssemblyEnvVar);
-
         if (string.IsNullOrWhiteSpace(specEntryAsmName))
         {
+            LogMessage($"Environment variable {SpecEntryAssemblyEnvVar} was not set. Exiting.");
             return ;
         }
 
         Assembly specializedEntryAsm = Assembly.LoadFrom(specEntryAsmName);
+
+#if NET9_0_OR_GREATER
         Assembly.SetEntryAssembly(specializedEntryAsm);
+#else
+        throw new Exception("TO DO: Fix for net8 because Assembly.SetEntryAssembly is not available");
+#endif
         
     }
 
@@ -62,10 +65,9 @@ internal class StartupHook
 
     private static void PreJitPrepare(string jitTraceFile)
     {
-        //LogMessage($"StartupHook.PreJitPrepare -> JitTraceFile: {jitTraceFile}");
-
         if (!File.Exists(jitTraceFile))
         {
+            LogMessage($"StartupHook.PreJitPrepare -> File '{jitTraceFile}' not found.");
             return ;
         }
 
@@ -73,11 +75,12 @@ internal class StartupHook
                                 out int successes,
                                 out int failures);
 
-        //LogMessage($"StartupHook.PreJitPrepare -> Successful Prepares: {successes}");
-        //LogMessage($"StartupHook.PreJitPrepare -> Failed Prepares: {failures}");
+        LogMessage($"StartupHook.PreJitPrepare -> Successful Prepares: {successes}");
+        LogMessage($"StartupHook.PreJitPrepare -> Failed Prepares: {failures}");
 
         JitKnownTypes();
     }
+
 
     private static void JitKnownTypes()
     {

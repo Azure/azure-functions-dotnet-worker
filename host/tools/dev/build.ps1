@@ -1,5 +1,7 @@
 # Ensure the out directory exists, then clean its contents
-$outDir = "..\..\out"
+#$outDir = "..\..\out"
+$outDir = "D:\apps\net9host\workers\dotnet-isolated\bin"
+
 if (Test-Path -Path $outDir) {
     Remove-Item -Path "$outDir\*" -Recurse -Force
 }
@@ -19,7 +21,7 @@ dotnet clean
 dotnet restore
 
 # Publish PlaceHolderApp to net9.0 folder.
-$placeholderAppPathNet9 = Join-Path -Path "..\..\out\net9.0" -ChildPath "PlaceholderApp"
+$placeholderAppPathNet9 = Join-Path -Path "D:\apps\net9host\workers\dotnet-isolated\bin\PlaceholderApp\net9.0" -ChildPath "."
 if (-not (Test-Path -Path $placeholderAppPathNet9)) {
     New-Item -ItemType Directory -Path $placeholderAppPathNet9
 }
@@ -27,7 +29,7 @@ if (-not (Test-Path -Path $placeholderAppPathNet9)) {
 dotnet publish "PlaceholderApp.csproj" -f net9.0 -c Release -o $placeholderAppPathNet9
 
 # Publish PlaceHolderApp to net8.0 folder with -f net8.0.
-$placeholderAppPathNet8 = Join-Path -Path "..\..\out\net8.0" -ChildPath "PlaceholderApp"
+$placeholderAppPathNet8 = Join-Path -Path "D:\apps\net9host\workers\dotnet-isolated\bin\PlaceholderApp\net8.0" -ChildPath "."
 if (-not (Test-Path -Path $placeholderAppPathNet8)) {
     New-Item -ItemType Directory -Path $placeholderAppPathNet8
 }

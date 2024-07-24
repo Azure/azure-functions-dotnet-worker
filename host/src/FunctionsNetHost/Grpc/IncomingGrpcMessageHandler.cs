@@ -93,12 +93,10 @@ namespace FunctionsNetHost.Grpc
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
 
-#pragma warning disable CS4014
-                    Task.Run(() =>
-#pragma warning restore CS4014
-                    {
-                        _ = _appLoader.RunApplication(applicationExePath);
-                    });
+                    EnvironmentUtils.SetValue("AZURE_FUNCTIONS_SPECIALIZED_ENTRY_ASSEMBLY", applicationExePath);
+                    
+                    // Singal so that startup hook to load the payload assembly.
+                    SpecializationSyncManager.WaitHandle.Set();
 
                     Logger.LogTrace($"Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();

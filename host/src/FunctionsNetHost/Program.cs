@@ -13,12 +13,12 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log($"Starting FunctionsNetHost");
+                Logger.Log($"Starting FunctionsNetHost 1411");
 
-                PreLauncher.Run();
+                //PreLauncher.Run();
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 
-                string executableDir = Path.GetDirectoryName(workerStartupOptions.CommandLineArgs[0])!;
+                string executableDir = Path.GetDirectoryName(args[0])!;
 
                 if (string.IsNullOrEmpty(executableDir))
                 {
@@ -28,14 +28,18 @@ namespace FunctionsNetHost
                 }
 
                 Logger.Log($"Executable Dir Value: {executableDir}");
+                var runtimeVersion = EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsWorkerRuntimeVersion)!;
 
-                string preJitFilePath = Path.GetFullPath(Path.Combine(executableDir, "PreJit", "coldstart.jittrace"));
+                string placeHolderAppDir = Path.Combine(executableDir, "PlaceholderApp", runtimeVersion);
+
+                string preJitFilePath = Path.GetFullPath(Path.Combine(placeHolderAppDir, "PreJit","JitTrace", runtimeVersion, "coldstart.jittrace"));
 
                 Logger.Log($"{preJitFilePath} exist: {File.Exists(preJitFilePath)}");
 
-                var runtimeVersion = EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsWorkerRuntimeVersion)!;
 
                 string dummyAppEntryPoint = Path.Combine(executableDir, "PlaceholderApp", runtimeVersion, "PlaceholderApp.dll");
+
+                Logger.Log($"Dummy app entry point: {dummyAppEntryPoint}");
 
                 EnvironmentUtils.SetValue(EnvironmentVariables.PreJitFilePath, preJitFilePath);
                 EnvironmentUtils.SetValue(EnvironmentVariables.DotnetStartupHooks, dummyAppEntryPoint);
@@ -50,6 +54,7 @@ namespace FunctionsNetHost
 
                 using var appLoader = new AppLoader(workerStartupOptions);
 
+                Logger.LogTrace($"Starting appLoader.RunApplication({dummyAppEntryPoint})");
                 _ = Task.Run(() => appLoader.RunApplication(dummyAppEntryPoint));
 
                 GrpcClient grpcClient = new GrpcClient(workerStartupOptions, appLoader);

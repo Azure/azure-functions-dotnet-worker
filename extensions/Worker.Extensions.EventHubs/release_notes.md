@@ -4,6 +4,8 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventHubs 6.3.1
+### Microsoft.Azure.Functions.Worker.Extensions.EventHubs 6.3.3
 
-- Updating `Microsoft.Azure.WebJobs.Extensions.EventHubs` reference to 6.3.2
+- Updated `Microsoft.Azure.WebJobs.Extensions.EventHubs` reference to 6.3.3
+- Updated `Microsoft.Extensions.Azure` dependency to 1.7.4
+- Updated `Azure.Messaging.EventHubs` dependency to 5.11.4

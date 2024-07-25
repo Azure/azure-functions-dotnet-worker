@@ -6,7 +6,7 @@
     <Description>Azure SignalR Service extensions for .NET isolated functions</Description>
     <Nullable>annotations</Nullable>
     <!--Version information-->
-    <VersionPrefix>1.13.2</VersionPrefix>
+    <VersionPrefix>1.14.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.SignalR.Management" Version="1.25.2" />
-    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.3" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.4" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Primitives" Version="5.0.1" />
     <PackageReference Include="System.Text.Json" Version="5.0.2" />

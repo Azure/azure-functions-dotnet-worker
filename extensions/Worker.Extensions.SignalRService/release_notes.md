@@ -4,10 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.13.2
-- Fix serverless hub dependency injection issue (https://github.com/MicrosoftDocs/azure-docs/issues/121723)
+### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.14.0
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.13.1
-
-- `Microsoft.Extensions.Azure` updated to 1.7.3
-- `Microsoft.Azure.SignalR.Management` updated to 1.25.2
+- Updating dependencies and webJobs extensions reference to 1.14.0

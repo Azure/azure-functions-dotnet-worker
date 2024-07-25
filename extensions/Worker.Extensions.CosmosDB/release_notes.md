@@ -4,6 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB <version>
+### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.10.0
 
-- <entry>
+- Updating dependencies and webJobs extensions reference to 4.7.0
+

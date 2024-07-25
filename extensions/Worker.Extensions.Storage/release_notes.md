@@ -11,8 +11,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.6.0
 
-- Updated dependencies
-
+- Updated `Microsoft.Extensions.Azure` dependency to 1.7.4
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues  <version>
 

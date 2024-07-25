@@ -6,4 +6,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.14.0
 
-- Updating dependencies and WebJobs extensions reference to 1.14.0
+- Updated `Microsoft.Azure.WebJobs.Extensions.SignalRService` reference to 1.14.0
+- Updated `Microsoft.Extensions.Azure` to 1.7.4

@@ -1,26 +1,10 @@
 ﻿using System;
-using System.IO;
-
-using static System.Environment;
 
 public class PlaceholderApp
 {
-    const string WorkerLogFileEnvVar = "AZURE_FUNCTIONS_WORKER_LOGFILE_PATH";
-
     static int Main(string[] args)
     {
-        LogMessage($"Hello from placeholder app");
-
-        return ExitCode;
-    }
-
-    private static void LogMessage(string message)
-    {
-        string logFile = GetEnvironmentVariable(WorkerLogFileEnvVar);
-
-        if (string.IsNullOrWhiteSpace(logFile))
-            Console.WriteLine($"PLACEHOLDER CONSOLE: {message}");
-        else
-            File.AppendAllTextAsync(logFile, $"{message}{NewLine}");
+        // In a happy path scenario, where we load the specialized entry assembly, we will not reach this point.
+        throw new InvalidOperationException("This is a placeholder app and it's Main method should not be invoked.");
     }
 }

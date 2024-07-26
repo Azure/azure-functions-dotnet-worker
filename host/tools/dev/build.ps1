@@ -1,40 +1,47 @@
-# Ensure the out directory exists, then clean its contents
-#$outDir = "..\..\out"
-$outDir = "D:\apps\net9host\workers\dotnet-isolated\bin"
+# This script should be executed from the "azure-functions-dotnet-worker\host" directory.
 
+# Define paths
+$outDir = "..\..\out"
+# For local testing, feel free to update outDir path value as needed.
+#$outDir = "D:\apps\net9host\workers\dotnet-isolated\bin"
+$functionsNetHostDir = "src\FunctionsNetHost"
+$placeholderAppDir = "src\PlaceholderApp"
+$placeholderAppPathNet9 = Join-Path -Path "$outDir\PlaceholderApp\net9.0" -ChildPath "."
+$placeholderAppPathNet8 = Join-Path -Path "$outDir\PlaceholderApp\net8.0" -ChildPath "."
+
+# Ensure the out directory exists, then clean its contents
 if (Test-Path -Path $outDir) {
     Remove-Item -Path "$outDir\*" -Recurse -Force
 }
 
 # Build and publish FunctionsNetHost
-cd "src\FunctionsNetHost"
-
-# Run dotnet build with release configuration and output to the relative out directory
+cd $functionsNetHostDir
 dotnet publish "FunctionsNetHost.csproj" -c Release -o $outDir
 
 # Navigate to PlaceholderApp directory
-cd "..\..\src\PlaceholderApp\"
+cd "..\..\$placeholderAppDir"
 
-# Clean PlaceholderApp using dotnet clean
+# Clean and restore PlaceholderApp
 dotnet clean
-
 dotnet restore
 
-# Publish PlaceHolderApp to net9.0 folder.
-$placeholderAppPathNet9 = Join-Path -Path "D:\apps\net9host\workers\dotnet-isolated\bin\PlaceholderApp\net9.0" -ChildPath "."
-if (-not (Test-Path -Path $placeholderAppPathNet9)) {
-    New-Item -ItemType Directory -Path $placeholderAppPathNet9
+# Function to publish PlaceholderApp
+function Publish-PlaceholderApp {
+    param (
+        [string]$framework,
+        [string]$outputPath
+    )
+
+    if (-not (Test-Path -Path $outputPath)) {
+        New-Item -ItemType Directory -Path $outputPath
+    }
+
+    dotnet publish "PlaceholderApp.csproj" -f $framework -c Release -o $outputPath
 }
 
-dotnet publish "PlaceholderApp.csproj" -f net9.0 -c Release -o $placeholderAppPathNet9
+# Publish PlaceholderApp to net9.0 and net8.0 folders
+Publish-PlaceholderApp -framework "net9.0" -outputPath $placeholderAppPathNet9
+Publish-PlaceholderApp -framework "net8.0" -outputPath $placeholderAppPathNet8
 
-# Publish PlaceHolderApp to net8.0 folder with -f net8.0.
-$placeholderAppPathNet8 = Join-Path -Path "D:\apps\net9host\workers\dotnet-isolated\bin\PlaceholderApp\net8.0" -ChildPath "."
-if (-not (Test-Path -Path $placeholderAppPathNet8)) {
-    New-Item -ItemType Directory -Path $placeholderAppPathNet8
-}
-
-dotnet publish "PlaceholderApp.csproj" -c Release -o $placeholderAppPathNet8 -f net8.0
-
-cd "..\..\"
-
+# Return to the root directory
+cd "..\.."

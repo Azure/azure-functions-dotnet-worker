@@ -1,7 +1,6 @@
 ﻿using System;
 using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using Microsoft.Azure.Functions.Worker;
@@ -43,14 +42,34 @@ internal class StartupHook
             return ;
         }
 
-        Assembly specializedEntryAsm = Assembly.LoadFrom(specEntryAsmName);
+        Assembly specializedEntryAssembly = Assembly.LoadFrom(specEntryAsmName);
 
 #if NET9_0_OR_GREATER
-        Assembly.SetEntryAssembly(specializedEntryAsm);
+        Assembly.SetEntryAssembly(specializedEntryAssembly);
+        LogMessage($"Specialized entry assembly set: {specializedEntryAssembly.FullName}");
 #else
-        throw new Exception("TO DO: Fix for net8 because Assembly.SetEntryAssembly is not available");
+                
+        try
+        {
+            throw new MissingMethodException("Temp until .NET8 august update");
+            // TO DO: Use Assembly.SetEntryAssembly after August .NET 8 update.
+            //Assembly.SetEntryAssembly(specializedEntryAssembly);
+            //LogMessage($"Specialized entry assembly set: {specializedEntryAssembly.FullName}");
+        }
+        catch (MissingMethodException)
+        {
+            // Fallback approach for .NET 8.
+            AppDomain thisDomain = AppDomain.CurrentDomain;
+            thisDomain.ExecuteAssemblyByName(specializedEntryAssembly.GetName());
+        }
+        catch(Exception ex)
+        {
+            LogMessage($"Exception: {ex.Message}");
+        }
+
+        LogMessage($"StartupHook.Initialize. Not NET9 Before ExecuteAssembly");
+
 #endif
-        
     }
 
     private static void LogMessage(string message)

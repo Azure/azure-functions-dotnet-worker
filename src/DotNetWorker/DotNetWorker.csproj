@@ -19,20 +19,15 @@
     <PackageReference Include="Azure.Core" Version="1.37.0" />
   </ItemGroup>
 
-  <Choose>
-    <When Condition="'$(TargetFramework)' == 'net9.0'">
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.*" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.*" />
-      </ItemGroup>
-    </When>
-    <Otherwise>
-      <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-      </ItemGroup>
-    </Otherwise>
-  </Choose>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />

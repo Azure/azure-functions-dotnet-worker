@@ -11,7 +11,6 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
     /// </summary>
     public interface IFunctionMetadataProvider
     {
-
         /// <summary>
         /// Gets all function metadata that this provider knows about asynchronously
         /// </summary>

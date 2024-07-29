@@ -15,11 +15,6 @@
         },
         {
           "conditionType": "environment",
-          "conditionName": "WEBSITE_CONTAINER_READY",
-          "conditionExpression": "0"
-        },
-        {
-          "conditionType": "environment",
           "conditionName": "WEBSITE_PLACEHOLDER_MODE",
           "conditionExpression": "1"
         }

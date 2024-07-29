@@ -4,7 +4,9 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk (meta package) <version>
+### Microsoft.Azure.Functions.Worker.Sdk <version>
+
+- Fix incorrect function version in build message (#2606)
 
 - <entry>
 

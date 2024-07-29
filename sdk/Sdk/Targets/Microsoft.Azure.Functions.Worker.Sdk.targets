@@ -9,10 +9,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 ***********************************************************************************************
 -->
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+
   <PropertyGroup>
     <_ToolingSuffix></_ToolingSuffix>
-    <_AzureFunctionsNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsNotSet>
-    <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">v4</AzureFunctionsVersion>
+    <_DefaultAzureFunctionsVersion>v4</_DefaultAzureFunctionsVersion>
+    <_AzureFunctionsVersionNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsVersionNotSet>
+    <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">$(_DefaultAzureFunctionsVersion)</AzureFunctionsVersion>
     <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
@@ -45,6 +47,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsGeneratedCodeNamespace Condition="'$(FunctionsGeneratedCodeNamespace)' == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace>
   </PropertyGroup>
 
+  <ItemGroup>
+    <_FunctionsVersion Include="v3" InSupport="false" />
+    <_FunctionsVersion Include="$(_DefaultAzureFunctionsVersion)" InSupport="true" />
+  </ItemGroup>
+
   <UsingTask TaskName="GenerateFunctionMetadata" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
   <UsingTask TaskName="CreateZipFileTask" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
   <UsingTask TaskName="ZipDeployTask" AssemblyFile="$(_FunctionsTaskAssemblyFullPath)"/>
@@ -55,12 +62,20 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- Validating some expectations for the function app early on. -->
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
-    <Message Condition="'$(_AzureFunctionsNotSet)' == 'true'" Importance="high" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to v3"/>
-    <Error Condition="$(AzureFunctionsVersion.StartsWith('v1',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v4"/>
-    <Error Condition="$(AzureFunctionsVersion.StartsWith('v2',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version, Please set it to v3"/>
-    <Error Condition="!$(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) And !$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))" Text="AzureFunctionsVersion is set to an incompatible version"/>
-    <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set."/>
-    <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps."/>
+    <PropertyGroup>
+      <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant())</_AzureFunctionsVersionStandardized>
+      <CheckEolAzureFunctionsVersion Condition="'$(CheckEolAzureFunctionsVersion)' == ''">true</CheckEolAzureFunctionsVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_SelectedFunctionVersion Include="@(_FunctionsVersion)" Condition="'%(_FunctionsVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'" />
+    </ItemGroup>
+
+    <Message Condition="'$(_AzureFunctionsVersionNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'." />
+    <Error Condition="'@(_SelectedFunctionVersion)' == ''" Text="The AzureFunctionsVersion value '$(AzureFunctionsVersion)' was not recognized. Allowed values are: @(_FunctionsVersion, ', ')." />
+    <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
+    <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
+    <Warning Condition="'$(CheckEolAzureFunctionsVersion)' == 'true' AND '%(_SelectedFunctionVersion.InSupport)' == 'false'" Text="Azure Functions '%(Identity)' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy." />
   </Target>
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->

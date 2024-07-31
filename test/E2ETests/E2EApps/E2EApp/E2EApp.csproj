@@ -48,6 +48,6 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.1" Condition="'$(TargetFramework)' != 'net48'" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.4" />
     <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.1" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
   </ItemGroup>
 </Project>

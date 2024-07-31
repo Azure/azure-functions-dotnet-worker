@@ -6,7 +6,7 @@
     <Description>Azure Event Grid extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>3.4.1</VersionPrefix>
+    <VersionPrefix>3.4.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

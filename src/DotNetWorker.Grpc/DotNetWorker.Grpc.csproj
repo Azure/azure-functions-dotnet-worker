@@ -8,7 +8,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Grpc</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>16</MinorProductVersion>
+    <MinorProductVersion>17</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <VersionSuffix></VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.37.0" />
+    <PackageReference Include="Azure.Core" Version="1.41.0" />
     <PackageReference Include="Google.Protobuf" Version="3.25.2" />
     <PackageReference Include="Grpc.Tools" Version="2.60.0">
       <PrivateAssets>all</PrivateAssets>

@@ -8,7 +8,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>18</MinorProductVersion>
+    <MinorProductVersion>19</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <VersionSuffix></VersionSuffix>
   </PropertyGroup>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.37.0" />
+    <PackageReference Include="Azure.Core" Version="1.41.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />

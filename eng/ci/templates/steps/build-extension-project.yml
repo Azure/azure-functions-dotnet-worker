@@ -16,7 +16,7 @@ steps:
   - template: ci/sign-files.yml@eng
     parameters:
       displayName: Sign assemblies
-      folderPath: sdk
+      folderPath: extensions/${{ parameters.ExtensionProjectName }}/src/bin/
       pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
       signType: dll
 

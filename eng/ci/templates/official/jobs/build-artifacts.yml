@@ -49,7 +49,7 @@ jobs:
   - template: ci/sign-files.yml@eng
     parameters:
       displayName: Sign DotNetWorker assemblies
-      folderPath: sdk
+      folderPath: src
       pattern: Microsoft.Azure.Functions.Worker*.dll
       signType: dll
 

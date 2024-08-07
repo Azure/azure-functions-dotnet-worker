@@ -17,7 +17,7 @@ jobs:
 
   pool:
     name: ${{ parameters.PoolName }}
-    image: 1es-ubuntu-22.04
+    image: 1es-ubuntu-20.04
     os: linux
 
   steps:

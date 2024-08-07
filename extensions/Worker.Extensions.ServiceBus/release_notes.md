@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.20.1
 
-- Updated `Microsoft.Azure.WebJobs.Extensions.ServiceBus` reference to 5.16.2
+- Updated `Microsoft.Azure.WebJobs.Extensions.ServiceBus` reference to 5.16.3

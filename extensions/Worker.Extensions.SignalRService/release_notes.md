@@ -4,7 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.14.0
+### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.14.1
 
-- Updated `Microsoft.Azure.WebJobs.Extensions.SignalRService` reference to 1.14.0
-- Updated `Microsoft.Extensions.Azure` to 1.7.4
+- Bumping up the patch version

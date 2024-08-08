@@ -6,7 +6,7 @@
     <Description>Azure Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.6.0</VersionPrefix>
+    <VersionPrefix>6.6.1</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>

@@ -985,7 +985,7 @@ namespace Microsoft.Azure.Functions.SdkTests
                 b => ValidateTrigger(b, cardinalityMany));
 
             AssertDictionary(extensions, new Dictionary<string, string>(){
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.3" }
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.5" }
             });
 
             void ValidateTrigger(ExpandoObject b, bool many)
@@ -1212,7 +1212,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             AssertDictionary(extensions, new Dictionary<string, string>
             {
-                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.EventHubs", "6.3.5" },
             });
 
             var eventHubTriggerFunction = functions.Single(p => p.Name == nameof(SDKTypeBindings_EventHubs.EventHubTriggerFunction));

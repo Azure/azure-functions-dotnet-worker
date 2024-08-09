@@ -19,7 +19,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.4" />
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.4" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.5" />
   </ItemGroup>
 
   <ItemGroup>

@@ -2,15 +2,15 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0;net9.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Core</PackageId>
     <Description>This library provides the core functionality to build an Azure Functions .NET Worker, adding support for the isolated, out-of-process execution model.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>18</MinorProductVersion>
+    <MinorProductVersion>19</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix></VersionSuffix>
+    <VersionSuffix>-preview1</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -22,6 +22,16 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.37.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.*" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.*" />
+    <PackageReference Include="System.Collections.Immutable" Version="9.0.0-preview.*" />
+    <PackageReference Include="System.Diagnostics.DiagnosticSource" Version="9.0.0-preview.*" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
     <PackageReference Include="System.Collections.Immutable" Version="5.0.0" />

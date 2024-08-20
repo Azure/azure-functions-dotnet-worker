@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.21.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.22.0
 
-- Updated `Microsoft.Azure.WebJobs.Extensions.ServiceBus` reference to 5.16.4
-- Updated `Azure.Messaging.ServiceBus` to 7.18.1
+- Updated `Azure.Identity` reference to 1.12.0
+- Updated `Microsoft.Extensions.Azure` to 1.7.5

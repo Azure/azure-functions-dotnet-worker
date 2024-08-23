@@ -1,0 +1,40 @@
+<Project>
+    <PropertyGroup>
+        <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)\extensionProjectTemplate.csproj</_ExtensionProjectTemplate>
+        <_ExtensionsDirectory>$(MSBuildThisFileDirectory)..\..\..\extensions</_ExtensionsDirectory>
+        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\..\..\out</_ValidationOutputDirectory>
+        <_WorkerPackagePath>..\..\src\DotNetWorker\DotNetWorker.csproj</_WorkerPackagePath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <FilesToProcess Include="$(_ExtensionsDirectory)\**\*.csproj" />
+    </ItemGroup>
+
+    <Target Name="ProcessExtensionsDirectory" AfterTargets="Build">
+        <Message Text="Processing .csproj files in $(_ExtensionsDirectory)" />
+        <ItemGroup>
+            <ProcessedFiles Include="@(FilesToProcess)" />
+        </ItemGroup>
+        <Message Text="Processing file: %(ProcessedFiles.Identity)"/>
+        <!-- Call GenerateExtensionProjects for each file -->
+        <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="GenerateExtensionProject" Properties="ProjectFile=%(ProcessedFiles.Identity)">
+            <Output TaskParameter="TargetOutputs" ItemName="GeneratedProjects" />
+        </MSBuild>
+    </Target>
+
+    <Target Name="GenerateExtensionProject">
+        <PropertyGroup>
+            <ProjectFile>$(ProjectFile)</ProjectFile>
+            <ProjectName>$([System.IO.Path]::GetFileNameWithoutExtension($(ProjectFile)))</ProjectName>
+            <TestName>Test$([System.Text.RegularExpressions.Regex]::Replace($(ProjectName), '^extensions\.(.*)\.(.*)$', '$2'))</TestName>
+            <RelativeExtensionFile>$([System.IO.Path]::GetRelativePath($(_ValidationOutputDirectory)\$(TestName), $(ProjectFile)))</RelativeExtensionFile>
+        </PropertyGroup>
+        <MakeDir Directories="$(_ValidationOutputDirectory)\$(TestName)" />
+        <WriteLinesToFile
+        File="$(_ValidationOutputDirectory)\$(TestName)\$(TestName).csproj"
+        Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
+            .Replace('$PathToExtension$', '$(RelativeExtensionFile)')
+            .Replace('$PathToWorkerPackage$', '$(_WorkerPackagePath)'))"
+            Overwrite="true" />
+    </Target>
+</Project>

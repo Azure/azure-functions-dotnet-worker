@@ -12,6 +12,9 @@ azurite
 # ignore protobuf
 src/protos
 
+# ignore generated ext projects for CI validation
+out/
+
 # User-specific files
 *.rsuser
 *.suo

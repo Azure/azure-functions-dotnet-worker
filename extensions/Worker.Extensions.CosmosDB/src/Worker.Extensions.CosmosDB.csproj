@@ -15,15 +15,15 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
+  </ItemGroup>
+  
+  <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.4" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
     <!-- Transitive dependency promoted to address CVE:-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
-    <ProjectReference Include="..\..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
   </ItemGroup>
 
   <ItemGroup>

@@ -31,7 +31,6 @@
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage.Queues\src\Worker.Extensions.Storage.Queues.csproj" />
-    <ProjectReference Include="..\..\sdk\Sdk.Analyzers\Sdk.Analyzers.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 

@@ -12,6 +12,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Azure.Core" Version="1.42.0" />
+        <PackageReference Include="Microsoft.Azure.Core.NewtonsoftJson" Version="2.0.0" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.3" />
         <PackageReference Include="Moq" Version="4.18.2" />
         <PackageReference Include="xunit" Version="2.6.6" />
@@ -25,10 +27,10 @@
         <ProjectReference Include="..\..\extensions\Worker.Extensions.CosmosDB\src\Worker.Extensions.CosmosDB.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.EventGrid\src\Worker.Extensions.EventGrid.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.EventHubs\src\Worker.Extensions.EventHubs.csproj" />
+        <ProjectReference Include="..\..\extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.ServiceBus\src\Worker.Extensions.ServiceBus.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
-        <ProjectReference Include="..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
     </ItemGroup>
 
 </Project>

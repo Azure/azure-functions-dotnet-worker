@@ -15,11 +15,15 @@
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
+
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Http.AspNetCore.Analyzers\Worker.Extensions.Http.AspNetCore.Analyzers.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
   </ItemGroup>
 
 </Project>

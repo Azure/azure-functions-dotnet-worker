@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net5.0;net6.0;net7.0;net9.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net8.0;net9.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Grpc</PackageId>
     <Description>This library provides gRPC support for Azure Functions .NET Worker communication with the Azure Functions Host.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
@@ -21,27 +21,19 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.41.0" />
+    <PackageReference Include="Azure.Core" Version="1.42.0" />
     <PackageReference Include="Google.Protobuf" Version="3.25.2" />
-    <PackageReference Include="Grpc.Tools" Version="2.60.0">
+    <PackageReference Include="Grpc.Tools" Version="2.65.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0-preview.*" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="9.0.0-preview.*" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="5.0.0" />
-  </ItemGroup>
-
   <ItemGroup Condition="'$(TargetFramework)' != 'netstandard2.0'">
-    <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.60.0" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.65.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.65.0" />
   </ItemGroup>
 
   <!--For applications using the .NET Standard 2.0 target/.NET Framework apps

@@ -38,8 +38,6 @@
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
     <ProjectReference Include="..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
-    <ProjectReference Include="..\..\sdk\FunctionMetadataLoaderExtension\FunctionMetadataLoaderExtension.csproj" />
-    <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
     <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>

@@ -33,7 +33,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj" />
-    <ProjectReference Include="..\..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
   </ItemGroup>
 
 </Project>

@@ -64,7 +64,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- Validating some expectations for the function app early on. -->
   <Target Name="_FunctionsPreBuild" BeforeTargets="BeforeBuild">
     <PropertyGroup>
-      <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant())</_AzureFunctionsVersionStandardized>
+      <!-- Versions could be of several forms, such as "v4", "V4", or "v4-prerelease". This will normalize those three examples all to "v4". -->
+      <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
       <CheckEolAzureFunctionsVersion Condition="'$(CheckEolAzureFunctionsVersion)' == ''">true</CheckEolAzureFunctionsVersion>
     </PropertyGroup>
 

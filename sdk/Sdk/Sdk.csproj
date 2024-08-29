@@ -1,8 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <MinorProductVersion>18</MinorProductVersion>
-    <PatchProductVersion>0</PatchProductVersion>
+    <MajorProductVersion>2</MajorProductVersion>
     <VersionSuffix>-preview1</VersionSuffix>
     <TargetFrameworks>netstandard2.0;net472</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Sdk</PackageId>
@@ -31,10 +30,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="16.9.0" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.3" />
-    <PackageReference Include="SharpZipLib" Version="1.4.1" />
-    <PackageReference Include="System.Text.Json" Version="5.0.2" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
+    <PackageReference Include="Mono.Cecil" Version="0.11.5" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
+    <PackageReference Include="System.Text.Json" Version="8.0.4" />
     <PackageReference Include="System.Memory" Version="4.5.5" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
 

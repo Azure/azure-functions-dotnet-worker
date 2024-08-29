@@ -197,6 +197,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var mockServiceProvider = new Mock<IServiceProvider>(MockBehavior.Strict);
             mockServiceProvider.Setup(a => a.GetService(typeof(IBindingCache<ConversionResult>)))
                                .Returns(new DefaultBindingCache<ConversionResult>());
+            mockServiceProvider.Setup(a => a.GetService(typeof(Microsoft.Extensions.DependencyInjection.IServiceProviderIsService)))
+                               .Returns(null);
 
             return new TestFunctionContext(definition, invocation, CancellationToken.None, serviceProvider: mockServiceProvider.Object);
         }

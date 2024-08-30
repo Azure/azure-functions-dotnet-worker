@@ -8,9 +8,7 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <MinorProductVersion>23</MinorProductVersion>
-    <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix></VersionSuffix>
+    <Version>2.0.0-alpha1</Version>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

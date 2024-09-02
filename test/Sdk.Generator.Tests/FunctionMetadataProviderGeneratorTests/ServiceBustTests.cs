@@ -115,7 +115,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 

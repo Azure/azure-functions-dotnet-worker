@@ -12,4 +12,6 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
+- Use full namespace for `Task.FromResult` in function metadata provider generator to avoid namespace conflict (#2681)
+
 - <entry>

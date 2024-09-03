@@ -22,7 +22,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var hostingExtension = typeof(HostBuilder).Assembly;
                 var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
@@ -35,7 +34,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     abstractionsExtension,
                     blobExtension,
                     httpExtension,
-                    storageExtension,
                     queueExtension,
                     hostingExtension,
                     hostingAbExtension,

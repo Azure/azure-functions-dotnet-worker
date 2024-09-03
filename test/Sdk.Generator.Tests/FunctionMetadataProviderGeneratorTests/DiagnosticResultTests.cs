@@ -23,7 +23,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             {
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var loggerExtension = typeof(NullLogger).Assembly;
@@ -36,7 +35,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 {
                     abstractionsExtension,
                     httpExtension,
-                    storageExtension,
                     blobExtension,
                     queueExtension,
                     loggerExtension,

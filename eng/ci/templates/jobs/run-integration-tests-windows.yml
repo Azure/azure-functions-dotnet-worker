@@ -8,8 +8,8 @@ jobs:
 
   strategy:
     matrix:
-      net7:
-        dotnetVersion: 'net7'
+      net8:
+        dotnetVersion: 'net8'
       netfx:
         dotnetVersion: 'netfx'
 

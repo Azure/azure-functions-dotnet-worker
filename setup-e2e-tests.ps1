@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory=$true)]
     [ValidateNotNullOrEmpty()]
     [String]
-    [ValidateSet("net7", "netfx")]
+    [ValidateSet("net8", "netfx")]
     $DotnetVersion,
 
     [Switch]

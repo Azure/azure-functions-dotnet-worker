@@ -49,16 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.NativeHostIntegration
         {
             if (libraryName == NativeWorkerDll)
             {
-#if NET6_0
-                if (OperatingSystem.IsLinux())
-                {
-                    return NativeLibraryLinux.GetMainProgramHandle();
-                }
-#elif NET7_0_OR_GREATER
                 return NativeLibrary.GetMainProgramHandle();
-#else
-                throw new PlatformNotSupportedException("Interop communication with FunctionsNetHost is not supported in the current platform. Consider upgrading your project to .NET 7.0 or later.");
-#endif
             }
 
             // Return 0 so that built-in resolving code will be executed.

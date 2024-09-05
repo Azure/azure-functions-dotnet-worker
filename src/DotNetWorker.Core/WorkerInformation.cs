@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public static WorkerInformation Instance = new();
 
-#if NET5_0_OR_GREATER
+#if NET8_0_OR_GREATER
         public int ProcessId => Environment.ProcessId;
 
         public string RuntimeIdentifier => RuntimeInformation.RuntimeIdentifier;

@@ -32,7 +32,7 @@ internal class StartupHook
         RemoveSelfFromStartupHooks();
         string? debuggerWaitEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_DEBUGGER_WAIT");
         string? jsonOutputEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_JSON_OUTPUT");
-#if NET5_0_OR_GREATER
+#if NET8_0_OR_GREATER
         int processId = Environment.ProcessId;
 #else
         int processId = Process.GetCurrentProcess().Id;

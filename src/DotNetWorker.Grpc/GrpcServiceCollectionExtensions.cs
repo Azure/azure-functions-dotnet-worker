@@ -51,7 +51,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddSingleton<IWorker, GrpcWorker>();
             services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
 
-#if NET5_0_OR_GREATER
+#if NET8_0_OR_GREATER
             // If we are running in the native host process, use the native client
             // for communication (interop). Otherwise; use the gRPC client.
             if (AppContext.GetData("AZURE_FUNCTIONS_NATIVE_HOST") is not null)

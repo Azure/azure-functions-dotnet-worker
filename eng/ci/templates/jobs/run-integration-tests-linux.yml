@@ -29,6 +29,11 @@ jobs:
       SkipCosmosDBEmulator: true
       SkipBuildOnPack: true
 
+  - script: |
+      echo "Listing contents of the test directory:"
+      ls -R test
+    displayName: 'List test directory contents'
+
   - task: DotNetCoreCLI@2
     displayName: 'Run E2E tests'
     inputs:

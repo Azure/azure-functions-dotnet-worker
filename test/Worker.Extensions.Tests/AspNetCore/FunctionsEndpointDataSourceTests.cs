@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
             Assert.Equal("TestFunction", endpoint.DisplayName);
             Assert.Equal($"{routePrefix}/TestFunction", endpoint.RoutePattern.RawText);
-            var endpointMetadata = endpoint.Metadata.Single() as HttpMethodMetadata;
+            var endpointMetadata = endpoint.Metadata.OfType<HttpMethodMetadata>().Single();
             Assert.Equal(new[] { "GET", "POST" }, endpointMetadata.HttpMethods);
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
             Assert.Equal("TestFunction", endpoint.DisplayName);
             Assert.Equal($"api/customRoute/function", endpoint.RoutePattern.RawText);
-            var endpointMetadata = endpoint.Metadata.Single() as HttpMethodMetadata;
+            var endpointMetadata = endpoint.Metadata.OfType<HttpMethodMetadata>().Single();
             Assert.Equal(new[] { "GET", "POST" }, endpointMetadata.HttpMethods);
         }
 
@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
             Assert.Equal("TestFunction", endpoint.DisplayName);
             Assert.Equal($"api/customRoute/function", endpoint.RoutePattern.RawText);
-            var endpointMetadata = endpoint.Metadata.Single() as HttpMethodMetadata;
+            var endpointMetadata = endpoint.Metadata.OfType<HttpMethodMetadata>().Single();
             Assert.Equal(new[] { "GET", "POST" }, endpointMetadata.HttpMethods);
         }
 
@@ -121,7 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
             Assert.Equal("TestFunction", endpoint.DisplayName);
             Assert.Equal($"api/customRoute/function", endpoint.RoutePattern.RawText);
-            var endpointMetadata = endpoint.Metadata.Single() as HttpMethodMetadata;
+            var endpointMetadata = endpoint.Metadata.OfType<HttpMethodMetadata>().Single();
             Assert.Equal([], endpointMetadata.HttpMethods);
         }
 

@@ -41,4 +41,3 @@ jobs:
       arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' # only run http tests to avoid emulators on Linux
       projects: |
         test/**/*Tests.csproj
-        !test/**/Worker.Extensions.Rpc.Tests.csproj

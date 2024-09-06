@@ -80,6 +80,15 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Warning Condition="'$(CheckEolAzureFunctionsVersion)' == 'true' AND '%(_SelectedFunctionVersion.InSupport)' == 'false'" Text="Azure Functions '%(Identity)' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy." />
   </Target>
 
+  <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
+    <PropertyGroup>
+      <RunCommand>func</RunCommand>
+      <RunArguments>host start $(RunArguments)</RunArguments>
+      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    </PropertyGroup>
+  </Target>
+  
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->
   <Target Name="_FunctionsInnerBuild"
     Condition="'$(_FunctionsGenerateExtensionProject)' == 'true'"

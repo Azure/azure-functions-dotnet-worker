@@ -3,10 +3,8 @@
 
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -43,7 +41,8 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
 
         public async Task<DeployStatus> PollDeploymentStatusAsync(string deploymentUrl, string userName, string password)
         {
-            DeployStatus deployStatus = DeployStatus.Pending;
+            var deployStatus = DeployStatus.Pending;
+            var deployStatusText = string.Empty;
             var tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(MaxMinutesToWait));
 
             if (_logMessages)
@@ -54,10 +53,16 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
             {
                 try
                 {
-                    deployStatus = await GetDeploymentStatusAsync(deploymentUrl, userName, password, RetryCount, TimeSpan.FromSeconds(RetryDelaySeconds), tokenSource);
+                    (deployStatus, deployStatusText) = await GetDeploymentStatusAsync(deploymentUrl, userName, password, RetryCount, TimeSpan.FromSeconds(RetryDelaySeconds), tokenSource);
                     if (_logMessages)
                     {
-                        _log.LogMessage(String.Format(StringMessages.DeploymentStatus, Enum.GetName(typeof(DeployStatus), deployStatus)));
+                        var deployStatusName = Enum.GetName(typeof(DeployStatus), deployStatus);
+
+                        var message = string.IsNullOrEmpty(deployStatusText)
+                            ? string.Format(StringMessages.DeploymentStatus, deployStatusName)
+                            : string.Format(StringMessages.DeploymentStatusWithText, deployStatusName, deployStatusText);
+
+                        _log.LogMessage(message);
                     }
                 }
                 catch (HttpRequestException)
@@ -71,16 +76,29 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
             return deployStatus;
         }
 
-        private async Task<DeployStatus> GetDeploymentStatusAsync(string deploymentUrl, string userName, string password, int retryCount, TimeSpan retryDelay, CancellationTokenSource cts)
+        private async Task<(DeployStatus, string)> GetDeploymentStatusAsync(string deploymentUrl, string userName, string password, int retryCount, TimeSpan retryDelay, CancellationTokenSource cts)
         {
+            var status = DeployStatus.Unknown;
+            var statusText = string.Empty;
+
             IDictionary<string, object>? json = await InvokeGetRequestWithRetryAsync<Dictionary<string, object>>(deploymentUrl, userName, password, retryCount, retryDelay, cts);
 
-            if (json != null && TryParseDeploymentStatus(json, out DeployStatus result))
+            if (json is not null)
             {
-                return result;
+                // status
+                if (TryParseDeploymentStatus(json, out DeployStatus result))
+                {
+                    status = result;
+                }
+
+                // status text message
+                if (TryParseDeploymentStatusText(json, out string text))
+                {
+                    statusText = text;
+                }
             }
 
-            return DeployStatus.Unknown;
+            return (status, statusText);
         }
 
         private static bool TryParseDeploymentStatus(IDictionary<string, object> json, out DeployStatus status)
@@ -91,6 +109,20 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
                 && int.TryParse(statusObj.ToString(), out int statusInt)
                 && Enum.TryParse(statusInt.ToString(), out status))
             {
+                return true;
+            }
+
+            return false;
+        }
+
+        private static bool TryParseDeploymentStatusText(IDictionary<string, object> json, out string statusText)
+        {
+            statusText = string.Empty;
+
+            if (json.TryGetValue("status_text", out var textObj)
+                && textObj is not null)
+            {
+                statusText = textObj.ToString();
                 return true;
             }
 

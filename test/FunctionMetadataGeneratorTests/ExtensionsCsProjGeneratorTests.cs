@@ -86,6 +86,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>
@@ -113,6 +114,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>

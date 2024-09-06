@@ -27,15 +27,25 @@ internal class WorkerRequestServicesMiddleware
 
         FunctionContext functionContext = await _coordinator.SetHttpContextAsync(invocationId, context);
 
+        // Retrieve the existing service provider feature
+        var existingFeature = context.Features.Get<IServiceProvidersFeature>();
+
         // Explicitly set the RequestServices to prevent a new scope from being created internally.
         // This also prevents the scope from being disposed when the request is complete. We want this to 
         // be disposed in the Functions middleware, not here.
-        var servicesFeature = new RequestServicesFeature(context, null)
+        await using var servicesFeature = new RequestServicesFeature(context, null)
         {
             RequestServices = functionContext.InstanceServices
         };
         context.Features.Set<IServiceProvidersFeature>(servicesFeature);
 
-        await _next(context);
+        try
+        {
+            await _next(context);
+        }
+        finally
+        {
+            context.Features.Set(existingFeature);
+        }
     }
 }

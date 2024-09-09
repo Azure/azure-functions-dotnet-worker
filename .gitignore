@@ -13,7 +13,7 @@ azurite
 src/protos
 
 # ignore generated ext projects for CI validation
-out/
+ext-check/
 
 # User-specific files
 *.rsuser

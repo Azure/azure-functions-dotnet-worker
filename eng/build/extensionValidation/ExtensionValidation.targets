@@ -1,8 +1,9 @@
 <Project>
     <PropertyGroup>
         <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)\extensionProjectTemplate.csproj</_ExtensionProjectTemplate>
+        <_ProgramCsTemplate>$(MSBuildThisFileDirectory)\extProgramTemplate.cs</_ProgramCsTemplate>
         <_ExtensionsDirectory>$(MSBuildThisFileDirectory)..\..\..\extensions</_ExtensionsDirectory>
-        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\..\..\out</_ValidationOutputDirectory>
+        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\..\..\ext-check</_ValidationOutputDirectory>
         <_WorkerPackagePath>..\..\src\DotNetWorker\DotNetWorker.csproj</_WorkerPackagePath>
     </PropertyGroup>
 
@@ -10,7 +11,7 @@
         <FilesToProcess Include="$(_ExtensionsDirectory)\**\*.csproj" />
     </ItemGroup>
 
-    <Target Name="ProcessExtensionsDirectory" AfterTargets="Build">
+    <Target Name="ProcessExtensionsDirectory" BeforeTargets="Build">
         <Message Text="Processing .csproj files in $(_ExtensionsDirectory)" />
         <ItemGroup>
             <ProcessedFiles Include="@(FilesToProcess)" />
@@ -36,5 +37,9 @@
             .Replace('$PathToExtension$', '$(RelativeExtensionFile)')
             .Replace('$PathToWorkerPackage$', '$(_WorkerPackagePath)'))"
             Overwrite="true" />
+        <WriteLinesToFile
+        File="$(_ValidationOutputDirectory)\$(TestName)\Program.cs"
+        Lines="$([System.IO.File]::ReadAllText($(_ProgramCsTemplate)))"
+        Overwrite="true" />
     </Target>
 </Project>

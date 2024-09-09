@@ -49,7 +49,12 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
             {
                 _log.LogMessage(StringMessages.DeploymentStatusPolling);
             }
-            while (!tokenSource.IsCancellationRequested && deployStatus != DeployStatus.Success && deployStatus != DeployStatus.Failed && deployStatus != DeployStatus.Unknown)
+            while (!tokenSource.IsCancellationRequested 
+                && deployStatus != DeployStatus.Success 
+                && deployStatus != DeployStatus.PartialSuccess
+                && deployStatus != DeployStatus.Failed 
+                && deployStatus != DeployStatus.Conflict
+                && deployStatus != DeployStatus.Unknown)
             {
                 try
                 {

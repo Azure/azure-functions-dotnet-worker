@@ -96,9 +96,9 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
             }
 
             // publish endpoint differs when using a blob storage container
-            var publishUriPath = useBlobContainerDeploy ? "publish" : "zipdeploy";
+            var publishUriPath = useBlobContainerDeploy ? "publish?RemoteBuild=false" : "zipdeploy?isAsync=true";
 
-            // "<publishUrl>/api/zipdeploy" or "<publishUrl>/api/publish"
+            // "<publishUrl>/api/zipdeploy?isAsync=true" or "<publishUrl>/api/publish?RemoteBuild=false"
             zipDeployPublishUrl = $"{zipDeployPublishUrl}/{publishUriPath}";
 
             if (logMessages)
@@ -107,7 +107,7 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
             }
 
             // use the async version of the api
-            Uri uri = new Uri($"{zipDeployPublishUrl}?isAsync=true", UriKind.Absolute);
+            Uri uri = new Uri($"{zipDeployPublishUrl}", UriKind.Absolute);
             string userAgent = $"{UserAgentName}/{userAgentVersion}";
             FileStream stream = File.OpenRead(zipToPublishPath);
             IHttpResponse response = await client.PostRequestAsync(uri, userName, password, "application/zip", userAgent, Encoding.UTF8, stream);
@@ -132,12 +132,12 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
                 {
                     ZipDeploymentStatus deploymentStatus = new ZipDeploymentStatus(client, userAgent, Log, logMessages);
                     DeployStatus status = await deploymentStatus.PollDeploymentStatusAsync(deploymentUrl, userName, password);
-                    if (status == DeployStatus.Success)
+                    if (status == DeployStatus.Success || status == DeployStatus.PartialSuccess)
                     {
                         Log.LogMessage(MessageImportance.High, StringMessages.ZipDeploymentSucceeded);
                         return true;
                     }
-                    else if (status == DeployStatus.Failed || status == DeployStatus.Unknown)
+                    else if (status == DeployStatus.Failed || status == DeployStatus.Conflict || status == DeployStatus.Unknown)
                     {
                         Log.LogError(String.Format(StringMessages.ZipDeployFailureErrorMessage, zipDeployPublishUrl, status));
                         return false;

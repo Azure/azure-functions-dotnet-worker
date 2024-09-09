@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿// IMPORTANT: Do not modify this file directly with major changes
@@ -14,6 +14,8 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
         Building = 1,
         Deploying = 2,
         Failed = 3,
-        Success = 4
+        Success = 4,
+        Conflict = 5,
+        PartialSuccess = 6
     }
 }

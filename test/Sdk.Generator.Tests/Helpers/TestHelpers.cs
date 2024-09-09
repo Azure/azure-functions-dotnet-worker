@@ -1,22 +1,22 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Testing;
-using System.IO;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Microsoft.Azure.Functions.Worker.Core;
-using System.Reflection;
-using System.Collections.Generic;
-using System.Linq;
-using System.Runtime.Versioning;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
@@ -77,7 +77,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 }
             }
 
-
             test.TestState.AnalyzerConfigFiles.Add(("/.globalconfig", config));
 
             foreach (var item in extensionAssemblyReferences)
@@ -92,7 +91,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             return test.RunAsync();
         }
-
     }
 
     // Mostly copy/pasted from the Microsoft Source Generators testing documentation

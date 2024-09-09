@@ -15,7 +15,7 @@
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     </PropertyGroup>
 
-    <Import Project="..\..\build\Common.props" />
+    <Import Project="..\..\..\build\Common.props" />
 
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4">

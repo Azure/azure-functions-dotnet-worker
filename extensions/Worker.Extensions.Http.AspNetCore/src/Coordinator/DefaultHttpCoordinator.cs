@@ -24,7 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             _logger = extensionTrace;
         }
 
-        public Task<FunctionContext> SetHttpContextAsync(string invocationId, HttpContext context)
+        public async Task<FunctionContext> SetHttpContextAsync(string invocationId, HttpContext context)
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
             contextRef.HttpContextValueSource.SetResult(context);
@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             try
             {
-                return contextRef.FunctionContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(FunctionContextTimeoutInSeconds));
+                return await contextRef.FunctionContextValueSource.Task.WaitAsync(TimeSpan.FromSeconds(FunctionContextTimeoutInSeconds));
             }
             catch (TimeoutException e)
             {

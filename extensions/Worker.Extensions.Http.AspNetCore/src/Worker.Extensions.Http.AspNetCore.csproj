@@ -19,7 +19,7 @@
     <ProjectReference Include="..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
     <ProjectReference Include="..\..\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\Worker.Extensions.Http.AspNetCore.Analyzers\Worker.Extensions.Http.AspNetCore.Analyzers.csproj" />
+    <ProjectReference Include="..\..\Worker.Extensions.Http.AspNetCore.Analyzers\src\Worker.Extensions.Http.AspNetCore.Analyzers.csproj" />
   </ItemGroup>
 
 </Project>

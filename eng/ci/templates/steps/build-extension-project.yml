@@ -5,7 +5,7 @@ parameters:
 steps:
 
   - task: DotNetCoreCLI@2
-    displayName: Build project
+    displayName: Build project '${{ parameters.ExtensionProjectName }}'
     inputs:
       command: custom
       custom: build
@@ -15,7 +15,7 @@ steps:
 
   - template: ci/sign-files.yml@eng
     parameters:
-      displayName: Sign assemblies
+      displayName: Sign assemblies for '${{ parameters.ExtensionProjectName }}'
       folderPath: extensions/${{ parameters.ExtensionProjectName }}/src/bin/
       pattern: Microsoft.Azure.Functions.Worker.Extensions*.dll
       signType: dll
@@ -27,7 +27,7 @@ steps:
       contents: '**/CodeSignSummary-*.md'
 
   - task: DotNetCoreCLI@2
-    displayName: Pack extension
+    displayName: Pack extension '${{ parameters.ExtensionProjectName }}'
     inputs:
       command: custom
       custom: pack
@@ -37,7 +37,7 @@ steps:
 
   - template: ci/sign-files.yml@eng
     parameters:
-      displayName: Sign nuget packages
+      displayName: Sign nuget packages for '${{ parameters.ExtensionProjectName }}'
       folderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
       pattern: Microsoft.Azure.Functions.Worker.Extensions*.nupkg
       signType: nuget

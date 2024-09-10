@@ -6,7 +6,8 @@
     <Description>ASP.NET Core extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>1.3.3</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
+    <VersionSuffix>-preview1</VersionSuffix>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 

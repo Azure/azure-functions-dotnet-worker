@@ -137,8 +137,8 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests.Helpers
         private static CSharpCompilation CreateCompilation(string inputSource, IEnumerable<Assembly>? extensionAssemblyReferences, LanguageVersion? languageVersion)
         {
             var syntaxTree = CSharpSyntaxTree.ParseText(
-                            inputSource,
-                            new CSharpParseOptions(languageVersion ?? _defaultLanguageVersion));
+                inputSource,
+                new CSharpParseOptions(languageVersion ?? _defaultLanguageVersion));
 
             var metadata = GetAllAssemblies((extensionAssemblyReferences ?? Array.Empty<Assembly>())
                 .Concat(new[]
@@ -166,15 +166,22 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests.Helpers
         }
 
         private static IEnumerable<string> GetAllAssemblies(
-            IEnumerable<Assembly> assemblies)
+            IEnumerable<Assembly> assemblies,
+            HashSet<string>? alreadyConsumed = null)
         {
+            alreadyConsumed ??= new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             foreach (var item in assemblies)
             {
+                if (!alreadyConsumed.Add(item.Location))
+                {
+                    continue;
+                }
+
                 yield return item.Location;
 
                 foreach (var nestedAssembly in GetAllAssemblies(item
                     .GetReferencedAssemblies()
-                    .Select(x => Assembly.Load(x))))
+                    .Select(x => Assembly.Load(x)), alreadyConsumed))
                 {
                     yield return nestedAssembly;
                 }
@@ -182,7 +189,10 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests.Helpers
 
             foreach (var item in GetBaseCompilationAssemblies())
             {
-                yield return item;
+                if (alreadyConsumed.Add(item))
+                {
+                    yield return item;
+                }
             }
         }
 

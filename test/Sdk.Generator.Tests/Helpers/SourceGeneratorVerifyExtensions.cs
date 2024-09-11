@@ -88,7 +88,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests.Helpers
             await VerifyGeneratedCode(generateResult, callerFileName, callerName);
         }
 
-        private static async Task VerifyGeneratedCode(GeneratorDriver generateResult, string callerFileName, string callerName)
+        private static VerifyTests.SettingsTask VerifyGeneratedCode(GeneratorDriver generateResult, string callerFileName, string callerName)
         {
             var settings = Verifier
                 .Verify(generateResult)
@@ -101,7 +101,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests.Helpers
                     .UseFileName($"{Path.GetFileNameWithoutExtension(callerFileName)}.{callerName}");
             }
 
-            await settings;
+            return settings;
         }
 
         private static AnalyzerConfigOptions CreateAnalyzerOptions(

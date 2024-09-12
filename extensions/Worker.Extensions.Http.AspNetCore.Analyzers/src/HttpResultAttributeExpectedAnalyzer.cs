@@ -3,7 +3,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -69,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var outputBindingSymbol = semanticModel.Compilation.GetTypeByMetadataName(OutputBindingFullName);
             var hasOutputBindingProperty = returnTypeSymbol.GetMembers()
                 .OfType<IPropertySymbol>()
-                .Any(prop => prop.GetAttributes().Any(attr => IsOrDerivedFrom(attr.AttributeClass, outputBindingSymbol)));
+                .Any(prop => prop.GetAttributes().Any(attr => attr.AttributeClass.IsOrDerivedFrom(outputBindingSymbol));
 
             if (!hasOutputBindingProperty)
             {
@@ -112,28 +111,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
 
             return SymbolEqualityComparer.Default.Equals(symbol, iActionResultType) || SymbolEqualityComparer.Default.Equals(symbol, iResultType);
-        }
-
-        private static bool IsOrDerivedFrom(ITypeSymbol symbol, ITypeSymbol other)
-        {
-            if (other is null)
-            {
-                return false;
-            }
-
-            var current = symbol;
-
-            while (current != null)
-            {
-                if (SymbolEqualityComparer.Default.Equals(current, other) || SymbolEqualityComparer.Default.Equals(current.OriginalDefinition, other))
-                {
-                    return true;
-                }
-
-                current = current.BaseType;
-            }
-
-            return false;
         }
     }
 }

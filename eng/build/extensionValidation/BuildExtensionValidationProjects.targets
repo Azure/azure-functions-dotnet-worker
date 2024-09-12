@@ -1,9 +1,15 @@
-<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project>
+    <PropertyGroup>
+        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\..\..\ext-check</_ValidationOutputDirectory>
+    </PropertyGroup>
+
     <ItemGroup>
-        <ProjectFiles Include="$(MSBuildThisFileDirectory)..\..\..\ext-check\*.csproj" />
+        <ProjectFiles Include="$(_ValidationOutputDirectory)\**\*.csproj" />
     </ItemGroup>
 
-    <Target Name="BuildExtensionProjects" AfterTargets="Build">
+    <Target Name="BuildExtensionValidationProjects" DependsOnTargets="Initialize">
+        <Message Text="Building the following projects:" />
+        <Message Text="@(ProjectFiles)" />
         <MSBuild Projects="@(ProjectFiles)" Targets="Build" />
     </Target>
 </Project>

@@ -77,22 +77,15 @@ namespace Microsoft.Extensions.DependencyInjection
 
         private static Uri GetFunctionsHostGrpcUri(IConfiguration configuration)
         {
-            Uri? grpcUri;
             var functionsUri = configuration["Functions:Worker:HostEndpoint"];
-            if (functionsUri is not null)
+            if (string.IsNullOrEmpty(functionsUri))
             {
-                if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out grpcUri))
-                {
-                    throw new InvalidOperationException($"The gRPC channel URI '{functionsUri}' could not be parsed.");
-                }
+                throw new InvalidOperationException("Configuration is missing the 'HostEndpoint' information. Please ensure an entry with the key 'Functions:Worker:HostEndpoint' is present in your configuration.");
             }
-            else
+
+            if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out var grpcUri))
             {
-                var uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
-                if (!Uri.TryCreate(uriString, UriKind.Absolute, out grpcUri))
-                {
-                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
-                }
+                throw new InvalidOperationException($"The gRPC channel URI '{functionsUri}' could not be parsed.");
             }
 
             return grpcUri;

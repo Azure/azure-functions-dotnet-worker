@@ -4,16 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 1.23.0
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Updating `Microsoft.Azure.Functions.Worker.Core` to 1.19.0
-- Updating `Microsoft.Azure.Functions.Worker.Grpc` to 1.17.0
-- Updating `Azure.Core` to 1.41.0
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Core 1.19.0
+### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Updating `Azure.Core` to 1.41.0
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Grpc 1.17.0
+### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- Updating `Azure.Core` to 1.41.0
+- Removed fallback command line argument reading code for grpc worker startup options. (#1908)

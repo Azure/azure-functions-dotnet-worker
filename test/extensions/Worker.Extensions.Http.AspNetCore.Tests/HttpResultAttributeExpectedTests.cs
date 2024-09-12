@@ -94,6 +94,42 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
+        public async Task PocoUsedWithoutOutputBindings_NoDiagnostic()
+        {
+            string testCode = @"
+            using System;
+            using Microsoft.AspNetCore.Http;
+            using Microsoft.AspNetCore.Mvc;
+            using Microsoft.Azure.Functions.Worker;
+
+            namespace AspNetIntegration
+            {
+                public class MultipleOutputBindings
+                {
+                    [Function(""PocoOutput"")]
+                    public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+                    {
+                        throw new NotImplementedException();
+                    }
+                    public class MyOutputType
+                    {
+                        public string Name { get; set; }
+
+                        public string MessageText { get; set; }
+                    }
+                }
+            }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         public async Task HttpResultAttribute_WhenUsingHttpRequestDataAndMultiOutput_NotExpected()
         {
             string testCode = @"

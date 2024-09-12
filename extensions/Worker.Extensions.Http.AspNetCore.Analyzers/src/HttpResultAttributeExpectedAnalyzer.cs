@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var outputBindingSymbol = semanticModel.Compilation.GetTypeByMetadataName(OutputBindingFullName);
             var hasOutputBindingProperty = returnTypeSymbol.GetMembers()
                 .OfType<IPropertySymbol>()
-                .Any(prop => prop.GetAttributes().Any(attr => attr.AttributeClass.IsOrDerivedFrom(outputBindingSymbol));
+                .Any(prop => prop.GetAttributes().Any(attr => attr.AttributeClass.IsOrDerivedFrom(outputBindingSymbol)));
 
             if (!hasOutputBindingProperty)
             {

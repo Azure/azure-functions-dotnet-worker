@@ -170,63 +170,61 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         public async Task HttpResultAttributeExpected_CodeFixWorks()
         {
             string inputCode = @"
-            using System;
-            using Microsoft.AspNetCore.Http;
-            using Microsoft.AspNetCore.Mvc;
-            using Microsoft.Azure.Functions.Worker;
+using System;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 
-            namespace AspNetIntegration
-            {
-                public class MultipleOutputBindings
-                {
-                    [Function(""MultipleOutputBindings"")]
-                    public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
-                    {
-                        throw new NotImplementedException();
-                    }
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""MultipleOutputBindings"")]
+        public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+        {
+            throw new NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            public IActionResult Result { get; set; }
 
-                    public class MyOutputType
-                    {
-                        public IActionResult Result { get; set; }
-
-                        [BlobOutput(""test-samples-output/{name}-output.txt"")]
-                        public string MessageText { get; set; }
-                    }
-                }
-            }";
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
 
             string expectedCode = @"
-            using System;
-            using Microsoft.AspNetCore.Http;
-            using Microsoft.AspNetCore.Mvc;
-            using Microsoft.Azure.Functions.Worker;
+using System;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
 
-            namespace AspNetIntegration
-            {
-                public class MultipleOutputBindings
-                {
-                    [Function(""MultipleOutputBindings"")]
-                    public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
-                    {
-                        throw new NotImplementedException();
-                    }
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""MultipleOutputBindings"")]
+        public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+        {
+            throw new NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            [HttpResultAttribute]
+            public IActionResult Result { get; set; }
 
-                    public class MyOutputType
-                    {
-                        [HttpResultAttribute]
-                        public IActionResult Result { get; set; }
-
-                        [BlobOutput(""test-samples-output/{name}-output.txt"")]
-                        public string MessageText { get; set; }
-                    }
-                }
-            }";
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
 
 
             var expectedDiagnosticResult = CodeFixVerifier
                                 .Diagnostic("AZFW0015")
                                 .WithSeverity(DiagnosticSeverity.Error)
-                                .WithLocation(12, 28)
+                                .WithLocation(12, 16)
                                 .WithArguments("\"MultipleOutputBindings\"");
 
             var test = new CodeFixTest
@@ -243,14 +241,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(
-                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.21.0"),
-                new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.17.2"),
+                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.22.0"),
+                new PackageIdentity("Microsoft.Azure.Functions.Worker.Sdk", "1.17.4"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs", "6.0.0"),
-                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.2.1"),
+                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore", "1.3.2"),
                 new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Abstractions", "5.0.0"),
                 new PackageIdentity("Microsoft.AspNetCore.Mvc.Core", "2.2.5"),
                 new PackageIdentity("Microsoft.Extensions.Hosting.Abstractions", "6.0.0"),
-                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.2.0-local")));
+                new PackageIdentity("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.2.0")));
 
             return referenceAssemblies;
         }

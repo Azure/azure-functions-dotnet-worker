@@ -159,6 +159,25 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 
             string prefix = FunctionsEndpointDataSource.GetRoutePrefix(hostJson);
             Assert.Equal("custom", prefix);
+        } 
+        
+        [Fact]
+        public void GetRoutePrefix_IgnoreComments()
+        {
+            string hostJson = """
+            {
+            // This is a comment
+                "version": "2.0",
+                "extensions": {  
+                    "http": {
+                        "routeprefix": "custom"
+                    }
+                }
+            }
+            """;
+
+            string prefix = FunctionsEndpointDataSource.GetRoutePrefix(hostJson);
+            Assert.Equal("custom", prefix);
         }
     }
 }

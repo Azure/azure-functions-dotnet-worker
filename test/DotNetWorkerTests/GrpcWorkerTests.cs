@@ -9,7 +9,6 @@ using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
@@ -178,6 +177,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Theory]
         [InlineData("IncludeEmptyEntriesInMessagePayload", true, "IncludeEmptyEntriesInMessagePayload", true, "True")]
         [InlineData("IncludeEmptyEntriesInMessagePayload", false, "IncludeEmptyEntriesInMessagePayload", false)]
+        [InlineData("EnableUserCodeException", true, "EnableUserCodeException", true, "True")]
+        [InlineData("EnableUserCodeException", false, "EnableUserCodeException", false)]
         public void InitRequest_ReturnsExpectedCapabilities_BasedOnWorkerOptions(
             string booleanPropertyName,
             bool booleanPropertyValue,
@@ -233,6 +234,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }
 
             Assert.Collection(response.Capabilities.OrderBy(p => p.Key),
+                c => AssertKeyAndValue(c, "EnableUserCodeException", bool.TrueString),
                 c => AssertKeyAndValue(c, "HandlesInvocationCancelMessage", bool.TrueString),
                 c => AssertKeyAndValue(c, "IncludeEmptyEntriesInMessagePayload", bool.TrueString),
                 c => AssertKeyAndValue(c, "RawHttpBodyBytes", bool.TrueString),

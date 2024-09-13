@@ -8,6 +8,10 @@
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RunSettingsFilePath>$(MSBuildProjectDirectory)\SdkE2ETests_default.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+    
   <ItemGroup>
     <None Remove="Contents\functions.metadata" />
   </ItemGroup>

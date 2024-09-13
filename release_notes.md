@@ -15,3 +15,7 @@
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
 - Removed fallback command line argument reading code for grpc worker startup options. (#1908)
+
+### Microsoft.Azure.Functions.Worker.Sdk 2.0.0-preview2
+
+- Adding support for SDK container builds with Functions base images

@@ -320,12 +320,12 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             // Add required capabilities; these cannot be modified and will override anything from WorkerOptions
-            capabilities["RpcHttpBodyOnly"] = bool.TrueString;
-            capabilities["RawHttpBodyBytes"] = bool.TrueString;
-            capabilities["RpcHttpTriggerMetadataRemoved"] = bool.TrueString;
-            capabilities["UseNullableValueDictionaryForHttp"] = bool.TrueString;
-            capabilities["TypedDataCollection"] = bool.TrueString;
-            capabilities["WorkerStatus"] = bool.TrueString;
+            capabilities[WorkerCapabilities.RpcHttpBodyOnly] = bool.TrueString;
+            capabilities[WorkerCapabilities.RawHttpBodyBytes] = bool.TrueString;
+            capabilities[WorkerCapabilities.RpcHttpTriggerMetadataRemoved] = bool.TrueString;
+            capabilities[WorkerCapabilities.UseNullableValueDictionaryForHttp] = bool.TrueString;
+            capabilities[WorkerCapabilities.TypedDataCollection] = bool.TrueString;
+            capabilities[WorkerCapabilities.WorkerStatus] = bool.TrueString;
 
             return capabilities;
         }

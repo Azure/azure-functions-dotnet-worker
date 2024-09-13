@@ -3,6 +3,7 @@
 
 using System;
 using System.Diagnostics;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit.Abstractions;
@@ -11,8 +12,22 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 {
     public class ProcessWrapper
     {
+
         public async Task<int?> RunProcess(string fileName, string arguments, string workingDirectory, ITestOutputHelper testOutputHelper = null)
         {
+            return await RunProcessInternal(fileName, arguments, workingDirectory, testOutputHelper);
+        }
+
+        public async Task<Tuple<int?, string>> RunProcessForOutput(string fileName, string arguments, string workingDirectory, ITestOutputHelper testOutputHelper = null)
+        {
+            StringBuilder processOutputStringBuilder = new StringBuilder();
+            var exitCode = await RunProcessInternal(fileName, arguments, workingDirectory, testOutputHelper, processOutputStringBuilder);
+            return new Tuple<int?,string>(exitCode, processOutputStringBuilder.ToString());
+        }
+
+        private async Task<int?> RunProcessInternal(string fileName, string arguments, string workingDirectory, ITestOutputHelper testOutputHelper = null, StringBuilder processOutputBuilder = null)
+        {
+
             SemaphoreSlim processExitSemaphore = new SemaphoreSlim(0, 1);
 
             ProcessStartInfo startInfo = new ProcessStartInfo
@@ -39,6 +54,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                 if (o.Data != null)
                 {
                     testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Error: {o.Data}");
+                    if (processOutputBuilder != null)
+                    {
+                        processOutputBuilder.AppendLine(o.Data);
+                    }
                 }
             };
 
@@ -47,6 +66,10 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
                 if (o.Data != null)
                 {
                     testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] {o.Data}");
+                    if (processOutputBuilder != null)
+                    {
+                        processOutputBuilder.AppendLine(o.Data);
+                    }
                 }
             };
 
@@ -65,4 +88,5 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             return testProcess?.ExitCode;
         }
     }
+
 }

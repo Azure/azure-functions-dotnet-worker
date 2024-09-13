@@ -6,7 +6,8 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- <entry>
+- `ValidateScopes` is enabled for developement environments by default. (#2705)
+  - The default is the value of `IsDevelopment(IHostingEnvironment)`.
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 

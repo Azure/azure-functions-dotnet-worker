@@ -234,6 +234,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             Assert.Collection(response.Capabilities.OrderBy(p => p.Key),
                 c => AssertKeyAndValue(c, "HandlesInvocationCancelMessage", bool.TrueString),
+                c => AssertKeyAndValue(c, "IncludeEmptyEntriesInMessagePayload", bool.TrueString),
                 c => AssertKeyAndValue(c, "RawHttpBodyBytes", bool.TrueString),
                 c => AssertKeyAndValue(c, "RpcHttpBodyOnly", bool.TrueString),
                 c => AssertKeyAndValue(c, "RpcHttpTriggerMetadataRemoved", bool.TrueString),
@@ -324,7 +325,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             });
 
             releaseFunctionEvent.Wait(5000);
-            
+
             Assert.True(releaseFunctionEvent.IsSet,
                 "Release function was never called. " +
                 "This indicates the blocking function prevented execution flow.");

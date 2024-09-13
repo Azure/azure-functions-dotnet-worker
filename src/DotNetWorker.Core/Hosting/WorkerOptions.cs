@@ -10,7 +10,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
     /// An options class for configuring the worker.
-    /// </summary>    
+    /// </summary>
     public class WorkerOptions
     {
         /// <summary>
@@ -30,13 +30,14 @@ namespace Microsoft.Azure.Functions.Worker
         public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>()
         {
             // Enable these by default, although they are not strictly required and can be removed
-            { "HandlesWorkerTerminateMessage", bool.TrueString },
-            { "HandlesInvocationCancelMessage", bool.TrueString }
+            { WorkerCapabilities.HandlesWorkerTerminateMessage, bool.TrueString },
+            { WorkerCapabilities.HandlesInvocationCancelMessage, bool.TrueString },
+            { WorkerCapabilities.IncludeEmptyEntriesInMessagePayload, bool.TrueString }
         };
 
         /// <summary>
         /// Gets or sets the flag for opting in to unwrapping user-code-thrown
-        /// exceptions when they are surfaced to the Host. 
+        /// exceptions when they are surfaced to the Host.
         /// </summary>
         public bool EnableUserCodeException
         {
@@ -49,7 +50,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// For example, if a set of entries were sent to a messaging service such as Service Bus or Event Hub and your function
         /// app has a Service bus trigger or Event hub trigger, only the non-empty entries from the payload will be sent to the
         /// function code as trigger data when this setting value is <see langword="false"/>. When it is <see langword="true"/>,
-        /// All entries will be sent to the function code as it is. Default value for this setting is <see langword="false"/>.
+        /// all entries will be sent to the function code as it is. Default value for this setting is <see langword="true"/>.
         /// </summary>
         public bool IncludeEmptyEntriesInMessagePayload
         {

@@ -21,4 +21,30 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Project="$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.$(PublishProtocol).targets"  
           Condition="Exists('$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.$(PublishProtocol).targets')" />
 
+    <Target
+          Name="AssignFunctionsBaseImage"
+          BeforeTargets="ComputeContainerBaseImage"
+          DependsOnTargets="_FunctionsPreBuild" >
+        <PropertyGroup>
+            <_FunctionsRuntimeMajorVersion>$(_AzureFunctionsVersionStandardized.TrimStart('vV'))</_FunctionsRuntimeMajorVersion>
+            <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(TargetFrameworkVersion.TrimStart('vV'))</ContainerBaseImage>
+            <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/home/site/wwwroot</ContainerWorkingDirectory>
+            <!-- Functions base images only support amd64 runtimes -->
+            <ContainerRuntimeIdentifier Condition="'$(ContainerRuntimeIdentifier)' == ''">linux-x64</ContainerRuntimeIdentifier>
+        </PropertyGroup>
+        <ItemGroup>
+            <ContainerEnvironmentVariable
+                    Condition="@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'AzureWebJobsScriptRoot')) == false"
+                    Include="AzureWebJobsScriptRoot"
+                    Value="$(ContainerWorkingDirectory)" />
+            <ContainerEnvironmentVariable
+                    Condition="@(ContainerEnvironmentVariable->AnyHaveMetadataValue('Identity', 'AzureFunctionsJobHost__Logging__Console__IsEnabled')) == false"
+                    Include="AzureFunctionsJobHost__Logging__Console__IsEnabled"
+                    Value="true" />
+        </ItemGroup>
+        <ItemGroup>
+            <ContainerAppCommand Include="/opt/startup/start_nonappservice.sh" />
+        </ItemGroup>
+    </Target>
+
 </Project>

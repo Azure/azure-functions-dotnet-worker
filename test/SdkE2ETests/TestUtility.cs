@@ -135,5 +135,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             return outputDir;
         }
+
+        public static async Task RemoveDockerTestImage(string repository, string imageTag, ITestOutputHelper outputHelper)
+        {
+            outputHelper.WriteLine($"Removing image {repository}:{imageTag} from local registry");
+            int? rmiExitCode = await new ProcessWrapper().RunProcess("docker", $"rmi -f {repository}:{imageTag}", TestOutputDir, outputHelper);
+            Assert.True(rmiExitCode.HasValue && rmiExitCode.Value == 0); // daemon may still error if the image doesn't exist, but it will still return 0
+        }
     }
 }

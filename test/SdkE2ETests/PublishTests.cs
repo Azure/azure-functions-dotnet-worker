@@ -34,6 +34,34 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             await RunPublishTest(outputDir, "-r win-x86");
         }
 
+        [Fact]
+        // This test requires the Docker daemon to be installed and running
+        // It is excluded through the SdkE2ETests_default.runsettings file from normal tests
+        // To run the test, use `dotnet test -s SdkE2ETests_dockertests.runsettings`
+        [Trait("Requirement", "Docker")]
+        public async Task Publish_Container()
+        {
+            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish_Container));
+            var repository = nameof(SdkE2ETests).ToLower();
+            var imageTag = nameof(Publish_Container);
+
+            // setup test environment state in case there is leftover data from previous runs
+            await TestUtility.RemoveDockerTestImage(repository, imageTag, _testOutputHelper);
+
+            // perform the publish
+            await RunPublishTest(outputDir, $"--no-restore /t:PublishContainer --property:ContainerRepository={repository} --property:ContainerImageTag={imageTag}");
+
+            // validate the image base
+            Tuple<int?,string> inspectResults = await new ProcessWrapper().RunProcessForOutput("docker", $"inspect {repository}:{imageTag} --format \"{{{{ index .Config.Labels \\\"org.opencontainers.image.base.name\\\"}}}}\"", outputDir, _testOutputHelper);
+            var inspectExitCode = inspectResults.Item1;
+            var inspectOutput = inspectResults.Item2;
+            Assert.True(inspectExitCode.HasValue && inspectExitCode.Value == 0);
+            Assert.Matches("mcr\\.microsoft\\.com/azure-functions/dotnet-isolated:(\\d)+-dotnet-isolated(\\d+\\.\\d+)", inspectOutput);
+
+            // clean up
+            await TestUtility.RemoveDockerTestImage(repository, imageTag, _testOutputHelper);
+        }
+
         private async Task RunPublishTest(string outputDir, string additionalParams = null)
         {
             // Name of the csproj

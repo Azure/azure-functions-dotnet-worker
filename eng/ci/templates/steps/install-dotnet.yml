@@ -22,5 +22,5 @@ steps:
   displayName: Install .NET 9
   inputs:
     packageType: sdk
-    version: '9.0.0-rc.1'
+    version: '9.0.100-preview.6.24328.19'
     includePreviewVersions: true

@@ -50,7 +50,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       DeploymentPassword="$(Password)"
       SiteName="$(DeployIisAppPath)"
       PublishUrl="$(PublishUrl)"
-      UserAgentVersion="$(ZipDeployUserAgent)"/>
+      UserAgentVersion="$(ZipDeployUserAgent)"
+      UseBlobContainerDeploy="$(UseBlobContainerDeploy)"/>
   </Target>
 
 </Project>

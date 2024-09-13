@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -41,6 +40,7 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
 
         public string? PublishUrl { get; set; }
 
+        public bool UseBlobContainerDeploy { get; set; }
 
         /// <summary>
         /// Our fallback if PublishUrl is not given, which is the case for ZIP Deploy profiles created prior to 15.8 Preview 4.
@@ -49,16 +49,21 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
         public string? SiteName { get; set; }
 
         public override bool Execute()
-        { 
+        {
             using (DefaultHttpClient client = new DefaultHttpClient())
             {
-                System.Threading.Tasks.Task<bool> t = ZipDeployAsync(ZipToPublishPath!, DeploymentUsername!, DeploymentPassword!, PublishUrl, SiteName!, UserAgentVersion!, client, true);
+                System.Threading.Tasks.Task<bool> t = ZipDeployAsync(ZipToPublishPath!, DeploymentUsername!, DeploymentPassword!, PublishUrl, SiteName!, UserAgentVersion!, UseBlobContainerDeploy, client, true);
                 t.Wait();
                 return t.Result;
             }
         }
 
-        internal async System.Threading.Tasks.Task<bool> ZipDeployAsync(string zipToPublishPath, string userName, string password, string? publishUrl, string siteName, string userAgentVersion, IHttpClient client, bool logMessages)
+        internal System.Threading.Tasks.Task<bool> ZipDeployAsync(string zipToPublishPath, string userName, string password, string publishUrl, string siteName, string userAgentVersion, IHttpClient client, bool logMessages)
+        {
+            return ZipDeployAsync(zipToPublishPath, userName, password, publishUrl, siteName, userAgentVersion, useBlobContainerDeploy: false, client, logMessages);
+        }
+
+        internal async System.Threading.Tasks.Task<bool> ZipDeployAsync(string zipToPublishPath, string userName, string password, string? publishUrl, string siteName, string userAgentVersion, bool useBlobContainerDeploy, IHttpClient client, bool logMessages)
         {
             if (!File.Exists(zipToPublishPath) || client == null)
             {
@@ -73,11 +78,11 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
                     publishUrl += "/";
                 }
 
-                zipDeployPublishUrl = publishUrl + "api/zipdeploy";
+                zipDeployPublishUrl = publishUrl + "api";
             }
             else if (!string.IsNullOrEmpty(siteName))
             {
-                zipDeployPublishUrl = $"https://{siteName}.scm.azurewebsites.net/api/zipdeploy";
+                zipDeployPublishUrl = $"https://{siteName}.scm.azurewebsites.net/api";
             }
             else
             {
@@ -89,13 +94,19 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
                 return false;
             }
 
+            // publish endpoint differs when using a blob storage container
+            var publishUriPath = useBlobContainerDeploy ? "publish?RemoteBuild=false" : "zipdeploy?isAsync=true";
+
+            // "<publishUrl>/api/zipdeploy?isAsync=true" or "<publishUrl>/api/publish?RemoteBuild=false"
+            zipDeployPublishUrl = $"{zipDeployPublishUrl}/{publishUriPath}";
+
             if (logMessages)
             {
                 Log.LogMessage(MessageImportance.High, String.Format(StringMessages.PublishingZipViaZipDeploy, zipToPublishPath, zipDeployPublishUrl));
             }
 
             // use the async version of the api
-            Uri uri = new Uri($"{zipDeployPublishUrl}?isAsync=true", UriKind.Absolute);
+            Uri uri = new Uri($"{zipDeployPublishUrl}", UriKind.Absolute);
             string userAgent = $"{UserAgentName}/{userAgentVersion}";
             FileStream stream = File.OpenRead(zipToPublishPath);
             IHttpResponse response = await client.PostRequestAsync(uri, userName, password, "application/zip", userAgent, Encoding.UTF8, stream);
@@ -120,12 +131,12 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
                 {
                     ZipDeploymentStatus deploymentStatus = new ZipDeploymentStatus(client, userAgent, Log, logMessages);
                     DeployStatus status = await deploymentStatus.PollDeploymentStatusAsync(deploymentUrl, userName, password);
-                    if (status == DeployStatus.Success)
+                    if (status == DeployStatus.Success || status == DeployStatus.PartialSuccess)
                     {
                         Log.LogMessage(MessageImportance.High, StringMessages.ZipDeploymentSucceeded);
                         return true;
                     }
-                    else if (status == DeployStatus.Failed || status == DeployStatus.Unknown)
+                    else if (status == DeployStatus.Failed || status == DeployStatus.Conflict || status == DeployStatus.Unknown)
                     {
                         Log.LogError(String.Format(StringMessages.ZipDeployFailureErrorMessage, zipDeployPublishUrl, status));
                         return false;

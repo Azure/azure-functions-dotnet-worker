@@ -6,6 +6,7 @@
     public static class StringMessages
     {
         public const string DeploymentStatus = "Deployment status is {0}.";
+        public const string DeploymentStatusWithText = "Deployment status is {0}: {1}";
         public const string DeploymentStatusPolling = "Polling for deployment status...";
         public const string NeitherSiteNameNorPublishUrlGivenError = "Neither SiteName nor PublishUrl was given a value.";
         public const string PublishingZipViaZipDeploy = "Publishing {0} to {1}...";

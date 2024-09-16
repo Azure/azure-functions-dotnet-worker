@@ -17,10 +17,6 @@ jobs:
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
-  - script: |
-      echo "Installed .NET SDKs:"
-      dotnet --list-sdks
-
   - ${{ each version in split(variables.dotnetVersions, ',') }}:
     - task: DotNetCoreCLI@2
       displayName: Publish PreJit PlaceholderApp.csproj
@@ -31,3 +27,4 @@ jobs:
         modifyOutputPath: false
         arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false
         projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
+        workingDirectory: host/src

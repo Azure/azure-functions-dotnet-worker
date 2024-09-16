@@ -12,10 +12,15 @@ jobs:
       artifact: _preJitAppPackages
 
   variables:
-    dotnetVersions: 'net8.0'
+    dotnetVersions: 'net8.0,net9.0'
 
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+  - script: |
+      echo "Installed .NET SDKs:"
+      dotnet --list-sdks
+    displayName: 'Print installed .NET SDKs'
 
   - ${{ each version in split(variables.dotnetVersions, ',') }}:
     - task: DotNetCoreCLI@2

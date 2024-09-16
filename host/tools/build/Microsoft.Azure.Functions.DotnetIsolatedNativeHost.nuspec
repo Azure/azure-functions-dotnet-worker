@@ -4,7 +4,7 @@
     <id>Microsoft.Azure.Functions.DotNetIsolatedNativeHost</id>
     <title>Microsoft Azure Functions dotnet-isolated native host</title>
     <tags>dotnet-isolated azure-functions azure</tags>
-    <version>1.0.11</version>
+    <version>1.1.0</version>
     <authors>Microsoft</authors>
     <owners>Microsoft</owners>
     <projectUrl>https://github.com/Azure/azure-functions-dotnet-worker</projectUrl>
@@ -19,7 +19,8 @@
   <files>
     <file src="..\..\dist\windows\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
     <file src="..\..\dist\linux\*" target="contentFiles/any/any/workers/dotnet-isolated/bin" />
-    <file src="..\..\dist\portable\**" target="contentFiles/any/any/workers/dotnet-isolated/bin/prelaunchapps" />
+    <file src="..\..\dist\portable\prelaunchapps\**" target="contentFiles/any/any/workers/dotnet-isolated/bin/prelaunchapps" />
+    <file src="..\..\dist\portable\prejit-placeholder-app\**" target="contentFiles/any/any/workers/dotnet-isolated/bin/PlaceholderApp" />
     <file src="worker.config.json" target="contentFiles/any/any/workers/dotnet-isolated" />
   </files>
 </package>

@@ -35,4 +35,3 @@ steps:
 - script: |
     echo "Installed .NET SDKs:"
     dotnet --list-sdks
-displayName: 'Print installed .NET SDKs'

@@ -20,7 +20,6 @@ jobs:
   - script: |
       echo "Installed .NET SDKs:"
       dotnet --list-sdks
-    displayName: 'Print installed .NET SDKs'
 
   - ${{ each version in split(variables.dotnetVersions, ',') }}:
     - task: DotNetCoreCLI@2

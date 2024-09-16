@@ -62,13 +62,13 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
+                    Logger.Log("Specialization request received.");
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
                     foreach (var kv in envReloadRequest.EnvironmentVariables)
                     {
                         EnvironmentUtils.SetValue(kv.Key, kv.Value);
                     }
                     Configuration.Reload();
-                    Logger.LogTrace("Specialization request received.");
 
                     var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
 

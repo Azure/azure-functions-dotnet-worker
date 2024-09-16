@@ -17,14 +17,3 @@ steps:
   inputs:
     packageType: sdk
     useGlobalJson: true
-
-- task: UseDotNet@2 
-  displayName: Install .NET 9
-  inputs:
-    packageType: sdk
-    version: '9.x'
-    includePreviewVersions: true
-
-- script: |
-    echo "Installed .NET SDKs:"
-    dotnet --list-sdks

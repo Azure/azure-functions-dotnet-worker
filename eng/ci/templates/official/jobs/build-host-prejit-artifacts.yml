@@ -1,7 +1,7 @@
 jobs:
 
 - job: BuildPreJitApp
-  displayName: Build PreJiApp
+  displayName: Build Pre-jit placeholder app artifacts
 
   templateContext:
     outputParentDirectory: $(Build.ArtifactStagingDirectory)
@@ -19,12 +19,12 @@ jobs:
 
   - ${{ each version in split(variables.dotnetVersions, ',') }}:
     - task: DotNetCoreCLI@2
-      displayName: Publish PreJit PlaceholderApp.csproj
+      displayName: ${{ version }} publish of pre-jit app
       inputs:
         command: publish
         publishWebProjects: false
         zipAfterPublish: false
         modifyOutputPath: false
-        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false
+        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false -p:DebugType=None -p:DebugSymbols=false
         projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
         workingDirectory: host/src

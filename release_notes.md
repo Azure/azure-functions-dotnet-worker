@@ -11,6 +11,8 @@
 
 ### Microsoft.Azure.Functions.Worker.Core 2.0.0
 
+- `ValidateScopes` is enabled for developement environments by default. (#2705)
+  - The default is the value of `IsDevelopment(IHostingEnvironment)`.
 - Capability `IncludeEmptyEntriesInMessagePayload` is now enabled by default (#2701)
   - This means that empty entries will be included in the function trigger message payload by default.
   - To disable this capability and return to the old behaviour, set `IncludeEmptyEntriesInMessagePayload` to `false` in the worker options.

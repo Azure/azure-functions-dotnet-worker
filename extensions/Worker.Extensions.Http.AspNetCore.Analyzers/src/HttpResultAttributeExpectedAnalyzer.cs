@@ -94,14 +94,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         private static bool IsHttpReturnType(ISymbol symbol, SemanticModel semanticModel)
         {
-            var iActionResultType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.IActionResult");
-            var iResultType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.IResult");
             var httpRequestDataType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.Azure.Functions.Worker.Http.HttpRequestData");
 
             if (SymbolEqualityComparer.Default.Equals(symbol, httpRequestDataType))
             {
                 return true;
             }
+
+            var iActionResultType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Mvc.IActionResult");
+            var iResultType = semanticModel.Compilation.GetTypeByMetadataName("Microsoft.AspNetCore.Http.IResult");
 
             // these two types may be false if the user is not using ASP.NET Core Integration
             if (SymbolEqualityComparer.Default.Equals(symbol, iActionResultType) ||

@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- <entry>
+- Updated`Updated Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers` 1.0.3
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers 1.0.3
 

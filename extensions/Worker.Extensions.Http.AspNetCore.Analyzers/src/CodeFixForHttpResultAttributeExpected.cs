@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         {
             private readonly Document _document;
             private readonly Diagnostic _diagnostic;
-            private readonly string ExpectedAttributeName = "HttpResultAttribute";
+            private const string ExpectedAttributeName = "HttpResult";
 
 
             internal AddHttpResultAttribute(Document document, Diagnostic diagnostic)

@@ -94,6 +94,36 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
+        public async Task SimpleHttpTrigger_NoDiagnostic()
+        {
+            string testCode = @"
+            using System;
+            using Microsoft.AspNetCore.Http;
+            using Microsoft.AspNetCore.Mvc;
+            using Microsoft.Azure.Functions.Worker;
+
+            namespace AspNetIntegration
+            {
+                public class MultipleOutputBindings
+                {
+                    [Function(""SimpleHttpTrigger"")]
+                    public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }
+            }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
         public async Task PocoUsedWithoutOutputBindings_NoDiagnostic()
         {
             string testCode = @"
@@ -211,7 +241,7 @@ namespace AspNetIntegration
         }
         public class MyOutputType
         {
-            [HttpResultAttribute]
+            [HttpResult]
             public IActionResult Result { get; set; }
 
             [BlobOutput(""test-samples-output/{name}-output.txt"")]

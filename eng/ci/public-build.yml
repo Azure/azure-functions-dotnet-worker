@@ -22,6 +22,7 @@ trigger:
     - main
     - release/*
     - feature/*
+    - shkr/2637_fnh_prejit_build
 
 pr:
   branches:

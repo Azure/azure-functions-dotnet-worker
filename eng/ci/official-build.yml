@@ -19,6 +19,7 @@ trigger:
     include:
     - main
     - release/*
+    - shkr/2637_fnh_prejit_build
 
 # CI only, does not trigger on PRs.
 pr: none

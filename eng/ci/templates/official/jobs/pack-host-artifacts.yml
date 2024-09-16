@@ -21,7 +21,13 @@ jobs:
     displayName: Download prelaunch artifacts
     inputs:
       artifactName: _preLaunchAppPackages
-      path: $(Build.SourcesDirectory)/host/dist/portable
+      path: $(Build.SourcesDirectory)/host/dist/portable/prelaunchapps
+
+  - task: DownloadPipelineArtifact@2
+    displayName: Download prejit artifacts
+    inputs:
+      artifactName: _preJitAppPackages
+      path: $(Build.SourcesDirectory)/host/dist/portable/prejit-placeholder-app
 
   - task: DownloadPipelineArtifact@2
     displayName: Download host artifacts - linux

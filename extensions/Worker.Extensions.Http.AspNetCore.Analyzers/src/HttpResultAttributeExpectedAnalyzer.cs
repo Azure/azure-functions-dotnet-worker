@@ -19,7 +19,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public const string HttpResponseDataFullName = "Microsoft.Azure.Functions.Worker.Http.HttpResponseData";
         public const string OutputBindingFullName = "Microsoft.Azure.Functions.Worker.Extensions.Abstractions.OutputBindingAttribute";
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute);
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute, 
+                                                                                                DiagnosticDescriptors.MultipleOutputWithHttpResponseDataWithoutHttpResultAttribute);
 
         public override void Initialize(AnalysisContext context)
         {
@@ -90,6 +91,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute, methodDeclaration.ReturnType.GetLocation(), functionName.ToString());
                 context.ReportDiagnostic(diagnostic);
             }
+
+            if (!hasHttpResultAttribute && hasHttpResponseData)
+            {
+                var diagnostic = Diagnostic.Create(DiagnosticDescriptors.MultipleOutputWithHttpResponseDataWithoutHttpResultAttribute, methodDeclaration.ReturnType.GetLocation(), functionName.ToString());
+                context.ReportDiagnostic(diagnostic);
+            }
+
         }
 
         private static bool IsHttpReturnType(ISymbol symbol, SemanticModel semanticModel)

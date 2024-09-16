@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
                 TestCode = testCode
             };
 
-            test.ExpectedDiagnostics.Add(Verifier.Diagnostic()
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute)
                             .WithSeverity(DiagnosticSeverity.Error)
                             .WithLocation(12, 28)
                             .WithArguments("\"MultipleOutputBindings\""));
@@ -160,7 +160,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
         }
 
         [Fact]
-        public async Task HttpResultAttribute_WhenUsingHttpRequestDataAndMultiOutput_NotExpected()
+        public async Task HttpResultAttributeWarning_WhenUsingHttpResponseDataAndMultiOutput_Expected()
         {
             string testCode = @"
             using System;
@@ -192,6 +192,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Tests
                 ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
                 TestCode = testCode
             };
+
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic(DiagnosticDescriptors.MultipleOutputWithHttpResponseDataWithoutHttpResultAttribute)
+                            .WithSeverity(DiagnosticSeverity.Warning)
+                            .WithLocation(12, 28)
+                            .WithArguments("\"MultipleOutputBindings\""));
 
             await test.RunAsync();
         }
@@ -255,6 +260,80 @@ namespace AspNetIntegration
                                 .Diagnostic("AZFW0015")
                                 .WithSeverity(DiagnosticSeverity.Error)
                                 .WithLocation(12, 16)
+                                .WithArguments("\"MultipleOutputBindings\"");
+
+            var test = new CodeFixTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = inputCode,
+                FixedCode = expectedCode
+            };
+
+            test.ExpectedDiagnostics.AddRange(new[] { expectedDiagnosticResult });
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task HttpResultAttributeForHttpResponseDataExpected_CodeFixWorks()
+        {
+            string inputCode = @"
+using System;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""MultipleOutputBindings"")]
+        public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            public HttpResponseData Result { get; set; }
+
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
+
+            string expectedCode = @"
+using System;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""MultipleOutputBindings"")]
+        public MyOutputType Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            [HttpResult]
+            public HttpResponseData Result { get; set; }
+
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
+
+
+            var expectedDiagnosticResult = CodeFixVerifier
+                                .Diagnostic("AZFW0016")
+                                .WithSeverity(DiagnosticSeverity.Warning)
+                                .WithLocation(13, 16)
                                 .WithArguments("\"MultipleOutputBindings\"");
 
             var test = new CodeFixTest

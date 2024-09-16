@@ -18,7 +18,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
     public sealed class CodeFixForHttpResultAttribute : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds =>
-            ImmutableArray.Create(DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute.Id);
+            ImmutableArray.Create<string>(
+                DiagnosticDescriptors.MultipleOutputHttpTriggerWithoutHttpResultAttribute.Id,
+                DiagnosticDescriptors.MultipleOutputWithHttpResponseDataWithoutHttpResultAttribute.Id);
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
@@ -39,7 +41,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             private readonly Diagnostic _diagnostic;
             private const string ExpectedAttributeName = "HttpResult";
 
-
             internal AddHttpResultAttribute(Document document, Diagnostic diagnostic)
             {
                 this._document = document;
@@ -51,8 +52,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             public override string EquivalenceKey => null;
 
             /// <summary>
-            /// Returns an updated Document with HttpResultAttribute added to the relevant property.
+            /// Asynchronously retrieves the modified <see cref="Document"/>, with the HttpResultAttribute added to the relevant property.
             /// </summary>
+            /// <param name="cancellationToken">A token that can be used to propagate notifications that the operation should be canceled.</param>
+            /// <returns>An updated <see cref="Document"/> object.</returns>
             protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
             {
                 // Get the syntax root of the document
@@ -64,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
                 var typeSymbol = semanticModel.GetSymbolInfo(typeNode).Symbol;
                 var typeDeclarationSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-                if (typeDeclarationSyntaxReference == null)
+                if (typeDeclarationSyntaxReference is null)
                 {
                     return _document;
                 }
@@ -76,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     .First(prop =>
                     {
                         var propertyType = semanticModel.GetTypeInfo(prop.Type).Type;
-                        return propertyType != null && propertyType.Name == "IActionResult";
+                        return propertyType != null && (propertyType.Name == "IActionResult" || propertyType.Name == "HttpResponseData" || propertyType.Name == "IResult");
                     });
 
                 var attribute = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName(ExpectedAttributeName));

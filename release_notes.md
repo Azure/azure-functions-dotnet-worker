@@ -16,18 +16,22 @@
 - Capability `IncludeEmptyEntriesInMessagePayload` is now enabled by default (#2701)
   - This means that empty entries will be included in the function trigger message payload by default.
   - To disable this capability and return to the old behaviour, set `IncludeEmptyEntriesInMessagePayload` to `false` in the worker options.
-
-    ```csharp
-    var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults(builder =>
-    {
-    }, options =>
-    {
-        options.IncludeEmptyEntriesInMessagePayload = false;
-    })
-    .Build();
-    ```
+- Capability `EnableUserCodeException` is now enabled by default (#2702)
+  - This means that exceptions thrown by user code will be surfaced to the Host as their original exception type, instead of being wrapped in an RpcException.
+  - To disable this capability and return to the old behaviour, set `EnableUserCodeException` to `false` in the worker options.
+  - The `EnableUserCodeException` property in WorkerOptions has been marked as obsolete and may be removed in a future release.
 - Rename `ILoggerExtensions` to `FunctionsLoggerExtensions` to avoid naming conflict issues (#2716)
+
+##### Setting worker options example
+
+```csharp
+var host = new HostBuilder()
+.ConfigureFunctionsWorkerDefaults(options =>
+{
+    options.EnableUserCodeException = false;
+    options.IncludeEmptyEntriesInMessagePayload = false;
+})
+```
 
 ### Microsoft.Azure.Functions.Worker.Grpc 2.0.0
 

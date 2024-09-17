@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
@@ -32,13 +33,16 @@ namespace Microsoft.Azure.Functions.Worker
             // Enable these by default, although they are not strictly required and can be removed
             { WorkerCapabilities.HandlesWorkerTerminateMessage, bool.TrueString },
             { WorkerCapabilities.HandlesInvocationCancelMessage, bool.TrueString },
-            { WorkerCapabilities.IncludeEmptyEntriesInMessagePayload, bool.TrueString }
+            { WorkerCapabilities.IncludeEmptyEntriesInMessagePayload, bool.TrueString },
+            { WorkerCapabilities.EnableUserCodeException, bool.TrueString }
         };
 
         /// <summary>
-        /// Gets or sets the flag for opting in to unwrapping user-code-thrown
-        /// exceptions when they are surfaced to the Host.
+        /// Gets or sets a value indicating whether exceptions thrown by user code should be unwrapped
+        /// and surfaced to the Host as their original exception type, instead of being wrapped in an RpcException.
+        /// The default value is <see langword="true"/>.
         /// </summary>
+        [Obsolete("This is now the default behavior. This property may be unavailable in future releases.", false)]
         public bool EnableUserCodeException
         {
             get => GetBoolCapability(nameof(EnableUserCodeException));

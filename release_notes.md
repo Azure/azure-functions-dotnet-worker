@@ -27,6 +27,7 @@
     })
     .Build();
     ```
+- Rename `ILoggerExtensions` to `FunctionsLoggerExtensions` to avoid naming conflict issues (#2716)
 
 ### Microsoft.Azure.Functions.Worker.Grpc 2.0.0
 

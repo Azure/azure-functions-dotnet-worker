@@ -40,18 +40,19 @@ namespace FunctionsNetHost
                     // Start child process for .NET 8 in proc host
                     if (string.Equals("1", EnvironmentUtils.GetValue(EnvironmentVariables.FunctionsInProcNet8Enabled)))
                     {
-                        await StartHostAsChildProcessAsync(true);
+                        await LoadHostAssembly(isOutOfProc: false, isNet8InProc: true);
                     }
                     else
                     {
                         // Start child process for .NET 6 in proc host
-                        await StartHostAsChildProcessAsync(false);
+                        await LoadHostAssembly(isOutOfProc: false, isNet8InProc: false);
                     }
 
                 }
                 else if (workerRuntime == "dotnet-isolated")
                 {
                     // Start process for oop host
+                    await LoadHostAssembly(isOutOfProc: true, isNet8InProc: false);
                 }
             }
             catch (Exception exception)
@@ -60,7 +61,7 @@ namespace FunctionsNetHost
             }
         }
 
-        public static Task StartHostAsChildProcessAsync(bool shouldLaunchNet8Process)
+        private static Task LoadHostAssembly(bool isOutOfProc, bool isNet8InProc)
         {
             var commandLineArguments = string.Join(" ", Environment.GetCommandLineArgs().Skip(1));
             var tcs = new TaskCompletionSource();
@@ -68,45 +69,21 @@ namespace FunctionsNetHost
             var rootDirectory = GetFunctionAppRootDirectory(Environment.CurrentDirectory, new[] { "Azure.Functions.Cli" });
             var coreToolsDirectory = Path.Combine(rootDirectory, "Azure.Functions.Cli");
 
-            var executableName = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? WindowsExecutableName : LinuxExecutableName;
+            var executableName = LinuxExecutableName;
 
-            var fileName = shouldLaunchNet8Process ? Path.Combine(coreToolsDirectory, InProc8DirectoryName, executableName): Path.Combine(coreToolsDirectory, InProc8DirectoryName, executableName);
+            var fileName = isNet8InProc ? Path.Combine(coreToolsDirectory, InProc8DirectoryName, executableName): Path.Combine(coreToolsDirectory, InProc8DirectoryName, executableName);
 
-            var childProcessInfo = new ProcessStartInfo
+            if (isOutOfProc)
             {
-                FileName = fileName,
-                Arguments = $"{commandLineArguments} --no-build",
-                WorkingDirectory = Environment.CurrentDirectory,
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true
-            };
-
-            try
-            {
-                var childProcess = Process.Start(childProcessInfo);
-                
-                childProcess.EnableRaisingEvents = true;
-                childProcess.Exited += (sender, args) =>
-                {
-                    tcs.SetResult();
-                };
-                childProcess.BeginOutputReadLine();
-                childProcess.BeginErrorReadLine();
-                // Need to add process manager as well??
-                
-                childProcess.WaitForExit();
+                fileName = Path.Combine(coreToolsDirectory, executableName);
             }
-            catch (Exception ex)
-            {
-                throw new Exception($"Failed to start the {(shouldLaunchNet8Process ? "inproc8" : "inproc6")} model host. {ex.Message}");
-            }
+            Assembly assembly = Assembly.LoadFrom(fileName);
+            Logger.Log("Loaded Assembly: " + assembly.FullName);
 
             return tcs.Task;
         }
 
-        public static string GetFunctionAppRootDirectory(string startingDirectory, IEnumerable<string> searchDirectories)
+        private static string GetFunctionAppRootDirectory(string startingDirectory, IEnumerable<string> searchDirectories)
         {
             if (searchDirectories.Any(file => Directory.Exists(Path.Combine(startingDirectory, file))))
             {

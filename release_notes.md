@@ -27,6 +27,7 @@
     })
     .Build();
     ```
+- Rename `ILoggerExtensions` to `FunctionsLoggerExtensions` to avoid naming conflict issues (#2716)
 - Updating `Azure.Core` to 1.41.0
 - Updated service registrations for bootstrapping methods to ensure idempotency.
 

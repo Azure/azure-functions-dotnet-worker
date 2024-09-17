@@ -10,7 +10,7 @@ namespace Microsoft.Extensions.Logging
     /// <summary>
     /// Extensions for <see cref="ILogger"/>.
     /// </summary>
-    public static class ILoggerExtensions
+    public static class FunctionsLoggerExtensions
     {
         /// <summary>
         /// Logs a metric value. Log will be at an information level.

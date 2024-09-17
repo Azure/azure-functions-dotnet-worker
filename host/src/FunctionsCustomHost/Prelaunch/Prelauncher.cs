@@ -17,8 +17,9 @@ namespace FunctionsNetHost.Prelaunch
         /// </summary>
         internal static void Run()
         {
+            // Adding this here for testing; remove later
             Environment.SetEnvironmentVariable(EnvironmentVariables.FunctionsWorkerRuntimeVersion, "8.0");
-            Environment.SetEnvironmentVariable(EnvironmentVariables.FunctionsWorkerRuntime, "dotnet");
+            Environment.SetEnvironmentVariable(EnvironmentVariables.FunctionsWorkerRuntime, "dotnet-isolated");
             Environment.SetEnvironmentVariable(EnvironmentVariables.FunctionsInProcNet8Enabled, "1");
 
 

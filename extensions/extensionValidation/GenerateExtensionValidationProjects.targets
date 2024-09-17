@@ -1,10 +1,10 @@
 <Project>
     <PropertyGroup>
-        <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)\extensionProjectTemplate.csproj</_ExtensionProjectTemplate>
-        <_ProgramCsTemplate>$(MSBuildThisFileDirectory)\extProgramTemplate.cs</_ProgramCsTemplate>
-        <_ExtensionsDirectory>$(MSBuildThisFileDirectory)..\..\..\extensions</_ExtensionsDirectory>
-        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\..\..\ext-check</_ValidationOutputDirectory>
-        <_WorkerPackagePath>..\..\src\DotNetWorker\DotNetWorker.csproj</_WorkerPackagePath>
+        <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)\extensionProjectTemplate.txt</_ExtensionProjectTemplate>
+        <_ProgramCsTemplate>$(MSBuildThisFileDirectory)\extProgramTemplate.txt</_ProgramCsTemplate>
+        <_ExtensionsDirectory>$(MSBuildThisFileDirectory)..\</_ExtensionsDirectory>
+        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\ext-check</_ValidationOutputDirectory>
+        <_WorkerPackagePath>..\..\..\src\DotNetWorker\DotNetWorker.csproj</_WorkerPackagePath>
     </PropertyGroup>
 
     <ItemGroup>

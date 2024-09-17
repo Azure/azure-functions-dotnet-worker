@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// and surfaced to the Host as their original exception type, instead of being wrapped in an RpcException.
         /// The default value is <see langword="true"/>.
         /// </summary>
-        [Obsolete("This is now the default behaviour. This property may be unavailable in future releases.", false)]
+        [Obsolete("This is now the default behavior. This property may be unavailable in future releases.", false)]
         public bool EnableUserCodeException
         {
             get => GetBoolCapability(nameof(EnableUserCodeException));

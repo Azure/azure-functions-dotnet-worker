@@ -105,7 +105,6 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
                 Log.LogMessage(MessageImportance.High, String.Format(StringMessages.PublishingZipViaZipDeploy, zipToPublishPath, zipDeployPublishUrl));
             }
 
-            // use the async version of the api
             Uri uri = new Uri($"{zipDeployPublishUrl}", UriKind.Absolute);
             string userAgent = $"{UserAgentName}/{userAgentVersion}";
             FileStream stream = File.OpenRead(zipToPublishPath);

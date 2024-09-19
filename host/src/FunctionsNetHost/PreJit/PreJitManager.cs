@@ -3,6 +3,9 @@
 
 namespace FunctionsNetHost.Prejit
 {
+    /// <summary>
+    /// Responsible for executing pre-jitting.
+    /// </summary>
     internal class PreJitManager
     {
         private const string PlaceholderAppDirectory = "PlaceholderApp";
@@ -20,24 +23,23 @@ namespace FunctionsNetHost.Prejit
         /// </summary>
         internal static void InitializeAndRunPreJitPlaceholderApp(NetHostRunOptions applicationRunOption, AppLoader appLoader)
         {
-
             var placeHolderAppDir = Path.Combine(applicationRunOption.ExecutableDirectory, PlaceholderAppDirectory, applicationRunOption.RuntimeVersion);
             var placeholderAppAssemblyPath = Path.Combine(placeHolderAppDir, PlaceholderAppAssemblyName);
             if (!File.Exists(placeholderAppAssemblyPath))
             {
-                throw new FileNotFoundException($"Placeholder app assembly not found at the specified path:{placeholderAppAssemblyPath}");
+                throw new FileNotFoundException($"Placeholder app assembly not found at the specified path: '{placeholderAppAssemblyPath}'");
             }
 
             var preJitFilePath = Path.Combine(placeHolderAppDir, JitTraceDirectory, JitTraceFileName);
             if (!File.Exists(preJitFilePath))
             {
-                throw new FileNotFoundException($"Pre-jit file not found at the specified path:{preJitFilePath}");
+                throw new FileNotFoundException($"Pre-jit file not found at the specified path: '{preJitFilePath}'");
             }
 
             EnvironmentUtils.SetValue(Shared.EnvironmentVariables.PreJitFilePath, preJitFilePath);
             EnvironmentUtils.SetValue(Shared.EnvironmentVariables.DotnetStartupHooks, placeholderAppAssemblyPath);
 
-            Logger.Log($"Going to run placeholder app:{placeholderAppAssemblyPath}");
+            Logger.Log($"Going to run placeholder app: '{placeholderAppAssemblyPath}'");
             _ = Task.Run(() => appLoader.RunApplication(placeholderAppAssemblyPath));
         }
     }

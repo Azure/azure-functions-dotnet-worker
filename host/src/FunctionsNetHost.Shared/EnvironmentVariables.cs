@@ -8,7 +8,7 @@ namespace FunctionsNetHost.Shared
         /// <summary>
         /// The environment variable which is used to specify the specialized (function app payload) entry assembly.
         /// </summary>
-        public const string SpecializedEntryAssembly = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_SPECIALIZED_ENTRY_ASSEMBLY";
+        public const string SpecializedEntryAssembly = "AZURE_FUNCTIONS_NETHOST_SPECIALIZED_ENTRY_ASSEMBLY";
 
         /// <summary>
         /// The environment variable which is used to specify the path to the jittrace file which will be used for prejitting.

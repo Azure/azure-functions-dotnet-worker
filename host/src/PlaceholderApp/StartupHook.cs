@@ -12,6 +12,10 @@ using FunctionsNetHost.Shared;
 using Microsoft.Azure.Functions.Worker;
 using SysEnv = System.Environment;
 
+/// <summary>
+/// This StartupHook class will be executed when FunctionsNetHost starts the placeholder app in placeholder mode.
+/// This class will pre-jit the assemblies and wait for the cold start request from FunctionsNetHost.
+/// </summary>
 internal class StartupHook
 {
     private const string LogSubCategory = nameof(StartupHook);
@@ -83,7 +87,7 @@ internal class StartupHook
         }
 
         JitTraceRuntime.Prepare(new FileInfo(jitTraceFile), out int successes, out int failures);
-        Log($"Successful Prepares: {successes},Failed Prepares: {failures}");
+        Log($"Successful Prepares: {successes}. Failed Prepares: {failures}");
         JitKnownTypes();
     }
 

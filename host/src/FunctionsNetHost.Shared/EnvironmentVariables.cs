@@ -13,7 +13,7 @@ namespace FunctionsNetHost.Shared
         /// <summary>
         /// The environment variable which is used to specify the path to the jittrace file which will be used for prejitting.
         /// </summary>
-        public const string PreJitFilePath = "AZURE_FUNCTIONS_FUNCTIONSNETHOST_PREJIT_FILE_PATH";
+        public const string PreJitFilePath = "AZURE_FUNCTIONS_NETHOST_PREJIT_FILE_PATH";
 
         /// <summary>
         /// The .NET startup hooks environment variable.

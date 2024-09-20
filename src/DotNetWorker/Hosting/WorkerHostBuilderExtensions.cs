@@ -3,9 +3,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text.Json;
-using Microsoft.Azure.Functions.Worker;
+using System.Reflection;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Extensions.Hosting
@@ -76,7 +78,7 @@ namespace Microsoft.Extensions.Hosting
         /// </summary>
         /// <param name="builder">The <see cref="IHostBuilder"/> to configure.</param>
         /// <param name="configureOptions">A delegate that will be invoked to configure the provided <see cref="WorkerOptions"/>.</param>
-        /// <returns>The <see cref="IHostBuilder"/>.</returns>     
+        /// <returns>The <see cref="IHostBuilder"/>.</returns>
         public static IHostBuilder ConfigureFunctionsWorkerDefaults(this IHostBuilder builder, Action<WorkerOptions> configureOptions)
         {
             return builder.ConfigureFunctionsWorkerDefaults(o => { }, configureOptions);
@@ -155,8 +157,20 @@ namespace Microsoft.Extensions.Hosting
                     // Add AZURE_FUNCTIONS_ prefixed environment variables
                     config.AddEnvironmentVariables("AZURE_FUNCTIONS_");
                 })
-                .ConfigureAppConfiguration(configBuilder =>
+                .ConfigureAppConfiguration((context, configBuilder) =>
                 {
+                    if (context.HostingEnvironment.IsDevelopment() && Assembly.GetEntryAssembly() is Assembly assembly)
+                    {
+                        try
+                        {
+                            configBuilder.AddUserSecrets(assembly, optional: true);
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            // The assembly cannot be found, so just skip it.
+                        }
+                    }
+
                     configBuilder.AddEnvironmentVariables();
 
                     var cmdLine = Environment.GetCommandLineArgs();

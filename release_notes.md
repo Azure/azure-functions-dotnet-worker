@@ -11,6 +11,8 @@
 
 ### Microsoft.Azure.Functions.Worker.Core 2.0.0
 
+#### Breaking changes
+
 - `ValidateScopes` is enabled for developement environments by default. (#2705)
   - The default is the value of `IsDevelopment(IHostingEnvironment)`.
 - Capability `IncludeEmptyEntriesInMessagePayload` is now enabled by default (#2701)
@@ -21,6 +23,7 @@
   - To disable this capability and return to the old behaviour, set `EnableUserCodeException` to `false` in the worker options.
   - The `EnableUserCodeException` property in WorkerOptions has been marked as obsolete and may be removed in a future release.
 - Rename `ILoggerExtensions` to `FunctionsLoggerExtensions` to avoid naming conflict issues (#2716)
+- `UserSecrets` are now added by default when in a development environment (#2725)
 
 ##### Setting worker options example
 

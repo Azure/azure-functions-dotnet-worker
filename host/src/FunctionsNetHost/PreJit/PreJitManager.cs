@@ -33,10 +33,13 @@ namespace FunctionsNetHost.Prejit
             var preJitFilePath = Path.Combine(placeHolderAppDir, JitTraceDirectory, JitTraceFileName);
             if (!File.Exists(preJitFilePath))
             {
-                throw new FileNotFoundException($"Pre-jit file not found at the specified path: '{preJitFilePath}'");
+                Logger.Log($"Pre-jit file not found at the specified path: '{preJitFilePath}'");
+            }
+            else
+            {
+                EnvironmentUtils.SetValue(Shared.EnvironmentVariables.PreJitFilePath, preJitFilePath);
             }
 
-            EnvironmentUtils.SetValue(Shared.EnvironmentVariables.PreJitFilePath, preJitFilePath);
             EnvironmentUtils.SetValue(Shared.EnvironmentVariables.DotnetStartupHooks, placeholderAppAssemblyPath);
 
             Logger.Log($"Going to run placeholder app: '{placeholderAppAssemblyPath}'");

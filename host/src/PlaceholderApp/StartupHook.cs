@@ -30,13 +30,11 @@ internal class StartupHook
     public static void Initialize()
     {
         var jitTraceFilePath = SysEnv.GetEnvironmentVariable(EnvironmentVariables.PreJitFilePath);
-        if (string.IsNullOrWhiteSpace(jitTraceFilePath))
+        if (!string.IsNullOrWhiteSpace(jitTraceFilePath))
         {
-            throw new InvalidOperationException($"Environment variable `{EnvironmentVariables.PreJitFilePath}` was not set. This behavior is unexpected.");
+            Log($"Pre-jitting using '{jitTraceFilePath}'.");
+            PreJitPrepare(jitTraceFilePath);
         }
-
-        Log($"Pre-jitting using '{jitTraceFilePath}'.");
-        PreJitPrepare(jitTraceFilePath);
 
 #if NET8_0
         // In .NET 8.0, the SetEntryAssembly method is not part of the public API surface, so it must be accessed using reflection.

@@ -4,6 +4,7 @@ trigger:
     # Keep this set limited as appropriate (don't mirror individual user branches).
     - main
     - release/*
+    - shkr/2637_fnh_prejit_0922
 
 resources:
   repositories:

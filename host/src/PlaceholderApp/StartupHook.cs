@@ -21,8 +21,6 @@ internal class StartupHook
 {
     private const string LogSubCategory = nameof(StartupHook);
 
-    // FunctionsNetHost will signal this handle when it receives environment reload request.
-
     public static void Initialize()
     {
         string jitTraceFilePath = string.Empty;
@@ -47,24 +45,11 @@ internal class StartupHook
 
             Log("Waiting for cold start request.");
 
+            // When specialization request arrives, FNH will connect to this named server stream.
             using (var pipeServer = new NamedPipeServerStream(Constants.NetHostWaitHandleName, PipeDirection.In))
             {
-                Console.WriteLine("Waiting for named pipe signal...");
-                Log("Waiting for named pipe signal.");
-                pipeServer.WaitForConnectionAsync().GetAwaiter().GetResult();
-
-                using var reader = new StreamReader(pipeServer);
-                string message = reader.ReadLineAsync().GetAwaiter().GetResult();
-
-                Console.WriteLine("Received signal1.message:" + message);
-                Log("Received signal2.message:" + message);
+                pipeServer.WaitForConnection();
             }
-
-            Log("Wait completed1");
-            Console.WriteLine("Wait completed2");
-
-            // Now, wait for the cold start request. FNH will signal this wait handle when specialization request arrives.
-            //WaitHandle.WaitOne();
 
             entryAssemblyFromCustomerPayload = SysEnv.GetEnvironmentVariable(EnvironmentVariables.SpecializedEntryAssembly);
             if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))

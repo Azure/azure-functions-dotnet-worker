@@ -95,25 +95,9 @@ namespace FunctionsNetHost.Grpc
                     if (_netHostRunOptions.IsPreJitSupported)
                     {
                         EnvironmentUtils.SetValue(Shared.EnvironmentVariables.SpecializedEntryAssembly, applicationExePath);
-                        // Signal so that startup hook load the payload assembly.
 
-                        try
-                        {
-                            using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
-                            pipeClient.Connect();
-                            using (var writer = new StreamWriter(pipeClient))
-                            {
-                                writer.WriteLine("Signal");
-                                writer.Flush();
-                            }
-                            Console.WriteLine("Signaled the named pipe.");
-                            Logger.LogTrace("Signaled the named pipe.");
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error signaling named pipe: {ex}");
-                            Logger.Log($"Error signaling named pipe: {ex}");
-                        }
+                        // Signal so that startup hook load the payload assembly.
+                        await NotifySpecializationOccured();
                     }
                     else
                     {
@@ -140,6 +124,22 @@ namespace FunctionsNetHost.Grpc
             if (responseMessage.ContentCase != StreamingMessage.ContentOneofCase.None)
             {
                 await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            }
+        }
+
+        private static async Task NotifySpecializationOccured()
+        {
+            // Startup hook code has opened a named pipe server stream and waiting for a client to connect & send a message.
+            // Keeping this simple by just connecting to the named pipe server (instead of sending a message via the pipe).
+            try
+            {
+                using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
+                await pipeClient.ConnectAsync();
+                Logger.LogTrace("Connected to named pipe server stream.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error connecting to named pipe server. {ex}");
             }
         }
 

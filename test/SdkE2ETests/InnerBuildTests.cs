@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.IO;
@@ -35,12 +35,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
   ""extensions"": [
     {
       ""name"": ""SqlDurabilityProvider"",
-      ""typeName"": ""DurableTask.SqlServer.AzureFunctions.SqlDurabilityProviderStartup, DurableTask.SqlServer.AzureFunctions, Version=1.2.0.0, Culture=neutral, PublicKeyToken=2ea3c3a96309d850"",
+      ""typeName"": ""DurableTask.SqlServer.AzureFunctions.SqlDurabilityProviderStartup, DurableTask.SqlServer.AzureFunctions, Version=1.3.0.0, Culture=neutral, PublicKeyToken=2ea3c3a96309d850"",
       ""hintPath"": ""./.azurefunctions/DurableTask.SqlServer.AzureFunctions.dll""
     },
     {
       ""name"": ""DurableTask"",
-      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableTaskWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.DurableTask, Version=2.0.0.0, Culture=neutral, PublicKeyToken=014045d636e89289"",
+      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableTaskWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.DurableTask, Version=2.13.6.0, Culture=neutral, PublicKeyToken=014045d636e89289"",
       ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.DurableTask.dll""
     },
     {

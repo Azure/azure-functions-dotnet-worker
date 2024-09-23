@@ -5,8 +5,8 @@ using FunctionsNetHost.Shared;
 
 namespace FunctionsNetHost
 {
-    internal static class SpecializationSyncManager
-    {
-        internal static readonly EventWaitHandle WaitHandle = new(false, EventResetMode.ManualReset, Constants.NetHostWaitHandleName);
-    }
+    //internal static class SpecializationSyncManager
+    //{
+    //    internal static readonly EventWaitHandle WaitHandle = new(false, EventResetMode.ManualReset, Constants.NetHostWaitHandleName);
+    //}
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO.Pipes;
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -95,7 +96,24 @@ namespace FunctionsNetHost.Grpc
                     {
                         EnvironmentUtils.SetValue(Shared.EnvironmentVariables.SpecializedEntryAssembly, applicationExePath);
                         // Signal so that startup hook load the payload assembly.
-                        SpecializationSyncManager.WaitHandle.Set();
+
+                        try
+                        {
+                            using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
+                            pipeClient.Connect();
+                            using (var writer = new StreamWriter(pipeClient))
+                            {
+                                writer.WriteLine("Signal");
+                                writer.Flush();
+                            }
+                            Console.WriteLine("Signaled the named pipe.");
+                            Logger.LogTrace("Signaled the named pipe.");
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error signaling named pipe: {ex}");
+                            Logger.Log($"Error signaling named pipe: {ex}");
+                        }
                     }
                     else
                     {

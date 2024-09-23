@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -21,32 +22,6 @@ internal class StartupHook
     private const string LogSubCategory = nameof(StartupHook);
 
     // FunctionsNetHost will signal this handle when it receives environment reload request.
-    static readonly EventWaitHandle WaitHandle;
-
-    static StartupHook()
-    {
-        Console.WriteLine("Inside StartupHook static constructor");
-        Log("Inside StartupHook static constructor");
-
-        try
-        {
-            WaitHandle = new EventWaitHandle(
-                initialState: false,
-                mode: EventResetMode.ManualReset,
-                name: Constants.NetHostWaitHandleName
-            );
-        }
-        catch (TypeInitializationException ex)
-        {
-            Console.WriteLine($"TypeInitializationException- EventWaitHandle1: {ex.InnerException?.Message}");
-            Log($"TypeInitializationException- EventWaitHandle2: {ex.InnerException?.Message}");
-        }
-        catch (Exception ex)
-        {
-            Log($"Error initializing EventWaitHandle: {ex}");
-            throw;
-        }
-    }
 
     public static void Initialize()
     {
@@ -71,8 +46,25 @@ internal class StartupHook
 #endif
 
             Log("Waiting for cold start request.");
+
+            using (var pipeServer = new NamedPipeServerStream(Constants.NetHostWaitHandleName, PipeDirection.In))
+            {
+                Console.WriteLine("Waiting for named pipe signal...");
+                Log("Waiting for named pipe signal.");
+                pipeServer.WaitForConnectionAsync().GetAwaiter().GetResult();
+
+                using var reader = new StreamReader(pipeServer);
+                string message = reader.ReadLineAsync().GetAwaiter().GetResult();
+
+                Console.WriteLine("Received signal1.message:" + message);
+                Log("Received signal2.message:" + message);
+            }
+
+            Log("Wait completed1");
+            Console.WriteLine("Wait completed2");
+
             // Now, wait for the cold start request. FNH will signal this wait handle when specialization request arrives.
-            WaitHandle.WaitOne();
+            //WaitHandle.WaitOne();
 
             entryAssemblyFromCustomerPayload = SysEnv.GetEnvironmentVariable(EnvironmentVariables.SpecializedEntryAssembly);
             if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))

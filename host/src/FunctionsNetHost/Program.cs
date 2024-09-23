@@ -14,7 +14,7 @@ namespace FunctionsNetHost
         {
             try
             {
-                Logger.Log("Starting FunctionsNetHost");
+                Logger.Log("Starting FunctionsNetHost309");
 
                 PreLauncher.Run();
 

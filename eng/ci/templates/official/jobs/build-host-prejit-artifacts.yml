@@ -25,6 +25,6 @@ jobs:
         publishWebProjects: false
         zipAfterPublish: false
         modifyOutputPath: false
-        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false -p:DebugType=None -p:DebugSymbols=false
+        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false
         projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
         workingDirectory: host/src

@@ -21,11 +21,32 @@ internal class StartupHook
     private const string LogSubCategory = nameof(StartupHook);
 
     // FunctionsNetHost will signal this handle when it receives environment reload request.
-    static readonly EventWaitHandle WaitHandle = new(
-        initialState: false,
-        mode: EventResetMode.ManualReset,
-        name: Constants.NetHostWaitHandleName
-    );
+    static readonly EventWaitHandle WaitHandle;
+
+    static StartupHook()
+    {
+        Console.WriteLine("Inside StartupHook static constructor");
+        Log("Inside StartupHook static constructor");
+
+        try
+        {
+            WaitHandle = new EventWaitHandle(
+                initialState: false,
+                mode: EventResetMode.ManualReset,
+                name: Constants.NetHostWaitHandleName
+            );
+        }
+        catch (TypeInitializationException ex)
+        {
+            Console.WriteLine($"TypeInitializationException- EventWaitHandle1: {ex.InnerException?.Message}");
+            Log($"TypeInitializationException- EventWaitHandle2: {ex.InnerException?.Message}");
+        }
+        catch (Exception ex)
+        {
+            Log($"Error initializing EventWaitHandle: {ex}");
+            throw;
+        }
+    }
 
     public static void Initialize()
     {
@@ -75,6 +96,11 @@ internal class StartupHook
             {
                 Log($"Error when trying to set entry assembly.{ex}.NET version:{RuntimeInformation.FrameworkDescription}");
             }
+        }
+        catch (TypeInitializationException ex)
+        {
+            Console.WriteLine($"StartupHook.Initialize1- EventWaitHandle: {ex.InnerException?.Message}");
+            Log($"StartupHook.Initialize2- EventWaitHandle: {ex.InnerException?.Message}");
         }
         catch (Exception ex)
         {

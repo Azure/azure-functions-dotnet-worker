@@ -44,4 +44,9 @@
     <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Resources\TestPublishContents.zip">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 </Project>

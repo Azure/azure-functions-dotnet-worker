@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
     },
     {
       ""name"": ""DurableTask"",
-      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableTaskWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.DurableTask, Version=2.13.6.0, Culture=neutral, PublicKeyToken=014045d636e89289"",
+      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableTaskWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.DurableTask, Version=2.0.0.0, Culture=neutral, PublicKeyToken=014045d636e89289"",
       ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.DurableTask.dll""
     },
     {

@@ -94,10 +94,8 @@ namespace FunctionsNetHost.Grpc
 
                     if (_netHostRunOptions.IsPreJitSupported)
                     {
-                        EnvironmentUtils.SetValue(Shared.EnvironmentVariables.SpecializedEntryAssembly, applicationExePath);
-
                         // Signal so that startup hook load the payload assembly.
-                        await NotifySpecializationOccured();
+                        await NotifySpecializationOccured(applicationExePath);
                     }
                     else
                     {
@@ -127,19 +125,22 @@ namespace FunctionsNetHost.Grpc
             }
         }
 
-        private static async Task NotifySpecializationOccured()
+        private static async Task NotifySpecializationOccured(string applicationExePath)
         {
             // Startup hook code has opened a named pipe server stream and waiting for a client to connect & send a message.
-            // Keeping this simple by just connecting to the named pipe server (instead of sending a message via the pipe).
             try
             {
                 using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
                 await pipeClient.ConnectAsync();
-                Logger.LogTrace("Connected to named pipe server stream.");
+                using var writer = new StreamWriter(pipeClient);
+                writer.WriteLine(applicationExePath);
+                writer.Flush();
+                Logger.LogTrace("Sent application path to named pipe server stream.");
             }
             catch (Exception ex)
             {
                 Logger.Log($"Error connecting to named pipe server. {ex}");
+                throw;
             }
         }
 

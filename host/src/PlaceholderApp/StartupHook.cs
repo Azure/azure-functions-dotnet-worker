@@ -49,12 +49,17 @@ internal class StartupHook
             using (var pipeServer = new NamedPipeServerStream(Constants.NetHostWaitHandleName, PipeDirection.In))
             {
                 pipeServer.WaitForConnection();
+                using var reader = new StreamReader(pipeServer);
+                // FNH will send only one message which is the entry assembly path.
+                entryAssemblyFromCustomerPayload = reader.ReadLine();
             }
 
-            entryAssemblyFromCustomerPayload = SysEnv.GetEnvironmentVariable(EnvironmentVariables.SpecializedEntryAssembly);
+            Log($"- Entry assembly path received: {entryAssemblyFromCustomerPayload}.");
+            Console.WriteLine($"- Entry assembly path received: {entryAssemblyFromCustomerPayload}.");
+
             if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))
             {
-                throw new InvalidOperationException($"Environment variable {EnvironmentVariables.SpecializedEntryAssembly} was not set. This behavior is unexpected.");
+                throw new InvalidOperationException($"Empty value for specialized assembly path received. This behavior is unexpected.");
             }
 
             Assembly specializedEntryAssembly = Assembly.LoadFrom(entryAssemblyFromCustomerPayload);

@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  {
                                      var metadataList = new List<IFunctionMetadata>();
                          {{functionMetadataInfo}}
-                                     return Task.FromResult(metadataList.ToImmutableArray());
+                                     return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                                  }
                              }
 

@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
@@ -14,11 +13,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 {
     public partial class FunctionMetadataProviderGeneratorTests
     {
-        public class DependentAssemblyTestNetFx
+        public class AmbiguousNamespaceTests
         {
             private readonly Assembly[] _referencedExtensionAssemblies;
 
-            public DependentAssemblyTestNetFx()
+            public AmbiguousNamespaceTests()
             {
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
@@ -27,7 +26,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
                 var hostingAbExtension = typeof(IHost).Assembly;
                 var diAbExtension = typeof(IServiceCollection).Assembly;
-                var dependentAssembly = Assembly.LoadFrom("DependentAssemblyWithFunctions.NetStandard.dll");
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -36,8 +34,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     hostingExtension,
                     hostingAbExtension,
                     diExtension,
-                    diAbExtension,
-                    dependentAssembly
+                    diAbExtension
                 };
             }
 
@@ -48,7 +45,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async Task FunctionInDependentAssemblyTest(LanguageVersion languageVersion)
+            public async Task NamespaceEndingWithTask(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -56,15 +53,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 using Microsoft.Azure.Functions.Worker;
                 using Microsoft.Azure.Functions.Worker.Http;
 
-                namespace FunctionApp
+                namespace MyCompany.Task
                 {
-                    public static class EntryPointAssemblyHttpFunctions
+                    public static class HttpTriggerSimple
                     {
-                        [Function(nameof(EntryPointAssemblyHttpFunctions))]
-                        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req, FunctionContext executionContext)
+                        [Function(nameof(HttpTriggerSimple))]
+                        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.User, "get")] HttpRequestData req, FunctionContext c)
                         {
-                            throw new NotImplementedException();
+                            return Run(req);
                         }
+
+                        public static HttpResponseData Run(HttpRequestData req)
+                            => req.CreateResponse(System.Net.HttpStatusCode.OK);
                     }
                 }
                 """;
@@ -96,44 +96,18 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Anonymous"",""methods"":[""get"",""post""]}");
+                            Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""User"",""methods"":[""get""]}");
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "EntryPointAssemblyHttpFunctions",
-                                EntryPoint = "FunctionApp.EntryPointAssemblyHttpFunctions.Run",
+                                Name = "HttpTriggerSimple",
+                                EntryPoint = "MyCompany.Task.HttpTriggerSimple.Run",
                                 RawBindings = Function0RawBindings,
-                                ScriptFile = "TestProject.exe"
+                                ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
-                            var Function1RawBindings = new List<string>();
-                            Function1RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Function"",""methods"":[""get"",""post""]}");
-                            Function1RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
-                
-                            var Function1 = new DefaultFunctionMetadata
-                            {
-                                Language = "dotnet-isolated",
-                                Name = "NetStandardClassLibraryClass1Function1",
-                                EntryPoint = "DependentAssemblyWithFunctions.NetStandard.NetStandardClassLibraryClass1.Run1",
-                                RawBindings = Function1RawBindings,
-                                ScriptFile = "DependentAssemblyWithFunctions.NetStandard.dll"
-                            };
-                            metadataList.Add(Function1);
-                            var Function2RawBindings = new List<string>();
-                            Function2RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""authLevel"":""Admin"",""methods"":[""get"",""post""]}");
-                            Function2RawBindings.Add(@"{""name"":""$return"",""type"":""http"",""direction"":""Out""}");
-                
-                            var Function2 = new DefaultFunctionMetadata
-                            {
-                                Language = "dotnet-isolated",
-                                Name = "NetStandardClassLibraryClass1Function2Async",
-                                EntryPoint = "DependentAssemblyWithFunctions.NetStandard.NetStandardClassLibraryClass1.Run2",
-                                RawBindings = Function2RawBindings,
-                                ScriptFile = "DependentAssemblyWithFunctions.NetStandard.dll"
-                            };
-                            metadataList.Add(Function2);
 
                             return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
@@ -160,16 +134,11 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 }
                 """;
 
-                var buildPropertiesDict = new Dictionary<string, string>()
-                {
-                    {  Constants.BuildProperties.MSBuildTargetFrameworkIdentifier, ".NETFramework"}
-                };
                 await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
                     _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
-                    buildPropertiesDictionary: buildPropertiesDict,
                     languageVersion: languageVersion);
             }
         }

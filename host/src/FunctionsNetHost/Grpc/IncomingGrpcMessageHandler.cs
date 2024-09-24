@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO.Pipes;
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -93,9 +94,8 @@ namespace FunctionsNetHost.Grpc
 
                     if (_netHostRunOptions.IsPreJitSupported)
                     {
-                        EnvironmentUtils.SetValue(Shared.EnvironmentVariables.SpecializedEntryAssembly, applicationExePath);
                         // Signal so that startup hook load the payload assembly.
-                        SpecializationSyncManager.WaitHandle.Set();
+                        await NotifySpecializationOccured(applicationExePath);
                     }
                     else
                     {
@@ -122,6 +122,25 @@ namespace FunctionsNetHost.Grpc
             if (responseMessage.ContentCase != StreamingMessage.ContentOneofCase.None)
             {
                 await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            }
+        }
+
+        private static async Task NotifySpecializationOccured(string applicationExePath)
+        {
+            // Startup hook code has opened a named pipe server stream and waiting for a client to connect & send a message.
+            try
+            {
+                using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
+                await pipeClient.ConnectAsync();
+                using var writer = new StreamWriter(pipeClient);
+                writer.WriteLine(applicationExePath);
+                writer.Flush();
+                Logger.LogTrace("Sent application path to named pipe server stream.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error connecting to named pipe server. {ex}");
+                throw;
             }
         }
 

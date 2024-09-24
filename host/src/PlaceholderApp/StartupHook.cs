@@ -4,6 +4,7 @@
 using System;
 using System.Globalization;
 using System.IO;
+using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
@@ -29,46 +30,66 @@ internal class StartupHook
 
     public static void Initialize()
     {
-        var jitTraceFilePath = SysEnv.GetEnvironmentVariable(EnvironmentVariables.PreJitFilePath);
-        if (string.IsNullOrWhiteSpace(jitTraceFilePath))
-        {
-            throw new InvalidOperationException($"Environment variable `{EnvironmentVariables.PreJitFilePath}` was not set. This behavior is unexpected.");
-        }
+        string jitTraceFilePath = string.Empty;
+        string entryAssemblyFromCustomerPayload = string.Empty;
 
-        Log($"Pre-jitting using '{jitTraceFilePath}'.");
-        PreJitPrepare(jitTraceFilePath);
-
-#if NET8_0
-        // In .NET 8.0, the SetEntryAssembly method is not part of the public API surface, so it must be accessed using reflection.
-        var method = typeof(Assembly).GetMethod("SetEntryAssembly", BindingFlags.Static | BindingFlags.Public)
-                 ?? throw new MissingMethodException($"Method 'Assembly.SetEntryAssembly' not found using reflection");
-#endif
-
-        Log("Waiting for cold start request.");
-        // Now, wait for the cold start request. FNH will signal this wait handle when specialization request arrives.
-        WaitHandle.WaitOne();
-
-        var entryAssemblyFromCustomerPayload = SysEnv.GetEnvironmentVariable(EnvironmentVariables.SpecializedEntryAssembly);
-        if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))
-        {
-            throw new InvalidOperationException($"Environment variable {EnvironmentVariables.SpecializedEntryAssembly} was not set. This behavior is unexpected.");
-        }
-
-        Assembly specializedEntryAssembly = Assembly.LoadFrom(entryAssemblyFromCustomerPayload);
         try
         {
+            jitTraceFilePath = SysEnv.GetEnvironmentVariable(EnvironmentVariables.PreJitFilePath);
+            if (string.IsNullOrWhiteSpace(jitTraceFilePath))
+            {
+                throw new InvalidOperationException($"Environment variable `{EnvironmentVariables.PreJitFilePath}` was not set. This behavior is unexpected.");
+            }
+
+            Log($"Pre-jitting using '{jitTraceFilePath}'.");
+            PreJitPrepare(jitTraceFilePath);
+
 #if NET8_0
-            method.Invoke(null, [specializedEntryAssembly]);
-            Log($"Specialized entry assembly set:{specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly (via reflection)");
+            // In .NET 8.0, the SetEntryAssembly method is not part of the public API surface, so it must be accessed using reflection.
+            var method = typeof(Assembly).GetMethod("SetEntryAssembly", BindingFlags.Static | BindingFlags.Public)
+                     ?? throw new MissingMethodException($"Method 'Assembly.SetEntryAssembly' not found using reflection");
+#endif
+
+            Log("Waiting for cold start request.");
+
+            // When specialization request arrives, FNH will connect to this named server stream and send the assembly path.
+            using (var pipeServer = new NamedPipeServerStream(Constants.NetHostWaitHandleName, PipeDirection.In))
+            {
+                pipeServer.WaitForConnection();
+                using var reader = new StreamReader(pipeServer);
+                // FNH will send only one message which is the entry assembly path.
+                entryAssemblyFromCustomerPayload = reader.ReadLine();
+            }
+
+            Log($"Entry assembly path received: {entryAssemblyFromCustomerPayload}.");
+
+            if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))
+            {
+                throw new InvalidOperationException($"Empty value for specialized assembly path received. This behavior is unexpected.");
+            }
+
+            Assembly specializedEntryAssembly = Assembly.LoadFrom(entryAssemblyFromCustomerPayload);
+            try
+            {
+#if NET8_0
+                method.Invoke(null, [specializedEntryAssembly]);
+                Log($"Specialized entry assembly set:{specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly (via reflection)");
 
 #elif NET9_0_OR_GREATER
-            Assembly.SetEntryAssembly(specializedEntryAssembly);
-            Log($"Specialized entry assembly set: {specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly");
+                Assembly.SetEntryAssembly(specializedEntryAssembly);
+                Log($"Specialized entry assembly set: {specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly");
 #endif
+            }
+            catch (Exception ex)
+            {
+                Log($"Error when trying to set entry assembly.{ex}.NET version:{RuntimeInformation.FrameworkDescription}");
+                throw;
+            }
         }
         catch (Exception ex)
         {
-            Log($"Error when trying to set entry assembly.{ex}.NET version:{RuntimeInformation.FrameworkDescription}");
+            Log($"Error in StartupHook.Initialize: {ex}. jitTraceFilePath: {jitTraceFilePath} entryAssemblyFromCustomerPayload: {entryAssemblyFromCustomerPayload}");
+            throw;
         }
     }
 

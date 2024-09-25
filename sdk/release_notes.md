@@ -11,7 +11,6 @@
 - Setting _ToolingSuffix for TargetFrameworkVersion v9.0
 - Adding support for SDK container builds with Functions base images
 
-
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 
 - <entry>

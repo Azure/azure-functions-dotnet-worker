@@ -39,4 +39,5 @@ var host = new HostBuilder()
 
 ### Microsoft.Azure.Functions.Worker.Sdk 2.0.0-preview2
 
-- Adding support for SDK container builds with Functions base images
+- Adding support for SDK container builds with Functions base images.
+- Removed the default value for HttpStatusCode in WriteAsJsonAsync.

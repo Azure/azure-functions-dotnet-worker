@@ -36,7 +36,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 HttpOnly = cookie.HttpOnly ?? false,
                 MaxAge = cookie.MaxAge is null ? null : TimeSpan.FromSeconds(cookie.MaxAge.Value),
                 SameSite = ConvertSameSite(cookie.SameSite),
-                Secure = cookie.Secure ?? false
+                // May still need to diable rule: #pragma warning disable CA5383 as this doesn't ensure that the cookie is secure "always"
+                Secure = cookie.Secure ?? true
             };
 
             _httpResponse.Cookies.Append(cookie.Name, cookie.Value, cookieOptions);

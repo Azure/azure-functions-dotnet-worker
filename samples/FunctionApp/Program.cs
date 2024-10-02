@@ -1,53 +1,9 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
-namespace FunctionApp
-{
-    class Program
-    {
-        static async Task Main(string[] args)
-        {
-            // #if DEBUG
-            //     Debugger.Launch();
-            // #endif
-            //<docsnippet_startup>
-            var host = new HostBuilder()
-                //<docsnippet_configure_defaults>
-                .ConfigureFunctionsWorkerDefaults()
-                //</docsnippet_configure_defaults>
-                //<docsnippet_dependency_injection>
-                .ConfigureServices(s =>
-                {
-                    s.AddApplicationInsightsTelemetryWorkerService();
-                    s.ConfigureFunctionsApplicationInsights();
-                    s.AddSingleton<IHttpResponderService, DefaultHttpResponderService>();
-                    s.Configure<LoggerFilterOptions>(options =>
-                    {
-                        // The Application Insights SDK adds a default logging filter that instructs ILogger to capture only Warning and more severe logs. Application Insights requires an explicit override.
-                        // Log levels can also be configured using appsettings.json. For more information, see https://learn.microsoft.com/en-us/azure/azure-monitor/app/worker-service#ilogger-logs
-                        LoggerFilterRule toRemove = options.Rules.FirstOrDefault(rule => rule.ProviderName
-                            == "Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider");
+FunctionsApplicationBuilder builder = FunctionsApplication.CreateBuilder(args);
+IHost app = builder.Build();
 
-                        if (toRemove is not null)
-                        {
-                            options.Rules.Remove(toRemove);
-                        }
-                    });
-                })
-                //</docsnippet_dependency_injection>
-                .Build();
-            //</docsnippet_startup>
-
-            //<docsnippet_host_run>
-            await host.RunAsync();
-            //</docsnippet_host_run>
-        }
-    }
-}
+app.Run();

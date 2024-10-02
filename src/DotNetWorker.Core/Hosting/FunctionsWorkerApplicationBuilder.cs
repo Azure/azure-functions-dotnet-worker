@@ -6,7 +6,7 @@ using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Azure.Functions.Worker.Configuration
+namespace Microsoft.Azure.Functions.Worker
 {
     internal class FunctionsWorkerApplicationBuilder : IFunctionsWorkerApplicationBuilder
     {

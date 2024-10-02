@@ -4,7 +4,6 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection;

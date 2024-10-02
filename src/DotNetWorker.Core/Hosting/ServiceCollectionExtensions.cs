@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Text.Json;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;

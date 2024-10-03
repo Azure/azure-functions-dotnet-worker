@@ -26,4 +26,8 @@
     <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="6.3.5" />
+  </ItemGroup>
+
 </Project>

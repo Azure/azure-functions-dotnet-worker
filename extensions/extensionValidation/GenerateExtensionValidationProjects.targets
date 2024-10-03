@@ -2,44 +2,23 @@
     <PropertyGroup>
         <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)\extensionProjectTemplate.txt</_ExtensionProjectTemplate>
         <_ProgramCsTemplate>$(MSBuildThisFileDirectory)\extProgramTemplate.txt</_ProgramCsTemplate>
-        <_ExtensionsDirectory>$(MSBuildThisFileDirectory)..\</_ExtensionsDirectory>
-        <_ValidationOutputDirectory>$(MSBuildThisFileDirectory)..\ext-check</_ValidationOutputDirectory>
-        <_WorkerPackagePath>..\..\..\src\DotNetWorker\DotNetWorker.csproj</_WorkerPackagePath>
     </PropertyGroup>
 
     <ItemGroup>
-        <FilesToProcess Include="$(_ExtensionsDirectory)\**\*.csproj" />
+        <WebJobsExtension Include="@(WebJobsExtension)" />
     </ItemGroup>
 
-    <Target Name="ProcessExtensionsDirectory" BeforeTargets="Build">
-        <Message Text="Processing .csproj files in $(_ExtensionsDirectory)" />
-        <ItemGroup>
-            <ProcessedFiles Include="@(FilesToProcess)" />
-        </ItemGroup>
-        <Message Text="Processing file: %(ProcessedFiles.Identity)"/>
-        <!-- Call GenerateExtensionProjects for each file -->
-        <MSBuild Projects="$(MSBuildThisFileFullPath)" Targets="GenerateExtensionProject" Properties="ProjectFile=%(ProcessedFiles.Identity)">
-            <Output TaskParameter="TargetOutputs" ItemName="GeneratedProjects" />
-        </MSBuild>
+    <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != ''">
+        <MakeDir Directories="$(IntermediateOutputPath)ExtensionValidation" />
+        <WriteLinesToFile
+        File="$(IntermediateOutputPath)ExtensionValidation\ExtensionValidation.csproj"
+        Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
+            .Replace('$PackageName$', '%(WebJobsExtension.Identity)')
+            .Replace('$PackageVersion$', '%(WebJobsExtension.Version)'))"
+        Overwrite="true" />
     </Target>
 
-    <Target Name="GenerateExtensionProject">
-        <PropertyGroup>
-            <ProjectFile>$(ProjectFile)</ProjectFile>
-            <ProjectName>$([System.IO.Path]::GetFileNameWithoutExtension($(ProjectFile)))</ProjectName>
-            <TestName>Test$([System.Text.RegularExpressions.Regex]::Replace($(ProjectName), '^extensions\.(.*)\.(.*)$', '$2'))</TestName>
-            <RelativeExtensionFile>$([System.IO.Path]::GetRelativePath($(_ValidationOutputDirectory)\$(TestName), $(ProjectFile)))</RelativeExtensionFile>
-        </PropertyGroup>
-        <MakeDir Directories="$(_ValidationOutputDirectory)\$(TestName)" />
-        <WriteLinesToFile
-        File="$(_ValidationOutputDirectory)\$(TestName)\$(TestName).csproj"
-        Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
-            .Replace('$PathToExtension$', '$(RelativeExtensionFile)')
-            .Replace('$PathToWorkerPackage$', '$(_WorkerPackagePath)'))"
-            Overwrite="true" />
-        <WriteLinesToFile
-        File="$(_ValidationOutputDirectory)\$(TestName)\Program.cs"
-        Lines="$([System.IO.File]::ReadAllText($(_ProgramCsTemplate)))"
-        Overwrite="true" />
+    <Target Name="BuildGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != ''">
+        <MSBuild Projects="$(IntermediateOutputPath)ExtensionValidation\ExtensionValidation.csproj" Targets="Build" />
     </Target>
 </Project>

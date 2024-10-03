@@ -29,5 +29,9 @@
   <ItemGroup>
     <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
+    
+  <ItemGroup>
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.8.0" />
+  </ItemGroup>
 
 </Project>

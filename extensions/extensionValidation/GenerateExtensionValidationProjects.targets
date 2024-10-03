@@ -19,6 +19,6 @@
     </Target>
 
     <Target Name="BuildGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != ''">
-        <MSBuild Projects="$(IntermediateOutputPath)ExtensionValidation\ExtensionValidation.csproj" Targets="Build" />
+        <MSBuild Projects="$(IntermediateOutputPath)\ExtensionValidation\ExtensionValidation.csproj" Targets="Restore;Build" />
     </Target>
 </Project>

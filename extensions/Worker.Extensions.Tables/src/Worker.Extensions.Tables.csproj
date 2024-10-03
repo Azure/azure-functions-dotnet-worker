@@ -27,5 +27,9 @@
   <ItemGroup>
     <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
+    
+  <ItemGroup>
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Tables" Version="1.3.2" />
+  </ItemGroup>
 
 </Project>

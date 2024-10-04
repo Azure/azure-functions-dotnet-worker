@@ -4,10 +4,6 @@
         <_ProgramCsTemplate>$(MSBuildThisFileDirectory)\extProgramTemplate.txt</_ProgramCsTemplate>
     </PropertyGroup>
 
-    <ItemGroup>
-        <WebJobsExtension Include="@(WebJobsExtension)" />
-    </ItemGroup>
-
     <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != ''">
         <MakeDir Directories="$(IntermediateOutputPath)ExtensionValidation" />
         <WriteLinesToFile

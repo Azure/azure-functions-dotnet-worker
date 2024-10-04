@@ -1,13 +1,18 @@
 <Project>
+
     <Import Project="$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, $(_DirectoryBuildTargetsFile)))/$(_DirectoryBuildTargetsFile)"
     Condition=" '$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildThisFileDirectory)../, $(_DirectoryBuildTargetsFile)))' != '' " />
 
     <Import Project="$(MSBuildThisFileDirectory)extensionValidation/GenerateExtensionValidationProjects.targets" />
 
-    <ItemGroup Condition="'@(WebJobsExtension)' != ''">
-        <AssemblyAttribute Include="Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute">
-            <_Parameter1>%(WebJobsExtension.Identity)</_Parameter1>
-            <_Parameter2>%(WebJobsExtension.Version)</_Parameter2>
-        </AssemblyAttribute>
-    </ItemGroup>
+    <Target Name="AddWebJobsExtensionInformation" BeforeTargets="CoreCompile" Condition="'@(WebJobsExtension)' != ''">
+        <ItemGroup>
+            <_ExtensionInformationAttribute Include="@(WebJobsExtension->'Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute')">
+                <_Parameter1>%(WebJobsExtension.Identity)</_Parameter1>
+                <_Parameter2>%(WebJobsExtension.Version)</_Parameter2>
+            </_ExtensionInformationAttribute>
+            <AssemblyAttribute Include="@(_ExtensionInformationAttribute)" RemoveMetadata="Version" />
+        </ItemGroup>
+    </Target>
+
 </Project>

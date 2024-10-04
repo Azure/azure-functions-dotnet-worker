@@ -1,9 +1,12 @@
 ﻿using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers;
 
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
 {
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
@@ -13,10 +16,36 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
     {
         context.EnableConcurrentExecution();
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
-        context.RegisterSymbolAction(AnalyzeMethod, SymbolKind.Method);
+        context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
     }
 
-    private static void AnalyzeMethod(SymbolAnalysisContext context)
+    private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
+        var invocation = (InvocationExpressionSyntax)context.Node;
+
+        // Check if the method being called is AddJsonFile
+        if (invocation.Expression is not MemberAccessExpressionSyntax
+            {
+                Name.Identifier.Text: "AddJsonFile"
+            })
+        {
+            return;
+        }
+
+        // Check if the first argument is "local.settings.json"
+        if (invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression is not LiteralExpressionSyntax
+            {
+                Token.ValueText: "local.settings.json"
+            } literal)
+        {
+            return;
+        }
+
+        var diagnostic = Diagnostic.Create(
+            DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
+            literal.GetLocation());
+
+        context.ReportDiagnostic(diagnostic);
+
     }
 }

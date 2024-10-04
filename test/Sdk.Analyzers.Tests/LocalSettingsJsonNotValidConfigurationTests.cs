@@ -1,12 +1,21 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Testing;
+using Xunit;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.LocalSettingsJsonNotAllowedAsConfiguration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using Verify = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.LocalSettingsJsonNotAllowedAsConfiguration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 
 namespace Sdk.Analyzers.Tests;
 
 public class LocalSettingsJsonNotValidConfigurationTests
 {
+    [Fact]
     public async Task LocalSettingsJsonPassedToConfigurationIssuesWarning()
     {
-        const string code = """
+        const string testCode = """
+        using Microsoft.Extensions.Hosting;
+        using Microsoft.Extensions.Configuration;
+        
         public static void Main()
         {
             var host = new HostBuilder()
@@ -21,8 +30,18 @@ public class LocalSettingsJsonNotValidConfigurationTests
         }
         """;
         
+        var test = new AnalyzerTest
+        {
+            TestCode = testCode,
+            
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
+            
+            ExpectedDiagnostics = { 
+                Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
+            }
+        };
         
-        
-        
+        await test.RunAsync();
     }
 }

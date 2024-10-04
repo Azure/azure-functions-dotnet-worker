@@ -22,7 +22,7 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
     private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
         var invocation = (InvocationExpressionSyntax)context.Node;
-
+        
         // Check if the method being called is AddJsonFile
         if (invocation.Expression is not MemberAccessExpressionSyntax
             {
@@ -46,6 +46,5 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
             literal.GetLocation());
 
         context.ReportDiagnostic(diagnostic);
-
     }
 }

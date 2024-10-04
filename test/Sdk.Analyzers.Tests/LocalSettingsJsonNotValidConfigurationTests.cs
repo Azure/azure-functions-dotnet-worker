@@ -30,7 +30,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
                            .ConfigureFunctionsWorkerDefaults()
                            .ConfigureAppConfiguration((context, config) =>
                            {
-                               config.AddJsonFile("local.settings.json", optional: true);
+                               config.AddJsonFile("local.settings.json");
                            })
                            .Build();
                    
@@ -44,6 +44,37 @@ public class LocalSettingsJsonNotValidConfigurationTests
                     .WithSeverity(DiagnosticSeverity.Warning)
                     .WithSpan(12, 36, 12, 57)
             }
+        }.RunAsync();
+    }
+    
+    [Fact]
+    public async Task NotLocalSettingsJsonDoesntGenerateWarning()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0"))),
+            
+            TestCode = """
+               using Microsoft.Extensions.Hosting;
+               using Microsoft.Extensions.Configuration;
+               
+               public static class Program
+               {
+                   public static void Main()
+                   {
+                       var host = new HostBuilder()
+                           .ConfigureFunctionsWorkerDefaults()
+                           .ConfigureAppConfiguration((context, config) =>
+                           {
+                               config.AddJsonFile("settings.json");
+                           })
+                           .Build();
+                   
+                       host.Run();
+                    }
+               }
+               """,
         }.RunAsync();
     }
 }

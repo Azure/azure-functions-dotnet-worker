@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Testing;
 using Xunit;
 using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.LocalSettingsJsonNotAllowedAsConfiguration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
@@ -12,36 +13,37 @@ public class LocalSettingsJsonNotValidConfigurationTests
     [Fact]
     public async Task LocalSettingsJsonPassedToConfigurationIssuesWarning()
     {
-        const string testCode = """
-        using Microsoft.Extensions.Hosting;
-        using Microsoft.Extensions.Configuration;
-        
-        public static void Main()
+        await new AnalyzerTest
         {
-            var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults()
-                .ConfigureAppConfiguration((context, config) =>
-                {
-                    config.AddJsonFile("local.settings.json", optional: true);
-                })
-                .Build();
-        
-            host.Run();
-        }
-        """;
-        
-        var test = new AnalyzerTest
-        {
-            TestCode = testCode,
-            
             ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
-                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.18.0"))),
+                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0"))),
             
-            ExpectedDiagnostics = { 
-                Verify.Diagnostic().WithSeverity(Microsoft.CodeAnalysis.DiagnosticSeverity.Warning)
+            TestCode = """
+               using Microsoft.Extensions.Hosting;
+               using Microsoft.Extensions.Configuration;
+
+               public static class Program
+               {
+                   public static void Main()
+                   {
+                       var host = new HostBuilder()
+                           .ConfigureFunctionsWorkerDefaults()
+                           .ConfigureAppConfiguration((context, config) =>
+                           {
+                               config.AddJsonFile("local.settings.json", optional: true);
+                           })
+                           .Build();
+                   
+                       host.Run();
+                   }
+               }
+               """,
+            
+            ExpectedDiagnostics = {
+                Verify.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(12, 36, 12, 57)
             }
-        };
-        
-        await test.RunAsync();
+        }.RunAsync();
     }
 }

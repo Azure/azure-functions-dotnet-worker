@@ -18,6 +18,5 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
 
     private static void AnalyzeMethod(SymbolAnalysisContext context)
     {
-        throw new System.NotImplementedException();
     }
 }

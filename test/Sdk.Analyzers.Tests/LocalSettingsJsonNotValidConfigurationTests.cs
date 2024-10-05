@@ -10,13 +10,15 @@ namespace Sdk.Analyzers.Tests;
 
 public class LocalSettingsJsonNotValidConfigurationTests
 {
+    private static readonly ReferenceAssemblies _referenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(
+            ImmutableArray.Create(new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0")));
+    
     [Fact]
     public async Task LocalSettingsJsonPassedToConfigurationIssuesWarning()
     {
         await new AnalyzerTest
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
-                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0"))),
+            ReferenceAssemblies = _referenceAssemblies,
             
             TestCode = """
                using Microsoft.Extensions.Hosting;
@@ -52,8 +54,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
     {
         await new AnalyzerTest
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
-                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0"))),
+            ReferenceAssemblies = _referenceAssemblies,
             
             TestCode = """
                using Microsoft.Extensions.Hosting;
@@ -87,8 +88,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
     {
         await new AnalyzerTest
         {
-            ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
-                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0"))),
+            ReferenceAssemblies = _referenceAssemblies,
 
             TestCode = """
                public class MyCustomConfig
@@ -111,6 +111,44 @@ public class LocalSettingsJsonNotValidConfigurationTests
             
             ExpectedDiagnostics = {
                 // No diagnostics expected
+            }
+        }.RunAsync();
+    }
+    
+    [Fact]
+    public async Task LocalSettingsJsonAsVariableAreAlsoCaught()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = _referenceAssemblies,
+
+            TestCode = """
+               using Microsoft.Extensions.Hosting;
+               using Microsoft.Extensions.Configuration;
+               
+               public static class Program
+               {
+                   public static void Main()
+                   {
+                       string fileName = "local.settings.json";
+                       
+                       var host = new HostBuilder()
+                           .ConfigureFunctionsWorkerDefaults()
+                           .ConfigureAppConfiguration((context, config) =>
+                           {
+                               config.AddJsonFile(fileName); // Should trigger a warning
+                           })
+                           .Build();
+                       
+                       host.Run();
+                   }
+               }
+               """,
+            
+            ExpectedDiagnostics = {
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(14, 36, 14, 44)
             }
         }.RunAsync();
     }

@@ -44,11 +44,23 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
             return;
         }
 
-        if (arguments.First().Expression is LiteralExpressionSyntax { Token.ValueText: "local.settings.json" } literal)
+        var firstArgument = arguments.First().Expression;
+        if (firstArgument is LiteralExpressionSyntax { Token.ValueText: "local.settings.json" } literal)
         {
             var diagnostic = Diagnostic.Create(
                 DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
                 literal.GetLocation());
+
+            context.ReportDiagnostic(diagnostic);
+            return;
+        }
+        
+        var constantValue = context.SemanticModel.GetConstantValue(firstArgument);
+        if (constantValue is { HasValue: true, Value: "local.settings.json" })
+        {
+            var diagnostic = Diagnostic.Create(
+                DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
+                firstArgument.GetLocation());
 
             context.ReportDiagnostic(diagnostic);
         }

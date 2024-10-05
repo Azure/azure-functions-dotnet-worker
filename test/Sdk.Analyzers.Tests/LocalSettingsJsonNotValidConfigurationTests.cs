@@ -116,7 +116,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
     }
     
     [Fact]
-    public async Task LocalSettingsJsonAsVariableAreAlsoCaught()
+    public async Task ConstLocalSettingsJsonIsCaught()
     {
         await new AnalyzerTest
         {
@@ -130,7 +130,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
                {
                    public static void Main()
                    {
-                       string fileName = "local.settings.json";
+                       const string fileName = "local.settings.json";
                        
                        var host = new HostBuilder()
                            .ConfigureFunctionsWorkerDefaults()
@@ -144,6 +144,44 @@ public class LocalSettingsJsonNotValidConfigurationTests
                    }
                }
                """,
+            
+            ExpectedDiagnostics = {
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(14, 36, 14, 44)
+            }
+        }.RunAsync();
+    }
+    
+    [Fact]
+    public async Task LocalSettingsJsonAsVariableIsCaught()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = _referenceAssemblies,
+
+            TestCode = """
+                       using Microsoft.Extensions.Hosting;
+                       using Microsoft.Extensions.Configuration;
+
+                       public static class Program
+                       {
+                           public static void Main()
+                           {
+                               var fileName = "local.settings.json";
+                               
+                               var host = new HostBuilder()
+                                   .ConfigureFunctionsWorkerDefaults()
+                                   .ConfigureAppConfiguration((context, config) =>
+                                   {
+                                       config.AddJsonFile(fileName); // Should trigger a warning
+                                   })
+                                   .Build();
+                               
+                               host.Run();
+                           }
+                       }
+                       """,
             
             ExpectedDiagnostics = {
                 AnalyzerVerifier.Diagnostic()

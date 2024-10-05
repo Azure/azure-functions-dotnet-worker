@@ -10,6 +10,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
 {
+    private const string ConfigurationBuilderFullName = "Microsoft.Extensions.Configuration.IConfigurationBuilder";
+    private const string LocalSettingsJsonFileName = "local.settings.json";
+    
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } =
         ImmutableArray.Create(DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration);
     
@@ -38,8 +41,7 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
             return;
         }
         
-        var configBuilderType = context.SemanticModel.Compilation.GetTypeByMetadataName(
-            "Microsoft.Extensions.Configuration.IConfigurationBuilder");
+        var configBuilderType = context.SemanticModel.Compilation.GetTypeByMetadataName(ConfigurationBuilderFullName);
         
         if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReceiverType, configBuilderType))
         {
@@ -48,25 +50,17 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
 
         // easiest case - local.settings.json is a string literal
         var firstArgument = arguments.First().Expression;
-        if (firstArgument is LiteralExpressionSyntax { Token.ValueText: "local.settings.json" } literal)
+        if (firstArgument is LiteralExpressionSyntax { Token.ValueText: LocalSettingsJsonFileName })
         {
-            var diagnostic = Diagnostic.Create(
-                DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
-                literal.GetLocation());
-
-            context.ReportDiagnostic(diagnostic);
+            ReportDiagnostic(context, firstArgument);
             return;
         }
         
         // it can also be a constant value
         var constantValue = context.SemanticModel.GetConstantValue(firstArgument);
-        if (constantValue is { HasValue: true, Value: "local.settings.json" })
+        if (constantValue is { HasValue: true, Value: LocalSettingsJsonFileName })
         {
-            var diagnostic = Diagnostic.Create(
-                DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
-                firstArgument.GetLocation());
-
-            context.ReportDiagnostic(diagnostic);
+            ReportDiagnostic(context, firstArgument);
             return;
         }
         
@@ -89,8 +83,7 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
             return;
         }
 
-        var variableDeclaration = dataFlow.DataFlowsIn.FirstOrDefault(s => SymbolEqualityComparer.Default.Equals(s, symbol));
-        if (variableDeclaration is null)
+        if (!dataFlow.DataFlowsIn.Any(s => SymbolEqualityComparer.Default.Equals(s, symbol)))
         {
             return;
         }
@@ -102,18 +95,26 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
                 {
                     Initializer.Value: LiteralExpressionSyntax
                     {
-                        Token.ValueText: "local.settings.json"
+                        Token.ValueText: LocalSettingsJsonFileName
                     }
                 })
             {
-                var diagnostic = Diagnostic.Create(
-                    DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
-                    firstArgument.GetLocation());
-
-                context.ReportDiagnostic(diagnostic);
-                
+                ReportDiagnostic(context, firstArgument);
                 return;
             }
         }
+    }
+    
+    private static void ReportDiagnostic(SyntaxNodeAnalysisContext context, ExpressionSyntax expression)
+    {
+        var diagnostic = CreateDiagnostic(expression);
+        context.ReportDiagnostic(diagnostic);
+    }
+
+    private static Diagnostic CreateDiagnostic(ExpressionSyntax expression)
+    {
+        return Diagnostic.Create(
+            DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
+            expression.GetLocation());
     }
 }

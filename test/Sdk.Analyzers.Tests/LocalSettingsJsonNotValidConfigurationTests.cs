@@ -75,6 +75,43 @@ public class LocalSettingsJsonNotValidConfigurationTests
                     }
                }
                """,
+            
+            ExpectedDiagnostics = {
+                // No diagnostics expected
+            }
+        }.RunAsync();
+    }
+    
+    [Fact]
+    public async Task CustomAddJsonFileMethodDoesNotGenerateWarning()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net70.WithPackages(ImmutableArray.Create(
+                new PackageIdentity("Microsoft.Azure.Functions.Worker", "1.23.0"))),
+
+            TestCode = """
+               public class MyCustomConfig
+               {
+                   public void AddJsonFile(string fileName)
+                   {
+                       // Custom implementation
+                   }
+               }
+
+               public static class Program
+               {
+                   public static void Main()
+                   {
+                       var config = new MyCustomConfig();
+                       config.AddJsonFile("local.settings.json"); // Should not trigger warning
+                   }
+               }
+               """,
+            
+            ExpectedDiagnostics = {
+                // No diagnostics expected
+            }
         }.RunAsync();
     }
 }

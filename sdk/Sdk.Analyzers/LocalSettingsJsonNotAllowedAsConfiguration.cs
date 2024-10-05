@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -21,30 +22,35 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
 
     private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
     {
-        var invocation = (InvocationExpressionSyntax)context.Node;
+        // check if the method is AddJsonFile() and it has at least 1 argument
+        if (context.Node is not InvocationExpressionSyntax
+            {
+                Expression: MemberAccessExpressionSyntax { Name.Identifier.Text: "AddJsonFile" },
+                ArgumentList.Arguments: { Count: > 0 } arguments
+            } invocation)
+        {
+            return;
+        }
         
-        // Check if the method being called is AddJsonFile
-        if (invocation.Expression is not MemberAccessExpressionSyntax
-            {
-                Name.Identifier.Text: "AddJsonFile"
-            })
+        // Get the symbol for the method being invoked
+        if (context.SemanticModel.GetSymbolInfo(invocation.Expression).Symbol is not IMethodSymbol methodSymbol)
         {
             return;
         }
 
-        // Check if the first argument is "local.settings.json"
-        if (invocation.ArgumentList.Arguments.FirstOrDefault()?.Expression is not LiteralExpressionSyntax
-            {
-                Token.ValueText: "local.settings.json"
-            } literal)
+        var configBuilderType = context.SemanticModel.Compilation.GetTypeByMetadataName("Microsoft.Extensions.Configuration.IConfigurationBuilder");
+        if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReceiverType, configBuilderType))
         {
             return;
         }
 
-        var diagnostic = Diagnostic.Create(
-            DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
-            literal.GetLocation());
+        if (arguments.First().Expression is LiteralExpressionSyntax { Token.ValueText: "local.settings.json" } literal)
+        {
+            var diagnostic = Diagnostic.Create(
+                DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
+                literal.GetLocation());
 
-        context.ReportDiagnostic(diagnostic);
+            context.ReportDiagnostic(diagnostic);
+        }
     }
 }

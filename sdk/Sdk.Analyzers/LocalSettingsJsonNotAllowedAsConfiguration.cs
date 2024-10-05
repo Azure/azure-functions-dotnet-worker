@@ -37,7 +37,10 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
         {
             return;
         }
-        var configBuilderType = context.SemanticModel.Compilation.GetTypeByMetadataName("Microsoft.Extensions.Configuration.IConfigurationBuilder");
+        
+        var configBuilderType = context.SemanticModel.Compilation.GetTypeByMetadataName(
+            "Microsoft.Extensions.Configuration.IConfigurationBuilder");
+        
         if (!SymbolEqualityComparer.Default.Equals(methodSymbol.ReceiverType, configBuilderType))
         {
             return;
@@ -69,48 +72,48 @@ public class LocalSettingsJsonNotAllowedAsConfiguration : DiagnosticAnalyzer
         
         // we can try to resolve variable passed as well
         // Use DataFlowAnalysis to resolve the value of the variable if possible
-        if (firstArgument is IdentifierNameSyntax identifier)
+        if (firstArgument is not IdentifierNameSyntax identifier)
         {
-            var dataFlow = context.SemanticModel.AnalyzeDataFlow(invocation);
-            if (dataFlow is { Succeeded: true })
-            {
-                // Check for variable assignments within the data flow
-                var symbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
-                if (symbol is ILocalSymbol localSymbol)
-                {
-                    var variableDeclaration = dataFlow.DataFlowsIn.FirstOrDefault(s => SymbolEqualityComparer.Default.Equals(s, localSymbol));
-                    if (variableDeclaration != null && TryGetAssignedValue(localSymbol, context, out var assignedValue))
-                    {
-                        if (assignedValue == "local.settings.json")
-                        {
-                            var diagnostic = Diagnostic.Create(
-                                DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
-                                firstArgument.GetLocation());
-
-                            context.ReportDiagnostic(diagnostic);
-                        }
-                    }
-                }
-            }
+            return;
         }
-    }
-    
-    private static bool TryGetAssignedValue(ILocalSymbol localSymbol, SyntaxNodeAnalysisContext context, out string assignedValue)
-    {
-        assignedValue = null;
 
-        // Find the variable declaration
-        foreach (var reference in localSymbol.DeclaringSyntaxReferences)
+        var dataFlow = context.SemanticModel.AnalyzeDataFlow(invocation);
+        if (dataFlow?.Succeeded != true)
+        {
+            return;
+        }
+        
+        // Check for variable assignments within the data flow
+        if (context.SemanticModel.GetSymbolInfo(identifier).Symbol is not ILocalSymbol symbol)
+        {
+            return;
+        }
+
+        var variableDeclaration = dataFlow.DataFlowsIn.FirstOrDefault(s => SymbolEqualityComparer.Default.Equals(s, symbol));
+        if (variableDeclaration is null)
+        {
+            return;
+        }
+        
+        foreach (var reference in symbol.DeclaringSyntaxReferences)
         {
             var syntax = reference.GetSyntax(context.CancellationToken);
-            if (syntax is VariableDeclaratorSyntax { Initializer.Value: LiteralExpressionSyntax literal })
+            if (syntax is VariableDeclaratorSyntax
+                {
+                    Initializer.Value: LiteralExpressionSyntax
+                    {
+                        Token.ValueText: "local.settings.json"
+                    }
+                })
             {
-                // Check if the variable is initialized with "local.settings.json"
-                assignedValue = literal.Token.ValueText;
-                return true;
+                var diagnostic = Diagnostic.Create(
+                    DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
+                    firstArgument.GetLocation());
+
+                context.ReportDiagnostic(diagnostic);
+                
+                return;
             }
         }
-
-        return false;
     }
 }

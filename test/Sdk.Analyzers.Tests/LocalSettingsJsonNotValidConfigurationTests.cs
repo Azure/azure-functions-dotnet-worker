@@ -190,4 +190,76 @@ public class LocalSettingsJsonNotValidConfigurationTests
             }
         }.RunAsync();
     }
+    
+    [Fact]
+    public async Task OverloadWithOptionalBooleanIsHandled()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = _referenceAssemblies,
+            
+            TestCode = """
+                       using Microsoft.Extensions.Hosting;
+                       using Microsoft.Extensions.Configuration;
+
+                       public static class Program
+                       {
+                           public static void Main()
+                           {
+                               var host = new HostBuilder()
+                                   .ConfigureFunctionsWorkerDefaults()
+                                   .ConfigureAppConfiguration((context, config) =>
+                                   {
+                                       config.AddJsonFile("local.settings.json", optional: true);
+                                   })
+                                   .Build();
+                           
+                               host.Run();
+                           }
+                       }
+                       """,
+            
+            ExpectedDiagnostics = {
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(12, 36, 12, 57)
+            }
+        }.RunAsync();
+    }
+    
+    [Fact]
+    public async Task OverloadWithReloadOnChangeIsHandled()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = _referenceAssemblies,
+            
+            TestCode = """
+                       using Microsoft.Extensions.Hosting;
+                       using Microsoft.Extensions.Configuration;
+
+                       public static class Program
+                       {
+                           public static void Main()
+                           {
+                               var host = new HostBuilder()
+                                   .ConfigureFunctionsWorkerDefaults()
+                                   .ConfigureAppConfiguration((context, config) =>
+                                   {
+                                       config.AddJsonFile("local.settings.json", optional: false, reloadOnChange: true);
+                                   })
+                                   .Build();
+                           
+                               host.Run();
+                           }
+                       }
+                       """,
+            
+            ExpectedDiagnostics = {
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(12, 36, 12, 57)
+            }
+        }.RunAsync();
+    }
 }

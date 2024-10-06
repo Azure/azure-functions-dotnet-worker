@@ -39,18 +39,54 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 return;
             }
 
-            if (IsLocalSettingsJsonLiteral(firstArgument) ||
-                IsLocalSettingsJsonConstant(firstArgument, context) ||
-                IsLocalSettingsJsonVariable(firstArgument, invocation, context))
+            if (TryGetStringValue(firstArgument, context, out var stringValue) 
+                && stringValue.EndsWith(LocalSettingsJsonFileName))
             {
                 var diagnostic = CreateDiagnostic(firstArgument);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-        
-        private static bool IsOfStringType(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
+
+        private static bool TryGetStringValue(ExpressionSyntax argument, SyntaxNodeAnalysisContext context, out string value)
         {
-            return context.SemanticModel.GetTypeInfo(argument).Type?.SpecialType == SpecialType.System_String;
+            if (argument is LiteralExpressionSyntax literal)
+            {
+                value = literal.Token.ValueText;
+                return true;
+            }
+            
+            var constantValue = context.SemanticModel.GetConstantValue(argument);
+            if (constantValue.HasValue)
+            {
+                value = constantValue.Value.ToString();
+                return true;
+            }
+
+            value = null;
+            
+            if (argument is not IdentifierNameSyntax identifier)
+            {
+                return false;
+            }
+
+            var dataFlow = context.SemanticModel.AnalyzeDataFlow(context.Node);
+            if (!dataFlow.Succeeded)
+            {
+                return false;
+            }
+            
+            var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
+            
+            value = dataFlow.DataFlowsIn
+                .Where(symbol => SymbolEqualityComparer.Default.Equals(symbol, identifierSymbol))
+                .SelectMany(symbol => symbol.DeclaringSyntaxReferences)
+                .Select(reference => reference.GetSyntax(context.CancellationToken))
+                .OfType<VariableDeclaratorSyntax>()
+                .Select(variable => variable.Initializer?.Value)
+                .OfType<LiteralExpressionSyntax>()
+                .FirstOrDefault()?.Token.ValueText;
+
+            return value is not null;
         }
 
         private static bool IsAddJsonFileMethodWithArguments(
@@ -61,43 +97,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 && context.SemanticModel.GetSymbolInfo(memberAccess).Symbol is IMethodSymbol methodSymbol 
                 && methodSymbol.ReceiverType?.ToDisplayString() == ConfigurationBuilderFullName;
         }
-
-        private static bool IsLocalSettingsJsonLiteral(ExpressionSyntax argument)
+        
+        private static bool IsOfStringType(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
         {
-            return argument is LiteralExpressionSyntax literal 
-                   && literal.Token.ValueText.EndsWith(LocalSettingsJsonFileName);
+            return context.SemanticModel.GetTypeInfo(expression).Type?.SpecialType == SpecialType.System_String;
         }
-
-        private static bool IsLocalSettingsJsonConstant(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
-        {
-            var constantValue = context.SemanticModel.GetConstantValue(argument);
-            return constantValue.HasValue && constantValue.Value.ToString().EndsWith(LocalSettingsJsonFileName);
-        }
-
-        private static bool IsLocalSettingsJsonVariable(ExpressionSyntax argument, InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
-        {
-            if (argument is not IdentifierNameSyntax identifier)
-            {
-                return false;
-            }
-
-            var dataFlow = context.SemanticModel.AnalyzeDataFlow(invocation);
-            if (dataFlow is null || !dataFlow.Succeeded)
-            {
-                return false;
-            }
-
-            var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
-            
-            return dataFlow.DataFlowsIn
-                .Where(symbol => SymbolEqualityComparer.Default.Equals(symbol, identifierSymbol))
-                .SelectMany(symbol => symbol.DeclaringSyntaxReferences)
-                .Select(reference => reference.GetSyntax(context.CancellationToken))
-                .OfType<VariableDeclaratorSyntax>()
-                .Select(variable => variable.Initializer?.Value)
-                .OfType<LiteralExpressionSyntax>()
-                .Any(literal => literal.Token.ValueText.EndsWith(LocalSettingsJsonFileName));
-        }
+        
         
         private static Diagnostic CreateDiagnostic(ExpressionSyntax expression)
         {

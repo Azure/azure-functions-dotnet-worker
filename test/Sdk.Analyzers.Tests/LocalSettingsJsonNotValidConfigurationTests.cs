@@ -50,7 +50,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
     }
     
     [Fact]
-    public async Task NotLocalSettingsJsonDoesntGenerateWarning()
+    public async Task NotLocalSettingsJsonDoesNotGenerateWarning()
     {
         await new AnalyzerTest
         {

@@ -144,28 +144,33 @@ namespace TestProject
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers;
                 context.GetInvocationResult().Value = i.Foo((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers2.Bar"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers2.Bar"", StringComparison.Ordinal))
             {{
                 var instanceType = types[""MyCompany.MyHttpTriggers2""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers2;
                 context.GetInvocationResult().Value = i.Bar((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.Foo.MyAsyncStaticMethod"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.Foo.MyAsyncStaticMethod"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = await global::MyCompany.Foo.MyAsyncStaticMethod((string)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.QueueTriggers.Run"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.QueueTriggers.Run"", StringComparison.Ordinal))
             {{
                 var instanceType = types[""MyCompany.QueueTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.QueueTriggers;
                 i.Run((global::Azure.Storage.Queues.Models.QueueMessage)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.QueueTriggers.Run2"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.QueueTriggers.Run2"", StringComparison.Ordinal))
             {{
                 var instanceType = types[""MyCompany.QueueTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.QueueTriggers;
                 i.Run2((string)inputArguments[0]);
+                return;
             }}
         }}
     }}
@@ -259,12 +264,14 @@ namespace MyCompany.MyProject.MyApp
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers;
                 context.GetInvocationResult().Value = i.Run1((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run2"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.Run2"", StringComparison.Ordinal))
             {{
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers;
                 context.GetInvocationResult().Value = i.Run2((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                return;
             }}
         }}
     }}
@@ -400,46 +407,57 @@ namespace TestProject
             if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyTaskStaticMethod"", StringComparison.Ordinal))
             {{
                 await global::FunctionApp26.MyQTriggers.MyTaskStaticMethod((string)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethod"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethod"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = await global::FunctionApp26.MyQTriggers.MyAsyncStaticMethod((string)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyVoidStaticMethod"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyVoidStaticMethod"", StringComparison.Ordinal))
             {{
                 global::FunctionApp26.MyQTriggers.MyVoidStaticMethod((string)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = await global::FunctionApp26.MyQTriggers.MyAsyncStaticMethodWithReturn((string)inputArguments[0], (string)inputArguments[1]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = await global::FunctionApp26.MyQTriggers.MyValueTaskOfTStaticAsyncMethod((string)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2"", StringComparison.Ordinal))
             {{
                 await global::FunctionApp26.MyQTriggers.MyValueTaskStaticAsyncMethod2((string)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.BlobTriggers.Run"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.BlobTriggers.Run"", StringComparison.Ordinal))
             {{
                 await global::FunctionApp26.BlobTriggers.Run((global::System.IO.Stream)inputArguments[0], (string)inputArguments[1]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.Run1"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.Run1"", StringComparison.Ordinal))
             {{
                 global::FunctionApp26.EventHubTriggers.Run1((global::Azure.Messaging.EventHubs.EventData[])inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.Run2"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.Run2"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = global::FunctionApp26.EventHubTriggers.Run2((global::Azure.Messaging.EventHubs.EventData)inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.RunAsync1"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.RunAsync1"", StringComparison.Ordinal))
             {{
                 await global::FunctionApp26.EventHubTriggers.RunAsync1((global::Azure.Messaging.EventHubs.EventData[])inputArguments[0]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.RunAsync2"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""FunctionApp26.EventHubTriggers.RunAsync2"", StringComparison.Ordinal))
             {{
                 await global::FunctionApp26.EventHubTriggers.RunAsync2((global::Azure.Messaging.EventHubs.EventData[])inputArguments[0]);
+                return;
             }}
         }}
     }}
@@ -527,6 +545,7 @@ namespace TestProject
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers;
                 context.GetInvocationResult().Value = i.Run1((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                return;
             }}
         }}
     }}
@@ -620,10 +639,12 @@ namespace TestProject
                 var instanceType = types[""TestProject.TestProject""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::TestProject.TestProject;
                 context.GetInvocationResult().Value = i.Foo((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""TestProject.TestProject.FooStatic"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""TestProject.TestProject.FooStatic"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = global::TestProject.TestProject.FooStatic((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                return;
             }}
         }}
     }}
@@ -711,10 +732,12 @@ namespace TestProject
                 var instanceType = types[""MyCompany.MyHttpTriggers""];
                 var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers;
                 context.GetInvocationResult().Value = i.Hello((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                return;
             }}
-            else if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.HELLO"", StringComparison.Ordinal))
+            if (string.Equals(context.FunctionDefinition.EntryPoint, ""MyCompany.MyHttpTriggers.HELLO"", StringComparison.Ordinal))
             {{
                 context.GetInvocationResult().Value = global::MyCompany.MyHttpTriggers.HELLO((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                return;
             }}
         }}
     }}

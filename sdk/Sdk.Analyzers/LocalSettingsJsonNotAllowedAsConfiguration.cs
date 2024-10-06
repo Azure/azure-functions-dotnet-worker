@@ -27,33 +27,39 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
-            if (!IsAddJsonFileInvocation(invocation, context.SemanticModel))
+            if (!IsAddJsonFileMethodWithArguments(invocation, context))
             {
                 return;
             }
 
+            // This analyzer handles only the overloads of AddJsonFile() with a string as first argument
             var firstArgument = invocation.ArgumentList.Arguments.First().Expression;
-            if (context.SemanticModel.GetTypeInfo(firstArgument).Type?.SpecialType != SpecialType.System_String)
+            if (!IsOfStringType(firstArgument, context))
             {
-                // for now this analyzer handles only the straightforward overloads of AddJsonFile()
                 return;
             }
 
             if (IsLocalSettingsJsonLiteral(firstArgument) ||
-                IsLocalSettingsJsonConstant(firstArgument, context.SemanticModel) ||
+                IsLocalSettingsJsonConstant(firstArgument, context) ||
                 IsLocalSettingsJsonVariable(firstArgument, invocation, context))
             {
-                var diagnostic = CreateDiagnosticWithLocation(firstArgument);
+                var diagnostic = CreateDiagnostic(firstArgument);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        private static bool IsAddJsonFileInvocation(InvocationExpressionSyntax invocation, SemanticModel semanticModel)
+        
+        private static bool IsOfStringType(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
-            return invocation.Expression 
-                       is MemberAccessExpressionSyntax { Name.Identifier.Text: AddJsonFileMethodName } memberAccess 
-                   && semanticModel.GetSymbolInfo(memberAccess).Symbol is IMethodSymbol methodSymbol 
-                   && methodSymbol.ReceiverType?.ToDisplayString() == ConfigurationBuilderFullName;
+            return context.SemanticModel.GetTypeInfo(argument).Type?.SpecialType == SpecialType.System_String;
+        }
+
+        private static bool IsAddJsonFileMethodWithArguments(
+            InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
+        {
+            return invocation.ArgumentList.Arguments.Count > 0
+                && invocation.Expression is MemberAccessExpressionSyntax { Name.Identifier.Text: AddJsonFileMethodName } memberAccess 
+                && context.SemanticModel.GetSymbolInfo(memberAccess).Symbol is IMethodSymbol methodSymbol 
+                && methodSymbol.ReceiverType?.ToDisplayString() == ConfigurationBuilderFullName;
         }
 
         private static bool IsLocalSettingsJsonLiteral(ExpressionSyntax argument)
@@ -62,9 +68,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                    && literal.Token.ValueText.EndsWith(LocalSettingsJsonFileName);
         }
 
-        private static bool IsLocalSettingsJsonConstant(ExpressionSyntax argument, SemanticModel semanticModel)
+        private static bool IsLocalSettingsJsonConstant(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
-            var constantValue = semanticModel.GetConstantValue(argument);
+            var constantValue = context.SemanticModel.GetConstantValue(argument);
             return constantValue.HasValue && constantValue.Value.ToString().EndsWith(LocalSettingsJsonFileName);
         }
 
@@ -93,7 +99,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 .Any(literal => literal.Token.ValueText.EndsWith(LocalSettingsJsonFileName));
         }
         
-        private static Diagnostic CreateDiagnosticWithLocation(ExpressionSyntax expression)
+        private static Diagnostic CreateDiagnostic(ExpressionSyntax expression)
         {
             return Diagnostic.Create(
                 DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,

@@ -11,16 +11,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
-    <_ToolingSuffix></_ToolingSuffix>
     <_DefaultAzureFunctionsVersion>v4</_DefaultAzureFunctionsVersion>
     <_AzureFunctionsVersionNotSet Condition="'$(AzureFunctionsVersion)' == ''">true</_AzureFunctionsVersionNotSet>
     <AzureFunctionsVersion Condition="'$(AzureFunctionsVersion)' == ''">$(_DefaultAzureFunctionsVersion)</AzureFunctionsVersion>
-    <_ToolingSuffix Condition="($(AzureFunctionsVersion.StartsWith('v3',StringComparison.OrdinalIgnoreCase)) Or $(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase))) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v5.0'">net5-isolated</_ToolingSuffix>
-    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
-    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
-    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v8.0'">net8-isolated</_ToolingSuffix>
-    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
-    <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
     <_FunctionsTaskFramework Condition="'$(MSBuildRuntimeType)' == 'Core'">netstandard2.0</_FunctionsTaskFramework>
     <_FunctionsTaskFramework Condition="'$(_FunctionsTaskFramework)' == ''">net472</_FunctionsTaskFramework>
     <_FunctionsTasksDir Condition="'$(_FunctionsTasksDir)'==''">$(MSBuildThisFileDirectory)..\tools\$(_FunctionsTaskFramework)\</_FunctionsTasksDir>
@@ -74,7 +67,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <Message Condition="'$(_AzureFunctionsVersionNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'." />
     <Error Condition="'@(_SelectedFunctionVersion)' == ''" Text="The AzureFunctionsVersion value '$(AzureFunctionsVersion)' was not recognized. Allowed values are: @(_FunctionsVersion, ', ')." />
-    <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
     <Warning Condition="'$(CheckEolAzureFunctionsVersion)' == 'true' AND '%(_SelectedFunctionVersion.InSupport)' == 'false'" Text="Azure Functions '%(Identity)' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy." />
   </Target>
@@ -170,7 +162,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- Invoke build on WorkerExtension.csproj -->
   <Target Name="_WorkerExtensionsBuild" DependsOnTargets="_WorkerExtensionsRestore">
-    <MSbuild Projects="$(ExtensionsCsProj)" Targets="Build" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjDirectory)\buildout;$(_FunctionsExtensionCommonProps)" />
+    <MSBuild Projects="$(ExtensionsCsProj)" Targets="Build" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="Configuration=Release;OutputPath=$(ExtensionsCsProjDirectory)\buildout;$(_FunctionsExtensionCommonProps)" />
   </Target>
 
   <!-- Touch up the extensions.json file as needed for .NET isolated -->

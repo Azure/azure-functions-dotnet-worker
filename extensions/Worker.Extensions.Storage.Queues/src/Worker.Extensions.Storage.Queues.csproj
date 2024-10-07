@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.0" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.1" />
   </ItemGroup>
 
 </Project>

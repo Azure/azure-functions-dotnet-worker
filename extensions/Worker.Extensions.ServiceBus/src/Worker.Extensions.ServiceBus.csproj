@@ -37,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.2" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.4" />
   </ItemGroup>
 
 </Project>

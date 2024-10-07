@@ -7,5 +7,4 @@
     <ItemGroup>
         <PackageReference Include="$PackageName$" Version="$PackageVersion$" />
     </ItemGroup>
-
 </Project>

@@ -1,7 +1,6 @@
 <Project>
     <PropertyGroup>
         <_ExtensionProjectTemplate>$(MSBuildThisFileDirectory)\extensionProjectTemplate.txt</_ExtensionProjectTemplate>
-        <_ProgramCsTemplate>$(MSBuildThisFileDirectory)\extProgramTemplate.txt</_ProgramCsTemplate>
     </PropertyGroup>
 
     <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != ''">

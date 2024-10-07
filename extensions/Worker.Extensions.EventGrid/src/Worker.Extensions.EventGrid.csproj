@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.4.1" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.4.2" />
   </ItemGroup>
 
 </Project>

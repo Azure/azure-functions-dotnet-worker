@@ -1,4 +1,5 @@
-﻿using System.Collections.Immutable;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -73,6 +74,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
             
             var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
+
+            var finder = new AssignmentFinder(context.SemanticModel, identifierSymbol);
+            var syntaxTree = (CSharpSyntaxNode)context.Node.SyntaxTree.GetRoot();
+            syntaxTree.Accept(finder);
+            var assignments = finder.GetAssignments();
+
+            // todo - cleanup
+            if (assignments.Any())
+            {
+                var l = (LiteralExpressionSyntax)assignments.Last().Right;
+                return l.Token.ValueText;
+            }
             
             return innerDataFlow.DataFlowsIn
                 .Where(symbol => SymbolEqualityComparer.Default.Equals(symbol, identifierSymbol))
@@ -105,5 +118,38 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
                 expression.GetLocation());
         }
+        
+        public class AssignmentFinder : CSharpSyntaxWalker
+        {
+            private readonly SemanticModel _semanticModel;
+            private readonly ISymbol _symbolToFind;
+            private readonly List<AssignmentExpressionSyntax> _assignments = new();
+
+            public AssignmentFinder(SemanticModel semanticModel, ISymbol symbolToFind)
+            {
+                _semanticModel = semanticModel;
+                _symbolToFind = symbolToFind;
+            }
+
+            public IReadOnlyList<AssignmentExpressionSyntax> GetAssignments()
+            {
+                return _assignments;
+            }
+
+            public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
+            {
+                base.VisitAssignmentExpression(node);
+
+                // Check if the left-hand side matches the symbol we are looking for
+                var leftSymbol = _semanticModel.GetSymbolInfo(node.Left).Symbol;
+
+                if (leftSymbol != null && SymbolEqualityComparer.Default.Equals(leftSymbol, _symbolToFind))
+                {
+                    _assignments.Add(node);
+                }
+            }
+        }
     }
+    
+    
 }

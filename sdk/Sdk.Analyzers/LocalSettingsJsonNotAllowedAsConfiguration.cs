@@ -24,6 +24,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             context.RegisterSyntaxNodeAction(AnalyzeInvocation, SyntaxKind.InvocationExpression);
         }
 
+        // This analyzer handles only the overloads of AddJsonFile() with a string as first argument
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
@@ -32,61 +33,55 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 return;
             }
 
-            // This analyzer handles only the overloads of AddJsonFile() with a string as first argument
             var firstArgument = invocation.ArgumentList.Arguments.First().Expression;
             if (!IsOfStringType(firstArgument, context))
             {
                 return;
             }
 
-            if (TryGetStringValue(firstArgument, context, out var stringValue) 
-                && stringValue.EndsWith(LocalSettingsJsonFileName))
+            var argumentValue = GetValue(firstArgument, context);
+            if (argumentValue is not null && argumentValue.EndsWith(LocalSettingsJsonFileName))
             {
                 var diagnostic = CreateDiagnostic(firstArgument);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        private static bool TryGetStringValue(ExpressionSyntax argument, SyntaxNodeAnalysisContext context, out string value)
+        
+        
+        private static string GetValue(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
             if (argument is LiteralExpressionSyntax literal)
             {
-                value = literal.Token.ValueText;
-                return true;
+                return literal.Token.ValueText;
             }
             
             var constantValue = context.SemanticModel.GetConstantValue(argument);
             if (constantValue.HasValue)
             {
-                value = constantValue.Value.ToString();
-                return true;
+                return constantValue.Value.ToString();
             }
 
-            value = null;
-            
             if (argument is not IdentifierNameSyntax identifier)
             {
-                return false;
+                return null;
             }
 
-            var dataFlow = context.SemanticModel.AnalyzeDataFlow(context.Node);
-            if (!dataFlow.Succeeded)
+            var innerDataFlow = context.SemanticModel.AnalyzeDataFlow(context.Node);
+            if (!innerDataFlow.Succeeded)
             {
-                return false;
+                return null;
             }
             
             var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
             
-            value = dataFlow.DataFlowsIn
+            return innerDataFlow.DataFlowsIn
                 .Where(symbol => SymbolEqualityComparer.Default.Equals(symbol, identifierSymbol))
                 .SelectMany(symbol => symbol.DeclaringSyntaxReferences)
                 .Select(reference => reference.GetSyntax(context.CancellationToken))
                 .OfType<VariableDeclaratorSyntax>()
                 .Select(variable => variable.Initializer?.Value)
                 .OfType<LiteralExpressionSyntax>()
-                .FirstOrDefault()?.Token.ValueText;
-
-            return value is not null;
+                .LastOrDefault()?.Token.ValueText;
         }
 
         private static bool IsAddJsonFileMethodWithArguments(

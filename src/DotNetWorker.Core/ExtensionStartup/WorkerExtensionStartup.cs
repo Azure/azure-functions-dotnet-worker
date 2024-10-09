@@ -1,6 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using Microsoft.Extensions.Hosting;
+
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     /// <summary>
@@ -14,5 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Core
         /// </summary>
         /// <param name="applicationBuilder">The IFunctionsWorkerApplicationBuilder instance.</param>
         public abstract void Configure(IFunctionsWorkerApplicationBuilder applicationBuilder);
+
+        public virtual IHostBuilder ConfigureHostBuilder(IHostBuilder hostBuilder)
+        {
+            return hostBuilder;
+        }
     }
 }

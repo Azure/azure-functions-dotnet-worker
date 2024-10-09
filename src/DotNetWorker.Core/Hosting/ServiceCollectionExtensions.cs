@@ -92,7 +92,23 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            var builder = new FunctionsWorkerApplicationBuilder(services);
+            IFunctionsWorkerApplicationBuilder builder = null;
+
+            foreach (var descriptor in services)
+            {
+                if (descriptor.ServiceType == typeof(IFunctionsWorkerApplicationBuilder))
+                {
+                    builder = (IFunctionsWorkerApplicationBuilder)descriptor.ImplementationInstance!;
+                    break;
+                }
+            }
+
+            if (builder == null)
+            {
+                builder = new FunctionsWorkerApplicationBuilder(services);
+                services.AddSingleton<IFunctionsWorkerApplicationBuilder>(builder);
+            }
+
             // Execute startup code from worker extensions if present.
             RunExtensionStartupCode(builder);
 

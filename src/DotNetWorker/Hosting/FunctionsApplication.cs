@@ -2,14 +2,7 @@
 {
     public class FunctionsApplication
     {
-        public static FunctionsApplicationBuilder CreateBuilder(string[] args)
-        {
-            return new FunctionsApplicationBuilder(hostBuilder =>
-            {
-                hostBuilder
-                    .ConfigureDefaults(args)
-                    .ConfigureFunctionsWorkerDefaults();
-            });
-        }
+        public static FunctionsApplicationBuilder CreateBuilder(string[] args) =>
+            new FunctionsApplicationBuilder(args);
     }
 }

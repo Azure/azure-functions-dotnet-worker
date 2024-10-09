@@ -3,7 +3,9 @@
 
 using Microsoft.Extensions.Hosting;
 
-FunctionsApplicationBuilder builder = FunctionsWebApplication.CreateBuilder(args);
+FunctionsApplicationBuilder builder = FunctionsApplication.CreateBuilder(args);
+builder.ConfigureFunctionsWebApplication();
+
 IHost app = builder.Build();
 
 app.Run();

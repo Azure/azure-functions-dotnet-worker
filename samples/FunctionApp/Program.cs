@@ -4,6 +4,7 @@
 using Microsoft.Extensions.Hosting;
 
 FunctionsApplicationBuilder builder = FunctionsApplication.CreateBuilder(args);
+
 IHost app = builder.Build();
 
 app.Run();

@@ -5,4 +5,10 @@
     <SuppressTfmSupportBuildWarnings Condition="'$(TargetFramework)' == 'net5.0'">true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <EngRoot>$(RepoRoot)eng/</EngRoot>
+    <TargetsRoot>$(EngRoot)build/</TargetsRoot>
+  </PropertyGroup>
+
 </Project>

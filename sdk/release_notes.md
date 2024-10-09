@@ -10,6 +10,7 @@
 - Fix inner build failures when central package management is enabled (#2689)
 - Setting _ToolingSuffix for TargetFrameworkVersion v9.0
 - Adding support for SDK container builds with Functions base images
+- Removed the default value for HttpStatusCode in WriteAsJsonAsync (#2720)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

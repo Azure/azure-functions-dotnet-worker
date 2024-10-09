@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task WriteAsJsonAsync_ContentTypeOverload_AppliesParameters()
         {
             FunctionContext context = CreateContext(new NewtonsoftJsonObjectSerializer());
-            var response = CreateResponse(context);
+            var response = CreateResponse(context, HttpStatusCode.Accepted);
 
             var poco = new ResponsePoco
             {
@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             string result = ReadResponseBody(response);
 
             Assert.Equal("application/json", response.Headers.GetValues("content-type").FirstOrDefault());
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Accepted, response.StatusCode);
             Assert.Equal("{\"jsonnetname\":\"Test\",\"jsonnetint\":42}", result);
         }
 
@@ -89,7 +89,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task WriteAsJsonAsync_StatusCodeOverload_AppliesParameters()
         {
             FunctionContext context = CreateContext(new NewtonsoftJsonObjectSerializer());
-            var response = CreateResponse(context);
+            var response = CreateResponse(context, HttpStatusCode.BadRequest);
 
             var poco = new ResponsePoco
             {
@@ -97,7 +97,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 SomeInt = 42
             };
 
-            await HttpResponseDataExtensions.WriteAsJsonAsync(response, poco, HttpStatusCode.BadRequest);
+            await HttpResponseDataExtensions.WriteAsJsonAsync(response, poco);
 
             string result = ReadResponseBody(response);
             
@@ -127,9 +127,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal("{\"jsonnetname\":\"Test\",\"jsonnetint\":42}", result);
         }
 
-        private static TestHttpResponseData CreateResponse(FunctionContext context)
+        private static TestHttpResponseData CreateResponse(FunctionContext context, HttpStatusCode statusCode = HttpStatusCode.OK)
         {
-            var response = new TestHttpResponseData(context, HttpStatusCode.Accepted);
+            var response = new TestHttpResponseData(context, statusCode);
             response.Body = new MemoryStream();
             response.Headers = new HttpHeadersCollection();
             return response;

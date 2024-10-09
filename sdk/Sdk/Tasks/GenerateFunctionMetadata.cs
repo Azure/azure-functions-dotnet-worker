@@ -24,7 +24,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
         [Required]
         public string? OutputPath { get; set; }
 
-        [Required]
         public string? ExtensionsCsProjFilePath { get; set; }
 
         [Required]
@@ -55,11 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
                     extensionsCsProjGenerator.Generate();
                 }
 
-                if (!string.IsNullOrEmpty(OutputPath))
-                {
-                    // Null/empty OutputPath means we do not want to write the metadata, typically when we are one-off generating the extension csproj.
-                    WriteMetadataWithRetry(functions);
-                }
+                WriteMetadataWithRetry(functions);
             }
             catch (FunctionsMetadataGenerationException)
             {

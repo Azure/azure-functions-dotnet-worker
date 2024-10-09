@@ -1,0 +1,11 @@
+<Project>
+    <Target Name="AddWebJobsExtensionInformation" BeforeTargets="CoreCompile" Condition="'@(WebJobsExtension)' != ''">
+        <ItemGroup>
+            <_ExtensionInformationAttribute Include="@(WebJobsExtension->'Microsoft.Azure.Functions.Worker.Extensions.Abstractions.ExtensionInformationAttribute')">
+                <_Parameter1>%(WebJobsExtension.Identity)</_Parameter1>
+                <_Parameter2>%(WebJobsExtension.Version)</_Parameter2>
+            </_ExtensionInformationAttribute>
+            <AssemblyAttribute Include="@(_ExtensionInformationAttribute)" RemoveMetadata="Version" />
+        </ItemGroup>
+    </Target>
+</Project>

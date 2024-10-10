@@ -169,8 +169,15 @@ namespace Microsoft.Extensions.Hosting
                     // Call the provided configuration prior to adding default middleware
                     configure(context, appBuilder);
 
-                    if (context.Properties.TryGetValue(FunctionsApplicationBuilder.SkipDefaultWorkerMiddlewareKey, out var skip) &&
-                        (bool)skip != true)
+                    static bool ShouldSkipDefaultWorkerMiddleware(IDictionary<object, object> props)
+                    {
+                        return props is not null &&
+                            props.TryGetValue(FunctionsApplicationBuilder.SkipDefaultWorkerMiddlewareKey, out var skipObj) &&
+                            skipObj is bool skip &&
+                            skip;
+                    }
+
+                    if (!ShouldSkipDefaultWorkerMiddleware(context.Properties))
                     {
                         // Add default middleware
                         appBuilder.UseDefaultWorkerMiddleware();

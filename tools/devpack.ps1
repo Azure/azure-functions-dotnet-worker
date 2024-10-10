@@ -7,7 +7,9 @@
     $SkipBuildOnPack,
     [Parameter(Mandatory=$false)]
     [string[]]
-    $AdditionalPackArgs = @()
+    $AdditionalPackArgs = @(),
+    [Parameter(Mandatory=$false)]
+    $PackOnly
 )
 
 # Packs the SDK locally, and (by default) updates the Sample to use this package, then builds.
@@ -42,6 +44,13 @@ Write-Host "---Updating project with local SDK pack---"
 Write-Host "Packing Core .NET Worker projects to $localPack"
 & "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:BuildNumber=$buildNumber" $AdditionalPackArgs
 Write-Host
+
+if ($PackOnly -eq $true)
+{
+  Write-Host "Packing only. Done."
+  exit 0
+}
+
 
 Write-Host "Removing SDK package reference in $project"
 & "dotnet" "remove" $project "package" "Microsoft.Azure.Functions.Worker.Sdk"

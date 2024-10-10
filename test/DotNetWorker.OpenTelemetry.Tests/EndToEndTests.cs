@@ -92,6 +92,24 @@ public class EndToEndTests
     }
 
     [Fact]
+    public async Task ContextPropagationWithTriggerInstrumentation()
+    {
+        using var host = InitializeHost();
+        var context = CreateContext(host);
+        using Activity testActivity = new Activity("ASPNetCoreMockActivity");
+        testActivity.Start();
+        await _application.InvokeFunctionAsync(context);
+        var activity = OtelFunctionDefinition.LastActivity;
+               
+        Assert.Equal(activity.Id, testActivity.Id);
+        Assert.Equal(activity.OperationName, testActivity.OperationName);
+        Assert.Equal(activity.SpanId, testActivity.SpanId);
+        Assert.Equal(activity.TraceId, testActivity.TraceId);
+        Assert.Equal(activity.ActivityTraceFlags, testActivity.ActivityTraceFlags);
+        Assert.Equal(activity.TraceStateString, testActivity.TraceStateString);
+    }
+
+    [Fact]
     public void ResourceDetectorLocalDevelopment()
     {
         FunctionsResourceDetector detector = new FunctionsResourceDetector();

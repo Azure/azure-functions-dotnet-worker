@@ -17,14 +17,14 @@
     <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
         <MakeDir Directories="$(_ExtensionValidationLocation)" />
         <WriteLinesToFile
-        File="$(_ExtensionValidationLocation)ExtensionValidation.csproj"
-        Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
-            .Replace('$PackageName$', '%(WebJobsExtension.Identity)')
-            .Replace('$PackageVersion$', '%(WebJobsExtension.Version)'))"
-        Overwrite="true" />
+            File="$(_ExtensionValidationLocation)ExtensionValidation.csproj"
+            Lines="$([System.IO.File]::ReadAllText($(_ExtensionProjectTemplate))
+                .Replace('$PackageName$', '%(WebJobsExtension.Identity)')
+                .Replace('$PackageVersion$', '%(WebJobsExtension.Version)'))"
+            Overwrite="true" />
     </Target>
 
-    <Target Name="BuildGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
+    <Target Name="RestoreGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
         <MSBuild Projects="$(_ExtensionValidationLocation)ExtensionValidation.csproj" Targets="Restore" />
     </Target>
 </Project>

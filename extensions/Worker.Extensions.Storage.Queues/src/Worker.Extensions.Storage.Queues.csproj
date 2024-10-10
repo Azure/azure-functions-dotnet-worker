@@ -27,4 +27,8 @@
     <SharedReference Include="..\..\Worker.Extensions.Shared\Worker.Extensions.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.1" />
+  </ItemGroup>
+
 </Project>

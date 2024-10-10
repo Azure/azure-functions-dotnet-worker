@@ -24,8 +24,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsGenerateExtensionProject Condition="'$(FunctionsGenerateExtensionProject)' == ''">true</FunctionsGenerateExtensionProject>
     <_FunctionsExtensionsDirectory>.azurefunctions</_FunctionsExtensionsDirectory>
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
-    <_FunctionsWorkerConfigInputFile>$(MSBuildThisFileDirectory)\..\tools\worker.config.json</_FunctionsWorkerConfigInputFile>
-    <_FunctionsMetadataLoaderExtensionFile>$(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll</_FunctionsMetadataLoaderExtensionFile>
+    <_FunctionsWorkerConfigInputFile>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)\..\tools\worker.config.json))</_FunctionsWorkerConfigInputFile>
+    <_FunctionsMetadataLoaderExtensionFile>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)\..\tools\netstandard2.0\Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll))</_FunctionsMetadataLoaderExtensionFile>
     <_FunctionsExtensionCommonProps>ImportDirectoryBuildProps=false;ImportDirectoryBuildTargets=false;ImportDirectoryPackagesProps=false</_FunctionsExtensionCommonProps>
     <_FunctionsExtensionRemoveProps>TargetFramework;RuntimeIdentifier;SelfContained;PublishSingleFile;PublishReadyToRun;UseCurrentRuntimeIdentifier;WebPublishMethod;PublishProfile;DeployOnBuild;PublishDir</_FunctionsExtensionRemoveProps>
   </PropertyGroup>

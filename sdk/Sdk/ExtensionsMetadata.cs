@@ -9,6 +9,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
     public class ExtensionsMetadata
     {
         [JsonPropertyName("extensions")]
-        public List<ExtensionReference> Extensions { get; } = new List<ExtensionReference>();
+        public List<ExtensionReference> Extensions { get; set; } = new List<ExtensionReference>();
     }
 }

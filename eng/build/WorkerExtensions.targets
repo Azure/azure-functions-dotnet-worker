@@ -14,7 +14,7 @@
         </ItemGroup>
     </Target>
 
-    <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != ''">
+    <Target Name="GenerateExtensionProject" AfterTargets="Compile" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
         <MakeDir Directories="$(_ExtensionValidationLocation)" />
         <WriteLinesToFile
         File="$(_ExtensionValidationLocation)ExtensionValidation.csproj"
@@ -24,7 +24,7 @@
         Overwrite="true" />
     </Target>
 
-    <Target Name="BuildGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != ''">
+    <Target Name="BuildGeneratedExtensionProject" AfterTargets="GenerateExtensionProject" Condition="'@(WebJobsExtension)' != '' and '$(ContinuousIntegrationBuild)' == 'true'">
         <MSBuild Projects="$(_ExtensionValidationLocation)ExtensionValidation.csproj" Targets="Restore" />
     </Target>
 </Project>

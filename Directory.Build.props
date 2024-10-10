@@ -11,4 +11,8 @@
     <TargetsRoot>$(EngRoot)build/</TargetsRoot>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TF_BUILD)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
+  </PropertyGroup>
+
 </Project>

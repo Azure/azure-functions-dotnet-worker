@@ -4,14 +4,12 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 1.18.0
+### Microsoft.Azure.Functions.Worker.Sdk 1.18.1
 
-- Fix incorrect function version in build message (#2606)
-- Fix inner build failures when central package management is enabled (#2689)
-- Add support to publish a Function App (Flex Consumption) with `ZipDeploy` (#2712)
-  - Add `'UseBlobContainerDeploy'` property to identify when to use `OneDeploy` publish API endpoint (`"<publish_url>/api/publish"`)
-  - Enhance `ZipDeploy` deployment status logging by appending the `'status_message'` (when defined) to the output messages
+- Updated `Microsoft.Azure.Functions.Worker.Sdk.Generators` reference to 1.3.4.
 
-### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.4
+
+- Changed `FunctionExecutorGenerator` to avoid generation of long `if`/`else` chains for apps with a large number of functions.
 
 - <entry>

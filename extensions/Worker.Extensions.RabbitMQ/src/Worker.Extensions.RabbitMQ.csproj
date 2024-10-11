@@ -18,4 +18,8 @@
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.RabbitMQ" Version="2.0.3" />
+  </ItemGroup>
+
 </Project>

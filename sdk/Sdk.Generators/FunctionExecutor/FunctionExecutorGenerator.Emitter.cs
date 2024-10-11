@@ -143,26 +143,24 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             {
                 var sb = new StringBuilder();
                 sb.Append(
-                   $$"""
+                   $"""
                 var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
                             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
                             var inputArguments = inputBindingResult.Values;
-                {{(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Environment.NewLine}" : string.Empty)}}
+                {(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Environment.NewLine}" : string.Empty)}
                 """);
-
-                bool first = true;
 
                 foreach (ExecutableFunction function in functions)
                 {
                     var fast = function.Visibility == FunctionMethodVisibility.Public;
                     sb.Append($$"""
 
-                        {{(first ? string.Empty : "else ")}}if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))
+                        if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))
                         {
                            {{(fast ? EmitFastPath(function) : EmitSlowPath())}}
+                            return;
                         }
             """);
-                    first = false;
                 }
 
                 return sb.ToString();
@@ -171,51 +169,53 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private static string EmitFastPath(ExecutableFunction function)
             {
                 var sb = new StringBuilder();
-                int functionParamCounter = 0;
-                var functionParamList = new List<string>();
-                foreach (var argumentTypeName in function.ParameterTypeNames)
-                {
-                    functionParamList.Add($"({argumentTypeName})inputArguments[{functionParamCounter++}]");
-                }
-                var methodParamsStr = string.Join(", ", functionParamList);
-
+               
                 if (!function.IsStatic)
                 {
-                    sb.Append($$"""
-                 var instanceType = types["{{function.ParentFunctionClassName}}"];
-                                var i = _functionActivator.CreateInstance(instanceType, context) as {{function.ParentFunctionFullyQualifiedClassName}};
-                """);
+                    sb.Append($"""
+                                 var instanceType = types["{function.ParentFunctionClassName}"];
+                                                var i = _functionActivator.CreateInstance(instanceType, context) as {function.ParentFunctionFullyQualifiedClassName};
+                                """);
                 }
 
-                if (!function.IsStatic)
-                {
-                    sb.Append(@"
-                ");
-                }
-                else
-                {
-                    sb.Append(" ");
-                }
+                sb.Append(!function.IsStatic
+                    ? """
+                      
+                                      
+                      """
+                    : " ");
 
                 if (function.IsReturnValueAssignable)
                 {
                     sb.Append("context.GetInvocationResult().Value = ");
                 }
+
                 if (function.ShouldAwait)
                 {
                     sb.Append("await ");
                 }
 
+                // Parameters
+                int functionParamCounter = 0;
+                var functionParamList = new List<string>();
+
+                foreach (var argumentTypeName in function.ParameterTypeNames)
+                {
+                    functionParamList.Add($"({argumentTypeName})inputArguments[{functionParamCounter++}]");
+                }
+
+                var methodParamsStr = string.Join(", ", functionParamList);
+
                 sb.Append(function.IsStatic
                     ? $"{function.ParentFunctionFullyQualifiedClassName}.{function.MethodName}({methodParamsStr});"
                     : $"i.{function.MethodName}({methodParamsStr});");
+
                 return sb.ToString();
             }
 
             private static string EmitSlowPath()
             {
-                return
-                    " await _defaultExecutor.Value.ExecuteAsync(context);";
+                return " await _defaultExecutor.Value.ExecuteAsync(context);";
             }
         }
     }

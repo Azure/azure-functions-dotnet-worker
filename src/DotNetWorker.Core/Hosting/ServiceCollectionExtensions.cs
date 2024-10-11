@@ -93,7 +93,25 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            var builder = new FunctionsWorkerApplicationBuilder(services);
+            IFunctionsWorkerApplicationBuilder builder = null!;
+
+            // We want to ensure that if this is called multiple times, we use the same builder,
+            // so we stash in the IServiceCollection for future calls to check.
+            foreach (var descriptor in services)
+            {
+                if (descriptor.ServiceType == typeof(IFunctionsWorkerApplicationBuilder))
+                {
+                    builder = (IFunctionsWorkerApplicationBuilder)descriptor.ImplementationInstance!;
+                    break;
+                }
+            }
+
+            if (builder is null)
+            {
+                builder = new FunctionsWorkerApplicationBuilder(services);
+                services.AddSingleton<IFunctionsWorkerApplicationBuilder>(builder);
+            }
+
             // Execute startup code from worker extensions if present.
             RunExtensionStartupCode(builder);
 

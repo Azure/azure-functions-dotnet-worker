@@ -46,7 +46,7 @@ jobs:
       command: test
       arguments: -v n
       projects: |
-        **\DotNetWorker.ApplicationInsights.Tests.csproj
+        **\Worker.ApplicationInsights.Tests.csproj
 
   - task: DotNetCoreCLI@2
     displayName: Sdk Tests
@@ -56,7 +56,7 @@ jobs:
       projects: |
         **\SdkTests.csproj
         **\Sdk.Analyzers.Tests.csproj
-        **\Sdk.Generatior.Tests.csproj
+        **\Sdk.Generator.Tests.csproj
 
   - task: DotNetCoreCLI@2
     displayName: Extension Tests

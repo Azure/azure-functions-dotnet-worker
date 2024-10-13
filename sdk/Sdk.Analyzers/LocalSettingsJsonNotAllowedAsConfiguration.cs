@@ -50,6 +50,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         
         // This method ensures that the analyzer doesn't check more than it should.
         // It looks for the literal values of the argument, from the easiest to hardest to find.
+        // Current order: literal -> constant -> declaration -> assignment in containing method.
         private static IEnumerable<string> FindLiterals(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
             if (argument is LiteralExpressionSyntax literal)

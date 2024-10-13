@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -42,29 +41,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 return;
             }
 
-            if (TraverseLiterals(firstArgument, context).Any(IsLocalSettingsJson))
+            if (FindLiterals(firstArgument, context).Any(IsPathToLocalSettingsJson))
             {
                 var diagnostic = CreateDiagnostic(firstArgument);
                 context.ReportDiagnostic(diagnostic);
             }
         }
-
-        private static bool IsLocalSettingsJson(string literal)
-        {
-            return Path.GetFileName(literal) == LocalSettingsJsonFileName;
-        }
-
-        private static IEnumerable<string> TraverseLiterals(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
+        
+        // This method ensures that the analyzer doesn't check more than it should.
+        // It looks for the literal values of the argument, from the easiest to hardest to find.
+        private static IEnumerable<string> FindLiterals(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
             if (argument is LiteralExpressionSyntax literal)
             {
                 yield return literal.Token.ValueText;
+                yield break; // no need to check further
             }
             
             var constant = context.SemanticModel.GetConstantValue(argument);
             if (constant.HasValue)
             {
                 yield return constant.Value.ToString();
+                yield break; // no need to check further
             }
 
             if (argument is not IdentifierNameSyntax identifier)
@@ -84,20 +82,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 .Select(variable => variable.Initializer?.Value)
                 .OfType<LiteralExpressionSyntax>();
 
+            // usually there should be only 1 declaration but better safe than sorry
             foreach (var declarationLiteral in declarationLiterals)
             {
                 yield return declarationLiteral.Token.ValueText;
             }
 
-            // Limit the scope of assignments to check
-            var containingMethod = argument.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
-            if (containingMethod == null)
+            // let's check assignments in the containing method
+            var containingMethod = argument.Ancestors()
+                .OfType<MethodDeclarationSyntax>()
+                .FirstOrDefault();
+            
+            if (containingMethod is null)
             {
                 yield break;
             }
 
-            var assignmentsInContainingMethod = containingMethod
-                .DescendantNodes()
+            var assignmentsInContainingMethod = containingMethod.DescendantNodes()
                 .OfType<AssignmentExpressionSyntax>()
                 .Where(assignment => assignment.SpanStart < argument.SpanStart);
 
@@ -124,6 +125,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         private static bool IsOfStringType(ExpressionSyntax expression, SyntaxNodeAnalysisContext context)
         {
             return context.SemanticModel.GetTypeInfo(expression).Type?.SpecialType == SpecialType.System_String;
+        }
+        
+        private static bool IsPathToLocalSettingsJson(string literal)
+        {
+            return Path.GetFileName(literal) == LocalSettingsJsonFileName;
         }
         
         private static Diagnostic CreateDiagnostic(ExpressionSyntax expression)

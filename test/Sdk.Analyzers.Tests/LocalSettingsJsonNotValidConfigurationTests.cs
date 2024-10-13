@@ -385,5 +385,41 @@ public class LocalSettingsJsonNotValidConfigurationTests
         }.RunAsync();
     }
     
-    // todo - static const variable
+    [Fact]
+    public async Task StaticReadonlyLocalSettingsJsonCanBeDetected()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = _referenceAssemblies,
+    
+            TestCode = """
+                       using Microsoft.Extensions.Hosting;
+                       using Microsoft.Extensions.Configuration;
+                       
+                       public static class Program
+                       {
+                           private static readonly string _settingsFile = "local.settings.json";
+                           
+                           public static void Main()
+                           {
+                               var host = new HostBuilder()
+                                   .ConfigureFunctionsWorkerDefaults()
+                                   .ConfigureAppConfiguration((context, config) =>
+                                   {
+                                       config.AddJsonFile(_settingsFile); // Should trigger a warning
+                                   })
+                                   .Build();
+                                                      
+                               host.Run();
+                           }
+                       }
+                       """,
+            
+            ExpectedDiagnostics = {
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(14, 36, 14, 49)
+            }
+        }.RunAsync();
+    }
 }

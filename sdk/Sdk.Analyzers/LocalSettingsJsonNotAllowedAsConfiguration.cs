@@ -42,19 +42,19 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 return;
             }
 
-            foreach (var literal in FindLiterals(firstArgument, context))
+            if (TraverseLiterals(firstArgument, context).Any(IsLocalSettingsJson))
             {
-                if (Path.GetFileName(literal) == LocalSettingsJsonFileName)
-                {
-                    var diagnostic = CreateDiagnostic(firstArgument);
-                    context.ReportDiagnostic(diagnostic);
-                    break;
-                }
+                var diagnostic = CreateDiagnostic(firstArgument);
+                context.ReportDiagnostic(diagnostic);
             }
         }
-        
-        
-        private static IEnumerable<string> FindLiterals(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
+
+        private static bool IsLocalSettingsJson(string literal)
+        {
+            return Path.GetFileName(literal) == LocalSettingsJsonFileName;
+        }
+
+        private static IEnumerable<string> TraverseLiterals(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
             if (argument is LiteralExpressionSyntax literal)
             {
@@ -73,30 +73,41 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             }
             
             var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
+            if (identifierSymbol is null)
+            {
+                yield break;
+            }
             
-            var declarationLiteral = identifierSymbol?.DeclaringSyntaxReferences                
+            var declarationLiterals = identifierSymbol.DeclaringSyntaxReferences
                 .Select(reference => reference.GetSyntax(context.CancellationToken))
                 .OfType<VariableDeclaratorSyntax>()
                 .Select(variable => variable.Initializer?.Value)
-                .OfType<LiteralExpressionSyntax>()
-                .LastOrDefault();
+                .OfType<LiteralExpressionSyntax>();
 
-            if (declarationLiteral is not null)
+            foreach (var declarationLiteral in declarationLiterals)
             {
                 yield return declarationLiteral.Token.ValueText;
             }
-            
-            var root = context.Node.SyntaxTree.GetRoot(context.CancellationToken);
-            foreach (var node in root.DescendantNodes())
+
+            // Limit the scope of assignments to check
+            var containingMethod = argument.Ancestors().OfType<MethodDeclarationSyntax>().FirstOrDefault();
+            if (containingMethod == null)
             {
-                if (node is AssignmentExpressionSyntax assignment)
+                yield break;
+            }
+
+            var assignmentsInContainingMethod = containingMethod
+                .DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .Where(assignment => assignment.SpanStart < argument.SpanStart);
+
+            foreach (var assignment in assignmentsInContainingMethod)
+            {
+                var leftSymbol = context.SemanticModel.GetSymbolInfo(assignment.Left).Symbol;
+                if (SymbolEqualityComparer.Default.Equals(leftSymbol, identifierSymbol)
+                    && assignment.Right is LiteralExpressionSyntax assignmentLiteral)
                 {
-                    var leftSymbol = context.SemanticModel.GetSymbolInfo(assignment.Left).Symbol;
-                    if (SymbolEqualityComparer.Default.Equals(leftSymbol, identifierSymbol) 
-                        && assignment.Right is LiteralExpressionSyntax assignmentLiteral)
-                    {
-                        yield return assignmentLiteral.Token.ValueText;
-                    }
+                    yield return assignmentLiteral.Token.ValueText;
                 }
             }
         }
@@ -114,7 +125,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         {
             return context.SemanticModel.GetTypeInfo(expression).Type?.SpecialType == SpecialType.System_String;
         }
-        
         
         private static Diagnostic CreateDiagnostic(ExpressionSyntax expression)
         {

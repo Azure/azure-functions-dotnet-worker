@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -66,28 +67,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
             {
                 return null;
             }
+            
+            var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
+            var literalFinder = new LastAssignmentLiteralFinder(context.SemanticModel, identifierSymbol);
+            var syntaxTree = (CSharpSyntaxNode)context.Node.SyntaxTree.GetRoot();
+            syntaxTree.Accept(literalFinder);
 
-            var innerDataFlow = context.SemanticModel.AnalyzeDataFlow(context.Node);
-            if (!innerDataFlow.Succeeded)
+            if (literalFinder.LastAssignedLiteralExpression is not null)
+            {
+                // todo - handle situations when local.settings.json is not the last value but still exists
+                return literalFinder.LastAssignedLiteralExpression.Token.ValueText;
+            }
+            
+            // todo - remove dataFlow, you can get declaration from the symbol itself
+            var dataFlow = context.SemanticModel.AnalyzeDataFlow(context.Node);
+            if (!dataFlow.Succeeded)
             {
                 return null;
             }
             
-            var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
-
-            var finder = new AssignmentFinder(context.SemanticModel, identifierSymbol);
-            var syntaxTree = (CSharpSyntaxNode)context.Node.SyntaxTree.GetRoot();
-            syntaxTree.Accept(finder);
-            var assignments = finder.GetAssignments();
-
-            // todo - cleanup
-            if (assignments.Any())
-            {
-                var l = (LiteralExpressionSyntax)assignments.Last().Right;
-                return l.Token.ValueText;
-            }
-            
-            return innerDataFlow.DataFlowsIn
+            return dataFlow.DataFlowsIn
                 .Where(symbol => SymbolEqualityComparer.Default.Equals(symbol, identifierSymbol))
                 .SelectMany(symbol => symbol.DeclaringSyntaxReferences)
                 .Select(reference => reference.GetSyntax(context.CancellationToken))
@@ -119,33 +118,28 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 expression.GetLocation());
         }
         
-        public class AssignmentFinder : CSharpSyntaxWalker
+        private class LastAssignmentLiteralFinder : CSharpSyntaxWalker
         {
             private readonly SemanticModel _semanticModel;
             private readonly ISymbol _symbolToFind;
-            private readonly List<AssignmentExpressionSyntax> _assignments = new();
+            
+            public LiteralExpressionSyntax LastAssignedLiteralExpression { get; private set; }
 
-            public AssignmentFinder(SemanticModel semanticModel, ISymbol symbolToFind)
+            public LastAssignmentLiteralFinder(SemanticModel semanticModel, ISymbol symbolToFind)
             {
-                _semanticModel = semanticModel;
-                _symbolToFind = symbolToFind;
-            }
-
-            public IReadOnlyList<AssignmentExpressionSyntax> GetAssignments()
-            {
-                return _assignments;
+                _semanticModel = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
+                _symbolToFind = symbolToFind ?? throw new ArgumentNullException(nameof(symbolToFind));
             }
 
             public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
             {
                 base.VisitAssignmentExpression(node);
-
-                // Check if the left-hand side matches the symbol we are looking for
                 var leftSymbol = _semanticModel.GetSymbolInfo(node.Left).Symbol;
-
-                if (leftSymbol != null && SymbolEqualityComparer.Default.Equals(leftSymbol, _symbolToFind))
+                
+                if (SymbolEqualityComparer.Default.Equals(leftSymbol, _symbolToFind) 
+                    && node.Right is LiteralExpressionSyntax literal)
                 {
-                    _assignments.Add(node);
+                    LastAssignedLiteralExpression = literal;
                 }
             }
         }

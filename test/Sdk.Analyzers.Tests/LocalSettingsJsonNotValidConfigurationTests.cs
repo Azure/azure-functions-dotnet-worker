@@ -154,7 +154,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
     }
     
     [Fact]
-    public async Task LocalSettingsJsonAsVariableIsCaught()
+    public async Task LocalSettingsJsonInVariableDeclarationIsCaught()
     {
         await new AnalyzerTest
         {
@@ -325,7 +325,7 @@ public class LocalSettingsJsonNotValidConfigurationTests
                                    .ConfigureFunctionsWorkerDefaults()
                                    .ConfigureAppConfiguration((context, config) =>
                                    {
-                                       config.AddJsonFile(fileName); // Should NOT trigger a warning
+                                       config.AddJsonFile(fileName); // Should trigger a warning
                                    })
                                    .Build();
                                
@@ -335,7 +335,52 @@ public class LocalSettingsJsonNotValidConfigurationTests
                        """,
             
             ExpectedDiagnostics = {
-                // no warning expected
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(16, 36, 16, 44)
+            }
+        }.RunAsync();
+    }
+    
+    [Fact]
+    public async Task LocalSettingsJsonCanBeDetectedForBothDeclarationsAndAssignments()
+    {
+        await new AnalyzerTest
+        {
+            ReferenceAssemblies = _referenceAssemblies,
+    
+            TestCode = """
+                       using Microsoft.Extensions.Hosting;
+                       using Microsoft.Extensions.Configuration;
+                       
+                       public static class Program
+                       {
+                           public static void Main()
+                           {
+                               var fileName = "local.settings.json";
+                       
+                               if (false)
+                               {
+                                   fileName = "my.settings.json";
+                               }
+                                                      
+                               var host = new HostBuilder()
+                                   .ConfigureFunctionsWorkerDefaults()
+                                   .ConfigureAppConfiguration((context, config) =>
+                                   {
+                                       config.AddJsonFile(fileName); // Should trigger a warning
+                                   })
+                                   .Build();
+                                                      
+                               host.Run();
+                           }
+                       }
+                       """,
+            
+            ExpectedDiagnostics = {
+                AnalyzerVerifier.Diagnostic()
+                    .WithSeverity(DiagnosticSeverity.Warning)
+                    .WithSpan(19, 36, 19, 44)
             }
         }.RunAsync();
     }

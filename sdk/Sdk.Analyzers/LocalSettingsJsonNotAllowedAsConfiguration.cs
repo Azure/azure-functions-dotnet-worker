@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -30,7 +31,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         private static void AnalyzeInvocation(SyntaxNodeAnalysisContext context)
         {
             var invocation = (InvocationExpressionSyntax)context.Node;
-            if (!IsAddJsonFileMethodWithArguments(invocation, context))
+            if (!IsAddJsonFileMethodWithAtLeastOneArgument(invocation, context))
             {
                 return;
             }
@@ -41,62 +42,66 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 return;
             }
 
-            var argumentValue = GetValue(firstArgument, context);
-            if (argumentValue is not null && argumentValue.EndsWith(LocalSettingsJsonFileName))
+            foreach (var literal in FindLiterals(firstArgument, context))
             {
-                var diagnostic = CreateDiagnostic(firstArgument);
-                context.ReportDiagnostic(diagnostic);
+                if (Path.GetFileName(literal) == LocalSettingsJsonFileName)
+                {
+                    var diagnostic = CreateDiagnostic(firstArgument);
+                    context.ReportDiagnostic(diagnostic);
+                    break;
+                }
             }
         }
         
         
-        private static string GetValue(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
+        private static IEnumerable<string> FindLiterals(ExpressionSyntax argument, SyntaxNodeAnalysisContext context)
         {
             if (argument is LiteralExpressionSyntax literal)
             {
-                return literal.Token.ValueText;
+                yield return literal.Token.ValueText;
             }
             
-            var constantValue = context.SemanticModel.GetConstantValue(argument);
-            if (constantValue.HasValue)
+            var constant = context.SemanticModel.GetConstantValue(argument);
+            if (constant.HasValue)
             {
-                return constantValue.Value.ToString();
+                yield return constant.Value.ToString();
             }
 
             if (argument is not IdentifierNameSyntax identifier)
             {
-                return null;
+                yield break;
             }
             
             var identifierSymbol = context.SemanticModel.GetSymbolInfo(identifier).Symbol;
-            var literalFinder = new LastAssignmentLiteralFinder(context.SemanticModel, identifierSymbol);
-            var syntaxTree = (CSharpSyntaxNode)context.Node.SyntaxTree.GetRoot();
-            syntaxTree.Accept(literalFinder);
-
-            if (literalFinder.LastAssignedLiteralExpression is not null)
-            {
-                // todo - handle situations when local.settings.json is not the last value but still exists
-                return literalFinder.LastAssignedLiteralExpression.Token.ValueText;
-            }
             
-            // todo - remove dataFlow, you can get declaration from the symbol itself
-            var dataFlow = context.SemanticModel.AnalyzeDataFlow(context.Node);
-            if (!dataFlow.Succeeded)
-            {
-                return null;
-            }
-            
-            return dataFlow.DataFlowsIn
-                .Where(symbol => SymbolEqualityComparer.Default.Equals(symbol, identifierSymbol))
-                .SelectMany(symbol => symbol.DeclaringSyntaxReferences)
+            var declarationLiteral = identifierSymbol?.DeclaringSyntaxReferences                
                 .Select(reference => reference.GetSyntax(context.CancellationToken))
                 .OfType<VariableDeclaratorSyntax>()
                 .Select(variable => variable.Initializer?.Value)
                 .OfType<LiteralExpressionSyntax>()
-                .LastOrDefault()?.Token.ValueText;
+                .LastOrDefault();
+
+            if (declarationLiteral is not null)
+            {
+                yield return declarationLiteral.Token.ValueText;
+            }
+            
+            var root = context.Node.SyntaxTree.GetRoot(context.CancellationToken);
+            foreach (var node in root.DescendantNodes())
+            {
+                if (node is AssignmentExpressionSyntax assignment)
+                {
+                    var leftSymbol = context.SemanticModel.GetSymbolInfo(assignment.Left).Symbol;
+                    if (SymbolEqualityComparer.Default.Equals(leftSymbol, identifierSymbol) 
+                        && assignment.Right is LiteralExpressionSyntax assignmentLiteral)
+                    {
+                        yield return assignmentLiteral.Token.ValueText;
+                    }
+                }
+            }
         }
 
-        private static bool IsAddJsonFileMethodWithArguments(
+        private static bool IsAddJsonFileMethodWithAtLeastOneArgument(
             InvocationExpressionSyntax invocation, SyntaxNodeAnalysisContext context)
         {
             return invocation.ArgumentList.Arguments.Count > 0
@@ -117,33 +122,5 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 DiagnosticDescriptors.LocalSettingsJsonNotAllowedAsConfiguration,
                 expression.GetLocation());
         }
-        
-        private class LastAssignmentLiteralFinder : CSharpSyntaxWalker
-        {
-            private readonly SemanticModel _semanticModel;
-            private readonly ISymbol _symbolToFind;
-            
-            public LiteralExpressionSyntax LastAssignedLiteralExpression { get; private set; }
-
-            public LastAssignmentLiteralFinder(SemanticModel semanticModel, ISymbol symbolToFind)
-            {
-                _semanticModel = semanticModel ?? throw new ArgumentNullException(nameof(semanticModel));
-                _symbolToFind = symbolToFind ?? throw new ArgumentNullException(nameof(symbolToFind));
-            }
-
-            public override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
-            {
-                base.VisitAssignmentExpression(node);
-                var leftSymbol = _semanticModel.GetSymbolInfo(node.Left).Symbol;
-                
-                if (SymbolEqualityComparer.Default.Equals(leftSymbol, _symbolToFind) 
-                    && node.Right is LiteralExpressionSyntax literal)
-                {
-                    LastAssignedLiteralExpression = literal;
-                }
-            }
-        }
     }
-    
-    
 }

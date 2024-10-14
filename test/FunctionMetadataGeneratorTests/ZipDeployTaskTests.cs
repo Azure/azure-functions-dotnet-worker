@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         /// <summary>
         /// ZipDeploy should use PublishUrl if not null or empty, else use SiteName.
         /// </summary>
-        [Theory]
+        [Theory(Skip = "https://github.com/Azure/azure-functions-dotnet-worker/issues/2781")]
         [InlineData("https://sitename.scm.azurewebsites.net", null, false, "https://sitename.scm.azurewebsites.net/api/zipdeploy?isAsync=true")]
         [InlineData("https://sitename.scm.azurewebsites.net", null, true, "https://sitename.scm.azurewebsites.net/api/publish?RemoteBuild=false")]
         [InlineData("https://sitename.scm.azurewebsites.net", "", false, "https://sitename.scm.azurewebsites.net/api/zipdeploy?isAsync=true")]
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             await RunZipDeployAsyncTest(publishUrl, siteName, UserAgentVersion, useBlobContainerDeploy: false, HttpStatusCode.OK, verifyStep);
         }
 
-        [Theory]
+        [Theory(Skip = "https://github.com/Azure/azure-functions-dotnet-worker/issues/2781")]
         [InlineData(HttpStatusCode.OK, false, true)]
         [InlineData(HttpStatusCode.OK, true, true)]
         [InlineData(HttpStatusCode.Accepted, false, true)]

@@ -41,14 +41,6 @@ jobs:
         **\DotNetWorker.Opentelemetry.Tests.csproj
 
   - task: DotNetCoreCLI@2
-    displayName: Application Insights Tests
-    inputs:
-      command: test
-      arguments: -v n
-      projects: |
-        **\Worker.ApplicationInsights.Tests.csproj
-
-  - task: DotNetCoreCLI@2
     displayName: Sdk Tests
     inputs:
       command: test

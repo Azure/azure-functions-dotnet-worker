@@ -103,6 +103,8 @@ namespace Microsoft.Azure.Functions.Worker
 
                 throw;
             }
+
+            invokeActivity?.Stop();
             activity?.Stop();
         }
     }

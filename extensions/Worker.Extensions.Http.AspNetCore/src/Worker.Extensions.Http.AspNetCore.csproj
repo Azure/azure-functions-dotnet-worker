@@ -7,7 +7,7 @@
 
     <!--Version information-->
     <VersionPrefix>2.0.0</VersionPrefix>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionSuffix>-preview2</VersionSuffix>
     <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
 
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0-preview2-20241014.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
   </ItemGroup>

@@ -25,7 +25,14 @@ namespace Microsoft.Azure.Functions.Worker
 
         public string RuntimeIdentifier => RuntimeInformation.RuntimeIdentifier;
 #else
-        public int ProcessId => Process.GetCurrentProcess().Id;
+        public int ProcessId
+        {
+            get
+            {
+                using var process = Process.GetCurrentProcess();
+                return process.Id;
+            }
+        }
 
         public string RuntimeIdentifier => "n/a"; // Resolve in netstandard
 #endif

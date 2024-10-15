@@ -35,7 +35,8 @@ internal class StartupHook
 #if NET5_0_OR_GREATER
         int processId = Environment.ProcessId;
 #else
-        int processId = Process.GetCurrentProcess().Id;
+        using var process = Process.GetCurrentProcess();
+        int processId = process.Id;
 #endif
 
         static bool WaitOnDebugger(int cycle)

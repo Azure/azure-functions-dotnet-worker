@@ -31,7 +31,18 @@ namespace Microsoft.Azure.Functions.Worker
 
             ValidateGrpcClient(builder);
             builder.Services.AddOptions<GrpcClientFactoryOptions>(builder.Name)
-                .Configure<IConfiguration>((options, config) => options.Address = config.GetFunctionsHostGrpcUri());
+                .Configure<IConfiguration>((options, config) =>
+                {
+                    options.Address = config.GetFunctionsHostGrpcUri();
+                    if (config.GetFunctionsHostMaxMessageLength() is int length)
+                    {
+                        options.ChannelOptionsActions.Add(o =>
+                        {
+                            o.MaxReceiveMessageSize = length;
+                            o.MaxSendMessageSize = length;
+                        });
+                    }
+                });
 
             return builder;
         }

@@ -11,7 +11,6 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly string _blobPath;
 
         /// <summary>Initializes a new instance of the <see cref="BlobOutputAttribute"/> class.</summary>
-        /// <param name="name">The name of the property to which to bind</param>
         /// <param name="blobPath">The path of the blob to which to bind.</param>
         public BlobOutputAttribute(string blobPath)
         {

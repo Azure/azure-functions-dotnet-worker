@@ -31,14 +31,14 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
-        private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private readonly IFunctionMetadataProviderAggregator _functionMetadataProviderAggregator;
         private IWorkerClient? _workerClient;
 
         public GrpcWorker(IFunctionsApplication application,
                           IWorkerClientFactory workerClientFactory,
                           IMethodInfoLocator methodInfoLocator,
                           IOptions<WorkerOptions> workerOptions,
-                          IFunctionMetadataProvider functionMetadataProvider,
+                          IFunctionMetadataProviderAggregator functionMetadataProviderAggregator,
                           IHostApplicationLifetime hostApplicationLifetime,
                           IInvocationHandler invocationHandler)
         {
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
-            _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
+            _functionMetadataProviderAggregator = functionMetadataProviderAggregator ?? throw new ArgumentNullException(nameof(functionMetadataProviderAggregator));
 
             _invocationHandler = invocationHandler;
         }
@@ -151,7 +151,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
+                var functionMetadataList = await _functionMetadataProviderAggregator.GetFunctionMetadataAsync(functionAppDirectory);
 
                 foreach (var func in functionMetadataList)
                 {
@@ -180,7 +180,7 @@ namespace Microsoft.Azure.Functions.Worker
                         };
                     }
 
-                    // add BindingInfo here instead of in the providers  
+                    // add BindingInfo here instead of in the providers
                     // because we need access to gRPC types in proto-file and source-gen won't have access
                     rpcFuncMetadata.Bindings.Add(func.GetBindingInfoList());
 

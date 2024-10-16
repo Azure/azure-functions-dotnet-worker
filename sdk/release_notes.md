@@ -12,4 +12,6 @@
 
 - Changed `FunctionExecutorGenerator` to avoid generation of long `if`/`else` chains for apps with a large number of functions.
 
+- Use full namespace for `Task.FromResult` in function metadata provider generator to avoid namespace conflict (#2681)
+
 - <entry>

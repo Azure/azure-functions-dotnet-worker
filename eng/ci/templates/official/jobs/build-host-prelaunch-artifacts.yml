@@ -25,5 +25,5 @@ jobs:
         publishWebProjects: false
         zipAfterPublish: false
         modifyOutputPath: false
-        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preLaunchAppPackages/${{ version }} -f ${{ version }} -p:UseAppHost=false
+        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preLaunchAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false
         projects: host/src/PrelaunchApp/App.csproj

@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -113,7 +114,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                 response.Result.Status = StatusResult.Types.Status.Success;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ex.IsFatal())
             {
                 response.Result.Exception = _workerOptions.EnableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
                 response.Result.Status = StatusResult.Types.Status.Failure;

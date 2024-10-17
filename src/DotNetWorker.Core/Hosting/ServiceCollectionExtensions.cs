@@ -27,6 +27,8 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public static class ServiceCollectionExtensions
     {
+        private static bool _defaultConvertersAdded = false;
+
         /// <summary>
         /// Adds the core set of services for the Azure Functions worker.
         /// </summary>
@@ -81,7 +83,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 });
 
-            services.AddSingleton<ILoggerProvider, WorkerLoggerProvider>();
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, WorkerLoggerProvider>());
             services.AddSingleton(NullLogWriter.Instance);
             services.AddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
@@ -123,6 +125,13 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
+            if (_defaultConvertersAdded)
+            {
+                return services;
+            }
+
+            _defaultConvertersAdded = true;
+
             return services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.Register<FunctionContextConverter>();

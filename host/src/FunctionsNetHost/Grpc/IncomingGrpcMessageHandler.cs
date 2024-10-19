@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.IO.Pipes;
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -11,12 +12,12 @@ namespace FunctionsNetHost.Grpc
     {
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
-        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
+        private readonly NetHostRunOptions _netHostRunOptions;
 
-        internal IncomingGrpcMessageHandler(AppLoader appLoader, GrpcWorkerStartupOptions grpcWorkerStartupOptions)
+        internal IncomingGrpcMessageHandler(AppLoader appLoader, NetHostRunOptions netHostRunOptions)
         {
             _appLoader = appLoader;
-            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
+            _netHostRunOptions = netHostRunOptions;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -62,10 +63,13 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
-                    Configuration.Reload();
-                    Logger.LogTrace("Specialization request received.");
-
+                    Logger.Log("Specialization request received.");
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
+                    foreach (var kv in envReloadRequest.EnvironmentVariables)
+                    {
+                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                    }
+                    Configuration.Reload();
 
                     var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
 
@@ -88,19 +92,19 @@ namespace FunctionsNetHost.Grpc
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
                     Logger.LogTrace($"application path {applicationExePath}");
 
-                    foreach (var kv in envReloadRequest.EnvironmentVariables)
+                    if (_netHostRunOptions.IsPreJitSupported)
                     {
-                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                        // Signal so that startup hook load the payload assembly.
+                        await NotifySpecializationOccured(applicationExePath);
+                    }
+                    else
+                    {
+#pragma warning disable CS4014
+                        Task.Run(() => _appLoader.RunApplication(applicationExePath));
+#pragma warning restore CS4014
                     }
 
-#pragma warning disable CS4014
-                    Task.Run(() =>
-#pragma warning restore CS4014
-                    {
-                        _ = _appLoader.RunApplication(applicationExePath);
-                    });
-
-                    Logger.LogTrace($"Will wait for worker loaded signal.");
+                    Logger.LogTrace("Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
 
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
@@ -118,6 +122,25 @@ namespace FunctionsNetHost.Grpc
             if (responseMessage.ContentCase != StreamingMessage.ContentOneofCase.None)
             {
                 await MessageChannel.Instance.SendOutboundAsync(responseMessage);
+            }
+        }
+
+        private static async Task NotifySpecializationOccured(string applicationExePath)
+        {
+            // Startup hook code has opened a named pipe server stream and waiting for a client to connect & send a message.
+            try
+            {
+                using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
+                await pipeClient.ConnectAsync();
+                using var writer = new StreamWriter(pipeClient);
+                writer.WriteLine(applicationExePath);
+                writer.Flush();
+                Logger.LogTrace("Sent application path to named pipe server stream.");
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error connecting to named pipe server. {ex}");
+                throw;
             }
         }
 

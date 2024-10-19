@@ -41,6 +41,7 @@ extends:
 
       jobs:
       - template: /eng/ci/templates/official/jobs/build-host-prelaunch-artifacts.yml@self
+      - template: /eng/ci/templates/official/jobs/build-host-prejit-artifacts.yml@self
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-linux.yml@self
         parameters:
           PoolName: 1es-pool-azfunc

@@ -125,25 +125,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
-            if (_defaultConvertersAdded)
-            {
-                return services;
-            }
-
-            _defaultConvertersAdded = true;
-
-            return services.Configure<WorkerOptions>((workerOption) =>
-            {
-                workerOption.InputConverters.Register<FunctionContextConverter>();
-                workerOption.InputConverters.Register<TypeConverter>();
-                workerOption.InputConverters.Register<GuidConverter>();
-                workerOption.InputConverters.Register<DateTimeConverter>();
-                workerOption.InputConverters.Register<MemoryConverter>();
-                workerOption.InputConverters.Register<StringToByteConverter>();
-                workerOption.InputConverters.Register<JsonPocoConverter>();
-                workerOption.InputConverters.Register<ArrayConverter>();
-                workerOption.InputConverters.Register<CancellationTokenConverter>();
-            });
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<WorkerOptions>, DefaultInputConverterInitializer>());
+            return services;
         }
 
         /// <summary>

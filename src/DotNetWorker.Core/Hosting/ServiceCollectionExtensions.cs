@@ -27,8 +27,6 @@ namespace Microsoft.Extensions.DependencyInjection
     /// </summary>
     public static class ServiceCollectionExtensions
     {
-        private static bool _defaultConvertersAdded = false;
-
         /// <summary>
         /// Adds the core set of services for the Azure Functions worker.
         /// </summary>

@@ -81,7 +81,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 });
 
-            services.AddSingleton<ILoggerProvider, WorkerLoggerProvider>();
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, WorkerLoggerProvider>());
             services.AddSingleton(NullLogWriter.Instance);
             services.AddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
@@ -123,18 +123,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
-            return services.Configure<WorkerOptions>((workerOption) =>
-            {
-                workerOption.InputConverters.Register<FunctionContextConverter>();
-                workerOption.InputConverters.Register<TypeConverter>();
-                workerOption.InputConverters.Register<GuidConverter>();
-                workerOption.InputConverters.Register<DateTimeConverter>();
-                workerOption.InputConverters.Register<MemoryConverter>();
-                workerOption.InputConverters.Register<StringToByteConverter>();
-                workerOption.InputConverters.Register<JsonPocoConverter>();
-                workerOption.InputConverters.Register<ArrayConverter>();
-                workerOption.InputConverters.Register<CancellationTokenConverter>();
-            });
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<WorkerOptions>, DefaultInputConverterInitializer>());
+            return services;
         }
 
         /// <summary>

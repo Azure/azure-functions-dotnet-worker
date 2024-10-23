@@ -10,7 +10,7 @@ namespace AspNetIntegration
         private const string BlobContainer = "runtimes";
 
         // Replace this with your blob name
-        private const string BlobName = "dotnet-sdk-8.0.100-win-x64.exe";
+        private const string BlobName = "dotnet-sdk-8.0.110-win-x64.exe";
 
         [Function("FileDownload")]
         public IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get")] HttpRequest req,

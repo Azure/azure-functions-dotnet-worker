@@ -81,7 +81,7 @@ namespace Microsoft.Extensions.DependencyInjection
                     }
                 });
 
-            services.AddSingleton<ILoggerProvider, WorkerLoggerProvider>();
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, WorkerLoggerProvider>());
             services.AddSingleton(NullLogWriter.Instance);
             services.AddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
@@ -93,7 +93,25 @@ namespace Microsoft.Extensions.DependencyInjection
                 services.Configure(configure);
             }
 
-            var builder = new FunctionsWorkerApplicationBuilder(services);
+            IFunctionsWorkerApplicationBuilder builder = null!;
+
+            // We want to ensure that if this is called multiple times, we use the same builder,
+            // so we stash in the IServiceCollection for future calls to check.
+            foreach (var descriptor in services)
+            {
+                if (descriptor.ServiceType == typeof(IFunctionsWorkerApplicationBuilder))
+                {
+                    builder = (IFunctionsWorkerApplicationBuilder)descriptor.ImplementationInstance!;
+                    break;
+                }
+            }
+
+            if (builder is null)
+            {
+                builder = new FunctionsWorkerApplicationBuilder(services);
+                services.AddSingleton<IFunctionsWorkerApplicationBuilder>(builder);
+            }
+
             // Execute startup code from worker extensions if present.
             RunExtensionStartupCode(builder);
 
@@ -105,18 +123,8 @@ namespace Microsoft.Extensions.DependencyInjection
         /// </summary>
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
-            return services.Configure<WorkerOptions>((workerOption) =>
-            {
-                workerOption.InputConverters.Register<FunctionContextConverter>();
-                workerOption.InputConverters.Register<TypeConverter>();
-                workerOption.InputConverters.Register<GuidConverter>();
-                workerOption.InputConverters.Register<DateTimeConverter>();
-                workerOption.InputConverters.Register<MemoryConverter>();
-                workerOption.InputConverters.Register<StringToByteConverter>();
-                workerOption.InputConverters.Register<JsonPocoConverter>();
-                workerOption.InputConverters.Register<ArrayConverter>();
-                workerOption.InputConverters.Register<CancellationTokenConverter>();
-            });
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<WorkerOptions>, DefaultInputConverterInitializer>());
+            return services;
         }
 
         /// <summary>

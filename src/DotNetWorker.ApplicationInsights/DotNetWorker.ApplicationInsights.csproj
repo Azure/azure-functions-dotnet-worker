@@ -9,7 +9,7 @@
     <MinorProductVersion>0</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <VersionSuffix>-preview3</VersionSuffix>
+    <VersionSuffix>-preview4</VersionSuffix>
     <BeforePack>$(BeforePack);GetReleaseNotes</BeforePack>
   </PropertyGroup>
 

@@ -9,6 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.Metrics;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Microsoft.Azure.Functions.Worker.Builder;
 
@@ -41,6 +42,19 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
 
         _bootstrapHostBuilder
                    .ConfigureDefaults(args)
+                   .ConfigureServices(services =>
+                   {
+                       // The console logger can result in duplicate logging.
+                       foreach (var descriptor in services)
+                       {
+                           if (descriptor.ServiceType == typeof(ILoggerProvider) &&
+                               descriptor.ImplementationType == typeof(ConsoleLoggerProvider))
+                           {
+                               services.Remove(descriptor);
+                               break;
+                           }
+                       }
+                   })
                    .ConfigureFunctionsWorkerDefaults();
 
         _functionsWorkerApplicationBuilder = InitializeHosting(_bootstrapHostBuilder);

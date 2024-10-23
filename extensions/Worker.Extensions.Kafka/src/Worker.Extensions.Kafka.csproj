@@ -1,4 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 
   <PropertyGroup>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Kafka</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Kafka</RootNamespace>
@@ -18,4 +19,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="3.9.0" />
+  </ItemGroup>
+
 </Project>

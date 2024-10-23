@@ -1,8 +1,10 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 #if NETSTANDARD
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Grpc.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,8 +35,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc
 
             public void Configure(FunctionsGrpcOptions options)
             {
+                IEnumerable<ChannelOption> channelOptions = _configuration.GetFunctionsHostMaxMessageLength() switch
+                {
+                    int maxMessageLength => new[]
+                    {
+                        new ChannelOption(ChannelOptions.MaxReceiveMessageLength, maxMessageLength),
+                        new ChannelOption(ChannelOptions.MaxSendMessageLength, maxMessageLength),
+                    },
+                    _ => Enumerable.Empty<ChannelOption>(),
+                };
+
                 Uri address = _configuration.GetFunctionsHostGrpcUri();
-                Channel c = new Channel(address.Host, address.Port, ChannelCredentials.Insecure);
+                Channel c = new Channel(address.Host, address.Port, ChannelCredentials.Insecure, channelOptions);
                 options.CallInvoker = c.CreateCallInvoker();
             }
         }

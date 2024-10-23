@@ -166,7 +166,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function5);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -307,7 +307,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function4);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 

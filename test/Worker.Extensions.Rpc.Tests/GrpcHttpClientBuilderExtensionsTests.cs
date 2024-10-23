@@ -4,6 +4,7 @@
 #if NET6_0_OR_GREATER
 
 using Grpc.Core;
+using Grpc.Net.Client;
 using Grpc.Net.ClientFactory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +24,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
         public void ConfigureForFunctionsHostGrpc_SetsUri()
             => ConfigureForFunctionsHostGrpc(s => s.AddGrpcClient<CallInvokerExtractor>());
 
-        private void ConfigureForFunctionsHostGrpc(Func<IServiceCollection, IHttpClientBuilder> configure)
+        [Fact]
+        public void ConfigureForFunctionsHostGrpc_SetsMessageSize()
+            => ConfigureForFunctionsHostGrpc(s => s.AddGrpcClient<CallInvokerExtractor>(), Random.Shared.Next(4098, 10000));
+
+        private void ConfigureForFunctionsHostGrpc(Func<IServiceCollection, IHttpClientBuilder> configure, int? maxMessageLength = null)
         {
             int port = 21584; // random enough.
             ConfigurationBuilder configBuilder = new();
@@ -31,6 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
             {
                 ["HOST"] = "localhost",
                 ["PORT"] = port.ToString(),
+                ["grpcMaxMessageLength"] = maxMessageLength?.ToString(),
             });
 
             ServiceCollection services = new();
@@ -55,10 +61,22 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc.Tests
             Assert.NotNull(extractor.CallInvoker);
 
             IOptionsMonitor<GrpcClientFactoryOptions> monitor = sp.GetService<IOptionsMonitor<GrpcClientFactoryOptions>>();
-            GrpcClientFactoryOptions options = monitor.Get(builder.Name);
+            GrpcClientFactoryOptions factoryOptions = monitor.Get(builder.Name);
 
-            Assert.Equal(new Uri($"http://localhost:{port}"), options.Address);
+            Assert.Equal(new Uri($"http://localhost:{port}"), factoryOptions.Address);
             Assert.Null(handler);
+
+            if (maxMessageLength is int expectedLength)
+            {
+                GrpcChannelOptions channelOptions = new();
+                foreach (Action<GrpcChannelOptions> action in factoryOptions.ChannelOptionsActions)
+                {
+                    action(channelOptions);
+                }
+
+                Assert.Equal(expectedLength, channelOptions.MaxReceiveMessageSize);
+                Assert.Equal(expectedLength, channelOptions.MaxSendMessageSize);
+            }
         }
 
         private class CallInvokerExtractor

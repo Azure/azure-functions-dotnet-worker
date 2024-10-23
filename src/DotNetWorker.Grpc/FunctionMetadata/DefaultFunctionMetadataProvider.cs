@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
 namespace Microsoft.Azure.Functions.Worker
 {
+    [DefaultMetadataProvider]
     internal class DefaultFunctionMetadataProvider : IFunctionMetadataProvider
     {
         private const string FileName = "functions.metadata";

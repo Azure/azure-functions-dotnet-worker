@@ -11,7 +11,7 @@
     <MajorProductVersion>2</MajorProductVersion>
     <MinorProductVersion>0</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix>-preview4</VersionSuffix>
+    <VersionSuffix>-preview5</VersionSuffix>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 

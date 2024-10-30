@@ -110,10 +110,11 @@ namespace Microsoft.Extensions.DependencyInjection
             {
                 builder = new FunctionsWorkerApplicationBuilder(services);
                 services.AddSingleton<IFunctionsWorkerApplicationBuilder>(builder);
-            }
 
-            // Execute startup code from worker extensions if present.
-            RunExtensionStartupCode(builder);
+                // Execute startup code from worker extensions if present
+                // Only run it once when builder is first added.
+                RunExtensionStartupCode(builder);
+            }
 
             return builder;
         }

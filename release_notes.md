@@ -13,7 +13,9 @@
 ### Microsoft.Azure.Functions.Worker.Core 1.19.0
 
 - Updating `Azure.Core` to 1.41.0
+- Updated service registrations for bootstrapping methods to ensure idempotency.
 
 ### Microsoft.Azure.Functions.Worker.Grpc 1.17.0
 
 - Updating `Azure.Core` to 1.41.0
+- Updated service registrations for bootstrapping methods to ensure idempotency.

@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public override void Append(string name, string value)
         {
-            // CodeQL [SM02373] suppressing because setting `cookie.Secure = true` doesn't ensure that the cookie is "always" secure. Overriding this behavior could also break the customers.
+            // CodeQL [SM02373] We are honouring a preexisting cookie and cannot guarantee that `cookie.Secure` will always be true. It would cause issues and break customers for us to override this behavior.
             _httpResponse.Cookies.Append(name, value);
         }
 
@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 Secure = cookie.Secure ?? false
             };
 
-            // CodeQL [SM02373] suppressing because setting `cookie.Secure = true` doesn't ensure that the cookie is "always" secure. Overriding this behavior could also break the customers.
+            // CodeQL [SM02373] We are honouring a preexisting cookie and cannot guarantee that `cookie.Secure` will always be true. It would cause issues and break customers for us to override this behavior.
             _httpResponse.Cookies.Append(cookie.Name, cookie.Value, cookieOptions);
         }
 

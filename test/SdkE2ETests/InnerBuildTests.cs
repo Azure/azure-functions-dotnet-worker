@@ -35,7 +35,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
   ""extensions"": [
     {
       ""name"": ""SqlDurabilityProvider"",
-      ""typeName"": ""DurableTask.SqlServer.AzureFunctions.SqlDurabilityProviderStartup, DurableTask.SqlServer.AzureFunctions, Version=1.3.0.0, Culture=neutral, PublicKeyToken=2ea3c3a96309d850"",
+      ""typeName"": ""DurableTask.SqlServer.AzureFunctions.SqlDurabilityProviderStartup, DurableTask.SqlServer.AzureFunctions, Version=1.4.0.0, Culture=neutral, PublicKeyToken=2ea3c3a96309d850"",
       ""hintPath"": ""./.azurefunctions/DurableTask.SqlServer.AzureFunctions.dll""
     },
     {

@@ -74,7 +74,7 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
     public ConfigurationManager Configuration => _hostApplicationBuilder.Configuration;
 
     /// <inheritdoc/>
-    public IHostEnvironment Environment { get; private set; }
+    public IHostEnvironment Environment => _hostApplicationBuilder.Environment;
 
     /// <inheritdoc/>
     public ILoggingBuilder Logging => _hostApplicationBuilder.Logging;

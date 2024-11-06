@@ -63,18 +63,14 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
     /// <inheritdoc/>
     public IDictionary<object, object> Properties => ((IHostApplicationBuilder)_hostApplicationBuilder).Properties;
 
+    /// <inheritdoc/>
     IConfigurationManager IHostApplicationBuilder.Configuration => Configuration;
 
-    /// <summary>
-    /// Gets the set of key/value configuration properties.
-    /// </summary>
-    /// <remarks>
-    /// This can be mutated by adding more configuration sources, which will update its current view.
-    /// </remarks>
+    /// <inheritdoc/>
     public ConfigurationManager Configuration => _hostApplicationBuilder.Configuration;
 
     /// <inheritdoc/>
-    public IHostEnvironment Environment => _hostApplicationBuilder.Environment;
+    public IHostEnvironment Environment => _bootstrapHostBuilder.Context.HostingEnvironment;
 
     /// <inheritdoc/>
     public ILoggingBuilder Logging => _hostApplicationBuilder.Logging;
@@ -134,7 +130,6 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
         // Grab the HostBuilderContext from the property bag to use in the ConfigureWebHostBuilder. Then
         // grab the IWebHostEnvironment from the webHostContext. This also matches the instance in the IServiceCollection.
         //var hostContext = (HostBuilderContext)bootstrapHostBuilder.Properties[typeof(HostBuilderContext)];
-        Environment = bootstrapHostBuilder.Context.HostingEnvironment;
 
         //Host = new ConfigureHostBuilder(bootstrapHostBuilder.Context, Configuration, Services);
         //WebHost = new ConfigureWebHostBuilder(webHostContext, Configuration, Services);

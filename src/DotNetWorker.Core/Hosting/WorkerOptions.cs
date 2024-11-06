@@ -25,6 +25,12 @@ namespace Microsoft.Azure.Functions.Worker
         public InputConverterCollection InputConverters { get; } = new InputConverterCollection();
 
         /// <summary>
+        /// Gets the internal options.
+        /// </summary>
+        [Obsolete("This property is for internal use only and not expected to be called by user code.")]
+        public InternalOptions Internal { get; } = new InternalOptions();
+
+        /// <summary>
         /// Gets the optional worker capabilities.
         /// </summary>
         public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>()
@@ -80,6 +86,17 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 Capabilities.Remove(name);
             }
+        }
+
+        /// <summary>
+        /// Options for internal configurations. Typically not expected to be set by users.
+        /// </summary>
+        public class InternalOptions
+        {
+            /// <summary>
+            /// Gets or sets a value indicating whether to disable providing default function metadata (from functions.metadata).
+            /// </summary>
+            public bool DisableDefaultFunctionMetadata { get; set; }
         }
     }
 }

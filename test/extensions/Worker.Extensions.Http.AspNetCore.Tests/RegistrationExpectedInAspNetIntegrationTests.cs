@@ -1,7 +1,7 @@
-﻿using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration>;
-using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+﻿using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.RegistrationExpectedInASPNetIntegration, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForRegistrationInASPNetCoreIntegration, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;

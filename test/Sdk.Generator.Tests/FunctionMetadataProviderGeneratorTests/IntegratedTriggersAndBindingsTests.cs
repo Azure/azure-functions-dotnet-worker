@@ -192,7 +192,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             [Theory]
             [InlineData(LanguageVersion.Latest)]
-            public async void FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
+            public async Task FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -565,7 +565,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async void FunctionWithTaskReturnType()
+            public async Task FunctionWithTaskReturnType()
             {
                 string inputCode = """
                 using System;
@@ -660,7 +660,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async void FunctionWithGenericTaskReturnType()
+            public async Task FunctionWithGenericTaskReturnType()
             {
                 string inputCode = """
                 using System;
@@ -893,7 +893,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void HttpTriggerVoidOrTaskReturnType(LanguageVersion languageVersion)
+            public async Task HttpTriggerVoidOrTaskReturnType(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;

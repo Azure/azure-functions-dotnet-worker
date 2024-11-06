@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
+using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -25,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_Populates_ParametersUsingConverters()
+        public async Task BindFunctionInputAsync_Populates_ParametersUsingConverters()
         {
             // Arrange
             var parameters = new List<FunctionParameter>()
@@ -62,7 +63,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_IgnoreCancellationToken()
+        public async Task BindFunctionInputAsync_IgnoreCancellationToken()
         {
             // Arrange
             var parameters = new List<FunctionParameter>()
@@ -106,7 +107,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_Populates_Parameter_Using_DefaultValue_When_CouldNot_Populate_From_InputData()
+        public async Task BindFunctionInputAsync_Populates_Parameter_Using_DefaultValue_When_CouldNot_Populate_From_InputData()
         {
             var features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
             var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
@@ -144,7 +145,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_Populates_Parameter_For_Nullable_Or_ReferenceTypes()
+        public async Task BindFunctionInputAsync_Populates_Parameter_For_Nullable_Or_ReferenceTypes()
         {
             var features = new InvocationFeatures(Enumerable.Empty<IInvocationFeatureProvider>());
             var httpFunctionDefinition = new TestFunctionDefinition(parameters: new FunctionParameter[]
@@ -188,7 +189,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_Throws_When_Explicit_OptionalParametersValueNotPresent()
+        public async Task BindFunctionInputAsync_Throws_When_Explicit_OptionalParametersValueNotPresent()
         {
             // 'fooId' is a parameter defined for the function without a default value
             // and 'InputData' does not have a corresponding entry for that we could use to populate that parameter.
@@ -220,7 +221,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         [Fact]
-        public async void BindFunctionInputAsync_Returns_Cached_Value_When_Called_SecondTime()
+        public async Task BindFunctionInputAsync_Returns_Cached_Value_When_Called_SecondTime()
         {
             // Arrange
             var parameters = new List<FunctionParameter>()
@@ -263,7 +264,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         /// returns the parameter values array for the function definition.
         /// </summary>
         [Fact]
-        public async void BindFunctionInputAsync_Populates_ParametersUsingCachedData()
+        public async Task BindFunctionInputAsync_Populates_ParametersUsingCachedData()
         {
             // Arrange
             var parameters = new List<FunctionParameter>()

@@ -1,6 +1,6 @@
 ﻿using Xunit;
-using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using Verify = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using Verify = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.WebJobsAttributesNotSupported, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;

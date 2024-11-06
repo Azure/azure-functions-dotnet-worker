@@ -146,7 +146,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
+            public async Task BasicHttpFunctionWithNoResponse(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -248,7 +248,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void ReturnTypeJustHttp(LanguageVersion languageVersion)
+            public async Task ReturnTypeJustHttp(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -361,7 +361,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void NonStaticVoidOrTaskReturnType(LanguageVersion languageVersion)
+            public async Task NonStaticVoidOrTaskReturnType(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyInjection;
@@ -50,7 +51,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void TestQueueTriggerAndOutput(LanguageVersion languageVersion)
+            public async Task TestQueueTriggerAndOutput(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System.Collections.Generic;
@@ -154,7 +155,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void TestBlobAndQueueInputsAndOutputs(LanguageVersion languageVersion)
+            public async Task TestBlobAndQueueInputsAndOutputs(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -302,7 +303,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void TestQueueOutputWithHttpTrigger(LanguageVersion languageVersion)
+            public async Task TestQueueOutputWithHttpTrigger(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;

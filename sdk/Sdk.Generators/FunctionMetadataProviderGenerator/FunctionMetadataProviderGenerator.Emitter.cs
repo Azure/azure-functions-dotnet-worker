@@ -58,6 +58,7 @@ namespace {{FunctionsUtil.GetNamespaceForGeneratedCode(context)}}
         public global::System.Collections.Generic.IReadOnlyList<IFunctionMetadata> Metadata { get; }
 
         /// <inheritdoc/>
+        [global::System.Runtime.ObsoleteAttribute("IFunctionMetadataProvider.GetFunctionMetadataAsync is no longer used for function indexing with this class. Use IFunctionMetadataSource.Metadata instead.")]
         public global::System.Threading.Tasks.Task<global::System.Collections.Immutable.ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
         {
             return global::System.Threading.Tasks.Task.FromResult(global::System.Collections.Immutable.ImmutableArray.CreateRange(Metadata));

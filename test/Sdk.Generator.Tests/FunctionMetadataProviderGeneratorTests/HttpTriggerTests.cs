@@ -260,15 +260,15 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 {
                     public class HttpTriggerSimple
                     {
-                        [Function("JustHtt")]
-                        public JustHttp Justhtt([HttpTrigger("get")] string req)
+                        [Function("JustHttp")]
+                        public JustHttpResponse JustHttp([HttpTrigger("get")] string req)
                         {
                             throw new NotImplementedException();
                         }
 
-                        public class JustHttp
+                        public class JustHttpResponse
                         {
-                            public HttpResponseData httpResponseProp { get; set; }
+                            public HttpResponseData HttpResponseProp { get; set; }
                         }
                     }
                 }
@@ -303,13 +303,13 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
                             Function0RawBindings.Add(@"{""name"":""req"",""type"":""httpTrigger"",""direction"":""In"",""methods"":[""get""],""dataType"":""String""}");
-                            Function0RawBindings.Add(@"{""name"":""httpResponseProp"",""type"":""http"",""direction"":""Out""}");
+                            Function0RawBindings.Add(@"{""name"":""HttpResponseProp"",""type"":""http"",""direction"":""Out""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "JustHtt",
-                                EntryPoint = "Foo.HttpTriggerSimple.Justhtt",
+                                Name = "JustHttp",
+                                EntryPoint = "Foo.HttpTriggerSimple.JustHttp",
                                 RawBindings = Function0RawBindings,
                                 ScriptFile = "TestProject.dll"
                             };

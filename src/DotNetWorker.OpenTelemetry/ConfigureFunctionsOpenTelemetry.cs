@@ -9,7 +9,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 {
     public static class ConfigureFunctionsOpenTelemetry
     {   
-        public static OpenTelemetryBuilder UseFunctionsWorkerDefaults(this OpenTelemetryBuilder builder)
+        public static IOpenTelemetryBuilder UseFunctionsWorkerDefaults(this IOpenTelemetryBuilder builder)
         {
             if (builder is null)
             {
@@ -17,13 +17,14 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
             }
 
             builder.Services
-                // Lets the host know that the worker is sending logs to App Insights. The host will now ignore these.
+                // Tells the host to no longer emit telemetry on behalf of the worker.
                 .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerOpenTelemetryEnabled"] = bool.TrueString);
 
             builder.ConfigureResource((resourceBuilder) =>
             {
                 resourceBuilder.AddDetector(new FunctionsResourceDetector());
             });
+
             return builder;
         }
     }

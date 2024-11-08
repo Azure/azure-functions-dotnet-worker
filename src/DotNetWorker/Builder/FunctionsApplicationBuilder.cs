@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,21 +42,21 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
         _bootstrapHostBuilder.Context.Properties[SkipDefaultWorkerMiddlewareKey] = true;
 
         _bootstrapHostBuilder
-                   .ConfigureDefaults(args)
-                   .ConfigureServices(services =>
-                   {
-                       // The console logger can result in duplicate logging.
-                       foreach (var descriptor in services)
-                       {
-                           if (descriptor.ServiceType == typeof(ILoggerProvider) &&
-                               descriptor.ImplementationType == typeof(ConsoleLoggerProvider))
-                           {
-                               services.Remove(descriptor);
-                               break;
-                           }
-                       }
-                   })
-                   .ConfigureFunctionsWorkerDefaults();
+                    .ConfigureDefaults(args)
+                    .ConfigureServices(services =>
+                    {
+                        // The console logger can result in duplicate logging.
+                        List<ServiceDescriptor> toRemove = services
+                            .Where(d => d.ServiceType == typeof(ILoggerProvider)
+                                && d.ImplementationType == typeof(ConsoleLoggerProvider))
+                            .ToList();
+
+                        foreach (var descriptor in toRemove)
+                        {
+                            services.Remove(descriptor);
+                        }
+                    })
+                    .ConfigureFunctionsWorkerDefaults();
 
         _functionsWorkerApplicationBuilder = InitializeHosting(_bootstrapHostBuilder);
     }

@@ -36,7 +36,7 @@ namespace SampleApp
     public class MyOutputType
     {
         [QueueOutput("myQueue")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
         public HttpResponseData HttpResponse { get; set; }
     }

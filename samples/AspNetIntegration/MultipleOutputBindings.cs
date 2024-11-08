@@ -23,10 +23,10 @@ namespace AspNetIntegration
         public class MyOutputType
         {
             [HttpResult]
-            public IActionResult Result { get; set; }
+            public IActionResult? Result { get; set; }
 
             [QueueOutput("myQueue")]
-            public string MessageText { get; set; }
+            public string? MessageText { get; set; }
         }
     }
     //</docsnippet_aspnetcore_multiple_outputs>

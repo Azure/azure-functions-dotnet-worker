@@ -3,6 +3,7 @@
 
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
@@ -54,7 +55,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void MultipleOutputBindingsOnMethodFails(LanguageVersion languageVersion)
+            public async Task MultipleOutputBindingsOnMethodFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Net;
@@ -106,7 +107,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void MultipleOutputBindingsOnPropertyFails(LanguageVersion languageVersion)
+            public async Task MultipleOutputBindingsOnPropertyFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System.Net;
                 using Microsoft.Azure.Functions.Worker;
@@ -167,7 +168,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void MultipleHttpResponseBindingsFails(LanguageVersion languageVersion)
+            public async Task MultipleHttpResponseBindingsFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Threading.Tasks;
@@ -223,7 +224,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void InvalidRetryOptionsFailure(LanguageVersion languageVersion)
+            public async Task InvalidRetryOptionsFailure(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Threading.Tasks;

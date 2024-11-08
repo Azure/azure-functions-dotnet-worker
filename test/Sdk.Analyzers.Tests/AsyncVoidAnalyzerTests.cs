@@ -1,8 +1,8 @@
 ﻿using Xunit;
-using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using AnalyzerVerifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer>;
-using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using AnalyzerVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;

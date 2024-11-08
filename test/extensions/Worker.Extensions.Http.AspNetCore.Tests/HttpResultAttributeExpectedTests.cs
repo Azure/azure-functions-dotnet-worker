@@ -1,10 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.XUnit.AnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer>;
-using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
-using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.Verifiers.XUnitVerifier>;
+using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using Verifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
+using CodeFixVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixVerifier<Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.HttpResultAttributeExpectedAnalyzer, Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.CodeFixForHttpResultAttribute, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using Microsoft.CodeAnalysis.Testing;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;

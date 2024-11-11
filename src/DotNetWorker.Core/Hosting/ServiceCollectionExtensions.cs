@@ -41,52 +41,47 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             // Request handling
-            services.AddSingleton<IFunctionsApplication, FunctionsApplication>();
+            services.TryAddSingleton<IFunctionsApplication, FunctionsApplication>();
 
             // Execution
-            services.AddSingleton<IMethodInfoLocator, DefaultMethodInfoLocator>();
-            services.AddSingleton<IFunctionInvokerFactory, DefaultFunctionInvokerFactory>();
-            services.AddSingleton<IMethodInvokerFactory, DefaultMethodInvokerFactory>();
-            services.AddSingleton<IFunctionActivator, DefaultFunctionActivator>();
-            services.AddSingleton<IFunctionExecutor, DefaultFunctionExecutor>();
+            services.TryAddSingleton<IMethodInfoLocator, DefaultMethodInfoLocator>();
+            services.TryAddSingleton<IFunctionInvokerFactory, DefaultFunctionInvokerFactory>();
+            services.TryAddSingleton<IMethodInvokerFactory, DefaultMethodInvokerFactory>();
+            services.TryAddSingleton<IFunctionActivator, DefaultFunctionActivator>();
+            services.TryAddSingleton<IFunctionExecutor, DefaultFunctionExecutor>();
 
             // Function Execution Contexts
-            services.AddSingleton<IFunctionContextFactory, DefaultFunctionContextFactory>();
+            services.TryAddSingleton<IFunctionContextFactory, DefaultFunctionContextFactory>();
 
             // Invocation Features
             services.TryAddSingleton<IInvocationFeaturesFactory, DefaultInvocationFeaturesFactory>();
-            services.AddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();
+            services.TryAddSingleton<IInvocationFeatureProvider, DefaultBindingFeatureProvider>();
 
             // Input conversion feature
-            services.AddSingleton<IConverterContextFactory, DefaultConverterContextFactory>();
-            services.AddSingleton<IInputConversionFeatureProvider, DefaultInputConversionFeatureProvider>();
-            services.AddSingleton<IInputConverterProvider, DefaultInputConverterProvider>();
+            services.TryAddSingleton<IConverterContextFactory, DefaultConverterContextFactory>();
+            services.TryAddSingleton<IInputConversionFeatureProvider, DefaultInputConversionFeatureProvider>();
+            services.TryAddSingleton<IInputConverterProvider, DefaultInputConverterProvider>();
 
             // Input binding cache
-            services.AddScoped<IBindingCache<ConversionResult>, DefaultBindingCache<ConversionResult>>();
+            services.TryAddScoped<IBindingCache<ConversionResult>, DefaultBindingCache<ConversionResult>>();
 
             // Output Bindings
-            services.AddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
+            services.TryAddSingleton<IOutputBindingsInfoProvider, DefaultOutputBindingsInfoProvider>();
 
             // Worker initialization service
-            services.AddSingleton<IHostedService, WorkerHostedService>();
+            services.AddHostedService<WorkerHostedService>();
 
             // Default serializer settings
-            services.AddOptions<WorkerOptions>()
-                .PostConfigure<IOptions<JsonSerializerOptions>>((workerOptions, serializerOptions) =>
-                {
-                    if (workerOptions.Serializer is null)
-                    {
-                        workerOptions.Serializer = new JsonObjectSerializer(serializerOptions.Value);
-                    }
-                });
+            services.AddOptions();
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IPostConfigureOptions<WorkerOptions>, WorkerOptionsSetup>());
 
             services.TryAddEnumerable(ServiceDescriptor.Singleton<ILoggerProvider, WorkerLoggerProvider>());
-            services.AddSingleton(NullLogWriter.Instance);
-            services.AddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
-            services.AddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
-            services.AddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
-            services.AddSingleton<FunctionActivitySourceFactory>();
+
+            services.TryAddSingleton(NullLogWriter.Instance);
+            services.TryAddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
+            services.TryAddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
+            services.TryAddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
+            services.TryAddSingleton<FunctionActivitySourceFactory>();
 
             if (configure != null)
             {
@@ -151,6 +146,14 @@ namespace Microsoft.Extensions.DependencyInjection
             var startupCodeExecutorInstance =
                 Activator.CreateInstance(startupCodeExecutorInfoAttr.StartupCodeExecutorType) as WorkerExtensionStartup;
             startupCodeExecutorInstance!.Configure(builder);
+        }
+
+        private sealed class WorkerOptionsSetup(IOptions<JsonSerializerOptions> serializerOptions) : IPostConfigureOptions<WorkerOptions>
+        {
+            public void PostConfigure(string? name, WorkerOptions options)
+            {
+                options.Serializer ??= new JsonObjectSerializer(serializerOptions.Value);
+            }
         }
     }
 }

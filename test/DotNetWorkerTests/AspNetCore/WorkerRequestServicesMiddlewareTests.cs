@@ -48,10 +48,45 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             var middleware = new WorkerRequestServicesMiddleware(next, httpCoordinator.Object);
             await middleware.Invoke(httpContext);
         }
-
-        private class MyService
+        
+        [Fact]
+        public async Task DefaultServiceProvider_Restored()
         {
+            var services = new ServiceCollection();
+            services.AddScoped<MyService>();
+            
+            var httpContextProvider = services.BuildServiceProvider().CreateScope().ServiceProvider;
+
+            // FunctionContext services will be scoped.
+            var functionContextProvider = services.BuildServiceProvider().CreateScope().ServiceProvider;
+
+            RequestDelegate next = (ctxt) =>
+            {
+                Assert.Same(functionContextProvider, ctxt.RequestServices);
+
+                return Task.CompletedTask;
+            };
+
+            var functionContext = new TestFunctionContext(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None,
+                serviceProvider: functionContextProvider);
+
+            var httpContext = new DefaultHttpContext();
+            httpContext.RequestServices = httpContextProvider;
+            httpContext.Request.Headers.Add(Constants.CorrelationHeader, functionContext.InvocationId);
+
+            var httpCoordinator = new Mock<IHttpCoordinator>();
+            httpCoordinator
+                .Setup(p => p.SetHttpContextAsync(functionContext.InvocationId, httpContext))
+                .ReturnsAsync(functionContext);
+
+            var middleware = new WorkerRequestServicesMiddleware(next, httpCoordinator.Object);
+            await middleware.Invoke(httpContext);
+            
+            Assert.Same(httpContextProvider, httpContext.RequestServices);
+            Assert.NotSame(functionContextProvider, httpContext.RequestServices);
         }
+
+        private class MyService;
     }
 }
 

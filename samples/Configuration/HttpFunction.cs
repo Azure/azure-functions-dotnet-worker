@@ -25,15 +25,15 @@ namespace Configuration
 
         public class MyType
         {
-            public string camelCasePropertyName { get; set; }
-            public string PascalCasePropertyName { get; set; }
-            public string NullValue { get; set; }
+            public string? camelCasePropertyName { get; set; }
+            public string? PascalCasePropertyName { get; set; }
+            public string? NullValue { get; set; }
 
             // This sample can use both System.Text.Json and Newtonsoft.Json, depending on which
             // is registered. Including both attributes here.
             [JsonPropertyName("Changed_Via_System_Text_Json")]
             [JsonProperty("Changed_Via_Newtonsoft_Json")]
-            public string DifferentSerializedName { get; set; }
+            public string? DifferentSerializedName { get; set; }
         }
     }
 }

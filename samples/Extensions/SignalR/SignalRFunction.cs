@@ -33,15 +33,15 @@ namespace SampleApp
 
     public class MyConnectionInfo
     {
-        public string Url { get; set; }
+        public string? Url { get; set; }
 
-        public string AccessToken { get; set; }
+        public string? AccessToken { get; set; }
     }
 
     public class MyMessage
     {
-        public string Target { get; set; }
+        public string? Target { get; set; }
 
-        public object[] Arguments { get; set; }
+        public object[]? Arguments { get; set; }
     }
 }

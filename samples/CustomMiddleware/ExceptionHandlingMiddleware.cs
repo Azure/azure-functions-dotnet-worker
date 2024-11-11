@@ -60,7 +60,7 @@ namespace CustomMiddleware
             }
         }
 
-        private OutputBindingData<HttpResponseData> GetHttpOutputBindingFromMultipleOutputBinding(FunctionContext context)
+        private static OutputBindingData<HttpResponseData>? GetHttpOutputBindingFromMultipleOutputBinding(FunctionContext context)
         {
             // The output binding entry name will be "$return" only when the function return type is HttpResponseData
             var httpOutputBinding = context.GetOutputBindings<HttpResponseData>()

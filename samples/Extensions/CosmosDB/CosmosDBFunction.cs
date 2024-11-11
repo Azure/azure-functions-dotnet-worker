@@ -21,7 +21,7 @@ namespace SampleApp
         [Function(nameof(CosmosDBFunction))]
         [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
         [CosmosDBOutput("%CosmosDb%", "%CosmosContainerOut%", Connection = "CosmosDBConnection", CreateIfNotExists = true)]
-        public object Run(
+        public object? Run(
             [CosmosDBTrigger(
                 "%CosmosDb%",
                 "%CosmosContainerIn%",
@@ -48,9 +48,9 @@ namespace SampleApp
 
     public class MyDocument
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         public int Number { get; set; }
 

@@ -17,13 +17,8 @@
   <Import Project="..\..\build\Common.props" />
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.42.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\DotNetWorker.Core\DotNetWorker.Core.csproj" />
     <ProjectReference Include="..\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
   </ItemGroup>
+
 </Project>

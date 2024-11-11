@@ -34,19 +34,19 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             JToken expectedExtensionsJson = JObject.Parse(@"{
   ""extensions"": [
     {
-      ""name"": ""SqlDurabilityProvider"",
-      ""typeName"": ""DurableTask.SqlServer.AzureFunctions.SqlDurabilityProviderStartup, DurableTask.SqlServer.AzureFunctions, Version=1.4.0.0, Culture=neutral, PublicKeyToken=2ea3c3a96309d850"",
-      ""hintPath"": ""./.azurefunctions/DurableTask.SqlServer.AzureFunctions.dll""
-    },
-    {
-      ""name"": ""DurableTask"",
-      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.DurableTask.DurableTaskWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.DurableTask, Version=2.0.0.0, Culture=neutral, PublicKeyToken=014045d636e89289"",
-      ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.DurableTask.dll""
-    },
-    {
       ""name"": ""Startup"",
       ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c"",
       ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll""
+    },
+    {
+      ""name"": ""AzureStorageBlobs"",
+      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageBlobsWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Blobs, Version=5.3.1.0, Culture=neutral, PublicKeyToken=92742159e12e44c8"",
+      ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Blobs.dll""
+    },
+    {
+      ""name"": ""AzureStorageQueues"",
+      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageQueuesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Queues, Version=5.1.3.0, Culture=neutral, PublicKeyToken=92742159e12e44c8"",
+      ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll""
     }
   ]
 }");

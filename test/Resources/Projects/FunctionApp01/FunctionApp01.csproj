@@ -12,15 +12,12 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.22.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.2.0" />
-
-    <!-- DurableTask has an implicit extension, which we want to validate -->
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask" Version="1.1.7" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.DurableTask.SqlServer " Version="1.4.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="$(SdkVersion)" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="../FunctionLib01/FunctionLib01.csproj" />
+    <ProjectReference Include="../FunctionExt01/FunctionExt01.csproj" />
   </ItemGroup>
 
 </Project>

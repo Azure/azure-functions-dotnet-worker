@@ -164,11 +164,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public async Task InvokeAsync_UserCodeThrowsException_OptionDisabled()
         {
             var exceptionMessage = "user code exception";
+#pragma warning disable CS0618 // Type or member is obsolete. Test obsolete property.
             var mockOptions = new OptionsWrapper<WorkerOptions>(new()
             {
                 Serializer = new JsonObjectSerializer(),
                 EnableUserCodeException = false
             });
+#pragma warning restore CS0618 // Type or member is obsolete
 
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))

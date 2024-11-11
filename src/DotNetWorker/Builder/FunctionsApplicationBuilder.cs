@@ -45,15 +45,15 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
                     .ConfigureDefaults(args)
                     .ConfigureServices(services =>
                     {
-                        // The console logger can result in duplicate logging.
-                        List<ServiceDescriptor> toRemove = services
-                            .Where(d => d.ServiceType == typeof(ILoggerProvider)
-                                && d.ImplementationType == typeof(ConsoleLoggerProvider))
-                            .ToList();
-
-                        foreach (var descriptor in toRemove)
+                        for (int i = services.Count - 1; i > 0; i--)
                         {
-                            services.Remove(descriptor);
+                            ServiceDescriptor descriptor = services[i];
+                            if (descriptor.ServiceType == typeof(ILoggerProvider) &&
+                                descriptor.ImplementationType == typeof(ConsoleLoggerProvider))
+                            {
+                                // The console logger can result in duplicate logging.
+                                services.RemoveAt(i);
+                            }
                         }
                     })
                     .ConfigureFunctionsWorkerDefaults();

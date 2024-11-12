@@ -32,7 +32,7 @@ internal class StartupHook
         RemoveSelfFromStartupHooks();
         string? debuggerWaitEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_DEBUGGER_WAIT");
         string? jsonOutputEnabled = Environment.GetEnvironmentVariable("FUNCTIONS_ENABLE_JSON_OUTPUT");
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         int processId = Environment.ProcessId;
 #else
         int processId = Process.GetCurrentProcess().Id;
@@ -57,12 +57,12 @@ internal class StartupHook
 
         if (string.Equals(jsonOutputEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : { processId } }}");
+            Console.WriteLine($"azfuncjsonlog:{{ \"name\":\"dotnet-worker-startup\", \"workerProcessId\" : {processId} }}");
         }
 
         if (string.Equals(debuggerWaitEnabled, bool.TrueString, StringComparison.OrdinalIgnoreCase))
         {
-            Console.WriteLine($"Azure Functions .NET Worker (PID: { processId }) initialized in debug mode. Waiting for debugger to attach...");
+            Console.WriteLine($"Azure Functions .NET Worker (PID: {processId}) initialized in debug mode. Waiting for debugger to attach...");
 
             for (int i = 0; WaitOnDebugger(i); i++)
             {

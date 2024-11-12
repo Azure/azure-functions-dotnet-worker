@@ -8,8 +8,7 @@
     <MajorProductVersion>2</MajorProductVersion>
     <MinorProductVersion>0</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <VersionSuffix>-preview5</VersionSuffix>
+    <PackageReadmeFile>README.md</PackageReadmeFile>    
     <BeforePack>$(BeforePack);GetReleaseNotes</BeforePack>
   </PropertyGroup>
 

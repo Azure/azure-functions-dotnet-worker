@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             _originalResponseHeaders.Clear();
             foreach (var item in ((HeadersEnumerable)this))
             {
-                _originalResponseHeaders.Add(item.Key, item.Value);
+                _originalResponseHeaders.Append(item.Key, item.Value);
             }
 
             return Task.CompletedTask;

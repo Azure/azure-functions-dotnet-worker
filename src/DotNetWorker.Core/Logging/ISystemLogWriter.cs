@@ -22,6 +22,6 @@ namespace Microsoft.Azure.Functions.Worker.Logging
         /// <param name="state">The entry to be written. Can be also an object.</param>
         /// <param name="exception">The exception related to this entry.</param>
         /// <param name="formatter"> Function to create a <see cref="System.String"/> message of the state and exception.</param>
-        void WriteSystemLog<TState>(IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter);
+        void WriteSystemLog<TState>(IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter);
     }
 }

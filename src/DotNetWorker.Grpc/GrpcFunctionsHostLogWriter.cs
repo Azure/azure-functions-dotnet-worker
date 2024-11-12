@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             _serializer = workerOptions.Value.Serializer ?? throw new ArgumentNullException(nameof(workerOptions.Value.Serializer), "Serializer on WorkerOptions cannot be null");
         }
 
-        public void WriteUserLog<TState>(IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void WriteUserLog<TState>(IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             Log(RpcLogCategory.User, scopeProvider, categoryName, logLevel, eventId, state, exception, formatter);
         }
@@ -54,12 +54,12 @@ namespace Microsoft.Azure.Functions.Worker.Logging
             _channelWriter.TryWrite(response);
         }
 
-        public void WriteSystemLog<TState>(IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void WriteSystemLog<TState>(IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             Log(RpcLogCategory.System, scopeProvider, categoryName, logLevel, eventId, state, exception, formatter);
         }
 
-        public void Log<TState>(RpcLogCategory category, IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        public void Log<TState>(RpcLogCategory category, IExternalScopeProvider scopeProvider, string categoryName, LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
             var response = new StreamingMessage();
             var rpcLog = new RpcLog

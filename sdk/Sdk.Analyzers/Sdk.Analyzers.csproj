@@ -14,6 +14,7 @@
     <Nullable>disable</Nullable>
     <PackageTags>Azure Functions Worker, analyzers</PackageTags>
     <TargetsForTfmSpecificContentInPackage>$(TargetsForTfmSpecificContentInPackage);_AddAnalyzersToOutput</TargetsForTfmSpecificContentInPackage>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

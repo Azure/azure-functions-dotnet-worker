@@ -8,7 +8,7 @@
     <!--Version information-->
     <VersionPrefix>2.0.0</VersionPrefix>
     <VersionSuffix>-preview4</VersionSuffix>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Extensions.props" />

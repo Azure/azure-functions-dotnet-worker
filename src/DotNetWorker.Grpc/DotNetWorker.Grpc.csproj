@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net8.0;net9.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net9.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Grpc</PackageId>
     <Description>This library provides gRPC support for Azure Functions .NET Worker communication with the Azure Functions Host.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Grpc</AssemblyName>
@@ -36,6 +36,9 @@
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
     <Compile Remove="NativeHostIntegration/**" />
   </ItemGroup>
 

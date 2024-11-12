@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <exception cref="ObjectDisposedException">The <paramref name="condition"/> is <see langword="true"/>.</exception>
         internal static void ThrowIf(bool condition, object instance)
         {
-#if NET8_0_OR_GREATER
+#if NET7_0_OR_GREATER
             ObjectDisposedException.ThrowIf(condition, instance);
 #else
             if (condition)

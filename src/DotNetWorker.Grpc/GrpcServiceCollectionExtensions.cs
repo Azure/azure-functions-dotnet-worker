@@ -5,13 +5,13 @@ using System;
 using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Azure.Functions.Worker.Logging;
-using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Grpc;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Handlers;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -54,7 +54,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IWorker, GrpcWorker>();
             services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
 
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
             // If we are running in the native host process, use the native client
             // for communication (interop). Otherwise; use the gRPC client.
             if (AppContext.GetData("AZURE_FUNCTIONS_NATIVE_HOST") is not null)

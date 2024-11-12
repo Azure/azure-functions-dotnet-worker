@@ -7,13 +7,13 @@ using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker
 {
     internal class GrpcHttpRequestData : HttpRequestData, IDisposable
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         , IAsyncDisposable
 #endif
     {
@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker
                         }
 
                         var stream = new MemoryStream(memory.Length);
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
                         stream.Write(memory.Span);
 #else
                         stream.Write(memory.Span.ToArray(), 0, memory.Span.Length);
@@ -127,7 +127,7 @@ namespace Microsoft.Azure.Functions.Worker
             return new GrpcHttpResponseData(FunctionContext, System.Net.HttpStatusCode.OK);
         }
 
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
         public ValueTask DisposeAsync()
         {
             return _bodyStream?.DisposeAsync() ?? ValueTask.CompletedTask;
@@ -159,7 +159,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             List<IHttpCookie> httpCookiesList = new List<IHttpCookie>(separateCookies.Length);
 
-#if NET8_0_OR_GREATER
+#if NET6_0_OR_GREATER
             var separator = '=';
 #else
             var separator = new[] { '=' };

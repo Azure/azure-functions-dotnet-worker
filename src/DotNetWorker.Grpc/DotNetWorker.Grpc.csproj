@@ -36,9 +36,6 @@
     Grpc.Net.Client implementation-->
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Grpc.Core" Version="2.46.6" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
     <Compile Remove="NativeHostIntegration/**" />
   </ItemGroup>
 

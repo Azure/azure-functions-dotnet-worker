@@ -15,7 +15,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastruc
             _defaultLogger = loggerFactory.CreateLogger("Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore");
         }
 
-        public IDisposable BeginScope<TState>(TState state) => _defaultLogger.BeginScope(state);
+        public IDisposable? BeginScope<TState>(TState state)
+            where TState : notnull
+            => _defaultLogger.BeginScope(state);
 
         public bool IsEnabled(LogLevel logLevel) => _defaultLogger.IsEnabled(logLevel);
 

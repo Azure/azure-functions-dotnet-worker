@@ -14,7 +14,7 @@ namespace Microsoft.AspNetCore.Http
         {
             var coordinator = context.RequestServices.GetRequiredService<IHttpCoordinator>();
             context.Request.Headers.TryGetValue(Constants.CorrelationHeader, out StringValues invocationId);
-            return coordinator.RunFunctionInvocationAsync(invocationId);
+            return coordinator.RunFunctionInvocationAsync(invocationId!); // will fail later if null.
         }
     }
 }

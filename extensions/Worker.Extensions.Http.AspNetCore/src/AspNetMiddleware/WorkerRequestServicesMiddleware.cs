@@ -25,7 +25,7 @@ internal class WorkerRequestServicesMiddleware
             throw new InvalidOperationException($"Expected correlation id header ('{Constants.CorrelationHeader}') not present");
         }
 
-        FunctionContext functionContext = await _coordinator.SetHttpContextAsync(invocationId, context);
+        FunctionContext functionContext = await _coordinator.SetHttpContextAsync(invocationId!, context);
 
         // Explicitly set the RequestServices to prevent a new scope from being created internally.
         // This also prevents the scope from being disposed when the request is complete. We want this to 

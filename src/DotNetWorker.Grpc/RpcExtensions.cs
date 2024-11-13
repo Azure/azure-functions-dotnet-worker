@@ -122,7 +122,7 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
         /// Returns an RpcException for system exception scenarios.
         /// </summary>
         /// <returns>An RpcException</returns>
-        internal static RpcException? ToRpcException(this Exception exception)
+        internal static RpcException? ToRpcException(this Exception? exception)
         {
             if (exception is null)
             {

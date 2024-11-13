@@ -1,10 +1,17 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
+
 namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 {
     internal static class Constants
     {
+#pragma warning disable RS1035 // Do not use APIs banned for analyzers
+        // Suppressing warning based on https://github.com/dotnet/roslyn-analyzers/issues/6467
+        internal static readonly string NewLine = Environment.NewLine;
+#pragma warning restore RS1035 // Do not use APIs banned for analyzers
+
         internal static class ExecutionModel
         {
             internal const string Isolated = "isolated";

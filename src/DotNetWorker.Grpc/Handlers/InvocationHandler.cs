@@ -116,9 +116,11 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
             catch (Exception ex) when (!ex.IsFatal())
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 response.Result.Exception = _workerOptions.EnableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
-                response.Result.Status = StatusResult.Types.Status.Failure;
+#pragma warning restore CS0618 // Type or member is obsolete
 
+                response.Result.Status = StatusResult.Types.Status.Failure;
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {
                     response.Result.Status = StatusResult.Types.Status.Cancelled;

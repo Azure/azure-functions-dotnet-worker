@@ -36,7 +36,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                              [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
                              internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
                              {
-                                 private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;{{(defaultExecutorNeeded ? $"{Environment.NewLine}        private Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor> _defaultExecutor;" : string.Empty)}}
+                                 private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;{{(defaultExecutorNeeded ? $"{Constants.NewLine}        private Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor> _defaultExecutor;" : string.Empty)}}
                                  {{GetTypesDictionary(functions)}}
                                  public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
                                  {
@@ -47,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  public async global::System.Threading.Tasks.ValueTask ExecuteAsync(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                                  {
                                      {{GetMethodBody(functions, defaultExecutorNeeded)}}
-                                 }{{(defaultExecutorNeeded ? $"{Environment.NewLine}{EmitCreateDefaultExecutorMethod(context)}" : string.Empty)}}
+                                 }{{(defaultExecutorNeeded ? $"{Constants.NewLine}{EmitCreateDefaultExecutorMethod(context)}" : string.Empty)}}
                              }
 
                              /// <summary>
@@ -105,7 +105,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 return $$"""
                 private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
                         {
-                           {{string.Join($",{Environment.NewLine}           ", typesDict.Select(c => $$""" { "{{c.Key}}", Type.GetType("{{c.Key}}, {{c.Value}}") }"""))}}
+                           {{string.Join($",{Constants.NewLine}           ", typesDict.Select(c => $$""" { "{{c.Key}}", Type.GetType("{{c.Key}}, {{c.Value}}") }"""))}}
                         };
 
                 """;
@@ -147,7 +147,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 var inputBindingFeature = context.Features.Get<global::Microsoft.Azure.Functions.Worker.Context.Features.IFunctionInputBindingFeature>();
                             var inputBindingResult = await inputBindingFeature.BindFunctionInputAsync(context);
                             var inputArguments = inputBindingResult.Values;
-                {(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Environment.NewLine}" : string.Empty)}
+                {(anyDefaultExecutor ? $"            _defaultExecutor = new Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor>(() => CreateDefaultExecutorInstance(context));{Constants.NewLine}" : string.Empty)}
                 """);
 
                 foreach (ExecutableFunction function in functions)

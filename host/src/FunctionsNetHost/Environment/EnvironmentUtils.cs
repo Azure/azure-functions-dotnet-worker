@@ -8,9 +8,6 @@ namespace FunctionsNetHost
 #if OS_LINUX
         [System.Runtime.InteropServices.DllImport("libc")]
         private static extern int setenv(string name, string value, int overwrite);
-
-        [System.Runtime.InteropServices.DllImport("libc")]
-        private static extern string getenv(string name);
 #endif
 
         /// <summary>
@@ -18,12 +15,7 @@ namespace FunctionsNetHost
         /// </summary>
         internal static string? GetValue(string environmentVariableName)
         {
-            // Observed Environment.GetEnvironmentVariable not returning the value which was just set. So using native method directly here.
-#if OS_LINUX
-            return getenv(environmentVariableName);
-#else
             return Environment.GetEnvironmentVariable(environmentVariableName);
-#endif
         }
 
         /// <summary>

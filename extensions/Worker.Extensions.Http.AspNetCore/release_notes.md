@@ -6,7 +6,8 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- Addressing fix for AspNetCoreResponseCookies cookie defaults (#2811)
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers  <version>
 
+- <entry>

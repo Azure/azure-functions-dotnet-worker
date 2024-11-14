@@ -14,6 +14,8 @@ using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.DependencyInjection;
+using System.Data;
+using System.Net.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
@@ -85,6 +87,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     // processing is required.
                     context.GetInvocationResult().Value = null;
                     break;
+                case AspNetCoreHttpResponseData when !isInvocationResult:
+                    await TryClearHttpOutputBinding(context);
+                    break;
                 case IResult iResult:
                     await iResult.ExecuteAsync(httpContext);
                     break;
@@ -103,6 +108,27 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             return httpOutputBinding is null
                 ? Task.FromResult(false)
                 : TryHandleHttpResult(httpOutputBinding.Value, context, httpContext);
+        }
+
+        private static Task<bool> TryClearHttpOutputBinding(FunctionContext context) 
+        {
+            var httpOutputBinding = context.GetOutputBindings<object>()
+                .FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
+
+            if (httpOutputBinding is null)
+            {
+                return Task.FromResult(false);
+            }
+
+            var bindingName = httpOutputBinding.Name;
+            var bindingsFeature = context.GetBindings();
+            if(bindingsFeature.OutputBindingData.TryGetValue(bindingName, out var val))
+            {
+                bindingsFeature.OutputBindingData[bindingName] = null;
+                return Task.FromResult(true);
+            }
+
+            return Task.FromResult(false);
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

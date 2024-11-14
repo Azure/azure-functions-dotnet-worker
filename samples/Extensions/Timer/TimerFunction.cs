@@ -15,7 +15,7 @@ namespace SampleApp
             FunctionContext context)
         {
             var logger = context.GetLogger(nameof(TimerFunction));
-            logger.LogInformation($"Function Ran. Next timer schedule = {timerInfo.ScheduleStatus.Next}");
+            logger.LogInformation($"Function Ran. Next timer schedule = {timerInfo.ScheduleStatus?.Next}");
         }
         //</docsnippet_fixed_delay_retry_example>
     }

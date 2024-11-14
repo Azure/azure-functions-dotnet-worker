@@ -1,12 +1,6 @@
-# .NET Framework Worker
+# Former sample for .NET 7 Worker
 
-This sample demonstrates how to create a .NET 7 project using the Isolated model.
-
-## Function Samples
-
-### HTTPFunction.cs
-
-Demonstrates basic HTTP trigger function.
+This sample has been removed, as support for .NET 7 ended on May 14, 2024. The `EventHubCancellationToken.cs` file is being temporarily preserved.
 
 ### EventHubCancellationToken.cs
 

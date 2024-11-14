@@ -67,18 +67,23 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async Task InvokeFunctionAsync(FunctionContext context)
         {
-            // This will act as an internal activity that represents remote Host activity. This cannot be tracked as this is not associate to an ActivitySource. 
-            using Activity activity = new Activity(nameof(InvokeFunctionAsync));
-            activity.Start();
+            Activity? activity = null;
 
-            if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
+            if (Activity.Current is null)
             {
-                activity.SetId(context.TraceContext.TraceParent);
-                activity.SetSpanId(activityContext.SpanId.ToString());
-                activity.SetTraceId(activityContext.TraceId.ToString());
-                activity.SetRootId(activityContext.TraceId.ToString());
-                activity.ActivityTraceFlags = activityContext.TraceFlags;
-                activity.TraceStateString = activityContext.TraceState;
+                // This will act as an internal activity that represents remote Host activity. This cannot be tracked as this is not associate to an ActivitySource. 
+                activity = new Activity(nameof(InvokeFunctionAsync));
+                activity.Start();
+
+                if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
+                {
+                    activity.SetId(context.TraceContext.TraceParent);
+                    activity.SetSpanId(activityContext.SpanId.ToString());
+                    activity.SetTraceId(activityContext.TraceId.ToString());
+                    activity.SetRootId(activityContext.TraceId.ToString());
+                    activity.ActivityTraceFlags = activityContext.TraceFlags;
+                    activity.TraceStateString = activityContext.TraceState;
+                }
             }
 
             var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);
@@ -98,6 +103,9 @@ namespace Microsoft.Azure.Functions.Worker
 
                 throw;
             }
+
+            invokeActivity?.Stop();
+            activity?.Stop();
         }
     }
 }

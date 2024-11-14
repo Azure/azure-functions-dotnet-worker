@@ -95,9 +95,9 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics
             ParameterExpression targetExp = Expression.Parameter(typeof(TTarget), "target");
             Expression source = targetExp;
 
-            if (typeof(TTarget) != fieldInfo.DeclaringType)
+            if (fieldInfo.DeclaringType is { } t && t != typeof(TTarget))
             {
-                source = Expression.Convert(targetExp, fieldInfo.DeclaringType);
+                source = Expression.Convert(targetExp, t);
             }
 
             // Creating the setter to set the value to the field

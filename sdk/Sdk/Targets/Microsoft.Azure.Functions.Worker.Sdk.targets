@@ -41,6 +41,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v6.0'">net6-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v8.0'">net8-isolated</_ToolingSuffix>
+    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v9.0'">net9-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
 
@@ -107,6 +108,16 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(FunctionsGenerateExtensionProject)' != 'true' AND '$(ExtensionsCsProj)' == ''" Text="'ExtensionsCsProj' must be set when 'FunctionsGenerateExtensionProject' is 'false'." />
   </Target>
 
+  <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
+    <PropertyGroup>
+      <RunCommand>func</RunCommand>
+      <RunArguments>host start $(RunArguments)</RunArguments>
+      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    </PropertyGroup>
+  </Target>
+  
+  <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->
   <Target Name="_FunctionsBuildExtension"
     AfterTargets="CoreCompile"
     BeforeTargets="GetCopyToOutputDirectoryItems"

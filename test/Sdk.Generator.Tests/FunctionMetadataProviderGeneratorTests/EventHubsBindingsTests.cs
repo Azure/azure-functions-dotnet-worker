@@ -4,6 +4,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Testing;
@@ -58,7 +59,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData("DictionaryInputFunction", "Dictionary<string, string>", "")]
             [InlineData("LookupFunction", "Lookup<string, int>", "")]
             [InlineData("ConcurrentDictionaryInputFunction", "ConcurrentDictionary<string, string>", "")]
-            public async void FunctionsWithIsBatchedFalse(string functionName, string parameterType, string dataType)
+            public async Task FunctionsWithIsBatchedFalse(string functionName, string parameterType, string dataType)
             {
                 StringBuilder inputCodeBuilder = new StringBuilder();
                 inputCodeBuilder.Append(_usingStringsForInput);
@@ -124,7 +125,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                 };
                                 metadataList.Add(Function0);
 
-                                return Task.FromResult(metadataList.ToImmutableArray());
+                                return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                             }
                         }
 
@@ -170,7 +171,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData("EnumerableInputFunction", "IEnumerable", "")]
             [InlineData("EnumerableClassInputFunction", "EnumerableTestClass", "")]
             [InlineData("EnumerableGenericClassInputFunction", "EnumerableGenericTestClass", "")]
-            public async void FunctionsWithCardinalityMany(string functionName, string parameterType, string dataType)
+            public async Task FunctionsWithCardinalityMany(string functionName, string parameterType, string dataType)
             {
                 StringBuilder inputCodeBuilder = new StringBuilder();
                 inputCodeBuilder.Append(_usingStringsForInput);
@@ -258,7 +259,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -297,7 +298,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void EnumerableGenericInputFunction(LanguageVersion languageVersion)
+            public async Task EnumerableGenericInputFunction(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -361,7 +362,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -401,7 +402,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void EnumerableStringClassesAsInputFunctions(LanguageVersion languageVersion)
+            public async Task EnumerableStringClassesAsInputFunctions(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -552,7 +553,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function3);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -592,7 +593,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void EnumerableBinaryClassesAsInputFunctions(LanguageVersion languageVersion)
+            public async Task EnumerableBinaryClassesAsInputFunctions(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -693,7 +694,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -733,7 +734,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void PocoInputFunctions(LanguageVersion languageVersion)
+            public async Task PocoInputFunctions(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -821,7 +822,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -861,7 +862,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void CardinalityManyWithNonIterableInputFails(LanguageVersion languageVersion)
+            public async Task CardinalityManyWithNonIterableInputFails(LanguageVersion languageVersion)
             {
                 var inputCode = @"using System;
                 using System.Net;

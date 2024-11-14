@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
                 var hostingExtension = typeof(HostBuilder).Assembly;
                 var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
@@ -34,7 +34,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     abstractionsExtension,
                     blobExtension,
                     httpExtension,
-                    storageExtension,
                     queueExtension,
                     hostingExtension,
                     hostingAbExtension,
@@ -50,7 +49,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void TestQueueTriggerAndOutput(LanguageVersion languageVersion)
+            public async Task TestQueueTriggerAndOutput(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System.Collections.Generic;
@@ -114,7 +113,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -154,7 +153,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void TestBlobAndQueueInputsAndOutputs(LanguageVersion languageVersion)
+            public async Task TestBlobAndQueueInputsAndOutputs(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -262,7 +261,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function2);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -302,7 +301,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void TestQueueOutputWithHttpTrigger(LanguageVersion languageVersion)
+            public async Task TestQueueOutputWithHttpTrigger(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -367,7 +366,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
                 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 

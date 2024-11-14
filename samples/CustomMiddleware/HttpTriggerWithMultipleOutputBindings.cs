@@ -32,8 +32,8 @@ namespace CustomMiddleware
     public class MyOutputType
     {
         [QueueOutput("functionstesting2", Connection = "AzureWebJobsStorage")]
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public HttpResponseData HttpResponse { get; set; }
+        public HttpResponseData? HttpResponse { get; set; }
     }
 }

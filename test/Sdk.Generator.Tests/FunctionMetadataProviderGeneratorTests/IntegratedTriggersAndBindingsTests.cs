@@ -26,7 +26,6 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
-                var storageExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.dll");
                 var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
                 var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
                 var queueExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues.dll");
@@ -36,14 +35,13 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 var hostingAbExtension = typeof(IHost).Assembly;
                 var diAbExtension = typeof(IServiceCollection).Assembly;
                 var actionResult = typeof(IActionResult).Assembly;
-                var aspnetHtpp = typeof(HttpContextAccessor).Assembly;
+                var aspnetHttp = typeof(HttpContextAccessor).Assembly;
                 var httpRequest = typeof(HttpRequest).Assembly;
 
                 _referencedExtensionAssemblies = new[]
                 {
                     abstractionsExtension,
                     httpExtension,
-                    storageExtension,
                     timerExtension,
                     blobExtension,
                     queueExtension,
@@ -53,7 +51,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                     diExtension,
                     diAbExtension,
                     actionResult,
-                    aspnetHtpp,
+                    aspnetHttp,
                     httpRequest
                 };
             }
@@ -158,7 +156,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -192,7 +190,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
 
             [Theory]
             [InlineData(LanguageVersion.Latest)]
-            public async void FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
+            public async Task FunctionsMultipleOutputBindingWithActionResult(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -299,7 +297,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function1);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -423,7 +421,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -532,7 +530,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -565,7 +563,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async void FunctionWithTaskReturnType()
+            public async Task FunctionWithTaskReturnType()
             {
                 string inputCode = """
                 using System;
@@ -627,7 +625,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -660,7 +658,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             }
 
             [Fact]
-            public async void FunctionWithGenericTaskReturnType()
+            public async Task FunctionWithGenericTaskReturnType()
             {
                 string inputCode = """
                 using System;
@@ -723,7 +721,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function0);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -854,7 +852,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function2);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 
@@ -893,7 +891,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async void HttpTriggerVoidOrTaskReturnType(LanguageVersion languageVersion)
+            public async Task HttpTriggerVoidOrTaskReturnType(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -987,7 +985,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                             };
                             metadataList.Add(Function2);
 
-                            return Task.FromResult(metadataList.ToImmutableArray());
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
 

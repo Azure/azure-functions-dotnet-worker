@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using Azure.Core.Serialization;
@@ -10,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
     /// An options class for configuring the worker.
-    /// </summary>    
+    /// </summary>
     public class WorkerOptions
     {
         /// <summary>
@@ -30,14 +31,18 @@ namespace Microsoft.Azure.Functions.Worker
         public IDictionary<string, string> Capabilities { get; } = new Dictionary<string, string>()
         {
             // Enable these by default, although they are not strictly required and can be removed
-            { "HandlesWorkerTerminateMessage", bool.TrueString },
-            { "HandlesInvocationCancelMessage", bool.TrueString }
+            { WorkerCapabilities.HandlesWorkerTerminateMessage, bool.TrueString },
+            { WorkerCapabilities.HandlesInvocationCancelMessage, bool.TrueString },
+            { WorkerCapabilities.IncludeEmptyEntriesInMessagePayload, bool.TrueString },
+            { WorkerCapabilities.EnableUserCodeException, bool.TrueString }
         };
 
         /// <summary>
-        /// Gets or sets the flag for opting in to unwrapping user-code-thrown
-        /// exceptions when they are surfaced to the Host. 
+        /// Gets or sets a value indicating whether exceptions thrown by user code should be unwrapped
+        /// and surfaced to the Host as their original exception type, instead of being wrapped in an RpcException.
+        /// The default value is <see langword="true"/>.
         /// </summary>
+        [Obsolete("This is now the default behavior. This property may be unavailable in future releases.", false)]
         public bool EnableUserCodeException
         {
             get => GetBoolCapability(nameof(EnableUserCodeException));
@@ -49,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// For example, if a set of entries were sent to a messaging service such as Service Bus or Event Hub and your function
         /// app has a Service bus trigger or Event hub trigger, only the non-empty entries from the payload will be sent to the
         /// function code as trigger data when this setting value is <see langword="false"/>. When it is <see langword="true"/>,
-        /// All entries will be sent to the function code as it is. Default value for this setting is <see langword="false"/>.
+        /// all entries will be sent to the function code as it is. Default value for this setting is <see langword="true"/>.
         /// </summary>
         public bool IncludeEmptyEntriesInMessagePayload
         {

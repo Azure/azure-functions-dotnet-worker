@@ -38,5 +38,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc
 
             return grpcUri;
         }
+
+        /// <summary>
+        /// Gets the maximum message length for the functions host gRPC channel.
+        /// </summary>
+        /// <param name="configuration">The configuration to retrieve values from.</param>
+        /// <returns>The maximum message length if available. </returns>
+        public static int? GetFunctionsHostMaxMessageLength(this IConfiguration configuration)
+        {
+            return configuration.GetValue<int?>("Functions:Worker:GrpcMaxMessageLength", null)
+                ?? configuration.GetValue<int?>("grpcMaxMessageLength", null);
+        }
     }
 }

@@ -101,38 +101,44 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                                        var instanceType = types["MyCompany.MyHttpTriggers"];
                                                        var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyHttpTriggers;
                                                        context.GetInvocationResult().Value = i.Foo((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                                                       return;
                                                    }
-                                                   else if (string.Equals(context.FunctionDefinition.EntryPoint, "DependentAssemblyWithFunctions.DependencyFunction.Run", StringComparison.Ordinal))
+                                                   if (string.Equals(context.FunctionDefinition.EntryPoint, "DependentAssemblyWithFunctions.DependencyFunction.Run", StringComparison.Ordinal))
                                                    {
                                                        var instanceType = types["DependentAssemblyWithFunctions.DependencyFunction"];
                                                        var i = _functionActivator.CreateInstance(instanceType, context) as global::DependentAssemblyWithFunctions.DependencyFunction;
                                                        context.GetInvocationResult().Value = i.Run((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                                                       return;
                                                    }
-                                                   else if (string.Equals(context.FunctionDefinition.EntryPoint, "DependentAssemblyWithFunctions.InternalFunction.Run", StringComparison.Ordinal))
+                                                   if (string.Equals(context.FunctionDefinition.EntryPoint, "DependentAssemblyWithFunctions.InternalFunction.Run", StringComparison.Ordinal))
                                                    {
                                                        await _defaultExecutor.Value.ExecuteAsync(context);
+                                                       return;
                                                    }
-                                                   else if (string.Equals(context.FunctionDefinition.EntryPoint, "DependentAssemblyWithFunctions.StaticFunction.Run", StringComparison.Ordinal))
+                                                   if (string.Equals(context.FunctionDefinition.EntryPoint, "DependentAssemblyWithFunctions.StaticFunction.Run", StringComparison.Ordinal))
                                                    {
                                                        context.GetInvocationResult().Value = global::DependentAssemblyWithFunctions.StaticFunction.Run((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0], (global::Microsoft.Azure.Functions.Worker.FunctionContext)inputArguments[1]);
+                                                       return;
                                                    }
-                                                   else if (string.Equals(context.FunctionDefinition.EntryPoint, "MyCompany.MyProduct.MyApp.HttpFunctions.Run", StringComparison.Ordinal))
+                                                   if (string.Equals(context.FunctionDefinition.EntryPoint, "MyCompany.MyProduct.MyApp.HttpFunctions.Run", StringComparison.Ordinal))
                                                    {
                                                        var instanceType = types["MyCompany.MyProduct.MyApp.HttpFunctions"];
                                                        var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyProduct.MyApp.HttpFunctions;
                                                        context.GetInvocationResult().Value = i.Run((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                                                       return;
                                                    }
-                                                   else if (string.Equals(context.FunctionDefinition.EntryPoint, "MyCompany.MyProduct.MyApp.Foo.Bar.Run", StringComparison.Ordinal))
+                                                   if (string.Equals(context.FunctionDefinition.EntryPoint, "MyCompany.MyProduct.MyApp.Foo.Bar.Run", StringComparison.Ordinal))
                                                    {
                                                        var instanceType = types["MyCompany.MyProduct.MyApp.Foo.Bar"];
                                                        var i = _functionActivator.CreateInstance(instanceType, context) as global::MyCompany.MyProduct.MyApp.Foo.Bar;
                                                        context.GetInvocationResult().Value = i.Run((global::Microsoft.Azure.Functions.Worker.Http.HttpRequestData)inputArguments[0]);
+                                                       return;
                                                    }
                                                }
                                        
                                                private global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor CreateDefaultExecutorInstance(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                                                {
-                                                   var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=1.18.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
+                                                   var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
                                                    var defaultExecutorType = global::System.Type.GetType(defaultExecutorFullName);
 
                                                    return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;

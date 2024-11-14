@@ -265,15 +265,15 @@ namespace SampleApp
 
         public class ToDoItem
         {
-            public string Id { get; set; }
-            public string Description { get; set; }
+            public string? Id { get; set; }
+            public string? Description { get; set; }
         }
 
         public class ToDoItemLookup
         {
-            public string ToDoItemId { get; set; }
+            public string? ToDoItemId { get; set; }
 
-            public string ToDoItemPartitionKeyValue { get; set; }
+            public string? ToDoItemPartitionKeyValue { get; set; }
         }
     }
 }

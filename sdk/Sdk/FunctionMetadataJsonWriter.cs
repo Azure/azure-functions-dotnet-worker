@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             return new JsonSerializerOptions
             {
                 WriteIndented = true,
-                IgnoreNullValues = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
                 PropertyNameCaseInsensitive = true,
                 IgnoreReadOnlyProperties = true,
                 DictionaryKeyPolicy = namingPolicy,

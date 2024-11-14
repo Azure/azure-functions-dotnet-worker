@@ -77,14 +77,15 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
-                .Throws(new AggregateException(new Exception[] { new TaskCanceledException() }));
+                .Throws(new AggregateException(new TaskCanceledException()));
 
             var request = TestUtility.CreateInvocationRequest("abc");
             var invocationHandler = CreateInvocationHandler();
             var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Cancelled, response.Result.Status);
-            Assert.Contains("TaskCanceledException", response.Result.Exception.Message);
+            Assert.Equal("System.AggregateException", response.Result.Exception.Type);
+            Assert.Contains("A task was canceled", response.Result.Exception.Message);
         }
 
         [Fact]
@@ -129,15 +130,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         /// <summary>
-        /// Test unwrapping user code exception functionality. 
+        /// Test unwrapping user code exception functionality.
+        /// EnableUserCodeException capability is true by default.
         /// </summary>
         [Fact]
         public async Task InvokeAsync_UserCodeThrowsException_OptionEnabled()
         {
             var exceptionMessage = "user code exception";
+
             var mockOptions = new OptionsWrapper<WorkerOptions>(new()
             {
-                EnableUserCodeException = true,
                 Serializer = new JsonObjectSerializer()
             });
 
@@ -156,23 +158,26 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
 
         /// <summary>
-        /// Test keeping user code exception wrapped as RpcException. 
+        /// Test keeping user code exception wrapped as RpcException.
         /// </summary>
         [Fact]
         public async Task InvokeAsync_UserCodeThrowsException_OptionDisabled()
         {
             var exceptionMessage = "user code exception";
-            var mockOptions = new WorkerOptions()
+#pragma warning disable CS0618 // Type or member is obsolete. Test obsolete property.
+            var mockOptions = new OptionsWrapper<WorkerOptions>(new()
             {
+                Serializer = new JsonObjectSerializer(),
                 EnableUserCodeException = false
-            };
+            });
+#pragma warning restore CS0618 // Type or member is obsolete
 
             _mockApplication
                 .Setup(m => m.InvokeFunctionAsync(It.IsAny<FunctionContext>()))
                 .Throws(new Exception(exceptionMessage));
 
             var request = TestUtility.CreateInvocationRequest("abc");
-            var invocationHandler = CreateInvocationHandler();
+            var invocationHandler = CreateInvocationHandler(workerOptions: mockOptions);
             var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
@@ -239,8 +244,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var response = await invocationHandler.InvokeAsync(request);
 
             Assert.Equal(StatusResult.Types.Status.Failure, response.Result.Status);
-            Assert.Contains("InvalidOperationException: whoops", response.Result.Exception.Message);
-            Assert.Contains("CreateContext", response.Result.Exception.Message);
+            Assert.Equal("System.InvalidOperationException", response.Result.Exception.Type);
+            Assert.Contains("whoops", response.Result.Exception.Message);
+            Assert.Contains("CreateContext", response.Result.Exception.StackTrace);
         }
 
         [Fact]

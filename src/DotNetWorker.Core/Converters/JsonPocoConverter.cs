@@ -73,9 +73,9 @@ namespace Microsoft.Azure.Functions.Worker.Converters
             }
             finally
             {
-                if (stream != null) 
+                if (stream != null)
                 {
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
 
                     await ((IAsyncDisposable)stream).DisposeAsync();
 #else

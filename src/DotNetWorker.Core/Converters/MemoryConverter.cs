@@ -18,7 +18,7 @@ namespace Microsoft.Azure.Functions.Worker.Converters
 
             if (context.TargetType.IsAssignableFrom(typeof(string)))
             {
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
                 var target = Encoding.UTF8.GetString(sourceMemory.Span);
 #else
                 var target = Encoding.UTF8.GetString(sourceMemory.Span.ToArray());

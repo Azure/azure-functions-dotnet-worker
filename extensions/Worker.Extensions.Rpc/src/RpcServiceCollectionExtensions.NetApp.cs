@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 #if !NETSTANDARD
@@ -19,8 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Rpc
         {
             // Instead of building the GrpcChannel/CallInvoker ourselves, we use Grpc.Net.ClientFactory to
             // construct and configure the CallInvoker for us, then we attach that to our options.
-            services.AddGrpcClient<CallInvokerExtractor>(_ => { })
-                .ConfigureForFunctionsHostGrpc();
+            services.AddGrpcClient<CallInvokerExtractor>(_ => { }).ConfigureForFunctionsHostGrpc();
             services.TryAddEnumerable(
                 ServiceDescriptor.Transient<IConfigureOptions<FunctionsGrpcOptions>, ConfigureOptions>());
         }

@@ -5,13 +5,14 @@ using System;
 using System.Threading.Channels;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
-using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-using Microsoft.Azure.Functions.Worker.Logging;
-using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Grpc;
+using Microsoft.Azure.Functions.Worker.Grpc.Messages;
+using Microsoft.Azure.Functions.Worker.Handlers;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Azure.Functions.Worker.Handlers;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -19,7 +20,7 @@ namespace Microsoft.Extensions.DependencyInjection
     {
         internal static IServiceCollection RegisterOutputChannel(this IServiceCollection services)
         {
-            return services.AddSingleton<GrpcHostChannel>(s =>
+            services.TryAddSingleton<GrpcHostChannel>(s =>
             {
                 UnboundedChannelOptions outputOptions = new UnboundedChannelOptions
                 {
@@ -30,6 +31,8 @@ namespace Microsoft.Extensions.DependencyInjection
 
                 return new GrpcHostChannel(Channel.CreateUnbounded<StreamingMessage>(outputOptions));
             });
+
+            return services;
         }
 
         public static IServiceCollection AddGrpc(this IServiceCollection services)
@@ -38,67 +41,65 @@ namespace Microsoft.Extensions.DependencyInjection
             services.RegisterOutputChannel();
 
             // Internal logging
-            services.AddSingleton<GrpcFunctionsHostLogWriter>();
-            services.AddSingleton<IUserLogWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>());
-            services.AddSingleton<ISystemLogWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>());
-            services.AddSingleton<IUserMetricWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>());
-            services.AddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
+            services.TryAddSingleton<GrpcFunctionsHostLogWriter>();
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IUserLogWriter, GrpcFunctionsHostLogWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>()));
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<ISystemLogWriter, GrpcFunctionsHostLogWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>()));
+            services.TryAddEnumerable(ServiceDescriptor.Singleton<IUserMetricWriter, GrpcFunctionsHostLogWriter>(p => p.GetRequiredService<GrpcFunctionsHostLogWriter>()));
+            services.TryAddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
 
             // FunctionMetadataProvider for worker driven function-indexing
             services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
 
             // gRPC Core services
-            services.AddSingleton<IWorker, GrpcWorker>();
+            services.TryAddSingleton<IWorker, GrpcWorker>();
             services.TryAddSingleton<IInvocationHandler, InvocationHandler>();
 
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             // If we are running in the native host process, use the native client
             // for communication (interop). Otherwise; use the gRPC client.
             if (AppContext.GetData("AZURE_FUNCTIONS_NATIVE_HOST") is not null)
             {
-                services.AddSingleton<IWorkerClientFactory, Azure.Functions.Worker.Grpc.NativeHostIntegration.NativeWorkerClientFactory>();
+                services.TryAddSingleton<IWorkerClientFactory, Azure.Functions.Worker.Grpc.NativeHostIntegration.NativeWorkerClientFactory>();
             }
             else
             {
-                services.AddSingleton<IWorkerClientFactory, GrpcWorkerClientFactory>();
+                services.TryAddSingleton<IWorkerClientFactory, GrpcWorkerClientFactory>();
             }
 #else
             services.AddSingleton<IWorkerClientFactory, GrpcWorkerClientFactory>();
 #endif
 
-            services.AddOptions<GrpcWorkerStartupOptions>()
-                .Configure<IConfiguration>((grpcWorkerStartupOption, config) =>
-                {
-                    grpcWorkerStartupOption.HostEndpoint = GetFunctionsHostGrpcUri(config);
-                    grpcWorkerStartupOption.RequestId = config["Functions:Worker:RequestId"] ?? config["requestId"];
-                    grpcWorkerStartupOption.WorkerId = config["Functions:Worker:WorkerId"] ?? config["workerId"];
-                    grpcWorkerStartupOption.GrpcMaxMessageLength = config.GetValue<int?>("Functions:Worker:GrpcMaxMessageLength", null) ?? config.GetValue<int>("grpcMaxMessageLength");
-                });
+            services.AddOptions();
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IConfigureOptions<GrpcWorkerStartupOptions>, GrpcWorkerStartupOptionsSetup>());
 
             return services;
         }
 
         private static Uri GetFunctionsHostGrpcUri(IConfiguration configuration)
         {
-            Uri? grpcUri;
             var functionsUri = configuration["Functions:Worker:HostEndpoint"];
-            if (functionsUri is not null)
+            if (string.IsNullOrEmpty(functionsUri))
             {
-                if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out grpcUri))
-                {
-                    throw new InvalidOperationException($"The gRPC channel URI '{functionsUri}' could not be parsed.");
-                }
+                throw new InvalidOperationException("Configuration is missing the 'HostEndpoint' information. Please ensure an entry with the key 'Functions:Worker:HostEndpoint' is present in your configuration.");
             }
-            else
+
+            if (!Uri.TryCreate(functionsUri, UriKind.Absolute, out var grpcUri))
             {
-                var uriString = $"http://{configuration["HOST"]}:{configuration["PORT"]}";
-                if (!Uri.TryCreate(uriString, UriKind.Absolute, out grpcUri))
-                {
-                    throw new InvalidOperationException($"The gRPC channel URI '{uriString}' could not be parsed.");
-                }
+                throw new InvalidOperationException($"The gRPC channel URI '{functionsUri}' could not be parsed.");
             }
 
             return grpcUri;
+        }
+
+        private sealed class GrpcWorkerStartupOptionsSetup(IConfiguration configuration) : IConfigureOptions<GrpcWorkerStartupOptions>
+        {
+            public void Configure(GrpcWorkerStartupOptions options)
+            {
+                options.HostEndpoint = GetFunctionsHostGrpcUri(configuration);
+                options.RequestId = configuration["Functions:Worker:RequestId"];
+                options.WorkerId = configuration["Functions:Worker:WorkerId"];
+                options.GrpcMaxMessageLength = configuration.GetValue<int>("Functions:Worker:GrpcMaxMessageLength");
+            }
         }
     }
 }

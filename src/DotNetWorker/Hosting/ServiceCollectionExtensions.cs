@@ -4,6 +4,8 @@
 using System;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -30,10 +32,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddDefaultInputConvertersToWorkerOptions();
 
             // Default Json serialization should ignore casing on property names
-            services.Configure<JsonSerializerOptions>(options =>
-            {
-                options.PropertyNameCaseInsensitive = true;
-            });
+            services.TryAddEnumerable(ServiceDescriptor.Transient<IConfigureOptions<JsonSerializerOptions>, ConfigureJsonSerializerOptions>());
 
             // Core services registration
             var builder = services.AddFunctionsWorkerCore(configure);
@@ -42,6 +41,14 @@ namespace Microsoft.Extensions.DependencyInjection
             services.AddGrpc();
 
             return builder;
+        }
+
+        private sealed class ConfigureJsonSerializerOptions : IConfigureOptions<JsonSerializerOptions>
+        {
+            public void Configure(JsonSerializerOptions options)
+            {
+                options.PropertyNameCaseInsensitive = true;
+            }
         }
     }
 }

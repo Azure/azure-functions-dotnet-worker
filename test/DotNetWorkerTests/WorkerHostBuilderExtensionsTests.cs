@@ -2,7 +2,9 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.EnvironmentVariables;
 using Microsoft.Extensions.DependencyInjection;
@@ -73,6 +75,30 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             {
                 Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", functionsEnvironment);
             }
+        }
+
+        [Fact]
+        public void AddFunctionsWorkerDefaults_RegistersServicesIdempotently()
+        {
+            static bool EvaluateServiceRegistration(Type type, ImmutableList<ServiceDescriptor> descriptors)
+            {
+                return type switch
+                {
+                    Type t when t == typeof(IUserLogWriter) || t == typeof(ISystemLogWriter) || t == typeof(IUserMetricWriter)
+                      => descriptors.Count == 2 && descriptors.Last().ImplementationFactory.Method.ReturnType == typeof(GrpcFunctionsHostLogWriter),
+                    _ => descriptors.Count == 1,
+                };
+            }
+
+            var host = new HostBuilder()
+                   .ConfigureFunctionsWorkerDefaults()
+                   .ConfigureFunctionsWorkerDefaults()
+                   .ConfigureServices(s =>
+            {
+                ServiceCollectionExtensionsTestUtility.AssertServiceRegistrationIdempotency(s, EvaluateServiceRegistration);
+            });
+
+            host.Build();
         }
     }
 }

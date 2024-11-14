@@ -25,7 +25,6 @@
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
     <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
-    <ProjectReference Condition="$(TestBuild) != 'true'" Include="..\..\..\..\src\DotNetWorker\DotNetWorker.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,9 +44,9 @@
     <!-- Use version 2.2.0 for .NET Framework 4.8 -->
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" Condition="'$(TargetFramework)' == 'net48'" />
     <!-- Use version 8.0.1 for .NET Core or other target frameworks -->
-    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.1" Condition="'$(TargetFramework)' != 'net48'" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.16.4" />
-    <PackageReference Condition="$(TestBuild) == 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.4" />
+    <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.8" Condition="'$(TargetFramework)' != 'net48'" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.4" />
+    <PackageReference Condition="$(TestBuild) != 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
   </ItemGroup>
 </Project>

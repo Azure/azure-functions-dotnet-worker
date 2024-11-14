@@ -1,15 +1,10 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 
 namespace Function
 {
@@ -45,6 +40,11 @@ namespace Function
 
             var blog = await req.ReadFromJsonAsync<Blog>();
 
+            if (blog is null)
+            {
+                return req.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
             var entity = await _context.Blogs.AddAsync(blog, CancellationToken.None);
             await _context.SaveChangesAsync(CancellationToken.None);
 
@@ -61,10 +61,16 @@ namespace Function
         {
             var logger = context.GetLogger("CreatePost");
             logger.LogInformation("Create Post HTTP trigger function processed a request.");
-               
+
             var post = await req.ReadFromJsonAsync<Post>();
+
+            if (post is null)
+            {
+                return req.CreateResponse(HttpStatusCode.BadRequest);
+            }
+
             post.BlogId = id;
-            
+
             var entity = await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync(CancellationToken.None);
 

@@ -23,7 +23,7 @@ namespace CustomMiddleware
             var logger = context.GetLogger<HttpFunction>();
 
             // Get the item set by the middleware
-            if (context.Items.TryGetValue("middlewareitem", out object value) && value is string message)
+            if (context.Items.TryGetValue("middlewareitem", out object? value) && value is string message)
             {
                 logger.LogInformation("From middleware: {message}", message);
             }

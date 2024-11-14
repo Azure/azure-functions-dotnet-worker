@@ -13,6 +13,7 @@ namespace Microsoft.Azure.Functions.Worker
         Gssapi,
         Plain,
         ScramSha256,
-        ScramSha512
+        ScramSha512,
+        OAuthBearer
     }
 }

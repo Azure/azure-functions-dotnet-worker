@@ -28,7 +28,7 @@ namespace SampleApp
             // Use a string array to return more than one message.
             string[] messages = {
                 $"Album name = {myQueueItem.Name}",
-                $"Album songs = {myQueueItem.Songs.ToString()}"};
+                $"Album songs = {myQueueItem.Songs}"};
 
             _logger.LogInformation("{msg1},{msg2}", messages[0], messages[1]);
 
@@ -58,10 +58,10 @@ namespace SampleApp
 
     public class Album
     {
-        public string Id { get; set; }
+        public string? Id { get; set; }
 
-        public string Name { get; set; }
+        public string? Name { get; set; }
 
-        public List<string> Songs { get; set; }
+        public List<string>? Songs { get; set; }
     }
 }

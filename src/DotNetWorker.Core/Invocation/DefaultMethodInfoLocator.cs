@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Reflection;
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
 using System.Runtime.Loader;
 #endif
 using System.Text.RegularExpressions;
@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             string typeName = entryPointMatch.Groups["typename"].Value;
             string methodName = entryPointMatch.Groups["methodname"].Value;
-#if NET5_0_OR_GREATER
+#if NET6_0_OR_GREATER
             Assembly assembly = AssemblyLoadContext.Default.LoadFromAssemblyPath(pathToAssembly);
 #else
             Assembly assembly = Assembly.LoadFrom(pathToAssembly);

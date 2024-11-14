@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
+using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -113,11 +114,13 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                 response.Result.Status = StatusResult.Types.Status.Success;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (!ex.IsFatal())
             {
+#pragma warning disable CS0618 // Type or member is obsolete
                 response.Result.Exception = _workerOptions.EnableUserCodeException ? ex.ToUserRpcException() : ex.ToRpcException();
-                response.Result.Status = StatusResult.Types.Status.Failure;
+#pragma warning restore CS0618 // Type or member is obsolete
 
+                response.Result.Status = StatusResult.Types.Status.Failure;
                 if (ex.InnerException is TaskCanceledException or OperationCanceledException)
                 {
                     response.Result.Status = StatusResult.Types.Status.Cancelled;

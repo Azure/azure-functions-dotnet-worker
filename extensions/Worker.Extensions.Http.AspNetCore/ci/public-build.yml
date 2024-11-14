@@ -44,13 +44,17 @@ extends:
   parameters:
     pool:
       name: 1es-pool-azfunc-public
-      image: 1es-ubuntu-22.04
-      os: linux
+      image: 1es-windows-2022
+      os: windows
     sdl:
       sourceAnalysisPool:
         name: 1es-pool-azfunc-public
         image: 1es-windows-2022
         os: windows
+
+    settings:
+      # PR's from forks do not have sufficient permissions to set tags.
+      skipBuildTagsForGitHubPullRequests: ${{ variables['System.PullRequest.IsFork'] }}
 
     stages:
     - stage: Test

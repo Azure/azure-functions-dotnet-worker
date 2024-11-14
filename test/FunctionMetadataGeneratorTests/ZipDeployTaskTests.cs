@@ -15,7 +15,7 @@ namespace Microsoft.Azure.Functions.SdkTests
     public class ZipDeployTaskTests
     {
         private static string _testZippedPublishContentsPath;
-        private const string TestAssemblyToTestZipPath = @"Resources\TestPublishContents.zip";
+        private const string TestAssemblyToTestZipPath = @"Resources/TestPublishContents.zip";
         private const string UserAgentName = "functions-core-tools";
         private const string UserAgentVersion = "1.0";
 
@@ -50,7 +50,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         /// <summary>
         /// ZipDeploy should use PublishUrl if not null or empty, else use SiteName.
         /// </summary>
-        [Theory(Skip = "https://github.com/Azure/azure-functions-dotnet-worker/issues/2781")]
+        [Theory]
         [InlineData("https://sitename.scm.azurewebsites.net", null, false, "https://sitename.scm.azurewebsites.net/api/zipdeploy?isAsync=true")]
         [InlineData("https://sitename.scm.azurewebsites.net", null, true, "https://sitename.scm.azurewebsites.net/api/publish?RemoteBuild=false")]
         [InlineData("https://sitename.scm.azurewebsites.net", "", false, "https://sitename.scm.azurewebsites.net/api/zipdeploy?isAsync=true")]
@@ -96,7 +96,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             await RunZipDeployAsyncTest(publishUrl, siteName, UserAgentVersion, useBlobContainerDeploy: false, HttpStatusCode.OK, verifyStep);
         }
 
-        [Theory(Skip = "https://github.com/Azure/azure-functions-dotnet-worker/issues/2781")]
+        [Theory]
         [InlineData(HttpStatusCode.OK, false, true)]
         [InlineData(HttpStatusCode.OK, true, true)]
         [InlineData(HttpStatusCode.Accepted, false, true)]

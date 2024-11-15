@@ -2,13 +2,11 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
-using System.Threading;
+using FunctionsNetHost.PlaceholderApp.Interop;
 using FunctionsNetHost.Shared;
 using Microsoft.Azure.Functions.Worker;
 using SysEnv = System.Environment;
@@ -21,13 +19,6 @@ internal class StartupHook
 {
     private const string LogSubCategory = nameof(StartupHook);
 
-    // FunctionsNetHost will signal this handle when it receives environment reload request.
-    static readonly EventWaitHandle WaitHandle = new(
-        initialState: false,
-        mode: EventResetMode.ManualReset,
-        name: Constants.NetHostWaitHandleName
-    );
-
     public static void Initialize()
     {
         string jitTraceFilePath = string.Empty;
@@ -35,13 +26,14 @@ internal class StartupHook
 
         try
         {
+            NativeMethods.RegisterForStartupHookCallback();
             jitTraceFilePath = SysEnv.GetEnvironmentVariable(EnvironmentVariables.PreJitFilePath);
             if (string.IsNullOrWhiteSpace(jitTraceFilePath))
             {
                 throw new InvalidOperationException($"Environment variable `{EnvironmentVariables.PreJitFilePath}` was not set. This behavior is unexpected.");
             }
 
-            Log($"Pre-jitting using '{jitTraceFilePath}'.");
+            Logger.Log($"Pre-jitting using '{jitTraceFilePath}'.");
             PreJitPrepare(jitTraceFilePath);
 
 #if NET8_0
@@ -50,18 +42,18 @@ internal class StartupHook
                      ?? throw new MissingMethodException($"Method 'Assembly.SetEntryAssembly' not found using reflection");
 #endif
 
-            Log("Waiting for cold start request.");
+            Logger.Log("Waiting for specialization request from native host.");
+            var specializationMessage = NativeMethods.WaitForSpecializationMessage();
 
-            // When specialization request arrives, FNH will connect to this named server stream and send the assembly path.
-            using (var pipeServer = new NamedPipeServerStream(Constants.NetHostWaitHandleName, PipeDirection.In))
+            var environemntVariables = specializationMessage.EnvironmentVariables;
+            foreach (var envVar in environemntVariables)
             {
-                pipeServer.WaitForConnection();
-                using var reader = new StreamReader(pipeServer);
-                // FNH will send only one message which is the entry assembly path.
-                entryAssemblyFromCustomerPayload = reader.ReadLine();
+                SysEnv.SetEnvironmentVariable(envVar.Key, envVar.Value);
             }
 
-            Log($"Entry assembly path received: {entryAssemblyFromCustomerPayload}.");
+            entryAssemblyFromCustomerPayload = specializationMessage.ApplicationExecutablePath;
+            Logger.Log($"Entry assembly path received: {entryAssemblyFromCustomerPayload}.");
+
 
             if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))
             {
@@ -73,42 +65,36 @@ internal class StartupHook
             {
 #if NET8_0
                 method.Invoke(null, [specializedEntryAssembly]);
-                Log($"Specialized entry assembly set:{specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly (via reflection)");
+                Logger.Log($"Specialized entry assembly set:{specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly (via reflection)");
 
 #elif NET9_0_OR_GREATER
                 Assembly.SetEntryAssembly(specializedEntryAssembly);
-                Log($"Specialized entry assembly set: {specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly");
+                Logger.Log($"Specialized entry assembly set: {specializedEntryAssembly.FullName} using Assembly.SetEntryAssembly");
 #endif
             }
             catch (Exception ex)
             {
-                Log($"Error when trying to set entry assembly.{ex}.NET version:{RuntimeInformation.FrameworkDescription}");
+                Logger.Log($"Error when trying to set entry assembly.{ex}.NET version:{RuntimeInformation.FrameworkDescription}");
                 throw;
             }
         }
         catch (Exception ex)
         {
-            Log($"Error in StartupHook.Initialize: {ex}. jitTraceFilePath: {jitTraceFilePath} entryAssemblyFromCustomerPayload: {entryAssemblyFromCustomerPayload}");
+            Logger.Log($"Error in StartupHook.Initialize: {ex}. jitTraceFilePath: {jitTraceFilePath} entryAssemblyFromCustomerPayload: {entryAssemblyFromCustomerPayload}");
             throw;
         }
-    }
-
-    private static void Log(string message)
-    {
-        var ts = DateTime.UtcNow.ToString(Constants.LogTimeStampFormat, CultureInfo.InvariantCulture);
-        Console.WriteLine($"{Constants.DefaultLogPrefix}[{ts}] [{Constants.LogCategory}][{LogSubCategory}] {message}");
     }
 
     private static void PreJitPrepare(string jitTraceFile)
     {
         if (!File.Exists(jitTraceFile))
         {
-            Log($"File '{jitTraceFile}' not found.");
+            Logger.Log($"File '{jitTraceFile}' not found.");
             return;
         }
 
         JitTraceRuntime.Prepare(new FileInfo(jitTraceFile), out int successes, out int failures);
-        Log($"Successful Prepares: {successes}. Failed Prepares: {failures}");
+        Logger.Log($"Successful Prepares: {successes}. Failed Prepares: {failures}");
         JitKnownTypes();
     }
 

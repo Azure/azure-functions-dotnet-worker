@@ -6,6 +6,7 @@ namespace FunctionsNetHost.Shared
     public static class Constants
     {
         public const string LogCategory = "FunctionsNetHost";
+        public const string LogSubCategory = "StartupHook";
         public const string DefaultLogPrefix = "LanguageWorkerConsoleLog";
         public const string NetHostWaitHandleName = "AzureFunctionsNetHostSpecializationWaitHandle";
         public const string LogTimeStampFormat = "yyyy-MM-dd HH:mm:ss.fff";

@@ -5,6 +5,7 @@
     <DebugSymbols>False</DebugSymbols>
     <DebugType>None</DebugType>
     <TieredCompilation>false</TieredCompilation>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />

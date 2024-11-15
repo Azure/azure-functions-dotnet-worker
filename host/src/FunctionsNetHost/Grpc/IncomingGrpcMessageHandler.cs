@@ -1,11 +1,10 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.IO.Pipes;
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-
+using InteropSpecializeMessage = FunctionsNetHost.Shared.Interop.SpecializeMessage;
 namespace FunctionsNetHost.Grpc
 {
     internal sealed class IncomingGrpcMessageHandler
@@ -92,10 +91,17 @@ namespace FunctionsNetHost.Grpc
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
                     Logger.LogTrace($"application path {applicationExePath}");
 
+                    // On Unix-like systems, in-process environment modifications made by native libraries aren't seen by managed callers.
+                    // So in the pre-jit case, we will send this env variables to managed code and set it there (for all OS).
+                    // https://learn.microsoft.com/en-us/dotnet/api/system.environment.getenvironmentvariables
                     if (_netHostRunOptions.IsPreJitSupported)
                     {
-                        // Signal so that startup hook load the payload assembly.
-                        await NotifySpecializationOccured(applicationExePath);
+                        var interopSpecializeMessage = new InteropSpecializeMessage
+                        {
+                            ApplicationExecutablePath = applicationExePath,
+                            EnvironmentVariables = envReloadRequest.EnvironmentVariables
+                        };
+                        SignalStartupHook(interopSpecializeMessage);
                     }
                     else
                     {
@@ -125,23 +131,11 @@ namespace FunctionsNetHost.Grpc
             }
         }
 
-        private static async Task NotifySpecializationOccured(string applicationExePath)
+        private static void SignalStartupHook(InteropSpecializeMessage interopSpecializeMessage)
         {
-            // Startup hook code has opened a named pipe server stream and waiting for a client to connect & send a message.
-            try
-            {
-                using var pipeClient = new NamedPipeClientStream(".", Shared.Constants.NetHostWaitHandleName, PipeDirection.Out);
-                await pipeClient.ConnectAsync();
-                using var writer = new StreamWriter(pipeClient);
-                writer.WriteLine(applicationExePath);
-                writer.Flush();
-                Logger.LogTrace("Sent application path to named pipe server stream.");
-            }
-            catch (Exception ex)
-            {
-                Logger.Log($"Error connecting to named pipe server. {ex}");
-                throw;
-            }
+            Logger.LogTrace("Sending specialization message to startuphook.");
+            var messageByteArray = interopSpecializeMessage.ToByteArray();
+            NativeHostApplication.Instance.HandleStartupHookInboundMessage(messageByteArray, messageByteArray.Length);
         }
 
         private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)

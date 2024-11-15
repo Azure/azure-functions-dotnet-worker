@@ -4,77 +4,65 @@
 using System;
 using System.Net.Http;
 using System.Threading.Tasks;
-using Microsoft.Azure.Documents;
-using Microsoft.Azure.Documents.Client;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     public static class CosmosDBHelpers
     {
-        private static readonly DocumentClient _docDbClient;
-        private static readonly Uri inputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName);
-        private static readonly Uri outputCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName);
-        private static readonly Uri leasesCollectionsUri = UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.LeaseCollectionName);
+        private static readonly CosmosClient _cosmosClient;
+        private static readonly Container _inputContainer;
+        private static readonly Container _outputContainer;
+        private static readonly Container _leaseContainer;
 
         static CosmosDBHelpers()
         {
-            var builder = new System.Data.Common.DbConnectionStringBuilder
-            {
-                ConnectionString = Constants.CosmosDB.CosmosDBConnectionStringSetting
-            };
-            var serviceUri = new Uri(builder["AccountEndpoint"].ToString());
-            _docDbClient = new DocumentClient(serviceUri, builder["AccountKey"].ToString());
+            _cosmosClient = new CosmosClient(Constants.CosmosDB.CosmosDBConnectionStringSetting);
+
+            var database = _cosmosClient.GetDatabase(Constants.CosmosDB.DbName);
+            _inputContainer = database.GetContainer(Constants.CosmosDB.InputCollectionName);
+            _outputContainer = database.GetContainer(Constants.CosmosDB.OutputCollectionName);
+            _leaseContainer = database.GetContainer(Constants.CosmosDB.LeaseCollectionName);
         }
 
         // keep
         public async static Task CreateDocument(string docId, string docText = "test")
         {
-            Document documentToTest = new Document() { Id = docId };
-            documentToTest.SetPropertyValue("Text", docText);
-
-            _ = await _docDbClient.CreateDocumentAsync(UriFactory.CreateDocumentCollectionUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName), documentToTest);
+            var documentToTest = new { id = docId, Text = docText };
+            await _inputContainer.CreateItemAsync(documentToTest, new PartitionKey(docId));
         }
 
         // keep
         public async static Task<string> ReadDocument(string docId)
         {
-            var docUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName, docId);
-            Document retrievedDocument = null;
-            await TestUtility.RetryAsync(async () =>
+            try
             {
-                try
-                {
-                    retrievedDocument = await _docDbClient.ReadDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(docId) });
-                    return true;
-                }
-                catch (DocumentClientException ex) when (ex.Error.Code == "NotFound")
-                {
-                    return false;
-                }
-            }, pollingInterval: 500);
-
-            return retrievedDocument?.Id;
+                var response = await _outputContainer.ReadItemAsync<dynamic>(docId, new PartitionKey(docId));
+                return response.Resource?.id;
+            }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return null;
+            }
         }
 
         // keep
         public async static Task DeleteTestDocuments(string docId)
         {
-            var inputDocUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.InputCollectionName, docId);
-            await DeleteDocument(inputDocUri, docId);
-            var outputDocUri = UriFactory.CreateDocumentUri(Constants.CosmosDB.DbName, Constants.CosmosDB.OutputCollectionName, docId);
-            await DeleteDocument(outputDocUri, docId);
+            await DeleteDocument(_inputContainer, docId);
+            await DeleteDocument(_outputContainer, docId);
         }
 
-        private async static Task DeleteDocument(Uri docUri, string docId)
+        private async static Task DeleteDocument(Container container, string docId)
         {
             try
             {
-                await _docDbClient.DeleteDocumentAsync(docUri, new RequestOptions { PartitionKey = new PartitionKey(docId) });
+                await container.DeleteItemAsync<dynamic>(docId, new PartitionKey(docId));
             }
-            catch (Exception)
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                //ignore
+                // Ignore if the document is already deleted
             }
         }
 
@@ -82,75 +70,66 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             try
             {
-                await new HttpClient().GetAsync(_docDbClient.ServiceEndpoint);
+                var response = await _cosmosClient.ReadAccountAsync();
+                return response != null;
             }
             catch
             {
-                // typically "the target machine actively refused it" if the emulator isn't running.
-                logger.LogError($"Could not connect to CosmosDB endpoint: '{_docDbClient.ServiceEndpoint}'. Are you using the emulator?");
+                logger.LogError($"Could not connect to CosmosDB. Check the emulator or connection string.");
                 return false;
             }
-
-            return true;
         }
-
 
         // keep
         public async static Task<bool> TryCreateDocumentCollectionsAsync(ILogger logger)
         {
             if (!await CanConnectAsync(logger))
             {
-                // This can hang if the service is unavailable. Just return and let tests fail.
-                // The Cosmos tests may be filtered out anyway without an emulator running.
                 return false;
             }
 
-            Database db = await _docDbClient.CreateDatabaseIfNotExistsAsync(new Database { Id = Constants.CosmosDB.DbName });
-            Uri dbUri = UriFactory.CreateDatabaseUri(db.Id);
+            var databaseResponse = await _cosmosClient.CreateDatabaseIfNotExistsAsync(Constants.CosmosDB.DbName);
+            var database = databaseResponse.Database;
 
             await Task.WhenAll(
-                CreateCollection(dbUri, Constants.CosmosDB.InputCollectionName),
-                CreateCollection(dbUri, Constants.CosmosDB.OutputCollectionName),
-                CreateCollection(dbUri, Constants.CosmosDB.LeaseCollectionName));
+                CreateCollection(database, Constants.CosmosDB.InputCollectionName),
+                CreateCollection(database, Constants.CosmosDB.OutputCollectionName),
+                CreateCollection(database, Constants.CosmosDB.LeaseCollectionName));
 
             return true;
         }
 
         public async static Task DeleteDocumentCollections()
         {
+            var database = _cosmosClient.GetDatabase(Constants.CosmosDB.DbName);
             await Task.WhenAll(
-                DeleteCollection(inputCollectionsUri),
-                DeleteCollection(outputCollectionsUri),
-                DeleteCollection(leasesCollectionsUri));
+                DeleteCollection(database, Constants.CosmosDB.InputCollectionName),
+                DeleteCollection(database, Constants.CosmosDB.OutputCollectionName),
+                DeleteCollection(database, Constants.CosmosDB.LeaseCollectionName));
         }
 
-        private async static Task DeleteCollection(Uri collectionUri)
+        private async static Task DeleteCollection(Database database, string collectionName)
         {
             try
             {
-                await _docDbClient.DeleteDocumentCollectionAsync(collectionUri);
+                var container = database.GetContainer(collectionName);
+                await container.DeleteContainerAsync();
             }
-            catch (Exception)
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
-                //Ignore
+                // Ignore if the container is already deleted
             }
         }
 
-        private async static Task CreateCollection(Uri dbUri, string collectioName)
+        private async static Task CreateCollection(Database database, string collectionName)
         {
-            var pkd = new PartitionKeyDefinition();
-            pkd.Paths.Add("/id");
-            DocumentCollection collection = new DocumentCollection()
+            var containerProperties = new ContainerProperties
             {
-                Id = collectioName,
-                PartitionKey = pkd
+                Id = collectionName,
+                PartitionKeyPath = "/id"
             };
-            await _docDbClient.CreateDocumentCollectionIfNotExistsAsync(dbUri, collection,
-                new RequestOptions()
-                {
-                    PartitionKey = new PartitionKey("/id"),
-                    OfferThroughput = 400
-                });
+
+            await database.CreateContainerIfNotExistsAsync(containerProperties, throughput: 400);
         }
     }
 }

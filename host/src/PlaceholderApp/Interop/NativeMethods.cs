@@ -26,7 +26,7 @@ namespace FunctionsNetHost.PlaceholderApp.Interop
 
         internal static void RegisterStartupHookMessageHandlingCallback(delegate* unmanaged<byte**, int, nint, nint> requestCallback, nint grpcHandler)
         {
-            _ = register_startuphook_callbacks(nint.Zero, requestCallback, grpcHandler);
+            _ = register_startuphook_callback(nint.Zero, requestCallback, grpcHandler);
         }
 
         /// <summary>
@@ -45,7 +45,7 @@ namespace FunctionsNetHost.PlaceholderApp.Interop
         }
 
         [DllImport(NativeWorkerDll)]
-        private static extern unsafe int register_startuphook_callbacks(nint pInProcessApplication, delegate* unmanaged<byte**, int, nint, nint> requestCallback, nint grpcHandler);
+        private static extern unsafe int register_startuphook_callback(nint pInProcessApplication, delegate* unmanaged<byte**, int, nint, nint> requestCallback, nint grpcHandler);
 
         [UnmanagedCallersOnly]
         private static unsafe nint StartupHookCallbackHandler(byte** nativeMessage, int nativeMessageSize, nint grpcHandler)

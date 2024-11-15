@@ -30,8 +30,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Text.Json" Version="9.0.0-preview.6.24327.7" />
-    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="9.0.0-preview.6.24327.7" />
+    <PackageReference Include="System.Text.Json" Version="9.0.0" />
+    <PackageReference Include="Microsoft.NETCore.DotNetAppHost" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -131,18 +131,6 @@ internal class StartupHook
         var nInfoEx = new System.Net.NetworkInformation.NetworkInformationException();
         var authEx = new System.Security.Cryptography.AuthenticationTagMismatchException();
         var taEx = new System.Threading.ThreadInterruptedException();
-
-        // Same with ASP.NET Core types.
-        var provider = new Microsoft.Extensions.Configuration.EnvironmentVariables.EnvironmentVariablesConfigurationProvider();
-        var fileInfo = new Microsoft.Extensions.FileProviders.Physical.PhysicalFileInfo(new FileInfo(SysEnv.GetEnvironmentVariable(EnvironmentVariables.PreJitFilePath)));
-        var result = new Microsoft.Extensions.Options.ValidateOptionsResult();
-        var cmdSource = new Microsoft.Extensions.Configuration.CommandLine.CommandLineConfigurationSource();
-        var flex = new Microsoft.Extensions.Configuration.FileLoadExceptionContext();
-        var listenerName = Microsoft.Extensions.Diagnostics.Metrics.ConsoleMetrics.DebugListenerName;
-        var mops = new Microsoft.Extensions.Diagnostics.Metrics.MetricsOptions();
-        var hb = new Microsoft.Extensions.Hosting.HostBuilder();
-        var loggerFactory = new Microsoft.Extensions.Logging.LoggerFactory();
-        var factory = new Microsoft.Extensions.DependencyInjection.DefaultServiceProviderFactory();
     }
 
     private enum HookTypes

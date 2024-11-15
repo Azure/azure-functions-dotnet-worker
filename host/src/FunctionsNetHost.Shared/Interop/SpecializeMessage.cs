@@ -27,10 +27,8 @@ namespace FunctionsNetHost.Shared.Interop
             using (var memoryStream = new MemoryStream())
             using (var writer = new BinaryWriter(memoryStream, Encoding.UTF8))
             {
-                // Serialize ApplicationExecutablePath
                 writer.Write(ApplicationExecutablePath);
 
-                // Serialize EnvironmentVariables
                 writer.Write(EnvironmentVariables.Count);
                 foreach (var kvp in EnvironmentVariables)
                 {
@@ -49,10 +47,8 @@ namespace FunctionsNetHost.Shared.Interop
             {
                 var message = new SpecializeMessage();
 
-                // Deserialize ApplicationExecutablePath
                 message.ApplicationExecutablePath = reader.ReadString();
 
-                // Deserialize EnvironmentVariables
                 var count = reader.ReadInt32();
                 for (var i = 0; i < count; i++)
                 {

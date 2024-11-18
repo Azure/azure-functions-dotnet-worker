@@ -12,19 +12,19 @@ jobs:
       artifact: _preJitAppPackages
 
   variables:
-    dotnetVersions: 'net8.0,net9.0'
+    targetFrameworks: 'net8.0,net9.0'
 
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
-  - ${{ each version in split(variables.dotnetVersions, ',') }}:
+  - ${{ each targetFramework in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2
-      displayName: ${{ version }} publish of pre-jit app
+      displayName: ${{ targetFramework }} publish of pre-jit app
       inputs:
         command: publish
         publishWebProjects: false
         zipAfterPublish: false
         modifyOutputPath: false
-        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(version, 'net', '') }} -f ${{ version }} -p:UseAppHost=false
+        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(targetFramework, 'net', '') }} -f ${{ targetFramework }} -p:UseAppHost=false
         projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
         workingDirectory: host/src

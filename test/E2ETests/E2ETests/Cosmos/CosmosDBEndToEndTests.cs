@@ -32,7 +32,14 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
                 await CosmosDBHelpers.CreateDocument(expectedDocId, expectedDocId);
 
                 //Read
-                var documentId = await CosmosDBHelpers.ReadDocument(expectedDocId);
+                string documentId = string.Empty;
+                await TestUtility.RetryAsync(async () =>
+                {
+                    documentId = await CosmosDBHelpers.ReadDocument(expectedDocId);
+                    return documentId is not null;
+                });
+
+                //Assert
                 Assert.Equal(expectedDocId, documentId);
             }
             finally

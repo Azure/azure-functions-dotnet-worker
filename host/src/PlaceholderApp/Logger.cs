@@ -5,11 +5,15 @@ using System;
 using System.Globalization;
 using FunctionsNetHost.Shared;
 
-internal static class Logger
+namespace FunctionsNetHost.PlaceholderApp
 {
-    internal static void Log(string message)
+    internal static class Logger
     {
-        var ts = DateTime.UtcNow.ToString(Constants.LogTimeStampFormat, CultureInfo.InvariantCulture);
-        Console.WriteLine($"{Constants.DefaultLogPrefix}[{ts}] [{Constants.LogCategory}][{Constants.LogSubCategory}] {message}");
+        internal static void Log(string message)
+        {
+            var ts = DateTime.UtcNow.ToString(Constants.LogTimeStampFormat, CultureInfo.InvariantCulture);
+            Console.WriteLine($"{Constants.DefaultLogPrefix}[{ts}] [{Constants.LogCategory}][{Constants.LogSubCategory}] {message}");
+        }
     }
 }
+

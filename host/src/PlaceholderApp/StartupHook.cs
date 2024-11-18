@@ -10,6 +10,7 @@ using FunctionsNetHost.PlaceholderApp.Interop;
 using FunctionsNetHost.Shared;
 using Microsoft.Azure.Functions.Worker;
 using SysEnv = System.Environment;
+using Logger = FunctionsNetHost.PlaceholderApp.Logger;
 
 /// <summary>
 /// This StartupHook class will be executed when FunctionsNetHost starts the placeholder app in placeholder mode.
@@ -17,8 +18,6 @@ using SysEnv = System.Environment;
 /// </summary>
 internal class StartupHook
 {
-    private const string LogSubCategory = nameof(StartupHook);
-
     public static void Initialize()
     {
         string jitTraceFilePath = string.Empty;
@@ -45,8 +44,8 @@ internal class StartupHook
             Logger.Log("Waiting for specialization request from native host.");
             var specializationMessage = NativeMethods.WaitForSpecializationMessage();
 
-            var environemntVariables = specializationMessage.EnvironmentVariables;
-            foreach (var envVar in environemntVariables)
+            var environmentVariables = specializationMessage.EnvironmentVariables;
+            foreach (var envVar in environmentVariables)
             {
                 SysEnv.SetEnvironmentVariable(envVar.Key, envVar.Value);
             }

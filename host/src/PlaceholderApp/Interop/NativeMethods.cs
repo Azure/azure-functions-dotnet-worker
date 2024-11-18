@@ -11,7 +11,7 @@ namespace FunctionsNetHost.PlaceholderApp.Interop
     internal static unsafe class NativeMethods
     {
         private const string NativeWorkerDll = "FunctionsNetHost.exe";
-        private static readonly ManualResetEventSlim _specializationWaitHandle = new(false);
+        private static readonly ManualResetEventSlim SpecializationWaitHandle = new(false);
         private static SpecializeMessage _specializationMessage;
 
         static NativeMethods()
@@ -24,11 +24,6 @@ namespace FunctionsNetHost.PlaceholderApp.Interop
             RegisterStartupHookMessageHandlingCallback(&StartupHookCallbackHandler, nint.Zero);
         }
 
-        internal static void RegisterStartupHookMessageHandlingCallback(delegate* unmanaged<byte**, int, nint, nint> requestCallback, nint grpcHandler)
-        {
-            _ = register_startuphook_callback(nint.Zero, requestCallback, grpcHandler);
-        }
-
         /// <summary>
         /// Waits for the specialization message from the native code. 
         /// This method blocks until the specialization event occurs and the message is received.
@@ -36,14 +31,19 @@ namespace FunctionsNetHost.PlaceholderApp.Interop
         /// </summary>
         internal static SpecializeMessage WaitForSpecializationMessage()
         {
-            _specializationWaitHandle.Wait();
+            SpecializationWaitHandle.Wait();
 
             // Don't need _specializationWaitHandle anymore. Dispose it.
-            _specializationWaitHandle.Dispose();
+            SpecializationWaitHandle.Dispose();
 
             return _specializationMessage;
         }
 
+        private static void RegisterStartupHookMessageHandlingCallback(delegate* unmanaged<byte**, int, nint, nint> requestCallback, nint grpcHandler)
+        {
+            _ = register_startuphook_callback(nint.Zero, requestCallback, grpcHandler);
+        }
+        
         [DllImport(NativeWorkerDll)]
         private static extern unsafe int register_startuphook_callback(nint pInProcessApplication, delegate* unmanaged<byte**, int, nint, nint> requestCallback, nint grpcHandler);
 
@@ -51,7 +51,7 @@ namespace FunctionsNetHost.PlaceholderApp.Interop
         private static unsafe nint StartupHookCallbackHandler(byte** nativeMessage, int nativeMessageSize, nint grpcHandler)
         {
             _specializationMessage = SpecializeMessage.FromByteArray(new Span<byte>(*nativeMessage, nativeMessageSize).ToArray());
-            _specializationWaitHandle.Set();
+            SpecializationWaitHandle.Set();
 
             return nint.Zero;
         }

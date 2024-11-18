@@ -17,14 +17,14 @@ jobs:
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
-  - ${{ each targetFramework in split(variables.targetFrameworks, ',') }}:
+  - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2
-      displayName: ${{ targetFramework }} publish of pre-jit app
+      displayName: ${{ tfm }} publish of pre-jit app
       inputs:
         command: publish
         publishWebProjects: false
         zipAfterPublish: false
         modifyOutputPath: false
-        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(targetFramework, 'net', '') }} -f ${{ targetFramework }} -p:UseAppHost=false
-        projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
+        arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(tfm, 'net', '') }} -f ${{ tfm }} -p:UseAppHost=false
+        projects: PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
         workingDirectory: host/src

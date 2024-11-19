@@ -26,7 +26,7 @@ jobs:
     displayName: 'Restore'
     inputs:
       command: restore
-      projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
+      projects: '**/*.csproj'
 
   - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2

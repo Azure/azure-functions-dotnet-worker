@@ -22,6 +22,13 @@ jobs:
       dotnet --list-sdks
     displayName: 'List available .NET SDKs'
 
+  - task: DotNetCoreCLI@2
+    displayName: 'Restore pre-jit app'
+    inputs:
+      command: build
+      projects: host/src/FunctionsNetHost.Shared/FunctionsNetHost.Shared.csproj
+      arguments: -f net9.0
+
   - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2
       displayName: ${{ tfm }} publish of pre-jit app
@@ -31,4 +38,4 @@ jobs:
         zipAfterPublish: false
         modifyOutputPath: false
         arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/9.0 -f net9.0 -p:UseAppHost=false
-        projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
+        projects: host/src/FunctionsNetHost.Shared/FunctionsNetHost.Shared.csproj

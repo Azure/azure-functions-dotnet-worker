@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+    <TargetFrameworks>net9.0</TargetFrameworks>
     <AssemblyName>Microsoft.Azure.Functions.NetHost.Placeholder</AssemblyName>
     <Version>1.0.0</Version>
     <SignAssembly>true</SignAssembly>

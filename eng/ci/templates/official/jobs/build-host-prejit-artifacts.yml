@@ -22,11 +22,11 @@ jobs:
       dotnet --list-sdks
     displayName: 'List available .NET SDKs'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Restore'
-    inputs:
-      command: restore
-      projects: '**/*.csproj'
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Restore'
+  #   inputs:
+  #     command: restore
+  #     projects: '**/*.sln'
 
   - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2

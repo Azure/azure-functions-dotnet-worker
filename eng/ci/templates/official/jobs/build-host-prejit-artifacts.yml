@@ -23,11 +23,10 @@ jobs:
     displayName: 'List available .NET SDKs'
 
   - task: DotNetCoreCLI@2
-    displayName: 'Restore pre-jit placeholderapp'
+    displayName: 'Restore'
     inputs:
-      command: build
+      command: restore
       projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
-      arguments: -f net9.0
 
   - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2

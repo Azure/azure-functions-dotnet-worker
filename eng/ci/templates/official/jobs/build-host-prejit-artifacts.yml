@@ -17,11 +17,10 @@ jobs:
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
-  - task: DotNetCoreCLI@2
-    displayName: Restore dependencies
-    inputs:
-      command: restore
-      projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.sln
+  - script: |
+      echo "Available .NET SDKs:"
+      dotnet --list-sdks
+    displayName: 'List available .NET SDKs'
 
   - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2

@@ -26,4 +26,4 @@ jobs:
         zipAfterPublish: false
         modifyOutputPath: false
         arguments: -c Release -o $(Build.ArtifactStagingDirectory)/_preJitAppPackages/${{ replace(tfm, 'net', '') }} -f ${{ tfm }} -p:UseAppHost=false
-        projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj
+        projects: host/src/FunctionsNetHost.PlaceholderApp/FunctionsNetHost.PlaceholderApp.csproj

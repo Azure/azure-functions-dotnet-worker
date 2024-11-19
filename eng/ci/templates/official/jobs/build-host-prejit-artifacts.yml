@@ -17,6 +17,12 @@ jobs:
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
+  - task: DotNetCoreCLI@2
+    displayName: Restore dependencies
+    inputs:
+      command: restore
+      projects: host/src/PlaceholderApp/FunctionsNetHost.PlaceholderApp.sln
+
   - ${{ each tfm in split(variables.targetFrameworks, ',') }}:
     - task: DotNetCoreCLI@2
       displayName: ${{ tfm }} publish of pre-jit app

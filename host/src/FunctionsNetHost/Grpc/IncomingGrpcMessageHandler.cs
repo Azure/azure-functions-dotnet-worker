@@ -4,19 +4,19 @@
 using FunctionsNetHost.Prelaunch;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
-
+using InteropSpecializeMessage = FunctionsNetHost.Shared.Interop.SpecializeMessage;
 namespace FunctionsNetHost.Grpc
 {
     internal sealed class IncomingGrpcMessageHandler
     {
         private bool _specializationDone;
         private readonly AppLoader _appLoader;
-        private readonly GrpcWorkerStartupOptions _grpcWorkerStartupOptions;
+        private readonly NetHostRunOptions _netHostRunOptions;
 
-        internal IncomingGrpcMessageHandler(AppLoader appLoader, GrpcWorkerStartupOptions grpcWorkerStartupOptions)
+        internal IncomingGrpcMessageHandler(AppLoader appLoader, NetHostRunOptions netHostRunOptions)
         {
             _appLoader = appLoader;
-            _grpcWorkerStartupOptions = grpcWorkerStartupOptions;
+            _netHostRunOptions = netHostRunOptions;
         }
 
         internal Task ProcessMessageAsync(StreamingMessage message)
@@ -62,10 +62,13 @@ namespace FunctionsNetHost.Grpc
                     }
                 case StreamingMessage.ContentOneofCase.FunctionEnvironmentReloadRequest:
 
-                    Configuration.Reload();
-                    Logger.LogTrace("Specialization request received.");
-
+                    Logger.Log("Specialization request received.");
                     var envReloadRequest = msg.FunctionEnvironmentReloadRequest;
+                    foreach (var kv in envReloadRequest.EnvironmentVariables)
+                    {
+                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                    }
+                    Configuration.Reload();
 
                     var workerConfig = await WorkerConfigUtils.GetWorkerConfig(envReloadRequest.FunctionAppDirectory);
 
@@ -88,19 +91,26 @@ namespace FunctionsNetHost.Grpc
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
                     Logger.LogTrace($"application path {applicationExePath}");
 
-                    foreach (var kv in envReloadRequest.EnvironmentVariables)
+                    // On Unix-like systems, in-process environment modifications made by native libraries aren't seen by managed callers.
+                    // So in the pre-jit case, we will send this env variables to managed code and set it there (for all OS).
+                    // https://learn.microsoft.com/en-us/dotnet/api/system.environment.getenvironmentvariables
+                    if (_netHostRunOptions.IsPreJitSupported)
                     {
-                        EnvironmentUtils.SetValue(kv.Key, kv.Value);
+                        var interopSpecializeMessage = new InteropSpecializeMessage
+                        {
+                            ApplicationExecutablePath = applicationExePath,
+                            EnvironmentVariables = envReloadRequest.EnvironmentVariables
+                        };
+                        SignalStartupHook(interopSpecializeMessage);
+                    }
+                    else
+                    {
+#pragma warning disable CS4014
+                        Task.Run(() => _appLoader.RunApplication(applicationExePath));
+#pragma warning restore CS4014
                     }
 
-#pragma warning disable CS4014
-                    Task.Run(() =>
-#pragma warning restore CS4014
-                    {
-                        _ = _appLoader.RunApplication(applicationExePath);
-                    });
-
-                    Logger.LogTrace($"Will wait for worker loaded signal.");
+                    Logger.LogTrace("Will wait for worker loaded signal.");
                     WorkerLoadStatusSignalManager.Instance.Signal.WaitOne();
 
                     var logMessage = $"FunctionApp assembly loaded successfully. ProcessId:{Environment.ProcessId}";
@@ -119,6 +129,13 @@ namespace FunctionsNetHost.Grpc
             {
                 await MessageChannel.Instance.SendOutboundAsync(responseMessage);
             }
+        }
+
+        private static void SignalStartupHook(InteropSpecializeMessage interopSpecializeMessage)
+        {
+            Logger.LogTrace("Sending specialization message to startuphook.");
+            var messageByteArray = interopSpecializeMessage.ToByteArray();
+            NativeHostApplication.Instance.HandleStartupHookInboundMessage(messageByteArray, messageByteArray.Length);
         }
 
         private static FunctionEnvironmentReloadResponse BuildFailedEnvironmentReloadResponse(Exception? exception = null)

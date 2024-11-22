@@ -3,6 +3,7 @@
 
 using System.IO.Pipes;
 using FunctionsNetHost.Prelaunch;
+using FunctionsNetHost.Shared;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 
@@ -90,12 +91,17 @@ namespace FunctionsNetHost.Grpc
                     }
 
                     var applicationExePath = Path.Combine(envReloadRequest.FunctionAppDirectory, workerConfig.Description.DefaultWorkerPath!);
-                    Logger.LogTrace($"application path {applicationExePath}");
+                    Logger.LogTrace($"application path {applicationExePath} 548");
 
                     if (_netHostRunOptions.IsPreJitSupported)
                     {
                         // Signal so that startup hook load the payload assembly.
-                        await NotifySpecializationOccured(applicationExePath);
+                        //await NotifySpecializationOccured(applicationExePath);
+                        SignalStartupHook(new SpecializeMessage
+                        {
+                            ApplicationExecutablePath = applicationExePath,
+                            EnvironmentVariables = envReloadRequest.EnvironmentVariables
+                        });
                     }
                     else
                     {
@@ -125,6 +131,13 @@ namespace FunctionsNetHost.Grpc
             }
         }
 
+        private static void SignalStartupHook(SpecializeMessage interopSpecializeMessage)
+        {
+            Logger.LogTrace("Sending specialization message to startuphook.544");
+            var messageByteArray = interopSpecializeMessage.ToByteArray();
+            NativeHostApplication.Instance.HandleStartupHookInboundMessage(messageByteArray, messageByteArray.Length);
+        }
+
         private static async Task NotifySpecializationOccured(string applicationExePath)
         {
             // Startup hook code has opened a named pipe server stream and waiting for a client to connect & send a message.
@@ -135,7 +148,7 @@ namespace FunctionsNetHost.Grpc
                 using var writer = new StreamWriter(pipeClient);
                 writer.WriteLine(applicationExePath);
                 writer.Flush();
-                Logger.LogTrace("Sent application path to named pipe server stream.");
+                Logger.LogTrace("Sent application path to named pipe server stream 1122.");
             }
             catch (Exception ex)
             {

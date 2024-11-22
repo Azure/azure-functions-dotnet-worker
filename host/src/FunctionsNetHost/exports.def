@@ -2,4 +2,5 @@ EXPORTS
    DotNetRuntimeDebugHeader DATA
    get_application_properties
    register_callbacks
+   register_startuphook_callback
    send_streaming_message

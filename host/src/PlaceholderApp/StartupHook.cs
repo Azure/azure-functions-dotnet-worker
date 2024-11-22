@@ -9,8 +9,10 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
+using FunctionsNetHost.PlaceholderApp.Interop;
 using FunctionsNetHost.Shared;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Logging;
 using SysEnv = System.Environment;
 
 /// <summary>
@@ -21,13 +23,6 @@ internal class StartupHook
 {
     private const string LogSubCategory = nameof(StartupHook);
 
-    // FunctionsNetHost will signal this handle when it receives environment reload request.
-    static readonly EventWaitHandle WaitHandle = new(
-        initialState: false,
-        mode: EventResetMode.ManualReset,
-        name: Constants.NetHostWaitHandleName
-    );
-
     public static void Initialize()
     {
         string jitTraceFilePath = string.Empty;
@@ -35,13 +30,14 @@ internal class StartupHook
 
         try
         {
+            NativeMethods.RegisterForStartupHookCallback();
             jitTraceFilePath = SysEnv.GetEnvironmentVariable(EnvironmentVariables.PreJitFilePath);
             if (string.IsNullOrWhiteSpace(jitTraceFilePath))
             {
                 throw new InvalidOperationException($"Environment variable `{EnvironmentVariables.PreJitFilePath}` was not set. This behavior is unexpected.");
             }
 
-            Log($"Pre-jitting using '{jitTraceFilePath}'.");
+            Log($"607 PRE-JITTING using '{jitTraceFilePath}'.");
             PreJitPrepare(jitTraceFilePath);
 
 #if NET8_0
@@ -50,23 +46,11 @@ internal class StartupHook
                      ?? throw new MissingMethodException($"Method 'Assembly.SetEntryAssembly' not found using reflection");
 #endif
 
-            Log("Waiting for cold start request.");
+            Log("Waiting for specialization request from native host.");
+            var specializationMessage = NativeMethods.WaitForSpecializationMessage();
+            entryAssemblyFromCustomerPayload = specializationMessage.ApplicationExecutablePath;
 
-            // When specialization request arrives, FNH will connect to this named server stream and send the assembly path.
-            using (var pipeServer = new NamedPipeServerStream(Constants.NetHostWaitHandleName, PipeDirection.In))
-            {
-                pipeServer.WaitForConnection();
-                using var reader = new StreamReader(pipeServer);
-                // FNH will send only one message which is the entry assembly path.
-                entryAssemblyFromCustomerPayload = reader.ReadLine();
-            }
-
-            Log($"Entry assembly path received: {entryAssemblyFromCustomerPayload}.");
-
-            if (string.IsNullOrWhiteSpace(entryAssemblyFromCustomerPayload))
-            {
-                throw new InvalidOperationException($"Empty value for specialized assembly path received. This behavior is unexpected.");
-            }
+            Log($"Entry assembly path received: {entryAssemblyFromCustomerPayload}");
 
             Assembly specializedEntryAssembly = Assembly.LoadFrom(entryAssemblyFromCustomerPayload);
             try

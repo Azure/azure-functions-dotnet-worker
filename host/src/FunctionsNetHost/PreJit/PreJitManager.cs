@@ -9,7 +9,7 @@ namespace FunctionsNetHost.Prejit
     internal class PreJitManager
     {
         private const string PlaceholderAppDirectory = "PlaceholderApp";
-        private const string PlaceholderAppAssemblyName = "FunctionsNetHost.PlaceholderApp.dll";
+        private const string PlaceholderAppAssemblyName = "Microsoft.Azure.Functions.NetHost.Placeholder.dll";
         private const string JitTraceDirectory = "JitTrace";
 #if OS_LINUX
         private const string JitTraceFileName = "linux.coldstart.jittrace";

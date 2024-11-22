@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionsNetHost", "Functio
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionsNetHost.Shared", "FunctionsNetHost.Shared\FunctionsNetHost.Shared.csproj", "{91867A34-8B79-4E01-81BC-592F1CD1CCCE}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FunctionsNetHost.PlaceholderApp", "PlaceholderApp\FunctionsNetHost.PlaceholderApp.csproj", "{0B7D7DFE-C9A3-8AF2-4B8C-BE5317E51BBD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{91867A34-8B79-4E01-81BC-592F1CD1CCCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{91867A34-8B79-4E01-81BC-592F1CD1CCCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{91867A34-8B79-4E01-81BC-592F1CD1CCCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0B7D7DFE-C9A3-8AF2-4B8C-BE5317E51BBD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0B7D7DFE-C9A3-8AF2-4B8C-BE5317E51BBD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0B7D7DFE-C9A3-8AF2-4B8C-BE5317E51BBD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0B7D7DFE-C9A3-8AF2-4B8C-BE5317E51BBD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

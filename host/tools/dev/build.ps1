@@ -4,7 +4,7 @@
 # Define paths
 $outDir = "..\..\out"
 # For local testing, feel free to update outDir path value as needed.
-#$outDir = "D:\apps\net9host\workers\dotnet-isolated\bin"
+$outDir = "C:\Dev\OSS\azure-functions-host\out\bin\WebJobs.Script.WebHost\debugplaceholder\workers\dotnet-isolated\bin"
 $functionsNetHostDir = "src\FunctionsNetHost"
 $placeholderAppDir = "src\PlaceholderApp"
 $placeholderAppPathNet9 = Join-Path -Path "$outDir\PlaceholderApp\9.0" -ChildPath "."

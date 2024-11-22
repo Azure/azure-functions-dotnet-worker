@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;
+using FuncApp = Microsoft.Azure.Functions.Worker.Builder.FunctionsApplication;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Builder
 {
@@ -29,7 +30,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Builder
                 Environment.SetEnvironmentVariable("AZURE_FUNCTIONS_ENVIRONMENT", value);
             }
 
-            var builder = FunctionsApplication.CreateBuilder([]);
+            var builder = FuncApp.CreateBuilder([]);
             Assert.Equal(value, builder.Configuration["ENVIRONMENT"]);
             Assert.Equal(value ?? "Production", builder.Environment.EnvironmentName);
 

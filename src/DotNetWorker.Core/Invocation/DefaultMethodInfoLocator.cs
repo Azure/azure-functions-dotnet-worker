@@ -7,10 +7,17 @@ using System.Text.RegularExpressions;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
-    internal class DefaultMethodInfoLocator : IMethodInfoLocator
+    internal partial class DefaultMethodInfoLocator : IMethodInfoLocator
     {
-        private static readonly Regex _entryPointRegex = new Regex("^(?<typename>.*)\\.(?<methodname>\\S*)$");
+        private const string EntryPointRegexPattern = "^(?<typename>.*)\\.(?<methodname>\\S*)$";
+#if NET7_0_OR_GREATER
+        private static readonly Regex _entryPointRegex = EntryPointRegex();
 
+        [GeneratedRegex(EntryPointRegexPattern)]
+        private static partial Regex EntryPointRegex();
+#else
+        private static readonly Regex _entryPointRegex = new(EntryPointRegexPattern);
+#endif
         public MethodInfo GetMethod(string pathToAssembly, string entryPoint)
         {
             var entryPointMatch = _entryPointRegex.Match(entryPoint);
@@ -38,5 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             return methodInfo;
         }
+
+
     }
 }

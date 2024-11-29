@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
         
         public static DiagnosticDescriptor LocalSettingsJsonNotAllowedAsConfiguration { get; }
-            = Create(id: "AZFW0016", title: "local.settings.json should not be used as a configuration file", messageFormat: "There is no need to use local.settings.json as a configuration file. During development, it's automatically loaded by Functions Core Tools; in production scenarios, configuration should be handled via App Settings in Azure.",
+            = Create(id: "AZFW0017", title: "local.settings.json should not be used as a configuration file", messageFormat: "There is no need to use local.settings.json as a configuration file. During development, it's automatically loaded by Functions Core Tools; in production scenarios, configuration should be handled via App Settings in Azure.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Warning);
     }
 }

@@ -4,7 +4,7 @@
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// A representation of the a single function invocation.
+    /// A representation of a single function invocation.
     /// </summary>
     public abstract class FunctionInvocation
     {

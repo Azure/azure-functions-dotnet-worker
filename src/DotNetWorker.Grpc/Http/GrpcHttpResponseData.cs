@@ -12,7 +12,7 @@ using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 namespace Microsoft.Azure.Functions.Worker
 {
     
-    internal class GrpcHttpResponseData : HttpResponseData
+    internal sealed class GrpcHttpResponseData : HttpResponseData
     {
         private readonly RpcHttp _rpcHttp = new RpcHttp();
 

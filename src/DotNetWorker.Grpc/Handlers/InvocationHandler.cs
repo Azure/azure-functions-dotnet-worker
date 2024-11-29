@@ -40,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             _invocationFeaturesFactory = invocationFeaturesFactory ?? throw new ArgumentNullException(nameof(invocationFeaturesFactory));
             _outputBindingsInfoProvider = outputBindingsInfoProvider ?? throw new ArgumentNullException(nameof(outputBindingsInfoProvider));
             _inputConversionFeatureProvider = inputConversionFeatureProvider ?? throw new ArgumentNullException(nameof(inputConversionFeatureProvider));
-            _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
+            _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
             _inflightInvocations = new ConcurrentDictionary<string, CancellationTokenSource>();
@@ -108,7 +108,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
                 if (functionBindings.InvocationResult is not null)
                 {
-                    TypedData? returnVal = await functionBindings.InvocationResult.ToRpcAsync(serializer);
+                    TypedData returnVal = await functionBindings.InvocationResult.ToRpcAsync(serializer);
                     response.ReturnValue = returnVal;
                 }
 

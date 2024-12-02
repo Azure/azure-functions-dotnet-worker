@@ -16,7 +16,7 @@ namespace Microsoft.Azure.Functions.Worker
         private const string HttpBindingType = "http";
 
         /// <summary>
-        /// Gets the <see cref="HttpRequestData"/> instance if the invocation is for an http trigger.
+        /// Gets the <see cref="HttpRequestData"/> instance if the invocation is for an HTTP trigger.
         /// </summary>
         /// <param name="context">The FunctionContext instance.</param>
         /// <returns>HttpRequestData instance if the invocation is http, else null</returns>

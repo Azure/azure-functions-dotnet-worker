@@ -20,7 +20,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 FunctionId = functionId;
             }
 
-            // create/dispose activity to pull off it's Id
+            // create/dispose activity to pull off its ID.
             using Activity activity = new Activity(string.Empty).Start();
             TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString());
         }

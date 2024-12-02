@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
         private readonly WorkerOptions _workerOptions;
         private readonly ILogger _logger;
 
-        private ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
+        private readonly ConcurrentDictionary<string, CancellationTokenSource> _inflightInvocations;
 
         public InvocationHandler(
             IFunctionsApplication application,

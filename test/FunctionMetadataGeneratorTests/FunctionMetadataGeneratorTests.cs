@@ -979,7 +979,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            SdkFunctionMetadata metadata = functions.Where(a => string.Equals(a.Name, functionName, StringComparison.Ordinal)).Single();
+            SdkFunctionMetadata metadata = functions.Single(a => string.Equals(a.Name, functionName, StringComparison.Ordinal));
 
             ValidateFunction(metadata, functionName, GetEntryPoint(nameof(CardinalityMany), entryPoint),
                 b => ValidateTrigger(b, cardinalityMany));

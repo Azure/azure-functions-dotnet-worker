@@ -73,7 +73,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
                 }
 
                 // check if the span matches the string "df":
-                if (key.CompareTo( AuthAuthorizationKey.AsSpan(), StringComparison.OrdinalIgnoreCase) == 0)
+                if (key.CompareTo(AuthAuthorizationKey.AsSpan(), StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     if (authenticationStringToken[(indexOfEquals + 1)..].CompareTo(AuthToken.AsSpan(), StringComparison.OrdinalIgnoreCase) != 0)
                     {

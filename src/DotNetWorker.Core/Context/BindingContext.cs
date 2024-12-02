@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker
     {
         /// <summary>
         /// Gets the binding data information for the current context.
-        /// This contains all of the trigger defined metadata.
+        /// This contains all the trigger defined metadata.
         /// </summary>
         public abstract IReadOnlyDictionary<string, object?> BindingData { get; }
     }

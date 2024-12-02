@@ -11,7 +11,7 @@ namespace Microsoft.Azure.Functions.Worker.Http
     public interface IHttpRequestDataFeature
     {
         /// <summary>
-        /// Gets the <see cref="HttpRequestData"/> instance if the FunctionContext contains an invocation for an http trigger.
+        /// Gets the <see cref="HttpRequestData"/> instance if the FunctionContext contains an invocation for an HTTP trigger.
         /// </summary>
         /// <param name="context">The FunctionContext instance.</param>
         /// <returns>HttpRequestData instance if the invocation is http, else null</returns>

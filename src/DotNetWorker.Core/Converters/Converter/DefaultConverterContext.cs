@@ -13,8 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public DefaultConverterContext(Type targetType, object? source, FunctionContext context, IReadOnlyDictionary<string, object> properties)
         {
-            TargetType = targetType ?? throw new ArgumentNullException(nameof(context));
             Source = source;
+            TargetType = targetType ?? throw new ArgumentNullException(nameof(targetType));
             FunctionContext = context ?? throw new ArgumentNullException(nameof(context));
             Properties = properties ?? throw new ArgumentNullException(nameof(properties));
         }

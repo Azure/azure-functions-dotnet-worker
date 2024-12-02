@@ -26,18 +26,17 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
 
         private string? GetAuthenticationString()
         {
-            if (_configuration is not null && _configuration[AppInsightsAuthenticationString] is string value && value is not "")
+            if (_configuration is not null && _configuration[AppInsightsAuthenticationString] is { } value and not "")
             {
                 return value;
             }
-            else if (Environment.GetEnvironmentVariable(AppInsightsAuthenticationString) is string envValue && envValue is not "")
+
+            if (Environment.GetEnvironmentVariable(AppInsightsAuthenticationString) is { } envValue and not "")
             {
                 return envValue;
             }
-            else
-            {
-                return null;
-            }
+
+            return null;
         }
     }
 }

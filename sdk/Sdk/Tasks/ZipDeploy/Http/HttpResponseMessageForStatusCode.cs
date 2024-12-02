@@ -1,7 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-﻿using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -28,7 +29,7 @@ namespace Microsoft.NET.Sdk.Functions.Http
 
         public IEnumerable<string> GetHeader(string name)
         {
-            return new string[0];
+            return Array.Empty<string>();
         }
     }
 }

@@ -45,7 +45,5 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             return methodInfo;
         }
-
-
     }
 }

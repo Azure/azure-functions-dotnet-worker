@@ -179,7 +179,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.NotNull(httpReqData);
 
             // The input binding data does not have values for "bar","fooId" and "bazDate"
-            // but since the are nullable or reference types, they should be populated with null.
+            // but since they are nullable or reference types, they should be populated with null.
             var bar = parameterValuesArray[1];
             Assert.Null(bar);
             var fooId = parameterValuesArray[2];

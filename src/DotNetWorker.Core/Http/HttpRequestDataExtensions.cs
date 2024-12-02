@@ -120,11 +120,11 @@ namespace Microsoft.Azure.Functions.Worker.Http
                 return new ValueTask<T?>(TryCast(result.Result));
             }
 
-            return new ValueTask<T?>(result.AsTask().ContinueWith(t => TryCast(t.Result)));
+            return new ValueTask<T?>(result.AsTask().ContinueWith(t => TryCast(t.Result), cancellationToken));
         }
 
         /// <summary>
-        /// Creates a response for the the provided <see cref="HttpRequestData"/>.
+        /// Creates a response for the provided <see cref="HttpRequestData"/>.
         /// </summary>
         /// <param name="request">The <see cref="HttpRequestData"/> for this response.</param>
         /// <param name="statusCode">The response status code.</param>

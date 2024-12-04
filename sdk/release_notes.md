@@ -8,6 +8,6 @@
 
 - <entry>
 
-### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
+### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.5
 
-- <entry>
+- Update all generated classes to use `GeneratedCodeAttribute`. (#2887)

@@ -88,7 +88,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 namespace TestProject
                 {
                     /// <summary>
-                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker.
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                     {{Constants.GeneratedCodeAttribute}}
@@ -193,7 +193,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                 namespace TestProject
                 {
                     /// <summary>
-                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker.
                     /// </summary>
                     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
                     {{Constants.GeneratedCodeAttribute}}

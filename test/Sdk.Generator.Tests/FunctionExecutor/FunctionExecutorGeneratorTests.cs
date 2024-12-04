@@ -116,7 +116,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    {Constants.GeneratedCodeAttribute}
     internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
         private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
@@ -238,7 +238,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 namespace MyCompany.MyProject.MyApp
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    {Constants.GeneratedCodeAttribute}
     internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
         private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
@@ -387,7 +387,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    {Constants.GeneratedCodeAttribute}
     internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
         private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
@@ -519,7 +519,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    {Constants.GeneratedCodeAttribute}
     internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
         private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
@@ -613,7 +613,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    {Constants.GeneratedCodeAttribute}
     internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
         private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
@@ -706,7 +706,7 @@ using Microsoft.Azure.Functions.Worker.Invocation;
 namespace TestProject
 {{
     [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    {Constants.GeneratedCodeAttribute}
     internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
     {{
         private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;
@@ -756,11 +756,12 @@ namespace TestProject
         {
             if (includeAutoStartupType)
             {
-                return """
+                return $$"""
 
                             /// <summary>
                             /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                             /// </summary>
+                            {{Constants.GeneratedCodeAttribute}}
                             public static class FunctionExecutorHostBuilderExtensions
                             {
                                 ///<summary>
@@ -778,6 +779,7 @@ namespace TestProject
                             /// Auto startup class to register the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                             /// </summary>
                             [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                            {{Constants.GeneratedCodeAttribute}}
                             public class FunctionExecutorAutoStartup : global::Microsoft.Azure.Functions.Worker.IAutoConfigureStartup
                             {
                                 /// <summary>
@@ -792,11 +794,12 @@ namespace TestProject
                         """;
             }
 
-            return """
+            return $$"""
 
                         /// <summary>
                         /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                         /// </summary>
+                        {{Constants.GeneratedCodeAttribute}}
                         public static class FunctionExecutorHostBuilderExtensions
                         {
                             ///<summary>

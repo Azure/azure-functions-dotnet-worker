@@ -102,7 +102,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                    namespace {{namespaceValue}}
                    {
                        [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                       [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+                       {{Constants.GeneratedCodeAttribute}}
                        internal class WorkerExtensionStartupCodeExecutor : global::Microsoft.Azure.Functions.Worker.Core.WorkerExtensionStartup
                        {
                            /// <summary>

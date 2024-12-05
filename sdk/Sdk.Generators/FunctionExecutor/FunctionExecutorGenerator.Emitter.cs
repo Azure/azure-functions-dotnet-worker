@@ -1,7 +1,6 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -33,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          namespace {{FunctionsUtil.GetNamespaceForGeneratedCode(context)}}
                          {
                              [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                             [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+                             {{Constants.GeneratedCodeAttribute}}
                              internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
                              {
                                  private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;{{(defaultExecutorNeeded ? $"{Constants.NewLine}        private Lazy<global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor> _defaultExecutor;" : string.Empty)}}
@@ -53,6 +52,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                              /// <summary>
                              /// Extension methods to enable registration of the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                              /// </summary>
+                             {{Constants.GeneratedCodeAttribute}}
                              public static class FunctionExecutorHostBuilderExtensions
                              {
                                  ///<summary>
@@ -121,6 +121,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                       /// Auto startup class to register the custom <see cref="IFunctionExecutor"/> implementation generated for the current worker.
                                       /// </summary>
                                       [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                                      {{Constants.GeneratedCodeAttribute}}
                                       public class FunctionExecutorAutoStartup : global::Microsoft.Azure.Functions.Worker.IAutoConfigureStartup
                                       {
                                           /// <summary>

@@ -12,6 +12,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         internal static readonly string NewLine = Environment.NewLine;
 #pragma warning restore RS1035 // Do not use APIs banned for analyzers
 
+        internal static readonly string GeneratedCodeAttribute =
+            $"[global::System.CodeDom.Compiler.GeneratedCodeAttribute(" +
+            $"\"{typeof(Constants).Assembly.GetName().Name}\", " +
+            $"\"{typeof(Constants).Assembly.GetName().Version}\")]";
+
         internal static class ExecutionModel
         {
             internal const string Isolated = "isolated";

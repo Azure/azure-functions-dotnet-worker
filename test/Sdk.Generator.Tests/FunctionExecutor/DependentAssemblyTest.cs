@@ -70,7 +70,7 @@ namespace Microsoft.Azure.Functions.SdkGeneratorTests
                                        namespace TestProject
                                        {
                                            [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                                           [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+                                           {{Constants.GeneratedCodeAttribute}}
                                            internal class DirectFunctionExecutor : global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor
                                            {
                                                private readonly global::Microsoft.Azure.Functions.Worker.IFunctionActivator _functionActivator;

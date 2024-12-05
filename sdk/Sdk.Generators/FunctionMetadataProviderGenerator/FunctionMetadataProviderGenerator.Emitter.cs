@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
@@ -38,10 +39,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                          namespace {{FunctionsUtil.GetNamespaceForGeneratedCode(context)}}
                          {
                              /// <summary>
-                             /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker."/>
+                             /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker.
                              /// </summary>
                              [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
-                             [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+                             {{Constants.GeneratedCodeAttribute}}
                              public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
                              {
                                  /// <inheritdoc/>
@@ -56,6 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                              /// <summary>
                              /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
                              /// </summary>
+                             {{Constants.GeneratedCodeAttribute}}
                              public static class WorkerHostBuilderFunctionMetadataProviderExtension
                              {
                                  ///<summary>
@@ -85,6 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                       /// Auto startup class to register the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
                                       /// </summary>
                                       [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                                      {{Constants.GeneratedCodeAttribute}}
                                       public class FunctionMetadataProviderAutoStartup : global::Microsoft.Azure.Functions.Worker.IAutoConfigureStartup
                                       {
                                           /// <summary>

@@ -14,7 +14,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
+    public class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
     {
         public TestAsyncFunctionContext()
             : base(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
@@ -56,6 +56,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation)
             : this(functionDefinition, invocation, CancellationToken.None)
         {
+        }
+
+        public TestFunctionContext(BindingContext context)
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
+        {
+            BindingContext = context;
         }
 
         public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, CancellationToken cancellationToken, IInvocationFeatures features = null, IServiceProvider serviceProvider = null)

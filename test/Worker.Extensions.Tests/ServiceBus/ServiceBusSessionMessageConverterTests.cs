@@ -54,7 +54,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
                     })
                 }
             };
-            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
+            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new Microsoft.Azure.Functions.Worker.Tests.TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
             var converter = new ServiceBusSessionMessageActionsConverter(new MockSettlementClient("test"));
             var result = await converter.ConvertAsync(context);
 
@@ -84,7 +84,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
                     })
                 }
             };
-            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
+            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new Microsoft.Azure.Functions.Worker.Tests.TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
             var converter = new ServiceBusSessionMessageActionsConverter(new MockSettlementClient("test"));
             var result = await converter.ConvertAsync(context);
 
@@ -110,7 +110,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
                     })
                 }
             };
-            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
+            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new Microsoft.Azure.Functions.Worker.Tests.TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
             var converter = new ServiceBusSessionMessageActionsConverter(new MockSettlementClient("test"));
             var result = await converter.ConvertAsync(context);
 
@@ -140,7 +140,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
                     })
                 }
             };
-            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
+            var context = new TestConverterContext(typeof(ServiceBusSessionMessageActions), data, new Microsoft.Azure.Functions.Worker.Tests.TestFunctionContext(new TestBindingContext(bindingDataDictionary)));
             var converter = new ServiceBusSessionMessageActionsConverter(new MockSettlementClient("test"));
             var result = await converter.ConvertAsync(context);
 

@@ -36,6 +36,17 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <CompilerVisibleProperty Include="TargetFrameworkIdentifier" />
     <CompilerVisibleProperty Include="FunctionsExecutionModel" />
   </ItemGroup>
+  
+  <ItemGroup Condition="'$(Language)' == 'C#' AND ('$(ImplicitUsings)' == 'true' or '$(ImplicitUsings)' == 'enable')">
+    <Using Include="Microsoft.Azure.Functions.Worker" />
+    <Using Include="Microsoft.Azure.Functions.Worker.Builder" />
+    <!-- Based on https://github.com/dotnet/sdk/blob/main/src/WebSdk/Worker/Targets/Microsoft.NET.Sdk.Worker.props -->  
+    <Using Include="Microsoft.Extensions.Configuration" />
+    <Using Include="Microsoft.Extensions.DependencyInjection" />
+    <Using Include="Microsoft.Extensions.Hosting" />
+    <Using Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+       
 <!--
   ***********************************************************************************************
   Import the Publish Props

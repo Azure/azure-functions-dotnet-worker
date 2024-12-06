@@ -15,7 +15,6 @@ using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Tests;
 using Microsoft.Azure.Functions.Worker.Tests.Converters;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Moq;
 using Xunit;
 using Google.Protobuf.Collections;

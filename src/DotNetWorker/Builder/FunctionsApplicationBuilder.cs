@@ -30,6 +30,7 @@ public class FunctionsApplicationBuilder : IHostApplicationBuilder, IFunctionsWo
     internal FunctionsApplicationBuilder(string[]? args)
     {
         var configuration = new ConfigurationManager();
+        configuration.AddEnvironmentVariables("AZURE_FUNCTIONS_");
 
         _hostApplicationBuilder = new HostApplicationBuilder(new HostApplicationBuilderSettings
         {

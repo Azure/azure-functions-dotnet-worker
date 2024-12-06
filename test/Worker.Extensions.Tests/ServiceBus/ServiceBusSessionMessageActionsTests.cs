@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
         {
             private readonly string _sessionId;
             private readonly ByteString _sessionState;
-            public MockSettlementClient(string sessionId, ByteString sessionState = null) : base()
+            public MockSettlementClient(string sessionId, ByteString? sessionState = null) : base()
             {
                 _sessionId = sessionId;
                 _sessionState = sessionState;

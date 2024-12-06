@@ -58,6 +58,12 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
         }
 
+        public TestFunctionContext(BindingContext context)
+            : this(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
+        {
+            BindingContext = context;
+        }
+
         public TestFunctionContext(FunctionDefinition functionDefinition, FunctionInvocation invocation, CancellationToken cancellationToken, IInvocationFeatures features = null, IServiceProvider serviceProvider = null)
         {
             FunctionDefinition = functionDefinition;

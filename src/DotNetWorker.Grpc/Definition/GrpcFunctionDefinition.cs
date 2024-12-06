@@ -14,7 +14,7 @@ using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 
 namespace Microsoft.Azure.Functions.Worker.Definition
 {
-    internal class GrpcFunctionDefinition : FunctionDefinition
+    internal sealed class GrpcFunctionDefinition : FunctionDefinition
     {
         private const string FunctionsWorkerDirectoryKey = "FUNCTIONS_WORKER_DIRECTORY";
         private const string FunctionsApplicationDirectoryKey = "FUNCTIONS_APPLICATION_DIRECTORY";
@@ -42,9 +42,9 @@ namespace Microsoft.Azure.Functions.Worker.Definition
             string scriptFile = Path.Combine(scriptRoot, loadRequest.Metadata.ScriptFile);
             PathToAssembly = Path.GetFullPath(scriptFile);
 
-            var grpcBindingsGroup = loadRequest.Metadata.Bindings.GroupBy(kv => kv.Value.Direction);
-            var grpcInputBindings = grpcBindingsGroup.Where(kv => kv.Key == BindingInfo.Types.Direction.In).FirstOrDefault();
-            var grpcOutputBindings = grpcBindingsGroup.Where(kv => kv.Key != BindingInfo.Types.Direction.In).FirstOrDefault();
+            var grpcBindingsGroup = loadRequest.Metadata.Bindings.GroupBy(kv => kv.Value.Direction).ToArray();
+            var grpcInputBindings = grpcBindingsGroup.FirstOrDefault(kv => kv.Key == BindingInfo.Types.Direction.In);
+            var grpcOutputBindings = grpcBindingsGroup.FirstOrDefault(kv => kv.Key != BindingInfo.Types.Direction.In);
             var infoToMetadataLambda = new Func<KeyValuePair<string, BindingInfo>, BindingMetadata>(kv => new GrpcBindingMetadata(kv.Key, kv.Value));
 
             InputBindings = grpcInputBindings?.ToImmutableDictionary(kv => kv.Key, infoToMetadataLambda)

@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public GrpcWorkerClientFactory(GrpcHostChannel outputChannel, IOptions<GrpcWorkerStartupOptions> startupOptions)
         {
             _outputChannel = outputChannel ?? throw new ArgumentNullException(nameof(outputChannel));
-            _startupOptions = startupOptions?.Value ?? throw new ArgumentNullException(nameof(startupOptions), "gRPC Services are not correctly registered.");
+            _startupOptions = startupOptions.Value ?? throw new ArgumentNullException(nameof(startupOptions), "gRPC Services are not correctly registered.");
         }
 
         public IWorkerClient CreateClient(IMessageProcessor messageProcessor)
@@ -38,8 +38,8 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
             private readonly GrpcWorkerStartupOptions _startupOptions;
             private readonly ChannelReader<StreamingMessage> _outputReader;
             private readonly ChannelWriter<StreamingMessage> _outputWriter;
+            private readonly IMessageProcessor? _processor;
             private bool _running;
-            private IMessageProcessor? _processor;
 
             public GrpcWorkerClient(GrpcHostChannel outputChannel, GrpcWorkerStartupOptions startupOptions, IMessageProcessor processor)
             {

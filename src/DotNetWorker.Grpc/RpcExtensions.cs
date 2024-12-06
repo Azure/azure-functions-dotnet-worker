@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker.Rpc
             TypedData typedData = new TypedData();
             try
             {
-                typedData.Json = serializer.Serialize(value)?.ToString();
+                typedData.Json = serializer.Serialize(value).ToString();
             }
             catch
             {

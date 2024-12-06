@@ -176,7 +176,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         break;
                     }
 
-                    genericInterfaceSymbol = currSymbol.Interfaces.Where(i => i.IsOrDerivedFrom(_knownTypes.IEnumerableGeneric)).FirstOrDefault();
+                    genericInterfaceSymbol = currSymbol.Interfaces.FirstOrDefault(i => i.IsOrDerivedFrom(_knownTypes.IEnumerableGeneric));
                     if (genericInterfaceSymbol != null)
                     {
                         finalSymbol = genericInterfaceSymbol;

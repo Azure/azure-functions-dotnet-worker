@@ -48,43 +48,5 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             var messageActions = new ServiceBusSessionMessageActions(new MockSettlementClient(message.SessionId), message.SessionId, message.LockedUntil);
             await messageActions.RenewSessionLockAsync();
         }
-
-        private class MockSettlementClient : Settlement.SettlementClient
-        {
-            private readonly string _sessionId;
-            private readonly ByteString _sessionState;
-            public MockSettlementClient(string sessionId, ByteString? sessionState = null) : base()
-            {
-                _sessionId = sessionId;
-                _sessionState = sessionState;
-            }
-
-            public override AsyncUnaryCall<GetSessionStateResponse> GetSessionStateAsync(GetSessionStateRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
-            {
-                Assert.Equal(_sessionId, request.SessionId);
-                return new AsyncUnaryCall<GetSessionStateResponse>(Task.FromResult(new GetSessionStateResponse()), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
-            }
-
-            public override AsyncUnaryCall<Empty> SetSessionStateAsync(SetSessionStateRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
-            {
-                Assert.Equal(_sessionId, request.SessionId);
-                Assert.Equal(_sessionState, request.SessionState);
-                return new AsyncUnaryCall<Empty>(Task.FromResult(new Empty()), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
-            }
-
-            public override AsyncUnaryCall<Empty> ReleaseSessionAsync(ReleaseSessionRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
-            {
-                Assert.Equal(_sessionId, request.SessionId);
-                return new AsyncUnaryCall<Empty>(Task.FromResult(new Empty()), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
-            }
-
-            public override AsyncUnaryCall<RenewSessionLockResponse> RenewSessionLockAsync(RenewSessionLockRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
-            {
-                Assert.Equal(_sessionId, request.SessionId);
-                var response = new RenewSessionLockResponse();
-                response.LockedUntil = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(30));
-                return new AsyncUnaryCall<RenewSessionLockResponse>(Task.FromResult(response), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
-            }
-        }
     }
 }

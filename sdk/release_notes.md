@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk <version>
 
-- Changed exception handling in function invocation path to ensure fatal exceptions bubble up.
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

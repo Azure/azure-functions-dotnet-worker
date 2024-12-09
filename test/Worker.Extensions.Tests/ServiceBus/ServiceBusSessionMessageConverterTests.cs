@@ -19,7 +19,7 @@ using Moq;
 using Xunit;
 using Google.Protobuf.Collections;
 using Microsoft.Azure.ServiceBus.Grpc;
-using Microsoft.Azure.Functions.Worker.Extensions.Tests.ServiceBus;
+using static Microsoft.Azure.Functions.Worker.Extensions.Tests.ServiceBusMessageActionsTests;
 using Microsoft.VisualStudio.TestPlatform.ObjectModel.DataCollection;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
@@ -34,6 +34,32 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             }
 
             public override IReadOnlyDictionary<string, object?> BindingData { get; }
+        }
+
+        internal sealed class TestFunctionContext : FunctionContext
+        {
+            public TestFunctionContext(BindingContext bindingContext)
+            {
+                BindingContext = bindingContext;
+            }
+
+            public override BindingContext BindingContext { get; }
+
+            public override string InvocationId => throw new NotImplementedException();
+
+            public override string FunctionId => throw new NotImplementedException();
+
+            public override TraceContext TraceContext => throw new NotImplementedException();
+
+            public override RetryContext RetryContext => throw new NotImplementedException();
+
+            public override IServiceProvider InstanceServices { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+            public override FunctionDefinition FunctionDefinition => throw new NotImplementedException();
+
+            public override IDictionary<object, object> Items { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+            public override IInvocationFeatures Features => throw new NotImplementedException();
         }
 
         [Fact]

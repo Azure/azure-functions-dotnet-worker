@@ -2,16 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.ServiceBus.Grpc;
-using System.Text.Json;
-using Microsoft.Azure.Functions.Worker.Core;
-using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
-using Microsoft.Azure.Functions.Worker.Extensions;
-using System.Text;
-using Google.Protobuf.Collections;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -55,9 +51,9 @@ namespace Microsoft.Azure.Functions.Worker
                 }
 
                 // Logic for if isBatched is true, then sessionIdArray will be used to get the sessionId.
-                var sessionIdRepeatedFieldArray = sessionIdArray as RepeatedField<string>;
+                var sessionIdRepeatedFieldArray = sessionIdArray as IList<string>;
 
-                if (foundSessionIdArray && (sessionIdRepeatedFieldArray == null || sessionIdRepeatedFieldArray.Count != 1))
+                if (foundSessionIdArray && (sessionIdRepeatedFieldArray is null || sessionIdRepeatedFieldArray.Count == 0))
                 {
                      throw new InvalidOperationException($"Expecting batched SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }

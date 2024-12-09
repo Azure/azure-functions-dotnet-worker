@@ -2,11 +2,12 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
 using Microsoft.Azure.ServiceBus.Grpc;
-using System.Text.Json;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -15,7 +16,6 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedTargetType(typeof(ServiceBusSessionMessageActions))]
-    [SupportedTargetType(typeof(ServiceBusSessionMessageActions[]))]
     internal class ServiceBusSessionMessageActionsConverter : IInputConverter
     {
         private readonly Settlement.SettlementClient _settlement;
@@ -30,7 +30,8 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 var foundSessionId = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
-                if (!foundSessionId)
+                var foundSessionIdArray = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionIdArray", out object? sessionIdArray);
+                if (!foundSessionId && !foundSessionIdArray)
                 {
                     throw new InvalidOperationException($"Expecting SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }
@@ -49,7 +50,17 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new InvalidOperationException("Expecting SessionLockedUntil within binding data of session actions and value was not present.");
                 }
 
-                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, sessionId!.ToString(), sessionLockedUntil.GetDateTimeOffset());
+                // Logic for if isBatched is true, then sessionIdArray will be used to get the sessionId.
+                var sessionIdRepeatedFieldArray = sessionIdArray as IList<string>;
+
+                if (foundSessionIdArray && (sessionIdRepeatedFieldArray is null || sessionIdRepeatedFieldArray.Count == 0))
+                {
+                     throw new InvalidOperationException($"Expecting batched SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
+                }
+
+                // If sessionIdRepeatedFieldArray has a value, it will only have one value within the array.
+                var parsedSessionId = foundSessionId ? sessionId!.ToString() : (sessionIdRepeatedFieldArray![0].ToString());
+                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, parsedSessionId, sessionLockedUntil.GetDateTimeOffset());
                 var result = ConversionResult.Success(sessionActionResult);
                 return new ValueTask<ConversionResult>(result);
             }

@@ -58,7 +58,8 @@ namespace Microsoft.Azure.Functions.Worker
                      throw new InvalidOperationException($"Expecting batched SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }
 
-                // If sessionIdRepeatedFieldArray has a value, it will only have one value within the array.
+                // If sessionIdRepeatedFieldArray has a value, we can just parse the firset sessionId from the array, as all the values are guranteed to be the same.
+                // This is becuase there can be multiple messages but each message would belong to the same session.
                 var parsedSessionId = foundSessionId ? sessionId!.ToString() : (sessionIdRepeatedFieldArray![0].ToString());
                 var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, parsedSessionId, sessionLockedUntil.GetDateTimeOffset());
                 var result = ConversionResult.Success(sessionActionResult);

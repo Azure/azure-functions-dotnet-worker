@@ -30,8 +30,10 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
             {
                 var binding = JsonSerializer.Deserialize<JsonElement>(bindingJson);
                 BindingInfo bindingInfo = CreateBindingInfo(binding);
-                binding.TryGetProperty("name", out JsonElement jsonName);
-                bindings.Add(jsonName.ToString()!, bindingInfo);
+                if (binding.TryGetProperty("name", out JsonElement jsonName))
+                {
+                    bindings.Add(jsonName.ToString(), bindingInfo);
+                }
             }
 
             return bindings;
@@ -44,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
 
             if (!hasDirection
                 || !hasType
-                || !Enum.TryParse(jsonDirection.ToString()!, out BindingInfo.Types.Direction direction))
+                || !Enum.TryParse(jsonDirection.ToString(), out BindingInfo.Types.Direction direction))
             {
                 throw new FormatException("Bindings must declare a direction and type.");
             }
@@ -59,7 +61,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc.FunctionMetadata
 
             if (hasDataType)
             {
-                if (!Enum.TryParse(jsonDataType.ToString()!, out BindingInfo.Types.DataType dataType))
+                if (!Enum.TryParse(jsonDataType.ToString(), out BindingInfo.Types.DataType dataType))
                 {
                     throw new FormatException("Invalid DataType for a binding.");
                 }

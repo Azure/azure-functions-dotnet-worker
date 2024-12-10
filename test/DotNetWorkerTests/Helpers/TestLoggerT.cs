@@ -16,10 +16,10 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         public static TestLogger<T> Create()
         {
             // We want to use the logic for category naming which is internal to LoggerFactory.
-            // So we'll create a TestLogger via the LoggerFactory and grab it's category.
+            // So we'll create a TestLogger via the LoggerFactory and grab its category.
             TestLoggerProvider testLoggerProvider = new TestLoggerProvider();
-            LoggerFactory _testLoggerFactory = new LoggerFactory(new[] { testLoggerProvider });
-            _testLoggerFactory.CreateLogger<T>();
+            LoggerFactory testLoggerFactory = new LoggerFactory([testLoggerProvider]);
+            testLoggerFactory.CreateLogger<T>();
             TestLogger testLogger = testLoggerProvider.CreatedLoggers.Single();
             return new TestLogger<T>(testLogger.Category);
         }

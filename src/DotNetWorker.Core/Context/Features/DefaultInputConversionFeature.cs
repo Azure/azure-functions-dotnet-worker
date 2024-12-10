@@ -18,9 +18,12 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
         private readonly IInputConverterProvider _inputConverterProvider;
         private static readonly Type _inputConverterAttributeType = typeof(InputConverterAttribute);
 
-        // Users may create a POCO and specify a special converter implementation
-        // to be used using "InputConverter" attribute. We cache that mapping here.
-        // Key is assembly qualified name of POCO and Value is assembly qualified name of converter implementation.
+
+        /// <summary>
+        /// Users may create a POCO and specify a special converter implementation
+        /// using the <see cref="InputConverterAttribute"/>. We cache that mapping here.
+        /// Key is assembly qualified name of POCO and Value is assembly qualified name of converter implementation.
+        /// </summary>
         private static readonly ConcurrentDictionary<string, string?> _typeToConverterCache = new();
 
         public DefaultInputConversionFeature(IInputConverterProvider inputConverterProvider)

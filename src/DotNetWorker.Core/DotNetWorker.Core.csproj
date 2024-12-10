@@ -26,6 +26,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">

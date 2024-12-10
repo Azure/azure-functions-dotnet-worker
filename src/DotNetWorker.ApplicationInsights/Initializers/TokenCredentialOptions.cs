@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
         private const string AuthClientIdKey = "ClientId";
 
         /// <summary>
-        /// The client ID of an user-assigned identity.
+        /// The client ID of a user-assigned identity.
         /// </summary>
         /// <remarks>
         /// This must be specified if you're using user-assigned managed identity.
@@ -42,64 +42,64 @@ namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers
 
             var tokenCredentialOptions = new TokenCredentialOptions();
             bool isValidConfiguration = false;
+
             foreach ((int, int) split in Tokenize(applicationInsightsAuthenticationString))
             {
                 (int start, int length) = split;
 
-                // Trim whitespace from start
-                while (length > 0 && char.IsWhiteSpace(applicationInsightsAuthenticationString[start]))
-                {
-                    start++;
-                    length--;
-                }
+                var authenticationStringToken = applicationInsightsAuthenticationString
+                    .AsSpan(start, length)
+                    .Trim();
 
                 // Ignore (allow) empty tokens.
-                if (length == 0)
+                if (authenticationStringToken.IsEmpty)
                 {
                     continue;
                 }
 
                 // Find key-value separator.
-                int indexOfEquals = applicationInsightsAuthenticationString.IndexOf('=', start, length);
+                int indexOfEquals = authenticationStringToken.IndexOf('=');
                 if (indexOfEquals < 0)
                 {
                     continue;
                 }
 
                 // Extract key
-                int keyLength = indexOfEquals - start;
-                string key = applicationInsightsAuthenticationString.Substring(start, keyLength).TrimEnd();
-                if (key.Length == 0)
+                var key = authenticationStringToken[..indexOfEquals].TrimEnd();
+                if (key.IsEmpty)
                 {
                     // Key is blank
                     continue;
                 }
 
-                if (key.Equals(AuthAuthorizationKey, StringComparison.OrdinalIgnoreCase))
+                // check if the span matches the string "df":
+                if (key.CompareTo(AuthAuthorizationKey.AsSpan(), StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    if (!applicationInsightsAuthenticationString.Substring(indexOfEquals + 1, length - keyLength - 1).Trim().Equals(AuthToken, StringComparison.OrdinalIgnoreCase))
+                    if (authenticationStringToken[(indexOfEquals + 1)..].CompareTo(AuthToken.AsSpan(), StringComparison.OrdinalIgnoreCase) != 0)
                     {
                         throw new InvalidCredentialException("Credential supplied is not valid for the authorization mechanism being used in ApplicationInsights.");
                     }
                     isValidConfiguration = true;
                     continue;
                 }
-                if (key.Equals(AuthClientIdKey, StringComparison.OrdinalIgnoreCase))
+
+                if (key.CompareTo(AuthClientIdKey.AsSpan(), StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    string clientId = applicationInsightsAuthenticationString.Substring(indexOfEquals + 1, length - keyLength - 1).Trim();
-                    if (!Guid.TryParse(clientId, out Guid clientIdGuid))
+                    var clientId = authenticationStringToken[(indexOfEquals + 1)..].Trim().ToString();
+                    if (!Guid.TryParse(clientId, out Guid _))
                     {
                         throw new FormatException($"The Application Insights AuthenticationString {AuthClientIdKey} is not a valid GUID.");
                     }
                     tokenCredentialOptions.ClientId = clientId;
-                    continue;
                 }
             }
+
             // Throw if the Authorization key is not present in the authentication string
             if (!isValidConfiguration)
             {
                 throw new InvalidCredentialException("Authorization key is missing in the authentication string for ApplicationInsights.");
             }
+
             return tokenCredentialOptions;
         }
 

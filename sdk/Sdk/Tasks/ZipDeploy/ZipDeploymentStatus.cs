@@ -75,7 +75,7 @@ namespace Microsoft.NET.Sdk.Functions.MSBuild.Tasks
                     return DeployStatus.Unknown;
                 }
 
-                await Task.Delay(TimeSpan.FromSeconds(StatusRefreshDelaySeconds));
+                await Task.Delay(TimeSpan.FromSeconds(StatusRefreshDelaySeconds), tokenSource.Token);
             }
 
             return deployStatus;

@@ -79,6 +79,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
         }
 
+        [Theory]
+        [InlineData(".NET Core 3.1.1", ".NET Core")]
+        [InlineData(".NET 8.0.0", ".NET")]
+        [InlineData(".NET Framework 4.8.4250.0", ".NET Framework")]
+        [InlineData(".NET Native", ".NET Native")]
+        [InlineData(".NET Native 1.0.0", ".NET Native")]
+        [InlineData("Mono 5.18.1.0", "Mono")]
+        public void GetWorkerMetadata_ParsesFrameworkDescription(string frameworkDescription, string expectedFramework)
+        {
+            var workerMetadata = GrpcWorker.GetWorkerMetadata(frameworkDescription);
+            Assert.Equal(expectedFramework, workerMetadata.RuntimeName);
+        }
+
         [Fact]
         public void LoadFunction_WithProxyMetadata_ReturnsSuccess()
         {

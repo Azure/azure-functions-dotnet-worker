@@ -6,17 +6,17 @@ using System;
 namespace Microsoft.Azure.Functions.Worker.Core
 {
     /// <summary>
-    /// A representation of a Microsoft.Azure.WebJobs.ParameterBindingData
+    /// A representation of a Microsoft.Azure.WebJobs.ParameterBindingData.
     /// </summary>
     public abstract class ModelBindingData
     {
         /// <summary>
-        /// Gets the version of the binding data content
+        /// Gets the version of the binding data content.
         /// </summary>
         public abstract string Version { get; }
 
         /// <summary>
-        /// Gets the extension source of the binding data i.e CosmosDB, AzureStorageBlobs
+        /// Gets the extension source of the binding data (e.g., CosmosDB, AzureStorageBlobs).
         /// </summary>
         public abstract string Source { get; }
 
@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Worker.Core
         public abstract BinaryData Content { get; }
 
         /// <summary>
-        /// Gets the content type of the binding data content i.e. "application/json"
+        /// Gets the content type of the binding data content (e.g., "application/json").
         /// </summary>
         public abstract string ContentType { get; }
     }

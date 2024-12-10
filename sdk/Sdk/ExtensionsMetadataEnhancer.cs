@@ -17,7 +17,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             {
                 string? assemblyName = GetAssemblyNameOrNull(extension.TypeName);
 
-                // TODO: Worth checking if assembly if also present in there?
                 if (string.IsNullOrEmpty(extension.HintPath) && !string.IsNullOrEmpty(assemblyName))
                 {
                     extension.HintPath = $@"{ExtensionsBinaryDirectoryPath}/{assemblyName}.dll";
@@ -34,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             var match = Regex.Match(typeName, AssemblyNameFromQualifiedNameRegex);
 
-            if (match.Success && match.Groups.Count == 2)
+            if (match is {Success: true, Groups.Count: 2})
             {
                 return match.Groups[1].Value;
             }

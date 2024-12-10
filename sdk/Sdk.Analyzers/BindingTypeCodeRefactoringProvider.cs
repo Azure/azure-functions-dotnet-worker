@@ -21,7 +21,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
-            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            SyntaxNode root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);  // Why is this using the invocations CancellationToken?
 
             var parameters = root.DescendantNodes().OfType<ParameterSyntax>();
 

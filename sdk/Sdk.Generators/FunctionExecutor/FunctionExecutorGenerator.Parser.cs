@@ -28,7 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                 foreach (IMethodSymbol method in methods.Where(m=>m.DeclaredAccessibility == Accessibility.Public))
                 {
-                    _context.CancellationToken.ThrowIfCancellationRequested();
+                    _context.CancellationToken.ThrowIfCancellationRequested();  // Why is this using the invocations CancellationToken?
 
                     var methodName = method.Name;
                     var methodParameterList = new List<string>();

@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private Compilation Compilation => _context.Compilation;
 
-            private CancellationToken CancellationToken => _context.CancellationToken;
+            private CancellationToken CancellationToken => _context.CancellationToken; // Why is this using the invocations CancellationToken?
 
             /// <summary>
             /// Takes in candidate methods from the user compilation and parses them to return function metadata info as GeneratorFunctionMetadata.

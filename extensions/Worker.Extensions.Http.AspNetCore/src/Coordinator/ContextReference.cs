@@ -17,6 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         private TaskCompletionSource<FunctionContext> _functionContextValueSource = new();
 
         private CancellationToken _token;
+        private CancellationToken _invocationToken;
         private CancellationTokenRegistration _tokenRegistration;
 
         public ContextReference(string invocationId)
@@ -32,10 +33,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public TaskCompletionSource<FunctionContext> FunctionContextValueSource { get => _functionContextValueSource; set => _functionContextValueSource = value; }
 
-        internal void SetCancellationToken(CancellationToken token)
+        internal void SetCancellationToken(CancellationToken contextToken, CancellationToken invocationToken)
         {
-            _token = token;
-            _tokenRegistration = _token.Register(() =>
+            _token = contextToken;
+            _invocationToken = invocationToken; // Only to check if the invocation is canceled
+
+            _tokenRegistration = _token.Register(() => // We don't want these to depend on the invocation CT as it should be up to the function to decide how to handle it
             {
                 _functionStartTask.TrySetCanceled();
                 _functionCompletionTask.TrySetCanceled();
@@ -59,7 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (_httpContextValueSource.Task.IsCompleted)
             {
-                if (_httpContextValueSource.Task.IsCanceled || _token.IsCancellationRequested)
+                if (_httpContextValueSource.Task.IsCanceled || _invocationToken.IsCancellationRequested || _token.IsCancellationRequested)
                 {
                     _functionCompletionTask.TrySetCanceled();
                 }

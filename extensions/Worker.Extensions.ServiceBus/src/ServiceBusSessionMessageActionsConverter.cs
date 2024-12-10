@@ -29,21 +29,7 @@ namespace Microsoft.Azure.Functions.Worker
         {
             try
             {
-                var foundSessionIdArray = false;
-                object? sessionIdArray = null;
-
-                var foundSessionId = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
-
-                // Only looks for sessionIdArray if sessionId is not found.
-                if (!foundSessionId)
-                {
-                    foundSessionIdArray = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionIdArray", out sessionIdArray);
-                }
-
-                if (!foundSessionId && !foundSessionIdArray)
-                {
-                    throw new InvalidOperationException($"Expecting SessionId or SessionIdArray within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
-                }
+                var sessionId = ParseSessionIdFromBindingData(context);
 
                 // Get the sessionLockedUntil property from the SessionActions binding data
                 var foundSessionActions = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionActions", out object? sessionActions);
@@ -59,18 +45,7 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new InvalidOperationException("Expecting SessionLockedUntil within binding data of session actions and value was not present.");
                 }
 
-                // Logic for if isBatched is true, then sessionIdArray will be used to get the sessionId.
-                var sessionIdRepeatedFieldArray = sessionIdArray as IList<string>;
-
-                if (foundSessionIdArray && (sessionIdRepeatedFieldArray is null || sessionIdRepeatedFieldArray.Count == 0))
-                {
-                     throw new InvalidOperationException($"Expecting batched SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
-                }
-
-                // If sessionIdRepeatedFieldArray has a value (isBatched = true), we can just parse the first sessionId from the array, as all the values are guaranteed to be the same.
-                // This is because there can be multiple messages but each message would belong to the same session.
-                // Note if web jobs extensions ever adds support for multiple sessions in a single batch, this logic will need to be updated.
-                var parsedSessionId = foundSessionId ? sessionId!.ToString() : (sessionIdRepeatedFieldArray![0].ToString());
+                var parsedSessionId = sessionId!.ToString();
                 var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, parsedSessionId, sessionLockedUntil.GetDateTimeOffset());
                 var result = ConversionResult.Success(sessionActionResult);
                 return new ValueTask<ConversionResult>(result);
@@ -79,6 +54,33 @@ namespace Microsoft.Azure.Functions.Worker
             {
                 return new ValueTask<ConversionResult>(ConversionResult.Failed(exception));
             }
+        }
+
+        private object? ParseSessionIdFromBindingData(ConverterContext context)
+        {
+            // Try to resolve sessionId directly
+            var bindingData = context.FunctionContext.BindingContext.BindingData;
+            bindingData.TryGetValue("SessionId", out object? sessionId);
+
+            // If sessionId is not found and sessionIdRepeatedFieldArray has a value (isBatched = true), we can just parse the first sessionId from the array, as all the values are guaranteed to be the same.
+            // This is because there can be multiple messages but each message would belong to the same session.
+            // Note if web jobs extensions ever adds support for multiple sessions in a single batch, this logic will need to be updated.
+            if (sessionId == null && bindingData.TryGetValue("SessionIdArray", out object? sessionIdArray))
+            {
+                var sessionIdRepeatedArray = sessionIdArray as IList<string>;
+                if (sessionIdRepeatedArray is not null && sessionIdRepeatedArray.Count > 0)
+                {
+                    sessionId = sessionIdRepeatedArray[0]; // Use the first sessionId in the array
+                }
+            }
+
+            if (sessionId == null)
+            {
+                throw new InvalidOperationException(
+                    $"Expecting SessionId or SessionIdArray within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
+            }
+
+            return sessionId;
         }
     }
 }

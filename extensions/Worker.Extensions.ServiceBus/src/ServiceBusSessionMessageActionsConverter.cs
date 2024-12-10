@@ -29,11 +29,20 @@ namespace Microsoft.Azure.Functions.Worker
         {
             try
             {
+                var foundSessionIdArray = false;
+                object? sessionIdArray = null;
+
                 var foundSessionId = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionId", out object? sessionId);
-                var foundSessionIdArray = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionIdArray", out object? sessionIdArray);
+
+                // Only looks for sessionIdArray if sessionId is not found.
+                if (!foundSessionId)
+                {
+                    foundSessionIdArray = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionIdArray", out sessionIdArray);
+                }
+
                 if (!foundSessionId && !foundSessionIdArray)
                 {
-                    throw new InvalidOperationException($"Expecting SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
+                    throw new InvalidOperationException($"Expecting SessionId or SessionIdArray within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }
 
                 // Get the sessionLockedUntil property from the SessionActions binding data
@@ -58,8 +67,8 @@ namespace Microsoft.Azure.Functions.Worker
                      throw new InvalidOperationException($"Expecting batched SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }
 
-                // If sessionIdRepeatedFieldArray has a value (isBatched = true), we can just parse the first sessionId from the array, as all the values are guranteed to be the same.
-                // This is becuase there can be multiple messages but each message would belong to the same session.
+                // If sessionIdRepeatedFieldArray has a value (isBatched = true), we can just parse the first sessionId from the array, as all the values are guaranteed to be the same.
+                // This is because there can be multiple messages but each message would belong to the same session.
                 // Note if web jobs extensions ever adds support for multiple sessions in a single batch, this logic will need to be updated.
                 var parsedSessionId = foundSessionId ? sessionId!.ToString() : (sessionIdRepeatedFieldArray![0].ToString());
                 var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, parsedSessionId, sessionLockedUntil.GetDateTimeOffset());

@@ -58,8 +58,9 @@ namespace Microsoft.Azure.Functions.Worker
                      throw new InvalidOperationException($"Expecting batched SessionId within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
                 }
 
-                // If sessionIdRepeatedFieldArray has a value, we can just parse the firset sessionId from the array, as all the values are guranteed to be the same.
+                // If sessionIdRepeatedFieldArray has a value (isBatched = true), we can just parse the first sessionId from the array, as all the values are guranteed to be the same.
                 // This is becuase there can be multiple messages but each message would belong to the same session.
+                // Note if web jobs extensions ever adds support for multiple sessions in a single batch, this logic will need to be updated.
                 var parsedSessionId = foundSessionId ? sessionId!.ToString() : (sessionIdRepeatedFieldArray![0].ToString());
                 var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, parsedSessionId, sessionLockedUntil.GetDateTimeOffset());
                 var result = ConversionResult.Success(sessionActionResult);

@@ -3,6 +3,7 @@
 <!-- Please add your release notes in the following format:
 - My change description (#PR)
 -->
+- Using hostMetadataProvider for CreateOrUpdate call in FunctionController (#10678)
 - Suppress `JwtBearerHandler` logs from customer logs (#10617)
 - Address issue with HTTP proxying throwing `ArgumentException` (#10616)
 - Updated JobHost restart suppresion in functions APIs to align with request lifecycle (#10638)

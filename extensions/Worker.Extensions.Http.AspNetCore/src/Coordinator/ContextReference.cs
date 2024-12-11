@@ -12,16 +12,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
     {
         private readonly TaskCompletionSource<bool> _functionStartTask = new();
         private readonly TaskCompletionSource<bool> _functionCompletionTask = new();
+        private readonly CancellationToken _invocationCancellationToken;
 
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new();
         private TaskCompletionSource<FunctionContext> _functionContextValueSource = new();
 
-        private CancellationToken _token;
-        private CancellationToken _invocationToken;
-        private CancellationTokenRegistration _tokenRegistration;
-
-        public ContextReference(string invocationId)
+        public ContextReference(string invocationId, CancellationToken invocationCancellationToken = default)
         {
+            _invocationCancellationToken = invocationCancellationToken;
             InvocationId = invocationId;
         }
 
@@ -32,20 +30,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public TaskCompletionSource<HttpContext> HttpContextValueSource { get => _httpContextValueSource; set => _httpContextValueSource = value; }
 
         public TaskCompletionSource<FunctionContext> FunctionContextValueSource { get => _functionContextValueSource; set => _functionContextValueSource = value; }
-
-        internal void SetCancellationToken(CancellationToken contextToken, CancellationToken invocationToken)
-        {
-            _token = contextToken;
-            _invocationToken = invocationToken; // Only to check if the invocation is canceled
-
-            _tokenRegistration = _token.Register(() => // We don't want these to depend on the invocation CT as it should be up to the function to decide how to handle it
-            {
-                _functionStartTask.TrySetCanceled();
-                _functionCompletionTask.TrySetCanceled();
-                _functionContextValueSource.TrySetCanceled();
-                _httpContextValueSource.TrySetCanceled();
-            });
-        }
 
         internal Task InvokeFunctionAsync()
         {
@@ -62,9 +46,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (_httpContextValueSource.Task.IsCompleted)
             {
-                if (_httpContextValueSource.Task.IsCanceled || _invocationToken.IsCancellationRequested || _token.IsCancellationRequested)
+                if (_httpContextValueSource.Task.IsCanceled || _invocationCancellationToken.IsCancellationRequested)
                 {
                     _functionCompletionTask.TrySetCanceled();
+                    _functionContextValueSource.TrySetCanceled();
                 }
                 else
                 {
@@ -79,10 +64,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public void Dispose()
         {
-            if (_tokenRegistration != default)
-            {
-                _tokenRegistration.Dispose();
-            }
+            _functionStartTask?.TrySetCanceled();
+            _functionCompletionTask?.TrySetCanceled();
+            _httpContextValueSource?.TrySetCanceled();
+            _functionContextValueSource?.TrySetCanceled();
         }
     }
 }

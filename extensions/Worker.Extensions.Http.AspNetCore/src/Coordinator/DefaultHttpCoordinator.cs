@@ -18,7 +18,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         private readonly ConcurrentDictionary<string, ContextReference> _contextReferenceList;
         private readonly ExtensionTrace _logger;
-        private readonly CancellationTokenSource _cts = new(); // I am not sure if introducing a new cts here is the best idea
 
         public DefaultHttpCoordinator(ExtensionTrace extensionTrace)
         {
@@ -45,8 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public async Task<HttpContext> SetFunctionContextAsync(string invocationId, FunctionContext context)
         {
-            var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
-            contextRef.SetCancellationToken(_cts.Token, context.CancellationToken);
+            var contextRef = _contextReferenceList.GetOrAdd(invocationId, id => new ContextReference(id, context.CancellationToken));
             contextRef.FunctionContextValueSource.SetResult(context);
 
             _logger.FunctionContextSet(invocationId);
@@ -93,8 +91,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             {
                 // do something here?
             }
-
-            _cts?.Dispose();
         }
     }
 

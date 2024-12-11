@@ -56,11 +56,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
             }
             else if (targetType == typeof(byte[]))
             {
-                result = ReadBytes(requestData, context.CancellationToken);
+                result = ReadBytes(requestData, context.CancellationToken);  // Why is this using the invocations CancellationToken?
             }
             else if (targetType == typeof(Memory<byte>))
             {
-                Memory<byte> bytes = ReadBytes(requestData, context.CancellationToken);
+                Memory<byte> bytes = ReadBytes(requestData, context.CancellationToken);  // Why is this using the invocations CancellationToken?
                 result = bytes;
             }
             else if (HasJsonContentType(requestData))
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
                 ObjectSerializer serializer = requestData.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
                  ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
 
-                result = serializer.Deserialize(requestData.Body, targetType, context.CancellationToken);
+                result = serializer.Deserialize(requestData.Body, targetType, context.CancellationToken);  // Why is this using the invocations CancellationToken?
             }
             else
             {

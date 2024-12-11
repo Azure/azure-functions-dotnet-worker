@@ -45,8 +45,7 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new InvalidOperationException("Expecting SessionLockedUntil within binding data of session actions and value was not present.");
                 }
 
-                var parsedSessionId = sessionId!.ToString();
-                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, parsedSessionId, sessionLockedUntil.GetDateTimeOffset());
+                var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, sessionId, sessionLockedUntil.GetDateTimeOffset());
                 var result = ConversionResult.Success(sessionActionResult);
                 return new ValueTask<ConversionResult>(result);
             }
@@ -56,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker
             }
         }
 
-        private object? ParseSessionIdFromBindingData(ConverterContext context)
+        private string ParseSessionIdFromBindingData(ConverterContext context)
         {
             // Try to resolve sessionId directly
             var bindingData = context.FunctionContext.BindingContext.BindingData;
@@ -80,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker
                     $"Expecting SessionId or SessionIdArray within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
             }
 
-            return sessionId;
+            return sessionId.ToString();
         }
     }
 }

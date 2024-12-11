@@ -9,13 +9,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.DependencyInjection;
-using System.Data;
-using System.Net.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
@@ -120,15 +118,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 return Task.FromResult(false);
             }
 
-            var bindingName = httpOutputBinding.Name;
-            var bindingsFeature = context.GetBindings();
-            if(bindingsFeature.OutputBindingData.TryGetValue(bindingName, out var val))
-            {
-                bindingsFeature.OutputBindingData[bindingName] = null;
-                return Task.FromResult(true);
-            }
+            httpOutputBinding.Value = null;
 
-            return Task.FromResult(false);
+            return Task.FromResult(true);
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

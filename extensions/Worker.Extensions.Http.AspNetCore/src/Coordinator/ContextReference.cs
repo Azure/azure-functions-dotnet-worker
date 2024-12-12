@@ -12,14 +12,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
     {
         private readonly TaskCompletionSource<bool> _functionStartTask = new();
         private readonly TaskCompletionSource<bool> _functionCompletionTask = new();
-        private readonly CancellationToken _invocationCancellationToken;
 
         private TaskCompletionSource<HttpContext> _httpContextValueSource = new();
         private TaskCompletionSource<FunctionContext> _functionContextValueSource = new();
 
-        public ContextReference(string invocationId, CancellationToken invocationCancellationToken = default)
+        public ContextReference(string invocationId)
         {
-            _invocationCancellationToken = invocationCancellationToken;
             InvocationId = invocationId;
         }
 
@@ -46,14 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (_httpContextValueSource.Task.IsCompleted)
             {
-                if (_invocationCancellationToken.IsCancellationRequested)
-                {
-                    _functionCompletionTask.TrySetCanceled();
-                }
-                else
-                {
-                    _functionCompletionTask.TrySetResult(true);
-                }
+                _functionCompletionTask.TrySetResult(true);
             }
             else
             {

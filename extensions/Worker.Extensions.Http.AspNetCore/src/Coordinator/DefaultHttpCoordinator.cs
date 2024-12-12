@@ -85,7 +85,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             if (_contextReferenceList.TryRemove(invocationId, out var contextRef))
             {
                 contextRef.CompleteFunction();
-                contextRef.Dispose();
             }
             else
             {

@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 {
-    internal class ContextReference : IDisposable
+    internal class ContextReference
     {
         private readonly TaskCompletionSource<bool> _functionStartTask = new();
         private readonly TaskCompletionSource<bool> _functionCompletionTask = new();
@@ -46,10 +46,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
             if (_httpContextValueSource.Task.IsCompleted)
             {
-                if (_httpContextValueSource.Task.IsCanceled || _invocationCancellationToken.IsCancellationRequested)
+                if (_invocationCancellationToken.IsCancellationRequested)
                 {
                     _functionCompletionTask.TrySetCanceled();
-                    _functionContextValueSource.TrySetCanceled();
                 }
                 else
                 {
@@ -60,14 +59,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             {
                 // we should never reach here b/c the class that calls this needs httpContextValueSource to complete to reach this method
             }
-        }
-
-        public void Dispose()
-        {
-            _functionStartTask?.TrySetCanceled();
-            _functionCompletionTask?.TrySetCanceled();
-            _httpContextValueSource?.TrySetCanceled();
-            _functionContextValueSource?.TrySetCanceled();
         }
     }
 }

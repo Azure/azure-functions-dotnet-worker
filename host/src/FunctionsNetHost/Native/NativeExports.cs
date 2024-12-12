@@ -35,6 +35,25 @@ namespace FunctionsNetHost
             }
         }
 
+        [UnmanagedCallersOnly(EntryPoint = "register_startuphook_callback")]
+        public static unsafe int RegisterStartupHookCallback(IntPtr pInProcessApplication,
+                                        delegate* unmanaged<byte**, int, IntPtr, IntPtr> requestCallback,
+    IntPtr grpcHandler)
+        {
+            Logger.LogTrace("NativeExports.RegisterStartupHookCallback method invoked.");
+
+            try
+            {
+                NativeHostApplication.Instance.SetStartupHookCallbackHandles(requestCallback, grpcHandler);
+                return 1;
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Error in RegisterStartupHookCallback: {ex}");
+                return 0;
+            }
+        }
+
         [UnmanagedCallersOnly(EntryPoint = "send_streaming_message")]
         public static unsafe int SendStreamingMessage(IntPtr pInProcessApplication, byte* streamingMessage, int streamingMessageSize)
         {

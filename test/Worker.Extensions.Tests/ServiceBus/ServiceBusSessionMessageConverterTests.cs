@@ -55,10 +55,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
         {
             var data = "{\"SessionLockedUntil\":\"2024-12-05T21:10:36.1193094+00:00\"}";
             
-            var jsonObject = new
-            {
-                SessionLockedUntil = "2024-12-05T21:10:36.1193094+00:00"
-            };
             var bindingDataDictionary = new Dictionary<string, object>
             {
                 { "SessionId", "test" },
@@ -82,10 +78,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
         {
             var data = "{\"SessionLockedUntil\":\"2024-12-05T21:10:36.1193094+00:00\"}";
 
-            var jsonObject = new
-            {
-                SessionLockedUntil = "2024-12-05T21:10:36.1193094+00:00"
-            };
             IList<string> repeatedField = new List<string> { "test" };
 
             var bindingDataDictionary = new Dictionary<string, object>
@@ -111,10 +103,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
         {
             var data = "{\"SessionLockedUntil\":\"2024-12-05T21:10:36.1193094+00:00\"}";
 
-            var jsonObject = new
-            {
-                SessionLockedUntil = "2024-12-05T21:10:36.1193094+00:00"
-            };
             var bindingDataDictionary = new Dictionary<string, object>
             {
                 { "SessionActions", JsonSerializer.Serialize(new

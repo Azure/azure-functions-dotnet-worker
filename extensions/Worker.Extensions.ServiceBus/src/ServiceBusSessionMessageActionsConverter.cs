@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker
                     $"Expecting SessionId or SessionIdArray within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
             }
 
-            return sessionId.ToString();
+            return (string)sessionId;
         }
     }
 }

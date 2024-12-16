@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
         public async Task<HttpContext> SetFunctionContextAsync(string invocationId, FunctionContext context)
         {
-            var contextRef = _contextReferenceList.GetOrAdd(invocationId, id => new ContextReference(id));
+            var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
             contextRef.FunctionContextValueSource.SetResult(context);
 
             _logger.FunctionContextSet(invocationId);

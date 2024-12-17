@@ -103,7 +103,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             await Assert.ThrowsAsync<ArgumentNullException>(async () => await messageActions.RenewMessageLockAsync(null));
         }
 
-        private class MockSettlementClient : Settlement.SettlementClient
+        internal class MockSettlementClient : Settlement.SettlementClient
         {
             private readonly string _lockToken;
             private readonly ByteString _propertiesToModify;

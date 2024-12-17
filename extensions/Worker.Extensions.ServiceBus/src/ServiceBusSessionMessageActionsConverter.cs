@@ -7,6 +7,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Abstractions;
+using Microsoft.Azure.Functions.Worker.Extensions.ServiceBus;
 using Microsoft.Azure.ServiceBus.Grpc;
 
 namespace Microsoft.Azure.Functions.Worker
@@ -32,17 +33,17 @@ namespace Microsoft.Azure.Functions.Worker
                 var sessionId = ParseSessionIdFromBindingData(context);
 
                 // Get the sessionLockedUntil property from the SessionActions binding data
-                var foundSessionActions = context.FunctionContext.BindingContext.BindingData.TryGetValue("SessionActions", out object? sessionActions);
+                var foundSessionActions = context.FunctionContext.BindingContext.BindingData.TryGetValue(Constants.SessionActions, out object? sessionActions);
                 if (!foundSessionActions)
                 {
-                    throw new InvalidOperationException("Expecting SessionActions within binding data and value was not present.");
+                    throw new InvalidOperationException($"Expecting {Constants.SessionActions} within binding data and value was not present.");
                 }
 
                 JsonDocument jsonDocument = JsonDocument.Parse(sessionActions!.ToString());
-                var foundSessionLockedUntil = jsonDocument.RootElement.TryGetProperty("SessionLockedUntil", out JsonElement sessionLockedUntil);
+                var foundSessionLockedUntil = jsonDocument.RootElement.TryGetProperty(Constants.SessionLockedUntil, out JsonElement sessionLockedUntil);
                 if (!foundSessionLockedUntil)
                 {
-                    throw new InvalidOperationException("Expecting SessionLockedUntil within binding data of session actions and value was not present.");
+                    throw new InvalidOperationException($"Expecting {Constants.SessionLockedUntil} within binding data of session actions and value was not present.");
                 }
 
                 var sessionActionResult = new ServiceBusSessionMessageActions(_settlement, sessionId, sessionLockedUntil.GetDateTimeOffset());
@@ -59,12 +60,12 @@ namespace Microsoft.Azure.Functions.Worker
         {
             // Try to resolve sessionId directly
             var bindingData = context.FunctionContext.BindingContext.BindingData;
-            bindingData.TryGetValue("SessionId", out object? sessionId);
+            bindingData.TryGetValue(Constants.SessionId, out object? sessionId);
 
             // If sessionId is not found and sessionIdRepeatedFieldArray has a value (isBatched = true), we can just parse the first sessionId from the array, as all the values are guaranteed to be the same.
             // This is because there can be multiple messages but each message would belong to the same session.
             // Note if web jobs extensions ever adds support for multiple sessions in a single batch, this logic will need to be updated.
-            if (sessionId == null && bindingData.TryGetValue("SessionIdArray", out object? sessionIdArray))
+            if (sessionId is null && bindingData.TryGetValue(Constants.SessionIdArray, out object? sessionIdArray))
             {
                 var sessionIdRepeatedArray = sessionIdArray as IList<string>;
                 if (sessionIdRepeatedArray is not null && sessionIdRepeatedArray.Count > 0)
@@ -73,10 +74,10 @@ namespace Microsoft.Azure.Functions.Worker
                 }
             }
 
-            if (sessionId == null)
+            if (sessionId is null)
             {
                 throw new InvalidOperationException(
-                    $"Expecting SessionId or SessionIdArray within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
+                    $"Expecting {Constants.SessionId} or {Constants.SessionIdArray} within binding data and value was not present. Sessions must be enabled when binding to {nameof(ServiceBusSessionMessageActions)}.");
             }
 
             return (string)sessionId;

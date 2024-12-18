@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http <version>
 
-- <entry>
+- Update `DefaultFromBodyConversionFeature` to no longer use a given invocation's cancellation token (#2894)

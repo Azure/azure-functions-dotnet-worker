@@ -6,7 +6,7 @@
     <Description>Azure Event Grid extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>3.4.2</VersionPrefix>
+    <VersionPrefix>3.4.3</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -17,14 +17,14 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Worker.Extensions.Abstractions\src\Worker.Extensions.Abstractions.csproj" />
   </ItemGroup>
-  
+
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.17.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.4.2" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.4.3" />
   </ItemGroup>
 
 </Project>

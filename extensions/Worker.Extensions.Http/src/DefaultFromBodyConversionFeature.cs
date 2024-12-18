@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
             return ConvertBodyAsync(requestData, context, targetType);
         }
 
-        private static ValueTask<object?> ConvertBodyAsync(HttpRequestData requestData, FunctionContext context, Type targetType)
+        private static async ValueTask<object?> ConvertBodyAsync(HttpRequestData requestData, FunctionContext context, Type targetType)
         {
             object? result;
 
@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
                 ObjectSerializer serializer = requestData.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
                  ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
 
-                result = serializer.Deserialize(requestData.Body, targetType, context.CancellationToken);
+                result = await serializer.DeserializeAsync(requestData.Body, targetType, context.CancellationToken);
             }
             else
             {

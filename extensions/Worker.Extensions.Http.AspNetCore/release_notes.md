@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- <entry>
+- Fix intermittent error `IFeatureCollection has been disposed` exception in multiple-output binding scenarios. (#2896)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers  <version>
 

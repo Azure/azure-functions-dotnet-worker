@@ -168,6 +168,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
 
+        [Fact]
+        public async Task HttpResultOutputBindingNull_WhenUsingAspNetCoreHttpResponseDataInMultiOutputBinding()
+        {
+            var test = SetupTest("httpTrigger");
+            var mockDelegate = new Mock<FunctionExecutionDelegate>();
+
+            SetUpAspNetCoreHttpResponseDataBindingInfo(test.FunctionContext, false);
+
+            var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
+            await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
+
+             var httpOutputBinding = test.FunctionContext.GetOutputBindings<object>()
+                .FirstOrDefault(a => string.Equals(a.BindingType, "http", StringComparison.OrdinalIgnoreCase));
+
+            Assert.Null(httpOutputBinding.Value);
+            test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
+        }
+
         private static (FunctionContext FunctionContext, HttpContext HttpContext, Mock<IHttpCoordinator> MockCoordinator) SetupTest(string triggerType, IDictionary<string, BindingMetadata> outputBindings = null)
         {
             var inputBindings = new Dictionary<string, BindingMetadata>()

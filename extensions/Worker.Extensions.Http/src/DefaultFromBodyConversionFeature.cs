@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -46,44 +47,23 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
             return ConvertBodyAsync(requestData, context, targetType);
         }
 
-        private static ValueTask<object?> ConvertBodyAsync(HttpRequestData requestData, FunctionContext context, Type targetType)
+        private static async ValueTask<object?> ConvertBodyAsync(HttpRequestData requestData, FunctionContext context, Type targetType) => targetType switch
         {
-            object? result;
+            _ when targetType == typeof(string) => await requestData.ReadAsStringAsync(),
+            _ when targetType == typeof(byte[]) => await ReadBytesAsync(requestData),
+            _ when targetType == typeof(Memory<byte>) => new Memory<byte>(await ReadBytesAsync(requestData)),
+            _ when HasJsonContentType(requestData) =>
+                    await (requestData.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
+                            ?? throw new InvalidOperationException("A serializer is not configured for the worker."))
+                        .DeserializeAsync(requestData.Body, targetType, context.CancellationToken),
+            _ => throw new InvalidOperationException($"The type '{targetType}' is not supported by the '{nameof(DefaultFromBodyConversionFeature)}'.")
+        };
 
-            if (targetType == typeof(string))
-            {
-                result = requestData.ReadAsString();
-            }
-            else if (targetType == typeof(byte[]))
-            {
-                result = ReadBytes(requestData, context.CancellationToken);
-            }
-            else if (targetType == typeof(Memory<byte>))
-            {
-                Memory<byte> bytes = ReadBytes(requestData, context.CancellationToken);
-                result = bytes;
-            }
-            else if (HasJsonContentType(requestData))
-            {
-                ObjectSerializer serializer = requestData.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
-                 ?? throw new InvalidOperationException("A serializer is not configured for the worker.");
-
-                result = serializer.Deserialize(requestData.Body, targetType, context.CancellationToken);
-            }
-            else
-            {
-                throw new InvalidOperationException($"The type '{targetType}' is not supported by the '{nameof(DefaultFromBodyConversionFeature)}'.");
-            }
-
-            return new ValueTask<object?>(result);
-        }
-
-        private static byte[] ReadBytes(HttpRequestData requestData, CancellationToken cancellationToken)
+        private static async Task<byte[]> ReadBytesAsync(HttpRequestData requestData)
         {
-            var bytes = new byte[requestData.Body.Length];
-            requestData.Body.Read(bytes, 0, bytes.Length);
-
-            return bytes;
+            using var memoryStream = new MemoryStream();
+            await requestData.Body.CopyToAsync(memoryStream);
+            return memoryStream.ToArray();
         }
 
         private static bool HasJsonContentType(HttpRequestData request)

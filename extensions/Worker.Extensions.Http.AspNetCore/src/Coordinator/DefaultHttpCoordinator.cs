@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
@@ -44,7 +45,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public async Task<HttpContext> SetFunctionContextAsync(string invocationId, FunctionContext context)
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
-            contextRef.SetCancellationToken(context.CancellationToken);
             contextRef.FunctionContextValueSource.SetResult(context);
 
             _logger.FunctionContextSet(invocationId);
@@ -85,7 +85,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             if (_contextReferenceList.TryRemove(invocationId, out var contextRef))
             {
                 contextRef.CompleteFunction();
-                contextRef.Dispose();
             }
             else
             {

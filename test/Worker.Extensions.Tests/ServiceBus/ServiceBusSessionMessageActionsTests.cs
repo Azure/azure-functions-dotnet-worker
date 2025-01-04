@@ -49,6 +49,24 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             await messageActions.RenewSessionLockAsync();
         }
 
+        [Fact]
+        public async Task CanSetAndGetSessionStateWithNull()
+        {
+
+            string testString = "TestString";
+            var client = new SessionMockSettlementClient("test", ByteString.CopyFromUtf8(testString));
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: "test");
+            var messageActions = new ServiceBusSessionMessageActions(client, message.SessionId, message.LockedUntil);
+
+            var afterSetState = await messageActions.GetSessionStateAsync();
+            Assert.Equal(testString, afterSetState.ToString());
+
+            await messageActions.SetSessionStateAsync(null);
+            var afterSetNullState = await messageActions.GetSessionStateAsync();
+            Assert.Null(afterSetNullState);
+
+        }
+
         private class MockSettlementClient : Settlement.SettlementClient
         {
             private readonly string _sessionId;
@@ -69,6 +87,47 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             {
                 Assert.Equal(_sessionId, request.SessionId);
                 Assert.Equal(_sessionState, request.SessionState);
+                return new AsyncUnaryCall<Empty>(Task.FromResult(new Empty()), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+            }
+
+            public override AsyncUnaryCall<Empty> ReleaseSessionAsync(ReleaseSessionRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
+            {
+                Assert.Equal(_sessionId, request.SessionId);
+                return new AsyncUnaryCall<Empty>(Task.FromResult(new Empty()), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+            }
+
+            public override AsyncUnaryCall<RenewSessionLockResponse> RenewSessionLockAsync(RenewSessionLockRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
+            {
+                Assert.Equal(_sessionId, request.SessionId);
+                var response = new RenewSessionLockResponse();
+                response.LockedUntil = Timestamp.FromDateTime(DateTime.UtcNow.AddSeconds(30));
+                return new AsyncUnaryCall<RenewSessionLockResponse>(Task.FromResult(response), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+            }
+        }
+
+
+
+
+        private class SessionMockSettlementClient : Settlement.SettlementClient
+        {
+            private readonly string _sessionId;
+            private ByteString _sessionState;
+            public SessionMockSettlementClient(string sessionId, ByteString sessionState = null) : base()
+            {
+                _sessionId = sessionId;
+                _sessionState = sessionState ?? ByteString.Empty;
+            }
+
+            public override AsyncUnaryCall<GetSessionStateResponse> GetSessionStateAsync(GetSessionStateRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
+            {
+                Assert.Equal(_sessionId, request.SessionId);
+                return new AsyncUnaryCall<GetSessionStateResponse>(Task.FromResult(new GetSessionStateResponse { SessionState = _sessionState }), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
+            }
+
+            public override AsyncUnaryCall<Empty> SetSessionStateAsync(SetSessionStateRequest request, Metadata headers = null, DateTime? deadline = null, CancellationToken cancellationToken = default)
+            {
+                Assert.Equal(_sessionId, request.SessionId);
+                _sessionState = request.SessionState;
                 return new AsyncUnaryCall<Empty>(Task.FromResult(new Empty()), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { });
             }
 

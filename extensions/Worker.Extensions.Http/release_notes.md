@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http <version>
 
-- The 'FromBody' converter now utilizes `DeserializeAsync` for deserializing JSON content from the request body, enhancing support for asynchronous deserialization. (#<PR>)
+- The 'FromBody' converter now utilizes `DeserializeAsync` for deserializing JSON content from the request body, enhancing support for asynchronous deserialization. (#2901)

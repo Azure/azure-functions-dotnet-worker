@@ -8,3 +8,4 @@
 
 - Updated `Azure.Identity` reference to 1.12.0
 - Updated `Microsoft.Extensions.Azure` to 1.7.5
+- Added 'null' support in SetSessionState and GetSessionState methods (#2548)

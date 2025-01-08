@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -23,7 +24,7 @@ using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class GrpcWorker : IWorker, IMessageProcessor
+    internal partial class GrpcWorker : IWorker, IMessageProcessor
     {
         private readonly IFunctionsApplication _application;
         private readonly IMethodInfoLocator _methodInfoLocator;
@@ -46,7 +47,7 @@ namespace Microsoft.Azure.Functions.Worker
             _workerClientFactory = workerClientFactory ?? throw new ArgumentNullException(nameof(workerClientFactory));
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
-            _workerOptions = workerOptions?.Value ?? throw new ArgumentNullException(nameof(workerOptions));
+            _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
             _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
 
             _invocationHandler = invocationHandler;
@@ -293,13 +294,25 @@ namespace Microsoft.Azure.Functions.Worker
             return envReloadResponse;
         }
 
-        private static WorkerMetadata GetWorkerMetadata()
+#if NET7_0_OR_GREATER
+        [GeneratedRegex(@"^(\D*)+(?!\S)")]
+        private static partial Regex FrameworkDescriptionRegex();
+#else 
+        private static readonly Regex FrameworkDescriptionRegexBacking = new Regex(@"^(\D*)+(?!\S)");
+        private static Regex FrameworkDescriptionRegex() => FrameworkDescriptionRegexBacking;
+#endif
+
+
+        internal static WorkerMetadata GetWorkerMetadata(string? frameworkDescription = null)
         {
-            var frameworkDescriptionRegex = new Regex(@"^(\D*)+(?!\S)");
+            frameworkDescription ??= RuntimeInformation.FrameworkDescription;
+            
+            var match = FrameworkDescriptionRegex().Match(frameworkDescription);
+            frameworkDescription = match.Success ? match.Value : frameworkDescription;
 
             var workerMetadata = new WorkerMetadata
             {
-                RuntimeName = frameworkDescriptionRegex.Match(RuntimeInformation.FrameworkDescription).Value ?? RuntimeInformation.FrameworkDescription,
+                RuntimeName = frameworkDescription,
                 RuntimeVersion = Environment.Version.ToString(),
                 WorkerVersion = WorkerInformation.Instance.WorkerVersion,
                 WorkerBitness = RuntimeInformation.ProcessArchitecture.ToString()

@@ -12,7 +12,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace Microsoft.Azure.Functions.Worker
 {
-    internal class GrpcHttpRequestData : HttpRequestData, IDisposable
+    internal sealed class GrpcHttpRequestData : HttpRequestData, IDisposable
 #if NET6_0_OR_GREATER
         , IAsyncDisposable
 #endif
@@ -31,16 +31,15 @@ namespace Microsoft.Azure.Functions.Worker
             _httpData = httpData ?? throw new ArgumentNullException(nameof(httpData));
             _cookies = new Lazy<IReadOnlyCollection<IHttpCookie>>(() =>
             {
-                if (Headers is null)
-                {
-                    return Array.Empty<IHttpCookie>();
-                }
+                var cookieString = Headers
+                    .FirstOrDefault(item => item.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase))
+                    .Value
+                    ?.ToArray();
 
-                var cookieString = Headers.FirstOrDefault(item => item.Key.Equals("Cookie", StringComparison.OrdinalIgnoreCase)).Value;
-
-                if (cookieString != null && cookieString.Any() && !string.IsNullOrWhiteSpace(cookieString.First()))
+                if (cookieString is [var cookie, ..]
+                    && !string.IsNullOrWhiteSpace(cookie))
                 {
-                    return ToHttpCookies(cookieString.First());
+                    return ToHttpCookies(cookie);
                 }
 
                 return Array.Empty<IHttpCookie>();
@@ -134,23 +133,15 @@ namespace Microsoft.Azure.Functions.Worker
         }
 #endif
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!_disposed)
-            {
-                if (disposing)
-                {
-                    _bodyStream?.Dispose();
-                }
-
-                _disposed = true;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(disposing: true);
-            GC.SuppressFinalize(this);
+            if (_disposed)
+            {
+                return;
+            }
+
+            _bodyStream?.Dispose();
+            _disposed = true;
         }
 
         private IReadOnlyCollection<IHttpCookie> ToHttpCookies(string cookieString)

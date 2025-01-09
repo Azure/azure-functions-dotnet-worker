@@ -44,11 +44,16 @@ namespace Microsoft.Azure.Functions.SdkTests
             string assembly = Path.Combine(Tests.TestUtility.RepoRoot, "sdk", "FunctionMetadataLoaderExtension", "bin", Tests.TestUtility.Config, "netstandard2.0", "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
             var extensions = ExtensionsMetadataEnhancer.GetWebJobsExtensions(assembly);
 
-            Assert.Single(extensions);
-            ExtensionReference ext = extensions.Single();
-            Assert.Equal("Startup", ext.Name);
-            Assert.Equal("Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c", ext.TypeName);
-            Assert.Equal("./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll", ext.HintPath);
+            ValidateAllEqual(
+                [
+                    new ExtensionReference()
+                    {
+                        Name = "Startup",
+                        TypeName = "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c",
+                        HintPath = "./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll",
+                    }
+                ],
+                extensions);
         }
 
         private static void ValidateAllEqual(IEnumerable<ExtensionReference> expected, IEnumerable<ExtensionReference> actual)

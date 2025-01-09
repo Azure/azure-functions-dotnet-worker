@@ -50,53 +50,42 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
             await messageActions.RenewSessionLockAsync();
         }
 
+
         [Fact]
-        public async Task CanSetAndGetSessionStateWithNull()
+        public async Task CanSetNullSessionState()
         {
-            var sessionId = "test";
-            var initialTestString = "TestInitialState";
-            ByteString currentSessionState = ByteString.CopyFromUtf8(initialTestString);
-
             var mockClient = new Mock<Settlement.SettlementClient>();
-            
-            mockClient
-                .Setup(x => x.GetSessionStateAsync(
-                    It.Is<GetSessionStateRequest>(r => r.SessionId == sessionId),
-                    It.IsAny<Metadata>(),
-                    It.IsAny<DateTime?>(),
-                    It.IsAny<CancellationToken>())
-                )
-                .Returns(() => CreateAsyncUnaryCall(new GetSessionStateResponse
-                {
-                    SessionState = currentSessionState
-                }));
-
-            mockClient
-                .Setup(x => x.SetSessionStateAsync(
-                    It.Is<SetSessionStateRequest>(r => r.SessionId == sessionId),
-                    It.IsAny<Metadata>(),
-                    It.IsAny<DateTime?>(),
-                    It.IsAny<CancellationToken>())
-                )
-                .Returns<SetSessionStateRequest, Metadata, DateTime?, CancellationToken>((request, _, _, _) =>
-                {
-                    currentSessionState = request.SessionState;
-                    return CreateAsyncUnaryCall(new Empty());
-                });
-
-            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: sessionId);
-            var messageActions = new ServiceBusSessionMessageActions(settlement: mockClient.Object,sessionId: message.SessionId,sessionLockedUntil: message.LockedUntil);
-
-            var initialState = await messageActions.GetSessionStateAsync();
-            Assert.Equal(initialTestString, initialState.ToString());
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: "test");
+            var messageActions = new ServiceBusSessionMessageActions(mockClient.Object, message.SessionId, message.LockedUntil);
 
             await messageActions.SetSessionStateAsync(null);
-            var afterSetNullState = await messageActions.GetSessionStateAsync();
-            Assert.Null(afterSetNullState);
+            mockClient.Verify(x => x.SetSessionStateAsync(
+                It.Is<SetSessionStateRequest>(r => r.SessionId == message.SessionId && r.SessionState == ByteString.Empty),
+                It.IsAny<Metadata>(),
+                It.IsAny<DateTime?>(),
+         It.IsAny<CancellationToken>()),
+         Times.Once);
         }
-        private static AsyncUnaryCall<T> CreateAsyncUnaryCall<T>(T response) where T : class
+
+        [Fact]
+        public async Task CanGetNullSessionState()
         {
-            return new AsyncUnaryCall<T>(Task.FromResult(response),Task.FromResult(new Metadata()),() => Status.DefaultSuccess,() => new Metadata(),() => { });
+            var mockClient = new Mock<Settlement.SettlementClient>();
+
+            mockClient
+                .Setup(x => x.GetSessionStateAsync(
+                    It.IsAny<GetSessionStateRequest>(),
+                    It.IsAny<Metadata>(),
+                    It.IsAny<DateTime?>(),
+                    It.IsAny<CancellationToken>())
+                )
+                .Returns(new AsyncUnaryCall<GetSessionStateResponse>(Task.FromResult(new GetSessionStateResponse() { SessionState = ByteString.Empty }), Task.FromResult(new Metadata()), () => Status.DefaultSuccess, () => new Metadata(), () => { }));
+
+            var message = ServiceBusModelFactory.ServiceBusReceivedMessage(lockTokenGuid: Guid.NewGuid(), sessionId: "test");
+            var messageActions = new ServiceBusSessionMessageActions(settlement: mockClient.Object, sessionId: message.SessionId, sessionLockedUntil: message.LockedUntil);
+
+            var nullState = await messageActions.GetSessionStateAsync();
+            Assert.Null(nullState);
         }
 
         private class MockSettlementClient : Settlement.SettlementClient

@@ -10,12 +10,27 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkTests
 {
-    public class ExtensionsCsProjGeneratorTests
+    public sealed class ExtensionsCsProjGeneratorTests : IDisposable
     {
+        private HashSet<string> _directoriesToCleanup = new();
+
         public enum FuncVersion
         {
             V3,
             V4,
+        }
+
+        public void Dispose()
+        {
+            foreach (string directory in _directoriesToCleanup)
+            {
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, true);
+                }
+            }
+
+            _directoriesToCleanup.Clear();
         }
 
         [Theory]
@@ -32,10 +47,11 @@ namespace Microsoft.Azure.Functions.SdkTests
         [Theory]
         [InlineData(FuncVersion.V3)]
         [InlineData(FuncVersion.V4)]
-        public void GetCsProjContent_IncrementalSupport(FuncVersion version)
+        public void Generate_IncrementalSupport(FuncVersion version)
         {
             DateTime RunGenerate(string project, out string contents)
             {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
                 var generator = GetGenerator(version, project);
                 generator.Generate();
 
@@ -53,10 +69,11 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void GetCsProjContent_Updates()
+        public void Generate_Updates()
         {
-            static DateTime RunGenerate(string project, IDictionary<string, string> extensions, out string contents)
+            DateTime RunGenerate(string project, IDictionary<string, string> extensions, out string contents)
             {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
                 var generator = GetGenerator(FuncVersion.V4, project, extensions);
                 generator.Generate();
 
@@ -80,6 +97,84 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             Assert.NotEqual(firstRun, secondRun);
             Assert.NotEqual(first, second);
+        }
+
+        [Fact]
+        public void Generate_Subdirectory_CreatesAll()
+        {
+            DateTime RunGenerate(string project, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            DateTime earliest = DateTime.UtcNow;
+            string project = Path.Combine(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime time = RunGenerate(project, out string contents);
+
+            Assert.True(time >= earliest, $"expected last write time {time} to be greater than {earliest}.");
+            Assert.NotNull(contents);
+        }
+
+        [Fact]
+        public void Generate_Subdirectory_CreatesPartial()
+        {
+            DateTime RunGenerate(string project, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            DateTime earliest = DateTime.UtcNow;
+            string parent = Guid.NewGuid().ToString();
+            Directory.CreateDirectory(parent);
+            _directoriesToCleanup.Add(parent);
+
+            string project = Path.Combine(parent, Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime time = RunGenerate(project, out string contents);
+
+            Assert.True(time >= earliest, $"expected last write time {time} to be greater than {earliest}.");
+            Assert.NotNull(contents);
+        }
+
+        [Fact]
+        public void Generate_ExistingDirectory_DoesNotOverwrite()
+        {
+            DateTime RunGenerate(string project, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            string parent = Guid.NewGuid().ToString();
+            Directory.CreateDirectory(parent);
+            _directoriesToCleanup.Add(parent);
+
+            string existing = Path.Combine(parent, "existing.txt");
+            File.WriteAllText(existing, "");
+            DateTime expectedWriteTime = new FileInfo(existing).LastWriteTimeUtc;
+
+            string project = Path.Combine(parent, "TestExtension.csproj");
+            DateTime time = RunGenerate(project, out string contents);
+
+            Assert.True(time >= expectedWriteTime, $"expected last write time {time} to be greater than {expectedWriteTime}.");
+            Assert.NotNull(contents);
+            Assert.Equal(expectedWriteTime, new FileInfo(existing).LastWriteTimeUtc);
         }
 
         static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath)

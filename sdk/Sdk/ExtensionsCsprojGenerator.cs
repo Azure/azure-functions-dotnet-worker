@@ -39,18 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
-            RecreateDirectory(Path.GetDirectoryName(_outputPath));
             File.WriteAllText(_outputPath, csproj);
-        }
-
-        private void RecreateDirectory(string directoryPath)
-        {
-            if (Directory.Exists(directoryPath))
-            {
-                Directory.Delete(directoryPath, recursive: true);
-            }
-
-            Directory.CreateDirectory(directoryPath);
         }
 
         internal string GetCsProjContent()
@@ -66,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
-            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.3.0";
+            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.6.0";
 
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">

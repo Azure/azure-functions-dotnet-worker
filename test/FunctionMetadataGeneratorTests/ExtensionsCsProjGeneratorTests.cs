@@ -22,7 +22,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         [InlineData(FuncVersion.V4)]
         public void GetCsProjContent_Succeeds(FuncVersion version)
         {
-            var generator = GetGenerator(version);
+            var generator = GetGenerator(version, "TestExtension.csproj");
             string actual = generator.GetCsProjContent().Replace("\r\n", "\n");
             string expected = ExpectedCsproj(version).Replace("\r\n", "\n");
             Assert.Equal(expected, actual);
@@ -51,7 +51,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Equal(first, second);
         }
 
-        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string subPath = "")
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath)
         {
             IDictionary<string, string> extensions = new Dictionary<string, string>
             {
@@ -62,8 +62,8 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             return version switch
             {
-                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, subPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
-                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, subPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6),
+                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
+                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, outputPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6),
                 _ => throw new ArgumentOutOfRangeException(nameof(version)),
             };
         }
@@ -118,7 +118,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.3.0"" />
+        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.6.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />

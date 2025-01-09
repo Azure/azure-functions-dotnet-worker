@@ -28,6 +28,7 @@ pr:
   branches:
     include:
     - main
+    - v1.x
     - release/*
     - feature/*
 

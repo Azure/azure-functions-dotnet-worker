@@ -1,9 +1,9 @@
 parameters:
-  - name: ExtensionProjectName
-    type: string
-  - name: HasOwnTestProject
-    type: boolean
-    default: false
+- name: ExtensionProjectName
+  type: string
+- name: HasOwnTestProject
+  type: boolean
+  default: false
 
 jobs:
 

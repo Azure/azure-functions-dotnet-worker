@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 
@@ -51,15 +52,50 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Equal(first, second);
         }
 
-        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath)
+        [Fact]
+        public void GetCsProjContent_Updates()
         {
-            IDictionary<string, string> extensions = new Dictionary<string, string>
+            static DateTime RunGenerate(string project, IDictionary<string, string> extensions, out string contents)
+            {
+                var generator = GetGenerator(FuncVersion.V4, project, extensions);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            Dictionary<string, string> extensions = new()
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" },
                 { "Microsoft.Azure.WebJobs.Extensions.Http", "3.0.0" },
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
+            string project = Path.Combine(Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime firstRun = RunGenerate(project, extensions, out string first);
+
+            extensions.Remove(extensions.Keys.First());
+            DateTime secondRun = RunGenerate(project, extensions, out string second);
+
+            Assert.NotEqual(firstRun, secondRun);
+            Assert.NotEqual(first, second);
+        }
+
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath)
+        {
+            Dictionary<string, string> extensions = new()
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Http", "3.0.0" },
+                { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
+            };
+
+            return GetGenerator(version, outputPath, extensions);
+        }
+
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath, IDictionary<string, string> extensions)
+        {
             return version switch
             {
                 FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),

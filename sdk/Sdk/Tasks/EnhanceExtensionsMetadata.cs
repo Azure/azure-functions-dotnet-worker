@@ -25,7 +25,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
         [Required]
         public string? OutputPath { get; set; }
 
-        [Required]
         public ITaskItem[]? AdditionalExtensions { get; set; }
 
         public override bool Execute()

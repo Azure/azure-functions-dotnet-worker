@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 ﻿using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
@@ -35,6 +36,19 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             ValidateHintPathUnequal(extensionsCorrectedHints, extensionsPreset);
             ValidateAllEqual(GetBasicReferences_WithPresetHintPath(), extensionsPreset);
+        }
+
+        [Fact]
+        public void GetWebJobsExtensions_FindsExtensions()
+        {
+            string assembly = Path.Combine(Tests.TestUtility.RepoRoot, "sdk", "FunctionMetadataLoaderExtension", "bin", Tests.TestUtility.Config, "netstandard2.0", "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
+            var extensions = ExtensionsMetadataEnhancer.GetWebJobsExtensions(assembly);
+
+            Assert.Single(extensions);
+            ExtensionReference ext = extensions.Single();
+            Assert.Equal("Startup", ext.Name);
+            Assert.Equal("Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c", ext.TypeName);
+            Assert.Equal("./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll", ext.HintPath);
         }
 
         private static void ValidateAllEqual(IEnumerable<ExtensionReference> expected, IEnumerable<ExtensionReference> actual)

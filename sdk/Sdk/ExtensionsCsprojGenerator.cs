@@ -39,6 +39,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
+            Directory.CreateDirectory(Path.GetDirectoryName(_outputPath));
             File.WriteAllText(_outputPath, csproj);
         }
 

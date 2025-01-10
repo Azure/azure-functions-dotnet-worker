@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 
@@ -69,7 +70,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void Generate_Updates()
+        public async Task Generate_Updates()
         {
             DateTime RunGenerate(string project, IDictionary<string, string> extensions, out string contents)
             {
@@ -92,6 +93,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             string project = Path.Combine(Guid.NewGuid().ToString(), "TestExtension.csproj");
             DateTime firstRun = RunGenerate(project, extensions, out string first);
 
+            await Task.Delay(10); // to ensure timestamps progress.
             extensions.Remove(extensions.Keys.First());
             DateTime secondRun = RunGenerate(project, extensions, out string second);
 
@@ -100,7 +102,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void Generate_Subdirectory_CreatesAll()
+        public async Task Generate_Subdirectory_CreatesAll()
         {
             DateTime RunGenerate(string project, out string contents)
             {
@@ -114,6 +116,8 @@ namespace Microsoft.Azure.Functions.SdkTests
             }
 
             DateTime earliest = DateTime.UtcNow;
+
+            await Task.Delay(10);
             string project = Path.Combine(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "TestExtension.csproj");
             DateTime time = RunGenerate(project, out string contents);
 
@@ -122,7 +126,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void Generate_Subdirectory_CreatesPartial()
+        public async Task Generate_Subdirectory_CreatesPartial()
         {
             DateTime RunGenerate(string project, out string contents)
             {
@@ -140,6 +144,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             Directory.CreateDirectory(parent);
             _directoriesToCleanup.Add(parent);
 
+            await Task.Delay(10);
             string project = Path.Combine(parent, Guid.NewGuid().ToString(), "TestExtension.csproj");
             DateTime time = RunGenerate(project, out string contents);
 
@@ -148,7 +153,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Fact]
-        public void Generate_ExistingDirectory_DoesNotOverwrite()
+        public async Task Generate_ExistingDirectory_DoesNotOverwrite()
         {
             DateTime RunGenerate(string project, out string contents)
             {
@@ -169,6 +174,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             File.WriteAllText(existing, "");
             DateTime expectedWriteTime = new FileInfo(existing).LastWriteTimeUtc;
 
+            await Task.Delay(10);
             string project = Path.Combine(parent, "TestExtension.csproj");
             DateTime time = RunGenerate(project, out string contents);
 

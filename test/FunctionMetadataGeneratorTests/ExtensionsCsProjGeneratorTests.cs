@@ -117,7 +117,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             string project = Path.Combine(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "TestExtension.csproj");
             DateTime time = RunGenerate(project, out string contents);
 
-            Assert.True(time >= earliest, $"expected last write time {time} to be greater than {earliest}.");
+            Assert.True(time >= earliest, $"expected last write time {time.Ticks} to be greater than {earliest.Ticks}.");
             Assert.NotNull(contents);
         }
 
@@ -143,7 +143,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             string project = Path.Combine(parent, Guid.NewGuid().ToString(), "TestExtension.csproj");
             DateTime time = RunGenerate(project, out string contents);
 
-            Assert.True(time >= earliest, $"expected last write time {time} to be greater than {earliest}.");
+            Assert.True(time >= earliest, $"expected last write time {time.Ticks} to be greater than {earliest.Ticks}.");
             Assert.NotNull(contents);
         }
 
@@ -172,7 +172,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             string project = Path.Combine(parent, "TestExtension.csproj");
             DateTime time = RunGenerate(project, out string contents);
 
-            Assert.True(time >= expectedWriteTime, $"expected last write time {time} to be greater than {expectedWriteTime}.");
+            Assert.True(time >= expectedWriteTime, $"expected last write time {time.Ticks} to be greater than {expectedWriteTime.Ticks}.");
             Assert.NotNull(contents);
             Assert.Equal(expectedWriteTime, new FileInfo(existing).LastWriteTimeUtc);
         }

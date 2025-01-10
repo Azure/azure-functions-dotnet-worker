@@ -20,6 +20,7 @@ trigger:
   branches:
     include:
     - main
+    - v1.x
     - release/*
     - feature/*
 
@@ -27,6 +28,7 @@ pr:
   branches:
     include:
     - main
+    - v1.x
     - release/*
     - feature/*
 

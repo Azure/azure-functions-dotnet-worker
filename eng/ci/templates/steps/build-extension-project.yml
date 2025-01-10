@@ -1,6 +1,6 @@
 parameters:
-  - name: ExtensionProjectName
-    type: string
+- name: ExtensionProjectName
+  type: string
 
 steps:
 

@@ -1,22 +1,22 @@
 parameters:
-  - name: DotnetVersion
-    type: string
-    default: 'net7'
-  - name: UseCoreToolsBuild
-    type: string
-    default: 'False'
-  - name: SkipStorageEmulator
-    type: boolean
-    default: false
-  - name: SkipCosmosDBEmulator
-    type: boolean
-    default: false
-  - name: SkipCoreTools
-    type: boolean
-    default: false
-  - name: SkipBuildOnPack
-    type: boolean
-    default: false
+- name: DotnetVersion
+  type: string
+  default: 'net7'
+- name: UseCoreToolsBuild
+  type: string
+  default: 'False'
+- name: SkipStorageEmulator
+  type: boolean
+  default: false
+- name: SkipCosmosDBEmulator
+  type: boolean
+  default: false
+- name: SkipCoreTools
+  type: boolean
+  default: false
+- name: SkipBuildOnPack
+  type: boolean
+  default: false
 
 steps:
 

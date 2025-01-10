@@ -5,6 +5,7 @@ trigger:
   branches:
     include:
     - main
+    - v1.x
     - release/*
     - feature/*
   paths:
@@ -17,6 +18,7 @@ pr:
   branches:
     include:
     - main
+    - v1.x
     - release/*
     - feature/*
   paths:

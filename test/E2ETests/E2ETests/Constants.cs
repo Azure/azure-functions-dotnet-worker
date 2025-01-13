@@ -98,5 +98,11 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             public const string TablesConnectionStringSetting = EmulatorConnectionString;
             public const string TableName = "TestTable";
         }
+
+        public static class TestAppNames
+        {
+            public const string E2EApp = "E2EApp";
+            public const string E2EAspNetCoreApp = "E2EAspNetCoreApp";
+        }
     }
 }

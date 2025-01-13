@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AzureFunctionsVersion>v4</AzureFunctionsVersion>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.E2EAspNetCoreApp</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.E2EAspNetCoreApp</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
+    <ProjectReference Include="..\..\..\..\extensions\Worker.Extensions.Http.AspNetCore\src\Worker.Extensions.Http.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="host.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="local.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" />
+    <PackageReference Condition="$(TestBuild) != 'true'" Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
+  </ItemGroup>
+</Project>

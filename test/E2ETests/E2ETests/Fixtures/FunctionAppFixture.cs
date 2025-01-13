@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
@@ -19,16 +20,21 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         private readonly ILogger _logger;
         private bool _disposed;
         private Process _funcProcess;
-
         private JobObjectRegistry _jobObjectRegistry;
+        private string _testApp = Constants.TestAppNames.E2EApp;
 
         public FunctionAppFixture(IMessageSink messageSink)
         {
-            // initialize logging            
+            // initialize logging
             ILoggerFactory loggerFactory = new LoggerFactory();
             TestLogs = new TestLoggerProvider(messageSink);
             loggerFactory.AddProvider(TestLogs);
             _logger = loggerFactory.CreateLogger<FunctionAppFixture>();
+        }
+
+        internal FunctionAppFixture(IMessageSink messageSink, string testApp) : this(messageSink)
+        {
+            _testApp = testApp;
         }
 
         public async Task InitializeAsync()
@@ -42,7 +48,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
                 // start functions process
                 _logger.LogInformation($"Starting functions host for {Constants.FunctionAppCollectionName}...");
-                _funcProcess = FixtureHelpers.GetFuncHostProcess();
+                _funcProcess = FixtureHelpers.GetFuncHostProcess(testAppName: _testApp);
                 string workingDir = _funcProcess.StartInfo.WorkingDirectory;
                 _logger.LogInformation($"  Working dir: '${workingDir}' Exists: '{Directory.Exists(workingDir)}'");
                 string fileName = _funcProcess.StartInfo.FileName;
@@ -51,18 +57,29 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
                     // Currently only HTTP is supported in Linux CI.
-                    _funcProcess.StartInfo.ArgumentList.Add("--functions");
-                    _funcProcess.StartInfo.ArgumentList.Add("HelloFromQuery");
-                    _funcProcess.StartInfo.ArgumentList.Add("HelloFromJsonBody");
-                    _funcProcess.StartInfo.ArgumentList.Add("HelloUsingPoco");
-                    _funcProcess.StartInfo.ArgumentList.Add("HelloWithNoResponse");
-                    _funcProcess.StartInfo.ArgumentList.Add("PocoFromBody");
-                    _funcProcess.StartInfo.ArgumentList.Add("PocoBeforeRouteParameters");
-                    _funcProcess.StartInfo.ArgumentList.Add("PocoAfterRouteParameters");
-                    _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
-                    _funcProcess.StartInfo.ArgumentList.Add("PocoWithoutBindingSource");
-                    _funcProcess.StartInfo.ArgumentList.Add("HelloPascal");
-                    _funcProcess.StartInfo.ArgumentList.Add("HelloAllCaps");
+                    switch (_testApp)
+                    {
+                        case Constants.TestAppNames.E2EApp:
+                            _funcProcess.StartInfo.ArgumentList.Add("--functions");
+                            _funcProcess.StartInfo.ArgumentList.Add("HelloFromQuery");
+                            _funcProcess.StartInfo.ArgumentList.Add("HelloFromJsonBody");
+                            _funcProcess.StartInfo.ArgumentList.Add("HelloUsingPoco");
+                            _funcProcess.StartInfo.ArgumentList.Add("HelloWithNoResponse");
+                            _funcProcess.StartInfo.ArgumentList.Add("PocoFromBody");
+                            _funcProcess.StartInfo.ArgumentList.Add("PocoBeforeRouteParameters");
+                            _funcProcess.StartInfo.ArgumentList.Add("PocoAfterRouteParameters");
+                            _funcProcess.StartInfo.ArgumentList.Add("ExceptionFunction");
+                            _funcProcess.StartInfo.ArgumentList.Add("PocoWithoutBindingSource");
+                            _funcProcess.StartInfo.ArgumentList.Add("HelloPascal");
+                            _funcProcess.StartInfo.ArgumentList.Add("HelloAllCaps");
+                            break;
+                        case Constants.TestAppNames.E2EAspNetCoreApp:
+                            _funcProcess.StartInfo.ArgumentList.Add("--functions");
+                            _funcProcess.StartInfo.ArgumentList.Add("HttpWithCancellationTokenNotUsed");
+                            _funcProcess.StartInfo.ArgumentList.Add("HttpWithCancellationTokenIgnored");
+                            _funcProcess.StartInfo.ArgumentList.Add("HttpWithCancellationTokenHandled");
+                            break;
+                    }
                 }
 
                 await CosmosDBHelpers.TryCreateDocumentCollectionsAsync(_logger);
@@ -113,7 +130,6 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         }
 
         internal TestLoggerProvider TestLogs { get; private set; }
-
 
         public Task DisposeAsync()
         {

@@ -8,10 +8,10 @@ using Microsoft.Azure.Functions.Worker.Http;
 
 namespace CustomMiddleware
 {
-    public static class HttpTriggerWithMultipleOutputBindings
+    public class HttpTriggerWithMultipleOutputBindings
     {
         [Function(nameof(HttpTriggerWithMultipleOutputBindings))]
-        public static MyOutputType Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
+        public async Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequestData req)
         {
             if (req.Url.Query.Contains("throw-exception"))
             {
@@ -19,7 +19,7 @@ namespace CustomMiddleware
             }
 
             var response = req.CreateResponse(HttpStatusCode.OK);
-            response.WriteString("Success!");
+            await response.WriteStringAsync("Success!");
 
             return new MyOutputType()
             {

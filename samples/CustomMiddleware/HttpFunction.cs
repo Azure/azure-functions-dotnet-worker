@@ -12,7 +12,7 @@ namespace CustomMiddleware
     public class HttpFunction
     {
         [Function(nameof(HttpFunction))]
-        public static HttpResponseData Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
+        public async Task<HttpResponseData> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequestData req,
             FunctionContext context)
         {
             if (req.Url.Query.Contains("throw-exception"))
@@ -34,7 +34,7 @@ namespace CustomMiddleware
             context.Items.Add("functionitem", "Hello from function!");
 
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
-            response.WriteString("Welcome to .NET 6!!");
+            await response.WriteStringAsync("Welcome to .NET 6!!");
 
             return response;
         }

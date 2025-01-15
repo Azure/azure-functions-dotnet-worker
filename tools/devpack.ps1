@@ -38,7 +38,7 @@ if($E2E -eq $true)
 
 if ($SkipBuildOnPack -eq $true)
 {
-  $AdditionalPackArgs += "--no-build"  
+  $AdditionalPackArgs += "--no-build"
 }
 
 $localPack = "$rootPath/local"
@@ -49,7 +49,7 @@ if (!(Test-Path $localPack))
 Write-Host
 Write-Host "---Updating projects with local SDK pack---"
 Write-Host "Packing Core .NET Worker projects to $localPack"
-& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:BuildNumber=$buildNumber" $AdditionalPackArgs
+& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:Version=2.0.1" "-p:VersionSuffix=$buildNumber" $AdditionalPackArgs
 Write-Host
 
 foreach ($project in $projects) {

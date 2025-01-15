@@ -48,3 +48,5 @@ jobs:
       projects: |
         **\E2ETests.csproj
         **\SdkE2ETests.csproj
+    env:
+      DOTNET_VERSION: $(dotnetVersion)

@@ -11,7 +11,6 @@ using Microsoft.Azure.Functions.Tests.E2ETests;
 using Xunit;
 using Xunit.Abstractions;
 
-#if !NETFRAMEWORK  // Exclude class for .NET Framework (netfx) as AspNetCore is not supported
 namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
 {
     public class CancellationEndToEndTests : IClassFixture<CancellationEndToEndTests.TestFixture>
@@ -24,11 +23,11 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             _fixture.TestLogs.UseTestLogger(testOutputHelper);
         }
 
-        [Theory]
+        [IgnoreOnNetFxTestRunTheory]
         [InlineData("HttpWithCancellationTokenNotUsed", "Work completed.", "Succeeded")]
         [InlineData("HttpWithCancellationTokenIgnored", "TaskCanceledException: A task was canceled", "Failed")]
         [InlineData("HttpWithCancellationTokenHandled", "Request was cancelled.", "Succeeded")]
-        public async Task Functions_WithCancellationToken_BehaveAsExpected(string functionName, string expectedMessage, string invocationResult)
+        public async Task HttpTriggerFunctions_WithCancellationToken_BehaveAsExpected(string functionName, string expectedMessage, string invocationResult)
         {
             using var cts = new CancellationTokenSource();
 
@@ -66,4 +65,3 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
         }
     }
 }
-#endif 

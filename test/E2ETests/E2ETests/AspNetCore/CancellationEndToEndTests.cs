@@ -31,30 +31,27 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
         {
             using var cts = new CancellationTokenSource();
 
-            try
+            var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
+
+            await Task.Delay(3000);
+            cts.Cancel();
+
+            // The task should be cancelled before it completes, mimicing a client closing the connection.
+            // This should lead to the worker getting an InvocationCancel request from the functions host
+            await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
+
+            IEnumerable<string> logs = null;
+            await TestUtility.RetryAsync(() =>
             {
-                var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
+                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
 
-                await Task.Delay(3000);
-                cts.Cancel();
+                return Task.FromResult(logs.Count() >= 1);
+            });
 
-                var response = await task;
-            }
-            catch (Exception)
-            {
-                IEnumerable<string> logs = null;
-                await TestUtility.RetryAsync(() =>
-                {
-                    logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
+            Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains(expectedMessage, StringComparison.OrdinalIgnoreCase));
 
-                    return Task.FromResult(logs.Count() >= 1);
-                });
-
-                Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains(expectedMessage, StringComparison.OrdinalIgnoreCase));
-
-                // TODO: 2/3 of the test invocations will fail until the host with the ForwarderProxy fix is released - uncomment this line when the fix is released
-                // Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains($"'Functions.{functionName}' ({invocationResult}", StringComparison.OrdinalIgnoreCase));
-            }
+            // TODO: 2/3 of the test invocations will fail until the host with the ForwarderProxy fix is released - uncomment this line when the fix is released
+            // Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains($"'Functions.{functionName}' ({invocationResult}", StringComparison.OrdinalIgnoreCase));
         }
 
         public class TestFixture : FunctionAppFixture

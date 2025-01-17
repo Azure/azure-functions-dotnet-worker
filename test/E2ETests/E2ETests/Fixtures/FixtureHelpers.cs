@@ -18,6 +18,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             var funcProcess = new Process();
             var rootDir = Path.GetFullPath(@"../../../../../..");
             var e2eAppBinPath = Path.Combine(rootDir, "test", "E2ETests", "E2EApps", testAppName, "bin");
+            Console.WriteLine($"Looking for built worker app under '{e2eAppBinPath}'");
             string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
 
             if (e2eHostJson == null)
@@ -66,6 +67,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             funcProcess.Start();
 
             logger.LogInformation($"Started '{funcProcess.StartInfo.FileName}'");
+            Console.WriteLine($"Started '{funcProcess.StartInfo.FileName}'");
 
             funcProcess.BeginErrorReadLine();
             funcProcess.BeginOutputReadLine();

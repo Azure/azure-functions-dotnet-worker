@@ -34,7 +34,9 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
         internal FunctionAppFixture(IMessageSink messageSink, string testApp) : this(messageSink)
         {
+            Console.WriteLine($"Setting test app: {testApp}");
             _testApp = testApp;
+            Console.WriteLine($"Set test app: {_testApp}");
         }
 
         public async Task InitializeAsync()
@@ -48,11 +50,14 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
                 // start functions process
                 _logger.LogInformation($"Starting functions host for {Constants.FunctionAppCollectionName}...");
+                Console.WriteLine($"Starting functions host for {Constants.FunctionAppCollectionName}...");
                 _funcProcess = FixtureHelpers.GetFuncHostProcess(testAppName: _testApp);
                 string workingDir = _funcProcess.StartInfo.WorkingDirectory;
                 _logger.LogInformation($"  Working dir: '${workingDir}' Exists: '{Directory.Exists(workingDir)}'");
+                Console.WriteLine($"  Working dir: '${workingDir}' Exists: '{Directory.Exists(workingDir)}'");
                 string fileName = _funcProcess.StartInfo.FileName;
                 _logger.LogInformation($"  File name:   '${fileName}' Exists: '{File.Exists(fileName)}'");
+                Console.WriteLine($"  File name:   '${fileName}' Exists: '{File.Exists(fileName)}'");
 
                 if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
                 {
@@ -106,10 +111,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                             value.GetString() == "Running")
                         {
                             _logger.LogInformation($"  Current state: Running");
+                            Console.WriteLine($"  Current state: Running");
                             return true;
                         }
 
                         _logger.LogInformation($"  Current state: {value}");
+                        Console.WriteLine($"  Current state: {value}");
                         return false;
                     }
                     catch
@@ -118,11 +125,13 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
                         {
                             // Something went wrong starting the host - check the logs
                             _logger.LogInformation($"  Current state: process exited - something may have gone wrong.");
+                            Console.WriteLine($"  Current state: process exited - something may have gone wrong.");
                             return false;
                         }
 
                         // Can get exceptions before host is running.
                         _logger.LogInformation($"  Current state: process starting");
+                        Console.WriteLine($"  Current state: process starting");
                         return false;
                     }
                 }, userMessageCallback: () => string.Join(System.Environment.NewLine, TestLogs.CoreToolsLogs));

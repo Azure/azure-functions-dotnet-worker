@@ -31,9 +31,12 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
         {
             using var cts = new CancellationTokenSource();
 
+            Console.WriteLine($"Starting test for '{functionName}'");
             var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
 
-            await Task.Delay(1000);
+            Console.WriteLine("Waiting for 3 seconds before cancelling the task");
+            await Task.Delay(3000);
+            Console.WriteLine("Cancelling the task");
             cts.Cancel();
 
             // The task should be cancelled before it completes, mimicing a client closing the connection.
@@ -43,6 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             IEnumerable<string> logs = null;
             await TestUtility.RetryAsync(() =>
             {
+                Console.WriteLine("Checking logs for function execution");
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
 
                 return Task.FromResult(logs.Count() >= 1);
@@ -58,6 +62,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
         {
             public TestFixture(IMessageSink messageSink) : base(messageSink, Constants.TestAppNames.E2EAspNetCoreApp)
             {
+                Console.WriteLine("Cancellation TestFixture");
             }
         }
     }

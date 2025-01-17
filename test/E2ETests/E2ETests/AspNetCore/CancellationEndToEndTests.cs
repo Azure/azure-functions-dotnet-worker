@@ -33,7 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
 
             var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
 
-            await Task.Delay(3000);
+            await Task.Delay(1000);
             cts.Cancel();
 
             // The task should be cancelled before it completes, mimicing a client closing the connection.

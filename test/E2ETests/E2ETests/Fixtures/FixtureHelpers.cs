@@ -62,7 +62,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public static void StartProcessWithLogging(Process funcProcess, ILogger logger)
         {
             funcProcess.ErrorDataReceived += (sender, e) => logger.LogError(e?.Data);
-            funcProcess.OutputDataReceived += (sender, e) => logger.LogInformation(e?.Data);
+            funcProcess.OutputDataReceived += (sender, e) => { logger.LogInformation(e?.Data); Console.WriteLine(e?.Data); };
 
             funcProcess.Start();
 

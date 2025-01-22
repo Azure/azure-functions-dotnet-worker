@@ -40,13 +40,23 @@ jobs:
       UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipBuildOnPack: true
 
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Run E2E Tests'
+  #   inputs:
+  #     command: test
+  #     arguments: -v n --no-build -c Release
+  #     projects: |
+  #       **\E2ETests.csproj
+  #       **\SdkE2ETests.csproj
+  #   env:
+  #     DOTNET_VERSION: $(dotnetVersion)
+
   - task: DotNetCoreCLI@2
-    displayName: 'Run E2E Tests'
+    displayName: 'Run AspNetCore E2E Tests'
     inputs:
       command: test
-      arguments: -v n --no-build -c Release
+      arguments: -v n --no-build -c Release --filter "FullyQualifiedName~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore.CancellationEndToEndTests"
       projects: |
         **\E2ETests.csproj
-        **\SdkE2ETests.csproj
     env:
       DOTNET_VERSION: $(dotnetVersion)

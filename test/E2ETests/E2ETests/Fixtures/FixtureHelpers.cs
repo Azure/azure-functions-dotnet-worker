@@ -18,6 +18,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             var funcProcess = new Process();
             var rootDir = Path.GetFullPath(@"../../../../../..");
             var e2eAppBinPath = Path.Combine(rootDir, "test", "E2ETests", "E2EApps", testAppName, "bin");
+            Console.WriteLine($"Looking for built worker app under '{e2eAppBinPath}'");
             string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
 
             if (e2eHostJson == null)
@@ -26,8 +27,10 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             }
 
             var e2eAppPath = Path.GetDirectoryName(e2eHostJson);
+            Console.WriteLine($"Found built worker app under '{e2eAppPath}'");
 
-            var cliPath = Path.Combine(rootDir, @"Azure.Functions.Cli/func");
+            var cliPath = Path.Combine(rootDir, "Azure.Functions.Cli", "func");
+            Console.WriteLine($"Looking for func cli at '{cliPath}'");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
@@ -61,11 +64,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public static void StartProcessWithLogging(Process funcProcess, ILogger logger)
         {
             funcProcess.ErrorDataReceived += (sender, e) => logger.LogError(e?.Data);
-            funcProcess.OutputDataReceived += (sender, e) => logger.LogInformation(e?.Data);
+            funcProcess.OutputDataReceived += (sender, e) => { logger.LogInformation(e?.Data); Console.WriteLine(e?.Data); };
 
             funcProcess.Start();
 
             logger.LogInformation($"Started '{funcProcess.StartInfo.FileName}'");
+            Console.WriteLine($"Started '{funcProcess.StartInfo.FileName}'");
 
             funcProcess.BeginErrorReadLine();
             funcProcess.BeginOutputReadLine();

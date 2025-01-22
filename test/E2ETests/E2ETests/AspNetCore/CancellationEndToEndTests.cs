@@ -29,12 +29,14 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
         [InlineData("HttpWithCancellationTokenHandled", "Request was cancelled.", "Succeeded")]
         public async Task HttpTriggerFunctions_WithCancellationToken_BehaveAsExpected(string functionName, string expectedMessage, string invocationResult)
         {
+            Console.WriteLine($"Running test for function: {functionName}");
             using var cts = new CancellationTokenSource();
 
             var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
 
             await Task.Delay(2000);
             cts.Cancel();
+            Console.WriteLine("Task cancelled");
 
             // The task should be cancelled before it completes, mimicing a client closing the connection.
             // This should lead to the worker getting an InvocationCancel request from the functions host
@@ -43,10 +45,13 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             IEnumerable<string> logs = null;
             await TestUtility.RetryAsync(() =>
             {
+                Console.WriteLine("Waiting function execution to be completed");
                 logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
 
                 return Task.FromResult(logs.Count() >= 1);
             });
+
+            Console.WriteLine("Function execution completed");
 
             Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains(expectedMessage, StringComparison.OrdinalIgnoreCase));
 

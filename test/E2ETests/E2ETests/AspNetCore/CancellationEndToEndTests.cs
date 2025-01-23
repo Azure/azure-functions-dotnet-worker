@@ -30,22 +30,26 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
         public async Task HttpTriggerFunctions_WithCancellationToken_BehaveAsExpected(string functionName, string expectedMessage, string invocationResult)
         {
             using var cts = new CancellationTokenSource();
-
             var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
 
-            await Task.Delay(2000);
-            cts.Cancel();
+            // Make sure the function invocation started before we cancel
+            IEnumerable<string> invocationStartLog = null;
+            await TestUtility.RetryAsync(() =>
+            {
+                invocationStartLog = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executing 'Functions.{functionName}'"));
+                return Task.FromResult(invocationStartLog.Count() >= 1);
+            });
 
             // The task should be cancelled before it completes, mimicing a client closing the connection.
             // This should lead to the worker getting an InvocationCancel request from the functions host
+            cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
 
-            IEnumerable<string> logs = null;
+            IEnumerable<string> invocationEndLog = null;
             await TestUtility.RetryAsync(() =>
             {
-                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
-
-                return Task.FromResult(logs.Count() >= 1);
+                invocationEndLog = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
+                return Task.FromResult(invocationEndLog.Count() >= 1);
             });
 
             Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains(expectedMessage, StringComparison.OrdinalIgnoreCase));

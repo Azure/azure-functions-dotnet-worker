@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
             var e2eAppPath = Path.GetDirectoryName(e2eHostJson);
 
-            var cliPath = Path.Combine(rootDir, @"Azure.Functions.Cli/func");
+            var cliPath = Path.Combine(rootDir, "Azure.Functions.Cli", "func");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

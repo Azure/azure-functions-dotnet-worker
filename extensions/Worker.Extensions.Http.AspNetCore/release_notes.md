@@ -7,6 +7,7 @@
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
 - Addressing fix for AspNetCoreResponseCookies cookie defaults (#2811)
+- Update `ContextReference` to no longer use a given invocation's cancellation token (#2894)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers  <version>
 

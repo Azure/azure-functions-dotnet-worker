@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -44,7 +44,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
         public async Task<HttpContext> SetFunctionContextAsync(string invocationId, FunctionContext context)
         {
             var contextRef = _contextReferenceList.GetOrAdd(invocationId, static id => new ContextReference(id));
-            contextRef.SetCancellationToken(context.CancellationToken);
             contextRef.FunctionContextValueSource.SetResult(context);
 
             _logger.FunctionContextSet(invocationId);
@@ -85,7 +84,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             if (_contextReferenceList.TryRemove(invocationId, out var contextRef))
             {
                 contextRef.CompleteFunction();
-                contextRef.Dispose();
             }
             else
             {

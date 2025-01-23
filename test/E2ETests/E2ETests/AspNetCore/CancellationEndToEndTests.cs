@@ -34,7 +34,16 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
 
             var task = HttpHelpers.InvokeHttpTrigger(functionName, cancellationToken: cts.Token);
 
-            await Task.Delay(2000);
+            // await Task.Delay(3000);
+            IEnumerable<string> startLog = null;
+            await TestUtility.RetryAsync(() =>
+            {
+                Console.WriteLine("Waiting function execution to start");
+                startLog = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executing 'Functions.{functionName}'"));
+
+                return Task.FromResult(startLog.Count() >= 1);
+            });
+
             cts.Cancel();
             Console.WriteLine("Task cancelled");
 
@@ -42,13 +51,13 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             // This should lead to the worker getting an InvocationCancel request from the functions host
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
 
-            IEnumerable<string> logs = null;
+            IEnumerable<string> endLog = null;
             await TestUtility.RetryAsync(() =>
             {
                 Console.WriteLine("Waiting function execution to be completed");
-                logs = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
+                endLog = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
 
-                return Task.FromResult(logs.Count() >= 1);
+                return Task.FromResult(endLog.Count() >= 1);
             });
 
             Console.WriteLine("Function execution completed");

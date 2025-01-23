@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http
             _ when HasJsonContentType(requestData) =>
                     await (requestData.FunctionContext.InstanceServices.GetService<IOptions<WorkerOptions>>()?.Value?.Serializer
                             ?? throw new InvalidOperationException("A serializer is not configured for the worker."))
-                        .DeserializeAsync(requestData.Body, targetType, context.CancellationToken),
+                        .DeserializeAsync(requestData.Body, targetType, CancellationToken.None),
             _ => throw new InvalidOperationException($"The type '{targetType}' is not supported by the '{nameof(DefaultFromBodyConversionFeature)}'.")
         };
 

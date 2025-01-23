@@ -113,7 +113,7 @@ if ($SkipBuildOnPack -eq $true)
     $AdditionalPackArgs += "--no-build"
 }
 
-.\tools\devpack.ps1 -E2E -AdditionalPackArgs $AdditionalPackArgs
+.\tools\devpack.ps1 -DotnetVersion $DotnetVersion -E2E -AdditionalPackArgs $AdditionalPackArgs
 
 if ($SkipStorageEmulator -And $SkipCosmosDBEmulator)
 {

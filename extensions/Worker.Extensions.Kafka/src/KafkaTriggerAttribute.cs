@@ -40,10 +40,24 @@ namespace Microsoft.Azure.Functions.Worker
         public string ConsumerGroup { get; set; }
 
         /// <summary>
-        /// Gets or sets the Avro schema.
+        /// Gets or sets the Avro schema of message value.
         /// Should be used only if a generic record should be generated
         /// </summary>
         public string AvroSchema { get; set; }
+
+        /// <summary>
+        /// Gets or sets the Avro schema of message key.
+        /// Should be used only if a generic record should be generated
+        /// </summary>
+        public string KeyAvroSchema { get; set; }
+
+        /// <summary>
+        /// Specifies the data type of the message key.
+        /// This data type will be used to serialize the key before sending it to the Kafka topic.
+        /// If KeyAvroSchema is set, this value is ignored and the key will be serialized using Avro.
+        /// The default type is System.String.
+        /// </summary>
+        public KafkaMessageKeyDataType KeyDataType { get; set; } = KafkaMessageKeyDataType.String;
 
         /// <summary>
         /// SASL mechanism to use for authentication. 

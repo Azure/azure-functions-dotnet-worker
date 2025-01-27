@@ -13,11 +13,11 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     public static class FixtureHelpers
     {
-        public static Process GetFuncHostProcess(bool enableAuth = false)
+        public static Process GetFuncHostProcess(bool enableAuth = false, string testAppName = null)
         {
             var funcProcess = new Process();
             var rootDir = Path.GetFullPath(@"../../../../../..");
-            var e2eAppBinPath = Path.Combine(rootDir, @"test/E2ETests/E2EApps/E2EApp/bin");
+            var e2eAppBinPath = Path.Combine(rootDir, "test", "E2ETests", "E2EApps", testAppName, "bin");
             string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
 
             if (e2eHostJson == null)
@@ -27,7 +27,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
             var e2eAppPath = Path.GetDirectoryName(e2eHostJson);
 
-            var cliPath = Path.Combine(rootDir, @"Azure.Functions.Cli/func");
+            var cliPath = Path.Combine(rootDir, "Azure.Functions.Cli", "func");
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

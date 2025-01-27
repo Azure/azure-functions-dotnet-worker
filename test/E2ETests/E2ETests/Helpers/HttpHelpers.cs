@@ -5,18 +5,19 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     class HttpHelpers
     {
-        public static async Task<HttpResponseMessage> InvokeHttpTrigger(string functionName, string queryString = "")
+        public static async Task<HttpResponseMessage> InvokeHttpTrigger(string functionName, string queryString = "", CancellationToken cancellationToken = default)
         {
             // Basic http request
             HttpRequestMessage request = GetTestRequest(functionName, queryString);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("text/plain"));
-            return await GetResponseMessage(request);
+            return await GetResponseMessage(request, cancellationToken);
         }
 
         public static async Task<HttpResponseMessage> InvokeHttpTriggerWithBody(string functionName, string body, string mediaType)
@@ -64,12 +65,12 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             };
         }
 
-        private static async Task<HttpResponseMessage> GetResponseMessage(HttpRequestMessage request)
+        private static async Task<HttpResponseMessage> GetResponseMessage(HttpRequestMessage request, CancellationToken cancellationToken = default)
         {
             HttpResponseMessage response = null;
             using (var httpClient = new HttpClient())
             {
-                response = await httpClient.SendAsync(request);
+                response = await httpClient.SendAsync(request, cancellationToken);
             }
 
             return response;

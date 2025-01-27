@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 2.0.1
 
 - Update `ContextReference` to no longer use a given invocation's cancellation token (#2894)
 

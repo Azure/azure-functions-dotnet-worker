@@ -7,6 +7,7 @@
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
 - `AZURE_FUNCTIONS_` environment variables are now loaded correctly when using `FunctionsApplicationBuilder`. (#2878)
+- Global usings added for `Microsoft.Azure.Functions.Worker` and `Microsoft.Azure.Functions.Worker.Builder` (#2934)
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 

@@ -95,7 +95,7 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Build
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Building...");
-            dotnetArgs = $"build {projectNameToTest} --configuration {Configuration} -o {outputDir} -p:SdkVersion={SdkVersion} {additionalParams}";
+            dotnetArgs = $"build {projectNameToTest} --no-restore --configuration {Configuration} -o {outputDir} -p:SdkVersion={SdkVersion} {additionalParams}";
             exitCode = await new ProcessWrapper().RunProcess(DotNetExecutable, dotnetArgs, projectFileDirectory, testOutputHelper: outputHelper);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             outputHelper.WriteLine($"[{DateTime.UtcNow:O}] Done.");

@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Rpc 1.0.1
+### Microsoft.Azure.Functions.Worker.Extensions.Rpc <version>
 
-- Set max message send and receive length on gRPC `CallInvoker`.
+- <entry>

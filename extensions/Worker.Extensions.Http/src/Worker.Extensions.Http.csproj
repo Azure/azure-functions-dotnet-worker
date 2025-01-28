@@ -6,7 +6,7 @@
     <Description>HTTP extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>3.2.0</VersionPrefix>
+    <VersionPrefix>3.3.0</VersionPrefix>
   </PropertyGroup>
 
   <Import Project="..\..\..\build\Extensions.props" />

@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Sdk <version>
 
-- <entry>
+- Global usings added to match `Microsoft.NET.Sdk.Worker` (#2934)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.5
 

@@ -20,4 +20,11 @@
     <ProjectReference Include="..\DotNetWorker.Grpc\DotNetWorker.Grpc.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="Targets\**">
+      <Pack>true</Pack>
+      <PackagePath>build</PackagePath>
+    </None>
+  </ItemGroup>
+
 </Project>

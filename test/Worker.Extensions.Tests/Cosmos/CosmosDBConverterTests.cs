@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -359,14 +360,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
             Assert.Equal($"Unable to create Cosmos container client for 'myContainer'.", conversionResult.Error.Message);
         }
 
-        [Fact]
-        public async Task ConvertAsync_POCO_IdProvided_StatusNot200_ThrowsException_ReturnsFailure()
+        [Theory]
+        [InlineData(HttpStatusCode.Conflict)]
+        [InlineData(HttpStatusCode.Forbidden)]
+        [InlineData(HttpStatusCode.InternalServerError)]
+        [InlineData(HttpStatusCode.BadRequest)]
+        public async Task ConvertAsync_POCO_IdProvided_NotSuccessStatus_ThrowsException_ReturnsFailure(HttpStatusCode httpStatusCode)
         {
             object grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
 
             var mockResponse = new Mock<ResponseMessage>();
-            var cosmosException = new CosmosException("test failure", System.Net.HttpStatusCode.NotFound, 0, "test", 0);
+            var cosmosException = new CosmosException("test failure", httpStatusCode, 0, "test", 0);
             mockResponse.Setup(x => x.EnsureSuccessStatusCode()).Throws(cosmosException);
 
             var mockContainer = new Mock<Container>();
@@ -382,6 +387,32 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
 
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
             Assert.Equal("test failure", conversionResult.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_POCO_IdProvided_Status404_ThrowsException_ReturnsFailure()
+        {
+            object grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
+            var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);
+
+            var mockResponse = new Mock<ResponseMessage>();
+            mockResponse.Setup(x => x.IsSuccessStatusCode).Returns(false);
+            var cosmosException = new CosmosException("test failure", HttpStatusCode.NotFound, 0, "test", 0);
+            mockResponse.Setup(x => x.EnsureSuccessStatusCode()).Throws(cosmosException);
+
+            var mockContainer = new Mock<Container>();
+            mockContainer
+                .Setup(m => m.ReadItemStreamAsync(It.IsAny<string>(), It.IsAny<PartitionKey>(), null, default))
+                .ReturnsAsync(mockResponse.Object);
+
+            _mockCosmosClient
+                .Setup(m => m.GetContainer(It.IsAny<string>(), It.IsAny<string>()))
+                .Returns(mockContainer.Object);
+
+            var conversionResult = await _cosmosDBConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+            Assert.Null(conversionResult.Value);
         }
 
         private BinaryData GetTestBinaryData(string db = "testDb", string container = "testContainer", string connection = "cosmosConnection", string id = "", string partitionKey = "", string query = "", string location = "", string queryParams = "{}")

@@ -36,13 +36,26 @@ extends:
   template: v1/1ES.Unofficial.PipelineTemplate.yml@1es
   parameters:
     pool:
-      name: 1es-pool-azfunc-large
-      image: 1es-windows-2022
+      name: 1es-pool-azfunc-benchmarking-large
+      image: 1es-windows-2022-benchmark-runner-vanilla
       os: windows
 
     stages:
-    - stage: HttpApps
+    - stage: Setup
+      displayName: Setup & start agents
+      jobs:
+      - template: /eng/ci/templates/official/jobs/setup-benchmark-agents.yml@self
+        parameters:
+          functionAppName: HelloHttpNet9 
+          agentName: HelloHttpNet9_APP
+      - template: /eng/ci/templates/official/jobs/setup-benchmark-agents.yml@self
+        parameters:
+          agentName: HelloHttpNet9NoProxy_APP
+          functionAppName: HelloHttpNet9NoProxy 
+
+    - stage: Run
       displayName: Run Benchmarks
+      dependsOn: [] # Force this stage to run independently and in parallel with other stages.
       jobs:
       - template: /eng/ci/templates/official/jobs/run-benchmarks.yml@self
         parameters:
@@ -50,9 +63,11 @@ extends:
           functionAppName: HelloHttpNet9  # App with ASP.NET Integration
           additionalCrankArgs: $(AdditionalCrankArguments)  # Pipeline variable to pass additional arguments to crank command.
           storeResultsInDatabase: ${{ variables.storeBenchmarkResultsInDatabase }}
+          agentName: HelloHttpNet9_APP
       - template: /eng/ci/templates/official/jobs/run-benchmarks.yml@self
         parameters:
           description: .NET9 Worker Application
           functionAppName: HelloHttpNet9NoProxy # App without ASP.NET Integration
           additionalCrankArgs: $(AdditionalCrankArguments)
           storeResultsInDatabase: ${{ variables.storeBenchmarkResultsInDatabase }}
+          agentName: HelloHttpNet9NoProxy_APP

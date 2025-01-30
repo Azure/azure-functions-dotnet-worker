@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventGrid 3.4.2
+### Microsoft.Azure.Functions.Worker.Extensions.EventGrid <version>
 
-- Updated `Microsoft.Azure.WebJobs.Extensions.EventGrid` reference to 3.4.2
+- <entry>

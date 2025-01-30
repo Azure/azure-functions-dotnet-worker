@@ -57,7 +57,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// If KeyAvroSchema is set, this value is ignored and the key will be serialized using Avro.
         /// The default type is System.String.
         /// </summary>
-        public KafkaMessageKeyDataType KeyDataType { get; set; } = KafkaMessageKeyDataType.String;
+        public KafkaDataType KeyDataType { get; set; } = KafkaDataType.String;
 
         /// <summary>
         /// SASL mechanism to use for authentication. 

@@ -4,9 +4,9 @@
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Defines the message type for key or value as enum.
+    /// Defines data types as enum.
     /// </summary>
-    public enum KafkaMessageKeyDataType
+    public enum KafkaDataType
     {
         Int = 0,
         Long,

@@ -4,9 +4,8 @@
 - My change description (#PR/#issue)
 -->
 
-- Return a successful result with a null value when  a Cosmos document cannot be found (#2942/#2545)
-
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.11.0
 
 - Updated `Microsoft.Azure.WebJobs.Extensions.CosmosDB` reference to 4.8.0
 - Updated `Microsoft.Extensions.Azure` dependency to 1.7.5
+- Return a successful result with a null value when a Cosmos document cannot be found (#2942/#2545)

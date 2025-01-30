@@ -20,7 +20,7 @@
     <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)/../key.snk</AssemblyOriginatorKeyFile>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
-    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true"</ContinuousIntegrationBuild>
+    <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true</ContinuousIntegrationBuild>
     <Deterministic>true</Deterministic>
     <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>

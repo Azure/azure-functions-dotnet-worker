@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 1.15.0
+### Microsoft.Azure.Functions.Worker.Extensions.SignalRService <version>
 
-- Fix SignalR trigger return value not working issue.
+- <entry>

@@ -4,14 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage  6.6.0
+### Microsoft.Azure.Functions.Worker.Extensions.Storage  <version>
 
-- Updated `Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs` to 6.6.0
+- <entry>
 
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.6.0
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
 
-- Updated `Microsoft.Extensions.Azure` dependency to 1.7.4
+- <entry>
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues  <version>
 

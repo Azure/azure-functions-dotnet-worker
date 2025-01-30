@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Tables 1.4.2
+### Microsoft.Azure.Functions.Worker.Extensions.Tables <version>
 
-- Updated `Microsoft.Extensions.Azure` dependency to 1.7.5
+- <entry>
 

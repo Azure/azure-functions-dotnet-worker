@@ -390,7 +390,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Cosmos
         }
 
         [Fact]
-        public async Task ConvertAsync_POCO_IdProvided_Status404_ThrowsException_ReturnsFailure()
+        public async Task ConvertAsync_POCO_IdProvided_Status404_ReturnsSuccess()
         {
             object grpcModelBindingData = GrpcTestHelper.GetTestGrpcModelBindingData(GetTestBinaryData(id: "1", partitionKey: "1"), "CosmosDB");
             var context = new TestConverterContext(typeof(ToDoItem), grpcModelBindingData);

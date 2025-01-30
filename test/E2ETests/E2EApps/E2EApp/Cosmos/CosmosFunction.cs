@@ -127,6 +127,11 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                 Id = "{id}",
                 PartitionKey = "{partitionKey}")] MyDocument doc)
         {
+            if (doc == null)
+            {
+                return req.CreateResponse(HttpStatusCode.NotFound);
+            }
+            
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteStringAsync(doc.Text);
             return response;

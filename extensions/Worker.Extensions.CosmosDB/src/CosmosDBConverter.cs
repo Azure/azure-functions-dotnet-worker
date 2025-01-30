@@ -58,6 +58,10 @@ namespace Microsoft.Azure.Functions.Worker
 
                 return ConversionResult.Success(result);
             }
+            catch (CosmosException ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                return ConversionResult.Success(null);
+            }
             catch (Exception ex)
             {
                 return ConversionResult.Failed(ex);

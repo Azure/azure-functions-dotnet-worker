@@ -106,6 +106,28 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
         }
 
         [Fact]
+        public async Task CosmosInput_DocByIdFromRouteDataNotFound_Succeeds()
+        {
+            string expectedDocId = Guid.NewGuid().ToString();
+            string functionPath = $"docsbyroute/{expectedDocId}/{expectedDocId}";
+            try
+            {
+                //Trigger
+                HttpResponseMessage response = await HttpHelpers.InvokeHttpTrigger(functionPath);
+
+                //Verify
+                HttpStatusCode expectedStatusCode = HttpStatusCode.NotFound;
+
+                Assert.Equal(expectedStatusCode, response.StatusCode);
+            }
+            finally
+            {
+                //Clean up
+                await CosmosDBHelpers.DeleteTestDocuments(expectedDocId);
+            }
+        }
+
+        [Fact]
         public async Task CosmosInput_DocByIdFromRouteDataUsingSqlQuery_Succeeds()
         {
             string expectedDocId = Guid.NewGuid().ToString();

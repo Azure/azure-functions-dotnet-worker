@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-- Return null when cosmos db input can't find a document (#2942/#2545)
+- Return a successful result with a null value when  a Cosmos document cannot be found (#2942/#2545)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.CosmosDB 4.11.0
 

@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventHubs 6.3.6
+### Microsoft.Azure.Functions.Worker.Extensions.EventHubs <version>
 
-- Updated `Microsoft.Extensions.Azure` reference to 1.7.5
+- <entry>

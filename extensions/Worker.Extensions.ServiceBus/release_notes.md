@@ -4,7 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.22.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
 
-- Updated `Azure.Identity` reference to 1.12.0
-- Updated `Microsoft.Extensions.Azure` to 1.7.5
+- <entry>

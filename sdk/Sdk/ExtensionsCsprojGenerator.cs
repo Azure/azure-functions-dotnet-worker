@@ -10,8 +10,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 {
     internal class ExtensionsCsprojGenerator
     {
-        internal const string ExtensionsProjectName = "WorkerExtensions.csproj";
-
         private readonly IDictionary<string, string> _extensions;
         private readonly string _outputPath;
         private readonly string _targetFrameworkIdentifier;
@@ -29,32 +27,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         public void Generate()
         {
-            var extensionsCsprojFilePath = Path.Combine(_outputPath, ExtensionsProjectName);
-
             string csproj = GetCsProjContent();
-            if (File.Exists(extensionsCsprojFilePath))
+            if (File.Exists(_outputPath))
             {
-                string existing = File.ReadAllText(extensionsCsprojFilePath);
+                string existing = File.ReadAllText(_outputPath);
                 if (string.Equals(csproj, existing, StringComparison.Ordinal))
                 {
                     // If contents are the same, only touch the file to update timestamp.
-                    File.SetLastWriteTimeUtc(extensionsCsprojFilePath, DateTime.UtcNow);
+                    File.SetLastWriteTimeUtc(_outputPath, DateTime.UtcNow);
                     return;
                 }
             }
 
-            RecreateDirectory(_outputPath);
-            File.WriteAllText(extensionsCsprojFilePath, csproj);
-        }
-
-        private void RecreateDirectory(string directoryPath)
-        {
-            if (Directory.Exists(directoryPath))
-            {
-                Directory.Delete(directoryPath, recursive: true);
-            }
-
-            Directory.CreateDirectory(directoryPath);
+            Directory.CreateDirectory(Path.GetDirectoryName(_outputPath));
+            File.WriteAllText(_outputPath, csproj);
         }
 
         internal string GetCsProjContent()
@@ -70,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
-            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.3.0";
+            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.6.0";
 
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">

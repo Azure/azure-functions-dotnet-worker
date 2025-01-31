@@ -17,7 +17,9 @@
 # Packs the SDK locally, and (by default) updates the Sample to use this package, then builds.
 # Specify --E2E to instead target the E2E test app.
 
-$buildNumber = "local" + [System.DateTime]::Now.ToString("yyyyMMddHHmm")
+# Use metadata to provide a version that is always head of the latest stable package
+# E.g: Nuget packages will be named 2.0.0 with the version metedata set to 2.0.0+202501311440-local
+$buildNumber = "+" + [System.DateTime]::Now.ToString("yyyyMMddHHmm")
 
 Write-Host
 Write-Host "Building packages with BuildNumber $buildNumber"
@@ -49,7 +51,7 @@ if (!(Test-Path $localPack))
 Write-Host
 Write-Host "---Updating projects with local SDK pack---"
 Write-Host "Packing Core .NET Worker projects to $localPack"
-& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:Version=2.0.1" "-p:VersionSuffix=$buildNumber" $AdditionalPackArgs
+& "dotnet" "pack" $sdkProject "-p:PackageOutputPath=$localPack" "-nologo" "-p:VersionSuffix=$buildNumber" $AdditionalPackArgs
 Write-Host
 
 foreach ($project in $projects) {

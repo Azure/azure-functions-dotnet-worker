@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SendGrid <version>
+### Microsoft.Azure.Functions.Worker.Extensions.SendGrid 3.1.0
 
-- <entry>
+- Update dependency "Microsoft.Azure.WebJobs.Extensions.SendGrid" to v3.1.0

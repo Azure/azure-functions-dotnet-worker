@@ -2,6 +2,8 @@
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <OutputType>Library</OutputType>
+        <IsPackable>false</IsPackable>
+        <IsPublishable>false</IsPublishable>
     </PropertyGroup>
 
     <ItemGroup>

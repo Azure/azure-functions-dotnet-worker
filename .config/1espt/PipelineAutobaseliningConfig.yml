@@ -31,6 +31,11 @@ pipelines:
           lastModifiedDate: 2024-09-17
         armory:
           lastModifiedDate: 2024-09-17
+      binary:
+        credscan:
+          lastModifiedDate: 2025-02-03
+        binskim:
+          lastModifiedDate: 2025-02-03
   339:
     retail:
       source:

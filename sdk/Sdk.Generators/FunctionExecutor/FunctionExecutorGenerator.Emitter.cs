@@ -158,7 +158,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
                         if (string.Equals(context.FunctionDefinition.EntryPoint, "{{function.EntryPoint}}", StringComparison.Ordinal))
                         {
-                           {{(fast ? EmitFastPath(function) : EmitSlowPath())}}
+            {{(fast ? EmitFastPath(function) : EmitSlowPath())}}
                             return;
                         }
             """);
@@ -170,21 +170,22 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             private static string EmitFastPath(ExecutableFunction function)
             {
                 var sb = new StringBuilder();
-               
+
                 if (!function.IsStatic)
                 {
                     sb.Append($"""
-                                 var instanceType = types["{function.ParentFunctionClassName}"];
+                                                var instanceType = types["{function.ParentFunctionClassName}"];
                                                 var i = _functionActivator.CreateInstance(instanceType, context) as {function.ParentFunctionFullyQualifiedClassName};
+
                                 """);
                 }
 
-                sb.Append(!function.IsStatic
-                    ? """
-                      
-                                      
-                      """
-                    : " ");
+                if (function.IsObsolete)
+                {
+                    sb.AppendLine("#pragma warning disable CS0618");
+                }
+
+                sb.Append("                ");
 
                 if (function.IsReturnValueAssignable)
                 {
@@ -210,13 +211,18 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 sb.Append(function.IsStatic
                     ? $"{function.ParentFunctionFullyQualifiedClassName}.{function.MethodName}({methodParamsStr});"
                     : $"i.{function.MethodName}({methodParamsStr});");
+                
+                if (function.IsObsolete)
+                {
+                    sb.Append("\n#pragma warning restore CS0618");
+                }
 
                 return sb.ToString();
             }
 
             private static string EmitSlowPath()
             {
-                return " await _defaultExecutor.Value.ExecuteAsync(context);";
+                return "                await _defaultExecutor.Value.ExecuteAsync(context);";
             }
         }
     }

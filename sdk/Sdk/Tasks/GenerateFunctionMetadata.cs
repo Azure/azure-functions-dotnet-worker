@@ -24,7 +24,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
         [Required]
         public string? OutputPath { get; set; }
 
-        [Required]
         public string? ExtensionsCsProjFilePath { get; set; }
 
         [Required]
@@ -45,12 +44,16 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
             {
                 var functionGenerator = new FunctionMetadataGenerator(MSBuildLogger);
 
-                var functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths ?? Enumerable.Empty<ITaskItem>());
+                IEnumerable<SdkFunctionMetadata> functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths ?? Enumerable.Empty<ITaskItem>());
+                IDictionary<string, string> extensions = functionGenerator.Extensions;
 
-                var extensions = functionGenerator.Extensions;
-                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!, TargetFrameworkIdentifier!, TargetFrameworkVersion!);
+                if (!string.IsNullOrEmpty(ExtensionsCsProjFilePath))
+                {
+                    // Null/empty ExtensionsCsProjFilePath means the extension project is externally provided.
+                    var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!, TargetFrameworkIdentifier!, TargetFrameworkVersion!);
+                    extensionsCsProjGenerator.Generate();
+                }
 
-                extensionsCsProjGenerator.Generate();
                 WriteMetadataWithRetry(functions);
             }
             catch (FunctionsMetadataGenerationException)

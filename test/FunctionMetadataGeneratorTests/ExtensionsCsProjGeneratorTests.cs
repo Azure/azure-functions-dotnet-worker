@@ -4,17 +4,34 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Sdk;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.SdkTests
 {
-    public class ExtensionsCsProjGeneratorTests
+    public sealed class ExtensionsCsProjGeneratorTests : IDisposable
     {
+        private HashSet<string> _directoriesToCleanup = new();
+
         public enum FuncVersion
         {
             V3,
             V4,
+        }
+
+        public void Dispose()
+        {
+            foreach (string directory in _directoriesToCleanup)
+            {
+                if (Directory.Exists(directory))
+                {
+                    Directory.Delete(directory, true);
+                }
+            }
+
+            _directoriesToCleanup.Clear();
         }
 
         [Theory]
@@ -22,7 +39,7 @@ namespace Microsoft.Azure.Functions.SdkTests
         [InlineData(FuncVersion.V4)]
         public void GetCsProjContent_Succeeds(FuncVersion version)
         {
-            var generator = GetGenerator(version);
+            var generator = GetGenerator(version, "TestExtension.csproj");
             string actual = generator.GetCsProjContent().Replace("\r\n", "\n");
             string expected = ExpectedCsproj(version).Replace("\r\n", "\n");
             Assert.Equal(expected, actual);
@@ -31,40 +48,159 @@ namespace Microsoft.Azure.Functions.SdkTests
         [Theory]
         [InlineData(FuncVersion.V3)]
         [InlineData(FuncVersion.V4)]
-        public void GetCsProjContent_IncrementalSupport(FuncVersion version)
+        public void Generate_IncrementalSupport(FuncVersion version)
         {
-            DateTime RunGenerate(string subPath, out string contents)
+            DateTime RunGenerate(string project, out string contents)
             {
-                var generator = GetGenerator(version, subPath);
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(version, project);
                 generator.Generate();
 
-                string path = Path.Combine(subPath, ExtensionsCsprojGenerator.ExtensionsProjectName);
-                contents = File.ReadAllText(path);
-                var csproj = new FileInfo(Path.Combine(subPath, ExtensionsCsprojGenerator.ExtensionsProjectName));
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
                 return csproj.LastWriteTimeUtc;
             }
 
-            string subPath = Guid.NewGuid().ToString();
-            DateTime firstRun = RunGenerate(subPath, out string first);
-            DateTime secondRun = RunGenerate(subPath, out string second);
+            string project = Path.Combine(Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime firstRun = RunGenerate(project, out string first);
+            DateTime secondRun = RunGenerate(project, out string second);
 
             Assert.NotEqual(firstRun, secondRun);
             Assert.Equal(first, second);
         }
 
-        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string subPath = "")
+        [Fact]
+        public async Task Generate_Updates()
         {
-            IDictionary<string, string> extensions = new Dictionary<string, string>
+            DateTime RunGenerate(string project, IDictionary<string, string> extensions, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project, extensions);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            Dictionary<string, string> extensions = new()
             {
                 { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" },
                 { "Microsoft.Azure.WebJobs.Extensions.Http", "3.0.0" },
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
+            string project = Path.Combine(Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime firstRun = RunGenerate(project, extensions, out string first);
+
+            await Task.Delay(10); // to ensure timestamps progress.
+            extensions.Remove(extensions.Keys.First());
+            DateTime secondRun = RunGenerate(project, extensions, out string second);
+
+            Assert.NotEqual(firstRun.Ticks, secondRun.Ticks);
+            Assert.NotEqual(first, second);
+        }
+
+        [Fact]
+        public async Task Generate_Subdirectory_CreatesAll()
+        {
+            DateTime RunGenerate(string project, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            DateTime earliest = DateTime.UtcNow;
+
+            await Task.Delay(10);
+            string project = Path.Combine(Guid.NewGuid().ToString(), Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime time = RunGenerate(project, out string contents);
+
+            Assert.True(time.Ticks >= earliest.Ticks, $"expected last write time {time.Ticks} to be greater than {earliest.Ticks}.");
+            Assert.NotNull(contents);
+        }
+
+        [Fact]
+        public async Task Generate_Subdirectory_CreatesPartial()
+        {
+            DateTime RunGenerate(string project, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            DateTime earliest = DateTime.UtcNow;
+            string parent = Guid.NewGuid().ToString();
+            Directory.CreateDirectory(parent);
+            _directoriesToCleanup.Add(parent);
+
+            await Task.Delay(10);
+            string project = Path.Combine(parent, Guid.NewGuid().ToString(), "TestExtension.csproj");
+            DateTime time = RunGenerate(project, out string contents);
+
+            Assert.True(time.Ticks >= earliest.Ticks, $"expected last write time {time.Ticks} to be greater than {earliest.Ticks}.");
+            Assert.NotNull(contents);
+        }
+
+        [Fact]
+        public async Task Generate_ExistingDirectory_DoesNotOverwrite()
+        {
+            DateTime RunGenerate(string project, out string contents)
+            {
+                _directoriesToCleanup.Add(Path.GetDirectoryName(project));
+                var generator = GetGenerator(FuncVersion.V4, project);
+                generator.Generate();
+
+                contents = File.ReadAllText(project);
+                var csproj = new FileInfo(project);
+                return csproj.LastWriteTimeUtc;
+            }
+
+            string parent = Guid.NewGuid().ToString();
+            Directory.CreateDirectory(parent);
+            _directoriesToCleanup.Add(parent);
+
+            string existing = Path.Combine(parent, "existing.txt");
+            File.WriteAllText(existing, "");
+            DateTime expectedWriteTime = new FileInfo(existing).LastWriteTimeUtc;
+
+            await Task.Delay(10);
+            string project = Path.Combine(parent, "TestExtension.csproj");
+            DateTime time = RunGenerate(project, out string contents);
+
+            Assert.True(time.Ticks >= expectedWriteTime.Ticks, $"expected last write time {time.Ticks} to be greater than {expectedWriteTime.Ticks}.");
+            Assert.NotNull(contents);
+            Assert.Equal(expectedWriteTime, new FileInfo(existing).LastWriteTimeUtc);
+        }
+
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath)
+        {
+            Dictionary<string, string> extensions = new()
+            {
+                { "Microsoft.Azure.WebJobs.Extensions.Storage", "4.0.3" },
+                { "Microsoft.Azure.WebJobs.Extensions.Http", "3.0.0" },
+                { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
+            };
+
+            return GetGenerator(version, outputPath, extensions);
+        }
+
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath, IDictionary<string, string> extensions)
+        {
             return version switch
             {
-                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, subPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
-                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, subPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6),
+                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
+                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, outputPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6),
                 _ => throw new ArgumentOutOfRangeException(nameof(version)),
             };
         }
@@ -119,7 +255,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.3.0"" />
+        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.6.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />

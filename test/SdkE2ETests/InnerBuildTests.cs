@@ -34,11 +34,6 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             JToken expectedExtensionsJson = JObject.Parse(@"{
   ""extensions"": [
     {
-      ""name"": ""Startup"",
-      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c"",
-      ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll""
-    },
-    {
       ""name"": ""AzureStorageBlobs"",
       ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageBlobsWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Blobs, Version=5.3.1.0, Culture=neutral, PublicKeyToken=92742159e12e44c8"",
       ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Blobs.dll""
@@ -47,7 +42,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
       ""name"": ""AzureStorageQueues"",
       ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.Storage.AzureStorageQueuesWebJobsStartup, Microsoft.Azure.WebJobs.Extensions.Storage.Queues, Version=5.1.3.0, Culture=neutral, PublicKeyToken=92742159e12e44c8"",
       ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll""
-    }
+    },
+    {
+      ""name"": ""Startup"",
+      ""typeName"": ""Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.Startup, Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c"",
+      ""hintPath"": ""./.azurefunctions/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll""
+    },
   ]
 }");
 

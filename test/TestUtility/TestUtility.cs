@@ -11,6 +11,25 @@ namespace Microsoft.Azure.Functions.Tests
 {
     public static class TestUtility
     {
+#if DEBUG
+        public static readonly string Config = "Debug";
+#else
+        public static readonly string Config = "Release";
+#endif
+
+        public static readonly string RepoRoot = GetDirectoryOfFileAbove(".reporoot");
+
+        public static string GetDirectoryOfFileAbove(string fileName)
+        {
+            string current = Directory.GetCurrentDirectory();
+            while (!File.Exists(Path.Combine(current, fileName)))
+            {
+                current = Directory.GetParent(current).FullName;
+            }
+
+            return current;
+        }
+
         public static IConfiguration GetTestConfiguration()
         {
             return new ConfigurationBuilder()

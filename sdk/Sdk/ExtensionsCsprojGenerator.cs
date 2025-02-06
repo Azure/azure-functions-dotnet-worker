@@ -62,10 +62,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 <Project Sdk=""Microsoft.NET.Sdk"">
     <PropertyGroup>
         <TargetFramework>{targetFramework}</TargetFramework>
-        <Configuration>Release</Configuration>
         <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
         <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-        <ManagePackageVersionsCentrally>false</ManagePackageVersionsCentrally>
     </PropertyGroup>
 
     <ItemGroup>

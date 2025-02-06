@@ -14,7 +14,7 @@ For most customers, this inner-build process is frictionless and requires no cus
 
 There is a major drawback though: ensuring the extension project builds a *valid* payload is now the customer's responsibility. Failures to build a valid payload will only be discovered at runtime. Issues may be obscure and varied, from assembly load failures, method missing exceptions, to odd behavior due to mismatching worker & webjobs extensions. Any time the set of extensions for the function app changes, this external project will need to be manually updated. As such, this scenario is only recommended if customization is **absolutely** necessary.
 
-## How
+## How to use external extension project feature
 
 ### 1. Prepare the project for external extension
 Add the follow item to your csproj:
@@ -29,7 +29,7 @@ Add the follow item to your csproj:
   </PropertyGroup>
 
 +  <ItemGroup>
-+    <ProjectReference Include="{{path-to-extension-csproj}}" ReferenceOutputAssembly="false" WorkerExtensions="false" />
++    <ProjectReference Include="{{path-to-extension-csproj}}" ReferenceOutputAssembly="false" WorkerExtensions="true" />
 +  </ItemGroup>
 
   <!-- rest of csproj -->

@@ -108,6 +108,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <PropertyGroup>
       <!-- Versions could be of several forms, such as "v4", "V4", or "v4-prerelease". This will normalize those three examples all to "v4". -->
       <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
+      <_FunctionsExtensionRemoveProps Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">$(_FunctionsExtensionRemoveProps)ManagePackageVersionsCentrally;</_FunctionsExtensionRemoveProps>
     </PropertyGroup>
 
     <ItemGroup>
@@ -173,7 +174,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </PropertyGroup>
   </Target>
 
-  <!-- This is a no-op target purely for backwards compatibilty. Remove this with a major version rev. -->
+  <!-- This is a no-op target purely for backwards compatibility. Remove this with a major version rev. -->
   <Target Name="_FunctionsPostBuild" />
 
   <!-- Helper target to granularly order more targets. -->

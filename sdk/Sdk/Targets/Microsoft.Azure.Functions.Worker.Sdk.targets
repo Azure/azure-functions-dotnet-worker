@@ -73,6 +73,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="_FunctionsCollectWorkerExtensions">
     <ItemGroup>
       <_WorkerExtensionProject Include="@(ProjectReference)" Condition="'%(ProjectReference.WorkerExtensions)' == 'true'" />
+      <_WorkerExtensionProjectNonExistent Include="@(_WorkerExtensionProject)" Condition="!Exists('%(Identity)')" />
     </ItemGroup>
   </Target>
 
@@ -85,6 +86,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Message Condition="@(_WorkerExtensionProject->Count()) == 1" Importance="normal" Text="Using WorkerExtensions project: %(_WorkerExtensionProject.Identity)" />
     <Warning Condition="'%(_WorkerExtensionProject.ReferenceOutputAssembly)' != 'false'" Text="WorkerExtensions project should have ReferenceOutputAssembly=false." />
     <Error Condition="@(_WorkerExtensionProject->Count()) &gt; 1" Text="Only one WorkerExtensions project is allowed per function app. Found extensions:@(_WorkerExtensionProject->'%0a    %(Identity)')" />
+    <Error Condition="'@(_WorkerExtensionProjectNonExistent)' != '' AND $(_ForceGenerateExtensionProject) != 'true'" Text="The referenced worker extension project '%(_WorkerExtensionProjectNonExistent.Identity)' does not exist. Run 'dotnet build -t:GenerateExtensionProject' first." />
   </Target>
 
   <Target Name="_FunctionsGetPaths" DependsOnTargets="_FunctionsCollectWorkerExtensions;_FunctionsValidateExternalWorkerExtensions">

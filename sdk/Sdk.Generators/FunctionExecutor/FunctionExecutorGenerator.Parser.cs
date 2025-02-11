@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
                     var isObsolete = method.GetAttributes()
-                        .Any(attr => attr.AttributeClass?.ToString() == "System.ObsoleteAttribute");
+                        .Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownTypes.ObsoleteAttr));
                     
                     var function = new ExecutableFunction
                     {

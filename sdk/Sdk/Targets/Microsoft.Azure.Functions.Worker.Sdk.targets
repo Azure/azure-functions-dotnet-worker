@@ -70,7 +70,26 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 
-  <Target Name="_FunctionsGetPaths">
+  <Target Name="_FunctionsCollectWorkerExtensions">
+    <ItemGroup>
+      <_WorkerExtensionProject Include="@(ProjectReference)" Condition="'%(ProjectReference.WorkerExtensions)' == 'true'" />
+      <_WorkerExtensionProjectNonExistent Include="@(_WorkerExtensionProject)" Condition="!Exists('%(Identity)')" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_FunctionsValidateExternalWorkerExtensions" Condition="'@(_WorkerExtensionProject)' != ''">
+    <PropertyGroup>
+      <FunctionsGenerateExtensionProject Condition="'$(_ForceGenerateExtensionProject)' !='true'">false</FunctionsGenerateExtensionProject>
+      <ExtensionsCsProj>%(_WorkerExtensionProject.Identity)</ExtensionsCsProj>
+    </PropertyGroup>
+
+    <Message Condition="@(_WorkerExtensionProject->Count()) == 1" Importance="normal" Text="Using WorkerExtensions project: %(_WorkerExtensionProject.Identity)" />
+    <Warning Condition="'%(_WorkerExtensionProject.ReferenceOutputAssembly)' != 'false'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProjectNonExistent.Identity)' is missing ReferenceOutputAssembly=false." />
+    <Error Condition="@(_WorkerExtensionProject->Count()) &gt; 1" Text="Only one WorkerExtensions project is allowed per function app. Found extensions:@(_WorkerExtensionProject->'%0a    %(Identity)')" />
+    <Error Condition="'@(_WorkerExtensionProjectNonExistent)' != '' AND $(_ForceGenerateExtensionProject) != 'true'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProjectNonExistent.Identity)' does not exist. Run 'dotnet build -t:GenerateExtensionProject' first." />
+  </Target>
+
+  <Target Name="_FunctionsGetPaths" DependsOnTargets="_FunctionsCollectWorkerExtensions;_FunctionsValidateExternalWorkerExtensions">
     <PropertyGroup Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">
       <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == '' AND '$(ExtensionsCsProj)' != ''">$([System.IO.Path]::GetDirectoryName($(ExtensionsCsProj)))</ExtensionsCsProjDirectory>
       <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$(IntermediateOutputPath)WorkerExtensions</ExtensionsCsProjDirectory>
@@ -89,15 +108,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <PropertyGroup>
       <!-- Versions could be of several forms, such as "v4", "V4", or "v4-prerelease". This will normalize those three examples all to "v4". -->
       <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
+      <_FunctionsExtensionRemoveProps Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">$(_FunctionsExtensionRemoveProps)ManagePackageVersionsCentrally;</_FunctionsExtensionRemoveProps>
     </PropertyGroup>
 
     <ItemGroup>
       <_SelectedFunctionVersion Include="@(_FunctionsVersion)" Condition="'%(_FunctionsVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'" />
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(FunctionsGenerateExtensionProject)' == 'false'">
-      <!-- Reference the externaly provided csproj, if any. -->
-      <ProjectReference Include="$(ExtensionsCsProj)" ReferenceOutputAssembly="false" />
     </ItemGroup>
 
     <Message Condition="'$(_AzureFunctionsVersionNotSet)' == 'true'" Importance="normal" Text="AzureFunctionsVersion not configured in the project. Setting AzureFunctionsVersion to '$(_DefaultAzureFunctionsVersion)'." />
@@ -105,7 +120,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'@(_SelectedFunctionVersion)' == ''" Text="The AzureFunctionsVersion value '$(AzureFunctionsVersion)' was not recognized. Allowed values are: @(_FunctionsVersion, ', ')." />
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
-    <Error Condition="'$(FunctionsGenerateExtensionProject)' != 'true' AND '$(ExtensionsCsProj)' == ''" Text="'ExtensionsCsProj' must be set when 'FunctionsGenerateExtensionProject' is 'false'." />
   </Target>
 
   <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
@@ -160,7 +174,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </PropertyGroup>
   </Target>
 
-  <!-- This is a no-op target purely for backwards compatibilty. Remove this with a major version rev. -->
+  <!-- This is a no-op target purely for backwards compatibility. Remove this with a major version rev. -->
   <Target Name="_FunctionsPostBuild" />
 
   <!-- Helper target to granularly order more targets. -->
@@ -168,7 +182,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     DependsOnTargets="_FunctionsGenerateCommon;_FunctionsGenerateWorkerConfig" />
 
   <!-- Generates the extension files. Generates functions.metadata and the WorkerExtension.csproj -->
-  <Target Name="_FunctionsGenerateCommon" Inputs="@(IntermediateAssembly);@(ReferencePath)" Outputs="$(_FunctionsMetadataPath);$(ExtensionsCsProj)">
+  <Target Name="_FunctionsGenerateCommon" DependsOnTargets="_FunctionsGetPaths;ResolveAssemblyReferences">
     <PropertyGroup>
       <!-- We skip generating the WorkerExtension.csproj when it is externally supplied by setting _TargetExtensionsCsProj to null. -->
       <_TargetExtensionsCsProj Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">$(ExtensionsCsProj)</_TargetExtensionsCsProj>
@@ -264,13 +278,19 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <RemoveDir Directories="$(ExtensionsCsProjDirectory)" ContinueOnError="true" Condition="'$(ExtensionsCsProjDirectory)' != '' AND '$(FunctionsGenerateExtensionProject)' == 'true'" />
   </Target>
 
-  <Target Name="GenerateExtensionProject" DependsOnTargets="_ForceExtensionGenerate;Build" />
+  <Target Name="GenerateExtensionProject" DependsOnTargets="_FunctionsCollectWorkerExtensions;_ForceExtensionGenerate;_FunctionsGenerateCommon" />
 
   <Target Name="_ForceExtensionGenerate">
     <PropertyGroup>
       <!-- Forces generation. -->
+      <_ForceGenerateExtensionProject>true</_ForceGenerateExtensionProject>
       <FunctionsGenerateExtensionProject>true</FunctionsGenerateExtensionProject>
     </PropertyGroup>
+
+    <ItemGroup>
+      <!-- Remove these p2p refs to avoid this project being built during ResolveReferenceAssemblies. -->
+      <ProjectReference Remove="@(ProjectReference->WithMetadataValue('WorkerExtensions', 'true'))" />
+    </ItemGroup>
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets"

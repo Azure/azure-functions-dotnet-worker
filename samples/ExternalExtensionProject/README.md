@@ -47,7 +47,7 @@ dotnet build -t:GenerateExtensionProject {{path-to-function-app-csproj}}
 This will generate the same csproj as the inner-build would. Absent of any external influences by your build process (ie, directory-based imports), this project _should_ produce a valid extension payload.
 
 > [!NOTE]
-> The target `GenerateExtensionProject` can be ran whenever to regenerate the csproj. **However**, it will overwrite the contents of the csproj indicated by `ExtensionsCsProj` each time. Make sure to re-apply any customizations you have!
+> The target `GenerateExtensionProject` can be ran whenever to regenerate the csproj. **However**, it will overwrite the contents of the csproj indicated by `ProjectReference` each time. Make sure to re-apply any customizations you have!
 
 > [!TIP]
 > To avoid needing to re-apply customizations, this sample shows putting all custom logic into `Directory.Build.props` and `Directory.Build.targets` and leaving the csproj to always be the generated contents.

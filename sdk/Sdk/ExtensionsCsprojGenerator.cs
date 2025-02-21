@@ -70,7 +70,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
                 }
             }
 
-            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.3.0";
+            string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.6.0";
 
             return $@"
 <Project Sdk=""Microsoft.NET.Sdk"">

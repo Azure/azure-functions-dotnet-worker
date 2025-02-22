@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\extensions\Worker.Extensions.Http\src\Worker.Extensions.Http.csproj" />
-    <ProjectReference Include="..\..\..\extensions\Worker.Extensions.Timer\src\Worker.Extensions.Timer.csproj" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
   </ItemGroup>
 
   <ItemGroup>

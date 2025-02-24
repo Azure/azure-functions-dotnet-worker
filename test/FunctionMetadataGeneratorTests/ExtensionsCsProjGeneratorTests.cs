@@ -119,7 +119,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
     <ItemGroup>
         <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.3.0"" />
+        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.6.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
         <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />

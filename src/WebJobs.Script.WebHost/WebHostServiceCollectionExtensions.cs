@@ -114,7 +114,8 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost
                 {
                     var hostNameProvider = p.GetService<HostNameProvider>();
                     IOptions<FunctionsHostingConfigOptions> functionsHostingConfigOptions = p.GetService<IOptions<FunctionsHostingConfigOptions>>();
-                    return new LinuxAppServiceEventGenerator(new LinuxAppServiceFileLoggerFactory(), hostNameProvider, functionsHostingConfigOptions);
+                    IOptions<AzureMonitorLoggingOptions> azureMonitorOptions = p.GetService<IOptions<AzureMonitorLoggingOptions>>();
+                    return new LinuxAppServiceEventGenerator(new LinuxAppServiceFileLoggerFactory(), hostNameProvider, functionsHostingConfigOptions, azureMonitorOptions);
                 }
                 else if (environment.IsAnyKubernetesEnvironment())
                 {
@@ -213,6 +214,7 @@ namespace Microsoft.Azure.WebJobs.Script.WebHost
             services.ConfigureOptionsWithChangeTokenSource<HttpBodyControlOptions, HttpBodyControlOptionsSetup, SpecializationChangeTokenSource<HttpBodyControlOptions>>();
             services.ConfigureOptions<FlexConsumptionMetricsPublisherOptionsSetup>();
             services.ConfigureOptions<ConsoleLoggingOptionsSetup>();
+            services.ConfigureOptions<AzureMonitorLoggingOptionsSetup>();
             services.AddHostingConfigOptions(configuration);
             services.ConfigureOptions<ExtensionRequirementOptionsSetup>();
 

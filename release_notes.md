@@ -23,3 +23,4 @@
 - Update Python Worker Version to [4.35.0](https://github.com/Azure/azure-functions-python-worker/releases/tag/4.35.0)
 - Fixed standby paths in ScriptApplicationHostOptions to ensure proper Linux path separators (#10795)
 - Update domain for CDN URI
+- Fixing ArgumentOutOfRangeException with timers (#10862)

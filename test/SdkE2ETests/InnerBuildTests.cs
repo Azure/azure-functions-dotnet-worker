@@ -18,13 +18,16 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             _testOutputHelper = testOutputHelper;
         }
 
-        [Fact]
-        public async Task Build_ScansReferences()
+        [Theory]
+        [InlineData(true)]
+        [InlineData(false)]
+        public async Task Build_ScansReferences(bool generateMetadata)
         {
             string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Build_ScansReferences));
             string projectFileDirectory = Path.Combine(TestUtility.TestResourcesProjectsRoot, "FunctionApp01", "FunctionApp01.csproj");
 
-            await TestUtility.RestoreAndBuildProjectAsync(projectFileDirectory, outputDir, null, _testOutputHelper);
+            string additionalParams = generateMetadata ? "-p:FunctionsEnableWorkerIndexing=false" : string.Empty;
+            await TestUtility.RestoreAndBuildProjectAsync(projectFileDirectory, outputDir, additionalParams, _testOutputHelper);
 
             // Verify extensions.json contents
             string extensionsJsonPath = Path.Combine(outputDir, "extensions.json");
@@ -55,7 +58,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Verify functions.metadata contents
             string functionsMetadataPath = Path.Combine(outputDir, "functions.metadata");
-            Assert.True(File.Exists(functionsMetadataPath));
+            Assert.Equal(generateMetadata, File.Exists(functionsMetadataPath));
+
+            if (!generateMetadata)
+            {
+                return;
+            }
 
             JToken functionsMetadataContents = JArray.Parse(File.ReadAllText(functionsMetadataPath));
             JToken expectedFunctionsMetadata = JArray.Parse(@"[

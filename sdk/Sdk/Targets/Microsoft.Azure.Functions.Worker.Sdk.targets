@@ -48,7 +48,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsEnablePlaceholder Condition="'$(FunctionsEnablePlaceholder)' == ''">false</FunctionsEnablePlaceholder>
     <FunctionsEnableWorkerIndexing Condition="'$(FunctionsEnableWorkerIndexing)' == ''">true</FunctionsEnableWorkerIndexing>
     <FunctionsEnableMetadataSourceGen>$(FunctionsEnableWorkerIndexing)</FunctionsEnableMetadataSourceGen>
-    <FunctionsAutoRegisterGeneratedMetadataProvider>$(FunctionsEnableWorkerIndexing)</FunctionsAutoRegisterGeneratedMetadataProvider> 
+    <FunctionsAutoRegisterGeneratedMetadataProvider>$(FunctionsEnableWorkerIndexing)</FunctionsAutoRegisterGeneratedMetadataProvider>
+    <_WriteFunctionsMetadata>true</_WriteFunctionsMetadata>
+    <_WriteFunctionsMetadata Condition="'$(FunctionsEnableMetadataSourceGen)' == 'true'">false</_WriteFunctionsMetadata>
 
     <FunctionsEnableExecutorSourceGen Condition="'$(FunctionsEnableExecutorSourceGen)' == ''">true</FunctionsEnableExecutorSourceGen>
     <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="'$(FunctionsAutoRegisterGeneratedFunctionsExecutor)' == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
@@ -190,12 +192,13 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <GenerateFunctionMetadata
       AssemblyPath="$(IntermediateOutputPath)$(TargetName)$(TargetExt)"
-      ReferencePaths="@(ReferencePath)"
+      OutputPath="$(IntermediateOutputPath)"
       ExtensionsCsProjFilePath="$(_TargetExtensionsCsProj)"
+      WriteMetadataFile="$(_WriteFunctionsMetadata)"
+      ReferencePaths="@(ReferencePath)"
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
-      TargetFrameworkVersion="$(TargetFrameworkVersion)"
-      OutputPath="$(IntermediateOutputPath)"/>
+      TargetFrameworkVersion="$(TargetFrameworkVersion)"/>
   </Target>
 
   <!-- Generate worker.config.json. -->
@@ -248,7 +251,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <!-- Hook all these files into CopyToOutputDirectory by appending to _NoneWithTargetPath. -->
     <ItemGroup>
-      <_FunctionsAdditionalFile Include="$(_FunctionsMetadataPath);$(_FunctionsWorkerConfigPath);$(_FunctionsIntermediateExtensionUpdatedJsonPath)" />
+      <_FunctionsAdditionalFile Include="$(_FunctionsMetadataPath)" Condition="'$(_WriteFunctionsMetadata)' == 'true'" />
+      <_FunctionsAdditionalFile Include="$(_FunctionsWorkerConfigPath);$(_FunctionsIntermediateExtensionUpdatedJsonPath)" />
       <_FunctionsAdditionalFile Include="$(_FunctionsMetadataLoaderExtensionFile)" SubPath="$(_FunctionsExtensionsDirectory)/" />
       <_NoneWithTargetPath Include="@(_FunctionsAdditionalFile)"
         TargetPath="%(_FunctionsAdditionalFile.SubPath)%(Filename)%(Extension)"

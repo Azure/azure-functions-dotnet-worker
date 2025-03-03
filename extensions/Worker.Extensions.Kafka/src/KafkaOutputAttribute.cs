@@ -35,6 +35,20 @@ namespace Microsoft.Azure.Functions.Worker
         public string AvroSchema { get; set; }
 
         /// <summary>
+        /// Gets or sets the Avro schema of message key.
+        /// Should be used only if a generic record should be generated.
+        /// </summary>
+        public string KeyAvroSchema { get; set; }
+
+        /// <summary>
+        /// Specifies the data type of the message key.
+        /// This data type will be used to serialize the key before sending it to the Kafka topic.
+        /// If KeyAvroSchema is set, this value is ignored and the key will be serialized using Avro.
+        /// The default type is System.String.
+        /// </summary>
+        public KafkaMessageKeyType KeyDataType { get; set; } = KafkaMessageKeyType.String;
+
+        /// <summary>
         /// Gets or sets the maximum transmit message size in bytes. Default: 1MB
         /// </summary>
         public int MaxMessageBytes { get; set; } = 1_000_000;
@@ -122,6 +136,30 @@ namespace Microsoft.Azure.Functions.Worker
         /// ssl.key.password in librdkafka
         /// </summary>
         public string SslKeyPassword { get; set; }
+
+        /// <summary>
+        /// Client certificate in PEM format.
+        /// ssl.certificate.pem in librdkafka
+        /// </summary>
+        public string SslCertificatePEM { get; set; }
+
+        /// <summary>
+        /// Client Private Key in PEM format.
+        /// ssl.key.pem in librdkafka
+        /// </summary>
+        public string SslKeyPEM { get; set; }
+
+        /// <summary>
+        /// CA certificate for verifying the broker's certificate in PEM format
+        /// ssl.ca.pem in librdkafka
+        /// </summary>
+        public string SslCaPEM { get; set; }
+
+        /// <summary>
+        /// Client certificate and key in PEM format.
+        /// Additional Configuration for extension as KeyVault supports uploading certificate only with private key. 
+        /// </summary>
+        public string SslCertificateandKeyPEM { get; set; }
 
         /// <summary>
         /// Linger.MS property provides the time between batches of messages

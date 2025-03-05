@@ -19,15 +19,19 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
         }
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task Build_ScansReferences(bool generateMetadata)
+        [InlineData("", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=true", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=true -p:FunctionsWriteMetadataJson=false", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=true -p:FunctionsWriteMetadataJson=true", true)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false", true)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false -p:FunctionsWriteMetadataJson=false", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false -p:FunctionsWriteMetadataJson=true", true)]
+        public async Task Build_ScansReferences(string parameters, bool metadataGenerated)
         {
             string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Build_ScansReferences));
             string projectFileDirectory = Path.Combine(TestUtility.TestResourcesProjectsRoot, "FunctionApp01", "FunctionApp01.csproj");
 
-            string additionalParams = generateMetadata ? "-p:FunctionsEnableWorkerIndexing=false" : string.Empty;
-            await TestUtility.RestoreAndBuildProjectAsync(projectFileDirectory, outputDir, additionalParams, _testOutputHelper);
+            await TestUtility.RestoreAndBuildProjectAsync(projectFileDirectory, outputDir, parameters, _testOutputHelper);
 
             // Verify extensions.json contents
             string extensionsJsonPath = Path.Combine(outputDir, "extensions.json");
@@ -58,9 +62,9 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
             // Verify functions.metadata contents
             string functionsMetadataPath = Path.Combine(outputDir, "functions.metadata");
-            Assert.Equal(generateMetadata, File.Exists(functionsMetadataPath));
+            Assert.Equal(metadataGenerated, File.Exists(functionsMetadataPath));
 
-            if (!generateMetadata)
+            if (!metadataGenerated)
             {
                 return;
             }

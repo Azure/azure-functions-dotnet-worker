@@ -49,8 +49,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsEnableWorkerIndexing Condition="'$(FunctionsEnableWorkerIndexing)' == ''">true</FunctionsEnableWorkerIndexing>
     <FunctionsEnableMetadataSourceGen>$(FunctionsEnableWorkerIndexing)</FunctionsEnableMetadataSourceGen>
     <FunctionsAutoRegisterGeneratedMetadataProvider>$(FunctionsEnableWorkerIndexing)</FunctionsAutoRegisterGeneratedMetadataProvider>
-    <_WriteFunctionsMetadata>true</_WriteFunctionsMetadata>
-    <_WriteFunctionsMetadata Condition="'$(FunctionsEnableMetadataSourceGen)' == 'true'">false</_WriteFunctionsMetadata>
+    <FunctionsWriteMetadataJson Condition="'$(FunctionsWriteMetadataJson)' == '' AND '$(FunctionsEnableMetadataSourceGen)' == 'true'">false</FunctionsWriteMetadataJson>
+    <FunctionsWriteMetadataJson Condition="'$(FunctionsWriteMetadataJson)' == ''">true</FunctionsWriteMetadataJson>
 
     <FunctionsEnableExecutorSourceGen Condition="'$(FunctionsEnableExecutorSourceGen)' == ''">true</FunctionsEnableExecutorSourceGen>
     <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="'$(FunctionsAutoRegisterGeneratedFunctionsExecutor)' == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
@@ -194,7 +194,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       AssemblyPath="$(IntermediateOutputPath)$(TargetName)$(TargetExt)"
       OutputPath="$(IntermediateOutputPath)"
       ExtensionsCsProjFilePath="$(_TargetExtensionsCsProj)"
-      WriteMetadataFile="$(_WriteFunctionsMetadata)"
+      WriteMetadataFile="$(FunctionsWriteMetadataJson)"
       ReferencePaths="@(ReferencePath)"
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"

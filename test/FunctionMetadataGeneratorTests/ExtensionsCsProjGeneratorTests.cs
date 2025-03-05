@@ -35,13 +35,16 @@ namespace Microsoft.Azure.Functions.SdkTests
         }
 
         [Theory]
-        [InlineData(FuncVersion.V3)]
-        [InlineData(FuncVersion.V4)]
-        public void GetCsProjContent_Succeeds(FuncVersion version)
+        [InlineData(FuncVersion.V3, true)]
+        [InlineData(FuncVersion.V3, false)]
+        [InlineData(FuncVersion.V4, true)]
+        [InlineData(FuncVersion.V4, false)]
+        public void GetCsProjContent_Succeeds(FuncVersion version, bool disclaimer)
         {
-            var generator = GetGenerator(version, "TestExtension.csproj");
+            string disclaimerText = disclaimer ? "<!-- This is a test disclaimer. -->" : null;
+            var generator = GetGenerator(version, "TestExtension.csproj", disclaimerText);
             string actual = generator.GetCsProjContent().Replace("\r\n", "\n");
-            string expected = ExpectedCsproj(version).Replace("\r\n", "\n");
+            string expected = ExpectedCsproj(version, disclaimerText).Replace("\r\n", "\n");
             Assert.Equal(expected, actual);
         }
 
@@ -183,7 +186,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             Assert.Equal(expectedWriteTime, new FileInfo(existing).LastWriteTimeUtc);
         }
 
-        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath)
+        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath, string disclaimer = null)
         {
             Dictionary<string, string> extensions = new()
             {
@@ -192,75 +195,82 @@ namespace Microsoft.Azure.Functions.SdkTests
                 { "Microsoft.Azure.WebJobs.Extensions", "2.0.0" },
             };
 
-            return GetGenerator(version, outputPath, extensions);
+            return GetGenerator(version, outputPath, extensions, disclaimer);
         }
 
-        static ExtensionsCsprojGenerator GetGenerator(FuncVersion version, string outputPath, IDictionary<string, string> extensions)
+        static ExtensionsCsprojGenerator GetGenerator(
+            FuncVersion version, string outputPath, IDictionary<string, string> extensions, string disclaimer = null)
         {
             return version switch
             {
-                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31),
-                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, outputPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6),
+                FuncVersion.V3 => new ExtensionsCsprojGenerator(extensions, outputPath, "v3", Constants.NetCoreApp, Constants.NetCoreVersion31)
+                {
+                    Disclaimer = disclaimer,
+                },
+                FuncVersion.V4 => new ExtensionsCsprojGenerator(extensions, outputPath, "v4", Constants.NetCoreApp, Constants.NetCoreVersion6)
+                {
+                    Disclaimer = disclaimer,
+                },
                 _ => throw new ArgumentOutOfRangeException(nameof(version)),
             };
         }
 
-        private static string ExpectedCsproj(FuncVersion version)
+        private static string ExpectedCsproj(FuncVersion version, string disclaimer = null)
             => version switch
             {
-                FuncVersion.V3 => ExpectedCsProjV3(),
-                FuncVersion.V4 => ExpectedCsProjV4(),
+                FuncVersion.V3 => ExpectedCsProjV3(disclaimer),
+                FuncVersion.V4 => ExpectedCsProjV4(disclaimer),
                 _ => throw new ArgumentOutOfRangeException(nameof(version)),
             };
 
-        private static string ExpectedCsProjV3()
+        private static string ExpectedCsProjV3(string disclaimer)
         {
-            return @"
+            return $@"{disclaimer}
 <Project Sdk=""Microsoft.NET.Sdk"">
-    <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
-        <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.1.2"" />
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
+    <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""3.1.2"" />
+    <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
+    <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
+    <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
+  </ItemGroup>
 
-    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
-        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
-        <Error Condition=""'$(TargetFramework)' != 'netcoreapp3.1'"" Text=""The target framework '$(TargetFramework)' must be 'netcoreapp3.1'. Verify if target framework has been overridden by a global property."" />
-    </Target>
+  <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+    <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+    <Error Condition=""'$(TargetFramework)' != 'netcoreapp3.1'"" Text=""The target framework '$(TargetFramework)' must be 'netcoreapp3.1'. Verify if target framework has been overridden by a global property."" />
+  </Target>
 </Project>
 ";
         }
 
-        private static string ExpectedCsProjV4()
+        private static string ExpectedCsProjV4(string disclaimer)
         {
-            return @"
+            return $@"{disclaimer}
 <Project Sdk=""Microsoft.NET.Sdk"">
-    <PropertyGroup>
-        <TargetFramework>net6.0</TargetFramework>
-        <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.6.0"" />
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
-        <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
-    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
+    <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""4.6.0"" />
+    <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Storage"" Version=""4.0.3"" />
+    <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions.Http"" Version=""3.0.0"" />
+    <PackageReference Include=""Microsoft.Azure.WebJobs.Extensions"" Version=""2.0.0"" />
+  </ItemGroup>
 
-    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
-        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
-        <Error Condition=""'$(TargetFramework)' != 'net6.0'"" Text=""The target framework '$(TargetFramework)' must be 'net6.0'. Verify if target framework has been overridden by a global property."" />
-    </Target>
+  <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+    <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+    <Error Condition=""'$(TargetFramework)' != 'net6.0'"" Text=""The target framework '$(TargetFramework)' must be 'net6.0'. Verify if target framework has been overridden by a global property."" />
+  </Target>
 </Project>
 ";
         }

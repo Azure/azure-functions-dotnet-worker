@@ -16,7 +16,12 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         private readonly string _targetFrameworkVersion;
         private readonly string _azureFunctionsVersion;
 
-        public ExtensionsCsprojGenerator(IDictionary<string, string> extensions, string outputPath, string azureFunctionsVersion, string targetFrameworkIdentifier, string targetFrameworkVersion)
+        public ExtensionsCsprojGenerator(
+            IDictionary<string, string> extensions,
+            string outputPath,
+            string azureFunctionsVersion,
+            string targetFrameworkIdentifier,
+            string targetFrameworkVersion)
         {
             _extensions = extensions ?? throw new ArgumentNullException(nameof(extensions));
             _outputPath = outputPath ?? throw new ArgumentNullException(nameof(outputPath));
@@ -24,6 +29,8 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             _targetFrameworkVersion = targetFrameworkVersion ?? throw new ArgumentNullException(nameof(targetFrameworkVersion));
             _azureFunctionsVersion = azureFunctionsVersion ?? throw new ArgumentNullException(nameof(azureFunctionsVersion));
         }
+
+        public string? Disclaimer { get; set; }
 
         public void Generate()
         {
@@ -43,6 +50,21 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             File.WriteAllText(_outputPath, csproj);
         }
 
+        public void GenerateDirectoryBuild()
+        {
+            void GenerateIfNotExists(string fileName)
+            {
+                string directoryBuildPath = Path.Combine(Path.GetDirectoryName(_outputPath) ?? string.Empty, fileName);
+                if (!File.Exists(directoryBuildPath))
+                {
+                    File.WriteAllText(directoryBuildPath, GetDirectoryBuildContents(fileName));
+                }
+            }
+
+            GenerateIfNotExists("Directory.Build.props");
+            GenerateIfNotExists("Directory.Build.targets");
+        }
+
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
@@ -58,23 +80,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
             string netSdkVersion = _azureFunctionsVersion.StartsWith(Constants.AzureFunctionsVersion3, StringComparison.OrdinalIgnoreCase) ? "3.1.2" : "4.6.0";
 
-            return $@"
+            return $@"{Disclaimer}
 <Project Sdk=""Microsoft.NET.Sdk"">
-    <PropertyGroup>
-        <TargetFramework>{targetFramework}</TargetFramework>
-        <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
-        <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>{targetFramework}</TargetFramework>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions</AssemblyName>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
-        <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""{netSdkVersion}"" />
-{extensionReferences}    </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include=""Microsoft.NETCore.Targets"" Version=""3.0.0"" PrivateAssets=""all"" />
+    <PackageReference Include=""Microsoft.NET.Sdk.Functions"" Version=""{netSdkVersion}"" />
+{extensionReferences}  </ItemGroup>
 
-    <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
-        <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
-        <Error Condition=""'$(TargetFramework)' != '{targetFramework}'"" Text=""The target framework '$(TargetFramework)' must be '{targetFramework}'. Verify if target framework has been overridden by a global property."" />
-    </Target>
+  <Target Name=""_VerifyTargetFramework"" BeforeTargets=""Build"">
+    <!-- It is possible to override our TFM via global properties. This can lead to successful builds, but runtime errors due to incompatible dependencies being brought in. -->
+    <Error Condition=""'$(TargetFramework)' != '{targetFramework}'"" Text=""The target framework '$(TargetFramework)' must be '{targetFramework}'. Verify if target framework has been overridden by a global property."" />
+  </Target>
 </Project>
 ";
         }
@@ -93,7 +115,20 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
 
         private static string GetPackageReferenceFromExtension(string name, string version)
         {
-            return $"        <PackageReference Include=\"{name}\" Version=\"{version}\" />";
+            return $"    <PackageReference Include=\"{name}\" Version=\"{version}\" />";
+        }
+
+        private static string GetDirectoryBuildContents(string fileName)
+        {
+            return $@"<Project>
+
+  <!-- Customize the extension project as necessary here -->
+
+  <Import Project=""$([MSBuild]::GetPathOfFileAbove('{fileName}', '$(MSBuildThisFileDirectory)../'))""
+    Condition=""$([MSBuild]::GetPathOfFileAbove('{fileName}', '$(MSBuildThisFileDirectory)../')) != ''"" />
+
+</Project>
+";
         }
     }
 }

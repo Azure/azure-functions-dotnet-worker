@@ -84,7 +84,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </PropertyGroup>
 
     <Message Condition="@(_WorkerExtensionProject->Count()) == 1" Importance="normal" Text="Using WorkerExtensions project: %(_WorkerExtensionProject.Identity)" />
-    <Warning Condition="'%(_WorkerExtensionProject.ReferenceOutputAssembly)' != 'false'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProjectNonExistent.Identity)' is missing ReferenceOutputAssembly=false." />
+    <Warning Condition="'%(_WorkerExtensionProject.ReferenceOutputAssembly)' != 'false'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProject.Identity)' is missing ReferenceOutputAssembly=false." />
     <Error Condition="@(_WorkerExtensionProject->Count()) &gt; 1" Text="Only one WorkerExtensions project is allowed per function app. Found extensions:@(_WorkerExtensionProject->'%0a    %(Identity)')" />
     <Error Condition="'@(_WorkerExtensionProjectNonExistent)' != '' AND $(_ForceGenerateExtensionProject) != 'true'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProjectNonExistent.Identity)' does not exist. Run 'dotnet build -t:GenerateExtensionProject' first." />
   </Target>
@@ -139,9 +139,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsPostBuild;_FunctionsInnerBuild;_FunctionsExtensionUpdateMetadata;_FunctionsExtensionAssignTargetPaths"/>
 
   <!-- This target builds the generated WorkerExtension.csproj. Does not run for design time builds or if extension project is externally provided. -->
-  <Target Name="_FunctionsInnerBuild"
-    AfterTargets="CoreCompile"
-    DependsOnTargets="_WorkerExtensionsRestore;_WorkerExtensionsBuild" />
+  <Target Name="_FunctionsInnerBuild" DependsOnTargets="_WorkerExtensionsRestore;_WorkerExtensionsBuild" />
 
   <!-- For publish we have very little targets. Either:
     1) It is a publish with build, in which case _FunctionsInnerBuild will already be ran.
@@ -184,18 +182,21 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- Generates the extension files. Generates functions.metadata and the WorkerExtension.csproj -->
   <Target Name="_FunctionsGenerateCommon" DependsOnTargets="_FunctionsGetPaths;ResolveAssemblyReferences">
     <PropertyGroup>
-      <!-- We skip generating the WorkerExtension.csproj when it is externally supplied by setting _TargetExtensionsCsProj to null. -->
-      <_TargetExtensionsCsProj Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">$(ExtensionsCsProj)</_TargetExtensionsCsProj>
+      <!-- Determine the extension csproj mode - generate or validate only. -->
+      <_ExtensionsCsProjMode>Default</_ExtensionsCsProjMode> <!-- default -->
+      <_ExtensionsCsProjMode Condition="'$(FunctionsGenerateExtensionProject)' != 'true'">ValidateExternal</_ExtensionsCsProjMode> <!--ValidateExternal -->
+      <_ExtensionsCsProjMode Condition="'$(_ForceGenerateExtensionProject)' == 'true'">GenerateExternal</_ExtensionsCsProjMode> <!-- GenerateExternal -->
     </PropertyGroup>
 
     <GenerateFunctionMetadata
       AssemblyPath="$(IntermediateOutputPath)$(TargetName)$(TargetExt)"
       ReferencePaths="@(ReferencePath)"
-      ExtensionsCsProjFilePath="$(_TargetExtensionsCsProj)"
+      ExtensionsCsProjFilePath="$(ExtensionsCsProj)"
+      ExtensionsCsProjMode="$(_ExtensionsCsProjMode)"
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
       TargetFrameworkVersion="$(TargetFrameworkVersion)"
-      OutputPath="$(IntermediateOutputPath)"/>
+      OutputPath="$(IntermediateOutputPath)" />
   </Target>
 
   <!-- Generate worker.config.json. -->

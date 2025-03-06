@@ -10,6 +10,7 @@
 - Addresses issue with setting `OutDir` msbuild property failing build (PR #2763, Issue #2125)
 - Adds support for externally supplied worker extensions project. (PR #2763, Issues #1252, #1888)
     - This mode is opt-in only. Using it eliminates the inner-build. This is useful for scenarios where performing a restore inside of build was problematic.
+- Updates the generated extension csproj to be net8.0 (from net6.0) 
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators 1.3.5
 

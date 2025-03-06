@@ -3,7 +3,7 @@
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestBindingMetadata : BindingMetadata
+    public class TestBindingMetadata : BindingMetadata
     {
         public TestBindingMetadata(string name, string type, BindingDirection direction)
         {

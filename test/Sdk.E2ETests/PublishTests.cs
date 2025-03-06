@@ -9,9 +9,9 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.SdkE2ETests
+namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
-    public class PublishTests(ITestOutputHelper testOutputHelper) : IDisposable
+    public sealed class PublishTests(ITestOutputHelper testOutputHelper) : IDisposable
     {
         private readonly ProjectBuilder _builder = new(
             testOutputHelper,
@@ -29,12 +29,12 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
 
         [Fact]
         // This test requires the Docker daemon to be installed and running
-        // It is excluded through the SdkE2ETests_default.runsettings file from normal tests
-        // To run the test, use `dotnet test -s SdkE2ETests_dockertests.runsettings`
+        // It is excluded through the Sdk.E2ETests_default.runsettings file from normal tests
+        // To run the test, use `dotnet test -s Sdk.E2ETests_dockertests.runsettings`
         [Trait("Requirement", "Docker")]
         public async Task Publish_Container()
         {
-            var repository = nameof(SdkE2ETests).ToLower();
+            var repository = nameof(Sdk.E2ETests).ToLower();
             var imageTag = nameof(Publish_Container);
 
             // setup test environment state in case there is leftover data from previous runs
@@ -103,32 +103,22 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             // Verify functions.metadata
             if (metadataGenerated)
             {
-                TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "Microsoft.Azure.Functions.SdkE2ETests.Contents.functions.metadata");
+                TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "Microsoft.Azure.Functions.Sdk.E2ETests.Contents.functions.metadata");
             }
         }
 
-        public void Dispose()
-        {
-            throw new NotImplementedException();
-        }
+        public void Dispose() => _builder.Dispose();
 
-        private class Extension
+        private class Extension(string name, string typeName, string hintPath)
         {
-            public Extension(string name, string typeName, string hintPath)
-            {
-                Name = name;
-                TypeName = typeName;
-                HintPath = hintPath;
-            }
-
             [JsonProperty("name")]
-            public string Name { get; set; }
+            public string Name { get; set; } = name;
 
             [JsonProperty("typeName")]
-            public string TypeName { get; set; }
+            public string TypeName { get; set; } = typeName;
 
             [JsonProperty("hintPath")]
-            public string HintPath { get; set; }
+            public string HintPath { get; set; } = hintPath;
         }
     }
 }

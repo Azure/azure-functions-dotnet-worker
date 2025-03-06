@@ -66,7 +66,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFuncti
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{429D067C-0846-40EF-A264-AB0C5D551CB0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SdkE2ETests", "test\SdkE2ETests\SdkE2ETests.csproj", "{750993F6-4E3B-411B-9471-74CEA4F9C23A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdk.E2ETests", "test\Sdk.E2ETests\Sdk.E2ETests.csproj", "{750993F6-4E3B-411B-9471-74CEA4F9C23A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

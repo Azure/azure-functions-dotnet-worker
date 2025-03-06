@@ -2,14 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
-    <AssemblyName>Microsoft.Azure.Functions.SdkE2ETests</AssemblyName>
-    <RootNamespace>Microsoft.Azure.Functions.SdkE2ETests</RootNamespace>
+    <AssemblyName>Microsoft.Azure.Functions.Sdk.E2ETests</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Sdk.E2ETests</RootNamespace>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>
-    <RunSettingsFilePath>$(MSBuildProjectDirectory)\SdkE2ETests_default.runsettings</RunSettingsFilePath>
+    <RunSettingsFilePath>$(MSBuildProjectDirectory)\Sdk.E2ETests_default.runsettings</RunSettingsFilePath>
   </PropertyGroup>
     
   <ItemGroup>

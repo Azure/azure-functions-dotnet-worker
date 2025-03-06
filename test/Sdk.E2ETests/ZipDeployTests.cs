@@ -1,14 +1,15 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
-using Microsoft.Azure.Functions.SdkE2ETests;
+using Microsoft.Azure.Functions.Sdk.E2ETests;
 using Microsoft.NET.Sdk.Functions.MSBuild.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.SdkTests
+namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
-    public class ZipDeployTests(ITestOutputHelper testOutputHelper)
+    public sealed class ZipDeployTests(ITestOutputHelper testOutputHelper) : IDisposable
     {
         private readonly ProjectBuilder _builder = new(
             testOutputHelper,
@@ -55,5 +56,7 @@ namespace Microsoft.Azure.Functions.SdkTests
 
             zip.Close();
         }
+
+        public void Dispose() => _builder.Dispose();
     }
 }

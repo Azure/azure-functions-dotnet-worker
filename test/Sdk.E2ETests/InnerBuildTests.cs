@@ -8,7 +8,7 @@ using Newtonsoft.Json.Linq;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.SdkE2ETests
+namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
     public sealed class InnerBuildTests(ITestOutputHelper testOutputHelper) : IDisposable
     {

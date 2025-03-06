@@ -47,7 +47,7 @@ jobs:
       arguments: -v n --no-build -c Release --filter "FullyQualifiedName!~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # skip AspNetCore tests
       projects: |
         **\E2ETests.csproj
-        **\SdkE2ETests.csproj
+        **\Sdk.E2ETests.csproj
     env:
       DOTNET_VERSION: $(dotnetVersion)
 

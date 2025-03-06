@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.Azure.Functions.SdkE2ETests
+namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
     public static class ProcessWrapper
     {

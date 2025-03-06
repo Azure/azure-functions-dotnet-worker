@@ -5,7 +5,7 @@ using System;
 using System.IO;
 using IOPath = System.IO.Path;
 
-namespace Microsoft.Azure.Functions.SdkE2ETests
+namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
     public sealed class TempDirectory : IDisposable
     {

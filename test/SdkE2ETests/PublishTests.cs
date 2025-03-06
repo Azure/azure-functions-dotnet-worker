@@ -11,82 +11,74 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.SdkE2ETests
 {
-    public class PublishTests
+    public class PublishTests(ITestOutputHelper testOutputHelper) : IDisposable
     {
-        private ITestOutputHelper _testOutputHelper;
-
-        public PublishTests(ITestOutputHelper testOutputHelper)
-        {
-            _testOutputHelper = testOutputHelper;
-        }
+        private readonly ProjectBuilder _builder = new(
+            testOutputHelper,
+            Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj"));
 
         [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task Publish(bool generateMetadata)
+        [InlineData("", false)]
+        [InlineData("-r win-x86", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false", true)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false -r win-x86", true)]
+        public async Task Publish(string parameters, bool metadataGenerated)
         {
-            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish));
-            await RunPublishTest(outputDir, generateMetadata);
+            await RunPublishTest(parameters, metadataGenerated);
         }
 
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
-        public async Task Publish_Rid(bool generateMetadata)
-        {
-            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish_Rid));
-            await RunPublishTest(outputDir, generateMetadata, "-r win-x86");
-        }
-
-        [Theory]
-        [InlineData(true)]
-        [InlineData(false)]
+        [Fact]
         // This test requires the Docker daemon to be installed and running
         // It is excluded through the SdkE2ETests_default.runsettings file from normal tests
         // To run the test, use `dotnet test -s SdkE2ETests_dockertests.runsettings`
         [Trait("Requirement", "Docker")]
-        public async Task Publish_Container(bool generateMetadata)
+        public async Task Publish_Container()
         {
-            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Publish_Container));
             var repository = nameof(SdkE2ETests).ToLower();
             var imageTag = nameof(Publish_Container);
 
             // setup test environment state in case there is leftover data from previous runs
-            await TestUtility.RemoveDockerTestImage(repository, imageTag, _testOutputHelper);
+            await TestUtility.RemoveDockerTestImage(repository, imageTag, testOutputHelper);
 
-            // perform the publish
-            await RunPublishTest(outputDir, generateMetadata, $"--no-restore /t:PublishContainer --property:ContainerRepository={repository} --property:ContainerImageTag={imageTag}");
+            try
+            {
+                // perform the publish
+                await RunPublishTest($"-t:PublishContainer -p:ContainerRepository={repository} -p:ContainerImageTag={imageTag}", false);
 
-            // validate the image base
-            Tuple<int?,string> inspectResults = await new ProcessWrapper().RunProcessForOutput("docker", $"inspect {repository}:{imageTag} --format \"{{{{ index .Config.Labels \\\"org.opencontainers.image.base.name\\\"}}}}\"", outputDir, _testOutputHelper);
-            var inspectExitCode = inspectResults.Item1;
-            var inspectOutput = inspectResults.Item2;
-            Assert.True(inspectExitCode.HasValue && inspectExitCode.Value == 0);
-            Assert.Matches("mcr\\.microsoft\\.com/azure-functions/dotnet-isolated:(\\d)+-dotnet-isolated(\\d+\\.\\d+)", inspectOutput);
+                // validate the image base
+                Tuple<int?, string> inspectResults = await ProcessWrapper.RunProcessForOutputAsync(
+                    "docker",
+                    $"inspect {repository}:{imageTag} --format \"{{{{ index .Config.Labels \\\"org.opencontainers.image.base.name\\\"}}}}\"",
+                    _builder.OutputPath,
+                    testOutputHelper.WriteLine);
 
-            // clean up
-            await TestUtility.RemoveDockerTestImage(repository, imageTag, _testOutputHelper);
+                var inspectExitCode = inspectResults.Item1;
+                var inspectOutput = inspectResults.Item2;
+                Assert.True(inspectExitCode.HasValue && inspectExitCode.Value == 0);
+                Assert.Matches("mcr\\.microsoft\\.com/azure-functions/dotnet-isolated:(\\d)+-dotnet-isolated(\\d+\\.\\d+)", inspectOutput);
+            }
+            finally
+            {
+                // clean up
+                await TestUtility.RemoveDockerTestImage(repository, imageTag, testOutputHelper);
+            }
         }
 
-        private async Task RunPublishTest(string outputDir, bool generateMetadata, string additionalParams = null)
+        private async Task RunPublishTest(string additionalParams, bool metadataGenerated)
         {
-            // Name of the csproj
-            string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
-            additionalParams = generateMetadata ? $"{additionalParams} -p:FunctionsEnableWorkerIndexing=false" : additionalParams;
-
-            await TestUtility.RestoreAndPublishProjectAsync(projectFileDirectory, outputDir, additionalParams, _testOutputHelper);
+            await _builder.PublishAsync(additionalParams);
 
             // Make sure files are in /.azurefunctions
-            string azureFunctionsDir = Path.Combine(outputDir, ".azurefunctions");
+            string azureFunctionsDir = Path.Combine(_builder.OutputPath, ".azurefunctions");
             Assert.True(Directory.Exists(azureFunctionsDir));
 
             // Verify files are present
             string metadataLoaderPath = Path.Combine(azureFunctionsDir, "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
-            string extensionsJsonPath = Path.Combine(outputDir, "extensions.json");
-            string functionsMetadataPath = Path.Combine(outputDir, "functions.metadata");
-            Assert.NotEqual(generateMetadata, File.Exists(metadataLoaderPath));
+            string extensionsJsonPath = Path.Combine(_builder.OutputPath, "extensions.json");
+            string functionsMetadataPath = Path.Combine(_builder.OutputPath, "functions.metadata");
             Assert.True(File.Exists(extensionsJsonPath));
-            Assert.True(File.Exists(functionsMetadataPath));
+            Assert.True(File.Exists(metadataLoaderPath));
+            Assert.NotEqual(metadataGenerated, File.Exists(functionsMetadataPath)); 
 
             // Verify extensions.json
             JObject jObjects = JObject.Parse(File.ReadAllText(extensionsJsonPath));
@@ -109,7 +101,15 @@ namespace Microsoft.Azure.Functions.SdkE2ETests
             Assert.True(JToken.DeepEquals(extensionsJsonContents, expected), $"Actual: {extensionsJsonContents}{Environment.NewLine}Expected: {expected}");
 
             // Verify functions.metadata
-            TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "Microsoft.Azure.Functions.SdkE2ETests.Contents.functions.metadata");
+            if (metadataGenerated)
+            {
+                TestUtility.ValidateFunctionsMetadata(functionsMetadataPath, "Microsoft.Azure.Functions.SdkE2ETests.Contents.functions.metadata");
+            }
+        }
+
+        public void Dispose()
+        {
+            throw new NotImplementedException();
         }
 
         private class Extension

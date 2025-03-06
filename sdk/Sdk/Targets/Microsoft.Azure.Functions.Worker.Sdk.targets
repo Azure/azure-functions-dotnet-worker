@@ -251,7 +251,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <!-- Hook all these files into CopyToOutputDirectory by appending to _NoneWithTargetPath. -->
     <ItemGroup>
-      <_FunctionsAdditionalFile Include="$(_FunctionsMetadataPath)" Condition="'$(_WriteFunctionsMetadata)' == 'true'" />
+      <_FunctionsAdditionalFile Include="$(_FunctionsMetadataPath)" Condition="'$(FunctionsWriteMetadataJson)' == 'true'" />
       <_FunctionsAdditionalFile Include="$(_FunctionsWorkerConfigPath);$(_FunctionsIntermediateExtensionUpdatedJsonPath)" />
       <_FunctionsAdditionalFile Include="$(_FunctionsMetadataLoaderExtensionFile)" SubPath="$(_FunctionsExtensionsDirectory)/" />
       <_NoneWithTargetPath Include="@(_FunctionsAdditionalFile)"

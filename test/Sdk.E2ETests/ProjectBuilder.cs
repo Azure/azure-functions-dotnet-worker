@@ -50,19 +50,19 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         {
             await LazyInitializer.EnsureInitialized(ref _initialization, ref _sync, InitializeAsync);
 
-            if (restore)
-            {
-                await RestoreAsync();
-            }
-
             Stopwatch stopwatch = Stopwatch.StartNew();
             logger.WriteLine("Building...");
-            string dotnetArgs = $"build {project} --no-restore -c {Configuration} -o {OutputPath} -p:SdkVersion={SdkVersion} {additionalParams}";
+            string dotnetArgs = $"build {project} -c {Configuration} -o {OutputPath} -p:SdkVersion={SdkVersion} {additionalParams}";
+
+            if (!restore)
+            {
+                dotnetArgs += " --no-restore";
+            }
 
             if (Debugger.IsAttached)
-            {
-                dotnetArgs += " -bl";
-            }
+                {
+                    dotnetArgs += " -bl";
+                }
 
             int? exitCode = await ProcessWrapper.RunProcessAsync(DotNetExecutable, dotnetArgs, log: logger.WriteLine);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
@@ -73,14 +73,20 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         {
             await LazyInitializer.EnsureInitialized(ref _initialization, ref _sync, InitializeAsync);
 
-            if (restore)
-            {
-                await RestoreAsync();
-            }
-
             Stopwatch stopwatch = Stopwatch.StartNew();
             logger.WriteLine($"Publishing...");
-            string dotnetArgs = $"publish {project} --no-restore -c {Configuration} -o {OutputPath} -p:SdkVersion={SdkVersion} {additionalParams}";
+            string dotnetArgs = $"publish {project} -c {Configuration} -o {OutputPath} -p:SdkVersion={SdkVersion} {additionalParams}";
+
+            if (!restore)
+            {
+                dotnetArgs += " --no-restore";
+            }
+
+            if (Debugger.IsAttached)
+            {
+                dotnetArgs += " -bl";
+            }
+
             int? exitCode = await ProcessWrapper.RunProcessAsync(DotNetExecutable, dotnetArgs, log: logger.WriteLine);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);
             logger.WriteLine($"Done. ({stopwatch.ElapsedMilliseconds} ms)");

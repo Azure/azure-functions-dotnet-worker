@@ -78,7 +78,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             string functionsMetadataPath = Path.Combine(_builder.OutputPath, "functions.metadata");
             Assert.True(File.Exists(extensionsJsonPath));
             Assert.True(File.Exists(metadataLoaderPath));
-            Assert.NotEqual(metadataGenerated, File.Exists(functionsMetadataPath)); 
+            Assert.Equal(metadataGenerated, File.Exists(functionsMetadataPath)); 
 
             // Verify extensions.json
             JObject jObjects = JObject.Parse(File.ReadAllText(extensionsJsonPath));

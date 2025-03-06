@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Azure.Functions.Worker.Tests
+namespace Microsoft.Azure.Functions.Worker.Tests.Shared
 {
     internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
     {

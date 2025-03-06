@@ -5,7 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
-namespace Microsoft.Azure.Functions.Worker.Tests
+namespace Microsoft.Azure.Functions.Worker.Tests.Shared
 {
     public class TestFunctionDefinition : FunctionDefinition
     {

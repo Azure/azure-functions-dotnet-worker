@@ -11,15 +11,13 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
 using Microsoft.Azure.Functions.Worker.Middleware;
+using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
-{
-
-#if false // Needs updates to shared types
-    public class FunctionsHttpProxyingMiddlewareTests
+{    public class FunctionsHttpProxyingMiddlewareTests
     {
         [Fact]
         public async Task Middleware_AddsHttpContextToFunctionContext_Success()
@@ -191,7 +189,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             };
 
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers.Add(Constants.CorrelationHeader, functionContext.InvocationId);
+            httpContext.Request.Headers.Append(Constants.CorrelationHeader, functionContext.InvocationId);
 
             var mockCoordinator = new Mock<IHttpCoordinator>();
             mockCoordinator
@@ -279,5 +277,4 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
     }
-#endif
 }

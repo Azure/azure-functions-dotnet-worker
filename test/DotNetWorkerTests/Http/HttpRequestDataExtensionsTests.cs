@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Tests.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Newtonsoft.Json;
 using Xunit;
 

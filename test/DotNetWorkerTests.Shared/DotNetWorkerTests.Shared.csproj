@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+      <TargetFramework>net8.0</TargetFramework>
+      <IsPackable>false</IsPackable>
+      <AssemblyName>Microsoft.Azure.Functions.Worker.Tests.Shared</AssemblyName>
+      <RootNamespace>Microsoft.Azure.Functions.Worker.Tests.Shared</RootNamespace>
+      <SignAssembly>true</SignAssembly>
+      <LangVersion>preview</LangVersion>
+      <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
+      <Nullable>disable</Nullable>
+      <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+  </ItemGroup>
+
+</Project>

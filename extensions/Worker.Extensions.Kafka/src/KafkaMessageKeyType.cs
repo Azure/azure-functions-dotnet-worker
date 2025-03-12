@@ -8,11 +8,13 @@ using System.Text;
 namespace Microsoft.Azure.Functions.Worker
 {
     /// <summary>
-    /// Defines the OAuth bearer method
+    /// Defines the data type used in kafka extension as enum.
     /// </summary>
-    public enum OAuthBearerMethod
+    public enum KafkaMessageKeyType
     {
-        Default,
-        Oidc
+        Int = 0,
+        Long,
+        String,
+        Binary
     }
 }

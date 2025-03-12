@@ -46,6 +46,19 @@ namespace Microsoft.Azure.Functions.Worker
         public string AvroSchema { get; set; }
 
         /// <summary>
+        /// Gets or sets the Avro schema of message key.
+        /// Should be used only if a generic record should be generated.
+        /// </summary>
+        public string KeyAvroSchema { get; set; }
+
+        /// <summary>
+        /// Specifies the data type of the message key that will be deserialized from the Kafka topic.
+        /// If KeyAvroSchema is set, this value is ignored and the key will be generated as a generic record.
+        /// The default type is System.String.
+        /// </summary>
+        public KafkaMessageKeyType KeyDataType { get; set; } = KafkaMessageKeyType.String;
+
+        /// <summary>
         /// SASL mechanism to use for authentication. 
         /// Allowed values: Gssapi, Plain, ScramSha256, ScramSha512, OAuthBearer
         /// Default: Plain
@@ -102,6 +115,31 @@ namespace Microsoft.Azure.Functions.Worker
         /// ssl.key.password in librdkafka
         /// </summary>
         public string SslKeyPassword { get; set; }
+
+        /// <summary>
+        /// Client certificate in PEM format.
+        /// ssl.certificate.pem in librdkafka
+        /// </summary>
+        public string SslCertificatePEM { get; set; }
+
+        /// <summary>
+        /// Client Private Key in PEM format.
+        /// ssl.key.pem in librdkafka
+        /// </summary>
+        public string SslKeyPEM { get; set; }
+
+        /// <summary>
+        /// CA certificate for verifying the broker's certificate in PEM format
+        /// ssl.ca.pem in librdkafka
+        /// </summary>
+        public string SslCaPEM { get; set; }
+
+        /// <summary>
+        /// Client certificate and key in PEM format.
+        /// Additional Configuration for extension as KeyVault supports uploading certificate only with private key. 
+        /// </summary>
+        public string SslCertificateandKeyPEM { get; set; }
+
 
         /// <summary>
         /// Maximum number of unprocessed messages a worker is expected to have at an instance.

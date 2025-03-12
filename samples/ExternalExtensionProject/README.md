@@ -107,15 +107,20 @@ In the case where an extension brings in a transitive dependency that is not com
 > [!CAUTION]
 > The target framework, and all dependent assemblies of this generated project, must be compatible with the host process. Changing the TFM risks assembly load failures.
 
-⚠️ AVOID changing the packages of the extension project
-
-> [!WARNING]
-> The package closure of the extension project is sensitive to changes. The host process ultimately controls the dependency graph and assembly loads. Depending on a package/assembly not supported by the host process may cause issues. E.G, trying to depend on any `Microsoft.Extensions.*/9x` from the extension project will cause issues.
-
 ❌ DO NOT include more than 1 `ProjectReference` with `WorkerExtensions=true`
 
 > [!NOTE]
 > The build will be intentionally failed if there are more than 1 extension projects declared.
+
+❌ DO NOT add custom assemblies to the extension project
+
+> [!IMPORTANT]
+> Azure functions does not support adding custom assemblies to the extensions payload.
+
+⚠️ AVOID changing the packages of the extension project
+
+> [!WARNING]
+> The package closure of the extension project is sensitive to changes. The host process ultimately controls the dependency graph and assembly loads. Depending on a package/assembly not supported by the host process may cause issues. E.G, trying to depend on any `Microsoft.Extensions.*/9x` from the extension project will cause issues.
 
 ✔️ DO set `ReferenceOutputAssembly=false` on the `ProjectReference` with `WorkerExtensions=true`
 

@@ -12,6 +12,9 @@ parameters:
   displayName: CORE_TOOLS_URL_LINUX
   type: string
   default: ' '
+- name: release
+  type: boolean
+  default: false
 
 trigger:
   batch: true
@@ -32,7 +35,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/tags/release
+    ref: refs/heads/u/jviau/release-nupkg
 
 variables:
   - template: ci/variables/build.yml@eng
@@ -59,6 +62,13 @@ extends:
 
       jobs:
       - template: /eng/ci/templates/official/jobs/build-artifacts.yml@self
+
+      - ${{ if eq(parameters.release, true) }}:
+        - template: /eng/ci/templates/official/jobs/release-package.yml@self
+          parameters:
+            stagingFeed: public/jviau-testing
+            artifactName: NugetPackages
+            isProduction: false
 
     - stage: Test
       dependsOn: [] # allows you to run stages in parallel

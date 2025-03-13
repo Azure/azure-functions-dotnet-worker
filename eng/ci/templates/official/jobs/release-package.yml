@@ -1,0 +1,22 @@
+parameters:
+- name: stagingFeed
+  type: string
+  default: public/pre-release
+- name: artifactName
+  type: string
+# - name: targetFolder
+#   type: string
+- name: isProduction
+  type: boolean
+  default: true
+
+jobs:
+- template: /ci/release-nuget-package.yml@eng
+  parameters:
+    artifactName: ${{ parameters.artifactName }}
+    stagingFeed: ${{ parameters.stagingFeed }}
+    approvers: '[internal]\Azure Functions Core'
+    isProduction: ${{ parameters.isProduction }}
+    # partnerFeed:
+    #   serviceConnection: tbd
+    #   targetFolder: azure-functions/dotnet/$${{ parameters.targetFolder }}

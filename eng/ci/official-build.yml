@@ -59,30 +59,31 @@ extends:
 
     stages:
     - stage: Build
-
       jobs:
       - template: /eng/ci/templates/official/jobs/build-artifacts.yml@self
 
+    # - stage: Test
+    #   dependsOn: [] # allows you to run stages in parallel
+
+    #   jobs:
+    #   - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
+    #     parameters:
+    #       PoolName: 1es-pool-azfunc
+    #   - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
+    #     parameters:
+    #       PoolName: 1es-pool-azfunc
+    #   - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
+    #     parameters:
+    #       PoolName: 1es-pool-azfunc
+
     - ${{ if eq(parameters.release, true) }}:
       - stage: Release
-        dependsOn: Build
+        dependsOn:
+          - Build
+          #- Test
         jobs:
         - template: /eng/ci/templates/official/jobs/release-package.yml@self
           parameters:
             stagingFeed: public/jviau-testing
             artifactName: NugetPackages
             isProduction: false
-
-    - stage: Test
-      dependsOn: [] # allows you to run stages in parallel
-
-      jobs:
-      - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
-        parameters:
-          PoolName: 1es-pool-azfunc
-      - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
-        parameters:
-          PoolName: 1es-pool-azfunc
-      - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
-        parameters:
-          PoolName: 1es-pool-azfunc

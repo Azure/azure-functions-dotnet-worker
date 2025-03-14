@@ -4,8 +4,8 @@ parameters:
   default: public/pre-release
 - name: artifactName
   type: string
-# - name: targetFolder
-#   type: string
+- name: targetFolder
+  type: string
 - name: isProduction
   type: boolean
   default: true
@@ -17,6 +17,6 @@ jobs:
     stagingFeed: ${{ parameters.stagingFeed }}
     # approvers: '[internal]\Azure Functions Core'
     isProduction: ${{ parameters.isProduction }}
-    # partnerFeed:
-    #   serviceConnection: tbd
-    #   targetFolder: azure-functions/dotnet/$${{ parameters.targetFolder }}
+    partnerDrop:
+      serviceConnection: tbd
+      targetFolder: azure-functions/dotnet/$${{ parameters.targetFolder }}

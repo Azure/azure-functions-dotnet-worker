@@ -86,4 +86,5 @@ extends:
           parameters:
             stagingFeed: public/jviau-testing
             artifactName: NugetPackages
+            targetFolder: worker/test
             isProduction: false

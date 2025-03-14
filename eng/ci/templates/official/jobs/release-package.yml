@@ -15,7 +15,7 @@ jobs:
   parameters:
     artifactName: ${{ parameters.artifactName }}
     stagingFeed: ${{ parameters.stagingFeed }}
-    approvers: '[internal]\Azure Functions Core'
+    #approvers: '[internal]\Azure Functions Core'
     isProduction: ${{ parameters.isProduction }}
     partnerDrop:
       serviceConnection: tbd

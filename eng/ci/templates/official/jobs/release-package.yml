@@ -15,8 +15,8 @@ jobs:
   parameters:
     artifactName: ${{ parameters.artifactName }}
     stagingFeed: ${{ parameters.stagingFeed }}
-    # approvers: '[internal]\Azure Functions Core'
+    approvers: '[internal]\Azure Functions Core'
     isProduction: ${{ parameters.isProduction }}
     partnerDrop:
       serviceConnection: tbd
-      targetFolder: azure-functions/dotnet/$${{ parameters.targetFolder }}
+      targetFolder: azure-functions/dotnet/${{ parameters.targetFolder }}

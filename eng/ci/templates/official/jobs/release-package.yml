@@ -2,7 +2,7 @@ parameters:
 - name: stagingFeed
   type: string
   default: public/pre-release
-- name: artifactName
+- name: artifact
   type: string
 - name: targetFolder
   type: string
@@ -13,7 +13,7 @@ parameters:
 jobs:
 - template: /ci/release-nuget-package.yml@eng
   parameters:
-    artifactName: ${{ parameters.artifactName }}
+    artifact: ${{ parameters.artifact }}
     stagingFeed: ${{ parameters.stagingFeed }}
     #approvers: '[internal]\Azure Functions Core'
     isProduction: ${{ parameters.isProduction }}

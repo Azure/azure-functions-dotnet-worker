@@ -85,6 +85,6 @@ extends:
         - template: /eng/ci/templates/official/jobs/release-package.yml@self
           parameters:
             stagingFeed: public/jviau-testing
-            artifactName: NugetPackages
+            artifact: NugetPackages
             targetFolder: worker/test
             isProduction: false

@@ -37,7 +37,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         {
             string metadataFile = Path.Combine(metadataFileDirectory, FileName);
             string newContent = JsonSerializer.Serialize(functions, s_serializerOptions);
-            if (TryReadFile(metadataFile, out string? current) && !string.Equals(current, newContent, StringComparison.Ordinal))
+            if (TryReadFile(metadataFile, out string? current) && string.Equals(current, newContent, StringComparison.Ordinal))
             {
                 // Incremental build support. Skip writing if the content is the same.
                 return;

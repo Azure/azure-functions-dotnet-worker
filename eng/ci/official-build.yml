@@ -35,7 +35,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/heads/u/jviau/release-nupkg
+    ref: refs/heads/u/jviau/release-nupkg-testing
 
 variables:
   - template: ci/variables/build.yml@eng

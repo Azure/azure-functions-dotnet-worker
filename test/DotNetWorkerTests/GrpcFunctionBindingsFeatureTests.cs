@@ -5,6 +5,7 @@ using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Moq;
 using Xunit;
 

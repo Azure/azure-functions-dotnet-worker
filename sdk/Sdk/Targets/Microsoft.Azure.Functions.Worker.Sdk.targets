@@ -214,7 +214,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         .Replace('$functionExe$', '$(_FunctionsExecutable)')
         .Replace('$functionWorker$', '$(TargetName)$(TargetExt)')
         .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-        Overwrite="true" />
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true" />
   </Target>
 
   <!-- Touch up the extensions.json file as needed for .NET isolated -->

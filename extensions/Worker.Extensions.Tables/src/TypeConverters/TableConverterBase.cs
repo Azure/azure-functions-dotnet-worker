@@ -30,11 +30,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new ArgumentNullException(nameof(context));
             }
 
-            if (context.TargetType != typeof(T))
-            {
-                return false;
-            }
-
             if (context.Source is not ModelBindingData bindingData)
             {
                 return false;

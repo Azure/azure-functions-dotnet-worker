@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Tables <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Tables 1.4.3
 
-- <entry>
+- Update dependency `Microsoft.Azure.WebJobs.Extensions.Tables` to 1.3.3
 

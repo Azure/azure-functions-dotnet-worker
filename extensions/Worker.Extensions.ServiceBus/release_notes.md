@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.22.2
 
-- Update dependency `Microsoft.Azure.WebJobs.Extensions.ServiceBus` to 5.16.5.
+- Update dependency `Microsoft.Azure.WebJobs.Extensions.ServiceBus` to 5.16.5

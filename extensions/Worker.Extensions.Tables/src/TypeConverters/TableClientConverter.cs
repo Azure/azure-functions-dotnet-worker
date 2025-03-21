@@ -33,6 +33,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 {
                     return new(ConversionResult.Unhandled());
                 }
+                if (context.TargetType != typeof(TableClient))
+                {
+                    return new(ConversionResult.Unhandled());
+                }
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);

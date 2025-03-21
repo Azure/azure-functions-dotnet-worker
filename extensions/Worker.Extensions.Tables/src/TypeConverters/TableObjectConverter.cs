@@ -16,6 +16,7 @@ using System.Runtime.Serialization.Formatters.Binary;
 using System.Runtime.InteropServices.ComTypes;
 using System.Text.Json;
 using System.Text;
+using System.Collections.Generic;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 {
@@ -66,10 +67,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new ArgumentNullException(nameof(content.PartitionKey));
             }
 
+            /*
             if (string.IsNullOrEmpty(content.RowKey))
             {
                 throw new ArgumentNullException(nameof(content.RowKey));
             }
+            */
 
             return await GetTableEntity(content, targetType);
         }
@@ -77,13 +80,62 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
         private async Task<object?> GetTableEntity(TableData content, Type targetType)
         {
             var tableClient = GetTableClient(content.Connection, content.TableName!);
-            var tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
+            TableEntity tableEntity;
+            IEnumerable<TableEntity> entities;
 
-            var value = DeserializeToTargetObjectAsync(targetType, tableEntity);
-            return value;
+            if (content.RowKey is not null)
+            {
+                tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
+                var value = DeserializeToTargetObjectAsync(targetType, tableEntity);
+                return value;
+            }
+            else 
+            {
+                entities = await GetEnumerableTableEntity(content);
+                var value = DeserializeToTargetObjectAsync(targetType, entities);
+                return value;
+            }
         }
 
-        private object? DeserializeToTargetObjectAsync(Type targetType, TableEntity tableEntity)
+        private async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
+        {
+            var tableClient = GetTableClient(content.Connection, content.TableName!);
+            string? filter = content.Filter;
+
+            if (!string.IsNullOrEmpty(content.PartitionKey))
+            {
+                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
+                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
+            }
+
+            int? maxPerPage = null;
+            if (content.Take > 0)
+            {
+                maxPerPage = content.Take;
+            }
+
+            int countRemaining = content.Take;
+
+            var entities = tableClient.QueryAsync<TableEntity>(
+                            filter: filter,
+                            maxPerPage: maxPerPage).ConfigureAwait(false);
+
+            List<TableEntity> entityList = new();
+
+            await foreach (var entity in entities)
+            {
+                countRemaining--;
+                entityList.Add(entity);
+                if (countRemaining == 0)
+                {
+                    break;
+                }
+            }
+
+            return entityList;
+        }
+
+        private object? DeserializeToTargetObjectAsync(Type targetType, object tableEntity)
         {
             // Serialize the TableEntity to JSON
             string jsonString = JsonSerializer.Serialize(tableEntity);

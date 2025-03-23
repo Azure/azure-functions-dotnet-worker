@@ -66,44 +66,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             return await GetEnumerableTableEntity(content);
         }
-
-        private async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
-        {
-            var tableClient = GetTableClient(content.Connection, content.TableName!);
-            string? filter = content.Filter;
-
-            if (!string.IsNullOrEmpty(content.PartitionKey))
-            {
-                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
-                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
-            }
-
-            int? maxPerPage = null;
-            if (content.Take > 0)
-            {
-                maxPerPage = content.Take;
-            }
-
-            int countRemaining = content.Take;
-
-            var entities = tableClient.QueryAsync<TableEntity>(
-                            filter: filter,
-                            maxPerPage: maxPerPage).ConfigureAwait(false);
-
-            List<TableEntity> entityList = new();
-
-            await foreach (var entity in entities)
-            {
-                countRemaining--;
-                entityList.Add(entity);
-                if (countRemaining == 0)
-                {
-                    break;
-                }
-            }
-
-            return entityList;
-        }
     }
 }
 

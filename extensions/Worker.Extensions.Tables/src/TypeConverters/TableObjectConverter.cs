@@ -12,8 +12,6 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.IO;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Runtime.InteropServices.ComTypes;
 using System.Text.Json;
 using System.Text;
 using System.Collections.Generic;
@@ -21,7 +19,7 @@ using System.Collections.Generic;
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 {
     /// <summary>
-    /// Converter to bind <see cref="TableEntity" /> type parameters.
+    /// Converter to bind <see cref="object" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
     internal class TableObjectConverter : TableConverterBase<object>
@@ -45,7 +43,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
-                var result = await ConvertModelBindingData(tableData, context.TargetType);
+                var result = await ConvertModelBindingData(tableData, context?.TargetType);
+
+                if (result is null)
+                {
+                    return ConversionResult.Failed(new InvalidOperationException($"Unable to convert table binding data to type '{context.TargetType.Name}'."));
+                }
 
                 return ConversionResult.Success(result);
             }
@@ -67,83 +70,25 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new ArgumentNullException(nameof(content.PartitionKey));
             }
 
-            /*
-            if (string.IsNullOrEmpty(content.RowKey))
-            {
-                throw new ArgumentNullException(nameof(content.RowKey));
-            }
-            */
-
-            return await GetTableEntity(content, targetType);
-        }
-
-        private async Task<object?> GetTableEntity(TableData content, Type targetType)
-        {
             var tableClient = GetTableClient(content.Connection, content.TableName!);
-            TableEntity tableEntity;
-            IEnumerable<TableEntity> entities;
 
             if (content.RowKey is not null)
             {
-                tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
-                var value = DeserializeToTargetObjectAsync(targetType, tableEntity);
-                return value;
+                TableEntity tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
+                return DeserializeToTargetObjectAsync(targetType, tableEntity);
             }
             else 
             {
-                entities = await GetEnumerableTableEntity(content);
-                var value = DeserializeToTargetObjectAsync(targetType, entities);
-                return value;
+                IEnumerable<TableEntity> tableEntities = await GetEnumerableTableEntity(content);
+                return DeserializeToTargetObjectAsync(targetType, tableEntities);
             }
-        }
-
-        private async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
-        {
-            var tableClient = GetTableClient(content.Connection, content.TableName!);
-            string? filter = content.Filter;
-
-            if (!string.IsNullOrEmpty(content.PartitionKey))
-            {
-                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
-                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
-            }
-
-            int? maxPerPage = null;
-            if (content.Take > 0)
-            {
-                maxPerPage = content.Take;
-            }
-
-            int countRemaining = content.Take;
-
-            var entities = tableClient.QueryAsync<TableEntity>(
-                            filter: filter,
-                            maxPerPage: maxPerPage).ConfigureAwait(false);
-
-            List<TableEntity> entityList = new();
-
-            await foreach (var entity in entities)
-            {
-                countRemaining--;
-                entityList.Add(entity);
-                if (countRemaining == 0)
-                {
-                    break;
-                }
-            }
-
-            return entityList;
         }
 
         private object? DeserializeToTargetObjectAsync(Type targetType, object tableEntity)
         {
-            // Serialize the TableEntity to JSON
             string jsonString = JsonSerializer.Serialize(tableEntity);
-
-            // Convert JSON string to byte array
             byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
 
-            // Return the byte array as a MemoryStream
             var stream = new MemoryStream(byteArray);
             stream.Seek(0, SeekOrigin.Begin);
 

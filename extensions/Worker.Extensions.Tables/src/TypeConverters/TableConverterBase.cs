@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -64,6 +65,44 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             var tableOptions = _tableOptions.Get(connection);
             TableServiceClient tableServiceClient = tableOptions.CreateClient();
             return tableServiceClient.GetTableClient(tableName);
+        }
+
+        protected async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
+        {
+            var tableClient = GetTableClient(content.Connection, content.TableName!);
+            string? filter = content.Filter;
+
+            if (!string.IsNullOrEmpty(content.PartitionKey))
+            {
+                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
+                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
+            }
+
+            int? maxPerPage = null;
+            if (content.Take > 0)
+            {
+                maxPerPage = content.Take;
+            }
+
+            int countRemaining = content.Take;
+
+            var entities = tableClient.QueryAsync<TableEntity>(
+                            filter: filter,
+                            maxPerPage: maxPerPage).ConfigureAwait(false);
+
+            List<TableEntity> entityList = new();
+
+            await foreach (var entity in entities)
+            {
+                countRemaining--;
+                entityList.Add(entity);
+                if (countRemaining == 0)
+                {
+                    break;
+                }
+            }
+
+            return entityList;
         }
 
         protected class TableData

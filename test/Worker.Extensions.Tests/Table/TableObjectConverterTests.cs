@@ -95,6 +95,37 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
         }
+
+        [Fact]
+        public async Task ConvertAsync_ModelBindingData_Null_ReturnsUnhandled()
+        {
+            var context = new TestConverterContext(typeof(IEnumerable<MyEntity>), null);
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Unhandled, conversionResult.Status);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_SingleTableEntity_ReturnsFailed()
+        {
+            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
+            var context = new TestConverterContext(null, source);
+            var mockResponse = new Mock<Response>();
+            var tableClient = new Mock<TableClient>();
+
+            tableClient
+                .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
+                .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
+
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns(tableClient.Object);
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
+        }
     }
 
     class MyEntity

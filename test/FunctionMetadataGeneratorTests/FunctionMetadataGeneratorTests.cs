@@ -553,17 +553,10 @@ namespace Microsoft.Azure.Functions.SdkTests
             ValidateFunction(enumerableTableEntityFunction, "EnumerableTableEntityFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.EnumerableTableEntityFunction)),
                 b => ValidateTableInput(b));
 
-
-            var tableUnsupportedTypeFunction = functions.Single(p => p.Name == "TableUnsupportedTypeFunction");
-
-            ValidateFunction(tableUnsupportedTypeFunction, "TableUnsupportedTypeFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableUnsupportedTypeFunction)),
-                b => ValidateTableInputBypassDeferredBinding(b));
-
-
             var tablePocoFunction = functions.Single(p => p.Name == "TablePocoFunction");
 
             ValidateFunction(tablePocoFunction, "TablePocoFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TablePocoFunction)),
-                b => ValidateTableInputBypassDeferredBinding(b));
+                b => ValidateTableInput(b));
 
             void ValidateTableInput(ExpandoObject b)
             {
@@ -574,18 +567,6 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "tableName", "tableName" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
-                });
-            }
-
-            void ValidateTableInputBypassDeferredBinding(ExpandoObject b)
-            {
-                AssertExpandoObject(b, new Dictionary<string, object>
-                {
-                    { "Name", "tableInput" },
-                    { "Type", "table" },
-                    { "Direction", "In" },
-                    { "tableName", "tableName" },
-                    { "Properties", new Dictionary<String, Object>( ) { } }
                 });
             }
         }
@@ -1466,13 +1447,6 @@ namespace Microsoft.Azure.Functions.SdkTests
             [Function("EnumerableTableEntityFunction")]
             public object EnumerableTableEntityFunction(
                 [TableInput("tableName")] IEnumerable<TableEntity> tableInput)
-            {
-                throw new NotImplementedException();
-            }
-
-            [Function("TableUnsupportedTypeFunction")]
-            public object TableUnsupportedTypeFunction(
-                [TableInput("tableName")] BinaryData tableInput)
             {
                 throw new NotImplementedException();
             }

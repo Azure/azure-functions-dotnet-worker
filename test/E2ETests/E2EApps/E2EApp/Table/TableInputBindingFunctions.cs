@@ -87,7 +87,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             return response;
         }
 
-        [Function("DoesNotSupportDeferredBinding")]
+        [Function("PocoFunction")]
         public static void TableInput(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             [TableInput("TestTable", "MyPartition", "yo")] MyPoco poco,

@@ -48,7 +48,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         }
 
         [Fact]
-        public async Task ConvertAsync_SingleTableEntity_ReturnsSuccess()
+        public async Task ConvertAsync_SinglePocoEntity_ReturnsSuccess()
         {
             object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
             var context = new TestConverterContext(typeof(MyEntity), source);
@@ -70,9 +70,36 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         }
 
         [Fact]
-        public async Task ConvertAsync_CollectionTableEntity_ReturnsSuccess()
+        public async Task ConvertAsync_CollectionPocoEntity_ReturnsSuccess()
         {
-            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetBadEntityBinaryData(), "AzureStorageTables");
+            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetEntityWithoutRowKeyBinaryData(), "AzureStorageTables");
+            var context = new TestConverterContext(typeof(IEnumerable<MyEntity>), source);
+            var mockResponse = new Mock<Response>();
+            var tableClient = new Mock<TableClient>();
+
+            tableClient
+                .Setup(c => c.GetEntityAsync<TableEntity>(It.IsAny<string>(), It.IsAny<string>(), null, default))
+                .ReturnsAsync(Response.FromValue(new TableEntity(It.IsAny<string>(), It.IsAny<string>()), mockResponse.Object));
+
+            _mockTableServiceClient
+                .Setup(c => c.GetTableClient(Constants.TableName))
+                .Returns(tableClient.Object);
+
+            var expectedOutput = Page<TableEntity>.FromValues(new List<TableEntity> { new TableEntity("partitionKey", "rowKey") }, continuationToken: null, mockResponse.Object);
+
+            tableClient
+                .Setup(c => c.QueryAsync<TableEntity>(It.IsAny<string>(), null, null, default))
+                .Returns(AsyncPageable<TableEntity>.FromPages(new List<Page<TableEntity>> { expectedOutput }));
+
+            var conversionResult = await _tableConverter.ConvertAsync(context);
+
+            Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_CollectionPocoEntity_WithRowKey_ReturnsSuccess()
+        {
+            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
             var context = new TestConverterContext(typeof(IEnumerable<MyEntity>), source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
@@ -107,7 +134,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         }
 
         [Fact]
-        public async Task ConvertAsync_SingleTableEntity_ReturnsFailed()
+        public async Task ConvertAsync_SingleTableEntity_NullTargetType_ReturnsFailed()
         {
             object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
             var context = new TestConverterContext(null, source);

@@ -72,13 +72,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             var tableClient = GetTableClient(content.Connection, content.TableName!);
 
-            if (content.RowKey is null || targetType.IsCollectionType())
+            if (targetType.IsCollectionType())
             {
                 IEnumerable<TableEntity> tableEntities = await GetEnumerableTableEntity(content);
                 return DeserializeToTargetObjectAsync(targetType, tableEntities);
             }
             else 
             {
+                if (string.IsNullOrEmpty(content.RowKey))
+                {
+                    throw new ArgumentNullException(nameof(content.RowKey));
+                }
+
                 TableEntity tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
                 return DeserializeToTargetObjectAsync(targetType, tableEntity);
             }

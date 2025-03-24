@@ -4,8 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventGrid 4.5.0
+### Microsoft.Azure.Functions.Worker.Extensions.EventGrid <version>
 
-- Update dependency "Azure.Messaging.EventGrid" to v4.29.0
-- Update dependency "Microsoft.Azure.Functions.Worker.Core" to v1.20.0
-- Update dependency "Microsoft.Azure.WebJobs.Extensions.EventGrid" to 3.4.4
+- <entry>

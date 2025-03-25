@@ -4,7 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.SignalRService 2.0.1
+### Microsoft.Azure.Functions.Worker.Extensions.SignalRService <version>
 
-- Update SignalR worker extensions to 2.0.1 version.
-- Update other dependencies versions.
+- <entry>

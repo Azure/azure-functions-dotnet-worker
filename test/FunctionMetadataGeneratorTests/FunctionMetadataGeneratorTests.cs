@@ -530,7 +530,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            Assert.Equal(5, functions.Count());
+            Assert.Equal(4, functions.Count());
 
             var tableClientFunction = functions.Single(p => p.Name == "TableClientFunction");
 
@@ -556,7 +556,7 @@ namespace Microsoft.Azure.Functions.SdkTests
             var tablePocoFunction = functions.Single(p => p.Name == "TablePocoFunction");
 
             ValidateFunction(tablePocoFunction, "TablePocoFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TablePocoFunction)),
-                b => ValidateTableInput(b));
+                b => ValidateTableInputBypassDeferredBinding(b));
 
             void ValidateTableInput(ExpandoObject b)
             {
@@ -567,6 +567,18 @@ namespace Microsoft.Azure.Functions.SdkTests
                     { "Direction", "In" },
                     { "tableName", "tableName" },
                     { "Properties", new Dictionary<String, Object>( ) { { "SupportsDeferredBinding" , "True"} } }
+                });
+            }
+
+            void ValidateTableInputBypassDeferredBinding(ExpandoObject b)
+            {
+                AssertExpandoObject(b, new Dictionary<string, object>
+                {
+                    { "Name", "tableInput" },
+                    { "Type", "table" },
+                    { "Direction", "In" },
+                    { "tableName", "tableName" },
+                    { "Properties", new Dictionary<String, Object>( ) { } }
                 });
             }
         }

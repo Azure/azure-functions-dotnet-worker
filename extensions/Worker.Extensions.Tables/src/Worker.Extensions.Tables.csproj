@@ -6,7 +6,7 @@
     <Description>Azure Table Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>1.4.2</VersionPrefix>
+    <VersionPrefix>1.4.3</VersionPrefix>
 
   </PropertyGroup>
 
@@ -29,7 +29,7 @@
   </ItemGroup>
     
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Tables" Version="1.3.2" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Tables" Version="1.3.3" />
   </ItemGroup>
 
 </Project>

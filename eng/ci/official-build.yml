@@ -45,7 +45,7 @@ variables:
     value: ${{ parameters.UseCoreToolsBuildFromIntegrationTests }}
 
 extends:
-  template: v1/1ES.Unofficial.PipelineTemplate.yml@1es
+  template: v1/1ES.Official.PipelineTemplate.yml@1es
   parameters:
     pool:
       name: 1es-pool-azfunc
@@ -62,25 +62,25 @@ extends:
       jobs:
       - template: /eng/ci/templates/official/jobs/build-artifacts.yml@self
 
-    # - stage: Test
-    #   dependsOn: [] # allows you to run stages in parallel
+    - stage: Test
+      dependsOn: [] # allows you to run stages in parallel
 
-    #   jobs:
-    #   - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
-    #     parameters:
-    #       PoolName: 1es-pool-azfunc
-    #   - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
-    #     parameters:
-    #       PoolName: 1es-pool-azfunc
-    #   - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
-    #     parameters:
-    #       PoolName: 1es-pool-azfunc
+      jobs:
+      - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc
+      - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc
+      - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
+        parameters:
+          PoolName: 1es-pool-azfunc
 
     - ${{ if eq(parameters.release, true) }}:
       - stage: Release
         dependsOn:
           - Build
-          #- Test
+          - Test
         jobs:
         - template: /eng/ci/templates/official/jobs/release-package.yml@self
           parameters:

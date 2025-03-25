@@ -17,7 +17,7 @@ jobs:
     os: windows
 
   variables:
-    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
+    ${{ if and( not(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
       buildNumberTemp: $(Build.BuildNumber)
     buildNumber: $[variables.buildNumberTemp]
 
@@ -33,31 +33,31 @@ jobs:
       projects: |
         DotNetWorker.sln
 
-  # - template: ci/sign-files.yml@eng
-  #   parameters:
-  #     displayName: Sign SDK assemblies
-  #     folderPath: sdk
-  #     pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
-  #     signType: dll
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign SDK assemblies
+      folderPath: sdk
+      pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
+      signType: dll
 
-  # - task: DeleteFiles@1
-  #   displayName: Delete CodeSignSummary files
-  #   inputs:
-  #     sourceFolder: sdk
-  #     contents: '**/CodeSignSummary-*.md'
+  - task: DeleteFiles@1
+    displayName: Delete CodeSignSummary files
+    inputs:
+      sourceFolder: sdk
+      contents: '**/CodeSignSummary-*.md'
 
-  # - template: ci/sign-files.yml@eng
-  #   parameters:
-  #     displayName: Sign DotNetWorker assemblies
-  #     folderPath: src
-  #     pattern: Microsoft.Azure.Functions.Worker*.dll
-  #     signType: dll
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign DotNetWorker assemblies
+      folderPath: src
+      pattern: Microsoft.Azure.Functions.Worker*.dll
+      signType: dll
 
-  # - task: DeleteFiles@1
-  #   displayName: Delete CodeSignSummary files
-  #   inputs:
-  #     sourceFolder: src
-  #     contents: '**/CodeSignSummary-*.md'
+  - task: DeleteFiles@1
+    displayName: Delete CodeSignSummary files
+    inputs:
+      sourceFolder: src
+      contents: '**/CodeSignSummary-*.md'
 
   - task: DotNetCoreCLI@2
     displayName: Pack SDK
@@ -77,15 +77,15 @@ jobs:
       projects: |
         src/**/DotNetWorker*.csproj
 
-  # - template: ci/sign-files.yml@eng
-  #   parameters:
-  #     displayName: Sign nuget packages
-  #     folderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
-  #     pattern: Microsoft.Azure.Functions.Worker*.nupkg
-  #     signType: nuget
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign nuget packages
+      folderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
+      pattern: Microsoft.Azure.Functions.Worker*.nupkg
+      signType: nuget
 
-  # - task: DeleteFiles@1
-  #   displayName: Delete CodeSignSummary files
-  #   inputs:
-  #     sourceFolder: $(Build.ArtifactStagingDirectory)/NugetPackages
-  #     contents: '**/CodeSignSummary-*.md'
+  - task: DeleteFiles@1
+    displayName: Delete CodeSignSummary files
+    inputs:
+      sourceFolder: $(Build.ArtifactStagingDirectory)/NugetPackages
+      contents: '**/CodeSignSummary-*.md'

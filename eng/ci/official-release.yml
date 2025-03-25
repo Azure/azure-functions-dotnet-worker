@@ -1,0 +1,109 @@
+parameters:
+- name: buildId
+  type: string
+- name: packages
+  type: string
+  default: core
+  values:
+    - core
+    - sdk
+
+pr: none
+trigger: none
+
+resources:
+  repositories:
+  - repository: 1es
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  - repository: eng
+    type: git
+    name: engineering
+    ref: refs/tags/release
+  pipelines:
+  - pipeline: build
+    source: dotnet-worker.official
+    version: ${{ parameters.buildId }}
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1es
+  parameters:
+    pool:
+      name: 1es-pool-azfunc
+      image: 1es-ubuntu-22.04
+      os: linux
+
+    sdl:
+      sourceAnalysisPool:
+        name: 1es-pool-azfunc
+        image: 1es-windows-2022
+        os: windows
+
+    stages:
+    - stage: Validate
+      jobs:
+        - job: Validate
+
+          variables:
+            drop_path: $(Pipeline.Workspace)/drop
+            artifact_name: NugetPackages
+            ${{ if eq(parameters.packages, 'core') }}:
+              package_name: Microsoft.Azure.Functions.Worker
+              target_folder_prefix: azure-functions/dotnet/worker
+            ${{ if eq(parameters.packages, 'sdk') }}:
+              package_name: Microsoft.Azure.Functions.Worker.Sdk
+              target_folder_prefix: azure-functions/dotnet/worker-sdk
+
+          templateContext:
+            inputs:
+            - input: pipelineArtifact
+              targetPath: $(drop_path)
+              artifactName: $(artifact_name)
+              pipeline: build
+
+          steps:
+          - pwsh:
+              $ErrorActionPreference = 'Stop'
+
+              $name = "${{ parameters.package_name }}".Trim()
+              Write-Host "Getting version for $name"
+              $package = Get-ChildItem -Path $(drop_path) -Recurse -Filter "$name.?.*.nupkg"
+
+              if ($package.Count -eq 0) {
+                Write-Host "##vso[task.LogIssue type=error;]Could not find package $name."
+                exit 1
+              }
+
+              if ($package.Count -gt 1) {
+                Write-Host "##vso[task.LogIssue type=error;]Too many packages matched $name."
+                exit 1
+              }
+
+              $version = $package.Name.Trim('$name.').Trim('.nupkg')
+              Write-Host "##vso[build.updatebuildnumber]$version"
+            displayName: Get package version
+
+    - stage: Release
+      dependsOn: Validate
+      jobs:
+      - template: /ci/release-nuget-package.yml@eng
+        parameters:
+          artifact:
+            name: NugetPackages
+            pipeline: build
+          stagingFeed: public/pre-release
+          approvers: '[internal]\Azure Functions Core'
+          isProduction: true
+          # partnerDrop:
+          #   serviceConnection: tbd
+          #   targetFolder: $(target_folder_prefix)/$(Build.BuildNumber)
+          ${{ if eq(parameters.packages, 'core') }}:
+            packages: |
+              Microsoft.Azure.Functions.Worker.*.nupkg
+              !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+              !*.symbols.nupkg
+          ${{ if eq(parameters.packages, 'sdk') }}:
+            packages: |
+              Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+              !*.symbols.nupkg

@@ -27,6 +27,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         private readonly Lazy<INamedTypeSymbol> _readOnlyMemoryOfBytes;
         private readonly Lazy<INamedTypeSymbol> _lookupGeneric;
         private readonly Lazy<INamedTypeSymbol> _dictionaryGeneric;
+        private readonly Lazy<INamedTypeSymbol> _obsoleteAttr;
 
         internal KnownTypes(Compilation compilation)
         {
@@ -44,6 +45,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
             _readOnlyMemoryOfBytes = new Lazy<INamedTypeSymbol>(() => compilation.GetTypeByMetadataName(typeof(ReadOnlyMemory<byte>).FullName)!);
             _lookupGeneric = new Lazy<INamedTypeSymbol>(() => compilation.GetTypeByMetadataName(typeof(ILookup<,>).FullName)!);
             _dictionaryGeneric = new Lazy<INamedTypeSymbol>(() => compilation.GetTypeByMetadataName(typeof(IDictionary<,>).FullName)!);
+            _obsoleteAttr = new Lazy<INamedTypeSymbol>(() => compilation.GetTypeByMetadataName(typeof(ObsoleteAttribute).FullName)!);
         }
 
         public INamedTypeSymbol TaskType { get => _taskType.Value; }
@@ -73,5 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         public INamedTypeSymbol LookupGeneric { get => _lookupGeneric.Value; }
 
         public INamedTypeSymbol DictionaryGeneric { get => _dictionaryGeneric.Value; }
+
+        public INamedTypeSymbol ObsoleteAttr { get => _obsoleteAttr.Value; }
     }
 }

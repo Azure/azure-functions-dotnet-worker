@@ -63,7 +63,7 @@ extends:
               pipeline: build
 
           steps:
-          - pwsh:
+          - pwsh: |
               $ErrorActionPreference = 'Stop'
 
               $name = "${{ parameters.package_name }}".Trim()
@@ -89,15 +89,15 @@ extends:
       jobs:
       - template: /ci/release-nuget-package.yml@eng
         parameters:
+          isProduction: true
+          approvers: '[internal]\Azure Functions Core'
+          stagingFeed: public/pre-release
+          partnerDrop:
+            serviceConnection: azure-sdk-partner-drops
+            targetFolder: $(target_folder_prefix)/$(Build.BuildNumber)
           artifact:
             name: NugetPackages
             pipeline: build
-          stagingFeed: public/pre-release
-          approvers: '[internal]\Azure Functions Core'
-          isProduction: true
-          # partnerDrop:
-          #   serviceConnection: tbd
-          #   targetFolder: $(target_folder_prefix)/$(Build.BuildNumber)
           ${{ if eq(parameters.packages, 'core') }}:
             packages: |
               Microsoft.Azure.Functions.Worker.*.nupkg

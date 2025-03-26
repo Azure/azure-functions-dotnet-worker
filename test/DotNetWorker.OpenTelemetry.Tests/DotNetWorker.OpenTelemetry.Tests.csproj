@@ -26,6 +26,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotNetWorker.OpenTelemetry\DotNetWorker.OpenTelemetry.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
+    <ProjectReference Include="..\DotNetWorkerTests.Shared\DotNetWorkerTests.Shared.csproj" />
     <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 

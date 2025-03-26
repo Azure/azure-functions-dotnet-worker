@@ -10,6 +10,7 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
 using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;

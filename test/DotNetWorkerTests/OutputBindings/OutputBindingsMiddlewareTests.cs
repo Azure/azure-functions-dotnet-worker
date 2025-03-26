@@ -8,6 +8,7 @@ using System.Net;
 using System.Security.Claims;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
+using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.OutputBindings

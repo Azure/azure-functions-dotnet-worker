@@ -37,8 +37,8 @@ extends:
             inputs:
             - input: pipelineArtifact
               targetPath: $(drop_path)
-              artifactName: ${{ parameters.artifact.name }}
-              pipeline: ${{ parameters.artifact.pipeline }}
+              artifactName: NugetPackages
+              pipeline: build
 
           steps:
           - pwsh: |

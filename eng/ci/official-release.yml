@@ -4,29 +4,12 @@ parameters:
   type: boolean
   default: false
 - name: packages
-  displayName: Packages to publish (glob pattern)
+  displayName: Packages to publish
   type: string
   default: core
   values:
   - core
   - sdk
-  - extensions-abstractions
-  - extensions-cosmos
-  - extensions-eventgrid
-  - extensions-eventhubs
-  - extensions-http-aspnetcore
-  - extensions-http
-  - extensions-kafka
-  - extensions-rabbitmq
-  - extensions-rpc
-  - extensions-servicebus
-  - extensions-signalr
-  - extensions-storage-blobs
-  - extensions-storage-queues
-  - extensions-storage
-  - extensions-tables
-  - extensions-timer
-  - extensions-warmup
 
 pr: none
 trigger: none
@@ -42,21 +25,24 @@ resources:
     name: engineering
     ref: refs/heads/u/jviau/release-nupkg
   pipelines:
-  - ${{ if or(eq(parameters.packages, 'core'), eq(parameters.packages, 'sdk')) }}:
-    - pipeline: build
-      source: dotnet-worker.official
-  - ${{ else }}:
-    - pipeline: build
-      source: ${{ replace(parameters.packages, '-', '.') }}.official
+  - pipeline: build
+    source: dotnet-worker.official
 
 variables:
-  - name: artifact_name
-    value: NugetPackages
-  - name: package_pattern
-    value: |
-      *.nupkg
+  artifact_name: NugetPackages
+  ${{ if eq(parameters.packages, 'core') }}:
+    target_folder_prefix: azure-functions/dotnet/worker
+    package_name: Microsoft.Azure.Functions.Worker
+    package_pattern: |
+      Microsoft.Azure.Functions.Worker.*.nupkg
+      !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
       !*.symbols.nupkg
-  - template: /eng/ci/templates/variables/release-${{ parameters.packages }}.yml@self
+  ${{ if eq(parameters.packages, 'sdk') }}:
+    target_folder_prefix: azure-functions/dotnet/worker-sdk
+    package_name: Microsoft.Azure.Functions.Worker.Sdk
+    package_pattern: |
+      Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !*.symbols.nupkg
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es

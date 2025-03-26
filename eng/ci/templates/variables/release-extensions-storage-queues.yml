@@ -1,0 +1,3 @@
+variables:
+  target_folder_prefix: azure-functions/dotnet/worker-extensions/storage-queues
+  package_name: Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues

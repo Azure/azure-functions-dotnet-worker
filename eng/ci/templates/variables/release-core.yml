@@ -1,0 +1,7 @@
+variables:
+  target_folder_prefix: azure-functions/dotnet/worker
+  package_name: Microsoft.Azure.Functions.Worker
+  package_pattern: |
+    Microsoft.Azure.Functions.Worker.*.nupkg
+    !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+    !*.symbols.nupkg

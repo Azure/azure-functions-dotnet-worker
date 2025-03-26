@@ -81,7 +81,7 @@ extends:
           - pwsh: |
               $ErrorActionPreference = 'Stop'
 
-              $name = "${{ parameters.package_name }}".Trim()
+              $name = "$(package_name)".Trim()
               Write-Host "Getting version for $name"
               $package = Get-ChildItem -Path $(drop_path) -Recurse -Filter "$name.?.*.nupkg"
 

@@ -1,12 +1,18 @@
 parameters:
 - name: buildId
+  displayName: dotnet-worker.official build ID
   type: string
+- name: publishToNugetOrg
+  displayName: Publish to nuget.org?
+  type: boolean
+  default: false
 - name: packages
+  displayName: Packages to publish (glob pattern)
   type: string
   default: core
   values:
-    - core
-    - sdk
+  - core
+  - sdk
 
 pr: none
 trigger: none
@@ -20,11 +26,27 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/tags/release
+    ref: refs/heads/u/jviau/release-nupkg
   pipelines:
   - pipeline: build
     source: dotnet-worker.official
     version: ${{ parameters.buildId }}
+
+variables:
+  artifact_name: NugetPackages
+  ${{ if eq(parameters.packages, 'core') }}:
+    target_folder_prefix: azure-functions/dotnet/worker
+    package_name: Microsoft.Azure.Functions.Worker
+    package_pattern: |
+      Microsoft.Azure.Functions.Worker.*.nupkg
+      !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !*.symbols.nupkg
+  ${{ if eq(parameters.packages, 'sdk') }}:
+    target_folder_prefix: azure-functions/dotnet/worker-sdk
+    package_name: Microsoft.Azure.Functions.Worker.Sdk
+    package_pattern: |
+      Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !*.symbols.nupkg
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -47,13 +69,6 @@ extends:
 
           variables:
             drop_path: $(Pipeline.Workspace)/drop
-            artifact_name: NugetPackages
-            ${{ if eq(parameters.packages, 'core') }}:
-              package_name: Microsoft.Azure.Functions.Worker
-              target_folder_prefix: azure-functions/dotnet/worker
-            ${{ if eq(parameters.packages, 'sdk') }}:
-              package_name: Microsoft.Azure.Functions.Worker.Sdk
-              target_folder_prefix: azure-functions/dotnet/worker-sdk
 
           templateContext:
             inputs:
@@ -92,18 +107,12 @@ extends:
           isProduction: true
           approvers: '[internal]\Azure Functions Core'
           stagingFeed: public/pre-release
-          partnerDrop:
-            serviceConnection: azure-sdk-partner-drops
-            targetFolder: $(target_folder_prefix)/$(Build.BuildNumber)
+          packages: $(package_pattern)
           artifact:
             name: NugetPackages
             pipeline: build
-          ${{ if eq(parameters.packages, 'core') }}:
-            packages: |
-              Microsoft.Azure.Functions.Worker.*.nupkg
-              !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
-              !*.symbols.nupkg
-          ${{ if eq(parameters.packages, 'sdk') }}:
-            packages: |
-              Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
-              !*.symbols.nupkg
+          ${{ if eq(parameters.publishToNugetOrg, true) }}:
+            partnerDrop:
+              serviceConnection: azure-sdk-partner-drops
+              targetFolder: $(target_folder_prefix)/$(Build.BuildNumber)
+              runPipeline: false

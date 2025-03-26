@@ -1,7 +1,4 @@
 parameters:
-- name: buildId
-  displayName: dotnet-worker.official build ID
-  type: string
 - name: publishToNugetOrg
   displayName: Publish to nuget.org?
   type: boolean
@@ -30,7 +27,6 @@ resources:
   pipelines:
   - pipeline: build
     source: dotnet-worker.official
-    version: ${{ parameters.buildId }}
 
 variables:
   artifact_name: NugetPackages

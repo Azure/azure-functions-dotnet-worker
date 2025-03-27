@@ -81,7 +81,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         [Fact]
         public async Task ConvertAsync_BadTableEntity_ReturnsFailed()
         {
-            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetBadEntityBinaryData(), "AzureStorageTables");
+            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetEntityWithoutRowKeyBinaryData(), "AzureStorageTables");
             var context = new TestConverterContext(typeof(TableEntity), source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();

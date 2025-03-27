@@ -64,7 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new InvalidOperationException($"Row key {content.RowKey} cannot have a value if {content.Take} or {content.Filter} are defined");
             }
 
-            return await GetEnumerableTableEntity(content);
+            return await GetEnumerableTableEntityAsync(content);
         }
     }
 }

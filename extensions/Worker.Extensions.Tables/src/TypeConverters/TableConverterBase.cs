@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             return tableServiceClient.GetTableClient(tableName);
         }
 
-        protected async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
+        protected async Task<IEnumerable<TableEntity>> GetEnumerableTableEntityAsync(TableData content)
         {
             var tableClient = GetTableClient(content.Connection, content.TableName!);
             string? filter = content.Filter;

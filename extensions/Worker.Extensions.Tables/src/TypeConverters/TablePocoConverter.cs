@@ -22,11 +22,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     /// Converter to bind <see cref="object" /> type parameters.
     /// </summary>
     [SupportsDeferredBinding]
-    internal class TableObjectConverter : TableConverterBase<object>
+    internal sealed class TablePocoConverter : TableConverterBase<object>
     {
         private readonly IOptions<WorkerOptions> _workerOptions;
 
-        public TableObjectConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableObjectConverter> logger)
+        public TablePocoConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TablePocoConverter> logger)
             : base(tableOptions, logger)
         {
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
@@ -74,7 +74,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             if (targetType.IsCollectionType())
             {
-                IEnumerable<TableEntity> tableEntities = await GetEnumerableTableEntity(content);
+                IEnumerable<TableEntity> tableEntities = await GetEnumerableTableEntityAsync(content);
                 return DeserializeToTargetObjectAsync(targetType, tableEntities);
             }
             else 

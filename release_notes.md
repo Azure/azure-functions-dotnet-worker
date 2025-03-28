@@ -13,6 +13,7 @@
 - Fixing invalid DateTimes in status blobs when invoking via portal (#10916)
 - Bug fix for platform release channel bundles resolution casing issue and additional logging (#10921)
 - Adding support for faas.invoke_duration metric and other spec related updates (#10929)
+- Added the option to exclude test data from the `/functions` endpoint API response (#10943)
 - Increased the GC allocation budget value to improve cold start (#10953)
 - Fixed bug that could result in "Binding names must be unique" error (#10938)
 - Fix race condition that leads the host to initialize placeholder (warmup) function in Linux environments (#10848)

@@ -16,4 +16,3 @@ extends:
   template: /eng/ci/templates/pipelines/release-extension-packages.yml@self
   parameters:
     publishToNugetOrg: ${{ parameters.publishToNugetOrg }}
-    targetFolder: worker-extensions/servicebus

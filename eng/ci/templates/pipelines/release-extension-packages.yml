@@ -6,6 +6,7 @@ parameters:
   default: NugetPackages
 - name: targetFolder
   type: string
+  default: ''
 
 resources:
   repositories:
@@ -17,6 +18,14 @@ resources:
     type: git
     name: engineering
     ref: refs/tags/release
+
+variables:
+- name: target_folder
+  readonly: true
+  ${{ if ne(parameters.targetFolder, '') }}:
+    value: ${{ parameters.targetFolder }}
+  ${{ else }}:
+    value: ${{ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') }}
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -70,5 +79,5 @@ extends:
           ${{ if eq(parameters.publishToNugetOrg, true) }}:
             partnerDrop:
               serviceConnection: azure-sdk-partner-drops
-              targetFolder: azure-functions/dotnet/${{ parameters.targetFolder }}/$(Build.BuildNumber)
+              targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
               runPipeline: false

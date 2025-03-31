@@ -10,7 +10,7 @@ trigger: none
 resources:
   pipelines:
   - pipeline: build
-    source: extensions.abstractions.official
+    source: extensions.kafka.official
 
 extends:
   template: /eng/ci/templates/pipelines/release-extension-packages.yml@self

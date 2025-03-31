@@ -7,8 +7,13 @@ parameters:
 pr: none
 trigger: none
 
+resources:
+  pipelines:
+  - pipeline: build
+    source: extensions.servicebus.official
+
 extends:
   template: /eng/ci/templates/pipelines/release-extension-packages.yml@self
   parameters:
     publishToNugetOrg: ${{ parameters.publishToNugetOrg }}
-    pipelineName: extensions.servicebus.official
+    targetFolder: worker-extensions/servicebus

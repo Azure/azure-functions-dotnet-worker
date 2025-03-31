@@ -7,8 +7,13 @@ parameters:
 pr: none
 trigger: none
 
+resources:
+  pipelines:
+  - pipeline: build
+    source: extensions.abstractions.official
+
 extends:
   template: /eng/ci/templates/pipelines/release-extension-packages.yml@self
   parameters:
     publishToNugetOrg: ${{ parameters.publishToNugetOrg }}
-    pipelineName: extensions.abstractions.official
+    targetFolder: worker-extensions/abstractions

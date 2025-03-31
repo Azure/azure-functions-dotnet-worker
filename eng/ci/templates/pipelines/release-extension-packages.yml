@@ -1,8 +1,14 @@
 parameters:
 - name: publishToNugetOrg
   type: boolean
+- name: pipelineName
+  type: string
+- name: artifactName
+  type: string
+  default: NugetPackages
 - name: targetFolder
   type: string
+  default: ''
 
 resources:
   repositories:
@@ -14,6 +20,17 @@ resources:
     type: git
     name: engineering
     ref: refs/heads/u/jviau/release-nupkg
+  pipelines:
+  - pipeline: build
+    source: ${{ parameters.pipelineName }}
+    trigger: none
+
+variables:
+  # transform 'extensions.pipeline.name.official' to 'pipeline-name'
+  ${{ if eq(parameters.targetFolder, '') }}:
+    target_folder: ${{ replace(replace(replace(parameters.targetFolder, 'extensions.', ''), '.official', ''), '.', '-') }}
+  ${{ else }}:
+    target_folder: ${{ parameters.targetFolder }}
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -45,8 +62,8 @@ extends:
               $ErrorActionPreference = 'Stop'
               $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
               $name = $packages[0].Name
-              Write-Host "Getting version for $($packages[0].Name)"
-              $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?)-.*(?=\.nupkg$)').Value
+              Write-Host "Getting version for $name"
+              $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?(?:-[\w\.].*)?)(?=\.nupkg$)').Value
               Write-Host "##vso[build.updatebuildnumber]$version"
             displayName: Get package version
 
@@ -64,5 +81,5 @@ extends:
           ${{ if eq(parameters.publishToNugetOrg, true) }}:
             partnerDrop:
               serviceConnection: azure-sdk-partner-drops
-              targetFolder: azure-functions/dotnet/${{ parameters.targetFolder }}/$(Build.BuildNumber)
+              targetFolder: azure-functions/dotnet/$(target_folder)/$(Build.BuildNumber)
               runPipeline: false

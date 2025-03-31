@@ -16,7 +16,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/heads/u/jviau/release-nupkg
+    ref: refs/tags/release
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -44,6 +44,9 @@ extends:
               pipeline: build
 
           steps:
+          # For extension releases, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
+          # This is a bit of a hack, but it works for our current setup.
+          # We use a regex to extract the version from the package name and set it as the build number.
           - pwsh: |
               $ErrorActionPreference = 'Stop'
               $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
@@ -60,7 +63,7 @@ extends:
         parameters:
           isProduction: true
           approvers: '[internal]\Azure Functions Core'
-          stagingFeed: public/jviau-testing
+          stagingFeed: public/pre-release
           artifact:
             name: NugetPackages
             pipeline: build

@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
                 "}");
         }
 
-        public static BinaryData GetTableEntityBinaryDataWithNewField()
+        public static BinaryData GetTableEntityWithNewFieldBinaryData()
         {
             return new BinaryData("{" +
                 "\"Connection\" : \"Connection\"," +

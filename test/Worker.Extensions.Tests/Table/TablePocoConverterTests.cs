@@ -48,11 +48,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
             _tableConverter = new TablePocoConverter(workerOptions, mockTablesOptionsMonitor.Object, logger);
         }
 
-        [Fact]
-        public async Task ConvertAsync_SinglePocoEntity_ReturnsSuccess()
+        [Theory]
+        [InlineData(typeof(MyEntity))]
+        [InlineData(typeof(MyTableEntity))]
+        public async Task ConvertAsync_SinglePocoEntity_ReturnsSuccess(Type targetType)
         {
             object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
-            var context = new TestConverterContext(typeof(MyEntity), source);
+            var context = new TestConverterContext(targetType, source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
 
@@ -67,14 +69,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
             var conversionResult = await _tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal(typeof(MyEntity), conversionResult.Value.GetType());
+            Assert.Equal(targetType, conversionResult.Value.GetType());
         }
 
-        [Fact]
-        public async Task ConvertAsync_CollectionPocoEntity_ReturnsSuccess()
+        [Theory]
+        [InlineData(typeof(IEnumerable<MyEntity>))]
+        [InlineData(typeof(IEnumerable<MyTableEntity>))]
+        public async Task ConvertAsync_CollectionPocoEntity_ReturnsSuccess(Type targetType)
         {
             object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetEntityWithoutRowKeyBinaryData(), "AzureStorageTables");
-            var context = new TestConverterContext(typeof(IEnumerable<MyEntity>), source);
+            var context = new TestConverterContext(targetType, source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
 
@@ -97,11 +101,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
         }
 
-        [Fact]
-        public async Task ConvertAsync_CollectionPocoEntity_WithRowKey_ReturnsSuccess()
+        [Theory]
+        [InlineData(typeof(IEnumerable<MyEntity>))]
+        [InlineData(typeof(IEnumerable<MyTableEntity>))]
+        public async Task ConvertAsync_CollectionPocoEntity_WithRowKey_ReturnsSuccess(Type targetType)
         {
             object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
-            var context = new TestConverterContext(typeof(IEnumerable<MyEntity>), source);
+            var context = new TestConverterContext(targetType, source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
 
@@ -156,7 +162,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         }
 
         [Fact]
-        public async Task ConvertAsync_MyEntity_NewtonSoftJsonSerializer_ReturnsSuccess()
+        public async Task ConvertAsync_MyEntityNewField_NewtonSoftJsonSerializer_ReturnsSuccess()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { options.Serializer = new NewtonsoftJsonObjectSerializer(); }).Build();
             var logger = host.Services.GetService<ILogger<TablePocoConverter>>();
@@ -177,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
 
             var tableConverter = new TablePocoConverter(workerOptions, mockTablesOptionsMonitor.Object, logger);
 
-            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryDataWithNewField(), "AzureStorageTables");
+            object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityWithNewFieldBinaryData(), "AzureStorageTables");
             var context = new TestConverterContext(typeof(MyTableEntityWithField), source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
@@ -199,7 +205,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         [Theory]
         [InlineData(typeof(MyEntity))]
         [InlineData(typeof(MyTableEntity))]
-        public async Task ConvertAsync_NewtonSoftJsonSerializer_ReturnsSuccess(Type t)
+        public async Task ConvertAsync_NewtonSoftJsonSerializer_ReturnsSuccess(Type targetType)
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { options.Serializer = new NewtonsoftJsonObjectSerializer(); }).Build();
             var logger = host.Services.GetService<ILogger<TablePocoConverter>>();
@@ -221,7 +227,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
             var tableConverter = new TablePocoConverter(workerOptions, mockTablesOptionsMonitor.Object, logger);
 
             object source = GrpcTestHelper.GetTestGrpcModelBindingData(TableTestHelper.GetTableEntityBinaryData(), "AzureStorageTables");
-            var context = new TestConverterContext(t, source);
+            var context = new TestConverterContext(targetType, source);
             var mockResponse = new Mock<Response>();
             var tableClient = new Mock<TableClient>();
 
@@ -236,7 +242,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
             var conversionResult = await tableConverter.ConvertAsync(context);
 
             Assert.Equal(ConversionStatus.Succeeded, conversionResult.Status);
-            Assert.Equal(t, conversionResult.Value.GetType());
+            Assert.Equal(targetType, conversionResult.Value.GetType());
         }
 
         [Theory]
@@ -285,7 +291,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         [Theory]
         [InlineData(typeof(IEnumerable<MyEntity>))]
         [InlineData(typeof(IEnumerable<MyTableEntity>))]
-        public async Task ConvertAsync_CollectionPocoEntity_Serializer_WithRowKey_ReturnsSuccess(Type t)
+        public async Task ConvertAsync_CollectionPocoEntity_NewtonSoftSerializer_ReturnsSuccess(Type t)
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { options.Serializer = new NewtonsoftJsonObjectSerializer(); }).Build();
             var logger = host.Services.GetService<ILogger<TablePocoConverter>>();

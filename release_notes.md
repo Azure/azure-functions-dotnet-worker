@@ -11,3 +11,4 @@
 - Add support for the release channel setting `WEBSITE_PlatformReleaseChannel` and use this value in extension bundles resolution.
 - Bug fix for platform release channel bundles resolution casing issue and additional logging (#10921)
 - Fix race condition that leads the host to initialize placeholder (warmup) function in Linux environments (#10848)
+- Update Python Worker Version to [4.36.1](https://github.com/Azure/azure-functions-python-worker/releases/tag/4.36.1)

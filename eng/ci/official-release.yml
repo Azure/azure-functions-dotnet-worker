@@ -31,14 +31,14 @@ resources:
 variables:
   artifact_name: NugetPackages
   ${{ if eq(parameters.packages, 'core') }}:
-    target_folder_prefix: azure-functions/dotnet/worker
+    target_folder: azure-functions/dotnet/worker
     package_name: Microsoft.Azure.Functions.Worker
     package_pattern: |
       Microsoft.Azure.Functions.Worker.*.nupkg
       !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
       !*.symbols.nupkg
   ${{ if eq(parameters.packages, 'sdk') }}:
-    target_folder_prefix: azure-functions/dotnet/worker-sdk
+    target_folder: azure-functions/dotnet/worker-sdk
     package_name: Microsoft.Azure.Functions.Worker.Sdk
     package_pattern: |
       Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
@@ -108,5 +108,5 @@ extends:
           ${{ if eq(parameters.publishToNugetOrg, true) }}:
             partnerDrop:
               serviceConnection: azure-sdk-partner-drops
-              targetFolder: $(target_folder_prefix)/$(Build.BuildNumber)
+              targetFolder: $(target_folder)/$(Build.BuildNumber)
               runPipeline: false

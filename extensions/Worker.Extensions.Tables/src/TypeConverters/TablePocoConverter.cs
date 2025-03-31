@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
-                var result = await ConvertModelBindingData(tableData, context?.TargetType);
+                var result = await ConvertModelBindingDataAsync(tableData, context?.TargetType);
 
                 if (result is null)
                 {
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             }
         }
 
-        private async Task<object?> ConvertModelBindingData(TableData content, Type targetType)
+        private async Task<object?> ConvertModelBindingDataAsync(TableData content, Type targetType)
         {
             if (string.IsNullOrEmpty(content.TableName))
             {
@@ -75,7 +75,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             if (targetType.IsCollectionType())
             {
                 IEnumerable<TableEntity> tableEntities = await GetEnumerableTableEntityAsync(content);
-                return DeserializeToTargetObjectAsync(targetType, tableEntities);
+                return DeserializeToTargetObject(targetType, tableEntities);
             }
             else 
             {
@@ -85,11 +85,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 }
 
                 TableEntity tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
-                return DeserializeToTargetObjectAsync(targetType, tableEntity);
+                return DeserializeToTargetObject(targetType, tableEntity);
             }
         }
 
-        private object? DeserializeToTargetObjectAsync(Type targetType, object tableEntity)
+        private object? DeserializeToTargetObject(Type targetType, object tableEntity)
         {
             string jsonString = JsonSerializer.Serialize(tableEntity);
             byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);

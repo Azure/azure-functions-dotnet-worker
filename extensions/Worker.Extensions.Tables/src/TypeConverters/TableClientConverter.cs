@@ -33,6 +33,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 {
                     return new(ConversionResult.Unhandled());
                 }
+
                 if (context.TargetType != typeof(TableClient))
                 {
                     return new(ConversionResult.Unhandled());

@@ -20,15 +20,15 @@ using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
 {
-    public class TableObjectConverterTests
+    public class TablePocoConverterTests
     {
-        private TableObjectConverter _tableConverter;
+        private TablePocoConverter _tableConverter;
         private Mock<TableServiceClient> _mockTableServiceClient;
 
-        public TableObjectConverterTests()
+        public TablePocoConverterTests()
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
-            var logger = host.Services.GetService<ILogger<TableObjectConverter>>();
+            var logger = host.Services.GetService<ILogger<TablePocoConverter>>();
 
             var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>();
 
@@ -44,7 +44,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockTableOptions.Object);
 
-            _tableConverter = new TableObjectConverter(workerOptions, mockTablesOptionsMonitor.Object, logger);
+            _tableConverter = new TablePocoConverter(workerOptions, mockTablesOptionsMonitor.Object, logger);
         }
 
         [Fact]

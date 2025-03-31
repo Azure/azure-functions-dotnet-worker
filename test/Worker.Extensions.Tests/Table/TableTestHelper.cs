@@ -37,5 +37,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
                 "\"PartitionKey\" : \"PartitionKey\"" +
                 "}");
         }
+
+        public static BinaryData GetTableEntityBinaryDataWithNewField()
+        {
+            return new BinaryData("{" +
+                "\"Connection\" : \"Connection\"," +
+                "\"TableName\" : \"TableName\"," +
+                "\"PartitionKey\" : \"PartitionKey\"," +
+                "\"RowKey\" : \"RowKey\"," +
+                "\"NewField\" : \"NewField\"" +
+                "}");
+        }
     }
 }

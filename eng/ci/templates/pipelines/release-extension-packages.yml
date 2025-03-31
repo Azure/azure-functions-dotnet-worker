@@ -74,7 +74,7 @@ extends:
         parameters:
           isProduction: true
           approvers: '[internal]\Azure Functions Core'
-          stagingFeed: public/pre-release
+          stagingFeed: public/jviau-testing
           artifact:
             name: NugetPackages
             pipeline: build

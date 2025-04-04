@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -29,12 +29,23 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
                 "}");
         }
 
-        public static BinaryData GetBadEntityBinaryData()
+        public static BinaryData GetEntityWithoutRowKeyBinaryData()
         {
             return new BinaryData("{" +
                 "\"Connection\" : \"Connection\"," +
                 "\"TableName\" : \"TableName\"," +
                 "\"PartitionKey\" : \"PartitionKey\"" +
+                "}");
+        }
+
+        public static BinaryData GetTableEntityWithNewFieldBinaryData()
+        {
+            return new BinaryData("{" +
+                "\"Connection\" : \"Connection\"," +
+                "\"TableName\" : \"TableName\"," +
+                "\"PartitionKey\" : \"PartitionKey\"," +
+                "\"RowKey\" : \"RowKey\"," +
+                "\"NewField\" : \"NewField\"" +
                 "}");
         }
     }

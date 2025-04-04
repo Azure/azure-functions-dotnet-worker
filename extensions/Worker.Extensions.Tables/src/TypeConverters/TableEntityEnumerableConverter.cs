@@ -35,6 +35,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 {
                     return ConversionResult.Unhandled();
                 }
+                if (context.TargetType != typeof(IEnumerable<TableEntity>))
+                {
+                    return ConversionResult.Unhandled();
+                }
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
@@ -60,45 +64,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new InvalidOperationException($"Row key {content.RowKey} cannot have a value if {content.Take} or {content.Filter} are defined");
             }
 
-            return await GetEnumerableTableEntity(content);
-        }
-
-        private async Task<IEnumerable<TableEntity>> GetEnumerableTableEntity(TableData content)
-        {
-            var tableClient = GetTableClient(content.Connection, content.TableName!);
-            string? filter = content.Filter;
-
-            if (!string.IsNullOrEmpty(content.PartitionKey))
-            {
-                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
-                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
-            }
-
-            int? maxPerPage = null;
-            if (content.Take > 0)
-            {
-                maxPerPage = content.Take;
-            }
-
-            int countRemaining = content.Take;
-
-            var entities = tableClient.QueryAsync<TableEntity>(
-                            filter: filter,
-                            maxPerPage: maxPerPage).ConfigureAwait(false);
-
-            List<TableEntity> entityList = new();
-
-            await foreach (var entity in entities)
-            {
-                countRemaining--;
-                entityList.Add(entity);
-                if (countRemaining == 0)
-                {
-                    break;
-                }
-            }
-
-            return entityList;
+            return await GetEnumerableTableEntityAsync(content);
         }
     }
 }

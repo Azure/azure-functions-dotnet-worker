@@ -1,0 +1,18 @@
+parameters:
+- name: publishToNugetOrg
+  displayName: Publish to nuget.org?
+  type: boolean
+  default: false
+
+pr: none
+trigger: none
+
+resources:
+  pipelines:
+  - pipeline: build
+    source: extensions.http.aspnetcore.official
+
+extends:
+  template: /eng/ci/templates/pipelines/release-extension-packages.yml@self
+  parameters:
+    publishToNugetOrg: ${{ parameters.publishToNugetOrg }}

@@ -12,6 +12,9 @@ parameters:
   displayName: CORE_TOOLS_URL_LINUX
   type: string
   default: ' '
+- name: release
+  type: boolean
+  default: false
 
 trigger:
   batch: true
@@ -56,7 +59,6 @@ extends:
 
     stages:
     - stage: Build
-
       jobs:
       - template: /eng/ci/templates/official/jobs/build-artifacts.yml@self
 
@@ -73,3 +75,16 @@ extends:
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
         parameters:
           PoolName: 1es-pool-azfunc
+
+    - ${{ if eq(parameters.release, true) }}:
+      - stage: Release
+        dependsOn:
+          - Build
+          - Test
+        jobs:
+        - template: /eng/ci/templates/official/jobs/release-package.yml@self
+          parameters:
+            stagingFeed: public/jviau-testing
+            artifact: NugetPackages
+            targetFolder: worker/test
+            isProduction: false

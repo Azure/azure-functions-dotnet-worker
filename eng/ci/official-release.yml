@@ -23,7 +23,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/heads/u/jviau/release-nupkg
+    ref: refs/tags/release
   pipelines:
   - pipeline: build
     source: dotnet-worker.official

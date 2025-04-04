@@ -6,7 +6,7 @@
     <Description>RabbitMQ extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>2.0.3</VersionPrefix>
+    <VersionPrefix>2.0.4</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.RabbitMQ" Version="2.0.3" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.RabbitMQ" Version="2.0.4" />
   </ItemGroup>
 
 </Project>

@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ 2.0.4
 
-- Update `Microsoft.Azure.WebJobs.Extensions.RabbitMQ` to `2.0.4`
+- Update `Microsoft.Azure.WebJobs.Extensions.RabbitMQ` to `2.0.4` (#3019)

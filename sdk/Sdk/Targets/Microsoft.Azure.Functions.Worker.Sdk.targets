@@ -122,7 +122,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
   </Target>
-  
+
   <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
   <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_CheckForFuncInstallation" Condition="'$(FuncExists)' == 'true'">
     <PropertyGroup>

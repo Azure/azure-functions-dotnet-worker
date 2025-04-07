@@ -28,6 +28,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
         {
             var host = new HostBuilder().ConfigureFunctionsWorkerDefaults((WorkerOptions options) => { }).Build();
             var logger = host.Services.GetService<ILogger<TableClientConverter>>();
+            var workerOptions = host.Services.GetService<IOptions<WorkerOptions>>();
 
             _mockTableServiceClient = new Mock<TableServiceClient>();
 
@@ -41,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Table
                 .Setup(m => m.Get(It.IsAny<string>()))
                 .Returns(mockTableOptions.Object);
 
-            _tableConverter = new TableClientConverter(mockTablesOptionsMonitor.Object, logger);
+            _tableConverter = new TableClientConverter(workerOptions, mockTablesOptionsMonitor.Object, logger);
         }
 
         [Fact]

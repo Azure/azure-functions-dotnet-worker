@@ -18,10 +18,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedTargetType(typeof(TableEntity))]
-    internal class TableEntityConverter : TableConverterBase<TableEntity>
+    [SupportedTargetType(typeof(ITableEntity))]
+    internal class TableEntityConverter : TableConverterBase<ITableEntity>
     {
-        public TableEntityConverter(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableEntityConverter> logger)
-            : base(tableOptions, logger)
+        public TableEntityConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableEntityConverter> logger)
+            : base(workerOptions, tableOptions, logger)
         {
         }
 
@@ -33,14 +34,19 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 {
                     return ConversionResult.Unhandled();
                 }
-                if (context.TargetType != typeof(TableEntity))
+                if (context.TargetType != typeof(TableEntity) && context.TargetType != typeof(TableEntity) && !typeof(ITableEntity).IsAssignableFrom(context.TargetType))
                 {
                     return ConversionResult.Unhandled();
                 }
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
-                var result = await ConvertModelBindingData(tableData);
+                var result = await ConvertModelBindingData(context.TargetType, tableData);
+
+                if (result is null)
+                {
+                    return ConversionResult.Failed(new InvalidOperationException($"Unable to convert table binding data to type '{context.TargetType.Name}'."));
+                }
 
                 return ConversionResult.Success(result);
             }
@@ -50,7 +56,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             }
         }
 
-        private async Task<TableEntity> ConvertModelBindingData(TableData content)
+        private async Task<object?> ConvertModelBindingData(Type targetType, TableData content)
         {
             if (string.IsNullOrEmpty(content.TableName))
             {
@@ -67,13 +73,26 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new ArgumentNullException(nameof(content.RowKey));
             }
 
-            return await GetTableEntity(content);
+            return await ToTargetTypeAsync(targetType, content);
         }
 
-        private async Task<TableEntity> GetTableEntity(TableData content)
+        private async Task<object?> ToTargetTypeAsync(Type targetType, TableData content) => targetType switch
+        {
+            Type _ when targetType == typeof(TableEntity) => await GetTableEntityAsync(content),
+            Type _ when typeof(ITableEntity).IsAssignableFrom(targetType) => await DeserializeToTargetEntityAsync(targetType, content)
+        };
+
+        private async Task<TableEntity> GetTableEntityAsync(TableData content)
         {
             var tableClient = GetTableClient(content.Connection, content.TableName!);
-            return await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
+            var tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
+            return (TableEntity)tableEntity;
+        }
+
+        private async Task<object?> DeserializeToTargetEntityAsync(Type targetType, TableData content)
+        {
+            TableEntity tableEntity = await GetTableEntityAsync(content);
+            return DeserializeToTargetObject(targetType, tableEntity);
         }
     }
 }

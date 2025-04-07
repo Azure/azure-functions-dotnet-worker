@@ -6,7 +6,7 @@
     <Description>Azure Table Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>1.4.2</VersionPrefix>
+    <VersionPrefix>1.45.0</VersionPrefix>
 
   </PropertyGroup>
 

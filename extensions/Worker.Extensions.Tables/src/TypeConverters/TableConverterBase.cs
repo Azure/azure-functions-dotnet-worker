@@ -3,6 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Text.Json;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -17,11 +21,13 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     {
         private readonly ILogger<TableConverterBase<T>> _logger;
         protected readonly IOptionsMonitor<TablesBindingOptions> _tableOptions;
+        private readonly IOptions<WorkerOptions> _workerOptions;
 
-        public TableConverterBase(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableConverterBase<T>> logger)
+        public TableConverterBase(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableConverterBase<T>> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _tableOptions = tableOptions ?? throw new ArgumentNullException(nameof(tableOptions));
+            _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
         }
 
         protected bool CanConvert(ConverterContext context)
@@ -67,42 +73,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             return tableServiceClient.GetTableClient(tableName);
         }
 
-        protected async Task<IEnumerable<TableEntity>> GetEnumerableTableEntityAsync(TableData content)
+        protected object? DeserializeToTargetObject(Type targetType, object tableEntity)
         {
-            var tableClient = GetTableClient(content.Connection, content.TableName!);
-            string? filter = content.Filter;
+            string jsonString = JsonSerializer.Serialize(tableEntity);
+            byte[] byteArray = Encoding.UTF8.GetBytes(jsonString);
 
-            if (!string.IsNullOrEmpty(content.PartitionKey))
-            {
-                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
-                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
-            }
+            var stream = new MemoryStream(byteArray);
+            stream.Seek(0, SeekOrigin.Begin);
 
-            int? maxPerPage = null;
-            if (content.Take > 0)
-            {
-                maxPerPage = content.Take;
-            }
-
-            int countRemaining = content.Take;
-
-            var entities = tableClient.QueryAsync<TableEntity>(
-                            filter: filter,
-                            maxPerPage: maxPerPage).ConfigureAwait(false);
-
-            List<TableEntity> entityList = new();
-
-            await foreach (var entity in entities)
-            {
-                countRemaining--;
-                entityList.Add(entity);
-                if (countRemaining == 0)
-                {
-                    break;
-                }
-            }
-
-            return entityList;
+            return _workerOptions?.Value?.Serializer?.Deserialize(stream, targetType, CancellationToken.None);
         }
 
         protected class TableData

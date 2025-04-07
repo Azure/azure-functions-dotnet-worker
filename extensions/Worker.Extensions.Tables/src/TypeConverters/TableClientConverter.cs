@@ -20,8 +20,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     [SupportedTargetType(typeof(TableClient))]
     internal class TableClientConverter: TableConverterBase<TableClient>
     {
-        public TableClientConverter(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableClientConverter> logger)
-            : base(tableOptions, logger)
+        public TableClientConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableClientConverter> logger)
+            : base(workerOptions, tableOptions, logger)
         {
         }
 

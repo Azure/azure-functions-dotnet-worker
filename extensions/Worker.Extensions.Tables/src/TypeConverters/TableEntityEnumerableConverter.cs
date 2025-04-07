@@ -20,10 +20,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
     /// </summary>
     [SupportsDeferredBinding]
     [SupportedTargetType(typeof(IEnumerable<TableEntity>))]
-    internal class TableEntityEnumerableConverter : TableConverterBase<IEnumerable<TableEntity>>
+    [SupportedTargetType(typeof(IEnumerable<ITableEntity>))]
+    internal class TableEntityEnumerableConverter : TableConverterBase<IEnumerable<ITableEntity>>
     {
-        public TableEntityEnumerableConverter(IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableEntityEnumerableConverter> logger)
-            : base(tableOptions, logger)
+        public TableEntityEnumerableConverter(IOptions<WorkerOptions> workerOptions, IOptionsMonitor<TablesBindingOptions> tableOptions, ILogger<TableEntityEnumerableConverter> logger)
+            : base(workerOptions, tableOptions, logger)
         {
         }
 
@@ -35,14 +36,19 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 {
                     return ConversionResult.Unhandled();
                 }
-                if (context.TargetType != typeof(IEnumerable<TableEntity>))
+                if (context.TargetType != typeof(IEnumerable<TableEntity>) && context.TargetType != typeof(IEnumerable<ITableEntity>) && !typeof(IEnumerable<ITableEntity>).IsAssignableFrom(context.TargetType))
                 {
                     return ConversionResult.Unhandled();
                 }
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
-                var result = await ConvertModelBindingData(tableData);
+                var result = await ConvertModelBindingData(context.TargetType, tableData);
+
+                if (result is null)
+                {
+                    return ConversionResult.Failed(new InvalidOperationException($"Unable to convert table binding data to type '{context.TargetType.Name}'."));
+                }
 
                 return ConversionResult.Success(result);
             }
@@ -52,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             }
         }
 
-        private async Task<IEnumerable<TableEntity>> ConvertModelBindingData(TableData content)
+        private async Task<object?> ConvertModelBindingData(Type targetType, TableData content)
         {
             if (string.IsNullOrEmpty(content.TableName))
             {
@@ -64,7 +70,57 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 throw new InvalidOperationException($"Row key {content.RowKey} cannot have a value if {content.Take} or {content.Filter} are defined");
             }
 
-            return await GetEnumerableTableEntityAsync(content);
+            return await ToTargetTypeAsync(targetType, content);
+        }
+
+        private async Task<object?> ToTargetTypeAsync(Type targetType, TableData content) => targetType switch
+        {
+            Type _ when targetType == typeof(IEnumerable<TableEntity>) => await GetEnumerableTableEntityAsync(content),
+            Type _ when typeof(IEnumerable<ITableEntity>).IsAssignableFrom(targetType) => DeserializeToTargetEntitiesAsync(targetType, content)
+        };
+
+        private async Task<object?> DeserializeToTargetEntitiesAsync(Type targetType, TableData content)
+        {
+            IEnumerable<TableEntity> tableEntities = await GetEnumerableTableEntityAsync(content);
+            return DeserializeToTargetObject(targetType, tableEntities);
+        }
+
+        private async Task<IEnumerable<TableEntity>> GetEnumerableTableEntityAsync(TableData content)
+        {
+            var tableClient = GetTableClient(content.Connection, content.TableName!);
+            string? filter = content.Filter;
+
+            if (!string.IsNullOrEmpty(content.PartitionKey))
+            {
+                var partitionKeyPredicate = TableClient.CreateQueryFilter($"PartitionKey eq {content.PartitionKey}");
+                filter = !string.IsNullOrEmpty(content.Filter) ? $"{partitionKeyPredicate} and {content.Filter}" : partitionKeyPredicate;
+            }
+
+            int? maxPerPage = null;
+            if (content.Take > 0)
+            {
+                maxPerPage = content.Take;
+            }
+
+            int countRemaining = content.Take;
+
+            var entities = tableClient.QueryAsync<TableEntity>(
+                            filter: filter,
+                            maxPerPage: maxPerPage).ConfigureAwait(false);
+
+            List<TableEntity> entityList = new();
+
+            await foreach (var entity in entities)
+            {
+                countRemaining--;
+                entityList.Add(entity);
+                if (countRemaining == 0)
+                {
+                    break;
+                }
+            }
+
+            return entityList;
         }
     }
 }

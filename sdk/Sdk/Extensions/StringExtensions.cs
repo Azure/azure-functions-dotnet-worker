@@ -1,8 +1,8 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System.Linq;
 using System;
+using System.Linq;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk
 {
@@ -11,11 +11,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         /// <summary>
         /// Returns a copy of the string where the first character is in lower case.
         /// </summary>
-        public static string ToLowerFirstCharacter(this string str)
+        public static string? ToLowerFirstCharacter(this string? str)
         {
             if (!string.IsNullOrEmpty(str))
             {
-                return Char.ToLowerInvariant(str.First()) + str.Substring(1);
+                return Char.ToLowerInvariant(str.First()) + str!.Substring(1);
             }
             else
             {

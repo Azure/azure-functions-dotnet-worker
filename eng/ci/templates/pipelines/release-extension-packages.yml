@@ -36,9 +36,9 @@ extends:
       os: linux
 
     stages:
-    - stage: Validate
+    - stage: Prepare
       jobs:
-        - job: Validate
+        - job: Prepare Release
 
           variables:
             drop_path: $(Pipeline.Workspace)/drop
@@ -66,7 +66,7 @@ extends:
             displayName: Get package version
 
     - stage: Release
-      dependsOn: Validate
+      dependsOn: Prepare
       jobs:
       - template: /ci/release-nuget-package.yml@eng
         parameters:

@@ -53,9 +53,9 @@ extends:
       os: linux
 
     stages:
-    - stage: Validate
+    - stage: Prepare
       jobs:
-        - job: Validate
+        - job: Prepare Release
 
           variables:
             drop_path: $(Pipeline.Workspace)/drop
@@ -70,6 +70,10 @@ extends:
               pipeline: build
 
           steps:
+
+          # Our build does not have a custom version number set. To convey the version number to the release stage,
+          # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage
+          # can then reference $(Build.BuildVersion) for the target upload folder.
           - pwsh: |
               $ErrorActionPreference = 'Stop'
 
@@ -94,7 +98,7 @@ extends:
             displayName: Get package version
 
     - stage: Release
-      dependsOn: Validate
+      dependsOn: Prepare
       jobs:
       - template: /ci/release-nuget-package.yml@eng
         parameters:

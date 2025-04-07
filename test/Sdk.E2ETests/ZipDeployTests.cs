@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.NET.Sdk.Functions.MSBuild.Tasks;
@@ -34,31 +35,33 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
 
-            await TestUtility.RestoreAndPublishProjectAsync(projectFileDirectory, directoryToZip, $"-r {rid} --self-contained {selfContained}", _testOutputHelper);
+            await TestUtility.RestoreAndPublishProjectAsync(
+                projectFileDirectory, directoryToZip, $"-r {rid} --self-contained {selfContained}", _testOutputHelper);
 
             CreateZipFileTask.CreateZipFileFromDirectory(directoryToZip, zipName);
 
-            using (var zip = new ZipFile(zipName))
+            using var zip = new ZipFile(zipName);
+            Assert.Equal(Directory.GetFiles(directoryToZip, "*", SearchOption.AllDirectories).Length, zip.Count);
+            foreach (ZipEntry entry in zip)
             {
-                Assert.Equal(Directory.GetFiles(directoryToZip, "*", SearchOption.AllDirectories).Length, zip.Count);
-
-                for (int i = 0; i < zip.Count; i++)
+                if (selfContained && (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
                 {
-                    var entry = zip[i];
-                    if (selfContained &&
-                        (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
-                    {
-                        Assert.Equal(3, entry.HostSystem);
-                        Assert.Equal(CreateZipFileTask.UnixExecutablePermissions, entry.ExternalFileAttributes);
-                    }
-                    else
-                    {
-                        Assert.Equal(0, entry.HostSystem);
-                        Assert.Equal(0, entry.ExternalFileAttributes);
-                    }
+                    Assert.Equal(3, entry.HostSystem);
+                    Assert.Equal(CreateZipFileTask.UnixExecutablePermissions, entry.ExternalFileAttributes);
                 }
+                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    // All other files are default on windows.
+                    Assert.Equal(0, entry.HostSystem);
+                    Assert.Equal(0, entry.ExternalFileAttributes);
+                }
+                else
+                {
+                    Assert.Equal(3, entry.HostSystem);
 
-                zip.Close();
+                    // Unix permissions will vary based on the file. Just making sure they have _some_ permissions
+                    Assert.NotEqual(0, entry.ExternalFileAttributes);
+                }
             }
         }
     }

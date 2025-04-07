@@ -122,16 +122,39 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Text="Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package in isolated function apps." />
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
   </Target>
-
+  
   <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
-  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_CheckForFuncInstallation" Condition="'$(FuncExists)' == 'true'">
     <PropertyGroup>
       <RunCommand>func</RunCommand>
       <RunArguments>host start $(RunArguments)</RunArguments>
       <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
     </PropertyGroup>
   </Target>
+
+  <Target Name="_CheckForFuncInstallation">
+    <PropertyGroup>
+      <PathCheckCommand Condition="'$(OS)' == 'Windows_NT'">where func</PathCheckCommand>
+      <PathCheckCommand Condition="'$(OS)' != 'Windows_NT'">which func</PathCheckCommand>
+    </PropertyGroup>
+    <Exec Command="$(PathCheckCommand)" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="FuncExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <FuncExists Condition="'$(FuncExitCode)' == '0'">true</FuncExists>
+    </PropertyGroup>
+  </Target>
   
+  <Target Name="_FunctionsComputeRunArgumentsWhenFuncNotExists" BeforeTargets="ComputeRunArguments" DependsOnTargets="_CheckForFuncInstallation" Condition="'$(FuncExists)' != 'true'">
+    <PropertyGroup>
+      <ErrorMessage>Azure Functions Core Tools is missing. Please install it and try again. Please visit https://aka.ms/azfunc-coretools-not-installed for more details.</ErrorMessage>
+      <RunCommand Condition="'$(OS)' == 'Windows_NT'">cmd.exe</RunCommand>
+      <RunArguments Condition="'$(OS)' == 'Windows_NT'">/c echo $(ErrorMessage)</RunArguments>
+      <RunCommand Condition="'$(OS)' != 'Windows_NT'">sh</RunCommand>
+      <RunArguments Condition="'$(OS)' != 'Windows_NT'">-c 'echo $(ErrorMessage)'</RunArguments>
+    </PropertyGroup>
+  </Target>
+
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->
   <Target Name="_FunctionsBuildExtension"
     AfterTargets="CoreCompile"

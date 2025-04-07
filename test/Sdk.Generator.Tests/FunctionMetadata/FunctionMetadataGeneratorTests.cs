@@ -33,7 +33,17 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
 {
     public class FunctionMetadataGeneratorTests
     {
-        private static Assembly _thisAssembly = typeof(FunctionMetadataGeneratorTests).Assembly;
+        private const string MetadataFileDirectory = ".";
+        private const string MetadataFile = $"{MetadataFileDirectory}/functions.metadata";
+        private static readonly Assembly _thisAssembly = typeof(FunctionMetadataGeneratorTests).Assembly;
+
+        public FunctionMetadataGeneratorTests()
+        {
+            if (File.Exists(MetadataFile))
+            {
+                File.Delete(MetadataFile);
+            }
+        }
 
         [Fact]
         public void BasicHttpFunction()
@@ -76,7 +86,34 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
                 });
             }
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
+        }
+
+        [Fact]
+        public async Task Incremental_WritesOnlyIfChanged()
+        {
+            var generator = new FunctionMetadataGenerator();
+            var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
+            var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttp));
+            var functions = generator.GenerateFunctionMetadata(typeDef);
+
+            // Simulate an existing functions.metadata file with different content.
+            File.WriteAllText(MetadataFile, "[]"); // empty json array.
+            DateTime lastWrite = File.GetLastWriteTimeUtc(MetadataFile);
+
+            await Task.Delay(100); // ensure time passes so timestamp isn't too identical.
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
+            string contents = File.ReadAllText(MetadataFile);
+
+            DateTime newWrite = File.GetLastWriteTimeUtc(MetadataFile);
+            Assert.NotEqual(lastWrite, newWrite);
+            Assert.NotEqual("[]", contents); // ensure the file was written with new content.
+
+            // write again to test incremental.
+            await Task.Delay(100);
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
+            Assert.Equal(newWrite, File.GetLastWriteTimeUtc(MetadataFile));
+            Assert.Equal(contents, File.ReadAllText(MetadataFile));
         }
 
         [Fact]
@@ -120,7 +157,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
                 });
             }
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
         }
 
         [Fact]
@@ -153,7 +190,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
                 });
             }
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
         }
 
         [Fact]
@@ -197,7 +234,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
                 });
             }
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
         }
 
         [Fact]
@@ -1107,7 +1144,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             Assert.Null(retry.MinimumInterval);
             Assert.Null(retry.MaximumInterval);
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
         }
 
         [Fact]
@@ -1129,7 +1166,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             Assert.Equal("00:00:04", retry.MinimumInterval);
             Assert.Equal("00:15:00", retry.MaximumInterval);
 
-            FunctionMetadataJsonWriter.WriteMetadata(functions, ".");
+            FunctionMetadataJsonWriter.WriteMetadata(functions, MetadataFileDirectory);
         }
 
         [Fact]

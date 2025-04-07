@@ -46,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         internal string GetCsProjContent()
         {
             string extensionReferences = GetExtensionReferences();
-            string targetFramework = Constants.Net60;
+            string targetFramework = Constants.Net80;
 
             if (_targetFrameworkIdentifier.Equals(Constants.NetCoreApp, StringComparison.OrdinalIgnoreCase))
             {

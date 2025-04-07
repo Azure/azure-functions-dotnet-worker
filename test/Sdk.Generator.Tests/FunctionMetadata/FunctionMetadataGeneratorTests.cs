@@ -94,7 +94,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         {
             var generator = new FunctionMetadataGenerator();
             var module = ModuleDefinition.ReadModule(_thisAssembly.Location);
-            var typeDef = TestUtility.GetTypeDefinition(typeof(BasicHttp));
+            var typeDef = TypeHelpers.GetTypeDefinition(typeof(BasicHttp));
             var functions = generator.GenerateFunctionMetadata(typeDef);
 
             // Simulate an existing functions.metadata file with different content.

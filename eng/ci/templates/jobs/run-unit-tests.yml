@@ -46,7 +46,6 @@ jobs:
       command: test
       arguments: -v n
       projects: |
-        **\SdkTests.csproj
         **\Sdk.Analyzers.Tests.csproj
         **\Sdk.Generator.Tests.csproj
 

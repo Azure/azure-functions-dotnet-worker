@@ -741,7 +741,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
             // The first character of "Type" property value must be lower case for the scaling infrastructure to work correctly
             bindingType = bindingType.ToLowerFirstCharacter();
 
-            return bindingType;
+            return bindingType!;
         }
 
         private static void AddHttpOutputBinding(IList<ExpandoObject> bindingMetadata, string name)

@@ -13,21 +13,18 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
+namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
 {
-    public partial class FunctionExecutorGeneratorTests
+    public partial class FunctionMetadataProviderGeneratorTests
     {
         public sealed class NotGeneratedTests
         {
-            private readonly Assembly[] _referencedAssemblies = new[]
+            private readonly Assembly[] _referencedExtensionAssemblies = new[]
             {
-                typeof(HttpTriggerAttribute).Assembly,
-                typeof(FunctionAttribute).Assembly,
+                typeof(HttpTriggerAttribute).Assembly, typeof(FunctionAttribute).Assembly,
                 typeof(LoggingServiceCollectionExtensions).Assembly,
                 typeof(ServiceProviderServiceExtensions).Assembly,
-                typeof(ILogger).Assembly,
-                typeof(IConfiguration).Assembly,
-                typeof(HostBuilder).Assembly,
+                typeof(ILogger).Assembly, typeof(IConfiguration).Assembly, typeof(HostBuilder).Assembly,
                 typeof(IHostBuilder).Assembly
             };
 
@@ -42,6 +39,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
             {
                 string inputCode = """
                                    using System;
+                                   using System.Collections.Generic;
                                    using Microsoft.Azure.Functions.Worker;
                                    using Microsoft.Azure.Functions.Worker.Http;
 
@@ -57,18 +55,18 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
                                        }
                                    }
                                    """;
+
                 string? expectedGeneratedFileName = null;
                 string? expectedOutput = null;
 
-                await TestHelpers.RunTestAsync<FunctionExecutorGenerator>(
-                    _referencedAssemblies,
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    _referencedExtensionAssemblies,
                     inputCode,
                     expectedGeneratedFileName,
                     expectedOutput,
                     languageVersion: languageVersion,
                     runInsideAzureFunctionProject: false);
             }
-
         }
     }
 }

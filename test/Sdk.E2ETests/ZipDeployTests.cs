@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
@@ -49,7 +50,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
                     Assert.Equal(3, entry.HostSystem);
                     Assert.Equal(CreateZipFileTask.UnixExecutablePermissions, entry.ExternalFileAttributes);
                 }
-                else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                else if (OperatingSystem.IsWindows())
                 {
                     // All other files are default on windows.
                     Assert.Equal(0, entry.HostSystem);

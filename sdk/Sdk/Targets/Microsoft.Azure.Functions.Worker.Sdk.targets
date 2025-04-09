@@ -145,14 +145,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     </PropertyGroup>
   </Target>
   
-  <Target Name="_FunctionsComputeRunArgumentsWhenFuncNotExists" BeforeTargets="ComputeRunArguments" DependsOnTargets="_CheckForFuncInstallation" Condition="'$(FuncExists)' != 'true'">
-    <PropertyGroup>
-      <ErrorMessage>Azure Functions Core Tools is missing. Please install it and try again. Please visit https://aka.ms/azfunc-coretools-not-installed for more details.</ErrorMessage>
-      <RunCommand Condition="'$(OS)' == 'Windows_NT'">cmd.exe</RunCommand>
-      <RunArguments Condition="'$(OS)' == 'Windows_NT'">/c echo $(ErrorMessage)</RunArguments>
-      <RunCommand Condition="'$(OS)' != 'Windows_NT'">sh</RunCommand>
-      <RunArguments Condition="'$(OS)' != 'Windows_NT'">-c 'echo $(ErrorMessage)'</RunArguments>
-    </PropertyGroup>
+  <Target Name="_FunctionsShowErrorWhenFuncNotInstalled" BeforeTargets="ComputeRunArguments" DependsOnTargets="_CheckForFuncInstallation">
+    <Error Condition="'$(FuncExists)' != 'true'" Text="Azure Functions Core Tools is missing. Please install it and try again. Please visit https://aka.ms/azfunc-coretools-not-installed for more details." />
   </Target>
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->

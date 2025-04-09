@@ -124,8 +124,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
-  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools" Condition="'$(FuncExists)' == 'true'">
-    <PropertyGroup>
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+    <PropertyGroup Condition="'$(FuncExists)' == 'true'">
       <RunCommand>func</RunCommand>
       <RunArguments>host start $(RunArguments)</RunArguments>
       <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
@@ -140,9 +140,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <FuncExists Condition="'$(FuncExitCode)' == '0'">true</FuncExists>
     </PropertyGroup>
   </Target>
-  
-  <Target Name="_FunctionsShowErrorWhenFuncNotInstalled" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
-    <Error Condition="'$(FuncExists)' != 'true'" Text="Azure Functions Core Tools is missing. Please install it and try again. Please visit https://aka.ms/azfunc-coretools-not-installed for more details." />
+
+  <Target Name="_FunctionsComputeRunArgumentsWhenFuncNotExists" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+    <Error Text="Azure Functions Core Tools is missing. Please install it and try again. Visit https://aka.ms/azfunc-coretools-not-installed for more details." Condition="'$(FuncExists)' != 'true'" />
   </Target>
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->

@@ -49,6 +49,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             funcProcess.StartInfo.ArgumentList.Add("start");
             funcProcess.StartInfo.ArgumentList.Add("--csharp");
             funcProcess.StartInfo.ArgumentList.Add("--verbose");
+            funcProcess.StartInfo.ArgumentList.Add("--runtime");
+            funcProcess.StartInfo.ArgumentList.Add("default");
 
             if (enableAuth)
             {

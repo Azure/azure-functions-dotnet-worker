@@ -44,7 +44,7 @@ jobs:
     displayName: 'Run E2E Tests'
     inputs:
       command: test
-      arguments: -v n --no-build -c Release --filter "FullyQualifiedName!~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # skip AspNetCore tests
+      arguments: -v n --no-build -c Release --logger "console;verbosity=detailed" --filter "FullyQualifiedName!~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # skip AspNetCore tests
       projects: |
         **\E2ETests.csproj
         **\SdkE2ETests.csproj

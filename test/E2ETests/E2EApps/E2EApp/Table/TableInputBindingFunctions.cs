@@ -54,6 +54,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
             [TableInput("TestTable", "{partition}", 2, Filter = "RowKey ne '" + "{rowKey}'")] IEnumerable<TableEntity> table)
         {
+            _logger.LogInformation($"Does this show up?");
+
             List<string> tableList = new List<string>();
             var response = req.CreateResponse(HttpStatusCode.OK);
 

@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker.E2EApp;
 using Microsoft.Extensions.Hosting;
 
 namespace Microsoft.Azure.Functions.Worker.E2EApps.CosmosApp
@@ -11,7 +12,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApps.CosmosApp
         static async Task Main(string[] args)
         {
             var host = new HostBuilder()
-                .ConfigureFunctionsWorkerDefaults()
+                .ConfigureFunctionsWorkerDefaults(workerApplication => {
+                    workerApplication.UseMiddleware<MyCustomMiddleware>();
+                })
                 .Build();
 
             await host.RunAsync();

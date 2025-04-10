@@ -13,8 +13,8 @@ namespace Microsoft.Azure.Functions.Worker.E2EApps.CosmosApp
         {
             var host = new HostBuilder()
                 .ConfigureFunctionsWorkerDefaults(workerApplication => {
-                    workerApplication.UseMiddleware<MyCustomMiddleware>();
-                })
+/*                    workerApplication.UseMiddleware<MyCustomMiddleware>();
+*/                })
                 .Build();
 
             await host.RunAsync();

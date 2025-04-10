@@ -6,7 +6,7 @@
     <Description>Azure Service Bus extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.22.1</VersionPrefix>
+    <VersionPrefix>5.22.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -36,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.4" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.ServiceBus" Version="5.16.5" />
   </ItemGroup>
 
 </Project>

@@ -3,12 +3,13 @@
 
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Sdk.Generator.Tests;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.SdkGeneratorTests
+namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
 {
     public partial class FunctionExecutorGeneratorTests
     {

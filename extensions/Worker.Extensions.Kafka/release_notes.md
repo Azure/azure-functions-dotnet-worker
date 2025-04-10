@@ -4,8 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Kafka 4.1.0
+### Microsoft.Azure.Functions.Worker.Extensions.Kafka <version>
 
-- Add KeyAvroSchema and KeyDataType for trigger and output Attributes to the dotnet isolated model.(#2972)
-- Add SslCertificatePEM, SslKeyPEM, SslCaPEM and SslCertificateandKeyPEM for trigger and output Attributes to the dotnet isolated model.(#2972)
-- Update kafka extension version to 4.1.0(#2972)
+- <entry>

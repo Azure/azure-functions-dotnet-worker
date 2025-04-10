@@ -11,11 +11,9 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
         {
             try
             {
-                // This is added pre-function execution, function will have access to this information
-                // in the context.Items dictionary
-                context.Items.Add("middlewareitem", "Hello, from middleware");
+                return;
 
-                await next(context);
+               /* await next(context);
 
                 // This happens after function execution. We can inspect the context after the function
                 // was invoked
@@ -24,7 +22,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
                     ILogger logger = context.GetLogger<MyCustomMiddleware>();
 
                     logger.LogInformation("From function: {message}", message);
-                }
+                }*/
             }
             catch (Exception ex)
             {

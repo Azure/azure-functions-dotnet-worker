@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp
 
                 // This happens after function execution. We can inspect the context after the function
                 // was invoked
-                if (context.Items.TryGetValue("functionitem", out object? value) && value is string message)
+                if (context.Items.TryGetValue("functionitem", out var value) && value is string message)
                 {
                     ILogger logger = context.GetLogger<MyCustomMiddleware>();
 

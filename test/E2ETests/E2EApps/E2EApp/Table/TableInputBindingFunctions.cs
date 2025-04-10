@@ -54,20 +54,56 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = "ReadTableDataFunctionWithFilter/items/{partition}/{rowKey}")] HttpRequestData req,
             [TableInput("TestTable", "{partition}", 2, Filter = "RowKey ne '" + "{rowKey}'")] IEnumerable<TableEntity> table)
         {
-            _logger.LogInformation($"Does this show up?");
-
-            List<string> tableList = new List<string>();
-            var response = req.CreateResponse(HttpStatusCode.OK);
-
-            foreach (TableEntity tableEntity in table)
+            try
             {
-                tableEntity.TryGetValue("Text", out var text);
-                _logger.LogInformation("Value of text: " + text);
-                tableList.Add(text?.ToString() ?? "");
-            }
+                List<string> tableList = new List<string>();
+                var response = req.CreateResponse(HttpStatusCode.OK);
 
-            await response.WriteStringAsync(string.Join(",", tableList));
-            return response;
+                if (table == null)
+                {
+                    _logger.LogWarning("Table data is null");
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    await response.WriteStringAsync("Error: Table data is null");
+                    return response;
+                }
+
+                int count = 0;
+                foreach (TableEntity tableEntity in table)
+                {
+                    try
+                    {
+                        tableEntity.TryGetValue("Text", out var text);
+                        _logger.LogInformation($"Processing entity {count}: PartitionKey={tableEntity.PartitionKey}, RowKey={tableEntity.RowKey}, Text={text}");
+                        tableList.Add(text?.ToString() ?? "<null>");
+                        count++;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Failed to process table entity at index {count}");
+                        tableList.Add($"Error processing entity {count}: {ex.Message}");
+                    }
+                }
+
+                if (count == 0)
+                {
+                    _logger.LogWarning("No table entities found matching the criteria");
+                    response.StatusCode = HttpStatusCode.NotFound;
+                    await response.WriteStringAsync("No entities found matching the specified filter");
+                    return response;
+                }
+
+                _logger.LogInformation($"Successfully processed {count} table entities");
+                await response.WriteStringAsync(string.Join(",", tableList));
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process table input");
+
+                var errorResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await errorResponse.WriteStringAsync($"Function execution failed: {ex.Message}\n\nStack trace: {ex.StackTrace}");
+                return errorResponse;
+            }
         }
 
         [Function(nameof(EnumerableFunction))]

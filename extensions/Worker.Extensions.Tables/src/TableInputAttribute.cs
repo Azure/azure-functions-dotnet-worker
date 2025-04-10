@@ -13,6 +13,7 @@ namespace Microsoft.Azure.Functions.Worker
     [InputConverter(typeof(TableClientConverter))]
     [InputConverter(typeof(TableEntityConverter))]
     [InputConverter(typeof(TableEntityEnumerableConverter))]
+    [InputConverter(typeof(TablePocoConverter))]
     [ConverterFallbackBehavior(ConverterFallbackBehavior.Default)]
     public class TableInputAttribute : InputBindingAttribute
     {

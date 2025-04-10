@@ -1,9 +1,11 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Azure;
 using Azure.Data.Tables;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
@@ -87,7 +89,7 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             return response;
         }
 
-        [Function("DoesNotSupportDeferredBinding")]
+        [Function("PocoFunction")]
         public static void TableInput(
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
             [TableInput("TestTable", "MyPartition", "yo")] MyPoco poco,
@@ -96,11 +98,53 @@ namespace Microsoft.Azure.Functions.Worker.E2EApp.Table
             log.LogInformation($"PK={poco.PartitionKey}, RK={poco.RowKey}, Text={poco.Text}");
         }
 
+        [Function("PocoEnumerableFunction")]
+        public static void TableInput(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [TableInput("TestTable", "MyPartition")] IEnumerable<MyPoco> pocoList,
+            ILogger log)
+        {
+            foreach (MyPoco poco in pocoList)
+            {
+                log.LogInformation($"PK={poco.PartitionKey}, Text={poco.Text}");
+            }
+        }
+
+        [Function("MyEntityFunction")]
+        public static void TableInput(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [TableInput("TestTable", "MyPartition", "yo")] MyEntity poco,
+            ILogger log)
+        {
+            log.LogInformation($"PK={poco.PartitionKey}, RK={poco.RowKey}, Text={poco.Text}");
+        }
+
+        [Function("MyEntityEnumerableFunction")]
+        public static void TableInput(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")] HttpRequestData req,
+            [TableInput("TestTable", "MyPartition")] IEnumerable<MyEntity> pocoList,
+            ILogger log)
+        {
+            foreach (MyEntity poco in pocoList)
+            {
+                log.LogInformation($"PK={poco.PartitionKey}, Text={poco.Text}");
+            }
+        }
+
         public class MyPoco
         {
             public string PartitionKey { get; set; }
             public string RowKey { get; set; }
             public string Text { get; set; }
+        }
+
+        public class MyEntity : ITableEntity
+        {
+            public string PartitionKey { get; set; }
+            public string RowKey { get; set; }
+            public string Text { get; set; }
+            public DateTimeOffset? Timestamp { get; set; }
+            public ETag ETag { get; set; }
         }
     }
 }

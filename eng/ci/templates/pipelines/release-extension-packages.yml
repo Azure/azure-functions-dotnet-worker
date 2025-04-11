@@ -1,0 +1,83 @@
+parameters:
+- name: publishToNugetOrg
+  type: boolean
+- name: artifactName
+  type: string
+  default: NugetPackages
+- name: targetFolder
+  type: string
+  default: ''
+
+resources:
+  repositories:
+  - repository: 1es
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  - repository: eng
+    type: git
+    name: engineering
+    ref: refs/tags/release
+
+variables:
+- name: target_folder
+  readonly: true
+  ${{ if ne(parameters.targetFolder, '') }}:
+    value: ${{ parameters.targetFolder }}
+  ${{ else }}:
+    value: ${{ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') }}
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1es
+  parameters:
+    pool:
+      name: 1es-pool-azfunc
+      image: 1es-ubuntu-22.04
+      os: linux
+
+    stages:
+    - stage: Prepare
+      jobs:
+        - job: Prepare Release
+
+          variables:
+            drop_path: $(Pipeline.Workspace)/drop
+
+          templateContext:
+            type: releaseJob
+            isProduction: true
+            inputs:
+            - input: pipelineArtifact
+              targetPath: $(drop_path)
+              artifactName: ${{ parameters.artifactName }}
+              pipeline: build
+
+          steps:
+          # For extension releases, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
+          # This is a bit of a hack, but it works for our current setup.
+          # We use a regex to extract the version from the package name and set it as the build number.
+          - pwsh: |
+              $ErrorActionPreference = 'Stop'
+              $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
+              $name = $packages[0].Name
+              Write-Host "Getting version for $name"
+              $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?(?:-[\w\.].*)?)(?=\.nupkg$)').Value
+              Write-Host "##vso[build.updatebuildnumber]$version"
+            displayName: Get package version
+
+    - stage: Release
+      dependsOn: Prepare
+      jobs:
+      - template: /ci/release-nuget-package.yml@eng
+        parameters:
+          isProduction: true
+          approvers: '[internal]\Azure Functions Core'
+          stagingFeed: public/pre-release
+          artifact:
+            name: NugetPackages
+            pipeline: build
+          ${{ if eq(parameters.publishToNugetOrg, true) }}:
+            partnerDrop:
+              serviceConnection: azure-sdk-partner-drops
+              targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
+              runPipeline: false

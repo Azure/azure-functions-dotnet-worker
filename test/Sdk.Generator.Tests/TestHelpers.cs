@@ -18,7 +18,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Versioning;
 
-namespace Microsoft.Azure.Functions.SdkGeneratorTests
+namespace Microsoft.Azure.Functions.Sdk.Generator.Tests
 {
     static class TestHelpers
     {

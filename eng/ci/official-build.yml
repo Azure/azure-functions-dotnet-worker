@@ -56,7 +56,6 @@ extends:
 
     stages:
     - stage: Build
-
       jobs:
       - template: /eng/ci/templates/official/jobs/build-artifacts.yml@self
 

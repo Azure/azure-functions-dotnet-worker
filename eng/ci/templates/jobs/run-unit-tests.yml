@@ -1,5 +1,5 @@
 parameters:
-  name: PoolName
+- name: PoolName
   type: string
 
 jobs:
@@ -38,7 +38,7 @@ jobs:
       command: test
       arguments: -v n
       projects: |
-        **/DotNetWorker.Opentelemetry.Tests.csproj
+        **/DotNetWorker.OpenTelemetry.Tests.csproj
 
   - task: DotNetCoreCLI@2
     displayName: Sdk Tests
@@ -46,8 +46,8 @@ jobs:
       command: test
       arguments: -v n
       projects: |
-        **\Sdk.Analyzers.Tests.csproj
-        **\Sdk.Generator.Tests.csproj
+        **/Sdk.Analyzers.Tests.csproj
+        **/Sdk.Generator.Tests.csproj
 
   - task: DotNetCoreCLI@2
     displayName: Extension Tests

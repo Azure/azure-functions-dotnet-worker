@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Queues" Version="12.22.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.21.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.20.0" />
   </ItemGroup>
 

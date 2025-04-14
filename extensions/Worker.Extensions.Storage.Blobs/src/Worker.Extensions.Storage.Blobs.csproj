@@ -20,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Storage.Blobs" Version="12.23.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" /> <!-- we no longer need to reference this directly, we should remove in a new major version -->
+    <!-- <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" /> we no longer need to reference this directly, we should remove in a new major version -->
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.10.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.20.0" />
   </ItemGroup>

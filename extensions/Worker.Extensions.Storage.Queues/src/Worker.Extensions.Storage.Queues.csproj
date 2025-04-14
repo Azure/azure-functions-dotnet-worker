@@ -6,7 +6,7 @@
     <Description>Azure Queue Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.5.1</VersionPrefix>
+    <VersionPrefix>5.5.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -19,8 +19,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Queues" Version="12.17.1" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
+    <PackageReference Include="Azure.Storage.Queues" Version="12.22.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.20.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.1" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.4" />
   </ItemGroup>
 
 </Project>

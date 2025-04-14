@@ -6,7 +6,7 @@
     <Description>Azure Blob Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.6.1</VersionPrefix>
+    <VersionPrefix>6.6.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -19,10 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
+    <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
     <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="5.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.4" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.11.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.20.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.3.1" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Blobs" Version="5.3.4" />
   </ItemGroup>
 
 </Project>

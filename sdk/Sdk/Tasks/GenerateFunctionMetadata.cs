@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -18,13 +19,23 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
     public class GenerateFunctionMetadata : Task
 #endif
     {
+        private enum ExtensionsMode
+        {
+            Default = 0,
+            ValidateExternal = 1,
+            GenerateExternal = 2,
+        }
+
         [Required]
         public string? AssemblyPath { get; set; }
 
         [Required]
         public string? OutputPath { get; set; }
 
+        [Required]
         public string? ExtensionsCsProjFilePath { get; set; }
+
+        public string? ExtensionsCsProjMode { get; set; }
 
         [Required]
         public ITaskItem[]? ReferencePaths { get; set; }
@@ -47,11 +58,57 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
                 IEnumerable<SdkFunctionMetadata> functions = functionGenerator.GenerateFunctionMetadata(AssemblyPath!, ReferencePaths ?? Enumerable.Empty<ITaskItem>());
                 IDictionary<string, string> extensions = functionGenerator.Extensions;
 
-                if (!string.IsNullOrEmpty(ExtensionsCsProjFilePath))
+                
+                if (!Enum.TryParse(ExtensionsCsProjMode, true, out ExtensionsMode mode))
                 {
-                    // Null/empty ExtensionsCsProjFilePath means the extension project is externally provided.
-                    var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(extensions, ExtensionsCsProjFilePath!, AzureFunctionsVersion!, TargetFrameworkIdentifier!, TargetFrameworkVersion!);
+                    Log.LogError($"Invalid value '{ExtensionsCsProjMode}' for ExtensionsCsProjMode. Valid values are 'Default', 'ValidateExternal', or 'GenerateExternal'.");
+                    return false;
+                }
+
+                var extensionsCsProjGenerator = new ExtensionsCsprojGenerator(
+                    extensions,
+                    ExtensionsCsProjFilePath!,
+                    AzureFunctionsVersion!,
+                    TargetFrameworkIdentifier!,
+                    TargetFrameworkVersion!)
+                {
+                    Disclaimer = mode == ExtensionsMode.Default ? Constants.ExtensionCsProjDisclaimer : Constants.ExternalExtensionCsProjDisclaimer,
+                };
+
+                if (mode == ExtensionsMode.ValidateExternal)
+                {
+                    // Validate only mode. Check if the contents on disk match what would be generated.
+                    if (File.Exists(ExtensionsCsProjFilePath!))
+                    {
+                        string content = File.ReadAllText(ExtensionsCsProjFilePath!);
+                        if (string.IsNullOrEmpty(content))
+                        {
+                            Log.LogError($"The extensions csproj file '{ExtensionsCsProjFilePath}' is empty.");
+                            return false;
+                        }
+                        else if (!string.Equals(content, extensionsCsProjGenerator.GetCsProjContent(), StringComparison.Ordinal))
+                        {
+                            Log.LogError($"The extensions csproj file '{ExtensionsCsProjFilePath}' does not match the expected content. Re-run `dotnet build -t:GenerateExtensionProject` to update the csproj.");
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        Log.LogError($"The extensions csproj file '{ExtensionsCsProjFilePath}' does not exist.");
+                        return false;
+                    }
+                }
+                else
+                {
+                    Log.LogMessage($"Generating extensions csproj file '{ExtensionsCsProjFilePath}'.");
                     extensionsCsProjGenerator.Generate();
+                }
+
+                if (mode == ExtensionsMode.GenerateExternal)
+                {
+                    // Generate the Directory.Build.props and Directory.Build.targets files.
+                    Log.LogMessage("Generating Directory.Build.props and Directory.Build.targets files.");
+                    extensionsCsProjGenerator.GenerateDirectoryBuild();
                 }
 
                 WriteMetadataWithRetry(functions);

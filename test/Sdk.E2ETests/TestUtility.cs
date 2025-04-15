@@ -26,7 +26,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         public const string Net50 = "net5.0";
 
         // Paths and executables
-        public static readonly string PathToRepoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"..\..\..\..\..\"));
+        public static readonly string PathToRepoRoot = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, @"../../../../../"));
         public static readonly string TestRoot = Path.Combine(PathToRepoRoot, "test");
         public static readonly string SamplesRoot = Path.Combine(PathToRepoRoot, "samples");
         public static readonly string TestResourcesProjectsRoot = Path.Combine(TestRoot, "Resources", "Projects");

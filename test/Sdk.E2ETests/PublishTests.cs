@@ -34,7 +34,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         [Trait("Requirement", "Docker")]
         public async Task Publish_Container()
         {
-            var repository = nameof(Sdk.E2ETests).ToLower();
+            var repository = "sdk." + nameof(E2ETests).ToLower();
             var imageTag = nameof(Publish_Container);
 
             // setup test environment state in case there is leftover data from previous runs

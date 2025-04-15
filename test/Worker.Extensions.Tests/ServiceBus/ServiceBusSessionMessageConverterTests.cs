@@ -16,12 +16,12 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests
     {
         internal sealed class TestBindingContext : BindingContext
         {
-            public TestBindingContext(IReadOnlyDictionary<string, object?> input)
+            public TestBindingContext(IReadOnlyDictionary<string, object> input)
             {
                 BindingData = input;
             }
 
-            public override IReadOnlyDictionary<string, object?> BindingData { get; }
+            public override IReadOnlyDictionary<string, object> BindingData { get; }
         }
 
         internal sealed class TestFunctionContext : FunctionContext

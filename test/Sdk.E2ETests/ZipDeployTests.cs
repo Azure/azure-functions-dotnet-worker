@@ -2,7 +2,6 @@
 using System.IO;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
-using Microsoft.Azure.Functions.Sdk.E2ETests;
 using Microsoft.NET.Sdk.Functions.MSBuild.Tasks;
 using Xunit;
 using Xunit.Abstractions;
@@ -38,19 +37,25 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             using var zip = new ZipFile(zipName);
             Assert.Equal(Directory.GetFiles(_builder.OutputPath, "*", SearchOption.AllDirectories).Length, zip.Count);
 
-            for (int i = 0; i < zip.Count; i++)
+            foreach (ZipEntry entry in zip)
             {
-                var entry = zip[i];
-                if (selfContained &&
-                    (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
+                if (selfContained && (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
                 {
                     Assert.Equal(3, entry.HostSystem);
                     Assert.Equal(CreateZipFileTask.UnixExecutablePermissions, entry.ExternalFileAttributes);
                 }
-                else
+                else if (OperatingSystem.IsWindows())
                 {
+                    // All other files are default on windows.
                     Assert.Equal(0, entry.HostSystem);
                     Assert.Equal(0, entry.ExternalFileAttributes);
+                }
+                else
+                {
+                    Assert.Equal(3, entry.HostSystem);
+
+                    // Unix permissions will vary based on the file. Just making sure they have _some_ permissions
+                    Assert.NotEqual(0, entry.ExternalFileAttributes);
                 }
             }
 

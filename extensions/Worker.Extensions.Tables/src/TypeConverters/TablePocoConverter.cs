@@ -43,7 +43,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
-                var result = await ConvertModelBindingDataAsync(tableData, context?.TargetType);
+                var result = await ConvertModelBindingDataAsync(tableData, context!.TargetType);
 
                 if (result is null)
                 {

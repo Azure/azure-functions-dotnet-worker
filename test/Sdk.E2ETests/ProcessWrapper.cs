@@ -6,26 +6,27 @@ using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
-    public class ProcessWrapper
+    public static class ProcessWrapper
     {
-
-        public async Task<int?> RunProcess(string fileName, string arguments, string workingDirectory, ITestOutputHelper testOutputHelper = null)
+        public static async Task<int?> RunProcessAsync(
+            string fileName, string arguments, string workingDirectory = null, Action<string> log = null)
         {
-            return await RunProcessInternal(fileName, arguments, workingDirectory, testOutputHelper);
+            return await RunProcessInternalAsync(fileName, arguments, workingDirectory, log);
         }
 
-        public async Task<Tuple<int?, string>> RunProcessForOutput(string fileName, string arguments, string workingDirectory, ITestOutputHelper testOutputHelper = null)
+        public static async Task<Tuple<int?, string>> RunProcessForOutputAsync(
+            string fileName, string arguments, string workingDirectory = null, Action<string> log = null)
         {
             StringBuilder processOutputStringBuilder = new StringBuilder();
-            var exitCode = await RunProcessInternal(fileName, arguments, workingDirectory, testOutputHelper, processOutputStringBuilder);
+            var exitCode = await RunProcessInternalAsync(fileName, arguments, workingDirectory, log, processOutputStringBuilder);
             return new Tuple<int?,string>(exitCode, processOutputStringBuilder.ToString());
         }
 
-        private async Task<int?> RunProcessInternal(string fileName, string arguments, string workingDirectory, ITestOutputHelper testOutputHelper = null, StringBuilder processOutputBuilder = null)
+        private static async Task<int?> RunProcessInternalAsync(
+            string fileName, string arguments, string workingDirectory = null, Action<string> log = null, StringBuilder processOutputBuilder = null)
         {
 
             SemaphoreSlim processExitSemaphore = new SemaphoreSlim(0, 1);
@@ -53,11 +54,8 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             {
                 if (o.Data != null)
                 {
-                    testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] Error: {o.Data}");
-                    if (processOutputBuilder != null)
-                    {
-                        processOutputBuilder.AppendLine(o.Data);
-                    }
+                    log?.Invoke($"[{DateTime.UtcNow:O}] Error: {o.Data}");
+                    processOutputBuilder?.AppendLine(o.Data);
                 }
             };
 
@@ -65,11 +63,8 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             {
                 if (o.Data != null)
                 {
-                    testOutputHelper.WriteLine($"[{DateTime.UtcNow:O}] {o.Data}");
-                    if (processOutputBuilder != null)
-                    {
-                        processOutputBuilder.AppendLine(o.Data);
-                    }
+                    log?.Invoke($"[{DateTime.UtcNow:O}] {o.Data}");
+                    processOutputBuilder?.AppendLine(o.Data);
                 }
             };
 
@@ -81,7 +76,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             int wait = 3 * 60 * 1000;
             if (!await processExitSemaphore.WaitAsync(wait))
             {
-                testOutputHelper?.WriteLine($"Process '{testProcess.Id}' did not exit in {wait}ms.");
+               log?.Invoke($"Process '{testProcess.Id}' did not exit in {wait}ms.");
                 testProcess.Kill();
             }
 

@@ -63,7 +63,7 @@ namespace Microsoft.NET.Sdk.Functions.Tasks
             return ZipDeployAsync(zipToPublishPath, userName, password, publishUrl, siteName, userAgentVersion, useBlobContainerDeploy: false, client, logMessages);
         }
 
-        internal async System.Threading.Tasks.Task<bool> ZipDeployAsync(string zipToPublishPath, string userName, string password, string? publishUrl, string siteName, string userAgentVersion, bool useBlobContainerDeploy, IHttpClient client, bool logMessages)
+        internal async System.Threading.Tasks.Task<bool> ZipDeployAsync(string zipToPublishPath, string userName, string password, string? publishUrl, string? siteName, string userAgentVersion, bool useBlobContainerDeploy, IHttpClient client, bool logMessages)
         {
             if (!File.Exists(zipToPublishPath) || client == null)
             {

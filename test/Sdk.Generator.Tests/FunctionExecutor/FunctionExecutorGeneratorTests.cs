@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Azure.Messaging.EventHubs;
 using Azure.Storage.Queues.Models;
+using Microsoft.Azure.Functions.Sdk.Generator.Tests;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.SdkGeneratorTests
+namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
 {
     public partial class FunctionExecutorGeneratorTests
     {

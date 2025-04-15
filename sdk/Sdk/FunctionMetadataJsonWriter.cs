@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -34,9 +35,26 @@ namespace Microsoft.Azure.Functions.Worker.Sdk
         public static void WriteMetadata(IEnumerable<SdkFunctionMetadata> functions, string metadataFileDirectory)
         {
             string metadataFile = Path.Combine(metadataFileDirectory, FileName);
-            using var fs = new FileStream(metadataFile, FileMode.Create, FileAccess.Write);
-            using var writer = new Utf8JsonWriter(fs, new JsonWriterOptions { Indented = true });
-            JsonSerializer.Serialize(writer, functions, s_serializerOptions);
+            string newContent = JsonSerializer.Serialize(functions, s_serializerOptions);
+            if (TryReadFile(metadataFile, out string? current) && string.Equals(current, newContent, StringComparison.Ordinal))
+            {
+                // Incremental build support. Skip writing if the content is the same.
+                return;
+            }
+
+            File.WriteAllText(metadataFile, newContent);
+        }
+
+        private static bool TryReadFile(string filePath, out string? content)
+        {
+            if (File.Exists(filePath))
+            {
+                content = File.ReadAllText(filePath);
+                return true;
+            }
+
+            content = null;
+            return false;
         }
     }
 }

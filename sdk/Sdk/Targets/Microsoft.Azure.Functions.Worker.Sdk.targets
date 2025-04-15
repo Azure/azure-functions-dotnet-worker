@@ -42,6 +42,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v7.0'">net7-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v8.0'">net8-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v9.0'">net9-isolated</_ToolingSuffix>
+    <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETCoreApp' And '$(TargetFrameworkVersion)' == 'v10.0'">net10-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="$(AzureFunctionsVersion.StartsWith('v4',StringComparison.OrdinalIgnoreCase)) And '$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
 
@@ -123,14 +124,27 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
-  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
-    <PropertyGroup>
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+    <PropertyGroup Condition="'$(FuncExists)' == 'true'">
       <RunCommand>func</RunCommand>
       <RunArguments>host start $(RunArguments)</RunArguments>
       <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
     </PropertyGroup>
   </Target>
-  
+
+  <Target Name="_FunctionsCheckForCoreTools">
+    <Exec Command="func --version" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="FuncExitCode" />
+    </Exec>
+    <PropertyGroup>
+      <FuncExists Condition="'$(FuncExitCode)' == '0'">true</FuncExists>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_FunctionsComputeRunArgumentsWhenFuncNotExists" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+    <Error Text="Azure Functions Core Tools is missing. Please install it and try again. Visit https://aka.ms/azfunc-coretools-not-installed for more details." Condition="'$(FuncExists)' != 'true'" />
+  </Target>
+
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->
   <Target Name="_FunctionsBuildExtension"
     AfterTargets="CoreCompile"
@@ -215,7 +229,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         .Replace('$functionExe$', '$(_FunctionsExecutable)')
         .Replace('$functionWorker$', '$(TargetName)$(TargetExt)')
         .Replace('$enableWorkerIndexing$', '$(FunctionsEnableWorkerIndexing)'))"
-        Overwrite="true" />
+      Overwrite="true"
+      WriteOnlyWhenDifferent="true" />
   </Target>
 
   <!-- Touch up the extensions.json file as needed for .NET isolated -->

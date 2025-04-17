@@ -93,7 +93,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             return bindingData.ContentType switch
             {
-                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<BlobBindingData>(),
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<BlobBindingData>()!,
                 _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }

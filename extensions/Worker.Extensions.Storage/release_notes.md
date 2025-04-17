@@ -9,9 +9,12 @@
 - <entry>
 
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs 6.7.0
 
-- <entry>
+- Update WebJobs package `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` to 5.3.4
+- Removed `Microsoft.Bcl.AsyncInterfaces` as direct dependency
+- Update other dependencies to latest versions
+
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues  <version>
 

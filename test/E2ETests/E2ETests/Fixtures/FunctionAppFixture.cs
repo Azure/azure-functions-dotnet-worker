@@ -95,6 +95,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 
                 var httpClient = new HttpClient();
                 _logger.LogInformation("Waiting for host to be running...");
+                _logger.LogInformation(Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_RUNTIME"));
                 await TestUtility.RetryAsync(async () =>
                 {
                     try

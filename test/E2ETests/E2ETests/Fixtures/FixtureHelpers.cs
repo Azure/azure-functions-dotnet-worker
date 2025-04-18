@@ -45,9 +45,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             funcProcess.StartInfo.CreateNoWindow = true;
             funcProcess.StartInfo.WorkingDirectory = e2eAppPath;
             funcProcess.StartInfo.FileName = cliPath;
-            funcProcess.StartInfo.ArgumentList.Add("host");
             funcProcess.StartInfo.ArgumentList.Add("start");
-            funcProcess.StartInfo.ArgumentList.Add("--csharp");
             funcProcess.StartInfo.ArgumentList.Add("--verbose");
 
             if (enableAuth)

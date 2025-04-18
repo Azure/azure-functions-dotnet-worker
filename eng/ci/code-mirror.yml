@@ -13,7 +13,7 @@ resources:
     ref: refs/tags/release
 
 variables:
-  - template: ci/variables/cfs.yml@eng
+- template: ci/variables/cfs.yml@eng
 
 extends:
   template: ci/code-mirror.yml@eng

@@ -39,6 +39,7 @@ jobs:
       DotnetVersion: $(dotnetVersion)
       UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipBuildOnPack: true
+      CoreToolsUrl: https://coretoolsbuild.blob.core.windows.net/7030/Azure.Functions.Cli.win-x64.4.0.7030.zip
 
   - task: DotNetCoreCLI@2
     displayName: 'Run E2E Tests'

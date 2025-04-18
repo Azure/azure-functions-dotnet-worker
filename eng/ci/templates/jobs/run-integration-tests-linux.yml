@@ -30,6 +30,7 @@ jobs:
       UseCoreToolsBuild: $(UseCoreToolsBuildFromIntegrationTests)
       SkipCosmosDBEmulator: true
       SkipBuildOnPack: true
+      CoreToolsUrl: https://coretoolsbuild.blob.core.windows.net/7030/Azure.Functions.Cli.linux-x64.4.0.7030.zip
 
   - task: DotNetCoreCLI@2
     displayName: 'Run E2E tests'

@@ -17,6 +17,8 @@ parameters:
   - name: SkipBuildOnPack
     type: boolean
     default: false
+  - name: CoreToolsUrl
+    type: string
 
 steps:
 
@@ -33,3 +35,5 @@ steps:
       -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuild }}
       -SkipBuildOnPack:$${{ parameters.SkipBuildOnPack }}
     pwsh: true
+    env:
+      CORE_TOOLS_URL: ${{ parameters.CoreToolsUrl }}

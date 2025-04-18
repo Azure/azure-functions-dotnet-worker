@@ -142,7 +142,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="_FunctionsComputeRunArgumentsWhenFuncNotExists" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
-    <Error Text="Azure Functions Core Tools is missing. Please install it and try again. Visit https://aka.ms/azfunc-coretools-not-installed for more details." Condition="'$(FuncExists)' != 'true'" />
+    <Error Text="Unable to launch the Azure Functions Core Tools. Please visit https://aka.ms/azfunc-dotnet-run-error for more details on how to address this problem." Condition="'$(FuncExists)' != 'true'" />
   </Target>
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->

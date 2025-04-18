@@ -17,7 +17,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/tags/release
+    ref: refs/heads/u/jviau/fix-env
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -77,7 +77,8 @@ extends:
           artifact:
             name: NugetPackages
             pipeline: build
-          partnerDrop:
-            serviceConnection: azure-sdk-partner-drops
-            targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
-            runPipeline: false
+          ${{ if eq(parameters.publishToNugetOrg, true) }}:
+            partnerDrop:
+              serviceConnection: azure-sdk-partner-drops
+              targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
+              runPipeline: false

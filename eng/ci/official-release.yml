@@ -29,18 +29,27 @@ resources:
     source: dotnet-worker.official
 
 variables:
-  artifact_name: NugetPackages
-  ${{ if eq(parameters.packages, 'core') }}:
-    target_folder: azure-functions/dotnet/worker
-    package_name: Microsoft.Azure.Functions.Worker
-    package_pattern: |
+- name: artifact_name
+  value: NugetPackages
+
+- ${{ if eq(parameters.packages, 'core') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker
+  - name: package_pattern
+    value: |
       Microsoft.Azure.Functions.Worker.*.nupkg
       !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
       !*.symbols.nupkg
-  ${{ if eq(parameters.packages, 'sdk') }}:
-    target_folder: azure-functions/dotnet/worker-sdk
-    package_name: Microsoft.Azure.Functions.Worker.Sdk
-    package_pattern: |
+
+- ${{ if eq(parameters.packages, 'sdk') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-sdk
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker.Sdk
+  - name: package_pattern
+    value: |
       Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
       !*.symbols.nupkg
 
@@ -69,6 +78,7 @@ extends:
               pipeline: build
 
           steps:
+          - checkout: none
 
           # Our build does not have a custom version number set. To convey the version number to the release stage,
           # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage

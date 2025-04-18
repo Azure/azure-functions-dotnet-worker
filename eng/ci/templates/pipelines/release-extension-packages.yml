@@ -34,7 +34,9 @@ extends:
         - job: Prepare
 
           variables:
-            drop_path: $(Pipeline.Workspace)/drop
+          - template: ci/variables/cfs.yml@eng
+          - name: drop_path
+            value: $(Pipeline.Workspace)/drop
 
           templateContext:
             type: validationJob
@@ -45,6 +47,8 @@ extends:
               pipeline: build
 
           steps:
+          - checkout: none
+
           # For extension releases, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
           # This is a bit of a hack, but it works for our current setup.
           # We use a regex to extract the version from the package name and set it as the build number.
@@ -61,6 +65,7 @@ extends:
       dependsOn: Prepare
 
       variables:
+      - template: ci/variables/cfs.yml@eng
       - name: target_folder
         readonly: true
         ${{ if ne(parameters.targetFolder, '') }}:

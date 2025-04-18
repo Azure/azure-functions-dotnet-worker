@@ -38,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker
                 throw new InvalidContentTypeException(modelBindingData.ContentType, Constants.JsonContentType);
             }
 
-            return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions);
+            return modelBindingData.Content.ToObjectFromJson<QueueMessage>(_jsonOptions)!;
         }
     }
 }

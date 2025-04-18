@@ -37,3 +37,4 @@ steps:
     pwsh: true
   env:
       CORE_TOOLS_URL: ${{ parameters.CoreToolsUrl }}
+      CORE_TOOLS_URL_LINUX: ${{ parameters.CoreToolsUrl }}

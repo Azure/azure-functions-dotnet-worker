@@ -17,7 +17,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/heads/u/jviau/fix-env
+    ref: refs/tags/release
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
@@ -81,4 +81,3 @@ extends:
             partnerDrop:
               serviceConnection: azure-sdk-partner-drops
               targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
-              runPipeline: false

@@ -69,25 +69,15 @@ extends:
           value: ${{ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') }}
 
       jobs:
-      - ${{ if eq(parameters.publishToNugetOrg, true) }}:
-        - template: /ci/release-nuget-package.yml@eng
-          parameters:
-            isProduction: true
-            approvers: '[internal]\Azure Functions Core'
-            stagingFeed: public/pre-release
-            artifact:
-              name: NugetPackages
-              pipeline: build
-            partnerDrop:
-              serviceConnection: azure-sdk-partner-drops
-              targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
-              runPipeline: false
-      - ${{ else }}:
-        - template: /ci/release-nuget-package.yml@eng
-          parameters:
-            isProduction: true
-            approvers: '[internal]\Azure Functions Core'
-            stagingFeed: public/pre-release
-            artifact:
-              name: NugetPackages
-              pipeline: build
+      - template: /ci/release-nuget-package.yml@eng
+        parameters:
+          isProduction: true
+          approvers: '[internal]\Azure Functions Core'
+          stagingFeed: public/pre-release
+          artifact:
+            name: NugetPackages
+            pipeline: build
+          partnerDrop:
+            serviceConnection: azure-sdk-partner-drops
+            targetFolder: azure-functions/dotnet/worker-extensions/$(target_folder)/$(Build.BuildNumber)
+            runPipeline: false

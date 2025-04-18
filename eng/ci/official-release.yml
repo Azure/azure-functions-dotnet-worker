@@ -55,14 +55,13 @@ extends:
     stages:
     - stage: Prepare
       jobs:
-        - job: Prepare Release
+        - job: Prepare
 
           variables:
             drop_path: $(Pipeline.Workspace)/drop
 
           templateContext:
-            type: releaseJob
-            isProduction: true
+            type: validationJob
             inputs:
             - input: pipelineArtifact
               targetPath: $(drop_path)

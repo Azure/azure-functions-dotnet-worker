@@ -19,14 +19,6 @@ resources:
     name: engineering
     ref: refs/tags/release
 
-variables:
-- name: target_folder
-  readonly: true
-  ${{ if ne(parameters.targetFolder, '') }}:
-    value: ${{ parameters.targetFolder }}
-  ${{ else }}:
-    value: ${{ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') }}
-
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1es
   parameters:
@@ -36,6 +28,7 @@ extends:
       os: linux
 
     stages:
+
     - stage: Prepare
       jobs:
         - job: Prepare
@@ -66,6 +59,15 @@ extends:
 
     - stage: Release
       dependsOn: Prepare
+
+      variables:
+      - name: target_folder
+        readonly: true
+        ${{ if ne(parameters.targetFolder, '') }}:
+          value: ${{ parameters.targetFolder }}
+        ${{ else }}:
+          value: ${{ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') }}
+
       jobs:
       - template: /ci/release-nuget-package.yml@eng
         parameters:

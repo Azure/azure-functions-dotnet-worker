@@ -52,20 +52,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         private async Task<TableEntity> ConvertModelBindingData(TableData content)
         {
-            if (string.IsNullOrEmpty(content.TableName))
-            {
-                throw new ArgumentNullException(nameof(content.TableName));
-            }
+            ThrowIfNull(content.TableName, nameof(content.TableName));
 
-            if (string.IsNullOrEmpty(content.PartitionKey))
-            {
-                throw new ArgumentNullException(nameof(content.PartitionKey));
-            }
+            ThrowIfNull(content.PartitionKey, nameof(content.PartitionKey));
 
-            if (string.IsNullOrEmpty(content.RowKey))
-            {
-                throw new ArgumentNullException(nameof(content.RowKey));
-            }
+            ThrowIfNull(content.RowKey, nameof(content.RowKey));
 
             return await GetTableEntity(content);
         }

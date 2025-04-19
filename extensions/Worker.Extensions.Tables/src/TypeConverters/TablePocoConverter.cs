@@ -41,6 +41,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                     return ConversionResult.Unhandled();
                 }
 
+                if (context.TargetType == typeof(byte[]))
+                {
+                    throw new NotSupportedException($"Unsupported binding type: '{context.TargetType}'");
+                }
+
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
                 var result = await ConvertModelBindingDataAsync(tableData, context!.TargetType);
@@ -60,15 +65,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         private async Task<object?> ConvertModelBindingDataAsync(TableData content, Type targetType)
         {
-            if (string.IsNullOrEmpty(content.TableName))
-            {
-                throw new ArgumentNullException(nameof(content.TableName));
-            }
+            ThrowIfNull(content.TableName, nameof(content.TableName));
 
-            if (string.IsNullOrEmpty(content.PartitionKey))
-            {
-                throw new ArgumentNullException(nameof(content.PartitionKey));
-            }
+            ThrowIfNull(content.PartitionKey, nameof(content.PartitionKey));
 
             var tableClient = GetTableClient(content.Connection, content.TableName!);
 
@@ -79,10 +78,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             }
             else 
             {
-                if (string.IsNullOrEmpty(content.RowKey))
-                {
-                    throw new ArgumentNullException(nameof(content.RowKey));
-                }
+                ThrowIfNull(content.RowKey, nameof(content.RowKey));
 
                 TableEntity tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
                 return DeserializeToTargetObject(targetType, tableEntity);

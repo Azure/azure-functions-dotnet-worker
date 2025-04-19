@@ -533,7 +533,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             var functions = generator.GenerateFunctionMetadata(typeDef);
             var extensions = generator.Extensions;
 
-            Assert.Equal(5, functions.Count());
+            Assert.Equal(4, functions.Count());
 
             var tableClientFunction = functions.Single(p => p.Name == "TableClientFunction");
 
@@ -555,13 +555,6 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
 
             ValidateFunction(enumerableTableEntityFunction, "EnumerableTableEntityFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.EnumerableTableEntityFunction)),
                 b => ValidateTableInput(b));
-
-
-            var tableUnsupportedTypeFunction = functions.Single(p => p.Name == "TableUnsupportedTypeFunction");
-
-            ValidateFunction(tableUnsupportedTypeFunction, "TableUnsupportedTypeFunction", GetEntryPoint(nameof(SDKTypeBindings_Table), nameof(SDKTypeBindings_Table.TableUnsupportedTypeFunction)),
-                b => ValidateTableInputBypassDeferredBinding(b));
-
 
             var tablePocoFunction = functions.Single(p => p.Name == "TablePocoFunction");
 
@@ -1469,13 +1462,6 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
             [Function("EnumerableTableEntityFunction")]
             public object EnumerableTableEntityFunction(
                 [TableInput("tableName")] IEnumerable<TableEntity> tableInput)
-            {
-                throw new NotImplementedException();
-            }
-
-            [Function("TableUnsupportedTypeFunction")]
-            public object TableUnsupportedTypeFunction(
-                [TableInput("tableName")] BinaryData tableInput)
             {
                 throw new NotImplementedException();
             }

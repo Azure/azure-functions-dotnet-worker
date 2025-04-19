@@ -17,7 +17,7 @@ jobs:
     os: windows
 
   variables:
-    ${{ if and( not(contains(variables['Build.SourceBranch'], '/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
+    ${{ if and( not(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
       buildNumberTemp: $(Build.BuildNumber)
     buildNumber: $[variables.buildNumberTemp]
 

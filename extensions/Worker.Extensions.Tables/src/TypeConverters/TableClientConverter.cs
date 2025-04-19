@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         private TableClient ConvertModelBindingData(TableData content)
         {
-            ThrowIfNull(content.TableName, nameof(content.TableName));
+            ThrowIfNullOrEmpty(content.TableName, nameof(content.TableName));
 
             return GetTableClient(content.Connection, content.TableName!);
         }

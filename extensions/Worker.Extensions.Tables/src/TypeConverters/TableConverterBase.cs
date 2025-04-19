@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             return tableServiceClient.GetTableClient(tableName);
         }
 
-        protected void ThrowIfNull(string? value, string nameOfValue)
+        protected void ThrowIfNullOrEmpty(string? value, string nameOfValue)
         {
             if (string.IsNullOrEmpty(value))
             {

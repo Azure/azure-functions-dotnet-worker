@@ -65,9 +65,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         private async Task<object?> ConvertModelBindingDataAsync(TableData content, Type targetType)
         {
-            ThrowIfNull(content.TableName, nameof(content.TableName));
+            ThrowIfNullOrEmpty(content.TableName, nameof(content.TableName));
 
-            ThrowIfNull(content.PartitionKey, nameof(content.PartitionKey));
+            ThrowIfNullOrEmpty(content.PartitionKey, nameof(content.PartitionKey));
 
             var tableClient = GetTableClient(content.Connection, content.TableName!);
 
@@ -78,7 +78,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
             }
             else 
             {
-                ThrowIfNull(content.RowKey, nameof(content.RowKey));
+                ThrowIfNullOrEmpty(content.RowKey, nameof(content.RowKey));
 
                 TableEntity tableEntity = await tableClient.GetEntityAsync<TableEntity>(content.PartitionKey, content.RowKey);
                 return DeserializeToTargetObject(targetType, tableEntity);

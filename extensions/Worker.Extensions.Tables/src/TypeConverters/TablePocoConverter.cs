@@ -41,11 +41,6 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                     return ConversionResult.Unhandled();
                 }
 
-                if (context.TargetType == typeof(byte[]))
-                {
-                    throw new NotSupportedException($"Unsupported binding type: '{context.TargetType}'");
-                }
-
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
                 var result = await ConvertModelBindingDataAsync(tableData, context!.TargetType);
@@ -56,6 +51,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 }
 
                 return ConversionResult.Success(result);
+            }
+            catch (JsonException ex)
+            {
+                return ConversionResult.Failed(new InvalidOperationException($"Unsupported binding type: '{context.TargetType}'", ex));
             }
             catch (Exception ex)
             {

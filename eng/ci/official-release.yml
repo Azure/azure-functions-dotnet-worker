@@ -67,18 +67,18 @@ extends:
         - job: Prepare
 
           variables:
-            drop_path: $(Pipeline.Workspace)/drop
+          - name: drop_path
+            value: $(Pipeline.Workspace)/build/$(artifact_name)
 
           templateContext:
             type: validationJob
-            inputs:
-            - input: pipelineArtifact
-              targetPath: $(drop_path)
-              artifactName: $(artifact_name)
-              pipeline: build
 
           steps:
           - checkout: none
+
+          # validationJob uses retail artifact inputs
+          - download: build
+            artifact: $(artifact_name)
 
           # Our build does not have a custom version number set. To convey the version number to the release stage,
           # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage

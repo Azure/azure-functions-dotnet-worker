@@ -70,7 +70,7 @@ extends:
         ${{ if ne(parameters.targetFolder, '') }}:
           value: ${{ parameters.targetFolder }}
         ${{ else }}:
-          value: ${{ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') }}
+          value: $[ replace(replace(replace(variables['resources.pipeline.build.pipelineName'], 'extensions.', ''), '.official', ''), '.', '-') ]
 
       jobs:
       - template: /ci/release-nuget-package.yml@eng

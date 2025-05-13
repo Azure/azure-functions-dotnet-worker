@@ -8,7 +8,6 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Xunit;
 

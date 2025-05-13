@@ -13,7 +13,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
 {
     public class WorkerRequestServicesMiddlewareTests
     {
-#if false // Needs updates to shared types
         [Fact]
         public async Task ServiceProviders_Equal()
         {
@@ -39,7 +38,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
                 serviceProvider: provider);
 
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers.Add(Constants.CorrelationHeader, functionContext.InvocationId);
+            httpContext.Request.Headers.Append(Constants.CorrelationHeader, functionContext.InvocationId);
 
             var httpCoordinator = new Mock<IHttpCoordinator>();
             httpCoordinator
@@ -53,7 +52,6 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
         private class MyService
         {
         }
-#endif
     }
 }
 

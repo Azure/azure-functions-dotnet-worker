@@ -30,6 +30,8 @@
         <ProjectReference Include="..\..\extensions\Worker.Extensions.ServiceBus\src\Worker.Extensions.ServiceBus.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Storage\src\Worker.Extensions.Storage.csproj" />
         <ProjectReference Include="..\..\extensions\Worker.Extensions.Tables\src\Worker.Extensions.Tables.csproj" />
+        <ProjectReference Include="..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+        <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
     </ItemGroup>
 
 </Project>

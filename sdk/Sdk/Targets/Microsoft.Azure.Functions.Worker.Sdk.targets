@@ -21,7 +21,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- Inner build setup properties -->
   <PropertyGroup>
-    <FunctionsGenerateExtensionProject Condition="'$(FunctionsGenerateExtensionProject)' == ''">true</FunctionsGenerateExtensionProject>
     <_FunctionsExtensionsDirectory>.azurefunctions</_FunctionsExtensionsDirectory>
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
     <_FunctionsWorkerConfigInputFile>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)\..\tools\worker.config.json))</_FunctionsWorkerConfigInputFile>
@@ -54,7 +53,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsEnableExecutorSourceGen Condition="'$(FunctionsEnableExecutorSourceGen)' == ''">true</FunctionsEnableExecutorSourceGen>
     <FunctionsAutoRegisterGeneratedFunctionsExecutor Condition="'$(FunctionsAutoRegisterGeneratedFunctionsExecutor)' == ''">true</FunctionsAutoRegisterGeneratedFunctionsExecutor>
 
-    <_FunctionsBuildEnabled Condition="'$(DesignTimeBuild)' != 'true'">true</_FunctionsBuildEnabled>
+    <_FunctionsBuildEnabled>true</_FunctionsBuildEnabled>
+    <_FunctionsBuildEnabled Condition="'$(DesignTimeBuild)' == 'true'">false</_FunctionsBuildEnabled>
     <FunctionsGeneratedCodeNamespace Condition="'$(FunctionsGeneratedCodeNamespace)' == ''">$(RootNamespace.Replace("-", "_"))</FunctionsGeneratedCodeNamespace>
   </PropertyGroup>
 
@@ -71,27 +71,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 
-  <Target Name="_FunctionsCollectWorkerExtensions">
-    <ItemGroup>
-      <_WorkerExtensionProject Include="@(ProjectReference)" Condition="'%(ProjectReference.WorkerExtensions)' == 'true'" />
-      <_WorkerExtensionProjectNonExistent Include="@(_WorkerExtensionProject)" Condition="!Exists('%(Identity)')" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="_FunctionsValidateExternalWorkerExtensions" Condition="'@(_WorkerExtensionProject)' != ''">
+  <Target Name="_FunctionsGetPaths">
     <PropertyGroup>
-      <FunctionsGenerateExtensionProject Condition="'$(_ForceGenerateExtensionProject)' !='true'">false</FunctionsGenerateExtensionProject>
-      <ExtensionsCsProj>%(_WorkerExtensionProject.Identity)</ExtensionsCsProj>
-    </PropertyGroup>
-
-    <Message Condition="@(_WorkerExtensionProject->Count()) == 1" Importance="normal" Text="Using WorkerExtensions project: %(_WorkerExtensionProject.Identity)" />
-    <Warning Condition="'%(_WorkerExtensionProject.ReferenceOutputAssembly)' != 'false'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProjectNonExistent.Identity)' is missing ReferenceOutputAssembly=false." />
-    <Error Condition="@(_WorkerExtensionProject->Count()) &gt; 1" Text="Only one WorkerExtensions project is allowed per function app. Found extensions:@(_WorkerExtensionProject->'%0a    %(Identity)')" />
-    <Error Condition="'@(_WorkerExtensionProjectNonExistent)' != '' AND $(_ForceGenerateExtensionProject) != 'true'" Text="The referenced WorkerExtensions project '%(_WorkerExtensionProjectNonExistent.Identity)' does not exist. Run 'dotnet build -t:GenerateExtensionProject' first." />
-  </Target>
-
-  <Target Name="_FunctionsGetPaths" DependsOnTargets="_FunctionsCollectWorkerExtensions;_FunctionsValidateExternalWorkerExtensions">
-    <PropertyGroup Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">
       <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == '' AND '$(ExtensionsCsProj)' != ''">$([System.IO.Path]::GetDirectoryName($(ExtensionsCsProj)))</ExtensionsCsProjDirectory>
       <ExtensionsCsProjDirectory Condition="'$(ExtensionsCsProjDirectory)' == ''">$(IntermediateOutputPath)WorkerExtensions</ExtensionsCsProjDirectory>
       <ExtensionsCsProjDirectory>$([System.IO.Path]::GetFullPath($(ExtensionsCsProjDirectory)))</ExtensionsCsProjDirectory> <!-- Ensure ExtensionsCsProjDirectory is a full path. -->
@@ -109,7 +90,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <PropertyGroup>
       <!-- Versions could be of several forms, such as "v4", "V4", or "v4-prerelease". This will normalize those three examples all to "v4". -->
       <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
-      <_FunctionsExtensionRemoveProps Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">$(_FunctionsExtensionRemoveProps)ManagePackageVersionsCentrally;</_FunctionsExtensionRemoveProps>
+      <_FunctionsExtensionRemoveProps>$(_FunctionsExtensionRemoveProps)ManagePackageVersionsCentrally;</_FunctionsExtensionRemoveProps>
     </PropertyGroup>
 
     <ItemGroup>
@@ -165,7 +146,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- Invoke restore on WorkerExtension.csproj.
     We depend on _GetRestoreSettings, which is a task from nuget targets that will resolve various nuget restore settings.
     Namely we want to know what restore sources ($(_OutputSources)) to use. -->
-  <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_GetRestoreSettings" Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">
+  <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_GetRestoreSettings">
     <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
@@ -173,8 +154,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="_WorkerExtensionsBuild">
     <PropertyGroup>
       <_WorkerExtensionTarget>Build</_WorkerExtensionTarget>
-      <_WorkerExtensionTarget Condition="'$(FunctionsGenerateExtensionProject)' == 'false'">GetTargetPath</_WorkerExtensionTarget>
-      <_WorkerExtensionProperties Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">Configuration=Release;$(_FunctionsExtensionCommonProps)</_WorkerExtensionProperties>
+      <_WorkerExtensionProperties>Configuration=Release;$(_FunctionsExtensionCommonProps)</_WorkerExtensionProperties>
     </PropertyGroup>
 
     <MSBuild Projects="$(ExtensionsCsProj)" Targets="$(_WorkerExtensionTarget)" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="$(_WorkerExtensionProperties)">
@@ -192,20 +172,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="_FunctionsPostBuild" />
 
   <!-- Helper target to granularly order more targets. -->
-  <Target Name="_FunctionsGenerateMetadata"
-    DependsOnTargets="_FunctionsGenerateCommon;_FunctionsGenerateWorkerConfig" />
+  <Target Name="_FunctionsGenerateMetadata" DependsOnTargets="_FunctionsGenerateCommon;_FunctionsGenerateWorkerConfig" />
 
   <!-- Generates the extension files. Generates functions.metadata and the WorkerExtension.csproj -->
   <Target Name="_FunctionsGenerateCommon" DependsOnTargets="_FunctionsGetPaths;ResolveAssemblyReferences">
-    <PropertyGroup>
-      <!-- We skip generating the WorkerExtension.csproj when it is externally supplied by setting _TargetExtensionsCsProj to null. -->
-      <_TargetExtensionsCsProj Condition="'$(FunctionsGenerateExtensionProject)' == 'true'">$(ExtensionsCsProj)</_TargetExtensionsCsProj>
-    </PropertyGroup>
-
     <GenerateFunctionMetadata
       AssemblyPath="$(IntermediateOutputPath)$(TargetName)$(TargetExt)"
       ReferencePaths="@(ReferencePath)"
-      ExtensionsCsProjFilePath="$(_TargetExtensionsCsProj)"
+      ExtensionsCsProjFilePath="$(ExtensionsCsProj)"
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
       TargetFrameworkVersion="$(TargetFrameworkVersion)"
@@ -278,7 +252,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Target Name="_CleanFunctions" AfterTargets="Clean" DependsOnTargets="_FunctionsGetPaths">
     <ItemGroup>
-      <_WorkerExtFilesToClean Include="$(ExtensionsCsProjDirectory)/**" Condition="'$(ExtensionsCsProjDirectory)' != '' AND '$(FunctionsGenerateExtensionProject)' == 'true'" />
+      <_WorkerExtFilesToClean Include="$(ExtensionsCsProjDirectory)/**" Condition="'$(ExtensionsCsProjDirectory)' != ''" />
       <_WorkerExtFilesToClean Include="$(TargetDir)$(_FunctionsExtensionsDirectory)/**" />
       <_WorkerExtFilesToClean Include="$(_FunctionsMetadataPath)" />
       <_WorkerExtFilesToClean Include="$(_FunctionsWorkerConfigPath)" />
@@ -290,22 +264,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
     <Delete Files="@(_WorkerExtFilesToClean)" ContinueOnError="true" />
     <RemoveDir Directories="$(TargetDir)$(_FunctionsExtensionsDirectory)" ContinueOnError="true" />
-    <RemoveDir Directories="$(ExtensionsCsProjDirectory)" ContinueOnError="true" Condition="'$(ExtensionsCsProjDirectory)' != '' AND '$(FunctionsGenerateExtensionProject)' == 'true'" />
-  </Target>
-
-  <Target Name="GenerateExtensionProject" DependsOnTargets="_FunctionsCollectWorkerExtensions;_ForceExtensionGenerate;_FunctionsGenerateCommon" />
-
-  <Target Name="_ForceExtensionGenerate">
-    <PropertyGroup>
-      <!-- Forces generation. -->
-      <_ForceGenerateExtensionProject>true</_ForceGenerateExtensionProject>
-      <FunctionsGenerateExtensionProject>true</FunctionsGenerateExtensionProject>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <!-- Remove these p2p refs to avoid this project being built during ResolveReferenceAssemblies. -->
-      <ProjectReference Remove="@(ProjectReference->WithMetadataValue('WorkerExtensions', 'true'))" />
-    </ItemGroup>
+    <RemoveDir Directories="$(ExtensionsCsProjDirectory)" ContinueOnError="true" Condition="'$(ExtensionsCsProjDirectory)' != ''" />
   </Target>
 
   <Import Project="$(MSBuildThisFileDirectory)Microsoft.Azure.Functions.Worker.Sdk.Publish.targets"

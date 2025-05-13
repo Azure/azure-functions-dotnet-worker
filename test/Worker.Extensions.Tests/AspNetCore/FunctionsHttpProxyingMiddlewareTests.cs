@@ -16,7 +16,8 @@ using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
-{    public class FunctionsHttpProxyingMiddlewareTests
+{    
+    public class FunctionsHttpProxyingMiddlewareTests
     {
         [Fact]
         public async Task Middleware_AddsHttpContextToFunctionContext_Success()

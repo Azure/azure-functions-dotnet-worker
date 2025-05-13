@@ -11,9 +11,9 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.Shared
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
+    public class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
     {
         public TestAsyncFunctionContext()
             : base(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
@@ -32,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Shared
         }
     }
 
-    internal class TestFunctionContext : FunctionContext, IDisposable
+    public class TestFunctionContext : FunctionContext, IDisposable
     {
         private readonly FunctionInvocation _invocation;
         private readonly CancellationToken _cancellationToken;

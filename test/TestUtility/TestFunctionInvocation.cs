@@ -4,7 +4,7 @@
 using System;
 using System.Diagnostics;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.Shared
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     public class TestFunctionInvocation : FunctionInvocation
     {

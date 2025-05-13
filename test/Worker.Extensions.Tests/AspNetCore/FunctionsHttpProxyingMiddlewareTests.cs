@@ -11,7 +11,6 @@ using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
 using Microsoft.Azure.Functions.Worker.Middleware;
-using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using Xunit;

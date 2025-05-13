@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using Microsoft.Azure.Functions.Worker.Converters;
-using Microsoft.Azure.Functions.Worker.Tests.Shared;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.Converters
 {

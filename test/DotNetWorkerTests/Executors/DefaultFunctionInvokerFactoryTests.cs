@@ -7,7 +7,6 @@
 using System;
 using System.Reflection;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Tests.Shared;
 using Moq;
 using Xunit;
 

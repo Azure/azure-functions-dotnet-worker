@@ -6,7 +6,7 @@ using System.Collections.ObjectModel;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.Shared
+namespace Microsoft.Azure.Functions.Worker.Tests
 {
     internal class TestFunctionBindingsFeature : IFunctionBindingsFeature
     {

@@ -214,8 +214,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                 
                 if (function.IsObsolete)
                 {
-                    // Environment.NewLine - Environment is banned for use in Analyzers
-                    sb.AppendLine();
+                    sb.Append(Constants.NewLine);
                     sb.Append("#pragma warning restore CS0618");
                 }
 

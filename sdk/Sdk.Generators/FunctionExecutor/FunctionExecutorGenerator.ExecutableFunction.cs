@@ -63,10 +63,10 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
         /// ex: FooAssembly, Version=1.2.3.4, Culture=neutral, PublicKeyToken=9475d07f10cb09df
         /// </summary>
         internal string AssemblyIdentity { get; set; } = null!;
+
         /// <summary>
         /// Gets or sets if the function is Obsolete.
         /// </summary>
         internal bool IsObsolete { get; set; }
-        
     }
 }

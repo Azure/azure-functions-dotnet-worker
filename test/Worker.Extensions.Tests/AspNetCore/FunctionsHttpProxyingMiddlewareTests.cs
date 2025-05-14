@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -182,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
              var httpOutputBinding = test.FunctionContext.GetOutputBindings<object>()
                 .FirstOrDefault(a => string.Equals(a.BindingType, "http", StringComparison.OrdinalIgnoreCase));
 
-            Assert.Null(httpOutputBinding.Value);
+            Assert.Null(httpOutputBinding);
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
 

@@ -86,7 +86,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     context.GetInvocationResult().Value = null;
                     break;
                 case AspNetCoreHttpResponseData when !isInvocationResult:
-                    TryClearHttpOutputBinding(context);
+                    ClearHttpOutputBinding(context);
                     break;
                 case IResult iResult:
                     await iResult.ExecuteAsync(httpContext);
@@ -108,19 +108,15 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                 : TryHandleHttpResult(httpOutputBinding.Value, context, httpContext);
         }
 
-        private static bool TryClearHttpOutputBinding(FunctionContext context) 
+        private static void ClearHttpOutputBinding(FunctionContext context) 
         {
             var httpOutputBinding = context.GetOutputBindings<object>()
                 .FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
 
-            if (httpOutputBinding is null)
+            if (httpOutputBinding != null)
             {
-                return false;
+                httpOutputBinding.Value = null;
             }
-
-            httpOutputBinding.Value = null;
-
-            return true;
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

@@ -172,7 +172,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
         [Fact]
         public async Task HttpResultOutputBindingNull_WhenUsingAspNetCoreHttpResponseDataInMultiOutputBinding()
         {
-            var test = SetupTest("httpTrigger");
+            var test = SetupTest("httpTrigger", GetMultiOutputTypeOutputBindings());
             var mockDelegate = new Mock<FunctionExecutionDelegate>();
 
             SetUpAspNetCoreHttpResponseDataBindingInfo(test.FunctionContext, false);
@@ -183,7 +183,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
              var httpOutputBinding = test.FunctionContext.GetOutputBindings<object>()
                 .FirstOrDefault(a => string.Equals(a.BindingType, "http", StringComparison.OrdinalIgnoreCase));
 
-            Assert.Null(httpOutputBinding);
+            Assert.Null(httpOutputBinding.Value);
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
 

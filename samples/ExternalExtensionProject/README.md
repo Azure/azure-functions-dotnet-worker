@@ -1,5 +1,8 @@
 # External Extension Project
 
+> [!IMPORTANT]
+> This functionality is not released in any public nuget package as of yet. We are still evaluating this experience.
+
 This sample shows how to supply the worker extension project manually.
 
 ## What is the worker extension project?
@@ -10,7 +13,7 @@ Collecting these extensions to be loaded is accomplished by build steps provided
 
 ## What is this scenario for?
 
-For most customers, this inner-build process is frictionless and requires no customization. However, for some customers this process conflicts with some external factors (no network during build, nuget feed auth issues, among others). To accommodate these conflicts SDK `2.1.0` and on supports the ability to externally supply this extension project, giving full control of the extension project to the customer. This project can now be restored and built alongside the function app. Since the csproj is controlled by the customer, any changes can be made to it.
+For most customers, this inner-build process is frictionless and requires no customization. However, for some customers this process conflicts with some external factors (no network during build, nuget feed auth issues, among others). To accommodate these conflicts SDK version `TBD` and on supports the ability to externally supply this extension project, giving full control of the extension project to the customer. This project can now be restored and built alongside the function app. Since the csproj is controlled by the customer, any changes can be made to it.
 
 There is a major drawback though: ensuring the extension project builds a *valid* payload is now the customer's responsibility. Failures to build a valid payload will only be discovered at runtime. Issues may be obscure and varied, from assembly load failures, method missing exceptions, to odd behavior due to mismatching worker & webjobs extensions. Any time the set of extensions for the function app changes, this external project will need to be manually updated. As such, this scenario is only recommended if customization is **absolutely** necessary.
 

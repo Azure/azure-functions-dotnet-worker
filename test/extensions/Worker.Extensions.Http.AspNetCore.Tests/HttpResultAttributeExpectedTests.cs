@@ -347,6 +347,48 @@ namespace AspNetIntegration
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task HttpResultAttribute_WhenReturnTypeIsWrappedInTask_Expected()
+        {
+            string testCode = @"
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Azure.Functions.Worker;
+    using Microsoft.Azure.Functions.Worker.Http;
+
+    namespace AspNetIntegration
+    {
+        public class MultipleOutputBindings
+        {
+            [Function(""TaskOfPocoOutput"")]
+            public Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+            {
+                throw new System.NotImplementedException();
+            }
+            public class MyOutputType
+            {
+                public HttpResponseData Result { get; set; }
+
+                [BlobOutput(""test-samples-output/{name}-output.txt"")]
+                public string MessageText { get; set; }
+            }
+        }
+    }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic(DiagnosticDescriptors.MultipleOutputWithHttpResponseDataWithoutHttpResultAttribute)
+                            .WithSeverity(DiagnosticSeverity.Warning)
+                            .WithLocation(12, 20)
+                            .WithArguments("\"TaskOfPocoOutput\""));
+
+            await test.RunAsync();
+        }
+
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(

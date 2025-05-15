@@ -59,7 +59,19 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             }
 
             var returnType = methodDeclaration.ReturnType;
+
             var returnTypeSymbol = semanticModel.GetTypeInfo(returnType).Type;
+
+            // Unwrap Task<T> if present
+            var taskType = semanticModel.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+            if (returnTypeSymbol is INamedTypeSymbol namedTypeSymbol &&
+                namedTypeSymbol.ConstructedFrom != null &&
+                SymbolEqualityComparer.Default.Equals(namedTypeSymbol.ConstructedFrom, taskType) &&
+                namedTypeSymbol.TypeArguments.Length == 1)
+            {
+                returnTypeSymbol = namedTypeSymbol.TypeArguments[0];
+            }
+
 
             if (IsHttpReturnType(returnTypeSymbol, semanticModel))
             {

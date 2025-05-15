@@ -389,6 +389,77 @@ namespace AspNetIntegration
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task HttpResultAttributeForTaskOfPocoExpected_CodeFixWorks()
+        {
+            string inputCode = @"
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""TaskOfPocoOutput"")]
+        public Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new System.NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            public HttpResponseData Result { get; set; }
+
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
+
+            string expectedCode = @"
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""TaskOfPocoOutput"")]
+        public Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new System.NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            [HttpResult]
+            public HttpResponseData Result { get; set; }
+
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
+
+            var expectedDiagnosticResult = CodeFixVerifier
+                                .Diagnostic("AZFW0016")
+                                .WithSeverity(DiagnosticSeverity.Warning)
+                                .WithLocation(12, 16)
+                                .WithArguments("\"TaskOfPocoOutput\"");
+
+            var test = new CodeFixTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = inputCode,
+                FixedCode = expectedCode
+            };
+
+            test.ExpectedDiagnostics.Add(expectedDiagnosticResult);
+            await test.RunAsync();
+        }
+
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(

@@ -4,10 +4,10 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
+### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore 2.02
 
 - Fix intermittent error `IFeatureCollection has been disposed` exception in multiple-output binding scenarios. (#2896)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers 1.0.4
 
-- Include case where customer POCO is wrapped in `Task<T>` in the `HttpResultAttribute` analyzer for multiple output binding scenarios.
+- Include case where customer POCO is wrapped in `Task<T>` in the `HttpResultAttribute` analyzer for multiple output binding scenarios. (#3506)

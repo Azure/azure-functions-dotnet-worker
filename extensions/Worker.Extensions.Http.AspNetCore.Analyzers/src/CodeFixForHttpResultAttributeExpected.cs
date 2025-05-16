@@ -66,6 +66,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     .FirstAncestorOrSelf<TypeSyntax>();
                 var typeSymbol = semanticModel.GetSymbolInfo(typeNode).Symbol;
 
+                if (typeSymbol is null)
+                {
+                    return _document;
+                }
+
                 if (SymbolUtils.TryUnwrapTaskOfT(typeSymbol, semanticModel, out var innerSymbol))
                 {
                     typeSymbol = innerSymbol;

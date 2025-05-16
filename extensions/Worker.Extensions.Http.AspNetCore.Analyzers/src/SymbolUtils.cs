@@ -14,9 +14,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var taskType = semanticModel.Compilation.GetTypeByMetadataName(TaskWrapperTypeName);
 
             resultSymbol = null;
-
+            
             if (symbol is INamedTypeSymbol namedTypeSymbol &&
-                namedTypeSymbol is not null &&
                 namedTypeSymbol.ConstructedFrom is not null &&
                 SymbolEqualityComparer.Default.Equals(namedTypeSymbol.ConstructedFrom, taskType) &&
                 namedTypeSymbol.TypeArguments.Length == 1)

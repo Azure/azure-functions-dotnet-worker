@@ -66,14 +66,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     .FirstAncestorOrSelf<TypeSyntax>();
                 var typeSymbol = semanticModel.GetSymbolInfo(typeNode).Symbol;
 
-                // Unwrap Task<T> if present
-                var taskType = semanticModel.Compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-                if (typeSymbol is INamedTypeSymbol namedTypeSymbol &&
-                    namedTypeSymbol.ConstructedFrom != null &&
-                    SymbolEqualityComparer.Default.Equals(namedTypeSymbol.ConstructedFrom, taskType) &&
-                    namedTypeSymbol.TypeArguments.Length == 1)
+                if (SymbolUtils.TryUnwrapTaskOfT(typeSymbol, semanticModel, out var innerSymbol))
                 {
-                    typeSymbol = namedTypeSymbol.TypeArguments[0];
+                    typeSymbol = innerSymbol;
                 }
 
                 var typeDeclarationSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();

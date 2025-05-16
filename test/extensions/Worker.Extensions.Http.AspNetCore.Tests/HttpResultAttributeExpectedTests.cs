@@ -460,6 +460,66 @@ namespace AspNetIntegration
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task HttpTriggerFunctionWithHttpResponseData_NoDiagnostic()
+        {
+            string testCode = @"
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.Functions.Worker;
+
+namespace AspNetIntegration
+{
+    public class SimpleHttpFunction
+    {
+        [Function(""SimpleHttpTaskOutput"")]
+        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task HttpTriggerFunctionWithTaskOfIActionResult_NoDiagnostic()
+        {
+            string testCode = @"
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+
+namespace AspNetIntegration
+{
+    public class SimpleHttpFunction
+    {
+        [Function(""SimpleHttpTaskOutput"")]
+        public Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+        {
+            return Task.FromResult<IActionResult>(new OkResult());
+        }
+    }
+}";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(

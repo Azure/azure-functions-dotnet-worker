@@ -61,6 +61,16 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             var returnType = methodDeclaration.ReturnType;
             var returnTypeSymbol = semanticModel.GetTypeInfo(returnType).Type;
 
+            if (returnTypeSymbol is null)
+            {
+                return;
+            }
+
+            if (SymbolUtils.TryUnwrapTaskOfT(returnTypeSymbol, semanticModel, out var innerSymbol))
+            {
+                returnTypeSymbol = innerSymbol;
+            }
+
             if (IsHttpReturnType(returnTypeSymbol, semanticModel))
             {
                 return;

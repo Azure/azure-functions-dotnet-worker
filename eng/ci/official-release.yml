@@ -10,6 +10,8 @@ parameters:
   values:
   - core
   - sdk
+  - application-insights
+  - open-telemetry
 
 pr: none
 trigger: none
@@ -41,6 +43,8 @@ variables:
     value: |
       Microsoft.Azure.Functions.Worker.*.nupkg
       !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !Microsoft.Azure.Functions.Worker.ApplicationInsights.*.nupkg
+      !Microsoft.Azure.Functions.Worker.OpenTelemetry.*.nupkg
       !*.symbols.nupkg
 
 - ${{ if eq(parameters.packages, 'sdk') }}:
@@ -51,6 +55,26 @@ variables:
   - name: package_pattern
     value: |
       Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !*.symbols.nupkg
+
+- ${{ if eq(parameters.packages, 'application-insights') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-app-insights
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker.ApplicationInsights
+  - name: package_pattern
+    value: |
+      Microsoft.Azure.Functions.Worker.ApplicationInsights.*.nupkg
+      !*.symbols.nupkg
+
+- ${{ if eq(parameters.packages, 'open-telemetry') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-open-telemetry
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker.OpenTelemetry
+  - name: package_pattern
+    value: |
+      Microsoft.Azure.Functions.Worker.OpenTelemetry.*.nupkg
       !*.symbols.nupkg
 
 extends:

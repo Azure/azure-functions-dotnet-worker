@@ -4,7 +4,7 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 2.1.0-preview.1
+### Microsoft.Azure.Functions.Worker.Sdk 2.0.3
 
 - Addresses issue with `dotnet build --no-incremental` failing build (PR #2763, Issue #2601)
 - Addresses issue with setting `OutDir` msbuild property failing build (PR #2763, Issue #2125)

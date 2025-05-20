@@ -10,7 +10,7 @@
     <IncludeBuildOutput>false</IncludeBuildOutput>
     <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
     <MinorProductVersion>3</MinorProductVersion>
-    <PatchProductVersion>4</PatchProductVersion>
+    <PatchProductVersion>5</PatchProductVersion>
     <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
   </PropertyGroup>

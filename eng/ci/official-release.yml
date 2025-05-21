@@ -122,4 +122,3 @@ extends:
             partnerDrop:
               serviceConnection: azure-sdk-partner-drops
               targetFolder: $(target_folder)/$(Build.BuildNumber)
-              runPipeline: false

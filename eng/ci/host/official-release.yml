@@ -1,0 +1,152 @@
+parameters:
+- name: publishToProduction
+  displayName: Publish to production?
+  type: boolean
+  default: false
+
+pr: none
+trigger: none
+
+resources:
+  repositories:
+  - repository: 1es
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  - repository: eng
+    type: git
+    name: engineering
+    ref: refs/tags/release
+  pipelines:
+  - pipeline: build
+    source: dotnet-host.official
+
+variables:
+- template: ci/variables/cfs.yml@eng
+- name: artifact_name
+  value: NugetPackages
+  readonly: true
+- name: drop_path
+  value: $(Pipeline.Workspace)/build/${{ parameters.artifactName }}
+  readonly: true
+- name: staging_feed
+  value: public/infra-pre-release
+  readonly: true
+- name: production_feed
+  value: public/infra
+  readonly: true
+- name: packages_pattern
+  value: $(drop_path)/*.nupkg;!$(drop_path)/**/*.symbols.nupkg
+  readonly: true
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1es
+  parameters:
+    pool:
+      name: 1es-pool-azfunc
+      image: 1es-ubuntu-22.04
+      os: linux
+
+    stages:
+    - stage: Release
+      jobs:
+      - job: Prepare
+
+        templateContext:
+          type: validationJob
+
+        steps:
+        - checkout: none
+
+        # validationJob uses retail artifact inputs
+        - download: build
+          artifact: $(artifact_name)
+
+        # For dotnet host release, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
+        # This is a bit of a hack, but it works for our current setup.
+        # We use a regex to extract the version from the package name and set it as the build number.
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
+            $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
+            $name = $packages[0].Name
+            Write-Host "Getting version for $name"
+            $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?(?:-[\w\.].*)?)(?=\.nupkg$)').Value
+            Write-Host "##vso[build.updatebuildnumber]$version"
+          displayName: Get package version
+
+      - job: Approval
+        dependsOn: Prepare
+        timeoutInMinutes: 1440
+        pool: server
+
+        steps:
+        - task: ManualValidation@1
+          inputs:
+            notifyUsers: '' # no notification
+            approvers: '[internal]\Azure Functions Core'
+            allowApproversToApproveTheirOwnRuns: false
+            instructions: |
+              Approve to release packages to:
+                - staging feed: $(staging_feed)
+                ${{ iif(eq(parameters.publishToProduction, true), '- production feed: $(production_feed)', '') }}
+
+      - job: Stage
+        displayName: Stage packages
+        dependsOn: Approval
+
+        templateContext:
+          type: releaseJob
+          isProduction: true
+
+          inputs:
+          - input: pipelineArtifact
+            targetPath: $(drop_path)
+            artifactName: $(artifact_name)
+            pipeline: build
+
+          outputs:
+          - output: nuget
+            packagesToPush: $(packages_pattern)
+            packageParentPath: $(drop_path)
+            publishVstsFeed: $(staging_feed)
+            nuGetFeedType: internal
+            allowPackageConflicts: true
+            publishPackageMetadata: true
+
+      - ${{ if eq(parameters.publishToProduction, true) }}:
+        - job: Pause
+          dependsOn: Stage
+          timeoutInMinutes: 1440
+          pool: server
+
+          steps:
+          - task: ManualValidation@1
+            inputs:
+              notifyUsers: '' # no notification
+              approvers: '[internal]\Azure Functions Core'
+              allowApproversToApproveTheirOwnRuns: true
+              instructions: |
+                Validate package in staging feed $(staging_feed). Approve to resume pipeline when ready.
+
+        - job: Production
+          displayName: Release packages
+          dependsOn: Pause
+
+          templateContext:
+            type: releaseJob
+            isProduction: true
+
+            inputs:
+            - input: pipelineArtifact
+              targetPath: $(drop_path)
+              artifactName: $(artifact_name)
+              pipeline: build
+
+            outputs:
+            - output: nuget
+              packagesToPush: $(packages_pattern)
+              packageParentPath: $(drop_path)
+              publishVstsFeed: $(production_feed)
+              nuGetFeedType: internal
+              allowPackageConflicts: true
+              publishPackageMetadata: true

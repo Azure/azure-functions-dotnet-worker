@@ -64,47 +64,47 @@ extends:
     stages:
     - stage: Prepare
       jobs:
-        - job: Prepare
+      - job: Prepare
 
-          variables:
-          - name: drop_path
-            value: $(Pipeline.Workspace)/build/$(artifact_name)
+        variables:
+        - name: drop_path
+          value: $(Pipeline.Workspace)/build/$(artifact_name)
 
-          templateContext:
-            type: validationJob
+        templateContext:
+          type: validationJob
 
-          steps:
-          - checkout: none
+        steps:
+        - checkout: none
 
-          # validationJob uses retail artifact inputs
-          - download: build
-            artifact: $(artifact_name)
+        # validationJob uses retail artifact inputs
+        - download: build
+          artifact: $(artifact_name)
 
-          # Our build does not have a custom version number set. To convey the version number to the release stage,
-          # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage
-          # can then reference $(Build.BuildVersion) for the target upload folder.
-          - pwsh: |
-              $ErrorActionPreference = 'Stop'
+        # Our build does not have a custom version number set. To convey the version number to the release stage,
+        # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage
+        # can then reference $(Build.BuildVersion) for the target upload folder.
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
 
-              $name = "$(package_name)".Trim()
-              Write-Host "Getting version for $name"
-              $package = Get-ChildItem -Path $(drop_path) -Recurse -Filter "$name.?.*.nupkg"
+            $name = "$(package_name)".Trim()
+            Write-Host "Getting version for $name"
+            $package = Get-ChildItem -Path $(drop_path) -Recurse -Filter "$name.?.*.nupkg"
 
-              if ($package.Count -eq 0) {
-                Write-Host "##vso[task.LogIssue type=error;]Could not find package $name."
-                exit 1
-              }
+            if ($package.Count -eq 0) {
+              Write-Host "##vso[task.LogIssue type=error;]Could not find package $name."
+              exit 1
+            }
 
-              if ($package.Count -gt 1) {
-                Write-Host "##vso[task.LogIssue type=error;]Too many packages matched $name."
-                exit 1
-              }
+            if ($package.Count -gt 1) {
+              Write-Host "##vso[task.LogIssue type=error;]Too many packages matched $name."
+              exit 1
+            }
 
-              $version = $package.Name.Trim("$name.").Trim('.nupkg')
-              Write-Host "##vso[build.updatebuildnumber]$version"
-              Write-Host "##vso[build.addbuildtag]${{ parameters.packages }}"
-              Write-Host "##vso[build.addbuildtag]$version"
-            displayName: Get package version
+            $version = $package.Name.Trim("$name.").Trim('.nupkg')
+            Write-Host "##vso[build.updatebuildnumber]$version"
+            Write-Host "##vso[build.addbuildtag]${{ parameters.packages }}"
+            Write-Host "##vso[build.addbuildtag]$version"
+          displayName: Get package version
 
     - stage: Release
       dependsOn: Prepare

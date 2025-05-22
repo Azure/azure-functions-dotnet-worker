@@ -150,7 +150,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
-  <!-- Invoke build on WorkerExtension.csproj -->
+  <!-- Invoke 'Build' or 'GetTargetPath' (for no-build) on WorkerExtension.csproj -->
+  <!-- We intentionally do not depend on _WorkerExtensionsRestore because this supports the no-build (and thus no-restore) scenario. -->
   <Target Name="_WorkerExtensionsBuild" DependsOnTargets="_FunctionsPreBuild">
     <PropertyGroup>
       <_WorkerExtensionTarget>Build</_WorkerExtensionTarget>

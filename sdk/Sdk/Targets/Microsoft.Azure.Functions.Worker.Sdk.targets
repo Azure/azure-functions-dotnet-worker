@@ -141,7 +141,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- For publish we have very little targets. Either:
     1) It is a publish with build, in which case _FunctionsInnerBuild will already be ran.
     2) It is publish no-build, in which case we assume everything is as expected in the output directory already. -->
-  <Target Name="_FunctionsInnerPublish" BeforeTargets="GetCopyToPublishDirectoryItems" DependsOnTargets="_FunctionsExtensionAssignTargetPaths" />
+  <Target Name="_FunctionsInnerPublish" BeforeTargets="GetCopyToPublishDirectoryItems" DependsOnTargets="_FunctionsPreBuild;_WorkerExtensionsBuild;_FunctionsExtensionAssignTargetPaths" />
 
   <!-- Invoke restore on WorkerExtension.csproj.
     We depend on _GetRestoreSettings, which is a task from nuget targets that will resolve various nuget restore settings.
@@ -154,6 +154,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="_WorkerExtensionsBuild">
     <PropertyGroup>
       <_WorkerExtensionTarget>Build</_WorkerExtensionTarget>
+      <_WorkerExtensionTarget Condition="'$(NoBuild)' == 'true'">GetTargetPath</_WorkerExtensionTarget>
       <_WorkerExtensionProperties>Configuration=Release;$(_FunctionsExtensionCommonProps)</_WorkerExtensionProperties>
     </PropertyGroup>
 

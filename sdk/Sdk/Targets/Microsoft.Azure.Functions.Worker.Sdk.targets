@@ -146,12 +146,13 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <!-- Invoke restore on WorkerExtension.csproj.
     We depend on _GetRestoreSettings, which is a task from nuget targets that will resolve various nuget restore settings.
     Namely we want to know what restore sources ($(_OutputSources)) to use. -->
-  <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_GetRestoreSettings">
+  <Target Name="_WorkerExtensionsRestore" DependsOnTargets="_FunctionsPreBuild;_GetRestoreSettings">
     <MSBuild Projects="$(ExtensionsCsProj)" Targets="Restore" RemoveProperties="$(_FunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources);$(_FunctionsExtensionCommonProps)" />
   </Target>
 
-  <!-- Invoke build on WorkerExtension.csproj -->
-  <Target Name="_WorkerExtensionsBuild">
+  <!-- Invoke 'Build' or 'GetTargetPath' (for no-build) on WorkerExtension.csproj -->
+  <!-- We intentionally do not depend on _WorkerExtensionsRestore because this supports the no-build (and thus no-restore) scenario. -->
+  <Target Name="_WorkerExtensionsBuild" DependsOnTargets="_FunctionsPreBuild">
     <PropertyGroup>
       <_WorkerExtensionTarget>Build</_WorkerExtensionTarget>
       <_WorkerExtensionTarget Condition="'$(NoBuild)' == 'true'">GetTargetPath</_WorkerExtensionTarget>

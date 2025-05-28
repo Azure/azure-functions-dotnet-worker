@@ -6,4 +6,5 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.RabbitMQ <version>
 
-- <event>
+- Updates `Microsoft.Azure.WebJobs.Extensions.RabbitMQ` to 2.1.0.
+  - Adds drain mode feature.

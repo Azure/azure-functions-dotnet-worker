@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.RabbitMQ" Version="2.0.4" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.RabbitMQ" Version="2.1.0" />
   </ItemGroup>
 
 </Project>

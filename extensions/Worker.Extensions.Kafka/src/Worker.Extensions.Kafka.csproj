@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.1.0" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.1.1" />
   </ItemGroup>
 
 </Project>

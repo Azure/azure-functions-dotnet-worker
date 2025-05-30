@@ -52,7 +52,9 @@ namespace FunctionsNetHost.Grpc
                 case StreamingMessage.ContentOneofCase.WorkerWarmupRequest:
                     {
                         Logger.LogTrace("Worker warmup request received.");
-                        PreLauncher.Run();
+
+                        // Asynchronously run the pre-launcher to warmup .net runtime.
+                        _ = Task.Run(PreLauncher.Run);
 
                         responseMessage.WorkerWarmupResponse = new WorkerWarmupResponse
                         {

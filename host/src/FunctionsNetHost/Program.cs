@@ -15,7 +15,8 @@ namespace FunctionsNetHost
             {
                 Logger.Log("Starting FunctionsNetHost");
 
-                PreLauncher.Run();
+                // Asynchronously run the pre-launcher to warmup .net runtime.
+                _ = Task.Run(PreLauncher.Run);
 
                 var workerStartupOptions = await GetStartupOptionsFromCmdLineArgs(args);
 

@@ -21,7 +21,7 @@ variables:
   value: NugetPackages
   readonly: true
 - name: drop_path
-  value: $(Pipeline.Workspace)/build/${{ parameters.artifactName }}
+  value: $(Pipeline.Workspace)/build/$(artifact_name)
   readonly: true
 - name: nuget_feed
   value: public/infra

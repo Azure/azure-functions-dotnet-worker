@@ -1,9 +1,3 @@
-parameters:
-- name: publishToProduction
-  displayName: Publish to production?
-  type: boolean
-  default: false
-
 pr: none
 trigger: none
 
@@ -29,10 +23,7 @@ variables:
 - name: drop_path
   value: $(Pipeline.Workspace)/build/${{ parameters.artifactName }}
   readonly: true
-- name: staging_feed
-  value: public/infra-pre-release
-  readonly: true
-- name: production_feed
+- name: nuget_feed
   value: public/infra
   readonly: true
 - name: packages_pattern
@@ -87,11 +78,10 @@ extends:
             allowApproversToApproveTheirOwnRuns: false
             instructions: |
               Approve to release packages to:
-                - staging feed: $(staging_feed)
-                ${{ iif(eq(parameters.publishToProduction, true), '- production feed: $(production_feed)', '') }}
+                - feed: $(nuget_feed)
 
-      - job: Stage
-        displayName: Stage packages
+      - job: Publish
+        displayName: Publish packages
         dependsOn: Approval
 
         templateContext:
@@ -108,45 +98,7 @@ extends:
           - output: nuget
             packagesToPush: $(packages_pattern)
             packageParentPath: $(drop_path)
-            publishVstsFeed: $(staging_feed)
+            publishVstsFeed: $(nuget_feed)
             nuGetFeedType: internal
             allowPackageConflicts: true
             publishPackageMetadata: true
-
-      - ${{ if eq(parameters.publishToProduction, true) }}:
-        - job: Pause
-          dependsOn: Stage
-          timeoutInMinutes: 1440
-          pool: server
-
-          steps:
-          - task: ManualValidation@1
-            inputs:
-              notifyUsers: '' # no notification
-              approvers: '[internal]\Azure Functions Core'
-              allowApproversToApproveTheirOwnRuns: true
-              instructions: |
-                Validate package in staging feed $(staging_feed). Approve to resume pipeline when ready.
-
-        - job: Production
-          displayName: Release packages
-          dependsOn: Pause
-
-          templateContext:
-            type: releaseJob
-            isProduction: true
-
-            inputs:
-            - input: pipelineArtifact
-              targetPath: $(drop_path)
-              artifactName: $(artifact_name)
-              pipeline: build
-
-            outputs:
-            - output: nuget
-              packagesToPush: $(packages_pattern)
-              packageParentPath: $(drop_path)
-              publishVstsFeed: $(production_feed)
-              nuGetFeedType: internal
-              allowPackageConflicts: true
-              publishPackageMetadata: true

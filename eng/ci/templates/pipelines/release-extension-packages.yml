@@ -31,34 +31,34 @@ extends:
 
     - stage: Prepare
       jobs:
-        - job: Prepare
+      - job: Prepare
 
-          variables:
-          - template: ci/variables/cfs.yml@eng
-          - name: drop_path
-            value: $(Pipeline.Workspace)/build/${{ parameters.artifactName }}
+        variables:
+        - template: ci/variables/cfs.yml@eng
+        - name: drop_path
+          value: $(Pipeline.Workspace)/build/${{ parameters.artifactName }}
 
-          templateContext:
-            type: validationJob
+        templateContext:
+          type: validationJob
 
-          steps:
-          - checkout: none
+        steps:
+        - checkout: none
 
-          # validationJob uses retail artifact inputs
-          - download: build
-            artifact: ${{ parameters.artifactName }}
+        # validationJob uses retail artifact inputs
+        - download: build
+          artifact: ${{ parameters.artifactName }}
 
-          # For extension releases, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
-          # This is a bit of a hack, but it works for our current setup.
-          # We use a regex to extract the version from the package name and set it as the build number.
-          - pwsh: |
-              $ErrorActionPreference = 'Stop'
-              $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
-              $name = $packages[0].Name
-              Write-Host "Getting version for $name"
-              $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?(?:-[\w\.].*)?)(?=\.nupkg$)').Value
-              Write-Host "##vso[build.updatebuildnumber]$version"
-            displayName: Get package version
+        # For extension releases, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
+        # This is a bit of a hack, but it works for our current setup.
+        # We use a regex to extract the version from the package name and set it as the build number.
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
+            $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
+            $name = $packages[0].Name
+            Write-Host "Getting version for $name"
+            $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?(?:-[\w\.].*)?)(?=\.nupkg$)').Value
+            Write-Host "##vso[build.updatebuildnumber]$version"
+          displayName: Get package version
 
     - stage: Release
       dependsOn: Prepare

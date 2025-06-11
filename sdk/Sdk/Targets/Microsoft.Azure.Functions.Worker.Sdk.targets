@@ -128,13 +128,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!-- These two targets set up the main sequence of targets we want to run and when we want to run them. -->
   <Target Name="_FunctionsBuildExtension"
+    Condition="'$(_FunctionsBuildEnabled)' == 'true'"
     AfterTargets="CoreCompile"
     BeforeTargets="GetCopyToOutputDirectoryItems"
-    Condition="'$(_FunctionsBuildEnabled)' == 'true'"
     DependsOnTargets="_FunctionsGenerateMetadata;_FunctionsPostBuild;_FunctionsInnerBuild;_FunctionsExtensionUpdateMetadata;_FunctionsExtensionAssignTargetPaths"/>
 
   <!-- This target builds the generated WorkerExtension.csproj. Does not run for design time builds or if extension project is externally provided. -->
   <Target Name="_FunctionsInnerBuild"
+    Condition="'$(_FunctionsBuildEnabled)' == 'true'"
     AfterTargets="CoreCompile"
     DependsOnTargets="_WorkerExtensionsRestore;_WorkerExtensionsBuild" />
 

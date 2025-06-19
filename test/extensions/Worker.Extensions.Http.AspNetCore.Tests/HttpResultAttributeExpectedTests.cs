@@ -347,6 +347,179 @@ namespace AspNetIntegration
             await test.RunAsync();
         }
 
+        [Fact]
+        public async Task HttpResultAttribute_WhenReturnTypeIsWrappedInTask_Expected()
+        {
+            string testCode = @"
+    using System.Threading.Tasks;
+    using Microsoft.AspNetCore.Http;
+    using Microsoft.Azure.Functions.Worker;
+    using Microsoft.Azure.Functions.Worker.Http;
+
+    namespace AspNetIntegration
+    {
+        public class MultipleOutputBindings
+        {
+            [Function(""TaskOfPocoOutput"")]
+            public Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+            {
+                throw new System.NotImplementedException();
+            }
+            public class MyOutputType
+            {
+                public HttpResponseData Result { get; set; }
+
+                [BlobOutput(""test-samples-output/{name}-output.txt"")]
+                public string MessageText { get; set; }
+            }
+        }
+    }";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            test.ExpectedDiagnostics.Add(Verifier.Diagnostic(DiagnosticDescriptors.MultipleOutputWithHttpResponseDataWithoutHttpResultAttribute)
+                            .WithSeverity(DiagnosticSeverity.Warning)
+                            .WithLocation(12, 20)
+                            .WithArguments("\"TaskOfPocoOutput\""));
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task HttpResultAttributeForTaskOfPocoExpected_CodeFixWorks()
+        {
+            string inputCode = @"
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""TaskOfPocoOutput"")]
+        public Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new System.NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            public HttpResponseData Result { get; set; }
+
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
+
+            string expectedCode = @"
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+
+namespace AspNetIntegration
+{
+    public class MultipleOutputBindings
+    {
+        [Function(""TaskOfPocoOutput"")]
+        public Task<MyOutputType> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new System.NotImplementedException();
+        }
+        public class MyOutputType
+        {
+            [HttpResult]
+            public HttpResponseData Result { get; set; }
+
+            [BlobOutput(""test-samples-output/{name}-output.txt"")]
+            public string MessageText { get; set; }
+        }
+    }
+}";
+
+            var expectedDiagnosticResult = CodeFixVerifier
+                                .Diagnostic("AZFW0016")
+                                .WithSeverity(DiagnosticSeverity.Warning)
+                                .WithLocation(12, 16)
+                                .WithArguments("\"TaskOfPocoOutput\"");
+
+            var test = new CodeFixTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = inputCode,
+                FixedCode = expectedCode
+            };
+
+            test.ExpectedDiagnostics.Add(expectedDiagnosticResult);
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task HttpTriggerFunctionWithHttpResponseData_NoDiagnostic()
+        {
+            string testCode = @"
+using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Azure.Functions.Worker;
+
+namespace AspNetIntegration
+{
+    public class SimpleHttpFunction
+    {
+        [Function(""SimpleHttpTaskOutput"")]
+        public HttpResponseData Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequestData req)
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
+        [Fact]
+        public async Task HttpTriggerFunctionWithTaskOfIActionResult_NoDiagnostic()
+        {
+            string testCode = @"
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Functions.Worker;
+
+namespace AspNetIntegration
+{
+    public class SimpleHttpFunction
+    {
+        [Function(""SimpleHttpTaskOutput"")]
+        public Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Function, ""post"")] HttpRequest req)
+        {
+            return Task.FromResult<IActionResult>(new OkResult());
+        }
+    }
+}";
+
+            var test = new AnalyzerTest
+            {
+                ReferenceAssemblies = LoadRequiredDependencyAssemblies(),
+                TestCode = testCode
+            };
+
+            await test.RunAsync();
+        }
+
         private static ReferenceAssemblies LoadRequiredDependencyAssemblies()
         {
             var referenceAssemblies = ReferenceAssemblies.Net.Net60.WithPackages(ImmutableArray.Create(

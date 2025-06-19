@@ -6,7 +6,7 @@
     <Description>Azure Event Hubs extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.3.6</VersionPrefix>
+    <VersionPrefix>6.4.0</VersionPrefix>
 
   </PropertyGroup>
 
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="6.3.5" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventHubs" Version="6.5.1" />
   </ItemGroup>
 
 </Project>

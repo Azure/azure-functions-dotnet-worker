@@ -9,8 +9,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Infrastructure;
+using Microsoft.Azure.Functions.Worker.Extensions.Http.Converters;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.Extensions.DependencyInjection;
@@ -85,6 +85,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
                     // processing is required.
                     context.GetInvocationResult().Value = null;
                     break;
+                case AspNetCoreHttpResponseData when !isInvocationResult:
+                    ClearHttpOutputBinding(context);
+                    break;
                 case IResult iResult:
                     await iResult.ExecuteAsync(httpContext);
                     break;
@@ -103,6 +106,17 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
             return httpOutputBinding is null
                 ? Task.FromResult(false)
                 : TryHandleHttpResult(httpOutputBinding.Value, context, httpContext);
+        }
+
+        private static void ClearHttpOutputBinding(FunctionContext context) 
+        {
+            var httpOutputBinding = context.GetOutputBindings<object>()
+                .FirstOrDefault(a => string.Equals(a.BindingType, HttpBindingType, StringComparison.OrdinalIgnoreCase));
+
+            if (httpOutputBinding != null)
+            {
+                httpOutputBinding.Value = null;
+            }
         }
 
         private static void AddHttpContextToFunctionContext(FunctionContext funcContext, HttpContext httpContext)

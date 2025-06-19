@@ -33,6 +33,10 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                 {
                     return ConversionResult.Unhandled();
                 }
+                if (context.TargetType != typeof(TableEntity))
+                {
+                    return ConversionResult.Unhandled();
+                }
 
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
@@ -48,20 +52,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         private async Task<TableEntity> ConvertModelBindingData(TableData content)
         {
-            if (string.IsNullOrEmpty(content.TableName))
-            {
-                throw new ArgumentNullException(nameof(content.TableName));
-            }
+            ThrowIfNullOrEmpty(content.TableName, nameof(content.TableName));
 
-            if (string.IsNullOrEmpty(content.PartitionKey))
-            {
-                throw new ArgumentNullException(nameof(content.PartitionKey));
-            }
+            ThrowIfNullOrEmpty(content.PartitionKey, nameof(content.PartitionKey));
 
-            if (string.IsNullOrEmpty(content.RowKey))
-            {
-                throw new ArgumentNullException(nameof(content.RowKey));
-            }
+            ThrowIfNullOrEmpty(content.RowKey, nameof(content.RowKey));
 
             return await GetTableEntity(content);
         }

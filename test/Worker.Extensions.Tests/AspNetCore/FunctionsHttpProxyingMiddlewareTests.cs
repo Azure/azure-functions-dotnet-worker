@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -16,9 +17,7 @@ using Moq;
 using Xunit;
 
 namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
-{
-
-#if false // Needs updates to shared types
+{    
     public class FunctionsHttpProxyingMiddlewareTests
     {
         [Fact]
@@ -170,6 +169,24 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
 
+        [Fact]
+        public async Task HttpResultOutputBindingNull_WhenUsingAspNetCoreHttpResponseDataInMultiOutputBinding()
+        {
+            var test = SetupTest("httpTrigger", GetMultiOutputTypeOutputBindings());
+            var mockDelegate = new Mock<FunctionExecutionDelegate>();
+
+            SetUpAspNetCoreHttpResponseDataBindingInfo(test.FunctionContext, false);
+
+            var funcMiddleware = new FunctionsHttpProxyingMiddleware(test.MockCoordinator.Object);
+            await funcMiddleware.Invoke(test.FunctionContext, mockDelegate.Object);
+
+             var httpOutputBinding = test.FunctionContext.GetOutputBindings<object>()
+                .FirstOrDefault(a => string.Equals(a.BindingType, "http", StringComparison.OrdinalIgnoreCase));
+
+            Assert.Null(httpOutputBinding.Value);
+            test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
+        }
+
         private static (FunctionContext FunctionContext, HttpContext HttpContext, Mock<IHttpCoordinator> MockCoordinator) SetupTest(string triggerType, IDictionary<string, BindingMetadata> outputBindings = null)
         {
             var inputBindings = new Dictionary<string, BindingMetadata>()
@@ -191,7 +208,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             };
 
             var httpContext = new DefaultHttpContext();
-            httpContext.Request.Headers.Add(Constants.CorrelationHeader, functionContext.InvocationId);
+            httpContext.Request.Headers.Append(Constants.CorrelationHeader, functionContext.InvocationId);
 
             var mockCoordinator = new Mock<IHttpCoordinator>();
             mockCoordinator
@@ -279,5 +296,4 @@ namespace Microsoft.Azure.Functions.Worker.Tests.AspNetCore
             test.MockCoordinator.Verify(p => p.CompleteFunctionInvocation(It.IsAny<string>()), Times.Once());
         }
     }
-#endif
 }

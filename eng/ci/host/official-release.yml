@@ -1,0 +1,106 @@
+pr: none
+trigger: none
+
+resources:
+  repositories:
+  - repository: 1es
+    type: git
+    name: 1ESPipelineTemplates/1ESPipelineTemplates
+    ref: refs/tags/release
+  - repository: eng
+    type: git
+    name: engineering
+    ref: refs/tags/release
+  pipelines:
+  - pipeline: build
+    source: dotnet-host.official
+
+variables:
+- template: ci/variables/cfs.yml@eng
+- name: artifact_name
+  value: NugetPackages
+  readonly: true
+- name: drop_path
+  value: $(Pipeline.Workspace)/build/$(artifact_name)
+  readonly: true
+- name: nuget_feed
+  value: public/infra
+  readonly: true
+- name: packages_pattern
+  value: $(drop_path)/*.nupkg;!$(drop_path)/**/*.symbols.nupkg
+  readonly: true
+
+extends:
+  template: v1/1ES.Official.PipelineTemplate.yml@1es
+  parameters:
+    pool:
+      name: 1es-pool-azfunc
+      image: 1es-ubuntu-22.04
+      os: linux
+
+    stages:
+    - stage: Release
+      jobs:
+      - job: Prepare
+
+        templateContext:
+          type: validationJob
+
+        steps:
+        - checkout: none
+
+        # validationJob uses retail artifact inputs
+        - download: build
+          artifact: $(artifact_name)
+
+        # For dotnet host release, we assume the first package (alphanumerically) in the drop is the one we want to version off of.
+        # This is a bit of a hack, but it works for our current setup.
+        # We use a regex to extract the version from the package name and set it as the build number.
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
+            $packages = Get-ChildItem -Path $(drop_path) -Filter *.nupkg -Recurse
+            $name = $packages[0].Name
+            Write-Host "Getting version for $name"
+            $version = [Regex]::Match($name, '(\d+\.\d+\.\d+(?:\.\d+)?(?:-[\w\.].*)?)(?=\.nupkg$)').Value
+            Write-Host "##vso[build.updatebuildnumber]$version"
+          displayName: Get package version
+
+      - job: Approval
+        dependsOn: Prepare
+        timeoutInMinutes: 1440
+        pool: server
+
+        steps:
+        - task: ManualValidation@1
+          inputs:
+            notifyUsers: '' # no notification
+            approvers: '[internal]\Azure Functions Core'
+            allowApproversToApproveTheirOwnRuns: false
+            instructions: |
+              Approve to release packages to:
+                - feed: $(nuget_feed)
+
+      - job: Publish
+        displayName: Publish packages
+        dependsOn: Approval
+
+        templateContext:
+          type: releaseJob
+          isProduction: true
+
+          inputs:
+          - input: pipelineArtifact
+            targetPath: $(drop_path)
+            artifactName: $(artifact_name)
+            pipeline: build
+
+          steps:
+          - task: 1ES.PublishNuget@1
+            displayName: Publish packages
+            inputs:
+              packagesToPush: $(packages_pattern)
+              packageParentPath: $(drop_path)
+              publishVstsFeed: $(nuget_feed)
+              nuGetFeedType: internal
+              allowPackageConflicts: true
+              publishPackageMetadata: true

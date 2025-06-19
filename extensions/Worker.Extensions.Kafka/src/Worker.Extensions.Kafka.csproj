@@ -6,7 +6,7 @@
     <Description>Kafka extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.1.0</VersionPrefix>
+    <VersionPrefix>4.1.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -21,7 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.1.0" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Kafka" Version="4.1.2" />
   </ItemGroup>
 
 </Project>

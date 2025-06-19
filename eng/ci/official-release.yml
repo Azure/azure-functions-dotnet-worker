@@ -10,6 +10,8 @@ parameters:
   values:
   - core
   - sdk
+  - application-insights
+  - open-telemetry
 
 pr: none
 trigger: none
@@ -29,19 +31,50 @@ resources:
     source: dotnet-worker.official
 
 variables:
-  artifact_name: NugetPackages
-  ${{ if eq(parameters.packages, 'core') }}:
-    target_folder: azure-functions/dotnet/worker
-    package_name: Microsoft.Azure.Functions.Worker
-    package_pattern: |
+- name: artifact_name
+  value: NugetPackages
+
+- ${{ if eq(parameters.packages, 'core') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker
+  - name: package_pattern
+    value: |
       Microsoft.Azure.Functions.Worker.*.nupkg
       !Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !Microsoft.Azure.Functions.Worker.ApplicationInsights.*.nupkg
+      !Microsoft.Azure.Functions.Worker.OpenTelemetry.*.nupkg
       !*.symbols.nupkg
-  ${{ if eq(parameters.packages, 'sdk') }}:
-    target_folder: azure-functions/dotnet/worker-sdk
-    package_name: Microsoft.Azure.Functions.Worker.Sdk
-    package_pattern: |
+
+- ${{ if eq(parameters.packages, 'sdk') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-sdk
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker.Sdk
+  - name: package_pattern
+    value: |
       Microsoft.Azure.Functions.Worker.Sdk.*.nupkg
+      !*.symbols.nupkg
+
+- ${{ if eq(parameters.packages, 'application-insights') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-app-insights
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker.ApplicationInsights
+  - name: package_pattern
+    value: |
+      Microsoft.Azure.Functions.Worker.ApplicationInsights.*.nupkg
+      !*.symbols.nupkg
+
+- ${{ if eq(parameters.packages, 'open-telemetry') }}:
+  - name: target_folder
+    value: azure-functions/dotnet/worker-open-telemetry
+  - name: package_name
+    value: Microsoft.Azure.Functions.Worker.OpenTelemetry
+  - name: package_pattern
+    value: |
+      Microsoft.Azure.Functions.Worker.OpenTelemetry.*.nupkg
       !*.symbols.nupkg
 
 extends:
@@ -55,47 +88,47 @@ extends:
     stages:
     - stage: Prepare
       jobs:
-        - job: Prepare Release
+      - job: Prepare
 
-          variables:
-            drop_path: $(Pipeline.Workspace)/drop
+        variables:
+        - name: drop_path
+          value: $(Pipeline.Workspace)/build/$(artifact_name)
 
-          templateContext:
-            type: releaseJob
-            isProduction: true
-            inputs:
-            - input: pipelineArtifact
-              targetPath: $(drop_path)
-              artifactName: $(artifact_name)
-              pipeline: build
+        templateContext:
+          type: validationJob
 
-          steps:
+        steps:
+        - checkout: none
 
-          # Our build does not have a custom version number set. To convey the version number to the release stage,
-          # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage
-          # can then reference $(Build.BuildVersion) for the target upload folder.
-          - pwsh: |
-              $ErrorActionPreference = 'Stop'
+        # validationJob uses retail artifact inputs
+        - download: build
+          artifact: $(artifact_name)
 
-              $name = "$(package_name)".Trim()
-              Write-Host "Getting version for $name"
-              $package = Get-ChildItem -Path $(drop_path) -Recurse -Filter "$name.?.*.nupkg"
+        # Our build does not have a custom version number set. To convey the version number to the release stage,
+        # we parse out the version from the .nupkg in the drop and set that as the build number. The release stage
+        # can then reference $(Build.BuildVersion) for the target upload folder.
+        - pwsh: |
+            $ErrorActionPreference = 'Stop'
 
-              if ($package.Count -eq 0) {
-                Write-Host "##vso[task.LogIssue type=error;]Could not find package $name."
-                exit 1
-              }
+            $name = "$(package_name)".Trim()
+            Write-Host "Getting version for $name"
+            $package = Get-ChildItem -Path $(drop_path) -Recurse -Filter "$name.?.*.nupkg"
 
-              if ($package.Count -gt 1) {
-                Write-Host "##vso[task.LogIssue type=error;]Too many packages matched $name."
-                exit 1
-              }
+            if ($package.Count -eq 0) {
+              Write-Host "##vso[task.LogIssue type=error;]Could not find package $name."
+              exit 1
+            }
 
-              $version = $package.Name.Trim("$name.").Trim('.nupkg')
-              Write-Host "##vso[build.updatebuildnumber]$version"
-              Write-Host "##vso[build.addbuildtag]${{ parameters.packages }}"
-              Write-Host "##vso[build.addbuildtag]$version"
-            displayName: Get package version
+            if ($package.Count -gt 1) {
+              Write-Host "##vso[task.LogIssue type=error;]Too many packages matched $name."
+              exit 1
+            }
+
+            $version = $package.Name.Trim("$name.").Trim('.nupkg')
+            Write-Host "##vso[build.updatebuildnumber]$version"
+            Write-Host "##vso[build.addbuildtag]${{ parameters.packages }}"
+            Write-Host "##vso[build.addbuildtag]$version"
+          displayName: Get package version
 
     - stage: Release
       dependsOn: Prepare
@@ -113,4 +146,3 @@ extends:
             partnerDrop:
               serviceConnection: azure-sdk-partner-drops
               targetFolder: $(target_folder)/$(Build.BuildNumber)
-              runPipeline: false

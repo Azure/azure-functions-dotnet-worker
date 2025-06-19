@@ -9,12 +9,11 @@ using System.Threading.Tasks;
 using Azure.Core.Serialization;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
-    internal class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
+    public class TestAsyncFunctionContext : TestFunctionContext, IAsyncDisposable
     {
         public TestAsyncFunctionContext()
             : base(new TestFunctionDefinition(), new TestFunctionInvocation(), CancellationToken.None)
@@ -33,7 +32,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         }
     }
 
-    internal class TestFunctionContext : FunctionContext, IDisposable
+    public class TestFunctionContext : FunctionContext, IDisposable
     {
         private readonly FunctionInvocation _invocation;
         private readonly CancellationToken _cancellationToken;

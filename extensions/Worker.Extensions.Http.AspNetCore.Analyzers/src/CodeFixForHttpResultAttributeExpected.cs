@@ -64,8 +64,18 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore
 
                 var typeNode = root.FindNode(this._diagnostic.Location.SourceSpan)
                     .FirstAncestorOrSelf<TypeSyntax>();
-
                 var typeSymbol = semanticModel.GetSymbolInfo(typeNode).Symbol;
+
+                if (typeSymbol is null)
+                {
+                    return _document;
+                }
+
+                if (SymbolUtils.TryUnwrapTaskOfT(typeSymbol, semanticModel, out var innerSymbol))
+                {
+                    typeSymbol = innerSymbol;
+                }
+
                 var typeDeclarationSyntaxReference = typeSymbol.DeclaringSyntaxReferences.FirstOrDefault();
                 if (typeDeclarationSyntaxReference is null)
                 {

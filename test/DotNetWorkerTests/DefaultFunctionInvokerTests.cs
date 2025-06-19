@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Invocation;
-using Microsoft.Azure.Functions.Worker.Tests.Features;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;

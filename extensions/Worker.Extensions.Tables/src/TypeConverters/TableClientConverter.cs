@@ -34,6 +34,11 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
                     return new(ConversionResult.Unhandled());
                 }
 
+                if (context.TargetType != typeof(TableClient))
+                {
+                    return new(ConversionResult.Unhandled());
+                }
+
                 var modelBindingData = context?.Source as ModelBindingData;
                 var tableData = GetBindingDataContent(modelBindingData);
                 var result = ConvertModelBindingData(tableData);
@@ -48,10 +53,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
         private TableClient ConvertModelBindingData(TableData content)
         {
-            if (string.IsNullOrEmpty(content.TableName))
-            {
-                throw new ArgumentNullException(nameof(content.TableName));
-            }
+            ThrowIfNullOrEmpty(content.TableName, nameof(content.TableName));
 
             return GetTableClient(content.Connection, content.TableName!);
         }

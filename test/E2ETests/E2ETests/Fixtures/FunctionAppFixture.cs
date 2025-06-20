@@ -17,11 +17,11 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
 {
     public class FunctionAppFixture : IAsyncLifetime
     {
+        private readonly string _testApp = Constants.TestAppNames.E2EApp;
         private readonly ILogger _logger;
         private bool _disposed;
         private Process _funcProcess;
         private JobObjectRegistry _jobObjectRegistry;
-        private string _testApp = Constants.TestAppNames.E2EApp;
 
         public FunctionAppFixture(IMessageSink messageSink)
         {
@@ -32,7 +32,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             _logger = loggerFactory.CreateLogger<FunctionAppFixture>();
         }
 
-        internal FunctionAppFixture(IMessageSink messageSink, string testApp) : this(messageSink)
+        internal FunctionAppFixture(IMessageSink messageSink, string testApp)
+            : this(messageSink)
         {
             _testApp = testApp;
         }

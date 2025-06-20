@@ -188,7 +188,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       AzureFunctionsVersion="$(AzureFunctionsVersion)"
       WriteMetadataFile="$(FunctionsWriteMetadataJson)"
       TargetFrameworkIdentifier="$(TargetFrameworkIdentifier)"
-      TargetFrameworkVersion="$(TargetFrameworkVersion)"/>
+      TargetFrameworkVersion="$(TargetFrameworkVersion)"
+      OutputPath="$(IntermediateOutputPath)" />
   </Target>
 
   <!-- Generate worker.config.json. -->

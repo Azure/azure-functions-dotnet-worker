@@ -7,3 +7,4 @@
 ### Microsoft.Azure.Functions.Worker.Extensions.Tables 1.5.0
 
 - Support deferred binding for poco types in Table Input binding (#3003)
+- Update dependency `Microsoft.Azure.WebJobs.Extensions.Tables` to 1.4.0 (#3098)

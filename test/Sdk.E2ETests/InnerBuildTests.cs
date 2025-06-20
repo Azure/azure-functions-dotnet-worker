@@ -1,6 +1,7 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
@@ -9,25 +10,27 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
-    public class InnerBuildTests
+    public sealed class InnerBuildTests(ITestOutputHelper testOutputHelper) : IDisposable
     {
-        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly ProjectBuilder _builder = new(
+            testOutputHelper,
+            Path.Combine(TestUtility.TestResourcesProjectsRoot, "FunctionApp01", "FunctionApp01.csproj"));
 
-        public InnerBuildTests(ITestOutputHelper testOutputHelper)
+        [Theory]
+        [InlineData("", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=true", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=true -p:FunctionsWriteMetadataJson=false", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=true -p:FunctionsWriteMetadataJson=true", true)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false", true)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false -p:FunctionsWriteMetadataJson=false", false)]
+        [InlineData("-p:FunctionsEnableWorkerIndexing=false -p:FunctionsWriteMetadataJson=true", true)]
+        public async Task Build_ScansReferences(string parameters, bool metadataGenerated)
         {
-            _testOutputHelper = testOutputHelper;
-        }
-
-        [Fact]
-        public async Task Build_ScansReferences()
-        {
-            string outputDir = await TestUtility.InitializeTestAsync(_testOutputHelper, nameof(Build_ScansReferences));
-            string projectFileDirectory = Path.Combine(TestUtility.TestResourcesProjectsRoot, "FunctionApp01", "FunctionApp01.csproj");
-
-            await TestUtility.RestoreAndBuildProjectAsync(projectFileDirectory, outputDir, null, _testOutputHelper);
+            await _builder.RestoreAsync();
+            await _builder.BuildAsync(parameters, restore: false);
 
             // Verify extensions.json contents
-            string extensionsJsonPath = Path.Combine(outputDir, "extensions.json");
+            string extensionsJsonPath = Path.Combine(_builder.OutputPath, "extensions.json");
             Assert.True(File.Exists(extensionsJsonPath));
 
             JToken extensionsJsonContents = JObject.Parse(File.ReadAllText(extensionsJsonPath));
@@ -54,8 +57,13 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             Assert.True(JToken.DeepEquals(expectedExtensionsJson, extensionsJsonContents));
 
             // Verify functions.metadata contents
-            string functionsMetadataPath = Path.Combine(outputDir, "functions.metadata");
-            Assert.True(File.Exists(functionsMetadataPath));
+            string functionsMetadataPath = Path.Combine(_builder.OutputPath, "functions.metadata");
+            Assert.Equal(metadataGenerated, File.Exists(functionsMetadataPath));
+
+            if (!metadataGenerated)
+            {
+                return;
+            }
 
             JToken functionsMetadataContents = JArray.Parse(File.ReadAllText(functionsMetadataPath));
             JToken expectedFunctionsMetadata = JArray.Parse(@"[
@@ -115,5 +123,7 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             Assert.True(JToken.DeepEquals(expectedFunctionsMetadata, functionsMetadataContents));
         }
+
+        public void Dispose() => _builder.Dispose();
     }
 }

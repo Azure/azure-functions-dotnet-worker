@@ -60,9 +60,9 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
             }
 
             if (Debugger.IsAttached)
-                {
-                    dotnetArgs += " -bl";
-                }
+            {
+                dotnetArgs += " -bl";
+            }
 
             int? exitCode = await ProcessWrapper.RunProcessAsync(DotNetExecutable, dotnetArgs, log: logger.WriteLine);
             Assert.True(exitCode.HasValue && exitCode.Value == 0);

@@ -26,7 +26,8 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         [InlineData("-p:FunctionsEnableWorkerIndexing=false -p:FunctionsWriteMetadataJson=true", true)]
         public async Task Build_ScansReferences(string parameters, bool metadataGenerated)
         {
-            await _builder.BuildAsync(parameters);
+            await _builder.RestoreAsync();
+            await _builder.BuildAsync(parameters, restore: false);
 
             // Verify extensions.json contents
             string extensionsJsonPath = Path.Combine(_builder.OutputPath, "extensions.json");

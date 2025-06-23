@@ -4,9 +4,9 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 2.0.5
+### Microsoft.Azure.Functions.Worker.Sdk <version>
 
-- Address issue with design time build producing an error when project had not yet been built yet. (#3081)
+- Build no longer generates `functions.metadata` if source-generated metadata provider is enabled. (#2974)
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

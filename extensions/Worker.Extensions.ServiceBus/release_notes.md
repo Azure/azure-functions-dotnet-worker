@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus 5.23.0
+### Microsoft.Azure.Functions.Worker.Extensions.ServiceBus <version>
 
-- Update dependency `Microsoft.Azure.WebJobs.Extensions.ServiceBus` to 5.17.0 (#3098)
+- <entry>

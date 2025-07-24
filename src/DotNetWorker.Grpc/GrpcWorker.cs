@@ -64,6 +64,12 @@ namespace Microsoft.Azure.Functions.Worker
         Task IMessageProcessor.ProcessMessageAsync(StreamingMessage message)
         {
             // Dispatch and return.
+            // Option 3: The incoming invovation request has already set `name` to an empty string. So we could fix it host side?
+            // But this feels like overkill and potentially a breaking change somewhere in the stack.
+            // [0] [ParameterBinding] =
+            // { "name": "context", "data": { "string": "{\"name\":\"SayHello\",\"arguments\":{},\"_meta\":{\"progressToken\":\"5bbee852-45ea-40b3-a270-286c506e4500\"}}" } }
+            // [1] [ParameterBinding] =
+            // { "name": "name", "data": { "string": "" } }
             Task.Run(() => ProcessRequestCoreAsync(message));
 
             return Task.CompletedTask;

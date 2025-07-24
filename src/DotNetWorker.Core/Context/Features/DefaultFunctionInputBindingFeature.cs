@@ -55,7 +55,17 @@ namespace Microsoft.Azure.Functions.Worker.Context.Features
 
                     TryGetBindingSource(parameter.Name, functionBindings, out object? source);
 
+                    // Option 1: Check if source is an empty string and parameter is reference or nullable type
+                    if (source is string str && string.IsNullOrEmpty(str))
+                    {
+                        // OR we can set `parameterValues[i] = null`. However, we already have checks for HasDefaultValue & IsReferenceOrNullableType
+                        // in the `(bindingResult.Status == ConversionStatus.Unhandled)` case below which will hanlde what we need it to.
+                        // So it depends on if we want to short circuit or not.
+                        source = null;
+                    }
+
                     ConversionResult bindingResult = await ConvertAsync(context, parameter, _converterContextFactory, inputConversionFeature, source);
+
 
                     if (bindingResult.Status == ConversionStatus.Succeeded)
                     {

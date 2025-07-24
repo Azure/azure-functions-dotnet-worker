@@ -10,6 +10,8 @@ namespace Microsoft.Azure.Functions.Worker.Converters
     {
         public ValueTask<ConversionResult> ConvertAsync(ConverterContext context)
         {
+            // Option 2: Check the source for null or empty and return unhandled if so.
+            // However with this approach we would need to ensure all Converters handle this scenario.
             Type? sourceType = context.Source?.GetType();
 
             if (sourceType is not null &&

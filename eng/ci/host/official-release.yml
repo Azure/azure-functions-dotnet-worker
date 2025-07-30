@@ -94,13 +94,13 @@ extends:
             artifactName: $(artifact_name)
             pipeline: build
 
-          steps:
-          - task: 1ES.PublishNuget@1
-            displayName: Publish packages
-            inputs:
-              packagesToPush: $(packages_pattern)
-              packageParentPath: $(drop_path)
-              publishVstsFeed: $(nuget_feed)
-              nuGetFeedType: internal
-              allowPackageConflicts: true
-              publishPackageMetadata: true
+        steps:
+        - task: 1ES.PublishNuget@1
+          displayName: Publish packages
+          inputs:
+            packagesToPush: $(packages_pattern)
+            packageParentPath: $(drop_path)
+            publishVstsFeed: $(nuget_feed)
+            nuGetFeedType: internal
+            allowPackageConflicts: true
+            publishPackageMetadata: true

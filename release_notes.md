@@ -4,14 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) <version>
+### Microsoft.Azure.Functions.Worker (metapackage) 2.50.0-preview1
 
-- `AZURE_FUNCTIONS_` environment variables are now loaded correctly when using `FunctionsApplicationBuilder`. (#2878)
+- Adding `net10.0` TFM support.
 
-### Microsoft.Azure.Functions.Worker.Core <version>
+### Microsoft.Azure.Functions.Worker.Core 2.50.0-preview1
 
-- <entry>
+- Adding `net10.0` TFM support.
 
-### Microsoft.Azure.Functions.Worker.Grpc <version>
+### Microsoft.Azure.Functions.Worker.Grpc 2.50.0-preview1
 
-- <entry>
+- Adding `net10.0` TFM support.

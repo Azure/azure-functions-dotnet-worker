@@ -4,6 +4,7 @@ trigger:
     # Keep this set limited as appropriate (don't mirror individual user branches).
     - main
     - release/*
+    - feature/net10
   tags:
     include:
     - "*"

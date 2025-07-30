@@ -6,8 +6,9 @@
     <AssemblyName>Microsoft.Azure.Functions.Worker.ApplicationInsights</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.ApplicationInsights</RootNamespace>
     <MajorProductVersion>2</MajorProductVersion>
-    <MinorProductVersion>0</MinorProductVersion>
+    <MinorProductVersion>50</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix>-preview1</VersionSuffix>
     <PackageReadmeFile>README.md</PackageReadmeFile>    
     <BeforePack>$(BeforePack);GetReleaseNotes</BeforePack>
   </PropertyGroup>
@@ -17,7 +18,7 @@
   <ItemGroup>
     <PackageReference Include="Azure.Identity" Version="1.17.0" />
     <PackageReference Include="Microsoft.ApplicationInsights.PerfCounterCollector" Version="2.23.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0-preview.6.25358.103" /> 
   </ItemGroup>
 
   <ItemGroup>

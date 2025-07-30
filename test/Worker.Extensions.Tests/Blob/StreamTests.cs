@@ -246,7 +246,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.Blob
             // Assert
             Assert.Equal(ConversionStatus.Failed, conversionResult.Status);
             Assert.IsType<NotSupportedException>(conversionResult.Error);
-            Assert.Contains("Deserialization of types without a parameterless constructor, a singular parameterized constructor, or a parameterized constructor annotated with 'JsonConstructorAttribute' is not supported.", conversionResult.Error.Message);
+            Assert.Contains("Deserialization of interface or abstract types is not supported.", conversionResult.Error.Message);
         }
     }
 }

@@ -2,15 +2,16 @@
 
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net6.0;net8.0;net9.0;netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net6.0;net8.0;net9.0;net10.0;netstandard2.0</TargetFrameworks>
     <PackageId>Microsoft.Azure.Functions.Worker.Core</PackageId>
     <Description>This library provides the core functionality to build an Azure Functions .NET Worker, adding support for the isolated, out-of-process execution model.</Description>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Core</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Core</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <MajorProductVersion>2</MajorProductVersion>
-    <MinorProductVersion>0</MinorProductVersion>
-    <PatchProductVersion>0</PatchProductVersion>    
+    <MinorProductVersion>50</MinorProductVersion>
+    <PatchProductVersion>0</PatchProductVersion>
+    <VersionSuffix>-preview1</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />
@@ -22,19 +23,12 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.44.1" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-preview.6.25358.103" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="System.Collections.Immutable" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Bcl.Memory" Version="9.0.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' != 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.1" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
+    <PackageReference Include="System.Collections.Immutable" Version="10.0.0-preview.6.25358.103" />
+    <PackageReference Include="Microsoft.Bcl.Memory" Version="10.0.0-preview.6.25358.103" />
   </ItemGroup>
 
 </Project>

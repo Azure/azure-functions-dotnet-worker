@@ -42,6 +42,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                     var defaultFormatClassName = method.ContainingSymbol.ToDisplayString();
                     var fullyQualifiedClassName = method.ContainingSymbol.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
 
+                    var isObsolete = method.GetAttributes()
+                        .Any(attr => SymbolEqualityComparer.Default.Equals(attr.AttributeClass, _knownTypes.ObsoleteAttr));
+                    
                     var function = new ExecutableFunction
                     {
                         EntryPoint = $"{defaultFormatClassName}.{method.Name}",
@@ -54,6 +57,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         ParentFunctionFullyQualifiedClassName = fullyQualifiedClassName,
                         Visibility = method.GetVisibility(),
                         AssemblyIdentity = method.ContainingAssembly.Identity.GetDisplayName(),
+                        IsObsolete = isObsolete,
                     };
 
                     functionList.Add(function);

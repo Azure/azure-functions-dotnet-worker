@@ -106,14 +106,21 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
   </Target>
 
-  <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
-  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
-    <PropertyGroup Condition="'$(FuncExists)' == 'true'">
-      <RunCommand>func</RunCommand>
-      <RunArguments>host start $(RunArguments)</RunArguments>
-      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
-    </PropertyGroup>
-  </Target>
+    <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+        <!-- Windows Configuration -->
+        <PropertyGroup Condition="'$(FuncExists)' == 'true' AND '$(OS)' == 'Windows_NT'">
+            <RunCommand>cmd</RunCommand>
+            <RunArguments>/C func host start $(RunArguments)</RunArguments>
+            <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+        </PropertyGroup>
+
+        <!-- Unix/Linux/macOS Configuration -->
+        <PropertyGroup Condition="'$(FuncExists)' == 'true' AND '$(OS)' != 'Windows_NT'">
+            <RunCommand>bash</RunCommand>
+            <RunArguments>-c "func host start $(RunArguments)"</RunArguments>
+            <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+        </PropertyGroup>
+    </Target>
 
   <Target Name="_FunctionsCheckForCoreTools">
     <Exec Command="func --version" IgnoreExitCode="true">

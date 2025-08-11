@@ -68,22 +68,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  {
                                      builder.ConfigureServices(s =>
                                      {
-                                        s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
-
-                                        // Decorate IFunctionMetadataProvider - not sure if this is the best way to do this
-                                        var __desc = s.Last(sd => sd.ServiceType == typeof(IFunctionMetadataProvider));
-                                        s.Remove(__desc);
-
-                                        s.Add(new ServiceDescriptor(typeof(IFunctionMetadataProvider), sp =>
-                                        {
-                                            var inner = (IFunctionMetadataProvider)(
-                                                __desc.ImplementationFactory != null
-                                                    ? __desc.ImplementationFactory(sp)
-                                                    : __desc.ImplementationInstance
-                                                    ?? ActivatorUtilities.CreateInstance(sp, __desc.ImplementationType!));
-
-                                            return ActivatorUtilities.CreateInstance<CompositeFunctionMetadataProvider>(sp, inner);
-                                        }, __desc.Lifetime));
+                                        s.AddKeyedSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>("core");
                                      });
                                      return builder;
                                  }

@@ -12,6 +12,7 @@ using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace Microsoft.Extensions.DependencyInjection
@@ -48,9 +49,16 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
 
             // FunctionMetadataProvider for worker driven function-indexing
-            services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
-            // Do we need to add this here too?
-            services.Decorate<IFunctionMetadataProvider, CompositeFunctionMetadataProvider>();
+            services.TryAddKeyedSingleton<IFunctionMetadataProvider>("core", new DefaultFunctionMetadataProvider());
+
+            services.AddSingleton<IFunctionMetadataProvider>(sp =>
+            {
+                var innerProvider = sp.GetRequiredKeyedService<IFunctionMetadataProvider>("core");
+                var transformers = sp.GetServices<IFunctionMetadataTransformer>();
+                var logger = sp.GetService<ILogger<CompositeFunctionMetadataProvider>>();
+
+                return new CompositeFunctionMetadataProvider(innerProvider, transformers, logger!);
+            });
 
             // gRPC Core services
             services.TryAddSingleton<IWorker, GrpcWorker>();

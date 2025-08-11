@@ -4,8 +4,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
@@ -14,37 +15,37 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 /// </summary>
 public class CompositeFunctionMetadataProvider(
     IFunctionMetadataProvider inner,
-    IServiceProvider services) : IFunctionMetadataProvider
+    IEnumerable<IFunctionMetadataTransformer> transformers,
+    ILogger<CompositeFunctionMetadataProvider> logger) : IFunctionMetadataProvider
 {
     private readonly IFunctionMetadataProvider _inner = inner ?? throw new ArgumentNullException(nameof(inner));
-    private readonly IEnumerable<IFunctionMetadataTransformer> _transformers = services
-            .GetServices<IFunctionMetadataTransformer>()
-            .ToImmutableArray();
+    private readonly IEnumerable<IFunctionMetadataTransformer> _transformers = transformers;
+    private readonly ILogger<CompositeFunctionMetadataProvider> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
 
     /// <inheritdoc/>
     public async Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
     {
-        // Get the core metadata array
-        var originals = await _inner.GetFunctionMetadataAsync(directory);
+        var source = await _inner.GetFunctionMetadataAsync(directory);
 
-
-        var builder = ImmutableArray.CreateBuilder<IFunctionMetadata>(originals.Length);
-
-        // For each function, run it through the transformer pipeline:
-        // We could also call .Transform directly on the original metadata array and have the transformers
-        // loop through each function on their own.
-        foreach (var m in originals)
+        if (!_transformers.Any() || source.IsDefaultOrEmpty)
         {
-            IFunctionMetadata current = m;
-            foreach (var tx in _transformers)
-            {
-                current = tx.Transform(current)
-                    ?? throw new InvalidOperationException(
-                        $"Transformer {tx.GetType().FullName} returned null");
-            }
-            builder.Add(current);
+            return source.IsDefault ? ImmutableArray<IFunctionMetadata>.Empty : source;
         }
 
-        return builder.ToImmutable();
+        foreach (var transformer in _transformers)
+        {
+            try
+            {
+                _logger?.LogTrace("Applying {Transformer} to function metadata array.", transformer.GetType().Name);
+                source = transformer.Transform(source);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Transformer {Transformer} failed.", transformer.GetType().Name);
+                throw;
+            }
+        }
+
+        return source;
     }
 }

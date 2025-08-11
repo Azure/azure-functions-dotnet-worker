@@ -68,7 +68,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  {
                                      builder.ConfigureServices(s =>
                                      {
-                                        // s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
                                         s.AddKeyedSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>("core");
                                      });
                                      return builder;

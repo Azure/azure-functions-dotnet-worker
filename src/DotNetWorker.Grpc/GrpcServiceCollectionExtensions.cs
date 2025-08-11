@@ -48,9 +48,11 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IWorkerDiagnostics, GrpcWorkerDiagnostics>();
 
             // FunctionMetadataProvider for worker driven function-indexing
-            services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
-            // Do we need to add this here too?
-            services.Decorate<IFunctionMetadataProvider, CompositeFunctionMetadataProvider>();
+            // services.TryAddSingleton<IFunctionMetadataProvider, DefaultFunctionMetadataProvider>();
+            services.TryAddKeyedSingleton<IFunctionMetadataProvider>("core", new DefaultFunctionMetadataProvider());
+
+            services.TryAddSingleton<IFunctionMetadataProvider>(sp =>
+                new CompositeFunctionMetadataProvider(sp.GetRequiredKeyedService<IFunctionMetadataProvider>("core"), sp));
 
             // gRPC Core services
             services.TryAddSingleton<IWorker, GrpcWorker>();

@@ -1,18 +1,22 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 
 /// <summary>
-/// Defines a method to transform <see cref="IFunctionMetadata"/> for Azure Functions.
+/// Defines a contract for transforming <see cref="IFunctionMetadata"/> instances for Azure Functions.
+/// Implementations can modify, augment, or filter function metadata before it is used by the host.
 /// </summary>
-// Not yet sold on the naming - could also be an "Augmenter" or "Enhancer"
 public interface IFunctionMetadataTransformer
 {
     /// <summary>
-    /// Transforms the specified <see cref="IFunctionMetadata"/> using the provided <see cref="FunctionContext"/>.
+    /// Transforms the provided collection of <see cref="IFunctionMetadata"/> instances.
     /// </summary>
-    /// <param name="original">The original function metadata.</param>
-    /// <returns>The transformed function metadata.</returns>
-    IFunctionMetadata Transform(IFunctionMetadata original);
+    /// <param name="original">The original collection of function metadata.</param>
+    /// <returns>
+    /// An <see cref="ImmutableArray{IFunctionMetadata}"/> containing the transformed function metadata.
+    /// </returns>
+    ImmutableArray<IFunctionMetadata> Transform(ImmutableArray<IFunctionMetadata> original);
 }

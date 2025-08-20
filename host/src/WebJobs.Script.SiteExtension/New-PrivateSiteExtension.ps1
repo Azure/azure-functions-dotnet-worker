@@ -65,14 +65,11 @@ if (-not (Join-Path $InputPath "extension.xml" | Test-Path))
     exit 1
 }
 
-$version = "x"
-
 if ($AppendOutputName -or !$OutputPath)
 {
     $runtime = $Bitness -eq '32bit' ? 'win-x86' : 'win-x64'
     $leaf = (Split-Path $InputPath -Leaf)
     $split = $leaf.IndexOf('.')
-    $version = $leaf.Substring($split + 1)
     $OutputPath = [System.IO.Path]::Combine(
         $OutputPath, "$($leaf.Substring(0, $split)).Private.$($leaf.Substring($split + 1)).$runtime")
 }
@@ -114,16 +111,12 @@ function Write-Folder ($outputPath)
     }
 
     $inputPath = Get-ChildItem -Path $InputPath -Attributes Directory
-    $outputPath = Join-Path $outputPath "dotnet-isolated" "$version"
+    $outputPath = Join-Path $outputPath "dotnet-isolated"
     New-Item -ItemType Directory -Path $outputPath | Out-Null
 
     Copy-Item "$inputPath/applicationHost.xdt" -Destination $outputPath | Out-Null
 
-    $filesDest = (Join-Path $outputPath "$Bitness")
-    Copy-Item "$inputPath/$Bitness/" -Destination "$filesDest/" -Container -Recurse | Out-Null
-
-    $workerDest = (Join-Path $filesDest "$version")
-    Copy-Item "$inputPath/$workers/" -Destination "$workerDest/" -Container -Recurse | Out-Null
+    Copy-Item "$inputPath/$workers/" -Destination "$outputPath/" -Container -Recurse | Out-Null
 }
 
 if ($NoZip) {

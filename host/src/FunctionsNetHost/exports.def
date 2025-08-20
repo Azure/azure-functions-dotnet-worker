@@ -1,4 +1,5 @@
 EXPORTS
+   DotNetRuntimeDebugHeader DATA
    get_application_properties
    register_callbacks
    send_streaming_message

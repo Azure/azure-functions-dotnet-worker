@@ -1,0 +1,15 @@
+name: .NET 10 issue or question
+description: Ask questions or raise issues related to .NET 10
+labels: [".NET 10"]
+body: 
+- type: markdown
+  attributes:
+    value: |
+      Please use this template for any issues you have using .NET 10 or for any questions not answered in our [tracking thread for .NET 10 support](https://github.com/Azure/azure-functions-dotnet-worker/issues/3152).
+- id: description
+  type: textarea
+  attributes:
+    label: Description
+    placeholder: Please provide a succinct description of the question or issue. For issue reports, please include the versions of the Azure Functions packages your projects references.
+  validations:
+    required: true

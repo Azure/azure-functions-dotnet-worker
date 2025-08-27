@@ -13,6 +13,6 @@
 
 - Updating `Microsoft.Azure.WebJobs.Extensions.Storage.Blobs` reference to 5.3.5 (#3155)
 
-### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.6.0
+### Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues 5.5.3
 
 - Updating `Microsoft.Azure.WebJobs.Extensions.Storage.Queues` reference to 5.3.5 (#3155)

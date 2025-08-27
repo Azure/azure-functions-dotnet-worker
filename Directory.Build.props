@@ -9,6 +9,9 @@
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <EngRoot>$(RepoRoot)eng/</EngRoot>
     <TargetsRoot>$(EngRoot)build/</TargetsRoot>
+    <ArtifactsPath>$(RepoRoot)out</ArtifactsPath>
+    <ArtifactsPublishOutputName>pub</ArtifactsPublishOutputName>
+    <ArtifactsPackageOutputName>pkg</ArtifactsPackageOutputName>
   </PropertyGroup>
 
   <PropertyGroup>

@@ -36,27 +36,17 @@ jobs:
   - template: ci/sign-files.yml@eng
     parameters:
       displayName: Sign SDK assemblies
-      folderPath: sdk
-      pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
+      minimatch: true
+      folderPath: out/bin/
+      pattern: |
+        **/Microsoft.Azure.Functions.Worker*.dll
+        !**/*Test*.dll
       signType: dll
 
   - task: DeleteFiles@1
     displayName: Delete CodeSignSummary files
     inputs:
       sourceFolder: sdk
-      contents: '**/CodeSignSummary-*.md'
-
-  - template: ci/sign-files.yml@eng
-    parameters:
-      displayName: Sign DotNetWorker assemblies
-      folderPath: src
-      pattern: Microsoft.Azure.Functions.Worker*.dll
-      signType: dll
-
-  - task: DeleteFiles@1
-    displayName: Delete CodeSignSummary files
-    inputs:
-      sourceFolder: src
       contents: '**/CodeSignSummary-*.md'
 
   - task: DotNetCoreCLI@2

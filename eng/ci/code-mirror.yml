@@ -4,6 +4,7 @@ trigger:
     # Keep this set limited as appropriate (don't mirror individual user branches).
     - main
     - release/*
+    - feature/*
   tags:
     include:
     - "*"
@@ -13,7 +14,7 @@ resources:
   - repository: eng
     type: git
     name: engineering
-    ref: refs/tags/release
+    ref: refs/heads/main
 
 variables:
 - template: ci/variables/cfs.yml@eng

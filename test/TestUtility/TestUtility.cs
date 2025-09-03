@@ -12,9 +12,9 @@ namespace Microsoft.Azure.Functions.Tests
     public static class TestUtility
     {
 #if DEBUG
-        public static readonly string Config = "Debug";
+        public static readonly string Config = "debug";
 #else
-        public static readonly string Config = "Release";
+        public static readonly string Config = "release";
 #endif
 
         public static readonly string RepoRoot = GetDirectoryOfFileAbove(".reporoot");

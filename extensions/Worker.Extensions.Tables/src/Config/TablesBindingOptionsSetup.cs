@@ -24,14 +24,14 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.Config
             Configure(Options.DefaultName, options);
         }
 
-        public void Configure(string name, TablesBindingOptions options)
+        public void Configure(string? name, TablesBindingOptions options)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 name = Constants.Storage; // default
             }
 
-            IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(name);
+            IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(name!);
 
             if (!connectionSection.Exists())
             {

@@ -28,8 +28,6 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
                 File.Delete(zipName);
             }
 
-            string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
-
             await _builder.PublishAsync($"-r {rid} --self-contained {selfContained}");
 
             CreateZipFileTask.CreateZipFileFromDirectory(_builder.OutputPath, zipName);

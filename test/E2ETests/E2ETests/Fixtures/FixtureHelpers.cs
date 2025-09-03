@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         {
             var funcProcess = new Process();
             string rootDir = TestUtility.RepoRoot;
-            var e2eAppBinPath = Path.Combine(rootDir, "out", "bin", "test", testAppName, TestUtility.Config);
+            var e2eAppBinPath = Path.Combine(rootDir, "out", "bin", "test", testAppName, "debug");
             string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
 
             if (e2eHostJson == null)

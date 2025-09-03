@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadata.Tests
         [Fact]
         public void GetWebJobsExtensions_FindsExtensions()
         {
-            string assembly = Path.Combine(TestUtility.RepoRoot, "sdk", "FunctionMetadataLoaderExtension", "bin", TestUtility.Config, "netstandard2.0", "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
+            string assembly = Path.Combine(TestUtility.RepoRoot, "out", "bin", "src", "FunctionMetadataLoaderExtension", TestUtility.Config, "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll");
             var extensions = ExtensionsMetadataEnhancer.GetWebJobsExtensions(assembly);
 
             ValidateAllEqual(

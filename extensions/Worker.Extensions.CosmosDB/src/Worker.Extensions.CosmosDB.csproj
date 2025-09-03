@@ -6,7 +6,7 @@
     <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.12.0</VersionPrefix>
+    <VersionPrefix>4.13.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -21,7 +21,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.Cosmos" Version="3.39.1" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
-    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.5" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
     <!-- Transitive dependency promoted to address CVE:-->
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.9.0" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.10.0" />
   </ItemGroup>
 
 </Project>

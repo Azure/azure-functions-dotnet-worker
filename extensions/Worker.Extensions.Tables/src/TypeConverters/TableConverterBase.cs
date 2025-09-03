@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             return bindingData.ContentType switch
             {
-                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>(),
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>()!,
                 _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }

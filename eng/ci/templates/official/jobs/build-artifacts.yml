@@ -37,10 +37,9 @@ jobs:
     parameters:
       displayName: Sign SDK assemblies
       minimatch: true
-      folderPath: out/bin/
+      folderPath: out/bin/src
       pattern: |
         **/Microsoft.Azure.Functions.Worker*.dll
-        !**/*Test*.dll
       signType: dll
 
   - task: DeleteFiles@1

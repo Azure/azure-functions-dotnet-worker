@@ -7,7 +7,7 @@
     <IsPackable>false</IsPackable>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <ArtifactsPath>$(MSBuildThisFileDirectory)/out</ArtifactsPath>
+    <ArtifactsBinOutputName>bin/sample</ArtifactsBinOutputName>
   </PropertyGroup>
 
 </Project>

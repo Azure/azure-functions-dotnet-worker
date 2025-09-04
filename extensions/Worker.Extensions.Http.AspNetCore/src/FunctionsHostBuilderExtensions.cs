@@ -73,7 +73,7 @@ namespace Microsoft.Extensions.Hosting
                     // are sent by the host and will be processed by the worker.
                     options.ForwardedHeaders = ForwardedHeaders.All;
 
-                    options.ForwardedHeadersOptions.ForwardLimit = null;
+                    options.ForwardLimit = null;
                 });
             });
 

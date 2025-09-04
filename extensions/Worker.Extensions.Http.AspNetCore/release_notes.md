@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- Increase the ForwardLimit for the headers
+- Increase the ForwardLimit for the headers (#3161)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers  <version>
 

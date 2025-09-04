@@ -6,7 +6,7 @@
     <Description>Azure Event Grid extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>3.5.0</VersionPrefix>
+    <VersionPrefix>3.6.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -24,7 +24,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.4.4" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.EventGrid" Version="3.5.0" />
   </ItemGroup>
 
 </Project>

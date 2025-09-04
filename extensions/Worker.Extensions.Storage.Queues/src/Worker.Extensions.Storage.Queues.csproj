@@ -6,7 +6,7 @@
     <Description>Azure Queue Storage extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.5.3</VersionPrefix>
+    <VersionPrefix>5.5.2</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -28,7 +28,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.5" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.Storage.Queues" Version="5.3.4" />
   </ItemGroup>
 
 </Project>

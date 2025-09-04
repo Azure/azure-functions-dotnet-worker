@@ -72,6 +72,8 @@ namespace Microsoft.Extensions.Hosting
                     // By default, the X-Forwarded-For, X-Forwarded-Host, and X-Forwarded-Proto headers
                     // are sent by the host and will be processed by the worker.
                     options.ForwardedHeaders = ForwardedHeaders.All;
+
+                    options.ForwardedHeadersOptions.ForwardLimit = null;
                 });
             });
 

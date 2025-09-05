@@ -83,7 +83,7 @@ namespace Microsoft.Azure.Functions.Worker
                     break;
 
                 case MsgType.WorkerInitRequest:
-                    responseMessage.WorkerInitResponse = WorkerInitRequestHandler(request.WorkerInitRequest, _workerOptions);
+                    responseMessage.WorkerInitResponse = await WorkerInitRequestHandlerAsync(request.WorkerInitRequest, _workerOptions);
                     break;
 
                 case MsgType.WorkerStatusRequest:
@@ -128,7 +128,7 @@ namespace Microsoft.Azure.Functions.Worker
             _invocationHandler.TryCancel(request.InvocationId);
         }
 
-        internal static WorkerInitResponse WorkerInitRequestHandler(WorkerInitRequest request, WorkerOptions workerOptions)
+        internal async Task<WorkerInitResponse> WorkerInitRequestHandlerAsync(WorkerInitRequest request, WorkerOptions workerOptions)
         {
             var response = new WorkerInitResponse
             {
@@ -138,6 +138,21 @@ namespace Microsoft.Azure.Functions.Worker
             };
 
             response.Capabilities.Add(GetWorkerCapabilities(workerOptions));
+
+            if (TargetFrameworkSupport.HasWarning(out string? warning))
+            {
+                StreamingMessage warningMessage = new()
+                {
+                    RpcLog = new RpcLog
+                    {
+                        Level = RpcLog.Types.Level.Warning,
+                        LogCategory = RpcLog.Types.RpcLogCategory.System,
+                        Message = warning!,
+                    },
+                };
+
+                await _workerClient!.SendMessageAsync(warningMessage);
+            }
 
             return response;
         }

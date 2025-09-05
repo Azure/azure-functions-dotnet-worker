@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Runtime.Versioning;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -70,6 +71,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         [Fact]
         public void LoadFunction_ReturnsSuccess()
         {
+            var attr = Assembly.GetExecutingAssembly().GetCustomAttribute<TargetFrameworkAttribute>();
             using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", "test");
 
             FunctionLoadRequest request = CreateFunctionLoadRequest();

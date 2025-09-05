@@ -3,14 +3,8 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Versioning;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using System.Threading.Tasks;
-
 namespace Microsoft.Azure.Functions.Worker.Grpc
 {
     internal static class TargetFrameworkSupport

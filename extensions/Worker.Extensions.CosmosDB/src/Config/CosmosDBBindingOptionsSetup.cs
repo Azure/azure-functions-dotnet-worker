@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Extensions;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 using Microsoft.Extensions.Azure;
@@ -31,8 +30,9 @@ namespace Microsoft.Azure.Functions.Worker
             Configure(Options.DefaultName, options);
         }
 
-        public void Configure(string connectionName, CosmosDBBindingOptions options)
+        public void Configure(string? connectionName, CosmosDBBindingOptions options)
         {
+            connectionName ??= Options.DefaultName;
             IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(connectionName);
 
             if (!connectionSection.Exists())
@@ -42,7 +42,6 @@ namespace Microsoft.Azure.Functions.Worker
             }
 
             options.ConnectionName = connectionName;
-
             if (!string.IsNullOrWhiteSpace(connectionSection.Value))
             {
                 options.ConnectionString = connectionSection.Value;

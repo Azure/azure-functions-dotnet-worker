@@ -33,13 +33,13 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>The object representing the deserialized stream.</returns>
         public override T FromStream<T>(Stream stream)
         {
+            if (typeof(Stream).IsAssignableFrom(typeof(T)))
+            {
+                return (T)(object)stream;
+            }
+
             using (stream)
             {
-                if (typeof(Stream).IsAssignableFrom(typeof(T)))
-                {
-                    return (T)(object)stream;
-                }
-
                 return (T)_serializer.Deserialize(stream, typeof(T), default)!;
             }
         }
@@ -52,7 +52,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// <returns>An open readable stream containing the JSON of the serialized object.</returns>
         public override Stream ToStream<T>(T input)
         {
-            var streamPayload = new MemoryStream();
+            MemoryStream streamPayload = new();
             _serializer.Serialize(streamPayload, input, typeof(T), default);
             streamPayload.Position = 0;
             return streamPayload;

@@ -66,9 +66,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                                  ///</summary>
                                  public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
                                  {
-                                     builder.ConfigureServices(s => 
+                                     builder.ConfigureServices(s =>
                                      {
-                                         s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                                        s.AddKeyedSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>("core");
                                      });
                                      return builder;
                                  }

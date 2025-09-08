@@ -67,7 +67,7 @@ namespace Microsoft.Azure.Functions.Worker
         public static IFunctionsWorkerApplicationBuilder UseCosmosDBWorkerSerializer(this IFunctionsWorkerApplicationBuilder builder)
         {
             builder.Services.AddOptions<CosmosDBExtensionOptions>()
-                .PostConfigure<IOptions<WorkerOptions>>((cosmos, worker) =>
+                .Configure<IOptions<WorkerOptions>>((cosmos, worker) =>
                 {
                     cosmos.Serializer ??= worker.Value.Serializer;
                 });

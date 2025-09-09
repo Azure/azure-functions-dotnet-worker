@@ -10,13 +10,13 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -70,6 +70,9 @@ namespace Microsoft.Extensions.DependencyInjection
 
             // Worker initialization service
             services.AddHostedService<WorkerHostedService>();
+
+            // Worker metadata management
+            services.TryAddSingleton<IFunctionMetadataManager, DefaultFunctionMetadataManager>();
 
             // Default serializer settings
             services.AddOptions();

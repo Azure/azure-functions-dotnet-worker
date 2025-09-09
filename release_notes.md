@@ -10,8 +10,8 @@
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
-- <entry>
+- Support for function metadata transforms (#3145)
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Updated to use the new metadata manage and leverage metadata transforms (#3145)

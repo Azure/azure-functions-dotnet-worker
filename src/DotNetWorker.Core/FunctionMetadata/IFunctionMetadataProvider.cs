@@ -18,4 +18,13 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
         /// <returns>A Task with IEnumerable of FunctionMetadata</returns>
         Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory);
     }
+
+    public interface IFunctionMetadataManager
+    {
+        /// <summary>
+        /// Gets all function metadata that this provider knows about asynchronously
+        /// </summary>
+        /// <returns>A Task with IEnumerable of FunctionMetadata</returns>
+        Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync();
+    }
 }

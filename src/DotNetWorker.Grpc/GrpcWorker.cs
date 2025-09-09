@@ -4,7 +4,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -18,7 +17,6 @@ using Microsoft.Azure.Functions.Worker.Handlers;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Rpc;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MsgType = Microsoft.Azure.Functions.Worker.Grpc.Messages.StreamingMessage.ContentOneofCase;
 
@@ -32,14 +30,14 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
         private readonly IWorkerClientFactory _workerClientFactory;
         private readonly IInvocationHandler _invocationHandler;
-        private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private readonly IFunctionMetadataManager _metadataManager;
         private IWorkerClient? _workerClient;
 
         public GrpcWorker(IFunctionsApplication application,
                           IWorkerClientFactory workerClientFactory,
                           IMethodInfoLocator methodInfoLocator,
                           IOptions<WorkerOptions> workerOptions,
-                          IFunctionMetadataProvider functionMetadataProvider,
+                          IFunctionMetadataManager metadataManager,
                           IHostApplicationLifetime hostApplicationLifetime,
                           IInvocationHandler invocationHandler)
         {
@@ -48,7 +46,7 @@ namespace Microsoft.Azure.Functions.Worker
             _application = application ?? throw new ArgumentNullException(nameof(application));
             _methodInfoLocator = methodInfoLocator ?? throw new ArgumentNullException(nameof(methodInfoLocator));
             _workerOptions = workerOptions.Value ?? throw new ArgumentNullException(nameof(workerOptions));
-            _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
+            _metadataManager = metadataManager ?? throw new ArgumentNullException(nameof(metadataManager));
 
             _invocationHandler = invocationHandler;
         }
@@ -152,7 +150,7 @@ namespace Microsoft.Azure.Functions.Worker
 
             try
             {
-                var functionMetadataList = await _functionMetadataProvider.GetFunctionMetadataAsync(functionAppDirectory);
+                var functionMetadataList = await _metadataManager.GetFunctionMetadataAsync(functionAppDirectory);
 
                 foreach (var func in functionMetadataList)
                 {

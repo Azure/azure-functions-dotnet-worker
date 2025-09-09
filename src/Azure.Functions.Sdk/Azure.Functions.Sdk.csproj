@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Description>Azure Functions SDK for dotnet isolated workers.</Description>
+    <Description>Azure Functions SDK for dotnet-isolated workers.</Description>
     <PackageTags>Azure Functions Dotnet Dotnet-Isolated</PackageTags>
     <PackageType>MSBuildSdk</PackageType>
     <BuildOutputTargetFolder>tools</BuildOutputTargetFolder>

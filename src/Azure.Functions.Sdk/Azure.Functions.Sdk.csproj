@@ -2,6 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <NoWarn>$(NoWarn);TA001</NoWarn>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <Description>Azure Functions SDK for dotnet-isolated workers.</Description>
     <PackageTags>Azure Functions Dotnet Dotnet-Isolated</PackageTags>
     <PackageType>MSBuildSdk</PackageType>
@@ -13,6 +17,13 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.4" ExcludeAssets="Runtime" />
+    <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" />
+  </ItemGroup>
+
+  <!-- Dev Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" PrivateAssets="all" />
   </ItemGroup>
 
   <ItemGroup>

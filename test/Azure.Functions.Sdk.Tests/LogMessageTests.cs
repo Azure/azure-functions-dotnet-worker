@@ -142,6 +142,7 @@ public class LogMessageTests
     [MemberData(nameof(KnownLogMessages))]
     public void FromId_KnownId_ShouldSucceed(string id)
     {
+        // Get this a different way to ensure we are getting the static field value.
         LogMessage expected = (LogMessage)typeof(LogMessage)
             .GetField(id, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             !.GetValue(null)!;
@@ -163,6 +164,27 @@ public class LogMessageTests
     {
         Action act = () => LogMessage.FromId(id);
         act.Should().Throw<ArgumentException>().WithParameterName(nameof(id));
+    }
+
+    #endregion
+
+    #region Format Tests
+
+    [Theory]
+    [InlineData(nameof(LogMessage.Error_CannotRunFuncCli))]
+    [InlineData(nameof(LogMessage.Error_UnknownFunctionsVersion), "v3")]
+    public void Format_KnownMessage_ReturnsMessage(string id, params string[] args)
+    {
+        // arrange
+        CultureInfo culture = CultureInfo.InvariantCulture;
+        LogMessage log = LogMessage.FromId(id);
+        string expected = string.Format(culture, Strings.GetResourceString(log.Id)!, args);
+
+        // act
+        string message = log.Format(culture, args);
+
+        // assert
+        message.Should().Be(expected);
     }
 
     #endregion
@@ -200,12 +222,14 @@ public class LogMessageTests
     public static TheoryData<string> KnownLogMessages()
     {
         TheoryData<string> data = [];
-        foreach (var field in typeof(LogMessage).GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+        foreach (var field in typeof(LogMessage)
+            .GetFields(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Where(f => f.FieldType == typeof(LogMessage)))
         {
             // We don't include LogMessage directly for two reasons:
             // 1. it is internal, would need to wrap it
-            // 2. we want to keep the test data simple and focused on the ID, so it shows as individual tests in the explorer.
+            // 2. we want to keep the test data simple and focused on the ID, so it shows as individual tests
+            //    in the explorer.
             data.Add(field.Name);
         }
 

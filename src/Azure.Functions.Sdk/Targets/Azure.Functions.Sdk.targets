@@ -17,7 +17,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <PropertyGroup>
     <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
     <_FunctionsRuntimeMajorVersion>$(_AzureFunctionsVersionStandardized.TrimStart('vV'))</_FunctionsRuntimeMajorVersion>
-    <_MinimumSupportedTfmInFunctions>net8.0</_MinimumSupportedTfmInFunctions>
     <_ToolingSuffix Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">net$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)', 1))-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
@@ -32,10 +31,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       <_SelectedFunctionVersion Include="@(_AllowedFunctionVersion)" Condition="'%(_AllowedFunctionVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'" />
     </ItemGroup>
 
+    <PropertyGroup>
+      <_MinimumSupportedTfmInFunctions>net8.0</_MinimumSupportedTfmInFunctions>
+    </PropertyGroup>
+
     <FuncSdkLog Condition="'%(_SelectedFunctionVersion.InSupport)' == 'false'" Resource="Warning_EndOfLifeFunctionsVersion" Arguments="$(_AzureFunctionsVersionStandardized)" />
     <FuncSdkLog Condition="'@(_SelectedFunctionVersion)' == ''" Resource="Error_UnknownFunctionsVersion" Arguments="$(_AzureFunctionsVersionStandardized)" />
     <FuncSdkLog Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', '$(_MinimumSupportedTfmInFunctions)'))"
-      Resource="Error_UnsupportedTargetFramework" Arguments="$(_MinimumSupportedTfmInFunctions);$(TargetFramework)" />
+      Resource="Warning_UnsupportedTargetFramework" Arguments="$(TargetFramework)" />
   </Target>
 
   <Target Name="_FunctionAppValidation" BeforeTargets="Restore;Build" DependsOnTargets="_ValidateFunctionsVersion">

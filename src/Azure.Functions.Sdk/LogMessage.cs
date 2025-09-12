@@ -1,6 +1,7 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Globalization;
 using NuGet.Common;
 
 namespace Azure.Functions.Sdk;
@@ -28,8 +29,8 @@ internal readonly struct LogMessage
     public static readonly LogMessage Error_UnknownFunctionsVersion
         = new(nameof(Strings.AZFW0106_Error_UnknownFunctionsVersion));
 
-    public static readonly LogMessage Error_UnsupportedTargetFramework
-        = new(nameof(Strings.AZFW0107_Error_UnsupportedTargetFramework));
+    public static readonly LogMessage Warning_UnsupportedTargetFramework
+        = new(nameof(Strings.AZFW0107_Warning_UnsupportedTargetFramework));
 
     public static readonly LogMessage Error_CustomFunctionPackageReferencesNotAllowed
         = new(nameof(Strings.AZFW0108_Error_CustomFunctionPackageReferencesNotAllowed));
@@ -67,6 +68,8 @@ internal readonly struct LogMessage
 
     public string? Code { get; }
 
+    public string? HelpKeyword => Code is null ? null : $"AzureFunctions.{Code}";
+
     /// <summary>
     /// Gets a <see cref="LogMessage"/> from its identifier.
     /// </summary>
@@ -84,10 +87,19 @@ internal readonly struct LogMessage
             nameof(Warning_EndOfLifeFunctionsVersion) => Warning_EndOfLifeFunctionsVersion,
             nameof(Error_UsingLegacyFunctionsSdk) => Error_UsingLegacyFunctionsSdk,
             nameof(Error_UnknownFunctionsVersion) => Error_UnknownFunctionsVersion,
-            nameof(Error_UnsupportedTargetFramework) => Error_UnsupportedTargetFramework,
+            nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
             nameof(Error_CustomFunctionPackageReferencesNotAllowed) => Error_CustomFunctionPackageReferencesNotAllowed,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
+    }
+
+    public string Format(params object[] args) => Format(CultureInfo.CurrentUICulture, args);
+
+    public string Format(CultureInfo culture, params object[] args)
+    {
+        string resource = Strings.GetResourceString(Id)
+            ?? throw new InvalidOperationException($"Resource string for id '{Id}' not found.");
+        return string.Format(culture, resource, args);
     }
 
     private static (LogLevel Level, string? Code) ParseId(string id)

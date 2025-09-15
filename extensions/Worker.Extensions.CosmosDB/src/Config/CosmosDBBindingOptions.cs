@@ -4,6 +4,7 @@
 using System;
 using System.Collections.Concurrent;
 using Azure.Core;
+using Azure.Core.Serialization;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker.Extensions.CosmosDB;
 
@@ -17,7 +18,9 @@ namespace Microsoft.Azure.Functions.Worker
     /// </summary>
     internal class CosmosDBBindingOptions
     {
-        public string? ConnectionName  { get; set; }
+        private static readonly JsonObjectSerializer DefaultSerializer = new(new() { PropertyNameCaseInsensitive = true });
+
+        public string? ConnectionName { get; set; }
 
         public string? ConnectionString { get; set; }
 
@@ -26,6 +29,8 @@ namespace Microsoft.Azure.Functions.Worker
         public TokenCredential? Credential { get; set; }
 
         public CosmosDBExtensionOptions? CosmosExtensionOptions { get; set; }
+
+        public ObjectSerializer Serializer => CosmosExtensionOptions?.Serializer ?? DefaultSerializer;
 
         internal string BuildCacheKey(string connection, string region) => $"{connection}|{region}";
 

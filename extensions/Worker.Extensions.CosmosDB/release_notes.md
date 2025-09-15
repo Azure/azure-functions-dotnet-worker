@@ -8,3 +8,4 @@
 
 - Update dependency `Microsoft.Azure.WebJobs.Extensions.CosmosDB` to 4.10.0 (#3157)
 - Update dependency `Microsoft.Extensions.Azure` to 1.12.0 (#3157)
+- Allow for customizing JSON deserialization to POCOs. (#3163)

@@ -279,7 +279,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
 
             var clientFactoryMock = new Mock<IWorkerClientFactory>();
             var clientMock = new Mock<IWorkerClient>();
-            var metadataProvider = new Mock<IFunctionMetadataProvider>();
+            var metadataManager = new Mock<IFunctionMetadataManager>();
             var invocationHandlerMock = new Mock<IInvocationHandler>();
 
             InvocationResponse ValueFunction(InvocationRequest request)
@@ -310,7 +310,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                                         clientFactoryMock.Object,
                                         _mockMethodInfoLocator.Object,
                                         new OptionsWrapper<WorkerOptions>(new WorkerOptions()),
-                                        metadataProvider.Object,
+                                        metadataManager.Object,
                                         new ApplicationLifetime(TestLogger<ApplicationLifetime>.Create()),
                                         invocationHandlerMock.Object);
 

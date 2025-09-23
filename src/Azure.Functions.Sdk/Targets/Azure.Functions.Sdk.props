@@ -12,13 +12,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <AzureFunctionsVersion>v4</AzureFunctionsVersion>
-    <DefaultExcludesInProjectFolder>$(DefaultExcludesInProjectFolder);host.json;local.settings.json</DefaultExcludesInProjectFolder>
     <MSBuildFunctionsTargetsPath>$(MSBuildExtensionsPath)\Microsoft\VisualStudio\Managed.Functions\</MSBuildFunctionsTargetsPath>
   </PropertyGroup>
 
-  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+  <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.props" />
 
   <!-- Enable Azure Functions project capability to enable tools -->
   <ItemGroup>
@@ -30,8 +28,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="host.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Condition="Exists('host.json')" />
-    <None Include="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Condition="Exists('local.settings.json')" />
+    <Content Update="local.settings.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="Never" Condition="Exists('local.settings.json')" />
   </ItemGroup>
 
 </Project>

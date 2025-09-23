@@ -11,7 +11,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
 <Project>
 
-  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+  <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.targets" />
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).FuncSdkLog" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>

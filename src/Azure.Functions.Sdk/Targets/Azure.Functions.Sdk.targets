@@ -45,4 +45,18 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FuncSdkLog Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Resource="Error_UsingLegacyFunctionsSdk" />
   </Target>
 
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
+    <Exec Command="func --version" IgnoreExitCode="true">
+      <Output TaskParameter="ExitCode" PropertyName="_FuncCliExitCode" />
+    </Exec>
+
+    <FuncSdkLog Condition="'$(_FuncCliExitCode)' != '0'" Resource="Error_CannotRunFuncCli" />
+
+    <PropertyGroup Condition="'$(_FuncCliExitCode)' == '0'">
+      <RunCommand>func</RunCommand>
+      <RunArguments>host start $(RunArguments)</RunArguments>
+      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    </PropertyGroup>
+  </Target>
+
 </Project>

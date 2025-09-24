@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore <version>
 
-- <entry>
+- Updating ASP.NET Core integration to support the metadata transformation feature (#3172)
 
 ### Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.Analyzers  <version>
 

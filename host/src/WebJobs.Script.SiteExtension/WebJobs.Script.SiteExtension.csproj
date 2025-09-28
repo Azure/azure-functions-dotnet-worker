@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <!-- This item group controls what runtimes we will publish for public & private site extension -->
-    <PublishRuntimeIdentifier Include="win-x64" SelfContained="false" PublishDir="64bit" />
+    <PublishRuntimeIdentifier Include="win-x64" SelfContained="false" />
   </ItemGroup>
 
   <ItemGroup>

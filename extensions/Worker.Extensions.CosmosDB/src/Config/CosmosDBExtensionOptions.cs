@@ -13,7 +13,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         public CosmosClientOptions ClientOptions { get; set; } = new() { ConnectionMode = ConnectionMode.Gateway };
 
-        // TODO: in next major version, ensure this is WorkerOptions.Serializer by default.
+        /// <summary>
+        /// Gets or sets the <see cref="ObjectSerializer" /> to use for Cosmos DB operations.
+        /// Defaults to the worker serializer if left unset.
+        /// </summary>
         public ObjectSerializer? Serializer { get; set; }
     }
 }

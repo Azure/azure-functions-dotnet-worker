@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="SiteExtensionTasks" BeforeTargets="Build">
+    <Message Text="Running SiteExtensionTasks target for FunctionsNetHost.SiteExtension" Importance="high" />
+    <!-- Add custom build tasks here -->
+  </Target>
+</Project>

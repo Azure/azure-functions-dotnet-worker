@@ -1,0 +1,6 @@
+<Project>
+  <Target Name="PublishSingleTFM" AfterTargets="Publish">
+    <Message Text="Running PublishSingleTFM target for FunctionsNetHost.SiteExtension" Importance="high" />
+    <!-- Add custom publish logic here -->
+  </Target>
+</Project>

@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>FunctionsNetHost.SiteExtension</PackageId>
+    <Authors>Azure</Authors>
+    <Description>Site Extension for Azure Functions .NET Worker Host</Description>
+    <PackageOutputPath>$(MSBuildThisFileDirectory)..\..\..\..\out\pkg\$(Configuration)</PackageOutputPath>
+    <ZipAfterPublish>true</ZipAfterPublish>
+    <PublishDir>$(MSBuildThisFileDirectory)..\..\..\..\out\pub\FunctionsNetHost.SiteExtension\$(Configuration)_win\</PublishDir>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\azure-functions-dotnet-worker\host\src\FunctionsNetHost\FunctionsNetHost.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="applicationHost.xdt" Pack="true" PackagePath="/" />
+    <None Include="extension.xml" Pack="true" PackagePath="/" />
+    <None Include="readme.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <Import Project="Publish.SingleTFM.targets" Condition="Exists('Publish.SingleTFM.targets')" />
+  <Import Project="Publish.MultiTFM.targets" Condition="Exists('Publish.MultiTFM.targets')" />
+  <Import Project="Tasks.targets" Condition="Exists('Tasks.targets')" />
+</Project>

@@ -1,6 +1,10 @@
 <Project Sdk="Microsoft.Build.NoTargets">
 
   <PropertyGroup>
+    <WorkersProps>$(EngBuildRoot)Workers.props</WorkersProps>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <!-- TFM and RId are actually used. -->
     <TargetFramework>net8.0</TargetFramework>
     <RuntimeIdentifier>win</RuntimeIdentifier>

@@ -1,0 +1,6 @@
+<Project>
+  <PropertyGroup>
+    <VersionPrefix>1.0.13</VersionPrefix>
+    <UpdateBuildNumber>true</UpdateBuildNumber>
+  </PropertyGroup>
+</Project>

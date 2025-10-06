@@ -107,6 +107,8 @@ else
   if ($IsMacOS -or $IsLinux)
   {
     & "chmod" "a+x" "$FUNC_CLI_DIRECTORY/func"
+    & "chmod" "a+x" "$FUNC_CLI_DIRECTORY/in-proc6/func"
+    & "chmod" "a+x" "$FUNC_CLI_DIRECTORY/in-proc8/func"
   }
 
   Write-Host "------"

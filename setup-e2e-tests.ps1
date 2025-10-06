@@ -83,8 +83,11 @@ else
         exit 1
     }
 
-    $coreToolsURL = $asset.browser_download_url
+    $coreToolsURL = $asset.browser_download_url;
   }
+
+  # Add query string to avoid caching issues
+  $coreToolsURL = $coreToolsURL + "?raw=true"
 
   Write-Host ""
   Write-Host "---Downloading the Core Tools for Functions V$FunctionsRuntimeVersion---"

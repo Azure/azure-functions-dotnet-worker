@@ -13,10 +13,16 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <VersionPrefix>0.1.0</VersionPrefix>
-    <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute</PolySharpExcludeGeneratedTypes>
+    <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute;System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute</PolySharpExcludeGeneratedTypes>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- These packages are provided by MSBuild / dotnet sdk at runtime, we want to reference but NOT include them. -->
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.48" ExcludeAssets="Runtime" />
     <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" ExcludeAssets="Runtime" />
   </ItemGroup>

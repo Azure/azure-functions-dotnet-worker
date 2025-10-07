@@ -4,8 +4,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Azure.Functions.Sdk;
-
 // TODO: Move this to a shared project.
 /// <summary>
 /// Defines static methods used to throw exceptions.
@@ -15,9 +13,6 @@ namespace Azure.Functions.Sdk;
 /// messages.
 /// Code from https://github.com/dotnet/extensions/blob/v9.7.2/src/Shared/Throw/Throw.cs
 /// </remarks>
-[SuppressMessage("Minor Code Smell", "S4136:Method overloads should be grouped together", Justification = "Doesn't work with the region layout")]
-[SuppressMessage("Minor Code Smell", "S2333:Partial is gratuitous in this context", Justification = "Some projects add additional partial parts.")]
-[SuppressMessage("Design", "CA1716", Justification = "Not part of an API")]
 internal static partial class Throw
 {
     #region For Object

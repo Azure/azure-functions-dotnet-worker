@@ -17,6 +17,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </PropertyGroup>
 
   <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.props" />
+  <Import Project="$(MSBuildThisFileDirectory)extensions/Azure.Functions.Sdk.Extensions.props" />
 
   <!-- Enable Azure Functions project capability to enable tools -->
   <ItemGroup>

@@ -3,10 +3,9 @@
 
 using System.Collections.Immutable;
 using Microsoft.Build.Evaluation;
-using Microsoft.Build.Utilities.ProjectCreation;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Azure.Functions.Sdk.Tests.Integration;
+namespace Microsoft.Build.Utilities.ProjectCreation;
 
 public static class MSBuildExtensions
 {
@@ -39,6 +38,22 @@ public static class MSBuildExtensions
             .Property("TargetFramework", targetFramework)
             .CustomAction(configure)
             .Import(Path.Combine(ThisAssemblyDirectory, "sdk", "sdk", "Sdk.targets"));
+    }
+
+    public static ProjectCreator NetCoreProject(
+        this ProjectCreatorTemplates _,
+        string? path = null,
+        string targetFramework = "net8.0",
+        ProjectCollection? projectCollection = null,
+        IDictionary<string, string>? globalProperties = null,
+        Action<ProjectCreator>? configure = null)
+    {
+        return ProjectCreator.Templates.SdkCsproj(
+            path: path,
+            targetFramework: targetFramework,
+            projectCreator: configure,
+            projectCollection: projectCollection,
+            globalProperties: GetGlobalProperties(globalProperties));
     }
 
     public static ProjectCreator WriteSourceFile(

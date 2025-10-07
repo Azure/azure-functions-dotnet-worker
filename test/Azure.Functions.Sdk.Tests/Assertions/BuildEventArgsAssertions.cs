@@ -2,12 +2,10 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 
-using System.Runtime.CompilerServices;
 using AwesomeAssertions.Execution;
 using AwesomeAssertions.Formatting;
 using AwesomeAssertions.Primitives;
 using Azure.Functions.Sdk.Tasks;
-using Microsoft.Build.Evaluation;
 using Microsoft.Build.Framework;
 using NuGet.Common;
 

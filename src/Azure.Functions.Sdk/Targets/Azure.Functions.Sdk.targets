@@ -14,6 +14,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.targets" />
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).FuncSdkLog" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
+
   <PropertyGroup>
     <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
     <_FunctionsRuntimeMajorVersion>$(_AzureFunctionsVersionStandardized.TrimStart('vV'))</_FunctionsRuntimeMajorVersion>
@@ -22,6 +23,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)extensions/Azure.Functions.Sdk.Extensions.targets" />
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 

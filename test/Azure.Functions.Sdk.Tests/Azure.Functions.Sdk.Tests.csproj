@@ -46,7 +46,7 @@
     </MSBuild>
 
     <ItemGroup>
-      <None Include="@(_SdkFiles)" TargetPath="sdk/%(_SdkFiles.PackagePath)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <None Include="@(_SdkFiles)" TargetPath="sdk/%(_SdkFiles.PackagePath)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

@@ -6,7 +6,7 @@
     <Description>Azure Event Hubs extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.5.0</VersionPrefix>
+    <VersionPrefix>6.5.1</VersionPrefix>
 
   </PropertyGroup>
 

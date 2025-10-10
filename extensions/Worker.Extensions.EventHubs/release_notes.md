@@ -6,4 +6,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Extensions.EventHubs <version>
 
-- <entry>
+- updating `Azure.Messaging.EventHubs` to 5.12.2 (#3189)

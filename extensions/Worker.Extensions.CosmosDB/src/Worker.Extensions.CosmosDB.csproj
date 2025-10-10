@@ -6,7 +6,7 @@
     <Description>Azure Cosmos DB extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>4.13.0</VersionPrefix>
+    <VersionPrefix>4.14.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.10.0" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.11.0" />
   </ItemGroup>
 
 </Project>

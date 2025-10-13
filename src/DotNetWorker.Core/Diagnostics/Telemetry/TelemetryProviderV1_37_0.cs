@@ -1,0 +1,29 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Diagnostics;
+
+namespace Microsoft.Azure.Functions.Worker.Diagnostics;
+
+internal sealed class TelemetryProviderV1_37_0 : TelemetryProviderBase
+{
+    protected override OpenTelemetrySchemaVersion SchemaVersion
+        => OpenTelemetrySchemaVersion.V1_37_0;
+
+    protected override ActivityKind Kind
+        => ActivityKind.Internal;
+
+    protected override IEnumerable<KeyValuePair<string, object>> GetVersionSpecificAttributes(FunctionContext context)
+    {
+        yield return new(TraceConstants.AttributeSchemaUrl, TraceConstants.OpenTelemetrySchemaMap[SchemaVersion]);
+        yield return new(TraceConstants.AttributeFaasInvocationId, context.InvocationId);
+        yield return new(TraceConstants.AttributeFaasFunctionName, context.FunctionDefinition.Name);
+
+        if (context.TraceContext.Attributes.TryGetValue(TraceConstants.HostInstanceIdKey, out var host)
+            && !string.IsNullOrEmpty(host))
+        {
+            yield return new(TraceConstants.AttributeFaasInstance, host);
+        }        
+    }
+}

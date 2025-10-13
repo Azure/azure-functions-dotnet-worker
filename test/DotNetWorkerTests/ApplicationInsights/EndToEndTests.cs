@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -209,7 +209,7 @@ public class EndToEndTests
         Assert.Equal(activity.RootId, dependency.Context.Operation.Id);
 
         Assert.Equal(context.InvocationId, dependency.Properties[TraceConstants.AttributeFaasExecution]);
-        Assert.Contains(TraceConstants.AttributeSchemaUrl, dependency.Properties.Keys);
+        Assert.Contains(TraceConstants.AttributeAzSchemaUrl, dependency.Properties.Keys);
 
         ValidateCommonTelemetry(dependency);
     }
@@ -220,8 +220,8 @@ public class EndToEndTests
         Assert.Equal(SeverityLevel.Warning, trace.SeverityLevel);
 
         // Check that scopes show up by default                
-        Assert.Equal("TestName", trace.Properties[FunctionInvocationScope.FunctionNameKey]);
-        Assert.Equal(context.InvocationId, trace.Properties[FunctionInvocationScope.FunctionInvocationIdKey]);
+        Assert.Equal("TestName", trace.Properties[TraceConstants.FunctionNameKey]);
+        Assert.Equal(context.InvocationId, trace.Properties[TraceConstants.FunctionInvocationIdKey]);
 
         Assert.Equal(activity.RootId, trace.Context.Operation.Id);
 

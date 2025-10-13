@@ -1,8 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Tests
 {
@@ -21,8 +23,14 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             }
 
             // create/dispose activity to pull off its ID.
-            using Activity activity = new Activity(string.Empty).Start();
-            TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString());
+            using Activity activity = new Activity("Test").Start();
+            Dictionary<string, string> attributes = new Dictionary<string, string>
+            {
+                { TraceConstants.FunctionInvocationIdKey, Guid.NewGuid().ToString() },
+                { TraceConstants.AzFuncLiveLogsSessionIdKey, Guid.NewGuid().ToString() },
+            };
+
+            TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString(), attributes);
         }
 
         public override string Id { get; } = Guid.NewGuid().ToString();

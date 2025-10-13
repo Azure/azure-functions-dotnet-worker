@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -32,7 +32,7 @@ public class EndToEndTests
     private IInvocationFeaturesFactory _invocationFeaturesFactory;
     private readonly OtelFunctionDefinition _funcDefinition = new();
 
-    private IHost InitializeHost()
+    private IHost InitializeHost(string schemaVersion = null)
     {
         var host = new HostBuilder()
            .ConfigureServices(services =>
@@ -44,6 +44,13 @@ public class EndToEndTests
                     .UseFunctionsWorkerDefaults();
 
                services.AddSingleton(_ => new Mock<IWorkerDiagnostics>().Object);
+           })
+           .ConfigureFunctionsWorkerDefaults((WorkerOptions options) =>
+           {
+               if (schemaVersion is not null)
+               {
+                   options.Capabilities["WorkerOpenTelemetrySchemaVersion"] = schemaVersion;
+               }               
            })
            .Build();
 
@@ -72,24 +79,63 @@ public class EndToEndTests
     [Fact]
     public async Task ContextPropagation()
     {
+        using var testListener = new ActivityTestListener("Microsoft.Azure.Functions.Worker");
         using var host = InitializeHost();
+        var context = CreateContext(host);            
+        await _application.InvokeFunctionAsync(context);
+        var activity = OtelFunctionDefinition.LastActivity;
+
+        if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
+        {
+            Assert.Equal("Invoke", activity.OperationName);
+            Assert.Equal(activity.TraceId, activityContext.TraceId);
+            Assert.Equal(activity.TraceStateString, activityContext.TraceState);
+            Assert.Equal(ActivityKind.Internal, activity.Kind);
+            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.AttributeFaasInvocationId && t.Value == context.InvocationId);
+        }
+        else
+        {
+            Assert.Fail("Failed to parse ActivityContext");
+        }   
+    }
+
+    [Fact]
+    public async Task ContextPropagationV17()
+    {
+        using var testListener = new ActivityTestListener("Microsoft.Azure.Functions.Worker");
+        using var host = InitializeHost("1.17.0");
         var context = CreateContext(host);
         await _application.InvokeFunctionAsync(context);
         var activity = OtelFunctionDefinition.LastActivity;
 
         if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
         {
-            Assert.Equal(activity.Id, context.TraceContext.TraceParent);
-            Assert.Equal("InvokeFunctionAsync", activity.OperationName);
-            Assert.Equal(activity.SpanId, activityContext.SpanId);
+            Assert.Equal("Invoke", activity.OperationName);
             Assert.Equal(activity.TraceId, activityContext.TraceId);
-            Assert.Equal(activity.ActivityTraceFlags, activityContext.TraceFlags);
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
+            Assert.Equal(ActivityKind.Server, activity.Kind);
+            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.AttributeFaasExecution && t.Value == context.InvocationId);
+            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.AzFuncLiveLogsSessionIdKey && t.Value == context.TraceContext.Attributes[TraceConstants.AzFuncLiveLogsSessionIdKey]);
         }
         else
         {
             Assert.Fail("Failed to parse ActivityContext");
-        }   
+        }
+    }
+
+    [Fact]
+    public async Task ContextPropagation_InvalidVersion()
+    {
+        try
+        {
+            using var host = InitializeHost("0.0.0");
+            var context = CreateContext(host);        
+            await _application.InvokeFunctionAsync(context);
+        }
+        catch (Exception ex)
+        {
+            Assert.IsType<ArgumentException>(ex);
+        }
     }
 
     [Fact]
@@ -129,7 +175,7 @@ public class EndToEndTests
         Resource resource = detector.Detect();
 
         Assert.Equal($"/subscriptions/AAAAA-AAAAA-AAAAA-AAA/resourceGroups/rg/providers/Microsoft.Web/sites/appName"
-            , resource.Attributes.FirstOrDefault(a => a.Key == "cloud.resource.id").Value);
+            , resource.Attributes.FirstOrDefault(a => a.Key == "cloud.resource_id").Value);
         Assert.Equal($"EastUS", resource.Attributes.FirstOrDefault(a => a.Key == "cloud.region").Value);
     }
 
@@ -196,6 +242,30 @@ public class EndToEndTests
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             return await Task.FromResult(_response);
+        }
+    }
+
+    internal sealed class ActivityTestListener : IDisposable
+    {
+        public List<Activity> Activities { get; } = new List<Activity>();
+        private readonly ActivityListener _listener;
+
+        public ActivityTestListener(string sourceName)
+        {
+            _listener = new ActivityListener
+            {
+                ShouldListenTo = s => s.Name == sourceName,
+                Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
+                ActivityStarted = activity => Activities.Add(activity),
+                ActivityStopped = _ => { }
+            };
+
+            ActivitySource.AddActivityListener(_listener);
+        }
+
+        public void Dispose()
+        {
+            _listener.Dispose();
         }
     }
 }

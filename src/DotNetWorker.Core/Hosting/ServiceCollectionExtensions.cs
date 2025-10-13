@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -16,7 +16,6 @@ using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -81,8 +80,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.TryAddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.TryAddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
-            services.TryAddSingleton<FunctionActivitySourceFactory>();
-
+            
             if (configure != null)
             {
                 services.Configure(configure);
@@ -111,6 +109,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 RunExtensionStartupCode(builder);
             }
 
+            services.AddFunctionTelemetry();
+
             return builder;
         }
 
@@ -120,6 +120,46 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<WorkerOptions>, DefaultInputConverterInitializer>());
+            return services;
+        }
+
+        /// <summary>
+        /// Adds function telemetry services to the specified <see cref="IServiceCollection"/>.
+        /// </summary>
+        /// <remarks>This method registers a singleton <see cref="IFunctionTelemetryProvider"/>
+        /// implementation based on the OpenTelemetry schema version specified in the worker options. If the
+        /// "WorkerOpenTelemetryEnabled" capability is set to <see langword="true"/>, the schema version is determined
+        /// from the "WorkerOpenTelemetrySchemaVersion" capability. If the schema version is unsupported, an <see
+        /// cref="InvalidOperationException"/> is thrown.</remarks>
+        /// <param name="services">The <see cref="IServiceCollection"/> to which the telemetry services are added.</param>
+        /// <returns>The modified <see cref="IServiceCollection"/> with telemetry services registered.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the specified OpenTelemetry schema version is unsupported.</exception>
+        internal static IServiceCollection AddFunctionTelemetry(this IServiceCollection services)
+        {
+            services.TryAddSingleton<IFunctionTelemetryProvider>(sp =>
+            {
+                WorkerOptions options = sp.GetRequiredService<IOptions<WorkerOptions>>().Value;
+
+                bool otelFlag = options.Capabilities.TryGetValue(TraceConstants.WorkerOTelEnabled, out var flag)
+                                && bool.TryParse(flag, out bool value) && value;
+
+                // Always start at the legacy default
+                OpenTelemetrySchemaVersion version = OpenTelemetrySchemaVersion.V1_17_0;
+
+                // If OTEL is on and a schema-capability is present, parse it (or throw)
+                if (otelFlag && options.Capabilities.TryGetValue(TraceConstants.WorkerOTelSchemaVersion, out var sv))
+                {
+                    version = ParseSchemaVersion(sv);
+                }
+
+                return version switch
+                {
+                    OpenTelemetrySchemaVersion.V1_37_0 => new TelemetryProviderV1_37_0(),
+                    OpenTelemetrySchemaVersion.V1_17_0 => new TelemetryProviderV1_17_0(),
+                    _ => throw new InvalidOperationException($"Unsupported OpenTelemetry schema version: {version}")
+                };
+            });
+
             return services;
         }
 
@@ -146,6 +186,22 @@ namespace Microsoft.Extensions.DependencyInjection
             var startupCodeExecutorInstance =
                 Activator.CreateInstance(startupCodeExecutorInfoAttr.StartupCodeExecutorType) as WorkerExtensionStartup;
             startupCodeExecutorInstance!.Configure(builder);
+        }
+
+
+        /// <summary>
+        /// Maps only known version strings to the enum.
+        /// If the string is anything else (and was explicitly set), we throw.
+        /// </summary>
+        private static OpenTelemetrySchemaVersion ParseSchemaVersion(string version)
+        {
+            return version switch
+            {
+                "1.17.0" => OpenTelemetrySchemaVersion.V1_17_0,
+                "1.37.0" => OpenTelemetrySchemaVersion.V1_37_0,
+                _ => throw new ArgumentException(
+                         $"Invalid OpenTelemetry schema version '{version}'. ", nameof(version))
+            };
         }
 
         private sealed class WorkerOptionsSetup(IOptions<JsonSerializerOptions> serializerOptions) : IPostConfigureOptions<WorkerOptions>

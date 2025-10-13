@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -66,7 +66,7 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets or sets a value that determines the schema to use when generating Activities. Currently internal as there is only
         /// one schema, but stubbing this out for future use.
         /// </summary>
-        internal OpenTelemetrySchemaVersion OpenTelemetrySchemaVersion { get; set; } = OpenTelemetrySchemaVersion.v1_17_0;
+        internal OpenTelemetrySchemaVersion OpenTelemetrySchemaVersion { get; set; } = OpenTelemetrySchemaVersion.V1_17_0;
 
         private bool GetBoolCapability(string name)
         {

@@ -72,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var app = CreateApplication(Invoke, logger);
 
             await app.InvokeFunctionAsync(context);
-        }        
+        }
 
         [Fact]
         public async Task InvokeAsync_OnError_RecordsActivity()

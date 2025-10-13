@@ -81,7 +81,7 @@ public class EndToEndTests
     {
         using var testListener = new ActivityTestListener("Microsoft.Azure.Functions.Worker");
         using var host = InitializeHost();
-        var context = CreateContext(host);            
+        var context = CreateContext(host);
         await _application.InvokeFunctionAsync(context);
         var activity = OtelFunctionDefinition.LastActivity;
 
@@ -129,7 +129,22 @@ public class EndToEndTests
         try
         {
             using var host = InitializeHost("0.0.0");
-            var context = CreateContext(host);        
+            var context = CreateContext(host);
+            await _application.InvokeFunctionAsync(context);
+        }
+        catch (Exception ex)
+        {
+            Assert.IsType<ArgumentException>(ex);
+        }
+    }
+
+    [Fact]
+    public async Task ContextPropagation_EmptyVersion()
+    {
+        try
+        {
+            using var host = InitializeHost(string.Empty);
+            var context = CreateContext(host);
             await _application.InvokeFunctionAsync(context);
         }
         catch (Exception ex)

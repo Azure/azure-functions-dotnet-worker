@@ -188,7 +188,6 @@ namespace Microsoft.Extensions.DependencyInjection
             startupCodeExecutorInstance!.Configure(builder);
         }
 
-
         /// <summary>
         /// Maps only known version strings to the enum.
         /// If the string is anything else (and was explicitly set), we throw.

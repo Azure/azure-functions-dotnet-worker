@@ -123,7 +123,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         {
             var listener = new ActivityListener
             {
-                ShouldListenTo = source => source.Name.StartsWith(TraceConstants.FunctionsActivitySource),
+                ShouldListenTo = source => source.Name.StartsWith(TraceConstants.ActivityAttributes.Name),
                 ActivityStarted = activity => { },
                 ActivityStopped = onStopped,
                 Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,

@@ -88,7 +88,7 @@ namespace Microsoft.Azure.Functions.Worker.Logging
                 {
                     foreach (var pair in properties)
                     {
-                        if (pair.Key == TraceConstants.FunctionInvocationIdKey)
+                        if (pair.Key == TraceConstants.InternalKeys.FunctionInvocationId)
                         {
                             log.InvocationId = pair.Value?.ToString();
                             break;

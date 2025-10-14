@@ -23,6 +23,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets the attributes associated with the trace.
         /// </summary>
-        public abstract IReadOnlyDictionary<string, string> Attributes { get; }
+        public virtual IReadOnlyDictionary<string, string> Attributes => new Dictionary<string, string>();
     }
 }

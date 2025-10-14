@@ -205,11 +205,11 @@ public class EndToEndTests
     {
         Assert.Equal("CustomValue", dependency.Properties["CustomKey"]);
 
-        Assert.Equal(TraceConstants.FunctionsInvokeActivityName, dependency.Name);
+        Assert.Equal(TraceConstants.ActivityAttributes.InvokeActivityName, dependency.Name);
         Assert.Equal(activity.RootId, dependency.Context.Operation.Id);
 
-        Assert.Equal(context.InvocationId, dependency.Properties[TraceConstants.AttributeFaasExecution]);
-        Assert.Contains(TraceConstants.AttributeAzSchemaUrl, dependency.Properties.Keys);
+        Assert.Equal(context.InvocationId, dependency.Properties[TraceConstants.OTelAttributes_1_17_0.InvocationId]);
+        Assert.Contains(TraceConstants.OTelAttributes_1_17_0.SchemaUrl, dependency.Properties.Keys);
 
         ValidateCommonTelemetry(dependency);
     }
@@ -220,8 +220,8 @@ public class EndToEndTests
         Assert.Equal(SeverityLevel.Warning, trace.SeverityLevel);
 
         // Check that scopes show up by default                
-        Assert.Equal("TestName", trace.Properties[TraceConstants.FunctionNameKey]);
-        Assert.Equal(context.InvocationId, trace.Properties[TraceConstants.FunctionInvocationIdKey]);
+        Assert.Equal("TestName", trace.Properties[TraceConstants.InternalKeys.FunctionName]);
+        Assert.Equal(context.InvocationId, trace.Properties[TraceConstants.InternalKeys.FunctionInvocationId]);
 
         Assert.Equal(activity.RootId, trace.Context.Operation.Id);
 

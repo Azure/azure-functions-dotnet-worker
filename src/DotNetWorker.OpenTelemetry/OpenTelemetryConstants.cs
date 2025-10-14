@@ -12,7 +12,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
         internal const string RegionNameEnvVar = "REGION_NAME";
         internal const string ResourceGroupEnvVar = "WEBSITE_RESOURCE_GROUP";
         internal const string OwnerNameEnvVar = "WEBSITE_OWNER_NAME";
-        internal const string WorkerSchemaVersion = "1.37.0";
+        internal const string WorkerDefaultSchemaVersion = "1.37.0";
         internal const string WorkerActivitySourceName = "Microsoft.Azure.Functions.Worker";
 
         // Capability variables

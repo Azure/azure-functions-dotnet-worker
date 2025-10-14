@@ -19,7 +19,7 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
             builder.Services
                 // Tells the host to no longer emit telemetry on behalf of the worker.
                 .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelEnabled] = bool.TrueString)
-                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelSchemaVersion] = OpenTelemetryConstants.WorkerSchemaVersion);
+                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelSchemaVersion] = OpenTelemetryConstants.WorkerDefaultSchemaVersion);
 
             builder.ConfigureResource((resourceBuilder) =>
             {

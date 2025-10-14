@@ -3,45 +3,55 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.Azure.Functions.Worker.Diagnostics
+namespace Microsoft.Azure.Functions.Worker.Diagnostics;
+
+internal static class TraceConstants
 {
-    internal class TraceConstants
+   public static class ActivityAttributes
     {
-        public static IReadOnlyDictionary<OpenTelemetrySchemaVersion, string> OpenTelemetrySchemaMap =
-            new Dictionary<OpenTelemetrySchemaVersion, string>()
-            {
-                [OpenTelemetrySchemaVersion.V1_17_0] = "https://opentelemetry.io/schemas/1.17.0",
-                [OpenTelemetrySchemaVersion.V1_37_0] = "https://opentelemetry.io/schemas/1.37.0"
-            };
+        public static readonly string Version = typeof(ActivityAttributes).Assembly.GetName().Version?.ToString() ?? string.Empty;
+        public const string Name = "Microsoft.Azure.Functions.Worker";
+        public const string InvokeActivityName = "Invoke";
+    }
 
-        public static readonly string FunctionsActivitySourceVersion = typeof(TraceConstants).Assembly.GetName().Version?.ToString() ?? string.Empty;
-        public const string FunctionsActivitySource = "Microsoft.Azure.Functions.Worker";        
-        public const string FunctionsInvokeActivityName = "Invoke";
+    public static class ExceptionAttributes
+    {
+        public const string EventName = "exception";
+        public const string Type = "exception.type";
+        public const string Message = "exception.message";
+        public const string Stacktrace = "exception.stacktrace";
+        public const string Escaped = "exception.escaped";
+    }
 
-        public const string AttributeExceptionEventName = "exception";
-        public const string AttributeExceptionType = "exception.type";
-        public const string AttributeExceptionMessage = "exception.message";
-        public const string AttributeExceptionStacktrace = "exception.stacktrace";
-        public const string AttributeExceptionEscaped = "exception.escaped";
+    public static class OTelAttributes_1_17_0
+    {
+        // v1.17.0
+        public const string InvocationId = "faas.execution";
+        public const string SchemaUrl = "az.schema_url";
+        public const string SchemaVersion = "https://opentelemetry.io/schemas/1.17.0";
+    }
 
-        // v1.17.0 attributes
-        public const string AttributeFaasExecution = "faas.execution";
-        public const string AttributeAzSchemaUrl = "az.schema_url";
+    public static class OTelAttributes_1_37_0
+    {
+        // v1.37.0
+        public const string InvocationId = "faas.invocation_id";
+        public const string FunctionName = "faas.name";
+        public const string Instance = "faas.instance";
+        public const string SchemaUrl = "schema.url";
+        public const string SchemaVersion = "https://opentelemetry.io/schemas/1.37.0";
+    }
 
-        // v1.37.0 attributes
-        public const string AttributeFaasInvocationId = "faas.invocation_id";
-        public const string AttributeFaasFunctionName = "faas.name";
-        public const string AttributeFaasInstance = "faas.instance";
-        public const string AttributeSchemaUrl = "schema.url";
+    public static class InternalKeys
+    {
+        public const string FunctionInvocationId = "AzureFunctions_InvocationId";
+        public const string FunctionName = "AzureFunctions_FunctionName";
+        public const string HostInstanceId = "HostInstanceId";
+        public const string AzFuncLiveLogsSessionId = "#AzFuncLiveLogsSessionId";
+    }
 
-        // Internal keys used for mapping
-        internal const string FunctionInvocationIdKey = "AzureFunctions_InvocationId";
-        internal const string FunctionNameKey = "AzureFunctions_FunctionName";
-        internal const string HostInstanceIdKey = "HostInstanceId";
-        internal const string AzFuncLiveLogsSessionIdKey = "#AzFuncLiveLogsSessionId";
-
-        // Capability variables
-        internal const string WorkerOTelEnabled = "WorkerOpenTelemetryEnabled";
-        internal const string WorkerOTelSchemaVersion = "WorkerOpenTelemetrySchemaVersion";
+    public static class CapabilityFlags
+    {
+        public const string WorkerOTelEnabled = "WorkerOpenTelemetryEnabled";
+        public const string WorkerOTelSchemaVersion = "WorkerOpenTelemetrySchemaVersion";
     }
 }

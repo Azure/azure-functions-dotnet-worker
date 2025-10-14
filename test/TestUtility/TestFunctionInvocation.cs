@@ -26,8 +26,8 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             using Activity activity = new Activity("Test").Start();
             Dictionary<string, string> attributes = new Dictionary<string, string>
             {
-                { TraceConstants.FunctionInvocationIdKey, Guid.NewGuid().ToString() },
-                { TraceConstants.AzFuncLiveLogsSessionIdKey, Guid.NewGuid().ToString() },
+                { TraceConstants.InternalKeys.FunctionInvocationId, Guid.NewGuid().ToString() },
+                { TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, Guid.NewGuid().ToString() },
             };
 
             TraceContext = new DefaultTraceContext(activity.Id, Guid.NewGuid().ToString(), attributes);

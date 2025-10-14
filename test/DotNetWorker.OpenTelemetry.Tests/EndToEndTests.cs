@@ -50,7 +50,7 @@ public class EndToEndTests
                if (schemaVersion is not null)
                {
                    options.Capabilities["WorkerOpenTelemetrySchemaVersion"] = schemaVersion;
-               }               
+               }
            })
            .Build();
 
@@ -91,7 +91,7 @@ public class EndToEndTests
             Assert.Equal(activity.TraceId, activityContext.TraceId);
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
             Assert.Equal(ActivityKind.Internal, activity.Kind);
-            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.AttributeFaasInvocationId && t.Value == context.InvocationId);
+            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.OTelAttributes_1_37_0.InvocationId && t.Value == context.InvocationId);
         }
         else
         {
@@ -114,8 +114,8 @@ public class EndToEndTests
             Assert.Equal(activity.TraceId, activityContext.TraceId);
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
             Assert.Equal(ActivityKind.Server, activity.Kind);
-            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.AttributeFaasExecution && t.Value == context.InvocationId);
-            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.AzFuncLiveLogsSessionIdKey && t.Value == context.TraceContext.Attributes[TraceConstants.AzFuncLiveLogsSessionIdKey]);
+            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.OTelAttributes_1_17_0.InvocationId && t.Value == context.InvocationId);
+            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.InternalKeys.AzFuncLiveLogsSessionId && t.Value == context.TraceContext.Attributes[TraceConstants.InternalKeys.AzFuncLiveLogsSessionId]);
         }
         else
         {

@@ -6,24 +6,31 @@ using System.Diagnostics;
 
 namespace Microsoft.Azure.Functions.Worker.Diagnostics;
 
-internal sealed class TelemetryProviderV1_37_0 : TelemetryProviderBase
+internal sealed class TelemetryProviderV1_37_0 : TelemetryProvider
 {
+    private static readonly KeyValuePair<string, object> SchemaUrlAttribute =
+        new(TraceConstants.OTelAttributes_1_37_0.SchemaUrl, TraceConstants.OTelAttributes_1_37_0.SchemaVersion);
     protected override OpenTelemetrySchemaVersion SchemaVersion
         => OpenTelemetrySchemaVersion.V1_37_0;
 
     protected override ActivityKind Kind
         => ActivityKind.Internal;
 
-    protected override IEnumerable<KeyValuePair<string, object>> GetVersionSpecificAttributes(FunctionContext context)
+    public override IEnumerable<KeyValuePair<string, object>> GetTelemetryAttributes(FunctionContext context)
     {
-        yield return new(TraceConstants.AttributeSchemaUrl, TraceConstants.OpenTelemetrySchemaMap[SchemaVersion]);
-        yield return new(TraceConstants.AttributeFaasInvocationId, context.InvocationId);
-        yield return new(TraceConstants.AttributeFaasFunctionName, context.FunctionDefinition.Name);
+        foreach (var kv in base.GetTelemetryAttributes(context))
+        {
+            yield return kv;
+        }
 
-        if (context.TraceContext.Attributes.TryGetValue(TraceConstants.HostInstanceIdKey, out var host)
+        yield return SchemaUrlAttribute;
+        yield return new(TraceConstants.OTelAttributes_1_37_0.InvocationId, context.InvocationId);
+        yield return new(TraceConstants.OTelAttributes_1_37_0.FunctionName, context.FunctionDefinition.Name);
+
+        if (context.TraceContext.Attributes.TryGetValue(TraceConstants.InternalKeys.HostInstanceId, out var host)
             && !string.IsNullOrEmpty(host))
         {
-            yield return new(TraceConstants.AttributeFaasInstance, host);
-        }        
+            yield return new(TraceConstants.OTelAttributes_1_37_0.Instance, host);
+        }
     }
 }

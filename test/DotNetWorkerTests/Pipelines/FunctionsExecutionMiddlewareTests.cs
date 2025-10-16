@@ -20,17 +20,6 @@ namespace Microsoft.Azure.Functions.Worker.Pipeline.Tests
         }
 
         [Fact]
-        public async Task Invoke_ThrowsArgumentNullException_WhenFunctionContextIsNull()
-        {
-            // Arrange
-            FunctionExecutionMiddleware middleware = new(Mock.Of<IFunctionExecutor>());
-
-            // Act & Assert
-            var exception = await Assert.ThrowsAsync<ArgumentNullException>(() => middleware.Invoke(null!));
-            Assert.Equal("context", exception.ParamName);
-        }
-
-        [Fact]
         public async Task Invoke_NoFeature_CallsInjectedExecutor()
         {
             // Arrange

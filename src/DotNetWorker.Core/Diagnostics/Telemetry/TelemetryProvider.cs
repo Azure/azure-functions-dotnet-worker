@@ -16,18 +16,29 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
 
     protected abstract ActivityKind Kind { get; }
 
-
+    /// <summary>
+    /// Creates a telemetry provider based on the provided schema version string.
+    /// Returns the default (1.17.0) if no version is provided.
+    /// </summary>
+    /// <param name="schema"></param>
+    /// <returns></returns>
     public static TelemetryProvider Create(string? schema = null)
     {
         if (string.IsNullOrWhiteSpace(schema))
         {
-            return Create(OpenTelemetrySchemaVersion.V1_17_0);
+            return Create(OpenTelemetrySchemaVersion.V1_37_0);
         }
 
         var version = ParseSchemaVersion(schema!);
         return Create(version);
     }
 
+    /// <summary>
+    /// Returns a telemetry provider for the specified version.
+    /// </summary>
+    /// <param name="version"></param>
+    /// <returns></returns>
+    /// <exception cref="InvalidOperationException"></exception>
     public static TelemetryProvider Create(OpenTelemetrySchemaVersion version)
     {
         return version switch
@@ -38,7 +49,11 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
         };
     }
 
-
+    /// <summary>
+    /// Starts an activity for the function invocation.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public Activity? StartActivityForInvocation(FunctionContext context)
     {
         if (!_source.HasListeners())
@@ -59,6 +74,11 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
             tags: GetTelemetryAttributes(context)!);
     }
 
+    /// <summary>
+    /// Returns common telemetry attributes for a schema versions.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
     public virtual IEnumerable<KeyValuePair<string, object>> GetTelemetryAttributes(FunctionContext context)
     {
         // Live-logs session

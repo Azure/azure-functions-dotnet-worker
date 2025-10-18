@@ -18,7 +18,7 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
 
     /// <summary>
     /// Creates a telemetry provider based on the provided schema version string.
-    /// Returns the default (1.17.0) if no version is provided.
+    /// Returns the default (1.37.0) if no version is provided.
     /// </summary>
     /// <param name="schema"></param>
     /// <returns></returns>
@@ -26,7 +26,7 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
     {
         if (string.IsNullOrWhiteSpace(schema))
         {
-            return Create(OpenTelemetrySchemaVersion.V1_37_0);
+            return Create(OpenTelemetrySchemaVersion.V1_17_0);
         }
 
         var version = ParseSchemaVersion(schema!);

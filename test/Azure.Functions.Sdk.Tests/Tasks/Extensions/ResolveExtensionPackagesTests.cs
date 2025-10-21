@@ -3,7 +3,6 @@
 
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using System.Runtime.ExceptionServices;
 using AwesomeAssertions;
 using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Framework;
@@ -21,12 +20,13 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void Execute_ReturnsFalse_WhenLockFileDoesNotExist()
     {
-        // arrange
+        // Arrange
         ResolveExtensionPackages task = CreateTask(_temp.Path, new MockFileSystem());
-        // act
+
+        // Act
         bool result = task.Execute();
 
-        // assert
+        // Assert
         result.Should().BeFalse();
         task.ExtensionPackages.Should().BeEmpty();
     }
@@ -34,16 +34,16 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void Execute_ReturnsFalse_WhenCancelledBeforeProcessing()
     {
-        // arrange
+        // Arrange
         Mock<IFileSystem> fileSystem = new(MockBehavior.Strict);
         ResolveExtensionPackages task = CreateTask(_temp.Path, fileSystem.Object);
 
         task.Cancel();
 
-        // act
+        // Act
         bool result = task.Execute();
 
-        // assert
+        // Assert
         result.Should().BeFalse();
         fileSystem.VerifyNoOtherCalls();
     }
@@ -51,14 +51,14 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void Execute_ReturnsExtensionPackages_NoPackageRefs()
     {
-        // arrange
+        // Arrange
         string restore = RestoreProject();
         ResolveExtensionPackages task = CreateTask(restore);
 
-        // act
+        // Act
         bool result = task.Execute();
 
-        // assert
+        // Assert
         result.Should().BeTrue();
         task.ExtensionPackages.Should().BeEmpty();
     }
@@ -66,7 +66,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void Execute_ReturnsExtensionPackages_NonExtensionPackages()
     {
-        // arrange
+        // Arrange
         string restore = RestoreProject(project =>
         {
             project.ItemPackageReference("System.Text.Json", "8.0.6");
@@ -74,10 +74,10 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 
         ResolveExtensionPackages task = CreateTask(restore);
 
-        // act
+        // Act
         bool result = task.Execute();
 
-        // assert
+        // Assert
         result.Should().BeTrue();
         task.ExtensionPackages.Should().BeEmpty();
     }
@@ -85,7 +85,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void Execute_ReturnsExtensionPackages_SinglePackage()
     {
-        // arrange
+        // Arrange
         string restore = RestoreProject(project =>
         {
             project.ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.23.0");
@@ -93,10 +93,10 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 
         ResolveExtensionPackages task = CreateTask(restore);
 
-        // act
+        // Act
         bool result = task.Execute();
 
-        // assert
+        // Assert
         result.Should().BeTrue();
         task.ExtensionPackages.Should().ContainSingle();
 
@@ -110,7 +110,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     [Fact]
     public void Execute_ReturnsExtensionPackages_MultiplePackages()
     {
-        // arrange
+        // Arrange
         string restore = RestoreProject(project =>
         {
             project.ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.23.0");
@@ -119,10 +119,10 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 
         ResolveExtensionPackages task = CreateTask(restore);
 
-        // act
+        // Act
         bool result = task.Execute();
 
-        // assert
+        // Assert
         result.Should().BeTrue();   
         task.ExtensionPackages.Should().HaveCount(3);
 
@@ -158,10 +158,10 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     private static void ValidatePackage(
         ITaskItem package, string expectedId, string expectedVersion, string expectedSourceId)
     {
-        package.ItemSpec.Should().Be(expectedId);
-        package.GetMetadata("Version").Should().Be(expectedVersion);
-        package.GetMetadata("SourcePackageId").Should().Be(expectedSourceId);
-        package.GetMetadata("IsImplicitlyDefined").Should().Be("true");
+        package.Should().HaveItemSpec(expectedId)
+            .And.HaveMetadata("Version", expectedVersion)
+            .And.HaveMetadata("SourcePackageId", expectedSourceId)
+            .And.HaveMetadata("IsImplicitlyDefined", "true");
     }
 
     private static ResolveExtensionPackages CreateTask(

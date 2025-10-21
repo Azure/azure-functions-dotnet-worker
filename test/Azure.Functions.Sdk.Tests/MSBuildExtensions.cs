@@ -3,6 +3,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.Build.Evaluation;
+using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Build.Utilities.ProjectCreation;
@@ -71,16 +72,30 @@ public static class MSBuildExtensions
         return project;
     }
 
-    public static BuildOutput Restore(this ProjectCreator project)
+    public static BuildOutput Restore(this ProjectCreator project) => project.Restore(out _);
+
+    public static BuildOutput Restore(this ProjectCreator project, out TargetOutputs targetOutputs)
     {
-        project.TryRestore(out _, out BuildOutput output);
+        project.TryRestore(out _, out BuildOutput output, out IDictionary<string, TargetResult>? targetResults);
+        targetOutputs = TargetOutputs.Create(targetResults);
         return output;
     }
 
-    public static BuildOutput Build(this ProjectCreator project, bool restore = false)
+    public static BuildOutput Build(this ProjectCreator project, bool restore = false, IDictionary<string, string>? globalProperties = null)
     {
-        project.TryBuild(restore, out _, out BuildOutput output);
+        project.TryBuild(restore, globalProperties, out _, out BuildOutput output);
         return output;
+    }
+
+    public static TargetResult? RunTarget(this ProjectCreator project, string targetName, IDictionary<string, string>? globalProperties = null)
+    {
+        project.TryBuild(targetName, globalProperties, out _, out _, out IDictionary<string, TargetResult>? targetResults);
+        if (targetResults is null || !targetResults.TryGetValue(targetName, out TargetResult? result))
+        {
+            return null;
+        }
+
+        return result;
     }
 
     private static ImmutableDictionary<string, string> GetGlobalProperties(IDictionary<string, string>? overrides)

@@ -4,6 +4,6 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Extensions.EventGrid <version>
+### Microsoft.Azure.Functions.Worker.Extensions.EventGrid  <version>
 
 - <entry>

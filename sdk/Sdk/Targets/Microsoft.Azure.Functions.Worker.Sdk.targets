@@ -106,12 +106,19 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(_ToolingSuffix)' == ''" Text="Invalid combination of TargetFramework and AzureFunctionsVersion is set." />
   </Target>
 
-  <!-- This target is used to set up the run arguments for the function app, supporting `dotnet run` -->
   <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
-    <PropertyGroup Condition="'$(FuncExists)' == 'true'">
-      <RunCommand>func</RunCommand>
-      <RunArguments>host start $(RunArguments)</RunArguments>
-      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    <!-- Windows Configuration -->
+    <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+        <RunCommand>cmd</RunCommand>
+        <RunArguments>/C func start $(RunArguments)</RunArguments>
+        <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    </PropertyGroup>
+
+    <!-- Unix/Linux/macOS Configuration -->
+    <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+        <RunCommand>func</RunCommand>
+        <RunArguments>start $(RunArguments)</RunArguments>
+        <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
     </PropertyGroup>
   </Target>
 

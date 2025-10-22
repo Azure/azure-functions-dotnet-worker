@@ -3,6 +3,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Azure.Core.Amqp;
 using Azure.Messaging.EventHubs;
 using Google.Protobuf;
 using Microsoft.Azure.Functions.Worker.Converters;
@@ -165,6 +166,39 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tests.EventHubs
             var output = result.Value as EventData[];
             Assert.Null(output);
             Assert.Equal("Unexpected binding source 'some-other-source'. Only 'AzureEventHubsEventData' is supported.", result.Error.Message);
+        }
+
+        [Fact]
+        public async Task ConvertAsync_EnqueuedTime()
+        {
+            // Validate bug fixed in Azure.Messaging.EventHubs 5.12.2
+            var amqpMessage = new AmqpAnnotatedMessage(AmqpMessageBody.FromValue("abc"));
+            var enqueuedTime = new DateTimeOffset(2025, 10, 8, 8, 43, 21, TimeSpan.Zero);
+            amqpMessage.MessageAnnotations.Add("x-opt-enqueued-time", enqueuedTime.UtcDateTime);
+
+            var eventData = new EventData(amqpMessage);
+
+            var data = new GrpcModelBindingData(new ModelBindingData()
+            {
+                Version = "1.0",
+                Source = "AzureEventHubsEventData",
+                Content = ByteString.CopyFrom(ConvertEventDataToBinaryData(eventData)),
+                ContentType = Constants.BinaryContentType
+            });
+
+            var context = new TestConverterContext(typeof(string), data);
+            var converter = new EventDataConverter();
+
+            // Act
+            var result = await converter.ConvertAsync(context);
+
+            // Assert
+            Assert.Equal(ConversionStatus.Succeeded, result.Status);
+            var output = result.Value as EventData;
+            Assert.NotNull(output);
+
+            // Check enqueued time
+            Assert.Equal(enqueuedTime.UtcDateTime, output.EnqueuedTime.UtcDateTime);
         }
 
         private static void AssertEventData(EventData output)

@@ -22,7 +22,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
     }
 
     [Required]
-    public string RestoreOutputPath { get; set; } = string.Empty;
+    public string ProjectAssetsFile { get; set; } = string.Empty;
 
     [Output]
     public ITaskItem[] ExtensionPackages { get; private set; } = [];
@@ -89,18 +89,17 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
             return false;
         }
 
-        string assetsFile = Path.Combine(RestoreOutputPath, LockFileFormat.AssetsFileName);
-        if (!_fileSystem.File.Exists(assetsFile))
+        if (!_fileSystem.File.Exists(ProjectAssetsFile))
         {
-            Log.LogError("Assets file '{0}' does not exist. Please ensure restore successfully ran.", assetsFile);
+            Log.LogError("Assets file '{0}' does not exist. Please ensure restore successfully ran.", ProjectAssetsFile);
             lockFile = null;
             return false;
         }
 
-        IFileInfo info = _fileSystem.FileInfo.New(assetsFile);
+        IFileInfo info = _fileSystem.FileInfo.New(ProjectAssetsFile);
         using FileSystemStream stream = info.OpenRead();
         LockFileFormat format = new();
-        lockFile = format.Read(stream, new MSBuildNugetLogger(Log), assetsFile);
+        lockFile = format.Read(stream, new MSBuildNugetLogger(Log), ProjectAssetsFile);
         return true;
     }
 

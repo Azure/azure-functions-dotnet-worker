@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="AwesomeAssertions" Version="9.1.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
-    <PackageReference Include="Microsoft.Build" Version="17.11.48" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build" Version="17.11.48" />
     <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" />
     <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
     <PackageReference Include="MSBuild.ProjectCreation" Version="14.1.0" />

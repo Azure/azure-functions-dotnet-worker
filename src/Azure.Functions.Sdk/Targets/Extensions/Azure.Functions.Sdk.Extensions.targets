@@ -24,10 +24,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     Condition="'$(DesignTimeBuild)' != 'true'" />
 
   <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
-    <ConvertToAbsolutePath Paths="$(RestoreOutputPath)">
-      <Output TaskParameter="AbsolutePaths" PropertyName="RestoreOutputAbsolutePath" />
-    </ConvertToAbsolutePath>
-    <ResolveExtensionPackages RestoreOutputPath="$(RestoreOutputAbsolutePath)">
+    <ResolveExtensionPackages ProjectAssetsFile="$(ProjectAssetsFile)">
       <Output TaskParameter="ExtensionPackages" ItemName="_AzureFunctionPackageReference" />
     </ResolveExtensionPackages>
   </Target>

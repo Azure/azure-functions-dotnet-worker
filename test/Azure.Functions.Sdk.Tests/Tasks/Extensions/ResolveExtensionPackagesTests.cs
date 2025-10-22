@@ -165,12 +165,12 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     }
 
     private static ResolveExtensionPackages CreateTask(
-        string restorePath, IFileSystem? fileSystem = null)
+        string assetsFile, IFileSystem? fileSystem = null)
     {
         return new ResolveExtensionPackages(fileSystem ?? new FileSystem())
         {
             BuildEngine = Mock.Of<IBuildEngine>(),
-            RestoreOutputPath = restorePath
+            ProjectAssetsFile = assetsFile
         };
     }
 
@@ -181,7 +181,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
             path: _temp.GetRandomFile(ext: ".csproj"), targetFramework: "net8.0", configure: configure);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
-        project.TryGetPropertyValue("RestoreOutputPath", out string? value);
+        project.TryGetPropertyValue("ProjectAssetsFile", out string? value);
         value.Should().NotBeNullOrEmpty();
         return value!;
     }

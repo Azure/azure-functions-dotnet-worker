@@ -16,7 +16,7 @@ public static partial class AssertionExtensions
 }
 
 public class BuildOutputAssertions(BuildOutput subject, AssertionChain assertionChain)
-    : ObjectAssertions<BuildOutput, BuildOutputAssertions>(subject, assertionChain)
+    : ObjectAssertions<BuildOutput, BuildOutputAssertions>(subject, assertionChain), IProvidesFormatter
 {
     private readonly AssertionChain _chain = assertionChain;
 
@@ -74,6 +74,7 @@ public class BuildOutputAssertions(BuildOutput subject, AssertionChain assertion
         return new AndConstraint<BuildOutputAssertions>(this);
     }
 
+    [CustomAssertion]
     public AndWhichConstraint<BuildOutputAssertions, BuildErrorEventArgs> HaveSingleError(string because = "", params object[] becauseArgs)
     {
         _chain
@@ -83,6 +84,7 @@ public class BuildOutputAssertions(BuildOutput subject, AssertionChain assertion
         return new AndWhichConstraint<BuildOutputAssertions, BuildErrorEventArgs>(this, Subject.ErrorEvents.Single());
     }
 
+    [CustomAssertion]
     public AndWhichConstraint<BuildOutputAssertions, BuildWarningEventArgs> HaveSingleWarning(string because = "", params object[] becauseArgs)
     {
         _chain

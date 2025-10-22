@@ -24,14 +24,15 @@ internal class ProjectItemAssertions(ProjectItem subject, AssertionChain asserti
 
     public static IValueFormatter CreateFormatter() => new Formatter();
 
+    [CustomAssertion]
     public AndConstraint<ProjectItemAssertions> HaveIdentity(
         string identity, string because = "", params object[] becauseArgs)
         => HaveIdentity(identity, StringComparer.Ordinal, because, becauseArgs);
 
+    [CustomAssertion]
     public AndConstraint<ProjectItemAssertions> HaveIdentity(
         string identity, IEqualityComparer<string> comparer, string because = "", params object[] becauseArgs)
     {
-        NotBeNull(because, becauseArgs);
         string actual = Subject.EvaluatedInclude;
         _chain
             .ForCondition(comparer.Equals(actual, identity))
@@ -44,10 +45,14 @@ internal class ProjectItemAssertions(ProjectItem subject, AssertionChain asserti
         return new AndConstraint<ProjectItemAssertions>(this);
     }
 
+    [CustomAssertion]
     public AndConstraint<ProjectItemAssertions> HaveMetadata(
         string name, string value, string because = "", params object[] becauseArgs)
-        => HaveMetadata(name, value, StringComparer.Ordinal, because, becauseArgs);
+    {
+        return HaveMetadata(name, value, StringComparer.Ordinal, because, becauseArgs);
+    }
 
+    [CustomAssertion]
     public AndConstraint<ProjectItemAssertions> HaveMetadata(
         string name,
         string value,
@@ -55,9 +60,6 @@ internal class ProjectItemAssertions(ProjectItem subject, AssertionChain asserti
         string because = "",
         params object[] becauseArgs)
     {
-        NotBeNull(because, becauseArgs);
-
-        Formatting.Formatter.AddFormatter(new Formatter());
         string? actual = Subject.GetMetadataValue(name);
         _chain
             .ForCondition(comparer.Equals(actual, value))

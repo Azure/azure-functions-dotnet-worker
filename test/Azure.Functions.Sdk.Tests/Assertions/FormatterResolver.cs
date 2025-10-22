@@ -4,8 +4,6 @@
 using System.Reflection;
 using AwesomeAssertions.Formatting;
 
-[assembly: AssemblyFixture(typeof(AwesomeAssertions.FormatterFixture))]
-
 namespace AwesomeAssertions;
 
 interface IProvidesFormatter
@@ -17,13 +15,13 @@ interface IProvidesFormatter
 /// Ensures all <see cref="IProvidesFormatter"/> implementations in the assembly are registered to
 /// <see cref="Formatter"/>.
 /// </summary>
-internal class FormatterFixture
+internal static class FormatterResolver
 {
-    public FormatterFixture()
+    public static void Initialize()
     {
-        MethodInfo method = typeof(FormatterFixture)
+        MethodInfo method = typeof(FormatterResolver)
             .GetMethod(nameof(GetFormatter), BindingFlags.NonPublic | BindingFlags.Static)!;
-        foreach (Type type in typeof(FormatterFixture).Assembly.GetTypes())
+        foreach (Type type in typeof(FormatterResolver).Assembly.GetTypes())
         {
             if (typeof(IProvidesFormatter).IsAssignableFrom(type) && !type.IsInterface && !type.IsAbstract)
             {
@@ -35,5 +33,7 @@ internal class FormatterFixture
 
     private static IValueFormatter GetFormatter<T>()
         where T : IProvidesFormatter
-        => T.CreateFormatter();
+    {
+        return T.CreateFormatter();
+    }
 }

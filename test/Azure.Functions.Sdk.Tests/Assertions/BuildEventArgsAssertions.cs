@@ -23,7 +23,7 @@ public static partial class AssertionExtensions
 }
 
 internal class BuildEventArgsAssertions(BuildEventArgs subject, AssertionChain assertionChain)
-    : ObjectAssertions<BuildEventArgs, BuildEventArgsAssertions>(subject, assertionChain)
+    : ObjectAssertions<BuildEventArgs, BuildEventArgsAssertions>(subject, assertionChain), IProvidesFormatter
 {
     private readonly AssertionChain _chain = assertionChain;
 
@@ -35,8 +35,6 @@ internal class BuildEventArgsAssertions(BuildEventArgs subject, AssertionChain a
     public AndConstraint<BuildEventArgsAssertions> HaveSender(
         string sender, string because = "", params object[] becauseArgs)
     {
-        NotBeNull(because, becauseArgs);
-
         _chain
             .ForCondition(Subject?.SenderName is string actualSender && actualSender == sender)
             .BecauseOf(because, becauseArgs)
@@ -58,8 +56,6 @@ internal class BuildEventArgsAssertions(BuildEventArgs subject, AssertionChain a
     public AndConstraint<BuildEventArgsAssertions> BeSdkMessage(
         LogWrapper log, string because = "", params object[] becauseArgs)
     {
-        NotBeNull(because, becauseArgs);
-
         switch (log.Log.Level)
         {
             case LogLevel.Error:

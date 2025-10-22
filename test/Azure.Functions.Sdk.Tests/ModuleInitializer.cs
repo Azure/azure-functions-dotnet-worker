@@ -4,6 +4,7 @@
 
 
 using System.Runtime.CompilerServices;
+using AwesomeAssertions;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace Azure.Functions.Sdk.Tests;
@@ -18,5 +19,14 @@ internal static class ModuleInitializer
     internal static void InitializeMSBuild()
     {
         MSBuildAssemblyResolver.Register();
+    }
+
+    /// <summary>
+    /// Bootstrap our custom formatters for AwesomeAssertions at startup.
+    /// </summary>
+    [ModuleInitializer]
+    internal static void InitializeFormatters()
+    {
+        FormatterResolver.Initialize();
     }
 }

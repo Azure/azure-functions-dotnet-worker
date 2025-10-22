@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -95,7 +95,13 @@ namespace Microsoft.Azure.Functions.Worker.Tests.Diagnostics
         {
             Exception thrownException = null;
 
-            using (_scopeProvider.Push(new FunctionInvocationScope("MyFunction", "MyInvocationId")))
+            var scopeValues = new Dictionary<string, object>
+            {
+                ["AzureFunctions_InvocationId"] = "MyInvocationId",
+                ["AzureFunctions_FunctionName"] = "MyFunction"
+            };
+
+            using (_scopeProvider.Push(scopeValues))
             {
                 try
                 {

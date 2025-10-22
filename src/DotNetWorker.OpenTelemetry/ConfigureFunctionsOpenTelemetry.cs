@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -18,11 +18,18 @@ namespace Microsoft.Azure.Functions.Worker.OpenTelemetry
 
             builder.Services
                 // Tells the host to no longer emit telemetry on behalf of the worker.
-                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities["WorkerOpenTelemetryEnabled"] = bool.TrueString);
+                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelEnabled] = bool.TrueString)
+                .Configure<WorkerOptions>(workerOptions => workerOptions.Capabilities[OpenTelemetryConstants.WorkerOTelSchemaVersion] = OpenTelemetryConstants.WorkerDefaultSchemaVersion);
 
             builder.ConfigureResource((resourceBuilder) =>
             {
                 resourceBuilder.AddDetector(new FunctionsResourceDetector());
+            });
+
+            // Add the ActivitySource so traces from the Functions Worker are captured
+            builder.WithTracing(tracerProviderBuilder =>
+            {
+                tracerProviderBuilder.AddSource(OpenTelemetryConstants.WorkerActivitySourceName);
             });
 
             return builder;

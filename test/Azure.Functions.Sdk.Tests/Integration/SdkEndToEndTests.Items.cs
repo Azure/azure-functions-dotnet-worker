@@ -18,7 +18,7 @@ public partial class SdkEndToEndTests
             .WriteSourceFile("local.settings.json", Resources.Local_Settings_json);
 
         // Act
-        project.TryGetItems("None", out IReadOnlyCollection<ProjectItem>? items);
+        project.TryGetItems("Content", out IReadOnlyCollection<ProjectItem>? items);
 
         // Assert
         items.Should().ContainSingle(x => x.EvaluatedInclude == "local.settings.json")
@@ -36,7 +36,7 @@ public partial class SdkEndToEndTests
             .WriteSourceFile("host.json", Resources.Host_json);
 
         // Act
-        project.TryGetItems("None", out IReadOnlyCollection<ProjectItem>? items);
+        project.TryGetItems("Content", out IReadOnlyCollection<ProjectItem>? items);
 
         // Assert
         items.Should().ContainSingle(x => x.EvaluatedInclude == "host.json")

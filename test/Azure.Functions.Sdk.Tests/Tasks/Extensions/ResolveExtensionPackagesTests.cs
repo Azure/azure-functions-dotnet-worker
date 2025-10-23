@@ -16,7 +16,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     public void Dispose() => _temp.Dispose();
 
     [Fact]
-    public void Execute_ReturnsFalse_WhenLockFileDoesNotExist()
+    public void LockFileDoesNotExist_Fails()
     {
         // Arrange
         ResolveExtensionPackages task = CreateTask(_temp.Path, new MockFileSystem());
@@ -30,7 +30,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     }
 
     [Fact]
-    public void Execute_ReturnsFalse_WhenCancelledBeforeProcessing()
+    public void WhenCancelledBeforeProcessing_Fails()
     {
         // Arrange
         Mock<IFileSystem> fileSystem = new(MockBehavior.Strict);
@@ -47,7 +47,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     }
 
     [Fact]
-    public void Execute_ReturnsExtensionPackages_NoPackageRefs()
+    public void NoPackageRefs_Empty()
     {
         // Arrange
         string restore = RestoreProject();
@@ -62,7 +62,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     }
 
     [Fact]
-    public void Execute_ReturnsExtensionPackages_NonExtensionPackages()
+    public void NonExtensionPackages_Empty()
     {
         // Arrange
         string restore = RestoreProject(project =>
@@ -81,7 +81,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     }
 
     [Fact]
-    public void Execute_ReturnsExtensionPackages_SinglePackage()
+    public void SinglePackage_ReturnsExtensionPackage()
     {
         // Arrange
         string restore = RestoreProject(project =>
@@ -106,7 +106,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     }
 
     [Fact]
-    public void Execute_ReturnsExtensionPackages_MultiplePackages()
+    public void MultiplePackages_ReturnsExtensionPackages()
     {
         // Arrange
         string restore = RestoreProject(project =>
@@ -121,7 +121,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         bool result = task.Execute();
 
         // Assert
-        result.Should().BeTrue();   
+        result.Should().BeTrue();
         task.ExtensionPackages.Should().HaveCount(3);
 
         ValidatePackage(

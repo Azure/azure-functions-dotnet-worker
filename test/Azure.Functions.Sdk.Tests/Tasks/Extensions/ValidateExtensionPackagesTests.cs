@@ -11,7 +11,7 @@ public sealed class ValidateExtensionPackagesTests
     private readonly Mock<IBuildEngine> _buildEngine = new();
 
     [Fact]
-    public void Execute_NoPackages()
+    public void NoPackages()
     {
         // Arrange
         ValidateExtensionPackages task = CreateTask();
@@ -25,7 +25,7 @@ public sealed class ValidateExtensionPackagesTests
     }
 
     [Fact]
-    public void Execute_InvalidVersion_Error()
+    public void InvalidVersion_Error()
     {
         // Arrange
         ITaskItem package1 = CreatePackage("PackageA", "NotAValidVersion");
@@ -41,7 +41,7 @@ public sealed class ValidateExtensionPackagesTests
     }
 
     [Fact]
-    public void Execute_DuplicatePackage_Warning()
+    public void DuplicatePackage_Warning()
     {
         // Arrange
         ITaskItem package1 = CreatePackage("PackageA", "1.0.0");
@@ -57,7 +57,7 @@ public sealed class ValidateExtensionPackagesTests
     }
 
     [Fact]
-    public void Execute_ConflictingPackage_Error()
+    public void ConflictingPackage_Error()
     {
         // Arrange
         ITaskItem package1 = CreatePackage("PackageA", "1.0.0");
@@ -74,7 +74,7 @@ public sealed class ValidateExtensionPackagesTests
     }
 
     [Fact]
-    public void Execute_UniquePackages_Added()
+    public void UniquePackages_Added()
     {
         // Arrange
         ITaskItem package1 = CreatePackage("PackageA", "1.0.0");

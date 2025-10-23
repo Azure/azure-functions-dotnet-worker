@@ -3,11 +3,9 @@
 
 using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
-using AwesomeAssertions;
 using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
-using Moq;
 
 namespace Azure.Functions.Sdk.Tasks.Extensions.Tests;
 

@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Using Include="AwesomeAssertions" />
+    <Using Include="Moq" />
     <Using Include="Xunit" />
   </ItemGroup>
 

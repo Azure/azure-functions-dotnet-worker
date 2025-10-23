@@ -8,10 +8,10 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Build.Utilities.ProjectCreation;
 
-public static class MSBuildExtensions
+public static class ProjectCreatorExtensions
 {
     private static readonly string ThisAssemblyDirectory =
-        Path.GetDirectoryName(typeof(MSBuildExtensions).Assembly.Location)!;
+        Path.GetDirectoryName(typeof(ProjectCreatorExtensions).Assembly.Location)!;
 
     private static readonly ImmutableDictionary<string, string> DefaultGlobalProperties =
         ImmutableDictionary.CreateRange(

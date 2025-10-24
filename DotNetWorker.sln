@@ -66,6 +66,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFuncti
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdk.E2ETests", "test\Sdk.E2ETests\Sdk.E2ETests.csproj", "{750993F6-4E3B-411B-9471-74CEA4F9C23A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Azure.Functions.Sdk", "src\Azure.Functions.Sdk\Azure.Functions.Sdk.csproj", "{02CBCC67-A10C-4064-AA5D-84533AC02342}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -148,6 +150,10 @@ Global
 		{750993F6-4E3B-411B-9471-74CEA4F9C23A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{750993F6-4E3B-411B-9471-74CEA4F9C23A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{750993F6-4E3B-411B-9471-74CEA4F9C23A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{02CBCC67-A10C-4064-AA5D-84533AC02342}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{02CBCC67-A10C-4064-AA5D-84533AC02342}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{02CBCC67-A10C-4064-AA5D-84533AC02342}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{02CBCC67-A10C-4064-AA5D-84533AC02342}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -174,6 +180,7 @@ Global
 		{BE88B7F0-F0DF-4EC4-8312-EDCB61810FA4} = {E785547C-7546-469F-827C-FDF999D5D7E8}
 		{429D067C-0846-40EF-A264-AB0C5D551CB0} = {E785547C-7546-469F-827C-FDF999D5D7E8}
 		{750993F6-4E3B-411B-9471-74CEA4F9C23A} = {E785547C-7546-469F-827C-FDF999D5D7E8}
+		{02CBCC67-A10C-4064-AA5D-84533AC02342} = {083592CA-7DAB-44CE-8979-44FAFA46AEC3}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

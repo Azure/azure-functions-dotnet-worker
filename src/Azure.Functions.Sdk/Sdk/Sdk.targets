@@ -16,4 +16,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <AzureFunctionsSdkTasksAssembly>$(AzureFunctionsSdkTasksDirectory)Azure.Functions.Sdk.dll</AzureFunctionsSdkTasksAssembly>
   </PropertyGroup>
 
+  <Import Project="$(MSBuildThisFileDirectory)../targets/Azure.Functions.Sdk.targets" />
+
 </Project>

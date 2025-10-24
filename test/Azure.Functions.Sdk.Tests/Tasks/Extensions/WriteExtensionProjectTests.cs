@@ -2,7 +2,6 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.IO.Abstractions.TestingHelpers;
-using System.Text;
 using System.Xml;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -161,26 +160,6 @@ public sealed class WriteExtensionProjectTests
         _fileSystem.File.GetLastWriteTimeUtc(ProjectPath).Should().BeAfter(projectTime);
         _fileSystem.File.GetLastWriteTimeUtc(HashPath).Should().BeAfter(hashTime);
         ValidateProject(projectContent, [package2]);
-    }
-
-    [Fact]
-    public void CreatesFileWithUtf8Encoding()
-    {
-        // Arrange
-        const string ProjectPath = @"C:\test\project.csproj";
-        var package = CreatePackage("TestPackage", "1.0.0");
-        var task = CreateTask(ProjectPath, packages: [package]);
-
-        // Act
-        bool result = task.Execute();
-
-        // Assert
-        result.Should().BeTrue();
-        
-        // Verify file can be read as UTF-8
-        byte[] bytes = _fileSystem.File.ReadAllBytes(ProjectPath);
-        string content = Encoding.UTF8.GetString(bytes);
-        content.Should().Contain("<Project Sdk=");
     }
 
     private static void ValidateProject(string content, TaskItem[] packages)

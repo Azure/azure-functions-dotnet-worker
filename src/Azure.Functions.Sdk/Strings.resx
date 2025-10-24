@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <root>
-    <!-- 
+  <!-- 
     Microsoft ResX Schema 
     
     Version 2.0
@@ -59,119 +59,131 @@
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
-    <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-        <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
-        <xsd:element name="root" msdata:IsDataSet="true">
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
             <xsd:complexType>
-                <xsd:choice maxOccurs="unbounded">
-                    <xsd:element name="metadata">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" use="required" type="xsd:string"/>
-                            <xsd:attribute name="type" type="xsd:string"/>
-                            <xsd:attribute name="mimetype" type="xsd:string"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="assembly">
-                        <xsd:complexType>
-                            <xsd:attribute name="alias" type="xsd:string"/>
-                            <xsd:attribute name="name" type="xsd:string"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="data">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1"/>
-                            <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3"/>
-                            <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4"/>
-                            <xsd:attribute ref="xml:space"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                    <xsd:element name="resheader">
-                        <xsd:complexType>
-                            <xsd:sequence>
-                                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1"/>
-                            </xsd:sequence>
-                            <xsd:attribute name="name" type="xsd:string" use="required"/>
-                        </xsd:complexType>
-                    </xsd:element>
-                </xsd:choice>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
             </xsd:complexType>
-        </xsd:element>
-    </xsd:schema>
-    <resheader name="resmimetype">
-        <value>text/microsoft-resx</value>
-    </resheader>
-    <resheader name="version">
-        <value>2.0</value>
-    </resheader>
-    <resheader name="reader">
-        <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <resheader name="writer">
-        <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-    </resheader>
-    <data name="AZFW0100_Error_CannotRunFuncCli" xml:space="preserve">
-        <value>Unable to launch the Azure Functions Core Tools. Please visit https://aka.ms/azfunc-dotnet-run-error for more details on how to address this problem.</value>
-    </data>
-    <data name="AZFW0101_Error_ExtensionPackageConflict" xml:space="preserve">
-        <value>The AzureFunctionsExtensionPackage {0}/{1} conflicts with existing package  {0}/{2}</value>
-    </data>
-    <data name="AZFW0102_Warning_ExtensionPackageDuplicate" xml:space="preserve">
-        <value>Duplicate extension package found: {0}/{1}</value>
-    </data>
-    <data name="AZFW0103_Error_InvalidExtensionPackageVersion" xml:space="preserve">
-        <value>The Invalid version for AzureFunctionsExtensionPackage '{0}': '{1}'. Ensure the Version metadata on this item is a valid NuGet package version.</value>
-    </data>
-    <data name="AZFW0104_Warning_EndOfLifeFunctionsVersion" xml:space="preserve">
-        <value>Azure Functions '{0}' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy.</value>
-    </data>
-    <data name="AZFW0105_Error_UsingLegacyFunctionsSdk" xml:space="preserve">
-        <value>Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package.</value>
-    </data>
-    <data name="AZFW0106_Error_UnknownFunctionsVersion" xml:space="preserve">
-        <value>The AzureFunctionsVersion '{0}' is unknown or not supported.</value>
-    </data>
-    <data name="AZFW0107_Warning_UnsupportedTargetFramework" xml:space="preserve">
-        <value>Target framework '{0}' is not supported by Azure Functions. Please see https://learn.microsoft.com/azure/azure-functions/functions-versions?tabs=isolated-process%2Cv4&amp;pivots=programming-language-csharp#languages for in-support versions.</value>
-    </data>
-    <data name="Deploy_AsyncDeployment" xml:space="preserve">
-        <value>Asynchronous deployment. Polling status at {0}</value>
-    </data>
-    <data name="Deploy_BeginPublish" xml:space="preserve">
-        <value>Publishing {0} to {1}</value>
-    </data>
-    <data name="Deploy_CompletedFailure" xml:space="preserve">
-        <value>Failed to publish {0} to {1}.  Status: {2}</value>
-    </data>
-    <data name="Deploy_CompletedSuccess" xml:space="preserve">
-        <value>Successfully published {0} to {1}. Status: {2}</value>
-    </data>
-    <data name="Deploy_Failed" xml:space="preserve">
-        <value>Zip deployment to {0} has failed.\n    {1}\n    HTTP Status: {2}\n    Deployment Status: {3}</value>
-    </data>
-    <data name="Deploy_InvalidPublishUrl" xml:space="preserve">
-        <value>The publish url '{0}' is invalid. Publish url must be an absolute HTTP or HTTPS url.</value>
-    </data>
-    <data name="Deploy_PollFailure" xml:space="preserve">
-        <value>Failed to poll '{0}'. HTTP Status: {1}. Retry count {2}/{3}</value>
-    </data>
-    <data name="Deploy_Status" xml:space="preserve">
-        <value>Deployment status is {0}.</value>
-    </data>
-    <data name="Deploy_StatusWithText" xml:space="preserve">
-        <value>Deployment status is {0}: {1}</value>
-    </data>
-    <data name="Deploy_ZipNotFound" xml:space="preserve">
-        <value>The provided zip file '{0}' was not found.</value>
-    </data>
-    <data name="MissingProjectAssetsFile" xml:space="preserve">
-        <value>Assets file '{0}' does not exist. Please ensure restore successfully ran.</value>
-    </data>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="AZFW0100_Error_CannotRunFuncCli" xml:space="preserve">
+    <value>Unable to launch the Azure Functions Core Tools. Please visit https://aka.ms/azfunc-dotnet-run-error for more details on how to address this problem.</value>
+  </data>
+  <data name="AZFW0101_Error_ExtensionPackageConflict" xml:space="preserve">
+    <value>The AzureFunctionsExtensionPackage {0}/{1} conflicts with existing package  {0}/{2}</value>
+  </data>
+  <data name="AZFW0102_Warning_ExtensionPackageDuplicate" xml:space="preserve">
+    <value>Duplicate extension package found: {0}/{1}</value>
+  </data>
+  <data name="AZFW0103_Error_InvalidExtensionPackageVersion" xml:space="preserve">
+    <value>The Invalid version for AzureFunctionsExtensionPackage '{0}': '{1}'. Ensure the Version metadata on this item is a valid NuGet package version.</value>
+  </data>
+  <data name="AZFW0104_Warning_EndOfLifeFunctionsVersion" xml:space="preserve">
+    <value>Azure Functions '{0}' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy.</value>
+  </data>
+  <data name="AZFW0105_Error_UsingLegacyFunctionsSdk" xml:space="preserve">
+    <value>Microsoft.NET.Sdk.Functions package is meant to be used with in-proc function apps. Please remove the reference to this package.</value>
+  </data>
+  <data name="AZFW0106_Error_UnknownFunctionsVersion" xml:space="preserve">
+    <value>The AzureFunctionsVersion '{0}' is unknown or not supported.</value>
+  </data>
+  <data name="AZFW0107_Warning_UnsupportedTargetFramework" xml:space="preserve">
+    <value>Target framework '{0}' is not supported by Azure Functions. Please see https://learn.microsoft.com/azure/azure-functions/functions-versions?tabs=isolated-process%2Cv4&amp;pivots=programming-language-csharp#languages for in-support versions.</value>
+  </data>
+  <data name="Deploy_AsyncDeployment" xml:space="preserve">
+    <value>Asynchronous deployment. Polling status at {0}</value>
+  </data>
+  <data name="Deploy_BeginPublish" xml:space="preserve">
+    <value>Publishing {0} to {1}</value>
+  </data>
+  <data name="Deploy_CompletedFailure" xml:space="preserve">
+    <value>Failed to publish {0} to {1}.  Status: {2}</value>
+  </data>
+  <data name="Deploy_CompletedSuccess" xml:space="preserve">
+    <value>Successfully published {0} to {1}. Status: {2}</value>
+  </data>
+  <data name="Deploy_Failed" xml:space="preserve">
+    <value>Zip deployment to {0} has failed.\n    {1}\n    HTTP Status: {2}\n    Deployment Status: {3}</value>
+  </data>
+  <data name="Deploy_InvalidPublishUrl" xml:space="preserve">
+    <value>The publish url '{0}' is invalid. Publish url must be an absolute HTTP or HTTPS url.</value>
+  </data>
+  <data name="Deploy_PollFailure" xml:space="preserve">
+    <value>Failed to poll '{0}'. HTTP Status: {1}. Retry count {2}/{3}</value>
+  </data>
+  <data name="Deploy_Status" xml:space="preserve">
+    <value>Deployment status is {0}.</value>
+  </data>
+  <data name="Deploy_StatusWithText" xml:space="preserve">
+    <value>Deployment status is {0}: {1}</value>
+  </data>
+  <data name="Deploy_ZipNotFound" xml:space="preserve">
+    <value>The provided zip file '{0}' was not found.</value>
+  </data>
+  <data name="ExtensionProject_DoesNotExist" xml:space="preserve">
+    <value>Hash file does not exist or project file does not exist. Regenerating project.</value>
+  </data>
+  <data name="ExtensionProject_FinishedGenerating" xml:space="preserve">
+    <value>Finished generating project. Updated cache file with hash '{0}'.</value>
+  </data>
+  <data name="ExtensionProject_HashOutOfDate" xml:space="preserve">
+    <value>Existing hash '{0}' does not match current hash '{1}'. Regenerating project.</value>
+  </data>
+  <data name="ExtensionProject_HashUpToDate" xml:space="preserve">
+    <value>Existing hash '{0}' matches current hash. No changes detected, skipping project generation.</value>
+  </data>
+  <data name="MissingProjectAssetsFile" xml:space="preserve">
+    <value>Assets file '{0}' does not exist. Please ensure restore successfully ran.</value>
+  </data>
 </root>

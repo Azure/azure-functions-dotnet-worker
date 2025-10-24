@@ -86,7 +86,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         // Arrange
         string restore = RestoreProject(project =>
         {
-            project.ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.23.0");
+            project.ItemPackageReference(NugetPackage.ServiceBus);
         });
 
         ResolveExtensionPackages task = CreateTask(restore);
@@ -97,12 +97,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         // Assert
         result.Should().BeTrue();
         task.ExtensionPackages.Should().ContainSingle();
-
-        ValidatePackage(
-            task.ExtensionPackages[0],
-            "Microsoft.Azure.WebJobs.Extensions.ServiceBus",
-            "5.17.0",
-            "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus");
+        ValidatePackage(task.ExtensionPackages[0], NugetPackage.ServiceBus);
     }
 
     [Fact]
@@ -111,8 +106,8 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         // Arrange
         string restore = RestoreProject(project =>
         {
-            project.ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.23.0");
-            project.ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.Storage", "6.8.0");
+            project.ItemPackageReference(NugetPackage.ServiceBus);
+            project.ItemPackageReference(NugetPackage.Storage);
         });
 
         ResolveExtensionPackages task = CreateTask(restore);
@@ -124,23 +119,9 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         result.Should().BeTrue();
         task.ExtensionPackages.Should().HaveCount(3);
 
-        ValidatePackage(
-            task.ExtensionPackages[0],
-            "Microsoft.Azure.WebJobs.Extensions.ServiceBus",
-            "5.17.0",
-            "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus");
-
-        ValidatePackage(
-            task.ExtensionPackages[1],
-            "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs",
-            "5.3.6",
-            "Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs");
-
-        ValidatePackage(
-            task.ExtensionPackages[2],
-            "Microsoft.Azure.WebJobs.Extensions.Storage.Queues",
-            "5.3.6",
-            "Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues");
+        ValidatePackage(task.ExtensionPackages[0], NugetPackage.ServiceBus);
+        ValidatePackage(task.ExtensionPackages[1], NugetPackage.StorageBlobs);
+        ValidatePackage(task.ExtensionPackages[2], NugetPackage.StorageQueues);
     }
 
     [Fact]
@@ -153,12 +134,12 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
         task.Dispose();
     }
 
-    private static void ValidatePackage(
-        ITaskItem package, string expectedId, string expectedVersion, string expectedSourceId)
+    private static void ValidatePackage(ITaskItem package, WorkerPackage worker)
     {
-        package.Should().HaveItemSpec(expectedId)
-            .And.HaveMetadata("Version", expectedVersion)
-            .And.HaveMetadata("SourcePackageId", expectedSourceId)
+        NugetPackage webJobs = worker.WebJobsPackages.Should().ContainSingle().Which;
+        package.Should().HaveItemSpec(webJobs.Name)
+            .And.HaveMetadata("Version", webJobs.Version)
+            .And.HaveMetadata("SourcePackageId", worker.Name)
             .And.HaveMetadata("IsImplicitlyDefined", "true");
     }
 

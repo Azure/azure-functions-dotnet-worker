@@ -72,29 +72,19 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
             || !_fileSystem.File.Exists(HashFilePath)
             || !_fileSystem.File.Exists(ProjectPath))
         {
-            Log.LogMessage(
-                MessageImportance.Low,
-                "Hash file does not exist or project file does not exist. Regenerating project.");
+            Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_DoesNotExist);
             return true;
         }
 
         string existingHash = _fileSystem.File.ReadAllText(HashFilePath);
         if (existingHash != currentHash)
         {
-            Log.LogMessage(
-                MessageImportance.Low,
-                "Existing hash '{0}' does not match current hash '{1}'. Regenerating project.",
-                existingHash,
-                currentHash);
+            Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_HashOutOfDate, existingHash, currentHash);
             return true;
         }
         else
         {
-            Log.LogMessage(
-                MessageImportance.Low,
-                "Existing hash '{0}' matches current hash '{1}'. No changes detected, skipping project generation.",
-                existingHash,
-                currentHash);
+            Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_HashUpToDate, existingHash);
             return false;
         }
     }
@@ -107,12 +97,19 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         }
 
         _fileSystem.File.WriteAllText(HashFilePath!, hash);
-        Log.LogMessage(
-            MessageImportance.Low,
-            "Finished generating project. Updated cache file with hash '{0}'.",
-            hash);
+        Log.LogMessage(MessageImportance.Low, Strings.ExtensionProject_FinishedGenerating, hash);
     }
 
+    /// <summary>
+    /// Calculates the hash of the current set of extension packages. This is used to determine
+    /// if the extension project needs to be regenerated.
+    /// </summary>
+    /// <returns>The calculated hash.</returns>
+    /// <remarks>
+    /// The hash calculation uses the following as input:
+    /// - The tooling generating the hash itself (so any change to tooling forces a project update).
+    /// - The list of extension packages (identity and version).
+    /// </remarks>
     private string CalculateHash()
     {
         using FnvHash64Function algorithm = new();

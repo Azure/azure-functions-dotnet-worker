@@ -6,15 +6,18 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <AzureFunctionsSdkProject>$(SrcRoot)Azure.Functions.Sdk/Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
+    <ResolverProject>../Azure.Functions.Sdk.Resolver/Azure.Functions.Sdk.Resolver.csproj</ResolverProject>
   </PropertyGroup>
 
   <ItemGroup>
+    <Using Include="AwesomeAssertions" />
+    <Using Include="Moq" />
     <Using Include="Xunit" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="$(AzureFunctionsSdkProject)" />
+    <ProjectReference Include="$(SrcRoot)Azure.Functions.Sdk/Azure.Functions.Sdk.csproj" />
+    <ProjectReference Include="$(ResolverProject)" ReferenceOutputAssembly="false" />
   </ItemGroup>
 
   <ItemGroup>
@@ -40,13 +43,14 @@
     <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" PrivateAssets="all" />
   </ItemGroup>
 
-  <Target Name="_CopySdkFiles" BeforeTargets="AssignTargetPaths">
-    <MSBuild Projects="$(AzureFunctionsSdkProject)" Targets="GetSdkFiles">
+  <!-- Scaffold out the resolver & SDK files so we can use them in the tests -->
+  <Target Name="_AssignSdkFiles" BeforeTargets="AssignTargetPaths" AfterTargets="ResolveProjectReferences">
+    <MSBuild Projects="$(ResolverProject)" Targets="GetSdkFiles">
       <Output TaskParameter="TargetOutputs" ItemName="_SdkFiles" />
     </MSBuild>
 
     <ItemGroup>
-      <None Include="@(_SdkFiles)" TargetPath="sdk/%(_SdkFiles.PackagePath)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
+      <None Include="@(_SdkFiles)" TargetPath="resolver/%(_SdkFiles.TargetPath)" CopyToOutputDirectory="PreserveNewest" />
     </ItemGroup>
   </Target>
 

@@ -1,16 +1,16 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-
-
 using System.Runtime.CompilerServices;
-using AwesomeAssertions;
 using Microsoft.Build.Utilities.ProjectCreation;
 
 namespace Azure.Functions.Sdk.Tests;
 
 internal static class ModuleInitializer
 {
+    private static readonly string ResolverPath = Path.Combine(
+        Path.GetDirectoryName(typeof(ModuleInitializer).Assembly.Location)!, "resolver");
+
     /// <summary>
     /// We cannot include MSBuild assemblies in our output, because they will interfere with
     /// MSBuilds assembly scanning. Instead we use the MSBuildLocator to resolve them at runtime.
@@ -18,6 +18,7 @@ internal static class ModuleInitializer
     [ModuleInitializer]
     internal static void InitializeMSBuild()
     {
+        Environment.SetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER", ResolverPath);
         MSBuildAssemblyResolver.Register();
     }
 

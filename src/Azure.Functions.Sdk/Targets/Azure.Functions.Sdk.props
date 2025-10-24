@@ -24,7 +24,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" IsImplicitlyDefined="true" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.2.0" IsImplicitlyDefined="true" />
   </ItemGroup>
 
   <ItemGroup>

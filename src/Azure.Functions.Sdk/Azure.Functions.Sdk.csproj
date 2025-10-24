@@ -40,6 +40,9 @@
       <None Update="@(None)"
         PackagePath="%(None.PackagePath)$([System.String]::new('%(RecursiveDir)').Substring(0, 1).ToLowerInvariant())$([System.String]::new('%(RecursiveDir)').Substring(1))%(Filename)%(Extension)"
         Condition="'%(None.CamelCasePath)' == 'true' AND '%(RecursiveDir)' != ''" />
+      <None Update="@(None)"
+        PackagePath="%(None.PackagePath)%(Filename)%(Extension)"
+        Condition="'%(None.CamelCasePath)' == 'true' AND '%(RecursiveDir)' == ''" />
     </ItemGroup>
   </Target>
 
@@ -54,13 +57,16 @@
     </ItemGroup>
   </Target>
 
-  <!-- Test project calls this to get all SDK files. -->
-  <Target Name="GetSdkFiles" DependsOnTargets="_AddPackagePath" Returns="@(_SdkFiles)">
+  <!-- Test project calls this to scaffold out this SDK in its expected structure. -->
+  <Target Name="GetSdkFiles"
+    DependsOnTargets="_AddPackagePath;IncludeReferenceCopyLocalPathsInBuildOutputInPackage;_GetBuildOutputFilesWithTfm"
+    Returns="@(_SdkFiles)">
     <ItemGroup>
       <_SdkFilesTemp Include="@(None->WithMetadataValue('SdkFile', 'true'))" />
+      <_SdkFilesTemp Include="@(BuildOutputInPackage)" PackagePath="tools/netstandard2.0/%(BuildOutputInPackage.TargetPath)" />
     </ItemGroup>
 
-    <ConvertToAbsolutePath Paths="@(_SdkFilesTemp)">
+    <ConvertToAbsolutePath Paths="@(_SdkFilesTemp->Distinct())">
       <Output TaskParameter="AbsolutePaths" ItemName="_SdkFiles" />
     </ConvertToAbsolutePath>
   </Target>

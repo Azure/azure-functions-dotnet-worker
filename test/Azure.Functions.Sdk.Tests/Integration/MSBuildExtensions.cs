@@ -19,7 +19,6 @@ public static class MSBuildExtensions
             KeyValuePair.Create("ImportDirectoryBuildProps", bool.FalseString),
             KeyValuePair.Create("ImportDirectoryPackagesProps", bool.FalseString),
             KeyValuePair.Create("ImportDirectoryBuildTargets", bool.FalseString),
-            KeyValuePair.Create("AzureFunctionsSdkTasksAssembly", Path.Combine(ThisAssemblyDirectory, "Azure.Functions.Sdk.dll"))
         ]);
 
     public static ProjectCreator AzureFunctionsProject(
@@ -33,12 +32,11 @@ public static class MSBuildExtensions
         return ProjectCreator.Create(
             path: path,
             projectCollection: projectCollection,
+            sdk: "Azure.Functions.Sdk/99.99.99",
             globalProperties: GetGlobalProperties(globalProperties))
-            .Import(Path.Combine(ThisAssemblyDirectory, "sdk", "sdk", "Sdk.props"))
             .PropertyGroup()
             .Property("TargetFramework", targetFramework)
-            .CustomAction(configure)
-            .Import(Path.Combine(ThisAssemblyDirectory, "sdk", "sdk", "Sdk.targets"));
+            .CustomAction(configure);
     }
 
     public static ProjectCreator WriteSourceFile(

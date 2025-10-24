@@ -7,6 +7,7 @@
 
   <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+    <SrcRoot>$(RepoRoot)src/</SrcRoot>
     <EngRoot>$(RepoRoot)eng/</EngRoot>
     <TargetsRoot>$(EngRoot)build/</TargetsRoot>
   </PropertyGroup>

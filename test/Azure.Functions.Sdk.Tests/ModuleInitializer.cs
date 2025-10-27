@@ -16,18 +16,10 @@ internal static class ModuleInitializer
     /// MSBuilds assembly scanning. Instead we use the MSBuildLocator to resolve them at runtime.
     /// </summary>
     [ModuleInitializer]
-    internal static void InitializeMSBuild()
+    internal static void Initialize()
     {
         Environment.SetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER", ResolverPath);
         MSBuildAssemblyResolver.Register();
-    }
-
-    /// <summary>
-    /// Bootstrap our custom formatters for AwesomeAssertions at startup.
-    /// </summary>
-    [ModuleInitializer]
-    internal static void InitializeFormatters()
-    {
         FormatterResolver.Initialize();
     }
 }

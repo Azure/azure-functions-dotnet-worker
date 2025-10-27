@@ -13,13 +13,15 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" ExcludeAssets="runtime" />
   </ItemGroup>
 
-  <Target Name="GetSdkFiles" DependsOnTargets="CoreCompile" Returns="@(_SdkFiles)">
+  <Target Name="GetSdkFiles" AfterTargets="CoreCompile" Returns="@(_SdkFiles)">
     <MSBuild Projects="$(AzureFunctionsSdkProject)" Targets="GetSdkFiles">
       <Output TaskParameter="TargetOutputs" ItemName="_SdkFiles" />
     </MSBuild>
+
+    <Error Condition="!Exists('$(TargetPath)')" Text="Must build before running 'GetSdkFiles'" />
 
     <ItemGroup>
       <_SdkFiles Include="$(TargetPath)" PackagePath="$(TargetFileName)" />

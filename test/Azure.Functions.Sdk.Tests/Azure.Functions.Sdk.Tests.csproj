@@ -43,8 +43,7 @@
     <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" PrivateAssets="all" />
   </ItemGroup>
 
-  <!-- Scaffold out the resolver & SDK files so we can use them in the tests -->
-  <Target Name="_AssignSdkFiles" BeforeTargets="AssignTargetPaths" AfterTargets="ResolveProjectReferences">
+  <Target Name="_AssignSdkFiles" BeforeTargets="AssignTargetPaths" AfterTargets="ResolveReferences">
     <MSBuild Projects="$(ResolverProject)" Targets="GetSdkFiles">
       <Output TaskParameter="TargetOutputs" ItemName="_SdkFiles" />
     </MSBuild>

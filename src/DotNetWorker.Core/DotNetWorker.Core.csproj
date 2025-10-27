@@ -11,7 +11,7 @@
     <MajorProductVersion>2</MajorProductVersion>
     <MinorProductVersion>50</MinorProductVersion>
     <PatchProductVersion>0</PatchProductVersion>
-    <VersionSuffix>-preview1</VersionSuffix>
+    <VersionSuffix>-preview2</VersionSuffix>
   </PropertyGroup>
 
   <Import Project="..\..\build\Common.props" />

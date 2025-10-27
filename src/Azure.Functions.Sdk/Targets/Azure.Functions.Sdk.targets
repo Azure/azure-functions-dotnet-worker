@@ -12,9 +12,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.targets" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).FuncSdkLog" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
     <_AzureFunctionsVersionStandardized>$(AzureFunctionsVersion.ToLowerInvariant().Split('-')[0])</_AzureFunctionsVersionStandardized>
+    <_FunctionsRuntimeMajorVersion>$(_AzureFunctionsVersionStandardized.TrimStart('vV'))</_FunctionsRuntimeMajorVersion>
+    <_MinimumSupportedTfmInFunctions>net8.0</_MinimumSupportedTfmInFunctions>
     <_ToolingSuffix Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">net$([MSBuild]::GetTargetFrameworkVersion('$(TargetFramework)', 1))-isolated</_ToolingSuffix>
     <_ToolingSuffix Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">netfx-isolated</_ToolingSuffix>
     <FunctionsToolingSuffix Condition="'$(FunctionsToolingSuffix)' == ''">$(_ToolingSuffix)</FunctionsToolingSuffix>
@@ -22,5 +25,21 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
+
+  <Target Name="_ValidateFunctionsVersion">
+    <ItemGroup>
+      <_AllowedFunctionVersion Include="v4" InSupport="true" />
+      <_SelectedFunctionVersion Include="@(_AllowedFunctionVersion)" Condition="'%(_AllowedFunctionVersion.Identity)' == '$(_AzureFunctionsVersionStandardized)'" />
+    </ItemGroup>
+
+    <FuncSdkLog Condition="'%(_SelectedFunctionVersion.InSupport)' == 'false'" Resource="Warning_EndOfLifeFunctionsVersion" Arguments="$(_AzureFunctionsVersionStandardized)" />
+    <FuncSdkLog Condition="'@(_SelectedFunctionVersion)' == ''" Resource="Error_UnknownFunctionsVersion" Arguments="$(_AzureFunctionsVersionStandardized)" />
+    <FuncSdkLog Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp' AND !$([MSBuild]::IsTargetFrameworkCompatible('$(TargetFramework)', '$(_MinimumSupportedTfmInFunctions)'))"
+      Resource="Error_UnsupportedTargetFramework" Arguments="$(_MinimumSupportedTfmInFunctions);$(TargetFramework)" />
+  </Target>
+
+  <Target Name="_FunctionAppValidation" BeforeTargets="Restore;Build" DependsOnTargets="_ValidateFunctionsVersion">
+    <FuncSdkLog Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Resource="Error_UsingLegacyFunctionsSdk" />
+  </Target>
 
 </Project>

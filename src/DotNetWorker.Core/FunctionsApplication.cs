@@ -1,9 +1,10 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -22,7 +23,7 @@ namespace Microsoft.Azure.Functions.Worker
         private readonly IOptions<WorkerOptions> _workerOptions;
         private readonly ILogger<FunctionsApplication> _logger;
         private readonly IWorkerDiagnostics _diagnostics;
-        private readonly FunctionActivitySourceFactory _functionActivitySourceFactory;
+        private readonly IFunctionTelemetryProvider _functionTelemetryProvider;
 
         public FunctionsApplication(
             FunctionExecutionDelegate functionExecutionDelegate,
@@ -30,14 +31,14 @@ namespace Microsoft.Azure.Functions.Worker
             IOptions<WorkerOptions> workerOptions,
             ILogger<FunctionsApplication> logger,
             IWorkerDiagnostics diagnostics,
-            FunctionActivitySourceFactory functionActivitySourceFactory)
+            IFunctionTelemetryProvider functionTelemetryProvider)
         {
             _functionExecutionDelegate = functionExecutionDelegate ?? throw new ArgumentNullException(nameof(functionExecutionDelegate));
             _functionContextFactory = functionContextFactory ?? throw new ArgumentNullException(nameof(functionContextFactory));
             _workerOptions = workerOptions ?? throw new ArgumentNullException(nameof(workerOptions));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _diagnostics = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
-            _functionActivitySourceFactory = functionActivitySourceFactory ?? throw new ArgumentNullException(nameof(functionActivitySourceFactory));
+            _functionTelemetryProvider = functionTelemetryProvider ?? throw new ArgumentNullException(nameof(functionTelemetryProvider));
         }
 
         public FunctionContext CreateContext(IInvocationFeatures features, CancellationToken token = default)
@@ -67,29 +68,8 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async Task InvokeFunctionAsync(FunctionContext context)
         {
-            Activity? activity = null;
-
-            if (Activity.Current is null)
-            {
-                // This will act as an internal activity that represents remote Host activity. This cannot be tracked as this is not associate to an ActivitySource. 
-                activity = new Activity(nameof(InvokeFunctionAsync));
-                activity.Start();
-
-                if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
-                {
-                    activity.SetId(context.TraceContext.TraceParent);
-                    activity.SetSpanId(activityContext.SpanId.ToString());
-                    activity.SetTraceId(activityContext.TraceId.ToString());
-                    activity.SetRootId(activityContext.TraceId.ToString());
-                    activity.ActivityTraceFlags = activityContext.TraceFlags;
-                    activity.TraceStateString = activityContext.TraceState;
-                }
-            }
-
-            var scope = new FunctionInvocationScope(context.FunctionDefinition.Name, context.InvocationId);
-
-            using var logScope = _logger.BeginScope(scope);
-            using Activity? invokeActivity = _functionActivitySourceFactory.StartInvoke(context);
+            using var logScope = _logger.BeginScope(_functionTelemetryProvider.GetTelemetryAttributes(context).ToList());
+            using Activity? invokeActivity = _functionTelemetryProvider.StartActivityForInvocation(context);
 
             try
             {
@@ -103,9 +83,6 @@ namespace Microsoft.Azure.Functions.Worker
 
                 throw;
             }
-
-            invokeActivity?.Stop();
-            activity?.Stop();
         }
     }
 }

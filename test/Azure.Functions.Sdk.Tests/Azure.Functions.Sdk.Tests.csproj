@@ -43,14 +43,4 @@
     <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" PrivateAssets="all" />
   </ItemGroup>
 
-  <Target Name="_AssignSdkFiles" BeforeTargets="AssignTargetPaths" AfterTargets="ResolveReferences">
-    <MSBuild Projects="$(ResolverProject)" Targets="GetSdkFiles">
-      <Output TaskParameter="TargetOutputs" ItemName="_SdkFiles" />
-    </MSBuild>
-
-    <ItemGroup>
-      <None Include="@(_SdkFiles)" TargetPath="resolver/%(_SdkFiles.TargetPath)" CopyToOutputDirectory="PreserveNewest" />
-    </ItemGroup>
-  </Target>
-
 </Project>

@@ -1,4 +1,4 @@
-// Copyright (c) .NET Foundation. All rights reserved.
+﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Build.Framework;
@@ -9,87 +9,97 @@ namespace Azure.Functions.Sdk.Tasks;
 
 internal static class MSBuildLogExtensions
 {
-    public static void LogMessage(this TaskLoggingHelper log, LogMessage logCode)
-        => LogMessage(log, logCode, []);
+    public static void LogMessage(this TaskLoggingHelper log, LogMessage message)
+        => LogMessage(log, message, []);
 
-    public static void LogMessage(this TaskLoggingHelper log, LogMessage logCode, params string[] messageArgs)
+    public static void LogMessage(this TaskLoggingHelper log, LogMessage message, params string[] args)
     {
-        if (logCode.Code is null)
+        if (message.Code is null)
         {
-            log.LogNoCode(logCode, messageArgs);
+            log.LogNoCode(message, args);
         }
         else
         {
-            log.LogWithCode(logCode, messageArgs);
+            log.LogWithCode(message, args);
         }
     }
 
-    private static void LogWithCode(this TaskLoggingHelper log, LogMessage logCode, params string[] messageArgs)
+    public static MessageImportance ToMessageImportance(this LogLevel level)
+        => level switch
+        {
+            LogLevel.Error or LogLevel.Warning or LogLevel.Minimal => MessageImportance.High,
+            LogLevel.Information => MessageImportance.Normal,
+            LogLevel.Debug or LogLevel.Verbose => MessageImportance.Low,
+            _ => throw new ArgumentOutOfRangeException(nameof(level), level, "Unsupported log level for message importance"),
+        };
+
+    private static void LogWithCode(this TaskLoggingHelper log, LogMessage message, params string[] args)
     {
         log.TaskResources = Strings.ResourceManager;
-        switch (logCode.Level)
+        switch (message.Level)
         {
             case LogLevel.Error:
                 log.LogErrorFromResources(
                     null,
-                    logCode.Code!,
-                    $"AzureFunctions.{logCode.Code}",
+                    message.Code!,
+                    message.HelpKeyword,
                     null,
                     0,
                     0,
                     0,
                     0,
-                    logCode.Id,
-                    messageArgs);
+                    message.Id,
+                    args);
                 break;
             case LogLevel.Warning:
                 log.LogWarningFromResources(
                     null,
-                    logCode.Code!,
-                    $"AzureFunctions.{logCode.Code}",
+                    message.Code!,
+                    message.HelpKeyword,
                     null,
                     0,
                     0,
                     0,
                     0,
-                    logCode.Id,
-                    messageArgs);
+                    message.Id,
+                    args);
                 break;
             case LogLevel.Minimal:
-                log.LogMessageFromResources(MessageImportance.High, logCode.Id, messageArgs);
+                log.LogMessageFromResources(MessageImportance.High, message.Id, args);
                 break;
             case LogLevel.Information:
-                log.LogMessageFromResources(MessageImportance.Normal, logCode.Id, messageArgs);
+                log.LogMessageFromResources(MessageImportance.Normal, message.Id, args);
                 break;
             case LogLevel.Debug or LogLevel.Verbose:
-                log.LogMessageFromResources(MessageImportance.Low, logCode.Id, messageArgs);
+                log.LogMessageFromResources(MessageImportance.Low, message.Id, args);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(logCode.Level), logCode.Level, "Unsupported log level");
+                throw new ArgumentOutOfRangeException(nameof(message.Level), message.Level, "Unsupported log level");
         }
     }
 
-    private static void LogNoCode(this TaskLoggingHelper log, LogMessage logCode, params string[] messageArgs)
+    private static void LogNoCode(this TaskLoggingHelper log, LogMessage message, params string[] args)
     {
-        log.TaskResources = Strings.ResourceManager;switch (logCode.Level)
+        log.TaskResources = Strings.ResourceManager;
+        switch (message.Level)
         {
             case LogLevel.Error:
-                log.LogErrorFromResources(logCode.Id, messageArgs);
+                log.LogErrorFromResources(message.Id, args);
                 break;
             case LogLevel.Warning:
-                log.LogWarningFromResources(logCode.Id, messageArgs);
+                log.LogWarningFromResources(message.Id, args);
                 break;
             case LogLevel.Minimal:
-                log.LogMessageFromResources(MessageImportance.High, logCode.Id, messageArgs);
+                log.LogMessageFromResources(MessageImportance.High, message.Id, args);
                 break;
             case LogLevel.Information:
-                log.LogMessageFromResources(MessageImportance.Normal, logCode.Id, messageArgs);
+                log.LogMessageFromResources(MessageImportance.Normal, message.Id, args);
                 break;
             case LogLevel.Debug or LogLevel.Verbose:
-                log.LogMessageFromResources(MessageImportance.Low, logCode.Id, messageArgs);
+                log.LogMessageFromResources(MessageImportance.Low, message.Id, args);
                 break;
             default:
-                throw new ArgumentOutOfRangeException(nameof(logCode.Level), logCode.Level, "Unsupported log level");
+                throw new ArgumentOutOfRangeException(nameof(message.Level), message.Level, "Unsupported log level");
         }
     }
 }

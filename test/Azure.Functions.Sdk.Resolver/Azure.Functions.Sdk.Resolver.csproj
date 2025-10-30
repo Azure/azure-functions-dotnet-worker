@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <AzureFunctionsSdkProject>$(SrcRoot)Azure.Functions.Sdk/Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(AzureFunctionsSdkProject)" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <Target Name="_IncludeSdkFiles" AfterTargets="CoreCompile" BeforeTargets="GetCopyToOutputDirectoryItems">
+    <MSBuild Projects="$(AzureFunctionsSdkProject)" Targets="GetSdkFiles">
+      <Output TaskParameter="TargetOutputs" ItemName="_SdkFiles" />
+    </MSBuild>
+
+    <ConvertToAbsolutePath Paths="@(IntermediateAssembly)">
+      <Output TaskParameter="AbsolutePaths" ItemName="_ResolverAssemblyFullPath" />
+    </ConvertToAbsolutePath>
+
+    <ItemGroup>
+      <_SdkFiles Include="@(_ResolverAssemblyFullPath)" PackagePath="%(Filename)%(Extension)" />
+      <_SdkFiles Update="@(_SdkFiles)" TargetPath="resolver/$(AssemblyName)/%(PackagePath)" />
+      <AllItemsFullPathWithTargetPath Include="@(_SdkFiles)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+</Project>

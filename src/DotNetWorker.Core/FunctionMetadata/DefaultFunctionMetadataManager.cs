@@ -53,13 +53,32 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
                     }
 
                     // Check if this function has an MCP tool trigger with useInputSchemaGeneration
-                    if (ShouldGenerateInputSchema(metadata, out bool hasInputSchemaGeneration))
+                    if (ShouldGenerateInputSchema(metadata, out string? triggerParameterName))
                     {
-                        _logger?.LogTrace("Generating input schema for function '{FunctionName}' from McpToolProperty bindings.",
-                            metadata.Name);
+                        _logger?.LogTrace("Generating input schema for function '{FunctionName}'.", metadata.Name);
 
-                        // Collect all mcpToolProperty bindings and generate schema from them
-                        var inputSchema = GenerateSchemaFromPropertyBindings(metadata);
+                        string? inputSchema = null;
+
+                        // First, try to generate schema from the trigger parameter type if it's a POCO
+                        if (!string.IsNullOrEmpty(triggerParameterName) &&
+                            TryGetParameterType(metadata, triggerParameterName, out Type? triggerParameterType) &&
+                            triggerParameterType != null &&
+                            !IsContextType(triggerParameterType) &&
+                            IsPocoType(triggerParameterType))
+                        {
+                            _logger?.LogTrace("Generating input schema from POCO trigger parameter '{ParameterName}' of type '{TypeName}'.",
+                                triggerParameterName, triggerParameterType.Name);
+
+                            inputSchema = _inputSchemaGenerator.GenerateSchema(triggerParameterType);
+                        }
+                        // Otherwise, try to generate schema from mcpToolProperty bindings
+                        else
+                        {
+                            _logger?.LogTrace("Generating input schema from McpToolProperty bindings for function '{FunctionName}'.",
+                                metadata.Name);
+
+                            inputSchema = GenerateSchemaFromPropertyBindings(metadata);
+                        }
 
                         if (!string.IsNullOrEmpty(inputSchema))
                         {
@@ -80,9 +99,9 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
             return result.ToImmutable();
         }
 
-        private bool ShouldGenerateInputSchema(IFunctionMetadata metadata, out bool hasInputSchemaGeneration)
+        private bool ShouldGenerateInputSchema(IFunctionMetadata metadata, out string? triggerParameterName)
         {
-            hasInputSchemaGeneration = false;
+            triggerParameterName = null;
 
             if (metadata.RawBindings == null)
             {
@@ -109,14 +128,26 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
                     }
 
                     // Check for useInputSchemaGeneration
+                    bool hasInputSchemaGeneration = false;
                     if (root.TryGetProperty("useInputSchemaGeneration", out var enableSchemaElement))
                     {
                         hasInputSchemaGeneration = enableSchemaElement.ValueKind == System.Text.Json.JsonValueKind.True ||
                             (enableSchemaElement.ValueKind == System.Text.Json.JsonValueKind.String &&
                             bool.TryParse(enableSchemaElement.GetString(), out bool val) && val);
-
-                        return hasInputSchemaGeneration;
                     }
+
+                    if (!hasInputSchemaGeneration)
+                    {
+                        continue;
+                    }
+
+                    // Get the trigger parameter name
+                    if (root.TryGetProperty("name", out var nameElement))
+                    {
+                        triggerParameterName = nameElement.GetString();
+                    }
+
+                    return true;
                 }
                 catch (System.Text.Json.JsonException)
                 {
@@ -245,6 +276,61 @@ namespace Microsoft.Azure.Functions.Worker.Core.FunctionMetadata
             };
 
             return schema.ToJsonString();
+        }
+
+        /// <summary>
+        /// Checks if a type is a POCO type suitable for schema generation.
+        /// </summary>
+        private bool IsPocoType(Type type)
+        {
+            if (type == null)
+            {
+                return false;
+            }
+
+            // Exclude string and primitives
+            if (type == typeof(string) || type.IsPrimitive)
+            {
+                return false;
+            }
+
+            // Exclude value types (structs, enums, etc.) unless they are nullable
+            if (type.IsValueType && Nullable.GetUnderlyingType(type) == null)
+            {
+                return false;
+            }
+
+            // Must be a class
+            if (!type.IsClass)
+            {
+                return false;
+            }
+
+            // Exclude abstract types and interfaces
+            if (type.IsAbstract || type.IsInterface)
+            {
+                return false;
+            }
+
+            // Exclude types with generic parameters
+            if (type.ContainsGenericParameters)
+            {
+                return false;
+            }
+
+            // Exclude collection types
+            if (type != typeof(string) && typeof(System.Collections.IEnumerable).IsAssignableFrom(type))
+            {
+                return false;
+            }
+
+            // Check for public parameterless constructor
+            if (type.GetConstructor(Type.EmptyTypes) == null)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         /// <summary>

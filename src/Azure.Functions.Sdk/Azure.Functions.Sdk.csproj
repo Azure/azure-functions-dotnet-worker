@@ -13,6 +13,7 @@
     <DevelopmentDependency>true</DevelopmentDependency>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <VersionPrefix>0.1.0</VersionPrefix>
+    <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute</PolySharpExcludeGeneratedTypes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +28,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="**/*.props;**/*.targets" Pack="true" CamelCasePath="true" />
+    <None Include="Build/**" Pack="true" CamelCasePath="true" PackagePath="build/" SdkFile="true" />
+    <None Include="Sdk/**" Pack="true" CamelCasePath="true" PackagePath="sdk/" SdkFile="true" />
+    <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" SdkFile="true" />
   </ItemGroup>
 
   <Target Name="_AddPackagePath" BeforeTargets="_GetPackageFiles">
@@ -35,8 +38,8 @@
       <!-- Convert these file paths to camel case, which is the nuget package convention. -->
       <!-- This way we can keep our folders pascal case on disk for consistency. -->
       <None Update="@(None)"
-        PackagePath="$([System.String]::new('%(RecursiveDir)').Substring(0, 1).ToLowerInvariant())$([System.String]::new('%(RecursiveDir)').Substring(1))%(Filename)%(Extension)"
-        Condition="'%(None.CamelCasePath)' == 'true'" />
+        PackagePath="%(None.PackagePath)$([System.String]::new('%(RecursiveDir)').Substring(0, 1).ToLowerInvariant())$([System.String]::new('%(RecursiveDir)').Substring(1))%(Filename)%(Extension)"
+        Condition="'%(None.CamelCasePath)' == 'true' AND '%(RecursiveDir)' != ''" />
     </ItemGroup>
   </Target>
 
@@ -49,6 +52,17 @@
       <BuildOutputInPackage Include="@(RuntimeCopyLocalItems-&gt;WithMetadataValue('CopyLocal', 'true'))"
                             TargetPath="%(RuntimeCopyLocalItems.DestinationSubDirectory)%(Filename)%(Extension)" />
     </ItemGroup>
+  </Target>
+
+  <!-- Test project calls this to get all SDK files. -->
+  <Target Name="GetSdkFiles" DependsOnTargets="_AddPackagePath" Returns="@(_SdkFiles)">
+    <ItemGroup>
+      <_SdkFilesTemp Include="@(None->WithMetadataValue('SdkFile', 'true'))" />
+    </ItemGroup>
+
+    <ConvertToAbsolutePath Paths="@(_SdkFilesTemp)">
+      <Output TaskParameter="AbsolutePaths" ItemName="_SdkFiles" />
+    </ConvertToAbsolutePath>
   </Target>
 
 </Project>

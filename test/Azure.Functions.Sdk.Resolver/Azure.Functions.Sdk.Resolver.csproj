@@ -53,4 +53,11 @@
     </ItemGroup>
   </Target>
 
+  <Target Name="_WriteInitScript" AfterTargets="Publish">
+    <WriteLinesToFile
+      File="$(PublishDir)init.ps1"
+      Lines="$env:MSBUILDADDITIONALSDKRESOLVERSFOLDER = $PSScriptRoot"
+      Overwrite="true" />
+  </Target>
+
 </Project>

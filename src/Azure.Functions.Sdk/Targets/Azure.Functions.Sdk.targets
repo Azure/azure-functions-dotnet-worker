@@ -46,7 +46,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
-    <Exec Command="func --version" IgnoreExitCode="true">
+    <Exec Command="func --version" IgnoreExitCode="true" EchoOff="true">
       <Output TaskParameter="ExitCode" PropertyName="_FuncCliExitCode" />
     </Exec>
 

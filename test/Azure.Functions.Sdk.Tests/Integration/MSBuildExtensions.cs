@@ -70,7 +70,6 @@ internal static class MSBuildExtensions
         return output;
     }
 
-
     public static BuildOutput Build(this ProjectCreator project, bool restore = false)
     {
         project.TryBuild(restore, out _, out BuildOutput output);

@@ -11,16 +11,12 @@ namespace Azure.Functions.Sdk.Tests.Integration;
 
 internal static class MSBuildExtensions
 {
-    private static readonly string ThisAssemblyDirectory =
-        Path.GetDirectoryName(typeof(MSBuildExtensions).Assembly.Location)!;
-
     private static readonly ImmutableDictionary<string, string> DefaultGlobalProperties =
         ImmutableDictionary.CreateRange(
         [
             KeyValuePair.Create("ImportDirectoryBuildProps", bool.FalseString),
             KeyValuePair.Create("ImportDirectoryPackagesProps", bool.FalseString),
             KeyValuePair.Create("ImportDirectoryBuildTargets", bool.FalseString),
-            KeyValuePair.Create("AzureFunctionsSdkTasksAssembly", Path.Combine(ThisAssemblyDirectory, "Azure.Functions.Sdk.dll")),
             KeyValuePair.Create("RestoreSources", "https://api.nuget.org/v3/index.json" )
         ]);
 
@@ -35,12 +31,11 @@ internal static class MSBuildExtensions
         return ProjectCreator.Create(
             path: path,
             projectCollection: projectCollection,
+            sdk: "Azure.Functions.Sdk/99.99.99",
             globalProperties: GetGlobalProperties(globalProperties))
-            .Import(Path.Combine(ThisAssemblyDirectory, "sdk", "sdk", "Sdk.props"))
             .PropertyGroup()
             .Property("TargetFramework", targetFramework)
-            .CustomAction(configure)
-            .Import(Path.Combine(ThisAssemblyDirectory, "sdk", "sdk", "Sdk.targets"));
+            .CustomAction(configure);
     }
 
     public static ProjectCreator WriteSourceFile(

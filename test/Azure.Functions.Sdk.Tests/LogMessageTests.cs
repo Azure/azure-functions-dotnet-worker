@@ -4,7 +4,6 @@
 using System.Collections;
 using System.Globalization;
 using System.Resources;
-using AwesomeAssertions;
 using NuGet.Common;
 
 namespace Azure.Functions.Sdk.Tests;

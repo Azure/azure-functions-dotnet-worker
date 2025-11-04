@@ -45,17 +45,27 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FuncSdkLog Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Resource="Error_UsingLegacyFunctionsSdk" />
   </Target>
 
-  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments">
-    <Exec Command="func --version" IgnoreExitCode="true" EchoOff="true">
+  <Target Name="_FunctionsCheckForCoreTools">
+    <Exec Command="func --version" IgnoreExitCode="true">
       <Output TaskParameter="ExitCode" PropertyName="_FuncCliExitCode" />
     </Exec>
 
     <FuncSdkLog Condition="'$(_FuncCliExitCode)' != '0'" Resource="Error_CannotRunFuncCli" />
+  </Target>
 
-    <PropertyGroup Condition="'$(_FuncCliExitCode)' == '0'">
-      <RunCommand>func</RunCommand>
-      <RunArguments>host start $(RunArguments)</RunArguments>
-      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+    <!-- Windows Configuration -->
+    <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
+        <RunCommand>cmd</RunCommand>
+        <RunArguments>/C func start $(RunArguments)</RunArguments>
+        <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+    </PropertyGroup>
+
+    <!-- Unix/Linux/macOS Configuration -->
+    <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
+        <RunCommand>func</RunCommand>
+        <RunArguments>start $(RunArguments)</RunArguments>
+        <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
     </PropertyGroup>
   </Target>
 

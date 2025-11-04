@@ -5,7 +5,11 @@
     <LangVersion>latest</LangVersion>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <GenerateDependencyFile>false</GenerateDependencyFile>
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
+    <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
+    <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
+    <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
     <AzureFunctionsSdkProject>$(SrcRoot)Azure.Functions.Sdk/Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
   </PropertyGroup>
 
@@ -17,7 +21,24 @@
     <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" ExcludeAssets="runtime" />
   </ItemGroup>
 
-  <Target Name="_IncludeSdkFiles" AfterTargets="CoreCompile" BeforeTargets="GetCopyToOutputDirectoryItems">
+  <Target Name="_IncludeSdkFilesForBuild"
+    AfterTargets="CoreCompile"
+    BeforeTargets="GetCopyToOutputDirectoryItems"
+    DependsOnTargets="_CollectSdkFiles">
+    <ItemGroup>
+      <AllItemsFullPathWithTargetPath Include="@(_SdkFiles)" CopyToOutputDirectory="PreserveNewest" TargetPath="resolver/%(_SdkFiles.TargetPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_IncludeSdkFilesForPublish"
+    BeforeTargets="GetCopyToPublishDirectoryItems"
+    DependsOnTargets="_CollectSdkFiles">
+    <ItemGroup>
+      <ContentWithTargetPath Include="@(_SdkFiles)" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_CollectSdkFiles" Returns="@(_SdkFiles)">
     <MSBuild Projects="$(AzureFunctionsSdkProject)" Targets="GetSdkFiles">
       <Output TaskParameter="TargetOutputs" ItemName="_SdkFiles" />
     </MSBuild>
@@ -28,8 +49,7 @@
 
     <ItemGroup>
       <_SdkFiles Include="@(_ResolverAssemblyFullPath)" PackagePath="%(Filename)%(Extension)" />
-      <_SdkFiles Update="@(_SdkFiles)" TargetPath="resolver/$(AssemblyName)/%(PackagePath)" />
-      <AllItemsFullPathWithTargetPath Include="@(_SdkFiles)" CopyToOutputDirectory="PreserveNewest" />
+      <_SdkFiles Update="@(_SdkFiles)" TargetPath="$(AssemblyName)/%(PackagePath)" />
     </ItemGroup>
   </Target>
 

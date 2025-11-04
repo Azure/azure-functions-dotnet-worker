@@ -24,9 +24,9 @@ To use from another project, like a test project, simply reference the project. 
 </ItemGroup>
 ```
 
-The resolver will be scaffolded out to `$(OutDir)/resolver`. Use the resolve by setting the appropriate environment variable:
+The resolver will be scaffolded out to `$(OutDir)/resolver`. Use the resolver by setting the appropriate environment variable:
 
 ``` csharp
 string resolverPath = Path.Combine(Path.GetDirectoryName(typeof(SomeTypeInTestAssembly).Assembly.Location)!, "resolver");
-Environment.SetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER", resolverPath);
+Environment.SetEnvironmentVariable("MSBUILDADDITIONALSDKRESOLVERSFOLDER", resolverPath); // Set this before evaluating your project via MSBuild APIs.
 ```

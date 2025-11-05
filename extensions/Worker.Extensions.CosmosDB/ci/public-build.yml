@@ -11,7 +11,7 @@ trigger:
     include:
     - eng/
     - extensions/Worker.Extensions.CosmosDB/
-    - test/Worker.Extensions.Tests/
+    - test/extensions/Worker.Extensions.Tests/
 
 pr:
   branches:
@@ -23,7 +23,7 @@ pr:
     include:
     - eng/
     - extensions/Worker.Extensions.CosmosDB/
-    - test/Worker.Extensions.Tests/
+    - test/extensions/Worker.Extensions.Tests/
 
 resources:
   repositories:

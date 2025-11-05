@@ -5,8 +5,6 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>Microsoft.Azure.Functions.Sdk.Generator.Tests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Sdk.Generator.Tests</RootNamespace>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
   </PropertyGroup>

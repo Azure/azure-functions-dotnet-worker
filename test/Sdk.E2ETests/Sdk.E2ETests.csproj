@@ -4,8 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Sdk.E2ETests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Sdk.E2ETests</RootNamespace>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>

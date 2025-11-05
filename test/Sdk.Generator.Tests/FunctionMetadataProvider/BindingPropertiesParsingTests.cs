@@ -14,11 +14,11 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
 {
     public partial class FunctionMetadataProviderGeneratorTests
     {
-        public class BindingPropertiesTests
+        public class BindingPropertiesParsingTests
         {
             private readonly Assembly[] _referencedExtensionAssemblies;
 
-            public BindingPropertiesTests()
+            public BindingPropertiesParsingTests()
             {
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async Task BindingPropertiesWithDefaultValueDoeNotCreateDuplicates(LanguageVersion languageVersion)
+            public async Task BindingPropertiesWithDefaultValueDoeNotCreateDuplicatesWhenSetAsNamedArgument(LanguageVersion languageVersion)
             {
                 string inputCode = """
                 using System;
@@ -107,6 +107,116 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                             Function0RawBindings.Add(@"{""name"":""$return"",""type"":""blob"",""direction"":""Out"",""blobPath"":""blobPath""}");
                             Function0RawBindings.Add(@"{""name"":""context"",""type"":""mcpToolTrigger"",""direction"":""In"",""toolName"":""someString"",""description"":""someString""}");
                             Function0RawBindings.Add(@"{""name"":""name"",""type"":""mcpToolProperty"",""direction"":""In"",""propertyName"":""someString"",""description"":""someString"",""isRequired"":true,""dataType"":""String""}");
+
+                            var Function0 = new DefaultFunctionMetadata
+                            {
+                                Language = "dotnet-isolated",
+                                Name = "SaveSnippetFunction",
+                                EntryPoint = "MyCompany.Task.SaveSnippetFunction.SaveSnippet",
+                                RawBindings = Function0RawBindings,
+                                ScriptFile = "TestProject.dll"
+                            };
+                            metadataList.Add(Function0);
+
+                            return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
+                        }
+                    }
+
+                    /// <summary>
+                    /// Extension methods to enable registration of the custom <see cref="IFunctionMetadataProvider"/> implementation generated for the current worker.
+                    /// </summary>
+                    {{Constants.GeneratedCodeAttribute}}
+                    public static class WorkerHostBuilderFunctionMetadataProviderExtension
+                    {
+                        ///<summary>
+                        /// Adds the GeneratedFunctionMetadataProvider to the service collection.
+                        /// During initialization, the worker will return generated function metadata instead of relying on the Azure Functions host for function indexing.
+                        ///</summary>
+                        public static IHostBuilder ConfigureGeneratedFunctionMetadataProvider(this IHostBuilder builder)
+                        {
+                            builder.ConfigureServices(s => 
+                            {
+                                s.AddSingleton<IFunctionMetadataProvider, GeneratedFunctionMetadataProvider>();
+                            });
+                            return builder;
+                        }
+                    }
+                }
+                """;
+
+                await TestHelpers.RunTestAsync<FunctionMetadataProviderGenerator>(
+                    _referencedExtensionAssemblies,
+                    inputCode,
+                    expectedGeneratedFileName,
+                    expectedOutput,
+                    languageVersion: languageVersion);
+            }
+
+            [Theory]
+            [InlineData(LanguageVersion.CSharp7_3)]
+            [InlineData(LanguageVersion.CSharp8)]
+            [InlineData(LanguageVersion.CSharp9)]
+            [InlineData(LanguageVersion.CSharp10)]
+            [InlineData(LanguageVersion.CSharp11)]
+            [InlineData(LanguageVersion.Latest)]
+            public async Task BindingPropertyWithDefaultValueIsSet(LanguageVersion languageVersion)
+            {
+                string inputCode = """
+                using System;
+                using System.Collections.Generic;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using Microsoft.Azure.Functions.Worker.Extensions.Mcp;
+
+                namespace MyCompany.Task
+                {  
+                    public static class SaveSnippetFunction
+                    {
+                        [Function(nameof(SaveSnippetFunction))]
+                        [BlobOutput("blobPath")]
+                        public static string SaveSnippet(
+                            [McpToolTrigger("someString", "someString")]
+                                ToolInvocationContext context,
+                            [McpToolProperty("someString", "someString")]
+                                string name
+                        )
+                        {
+                            throw new NotImplementedException();
+                        }
+                    }
+                }
+                """;
+
+                string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
+                string expectedOutput = $$"""
+                // <auto-generated/>
+                using System;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+                using System.Text.Json;
+                using System.Threading.Tasks;
+                using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
+                using Microsoft.Extensions.DependencyInjection;
+                using Microsoft.Extensions.Hosting;
+
+                namespace TestProject
+                {
+                    /// <summary>
+                    /// Custom <see cref="IFunctionMetadataProvider"/> implementation that returns function metadata definitions for the current worker.
+                    /// </summary>
+                    [global::System.ComponentModel.EditorBrowsableAttribute(global::System.ComponentModel.EditorBrowsableState.Never)]
+                    {{Constants.GeneratedCodeAttribute}}
+                    public class GeneratedFunctionMetadataProvider : IFunctionMetadataProvider
+                    {
+                        /// <inheritdoc/>
+                        public Task<ImmutableArray<IFunctionMetadata>> GetFunctionMetadataAsync(string directory)
+                        {
+                            var metadataList = new List<IFunctionMetadata>();
+                            var Function0RawBindings = new List<string>();
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""blob"",""direction"":""Out"",""blobPath"":""blobPath""}");
+                            Function0RawBindings.Add(@"{""name"":""context"",""type"":""mcpToolTrigger"",""direction"":""In"",""toolName"":""someString"",""description"":""someString""}");
+                            Function0RawBindings.Add(@"{""name"":""name"",""type"":""mcpToolProperty"",""direction"":""In"",""propertyName"":""someString"",""description"":""someString"",""isRequired"":false,""dataType"":""String""}");
 
                             var Function0 = new DefaultFunctionMetadata
                             {

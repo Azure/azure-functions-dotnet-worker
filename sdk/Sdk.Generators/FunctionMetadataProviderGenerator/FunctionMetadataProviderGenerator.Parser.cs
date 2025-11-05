@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.;
 
 using System;
@@ -638,6 +638,15 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
                         {
                             if (TryParseValueByType(namedArgument.Value, out object? argValue))
                             {
+                                var existingKey = attrProperties.Keys.FirstOrDefault(k => string.Equals(k, namedArgument.Key, StringComparison.OrdinalIgnoreCase));
+
+                                if (existingKey != null)
+                                {
+                                    // Remove the old key (with potentially different casing) and add with the new key
+                                    // Named arguments (set by user) take precedence over the default value
+                                    attrProperties.Remove(existingKey);
+                                }
+
                                 attrProperties[namedArgument.Key] = argValue;
                             }
                             else

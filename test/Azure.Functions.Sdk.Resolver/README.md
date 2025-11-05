@@ -43,4 +43,4 @@ To use this resolver locally (useful for inner dev loop debugging):
 2. Run `init.ps1` from the published location. This will set the env variable for MSBuild to discover the resolver.
    1. This sets the env var for the current terminal only.
 3. Use `Sdk="Azure.Functions.Sdk/99.99.99"` from a csproj. Must be version `99.99.99`.
-4. Restore/build/publish via `dotnet` in the same environment init.ps1 was ran.
+4. Restore/build/publish via `dotnet` in the same environment init.ps1 was run.

@@ -11,7 +11,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.41" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.3-preview" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Script.Abstractions" Version="1.0.4-preview" />
   </ItemGroup>
 
 </Project>

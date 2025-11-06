@@ -35,7 +35,7 @@
     <PackageReference Include="Mono.Cecil" Version="0.11.5" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="System.Memory" Version="4.5.5" />
+    <PackageReference Include="System.Memory" Version="4.6.3" />
     <PackageReference Include="System.Net.Http" Version="4.3.4" />
 
     <!-- Marks all packages as 'local only' so they don't end up in the nuspec. -->

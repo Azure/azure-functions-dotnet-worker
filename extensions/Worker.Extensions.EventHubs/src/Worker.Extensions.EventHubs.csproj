@@ -6,7 +6,7 @@
     <Description>Azure Event Hubs extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>6.5.0</VersionPrefix>
+    <VersionPrefix>6.5.1</VersionPrefix>
 
   </PropertyGroup>
 
@@ -18,7 +18,7 @@
   
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
-    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.11.5" />
+    <PackageReference Include="Azure.Messaging.EventHubs" Version="5.12.2" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
   </ItemGroup>
 

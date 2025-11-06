@@ -54,17 +54,17 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Generator.Tests", "test
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "sdk", "sdk", "{E785547C-7546-469F-827C-FDF999D5D7E8}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SampleExtensions", "SampleExtensions", "{93473E6C-2352-497F-85DA-36E01B9579F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Sample", "test\Resources\Extensions\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj", "{B2EEC775-6185-4094-B3B5-767E11EA8B36}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Sample", "test\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj", "{B2EEC775-6185-4094-B3B5-767E11EA8B36}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Sample-IncorrectImplementation", "test\Resources\Extensions\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj", "{AFF31023-C302-4FE9-829C-5D219DFCDFD5}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Worker.Extensions.Sample-IncorrectImplementation", "test\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj", "{AFF31023-C302-4FE9-829C-5D219DFCDFD5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions", "test\Resources\Projects\DependentAssemblyWithFunctions\DependentAssemblyWithFunctions.csproj", "{BE88B7F0-F0DF-4EC4-8312-EDCB61810FA4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions", "test\DependentAssemblyWithFunctions\DependentAssemblyWithFunctions.csproj", "{BE88B7F0-F0DF-4EC4-8312-EDCB61810FA4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions.NetStandard", "test\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{429D067C-0846-40EF-A264-AB0C5D551CB0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DependentAssemblyWithFunctions.NetStandard", "test\Resources\Projects\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj", "{429D067C-0846-40EF-A264-AB0C5D551CB0}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sdk.E2ETests", "test\Sdk.E2ETests\Sdk.E2ETests.csproj", "{750993F6-4E3B-411B-9471-74CEA4F9C23A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "resources", "resources", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -168,12 +168,12 @@ Global
 		{C05499A2-0232-4F73-A6CA-043F0B26C485} = {E785547C-7546-469F-827C-FDF999D5D7E8}
 		{9DF7E7E0-F669-4140-AE40-1BE53F0F6CF6} = {E785547C-7546-469F-827C-FDF999D5D7E8}
 		{E785547C-7546-469F-827C-FDF999D5D7E8} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
-		{93473E6C-2352-497F-85DA-36E01B9579F0} = {E785547C-7546-469F-827C-FDF999D5D7E8}
-		{B2EEC775-6185-4094-B3B5-767E11EA8B36} = {93473E6C-2352-497F-85DA-36E01B9579F0}
-		{AFF31023-C302-4FE9-829C-5D219DFCDFD5} = {93473E6C-2352-497F-85DA-36E01B9579F0}
-		{BE88B7F0-F0DF-4EC4-8312-EDCB61810FA4} = {E785547C-7546-469F-827C-FDF999D5D7E8}
-		{429D067C-0846-40EF-A264-AB0C5D551CB0} = {E785547C-7546-469F-827C-FDF999D5D7E8}
+		{B2EEC775-6185-4094-B3B5-767E11EA8B36} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{AFF31023-C302-4FE9-829C-5D219DFCDFD5} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{BE88B7F0-F0DF-4EC4-8312-EDCB61810FA4} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{429D067C-0846-40EF-A264-AB0C5D551CB0} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{750993F6-4E3B-411B-9471-74CEA4F9C23A} = {E785547C-7546-469F-827C-FDF999D5D7E8}
+		{02EA681E-C7D8-13C7-8484-4AC65E1B71E8} = {FD7243E4-BF18-43F8-8744-BA1D17ACF378}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {497D2ED4-A13E-4BCA-8D29-F30CA7D0EA4A}

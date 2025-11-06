@@ -27,10 +27,6 @@
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" Version="3.11.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <None Update="tools\*.ps1" CopyToOutputDirectory="Always" Pack="true" PackagePath="" />
-  </ItemGroup>
-
   <Target Name="_AddAnalyzersToOutput">
     <ItemGroup>
       <TfmSpecificPackageFile Include="$(OutputPath)\Microsoft.Azure.Functions.Worker.Sdk.Analyzers.dll" PackagePath="analyzers/dotnet/cs" />

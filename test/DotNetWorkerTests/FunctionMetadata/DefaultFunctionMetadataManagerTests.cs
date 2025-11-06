@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
+#nullable enable
+
 namespace Microsoft.Azure.Functions.Worker.Tests.FunctionMetadata
 {
     public class DefaultFunctionMetadataManagerTests
@@ -70,7 +72,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests.FunctionMetadata
 
             var manager = new DefaultFunctionMetadataManager(
                 mockProvider.Object,
-                new[] { mockTransformer.Object },
+                [mockTransformer.Object],
                 mockLogger.Object);
 
             var ex = await Assert.ThrowsAsync<InvalidOperationException>(() => manager.GetFunctionMetadataAsync("test"));
@@ -78,9 +80,9 @@ namespace Microsoft.Azure.Functions.Worker.Tests.FunctionMetadata
             mockLogger.Verify(l => l.Log(
                 LogLevel.Error,
                 It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString().Contains("ThrowingTransformer")),
+                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("ThrowingTransformer")),
                 It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception, string>>()), Times.Once);
+                It.IsAny<Func<It.IsAnyType, Exception?, string>>()), Times.Once);
         }
 
         private class TestFunctionMetadata : IFunctionMetadata

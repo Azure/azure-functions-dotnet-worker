@@ -18,7 +18,7 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
 
     /// <summary>
     /// Creates a telemetry provider based on the provided schema version string.
-    /// Returns the default (1.37.0) if no version is provided.
+    /// Returns the default (1.17.0) if no version is provided.
     /// </summary>
     /// <param name="schema"></param>
     /// <returns></returns>
@@ -38,14 +38,14 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
     /// </summary>
     /// <param name="version"></param>
     /// <returns></returns>
-    /// <exception cref="InvalidOperationException"></exception>
+    /// <exception cref="ArgumentException "></exception>
     public static TelemetryProvider Create(OpenTelemetrySchemaVersion version)
     {
         return version switch
         {
             OpenTelemetrySchemaVersion.V1_17_0 => new TelemetryProviderV1_17_0(),
             OpenTelemetrySchemaVersion.V1_37_0 => new TelemetryProviderV1_37_0(),
-            _ => throw new InvalidOperationException($"Unsupported OpenTelemetry schema version: {version}")
+            _ => throw new ArgumentException($"Unsupported OpenTelemetry schema version: {version}")
         };
     }
 
@@ -71,15 +71,15 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
             TraceConstants.ActivityAttributes.InvokeActivityName,
             Kind,
             parent,
-            tags: GetTelemetryAttributes(context)!);
+            tags: GetTagAttributes(context)!);
     }
 
     /// <summary>
-    /// Returns common telemetry attributes for a schema versions.
+    /// Returns common scope attributes for a schema versions.
     /// </summary>
     /// <param name="context"></param>
     /// <returns></returns>
-    public virtual IEnumerable<KeyValuePair<string, object>> GetTelemetryAttributes(FunctionContext context)
+    public virtual IEnumerable<KeyValuePair<string, object>> GetScopeAttributes(FunctionContext context)
     {
         // Live-logs session
         if (context.TraceContext.Attributes.TryGetValue(TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, out var liveId)
@@ -88,6 +88,13 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
             yield return new(TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, liveId);
         }        
     }
+
+    /// <summary>
+    /// Returns common tag attributes for a schema versions.
+    /// </summary>
+    /// <param name="context"></param>
+    /// <returns></returns>
+    public abstract IEnumerable<KeyValuePair<string, object>> GetTagAttributes(FunctionContext context);
 
     /// <summary>
     /// Maps only known version strings to the enum.

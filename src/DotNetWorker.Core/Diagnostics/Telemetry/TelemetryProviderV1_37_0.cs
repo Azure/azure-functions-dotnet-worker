@@ -16,13 +16,29 @@ internal sealed class TelemetryProviderV1_37_0 : TelemetryProvider
     protected override ActivityKind Kind
         => ActivityKind.Internal;
 
-    public override IEnumerable<KeyValuePair<string, object>> GetTelemetryAttributes(FunctionContext context)
+    public override IEnumerable<KeyValuePair<string, object>> GetScopeAttributes(FunctionContext context)
     {
-        foreach (var kv in base.GetTelemetryAttributes(context))
+        foreach (var kv in base.GetScopeAttributes(context))
         {
             yield return kv;
         }
 
+        foreach (var kv in GetCommonAttributes(context))
+        {
+            yield return kv;
+        }
+    }
+
+    public override IEnumerable<KeyValuePair<string, object>> GetTagAttributes(FunctionContext context)
+    {
+        foreach (var kv in GetCommonAttributes(context))
+        {
+            yield return kv;
+        }
+    }
+
+    private IEnumerable<KeyValuePair<string, object>> GetCommonAttributes(FunctionContext context)
+    {
         yield return SchemaUrlAttribute;
         yield return new(TraceConstants.OTelAttributes_1_37_0.InvocationId, context.InvocationId);
         yield return new(TraceConstants.OTelAttributes_1_37_0.FunctionName, context.FunctionDefinition.Name);

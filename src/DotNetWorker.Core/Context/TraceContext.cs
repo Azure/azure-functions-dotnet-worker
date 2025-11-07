@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -23,6 +24,6 @@ namespace Microsoft.Azure.Functions.Worker
         /// <summary>
         /// Gets the attributes associated with the trace.
         /// </summary>
-        public virtual IReadOnlyDictionary<string, string> Attributes => new Dictionary<string, string>();
+        public virtual IReadOnlyDictionary<string, string> Attributes => ImmutableDictionary<string, string>.Empty;
     }
 }

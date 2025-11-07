@@ -68,7 +68,7 @@ namespace Microsoft.Azure.Functions.Worker
 
         public async Task InvokeFunctionAsync(FunctionContext context)
         {
-            using var logScope = _logger.BeginScope(_functionTelemetryProvider.GetTelemetryAttributes(context).ToList());
+            using var logScope = _logger.BeginScope(_functionTelemetryProvider.GetScopeAttributes(context).ToList());
             using Activity? invokeActivity = _functionTelemetryProvider.StartActivityForInvocation(context);
 
             try

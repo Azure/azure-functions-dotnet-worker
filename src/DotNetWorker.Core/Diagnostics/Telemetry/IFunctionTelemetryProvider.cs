@@ -14,9 +14,14 @@ namespace Microsoft.Azure.Functions.Worker.Diagnostics;
 internal interface IFunctionTelemetryProvider
 {
     /// <summary>
-    /// Returns the attributes to be applied to the Activity/Scope for this invocation.
+    /// Returns the attributes to be applied to the Scope for this invocation.
     /// </summary>
-    IEnumerable<KeyValuePair<string, object>> GetTelemetryAttributes(FunctionContext ctx);
+    IEnumerable<KeyValuePair<string, object>> GetScopeAttributes(FunctionContext ctx);
+
+    /// <summary>
+    /// Returns the attributes to be applied to the Activity for this invocation.
+    /// </summary>
+    IEnumerable<KeyValuePair<string, object>> GetTagAttributes(FunctionContext ctx);
 
     /// <summary>
     /// Starts the Activity for this invocation.

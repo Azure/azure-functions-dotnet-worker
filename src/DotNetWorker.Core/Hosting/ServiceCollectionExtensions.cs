@@ -169,7 +169,7 @@ namespace Microsoft.Extensions.DependencyInjection
             var startupCodeExecutorInstance =
                 Activator.CreateInstance(startupCodeExecutorInfoAttr.StartupCodeExecutorType) as WorkerExtensionStartup;
             startupCodeExecutorInstance!.Configure(builder);
-        }        
+        }
 
         private sealed class WorkerOptionsSetup(IOptions<JsonSerializerOptions> serializerOptions) : IPostConfigureOptions<WorkerOptions>
         {

@@ -39,7 +39,7 @@ internal sealed class TelemetryProviderV1_37_0 : TelemetryProvider
 
     protected override string GetActivityName(FunctionContext context)
     {
-        return $"{TraceConstants.ActivityAttributes.InvokeActivityName} {context.FunctionDefinition.Name}";
+        return $"{TraceConstants.ActivityAttributes.FunctionActivityName} {context.FunctionDefinition.Name}";
     }
 
     private IEnumerable<KeyValuePair<string, object>> GetCommonAttributes(FunctionContext context)

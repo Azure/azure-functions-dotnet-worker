@@ -12,6 +12,7 @@ internal static class TraceConstants
         public static readonly string Version = typeof(ActivityAttributes).Assembly.GetName().Version?.ToString() ?? string.Empty;
         public const string Name = "Microsoft.Azure.Functions.Worker";
         public const string InvokeActivityName = "Invoke";
+        public const string FunctionActivityName = "function";
     }
 
     public static class ExceptionAttributes

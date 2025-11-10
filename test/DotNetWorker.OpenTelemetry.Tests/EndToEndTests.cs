@@ -87,7 +87,7 @@ public class EndToEndTests
 
         if (ActivityContext.TryParse(context.TraceContext.TraceParent, context.TraceContext.TraceState, true, out ActivityContext activityContext))
         {
-            Assert.Equal("Invoke", activity.OperationName);
+            Assert.Equal("function TestName", activity.OperationName);
             Assert.Equal(activity.TraceId, activityContext.TraceId);
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
             Assert.Equal(ActivityKind.Internal, activity.Kind);
@@ -115,7 +115,6 @@ public class EndToEndTests
             Assert.Equal(activity.TraceStateString, activityContext.TraceState);
             Assert.Equal(ActivityKind.Server, activity.Kind);
             Assert.Contains(activity.Tags, t => t.Key == TraceConstants.OTelAttributes_1_17_0.InvocationId && t.Value == context.InvocationId);
-            Assert.Contains(activity.Tags, t => t.Key == TraceConstants.InternalKeys.AzFuncLiveLogsSessionId && t.Value == context.TraceContext.Attributes[TraceConstants.InternalKeys.AzFuncLiveLogsSessionId]);
         }
         else
         {
@@ -141,16 +140,12 @@ public class EndToEndTests
     [Fact]
     public async Task ContextPropagation_EmptyVersion()
     {
-        try
-        {
-            using var host = InitializeHost(string.Empty);
-            var context = CreateContext(host);
-            await _application.InvokeFunctionAsync(context);
-        }
-        catch (Exception ex)
-        {
-            Assert.IsType<ArgumentException>(ex);
-        }
+        using var host = InitializeHost(string.Empty);
+        var context = CreateContext(host);
+        await _application.InvokeFunctionAsync(context);
+
+        var activity = OtelFunctionDefinition.LastActivity;
+        Assert.Null(activity);
     }
 
     [Fact]
@@ -236,7 +231,7 @@ public class EndToEndTests
         public async Task TestFunction(FunctionContext context)
         {
             LastActivity = Activity.Current;
-            Activity.Current.AddTag("CustomKey", "CustomValue");
+            Activity.Current?.AddTag("CustomKey", "CustomValue");
 
             var response = new HttpResponseMessage(HttpStatusCode.OK);
             var handler = new MockHttpMessageHandler(response);

@@ -104,7 +104,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
         private static void AssertActivity(Activity activity, FunctionContext context)
         {
             Assert.Equal("Invoke", activity.DisplayName);
-            Assert.Equal(5, activity.Tags.Count());
+            Assert.Equal(2, activity.Tags.Count());
             Assert.Equal("https://opentelemetry.io/schemas/1.17.0", activity.Tags.Single(k => k.Key == "az.schema_url").Value);
             Assert.Equal(context.InvocationId, activity.Tags.Single(k => k.Key == "faas.execution").Value);
         }

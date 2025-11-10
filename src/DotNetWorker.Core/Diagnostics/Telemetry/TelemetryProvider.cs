@@ -68,7 +68,7 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
 
         // If there is no parent, we still want to create a new root activity.
         return _source.StartActivity(
-            TraceConstants.ActivityAttributes.InvokeActivityName,
+            GetActivityName(context),
             Kind,
             parent,
             tags: GetTagAttributes(context)!);
@@ -87,6 +87,11 @@ internal abstract class TelemetryProvider : IFunctionTelemetryProvider
         {
             yield return new(TraceConstants.InternalKeys.AzFuncLiveLogsSessionId, liveId);
         }        
+    }
+
+    protected virtual string GetActivityName(FunctionContext context)
+    {
+        return TraceConstants.ActivityAttributes.InvokeActivityName;
     }
 
     /// <summary>

@@ -4,15 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 2.50.0-<version>
+### Microsoft.Azure.Functions.Worker (metapackage) 2.50.0
 
 - Adding `net10.0` TFM support.
 
-### Microsoft.Azure.Functions.Worker.Core 2.50.0-<version>
+### Microsoft.Azure.Functions.Worker.Core 2.50.0
 
-- Support for function metadata transforms (#3145)
-- Support setting `IFunctionExecutor` in invocation features: `FunctionContext.Features` (#3200)
+- Adding `net10.0` TFM support.
 
-### Microsoft.Azure.Functions.Worker.Grpc 2.50.0-<version>
+### Microsoft.Azure.Functions.Worker.Grpc 2.50.0
 
-- Updated to use the new metadata manage and leverage metadata transforms (#3145)
+- Adding `net10.0` TFM support.

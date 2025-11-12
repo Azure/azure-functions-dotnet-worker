@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using Microsoft.NET.Sdk.Functions.MSBuild.Tasks;
@@ -8,11 +9,14 @@ using Xunit.Abstractions;
 
 namespace Microsoft.Azure.Functions.Sdk.E2ETests
 {
-    public sealed class ZipDeployTests(ITestOutputHelper testOutputHelper) : IDisposable
+    public class ZipDeployTests
     {
-        private readonly ProjectBuilder _builder = new(
-            testOutputHelper,
-            Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj"));
+        private ITestOutputHelper _testOutputHelper;
+
+        public ZipDeployTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
 
         [Theory]
         [InlineData("linux-x64", true)]
@@ -21,7 +25,9 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
         public async Task CreateZipFileFromDirectory_SetsExecutableFlag_WhenSelfContained(string rid, bool selfContained)
         {
             string testName = nameof(CreateZipFileFromDirectory_SetsExecutableFlag_WhenSelfContained);
-            string zipName = Path.Combine(Directory.GetParent(_builder.OutputPath).FullName, $"{testName}.zip");
+            string directoryToZip = await TestUtility.InitializeTestAsync(_testOutputHelper, testName);
+
+            string zipName = Path.Combine(Directory.GetParent(directoryToZip).FullName, $"{testName}.zip");
 
             if (File.Exists(zipName))
             {
@@ -30,13 +36,13 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
 
             string projectFileDirectory = Path.Combine(TestUtility.SamplesRoot, "FunctionApp", "FunctionApp.csproj");
 
-            await _builder.PublishAsync($"-r {rid} --self-contained {selfContained}");
+            await TestUtility.RestoreAndPublishProjectAsync(
+                projectFileDirectory, directoryToZip, $"-r {rid} --self-contained {selfContained}", _testOutputHelper);
 
-            CreateZipFileTask.CreateZipFileFromDirectory(_builder.OutputPath, zipName);
+            CreateZipFileTask.CreateZipFileFromDirectory(directoryToZip, zipName);
 
             using var zip = new ZipFile(zipName);
-            Assert.Equal(Directory.GetFiles(_builder.OutputPath, "*", SearchOption.AllDirectories).Length, zip.Count);
-
+            Assert.Equal(Directory.GetFiles(directoryToZip, "*", SearchOption.AllDirectories).Length, zip.Count);
             foreach (ZipEntry entry in zip)
             {
                 if (selfContained && (entry.Name == "FunctionApp" || entry.Name == "FunctionApp.exe"))
@@ -58,10 +64,6 @@ namespace Microsoft.Azure.Functions.Sdk.E2ETests
                     Assert.NotEqual(0, entry.ExternalFileAttributes);
                 }
             }
-
-            zip.Close();
         }
-
-        public void Dispose() => _builder.Dispose();
     }
 }

@@ -28,6 +28,7 @@
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />
     <PackageReference Include="Microsoft.Bcl.TimeProvider" Version="9.0.10" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
+    <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="TestableIO.System.IO.Abstractions.Wrappers" Version="22.0.15" />
   </ItemGroup>
 

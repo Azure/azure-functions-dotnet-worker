@@ -1,0 +1,22 @@
+<!--
+***********************************************************************************************
+Azure.Functions.Publish.ZipDeploy.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+
+<Project>
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+
+  <Target Name="CreateZipFile" DependsOnTargets="_ResolveFunctionExecutable">
+    <CreateZipFile SourceFolder="$(PublishIntermediateOutputPath)" ZipName="$(MSBuildProjectName)"
+      PublishIntermediateTempPath="$(PublishIntermediateTempPath)" Executable="$(_FunctionsExecutable)">
+      <Output TaskParameter="CreatedZipPath" PropertyName="ZippedPublishContentsPath"/>
+    </CreateZipFile>
+  </Target>
+
+</Project>

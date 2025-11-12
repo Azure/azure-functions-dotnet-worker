@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.;
 
 using System;
@@ -612,7 +612,7 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Generators
 
             private bool TryGetAttributeProperties(AttributeData attributeData, Location? attribLocation, out IDictionary<string, object?>? attrProperties)
             {
-                attrProperties = new Dictionary<string, object?>();
+                attrProperties = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
 
                 if (attributeData.ConstructorArguments.Any())
                 {

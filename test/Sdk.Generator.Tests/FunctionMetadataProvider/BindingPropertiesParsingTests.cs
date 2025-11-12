@@ -2,33 +2,32 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Sdk.Generator.Tests;
 using Microsoft.Azure.Functions.Worker.Sdk.Generators;
-using System.Threading.Tasks;
-using Xunit;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Xunit;
 
 namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
 {
     public partial class FunctionMetadataProviderGeneratorTests
     {
-        public class RetryOptionsTests
+        public class BindingPropertiesParsingTests
         {
             private readonly Assembly[] _referencedExtensionAssemblies;
 
-            public RetryOptionsTests()
+            public BindingPropertiesParsingTests()
             {
-                // load all extensions used in tests (match extensions tested on E2E app? Or include ALL extensions?)
                 var abstractionsExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Abstractions.dll");
                 var httpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Http.dll");
                 var hostingExtension = typeof(HostBuilder).Assembly;
                 var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
                 var hostingAbExtension = typeof(IHost).Assembly;
                 var diAbExtension = typeof(IServiceCollection).Assembly;
-                var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
-
+                var mcpExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Mcp.dll");
+                var blobExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs.dll");
 
                 _referencedExtensionAssemblies = new[]
                 {
@@ -38,7 +37,8 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     hostingAbExtension,
                     diExtension,
                     diAbExtension,
-                    timerExtension 
+                    mcpExtension,
+                    blobExtension
                 };
             }
 
@@ -49,28 +49,33 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async Task FixedDelayRetryPopulated_Success(LanguageVersion languageVersion)
+            public async Task BindingPropertiesWithDefaultValueDoeNotCreateDuplicatesWhenSetAsNamedArgument(LanguageVersion languageVersion)
             {
-                // test generating function metadata for a simple HttpTrigger
                 string inputCode = """
                 using System;
+                using System.Collections.Generic;
                 using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using Microsoft.Azure.Functions.Worker.Extensions.Mcp;
 
-                namespace SampleApp
-                {
-                    public static class TimerFunction
+                namespace MyCompany.Task
+                {  
+                    public static class SaveSnippetFunction
                     {
-                        [Function("TimerFunction")]
-                        [FixedDelayRetry(5, "00:00:10")]
-                        public static void Run([TimerTrigger("0 */5 * * * *")] TimerInfo timerInfo,
-                            FunctionContext context)
+                        [Function(nameof(SaveSnippetFunction))]
+                        [BlobOutput("blobPath")]
+                        public static string SaveSnippet(
+                            [McpToolTrigger("someString", "someString")]
+                                ToolInvocationContext context,
+                            [McpToolProperty("someString", "someString", IsRequired = true)]
+                                string name
+                        )
                         {
                             throw new NotImplementedException();
                         }
                     }
                 }
                 """;
-
 
                 string expectedGeneratedFileName = $"GeneratedFunctionMetadataProvider.g.cs";
                 string expectedOutput = $$"""
@@ -84,7 +89,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
-                
+
                 namespace TestProject
                 {
                     /// <summary>
@@ -99,23 +104,20 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""timerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
-                
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""blob"",""direction"":""Out"",""blobPath"":""blobPath""}");
+                            Function0RawBindings.Add(@"{""name"":""context"",""type"":""mcpToolTrigger"",""direction"":""In"",""toolName"":""someString"",""description"":""someString""}");
+                            Function0RawBindings.Add(@"{""name"":""name"",""type"":""mcpToolProperty"",""direction"":""In"",""propertyName"":""someString"",""description"":""someString"",""isRequired"":true,""dataType"":""String""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "TimerFunction",
-                                EntryPoint = "SampleApp.TimerFunction.Run",
+                                Name = "SaveSnippetFunction",
+                                EntryPoint = "MyCompany.Task.SaveSnippetFunction.SaveSnippet",
                                 RawBindings = Function0RawBindings,
-                                Retry = new DefaultRetryOptions
-                                {
-                                    MaxRetryCount = 5,
-                                    DelayInterval = TimeSpan.Parse("00:00:10")
-                                },
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
-                
+
                             return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }
@@ -157,21 +159,27 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
             [InlineData(LanguageVersion.CSharp10)]
             [InlineData(LanguageVersion.CSharp11)]
             [InlineData(LanguageVersion.Latest)]
-            public async Task ExponentialBackoffRetryPopulated_Success(LanguageVersion languageVersion)
+            public async Task BindingPropertyWithDefaultValueIsSet(LanguageVersion languageVersion)
             {
-                // test generating function metadata for a simple HttpTrigger
                 string inputCode = """
                 using System;
+                using System.Collections.Generic;
                 using Microsoft.Azure.Functions.Worker;
+                using Microsoft.Azure.Functions.Worker.Http;
+                using Microsoft.Azure.Functions.Worker.Extensions.Mcp;
 
-                namespace SampleApp
-                {
-                    public static class TimerFunction
+                namespace MyCompany.Task
+                {  
+                    public static class SaveSnippetFunction
                     {
-                        [Function("TimerFunction")]
-                        [ExponentialBackoffRetry(5, "00:00:04", "00:15:00")]
-                        public static void Run([TimerTrigger("0 */5 * * * *")] TimerInfo timerInfo,
-                            FunctionContext context)
+                        [Function(nameof(SaveSnippetFunction))]
+                        [BlobOutput("blobPath")]
+                        public static string SaveSnippet(
+                            [McpToolTrigger("someString", "someString")]
+                                ToolInvocationContext context,
+                            [McpToolProperty("someString", "someString")]
+                                string name
+                        )
                         {
                             throw new NotImplementedException();
                         }
@@ -191,7 +199,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                 using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
                 using Microsoft.Extensions.DependencyInjection;
                 using Microsoft.Extensions.Hosting;
-                
+
                 namespace TestProject
                 {
                     /// <summary>
@@ -206,24 +214,20 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                         {
                             var metadataList = new List<IFunctionMetadata>();
                             var Function0RawBindings = new List<string>();
-                            Function0RawBindings.Add(@"{""name"":""timerInfo"",""type"":""timerTrigger"",""direction"":""In"",""schedule"":""0 */5 * * * *""}");
-                
+                            Function0RawBindings.Add(@"{""name"":""$return"",""type"":""blob"",""direction"":""Out"",""blobPath"":""blobPath""}");
+                            Function0RawBindings.Add(@"{""name"":""context"",""type"":""mcpToolTrigger"",""direction"":""In"",""toolName"":""someString"",""description"":""someString""}");
+                            Function0RawBindings.Add(@"{""name"":""name"",""type"":""mcpToolProperty"",""direction"":""In"",""propertyName"":""someString"",""description"":""someString"",""isRequired"":false,""dataType"":""String""}");
+
                             var Function0 = new DefaultFunctionMetadata
                             {
                                 Language = "dotnet-isolated",
-                                Name = "TimerFunction",
-                                EntryPoint = "SampleApp.TimerFunction.Run",
+                                Name = "SaveSnippetFunction",
+                                EntryPoint = "MyCompany.Task.SaveSnippetFunction.SaveSnippet",
                                 RawBindings = Function0RawBindings,
-                                Retry = new DefaultRetryOptions
-                                {
-                                    MaxRetryCount = 5,
-                                    MinimumInterval = TimeSpan.Parse("00:00:04"),
-                                    MaximumInterval = TimeSpan.Parse("00:15:00")
-                                },
                                 ScriptFile = "TestProject.dll"
                             };
                             metadataList.Add(Function0);
-                
+
                             return global::System.Threading.Tasks.Task.FromResult(metadataList.ToImmutableArray());
                         }
                     }

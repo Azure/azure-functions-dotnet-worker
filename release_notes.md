@@ -4,14 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 2.50.0
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Adding `net10.0` TFM support.
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Core 2.50.0
+### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Adding `net10.0` TFM support.
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Grpc 2.50.0
+### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- Adding `net10.0` TFM support.
+- <entry>

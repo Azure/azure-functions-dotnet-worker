@@ -19,9 +19,8 @@
   <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.0" />
-    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="10.0.0" />
-    <PackageReference Include="System.Linq.AsyncEnumerable" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="2.50.0" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Core" Version="1.19.0" />
   </ItemGroup>
 
   <ItemGroup>

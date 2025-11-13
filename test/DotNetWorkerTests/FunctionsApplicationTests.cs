@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -114,16 +114,16 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             var options = new OptionsWrapper<WorkerOptions>(new WorkerOptions());
             var contextFactory = new Mock<IFunctionContextFactory>();
             var diagnostics = new Mock<IWorkerDiagnostics>();
-            var activityFactory = new FunctionActivitySourceFactory(new OptionsWrapper<WorkerOptions>(new WorkerOptions()));
+            var telemetryProvider = new TelemetryProviderV1_17_0();
 
-            return new FunctionsApplication(invoke, contextFactory.Object, options, logger, diagnostics.Object, activityFactory);
+            return new FunctionsApplication(invoke, contextFactory.Object, options, logger, diagnostics.Object, telemetryProvider);
         }
 
         private static ActivityListener CreateListener(Action<Activity> onStopped)
         {
             var listener = new ActivityListener
             {
-                ShouldListenTo = source => source.Name.StartsWith(TraceConstants.FunctionsActivitySource),
+                ShouldListenTo = source => source.Name.StartsWith(TraceConstants.ActivityAttributes.Name),
                 ActivityStarted = activity => { },
                 ActivityStopped = onStopped,
                 Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllData,

@@ -1,31 +1,58 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 
-namespace Microsoft.Azure.Functions.Worker.Diagnostics
+namespace Microsoft.Azure.Functions.Worker.Diagnostics;
+
+internal static class TraceConstants
 {
-    internal class TraceConstants
+   public static class ActivityAttributes
     {
-        public const string FunctionsActivitySource = "Microsoft.Azure.Functions.Worker";
-        public const string FunctionsActivitySourceVersion = "1.0.0.0";
-        public const string FunctionsInvokeActivityName = "Invoke";
+        public static readonly string Version = typeof(ActivityAttributes).Assembly.GetName().Version?.ToString() ?? string.Empty;
+        public const string Name = "Microsoft.Azure.Functions.Worker";
+        public const string InvokeActivityName = "Invoke";
+        public const string FunctionActivityName = "function";
+    }
 
-        public const string AttributeExceptionEventName = "exception";
-        public const string AttributeExceptionType = "exception.type";
-        public const string AttributeExceptionMessage = "exception.message";
-        public const string AttributeExceptionStacktrace = "exception.stacktrace";
-        public const string AttributeExceptionEscaped = "exception.escaped";
+    public static class ExceptionAttributes
+    {
+        public const string EventName = "exception";
+        public const string Type = "exception.type";
+        public const string Message = "exception.message";
+        public const string Stacktrace = "exception.stacktrace";
+        public const string Escaped = "exception.escaped";
+    }
 
-        public const string AttributeSchemaUrl = "az.schema_url";
-        public static IReadOnlyDictionary<OpenTelemetrySchemaVersion, string> OpenTelemetrySchemaMap =
-            new Dictionary<OpenTelemetrySchemaVersion, string>()
-            {
-                [OpenTelemetrySchemaVersion.v1_17_0] = "https://opentelemetry.io/schemas/1.17.0"
-            };
+    public static class OTelAttributes_1_17_0
+    {
+        // v1.17.0
+        public const string InvocationId = "faas.execution";
+        public const string SchemaUrl = "az.schema_url";
+        public const string SchemaVersion = "https://opentelemetry.io/schemas/1.17.0";
+    }
 
-        // from: https://opentelemetry.io/docs/reference/specification/trace/semantic_conventions/faas/
-        //       https://opentelemetry.io/docs/reference/specification/resource/semantic_conventions/faas/
-        public const string AttributeFaasExecution = "faas.execution";
+    public static class OTelAttributes_1_37_0
+    {
+        // v1.37.0
+        public const string InvocationId = "faas.invocation_id";
+        public const string FunctionName = "faas.name";
+        public const string Instance = "faas.instance";
+        public const string SchemaUrl = "schema.url";
+        public const string SchemaVersion = "https://opentelemetry.io/schemas/1.37.0";
+    }
+
+    public static class InternalKeys
+    {
+        public const string FunctionInvocationId = "AzureFunctions_InvocationId";
+        public const string FunctionName = "AzureFunctions_FunctionName";
+        public const string HostInstanceId = "HostInstanceId";
+        public const string AzFuncLiveLogsSessionId = "#AzFuncLiveLogsSessionId";
+    }
+
+    public static class CapabilityFlags
+    {
+        public const string WorkerOTelEnabled = "WorkerOpenTelemetryEnabled";
+        public const string WorkerOTelSchemaVersion = "WorkerOpenTelemetrySchemaVersion";
     }
 }

@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -13,7 +13,7 @@ namespace Microsoft.Azure.Functions.Worker.Grpc
         public GrpcFunctionInvocation(InvocationRequest invocationRequest)
         {
             _invocationRequest = invocationRequest;
-            TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, _invocationRequest.TraceContext.TraceState);
+            TraceContext = new DefaultTraceContext(_invocationRequest.TraceContext.TraceParent, _invocationRequest.TraceContext.TraceState, _invocationRequest.TraceContext.Attributes);
         }
 
         public override string Id => _invocationRequest.InvocationId;

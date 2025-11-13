@@ -1,5 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Microsoft.Azure.Functions.Worker
 {
@@ -17,5 +20,10 @@ namespace Microsoft.Azure.Functions.Worker
         /// Gets the state data.
         /// </summary>
         public abstract string TraceState { get; }
+
+        /// <summary>
+        /// Gets the attributes associated with the trace.
+        /// </summary>
+        public virtual IReadOnlyDictionary<string, string> Attributes => ImmutableDictionary<string, string>.Empty;
     }
 }

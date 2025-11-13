@@ -4,6 +4,10 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk 2.0.7
+### Microsoft.Azure.Functions.Worker.Sdk <version>
 
-- Metadata generation improvements (#3247)
+- <entry>
+
+### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
+
+- <entry>

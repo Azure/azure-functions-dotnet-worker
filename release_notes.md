@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Added `Attributes` to FunctionContext.TraceContext. (#3195)

@@ -1,5 +1,5 @@
 ## What's Changed
 
-### Microsoft.Azure.Functions.Worker.OpenTelemetry 1.0.0 (Preview 2)
+### Microsoft.Azure.Functions.Worker.OpenTelemetry 1.1.0
 
-- `UseFunctionsWorkerDefaults` signature now uses `IOpenTelemetryBuilder` (from `OpenTelemetryBuilder`) (#2839)
+- Updated OpenTelemetry NuGet packages and aligned implementation with Semantic Conventions v1.37. (#3195)

@@ -68,6 +68,26 @@ internal static class MSBuildExtensions
         return project;
     }
 
+    public static string GetOutputPath(this ProjectCreator project, string? subPath = null)
+    {
+        project.TryGetPropertyValue("OutputPath", out string? outputPath);
+        string root = Path.GetDirectoryName(project.FullPath)!;
+        return Path.Combine(root, outputPath, subPath ?? string.Empty);
+    }
+
+    public static string GetIntermediateOutputPath(this ProjectCreator project, string? subPath = null)
+    {
+        project.TryGetPropertyValue("IntermediateOutputPath", out string? intermediateOutputPath);
+        string root = Path.GetDirectoryName(project.FullPath)!;
+        return Path.Combine(root, intermediateOutputPath, subPath ?? string.Empty);
+    }
+
+    public static ProjectCreator CreateIntermediateOutputPath(this ProjectCreator project, string? subPath = null)
+    {
+        Directory.CreateDirectory(project.GetIntermediateOutputPath(subPath));
+        return project;
+    }
+
     public static BuildOutput Restore(this ProjectCreator project) => project.Restore(out _);
 
     public static BuildOutput Restore(this ProjectCreator project, out TargetOutputs targetOutputs)

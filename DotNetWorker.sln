@@ -46,7 +46,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.OpenTelemetry.Tests", "test\DotNetWorker.OpenTelemetry.Tests\DotNetWorker.OpenTelemetry.Tests.csproj", "{9AE6E00C-5E6F-4615-9C69-464E9B208E8C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorkerTests", "test\DotNetWorkerTests\DotNetWorkerTests.csproj", "{B0A6867D-2C35-4BF1-892E-CE84795525BD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DotNetWorker.Tests", "test\DotNetWorker.Tests\DotNetWorker.Tests.csproj", "{B0A6867D-2C35-4BF1-892E-CE84795525BD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sdk.Analyzers.Tests", "test\Sdk.Analyzers.Tests\Sdk.Analyzers.Tests.csproj", "{C05499A2-0232-4F73-A6CA-043F0B26C485}"
 EndProject

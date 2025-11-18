@@ -1,0 +1,31 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <LangVersion>preview</LangVersion>
+    <Nullable>disable</Nullable>
+    <AssemblyName>Microsoft.Azure.Functions.Worker.Extensions.Tests</AssemblyName>
+    <RootNamespace>Microsoft.Azure.Functions.Worker.Extensions.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Core.NewtonsoftJson" Version="2.0.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.0" />
+    <PackageReference Include="Moq" Version="4.20.70" />
+    <PackageReference Include="xunit" Version="2.9.0" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.CosmosDB/src/Worker.Extensions.CosmosDB.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.EventGrid/src/Worker.Extensions.EventGrid.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.EventHubs/src/Worker.Extensions.EventHubs.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Http.AspNetCore/src/Worker.Extensions.Http.AspNetCore.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.ServiceBus/src/Worker.Extensions.ServiceBus.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Storage/src/Worker.Extensions.Storage.csproj" />
+    <ProjectReference Include="$(ExtensionsRoot)Worker.Extensions.Tables/src/Worker.Extensions.Tables.csproj" />
+    <ProjectReference Include="$(SourceRoot)DotNetWorker.Core/DotNetWorker.Core.csproj" />
+    <ProjectReference Include="$(TestRoot)TestUtility/TestUtility.csproj" />
+  </ItemGroup>
+
+</Project>

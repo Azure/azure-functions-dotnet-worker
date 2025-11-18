@@ -8,7 +8,7 @@ trigger:
     include:
       - eng/
       - extensions/Worker.Extensions.SignalRService/
-      - test/Worker.Extensions.SignalRService.Tests/
+      - test/extensions/Worker.Extensions.SignalRService.Tests/
 
 # CI only, does not trigger on PRs.
 pr: none

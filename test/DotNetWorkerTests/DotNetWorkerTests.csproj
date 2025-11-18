@@ -5,9 +5,7 @@
     <IsPackable>false</IsPackable>
     <AssemblyName>Microsoft.Azure.Functions.Worker.Tests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Worker.Tests</RootNamespace>
-    <SignAssembly>true</SignAssembly>
     <LangVersion>preview</LangVersion>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 

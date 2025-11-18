@@ -1,5 +1,5 @@
 ## What's Changed
 
-### Microsoft.Azure.Functions.Worker.OpenTelemetry 1.1.0
+### Microsoft.Azure.Functions.Worker.OpenTelemetry <version>
 
-- Updated OpenTelemetry NuGet packages and aligned implementation with Semantic Conventions v1.37. (#3195)
+- <entry>

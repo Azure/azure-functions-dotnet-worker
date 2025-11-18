@@ -4,14 +4,14 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker (metapackage) 2.51.0
+### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- Updated worker instrumentation to improve telemetry handling. (#3195)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Core 2.51.0
+### Microsoft.Azure.Functions.Worker.Core <version>
 
-- Improved telemetry handling, added OpenTelemetry schema compatibility, and streamlined context propagation. (#3195)
+- <entry>
 
-### Microsoft.Azure.Functions.Worker.Grpc 2.51.0
+### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- Added `Attributes` to FunctionContext.TraceContext. (#3195)
+- <entry>

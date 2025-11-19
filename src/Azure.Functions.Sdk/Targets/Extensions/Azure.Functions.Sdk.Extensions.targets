@@ -1,0 +1,32 @@
+<!--
+***********************************************************************************************
+Azure.Functions.Sdk.Extensions.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+
+<Project>
+
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ResolveExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+
+  <PropertyGroup>
+    <_FunctionsPackageHashPath>$(AzureFunctionsExtensionProjectDirectory)azure_functions.package.hash</_FunctionsPackageHashPath>
+    <_FunctionsIntermediateExtensionJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
+    <_FunctionsUnusedPackagesCachePath>$(AzureFunctionsExtensionProjectDirectory)azure_functions.unused_packages.cache</_FunctionsUnusedPackagesCachePath>
+  </PropertyGroup>
+
+  <Target Name="GenerateFunctionsExtensionProject" DependsOnTargets="CollectExtensionPackages"
+    AfterTargets="Restore"
+    Condition="'$(DesignTimeBuild)' != 'true'" />
+
+  <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
+    <ResolveExtensionPackages ProjectAssetsFile="$(ProjectAssetsFile)">
+      <Output TaskParameter="ExtensionPackages" ItemName="_AzureFunctionPackageReference" />
+    </ResolveExtensionPackages>
+  </Target>
+
+</Project>

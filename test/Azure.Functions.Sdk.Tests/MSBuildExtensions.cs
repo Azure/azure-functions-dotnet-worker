@@ -4,10 +4,9 @@
 using System.Collections.Immutable;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
-using Microsoft.Build.Utilities.ProjectCreation;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Azure.Functions.Sdk.Tests.Integration;
+namespace Microsoft.Build.Utilities.ProjectCreation;
 
 internal static class MSBuildExtensions
 {
@@ -38,6 +37,22 @@ internal static class MSBuildExtensions
             .CustomAction(configure);
     }
 
+    public static ProjectCreator NetCoreProject(
+        this ProjectCreatorTemplates _,
+        string? path = null,
+        string targetFramework = "net8.0",
+        ProjectCollection? projectCollection = null,
+        IDictionary<string, string>? globalProperties = null,
+        Action<ProjectCreator>? configure = null)
+    {
+        return ProjectCreator.Templates.SdkCsproj(
+            path: path,
+            targetFramework: targetFramework,
+            projectCreator: configure,
+            projectCollection: projectCollection,
+            globalProperties: GetGlobalProperties(globalProperties));
+    }
+
     public static ProjectCreator WriteSourceFile(
         this ProjectCreator project, string filePath, string text)
         => WriteSourceFile(project, filePath, SourceText.From(text));
@@ -53,22 +68,30 @@ internal static class MSBuildExtensions
         return project;
     }
 
-    public static BuildOutput Restore(this ProjectCreator project)
+    public static BuildOutput Restore(this ProjectCreator project) => project.Restore(out _);
+
+    public static BuildOutput Restore(this ProjectCreator project, out TargetOutputs targetOutputs)
     {
-        project.TryRestore(out _, out BuildOutput output);
+        project.TryRestore(out _, out BuildOutput output, out IDictionary<string, TargetResult>? targetResults);
+        targetOutputs = TargetOutputs.Create(targetResults);
         return output;
     }
 
-    public static BuildOutput Restore(this ProjectCreator project, out IDictionary<string, TargetResult>? targets)
+    public static BuildOutput Build(this ProjectCreator project, bool restore = false, IDictionary<string, string>? globalProperties = null)
     {
-        project.TryRestore(out _, out BuildOutput output, out targets);
+        project.TryBuild(restore, globalProperties, out _, out BuildOutput output);
         return output;
     }
 
-    public static BuildOutput Build(this ProjectCreator project, bool restore = false)
+    public static TargetResult? RunTarget(this ProjectCreator project, string targetName, IDictionary<string, string>? globalProperties = null)
     {
-        project.TryBuild(restore, out _, out BuildOutput output);
-        return output;
+        project.TryBuild(targetName, globalProperties, out _, out _, out IDictionary<string, TargetResult>? targetResults);
+        if (targetResults is null || !targetResults.TryGetValue(targetName, out TargetResult? result))
+        {
+            return null;
+        }
+
+        return result;
     }
 
     private static ImmutableDictionary<string, string> GetGlobalProperties(IDictionary<string, string>? overrides)

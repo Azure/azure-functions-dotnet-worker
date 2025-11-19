@@ -55,7 +55,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains(expectedMessage, StringComparison.OrdinalIgnoreCase));
 
             // TODO: 2/3 of the test invocations will fail until the host with the ForwarderProxy fix is released - uncomment this line when the fix is released
-            Assert.NotEqual(null, invocationResult); // just here to 'use' invocationResult to avoid a warning.
+            Assert.NotNull(invocationResult); // just here to 'use' invocationResult to avoid a warning.
             // Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains($"'Functions.{functionName}' ({invocationResult}", StringComparison.OrdinalIgnoreCase));
         }
 

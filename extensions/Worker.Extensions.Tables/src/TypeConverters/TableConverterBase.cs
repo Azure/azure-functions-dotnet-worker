@@ -55,7 +55,8 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Tables.TypeConverters
 
             return bindingData.ContentType switch
             {
-                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>(),
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<TableData>()
+                    ?? throw new InvalidOperationException("Table binding data content could not be deserialized."),
                 _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }

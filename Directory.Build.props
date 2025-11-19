@@ -1,6 +1,11 @@
 <Project>
 
   <PropertyGroup>
+    <!-- We still include the net6.0/net7.0 TFMs to avoid breaking changes for customers. -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <EngRoot>$(RepoRoot)eng/</EngRoot>
     <ExtensionsRoot>$(RepoRoot)extensions/</ExtensionsRoot>

@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Utilities.ProjectCreation;
 
@@ -8,15 +9,22 @@ namespace Azure.Functions.Sdk.Tests.Integration;
 
 public abstract class MSBuildSdkTestBase : MSBuildTestBase, IDisposable
 {
+    protected static ImmutableDictionary<string, string> GlobalPropertiesDesignTime =>
+        ImmutableDictionary.CreateRange<string, string>(
+        [
+            new("DesignTimeBuild", "true"),
+        ]);
+
+    private readonly TempDirectory _temp = new();
+
     protected MSBuildSdkTestBase()
     {
         // NUGET_SHOW_STACK=true enables full stack traces for NuGet task errors, which helps debugging test failures.
         Environment.SetEnvironmentVariable("NUGET_SHOW_STACK", "true");
-        TestRootPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
         Directory.CreateDirectory(TestRootPath);
     }
 
-    protected string TestRootPath { get; }
+    protected string TestRootPath => _temp.Path;
 
     public void Dispose()
     {
@@ -37,57 +45,15 @@ public abstract class MSBuildSdkTestBase : MSBuildTestBase, IDisposable
         return collection;
     }
 
-    protected DirectoryInfo CreateFiles(string directoryName, params string[] files)
-    {
-        DirectoryInfo directory = new(Path.Combine(TestRootPath, directoryName));
-
-        foreach (FileInfo file in files.Select(i => new FileInfo(Path.Combine(directory.FullName, i))))
-        {
-            file.Directory?.Create();
-            File.WriteAllText(file.FullName, Path.GetRelativePath(directory.FullName, file.FullName));
-        }
-
-        return directory;
-    }
-
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)
         {
-            if (Directory.Exists(TestRootPath))
-            {
-                try
-                {
-                    Directory.Delete(TestRootPath, recursive: true);
-                }
-                catch (Exception)
-                {
-                    try
-                    {
-                        Thread.Sleep(500);
-                        Directory.Delete(TestRootPath, recursive: true);
-                    }
-                    catch (Exception)
-                    {
-                        // Ignored
-                    }
-                }
-            }
+            _temp.Dispose();
         }
     }
 
-    protected string GetTempFile(string name)
-    {
-        ArgumentNullException.ThrowIfNull(name);
-        return Path.Combine(TestRootPath, name);
-    }
-
-    protected string GetTempFileWithExtension(string? extension = null)
-    {
-        return Path.Combine(TestRootPath, $"{Path.GetRandomFileName()}{extension ?? string.Empty}");
-    }
-
-    protected string GetTempCsproj() => GetTempFileWithExtension(".csproj");
+    protected string GetTempCsproj() => _temp.GetRandomFile(ext: ".csproj");
 
     private static string GetArtifactsPath()
     {

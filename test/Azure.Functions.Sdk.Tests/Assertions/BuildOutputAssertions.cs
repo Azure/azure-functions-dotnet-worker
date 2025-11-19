@@ -27,6 +27,7 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
     [CustomAssertion]
     public AndConstraint<BuildOutputAssertions> BeSuccessful(string because = "", params object[] becauseArgs)
     {
+        NotBeNull(because, becauseArgs);
         _chain
             .ForCondition(Subject.Succeeded.GetValueOrDefault(false))
             .BecauseOf(because, becauseArgs)
@@ -39,6 +40,7 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
     [CustomAssertion]
     public AndConstraint<BuildOutputAssertions> BeFailed(string because = "", params object[] becauseArgs)
     {
+        NotBeNull(because, becauseArgs);
         _chain
             .ForCondition(!Subject.Succeeded.GetValueOrDefault(false))
             .BecauseOf(because, becauseArgs)
@@ -57,6 +59,7 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
     [CustomAssertion]
     public AndConstraint<BuildOutputAssertions> HaveNoErrors(string because = "", params object[] becauseArgs)
     {
+        NotBeNull(because, becauseArgs);
         _chain
             .ForCondition(Subject.ErrorEvents.Count == 0)
             .BecauseOf(because, becauseArgs)
@@ -67,6 +70,7 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
     [CustomAssertion]
     public AndConstraint<BuildOutputAssertions> HaveNoWarnings(string because = "", params object[] becauseArgs)
     {
+        NotBeNull(because, becauseArgs);
         _chain
             .ForCondition(Subject.WarningEvents.Count == 0)
             .BecauseOf(because, becauseArgs)
@@ -77,6 +81,7 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
     [CustomAssertion]
     public AndWhichConstraint<BuildOutputAssertions, BuildErrorEventArgs> HaveSingleError(string because = "", params object[] becauseArgs)
     {
+        NotBeNull(because, becauseArgs);
         _chain
             .ForCondition(Subject.ErrorEvents.Count == 1)
             .BecauseOf(because, becauseArgs)
@@ -87,6 +92,7 @@ internal class BuildOutputAssertions(BuildOutput subject, AssertionChain asserti
     [CustomAssertion]
     public AndWhichConstraint<BuildOutputAssertions, BuildWarningEventArgs> HaveSingleWarning(string because = "", params object[] becauseArgs)
     {
+        NotBeNull(because, becauseArgs);
         _chain
             .ForCondition(Subject.WarningEvents.Count == 1)
             .BecauseOf(because, becauseArgs)

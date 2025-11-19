@@ -176,7 +176,6 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
 
     private string RestoreProject(Action<ProjectCreator>? configure = null)
     {
-        _temp.WriteNugetConfig();
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
             path: _temp.GetRandomFile(ext: ".csproj"), targetFramework: "net8.0", configure: configure);
 

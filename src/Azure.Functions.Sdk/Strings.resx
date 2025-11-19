@@ -121,13 +121,13 @@
     <value>Unable to launch the Azure Functions Core Tools. Please visit https://aka.ms/azfunc-dotnet-run-error for more details on how to address this problem.</value>
   </data>
   <data name="AZFW0101_Error_ExtensionPackageConflict" xml:space="preserve">
-    <value>The AzureFunctionsExtensionPackage {0}/{1} conflicts with existing package  {0}/{2}</value>
+    <value>The AzureFunctionsExtensionPackage {0}/{1} conflicts with existing package {0}/{2}</value>
   </data>
   <data name="AZFW0102_Warning_ExtensionPackageDuplicate" xml:space="preserve">
     <value>Duplicate extension package found: {0}/{1}</value>
   </data>
   <data name="AZFW0103_Error_InvalidExtensionPackageVersion" xml:space="preserve">
-    <value>The Invalid version for AzureFunctionsExtensionPackage '{0}': '{1}'. Ensure the Version metadata on this item is a valid NuGet package version.</value>
+    <value>Invalid version for AzureFunctionsExtensionPackage '{0}': '{1}'. Ensure the Version metadata on this item is a valid NuGet package version.</value>
   </data>
   <data name="AZFW0104_Warning_EndOfLifeFunctionsVersion" xml:space="preserve">
     <value>Azure Functions '{0}' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy.</value>

@@ -29,7 +29,7 @@ public sealed class WriteExtensionProjectTests
     public void NoPackages_CreatesEmptyProject()
     {
         // Arrange
-        WriteExtensionProject task = CreateTask(ProjectPath);
+        WriteExtensionProject task = CreateTask(writeHash: false);
 
         // Act
         bool result = task.Execute();
@@ -39,7 +39,7 @@ public sealed class WriteExtensionProjectTests
         _fileSystem.File.Exists(ProjectPath).Should().BeTrue();
 
         string content = _fileSystem.File.ReadAllText(ProjectPath);
-        _fileSystem.AllFiles.Should().HaveCount(1); // no hash file written
+        _fileSystem.AllFiles.Should().ContainSingle(); // no hash file written
         ValidateProject(content, []);
     }
 
@@ -49,7 +49,7 @@ public sealed class WriteExtensionProjectTests
         // Arrange
         TaskItem package1 = CreatePackage("Microsoft.Azure.Functions.Worker", "1.0.0");
         TaskItem package2 = CreatePackage("Microsoft.Azure.Functions.Worker.Extensions.Http", "3.0.13");
-        WriteExtensionProject task = CreateTask(ProjectPath, packages: [package1, package2]);
+        WriteExtensionProject task = CreateTask(writeHash: false, [package1, package2]);
 
         // Act
         bool result = task.Execute();
@@ -59,7 +59,7 @@ public sealed class WriteExtensionProjectTests
         _fileSystem.File.Exists(ProjectPath).Should().BeTrue();
 
         string content = _fileSystem.File.ReadAllText(ProjectPath);
-        _fileSystem.AllFiles.Should().HaveCount(1); // no hash file written
+        _fileSystem.AllFiles.Should().ContainSingle(); // no hash file written
         ValidateProject(content, [package1, package2]);
     }
 
@@ -70,7 +70,7 @@ public sealed class WriteExtensionProjectTests
         _fileSystem.AddFile(ProjectPath, new MockFileData("existing content"));
 
         TaskItem package = CreatePackage("TestPackage", "1.0.0");
-        WriteExtensionProject task = CreateTask(ProjectPath, packages: [package]);
+        WriteExtensionProject task = CreateTask(packages: [package]);
 
         // Act
         bool result = task.Execute();
@@ -88,7 +88,7 @@ public sealed class WriteExtensionProjectTests
     {
         // Arrange
         TaskItem package = CreatePackage("TestPackage", "1.0.0");
-        WriteExtensionProject task = CreateTask(ProjectPath, HashPath, [package]);
+        WriteExtensionProject task = CreateTask(packages: [package]);
 
         // Act
         bool result = task.Execute();
@@ -112,14 +112,14 @@ public sealed class WriteExtensionProjectTests
         TaskItem package = CreatePackage("TestPackage", "1.0.0");
 
         // First execution to generate hash
-        WriteExtensionProject task = CreateTask(ProjectPath, HashPath, packages: [package]);
+        WriteExtensionProject task = CreateTask(packages: [package]);
         task.Execute();
 
         DateTime projectTime = _fileSystem.File.GetLastWriteTimeUtc(ProjectPath);
         DateTime hashTime = _fileSystem.File.GetLastWriteTimeUtc(HashPath);
 
         // Second execution with same parameters
-        task = CreateTask(ProjectPath, HashPath, packages: [package]);
+        task = CreateTask(packages: [package]);
 
         // Act
         bool result = task.Execute();
@@ -138,7 +138,7 @@ public sealed class WriteExtensionProjectTests
         TaskItem package2 = CreatePackage("TestPackage", "2.0.0");
 
         // First execution
-        WriteExtensionProject task = CreateTask(ProjectPath, HashPath, packages: [package1]);
+        WriteExtensionProject task = CreateTask(packages: [package1]);
         task.Execute();
 
         string originalHash = _fileSystem.File.ReadAllText(HashPath);
@@ -146,7 +146,7 @@ public sealed class WriteExtensionProjectTests
         DateTime hashTime = _fileSystem.File.GetLastWriteTimeUtc(HashPath);
 
         // Second execution with different package version
-        task = CreateTask(ProjectPath, HashPath, packages: [package2]);
+        task = CreateTask(packages: [package2]);
 
         // Act
         bool result = task.Execute();
@@ -192,15 +192,13 @@ public sealed class WriteExtensionProjectTests
     }
 
     private WriteExtensionProject CreateTask(
-        string ProjectPath = @"C:\test\project.csproj",
-        string? hashFilePath = null,
-        ITaskItem[]? packages = null)
+        bool writeHash = true, ITaskItem[]? packages = null)
     {
         return new WriteExtensionProject(_fileSystem, _timeProvider.Object)
         {
             BuildEngine = _buildEngine.Object,
             ProjectPath = ProjectPath,
-            HashFilePath = hashFilePath,
+            HashFilePath = writeHash ? HashPath : null,
             ExtensionPackages = packages ?? []
         };
     }

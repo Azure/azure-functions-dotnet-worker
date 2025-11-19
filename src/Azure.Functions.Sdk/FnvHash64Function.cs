@@ -21,14 +21,9 @@ internal sealed class FnvHash64Function : IHashFunction
         Throw.IfNull(data);
         Throw.IfLessThan(count, 0);
 
-        if (_hash == 0)
-        {
-            _hash = FnvHash64.Hash(data, count);
-        }
-        else
-        {
-            _hash = FnvHash64.Update(_hash, data, count);
-        }
+        _hash = _hash == 0
+            ? FnvHash64.Hash(data.AsSpan(offset, count))
+            : FnvHash64.Update(_hash, data.AsSpan(offset, count));
     }
 
     public byte[] GetHashBytes()
@@ -49,20 +44,14 @@ internal sealed class FnvHash64Function : IHashFunction
         public const ulong Offset = 14695981039346656037;
         public const ulong Prime = 1099511628211;
 
-        public static ulong Hash(byte[] data, int count = 0)
+        public static ulong Hash(ReadOnlySpan<byte> data)
         {
             ulong hash = Offset;
 
-            if (count == 0)
-            {
-                count = data.Length;
-            }
-
             unchecked
             {
-                for (int i = 0; i < count; i++)
+                foreach (byte b in data)
                 {
-                    var b = data[i];
                     hash = (hash ^ b) * Prime;
                 }
             }
@@ -78,9 +67,9 @@ internal sealed class FnvHash64Function : IHashFunction
             }
         }
 
-        public static ulong Update(ulong current, byte[] data, int count = 0)
+        public static ulong Update(ulong current, ReadOnlySpan<byte> data)
         {
-            return Combine(current, Hash(data, count));
+            return Combine(current, Hash(data));
         }
     }
 }

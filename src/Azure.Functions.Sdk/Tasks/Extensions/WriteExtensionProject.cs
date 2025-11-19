@@ -69,19 +69,22 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
         // Omit version so the outer projects version is implicitly used.
         writer.WriteAttributeString("Sdk", ThisAssembly.Name);
 
-        writer.WriteStartElement("ItemGroup");
-
-        foreach (ITaskItem package in ExtensionPackages)
+        if (ExtensionPackages.Length > 0)
         {
-            writer.WriteStartElement("PackageReference");
-            writer.WriteAttributeString("Include", package.ItemSpec);
-            writer.WriteAttributeString("Version", package.GetVersion());
+            writer.WriteStartElement("ItemGroup");
+
+            foreach (ITaskItem package in ExtensionPackages)
+            {
+                writer.WriteStartElement("PackageReference");
+                writer.WriteAttributeString("Include", package.ItemSpec);
+                writer.WriteAttributeString("Version", package.GetVersion());
+                writer.WriteEndElement();
+            }
+
             writer.WriteEndElement();
         }
 
         writer.WriteEndElement();
-        writer.WriteEndElement();
-
         UpdateHash(hash);
         return true;
     }

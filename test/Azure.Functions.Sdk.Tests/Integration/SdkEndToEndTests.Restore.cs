@@ -71,6 +71,43 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         File.Exists(GeneratedHashPath).Should().BeFalse();
     }
 
+    [Fact]
+    public void Restore_Incremental_NoOp()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj())
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act 1
+        BuildOutput output = project.Restore();
+
+        // Assert 2
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        ValidateProject(
+            [
+                .. NugetPackage.ServiceBus.WebJobsPackages,
+                .. NugetPackage.StorageBlobs.WebJobsPackages,
+                .. NugetPackage.StorageQueues.WebJobsPackages,
+            ]);
+
+        FileInfo generated = new(GeneratedProjectPath);
+        FileInfo hash = new(GeneratedHashPath);
+
+        DateTime generatedWrite = generated.LastWriteTimeUtc;
+        DateTime hashWrite = hash.LastWriteTimeUtc;
+
+        // Act 2
+        BuildOutput output2 = project.Restore();
+        output2.Should().BeSuccessful().And.HaveNoIssues();
+        generated.Refresh();
+        hash.Refresh();
+
+        generated.LastWriteTimeUtc.Should().Be(generatedWrite);
+        hash.LastWriteTimeUtc.Should().Be(hashWrite);
+    }
+
     private void ValidateProject(params NugetPackage[] packages)
     {
         FileInfo hashFile = new(GeneratedHashPath);

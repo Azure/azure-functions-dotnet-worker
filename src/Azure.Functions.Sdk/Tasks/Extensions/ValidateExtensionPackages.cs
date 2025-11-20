@@ -24,8 +24,8 @@ public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
                 // Duplicate package detected.
                 // Log a warning and continue if versions match.
                 // Log an error if versions do not match.
-                string version = existingPackage.GetVersion();
-                string newVersion = package.GetVersion();
+                string version = existingPackage.Version;
+                string newVersion = package.Version;
                 if (version != newVersion)
                 {
                     Log.LogMessage(LogMessage.Error_ExtensionPackageConflict, package.ItemSpec, version, newVersion);
@@ -38,7 +38,7 @@ public class ValidateExtensionPackages : Microsoft.Build.Utilities.Task
             else
             {
                 // Check version is a valid nuget package version.
-                string version = package.GetVersion();
+                string version = package.Version;
                 if (NuGet.Versioning.NuGetVersion.TryParse(version, out _))
                 {
                     uniquePackages[package.ItemSpec] = package;

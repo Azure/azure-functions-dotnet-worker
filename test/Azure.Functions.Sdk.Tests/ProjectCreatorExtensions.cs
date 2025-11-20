@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis.Text;
@@ -51,6 +52,12 @@ internal static class MSBuildExtensions
             projectCreator: configure,
             projectCollection: projectCollection,
             globalProperties: GetGlobalProperties(globalProperties));
+    }
+
+    public static ProjectCreator ItemPackageReference(
+        this ProjectCreator project, NugetPackage package)
+    {
+        return project.ItemPackageReference(package.Name, package.Version);
     }
 
     public static ProjectCreator WriteSourceFile(

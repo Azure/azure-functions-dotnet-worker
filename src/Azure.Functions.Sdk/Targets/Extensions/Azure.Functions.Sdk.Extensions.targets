@@ -12,6 +12,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ResolveExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ValidateExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionProject" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
     <_FunctionsPackageHashPath>$(AzureFunctionsExtensionProjectDirectory)azure_functions.package.hash</_FunctionsPackageHashPath>
@@ -19,7 +21,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsUnusedPackagesCachePath>$(AzureFunctionsExtensionProjectDirectory)azure_functions.unused_packages.cache</_FunctionsUnusedPackagesCachePath>
   </PropertyGroup>
 
-  <Target Name="GenerateFunctionsExtensionProject" DependsOnTargets="CollectExtensionPackages"
+  <Target Name="GenerateFunctionsExtensionProject" DependsOnTargets="CollectExtensionPackages;WriteExtensionProject"
     AfterTargets="Restore"
     Condition="'$(DesignTimeBuild)' != 'true'" />
 
@@ -27,6 +29,16 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ResolveExtensionPackages ProjectAssetsFile="$(ProjectAssetsFile)">
       <Output TaskParameter="ExtensionPackages" ItemName="_AzureFunctionPackageReference" />
     </ResolveExtensionPackages>
+  </Target>
+
+  <!-- The WriteExtensionProject task will perform its own incremental build checks. -->
+  <Target Name="WriteExtensionProject">
+    <ValidateExtensionPackages ExtensionPackages="@(_AzureFunctionPackageReference)">
+      <Output TaskParameter="FilteredPackages" ItemName="_ValidatedAzureFunctionPackageReference" />
+    </ValidateExtensionPackages>
+    <MakeDir Directories="$(AzureFunctionsExtensionProjectDirectory)" Condition="!Exists('$(AzureFunctionsExtensionProjectDirectory)')" />
+    <WriteExtensionProject ExtensionPackages="@(_ValidatedAzureFunctionPackageReference)" ProjectPath="$(AzureFunctionsExtensionProjectPath)"
+      HashFilePath="$(_FunctionsPackageHashPath)" />
   </Target>
 
 </Project>

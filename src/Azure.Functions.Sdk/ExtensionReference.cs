@@ -38,10 +38,12 @@ public static class ExtensionReference
                     StringComparison.Ordinal))
             {
                 customAttribute.GetArguments(out string name, out string version);
-                extensionReference = new TaskItem(name);
-                extensionReference.SetVersion(version);
-                extensionReference.SetIsImplicitlyDefined(true);
-                extensionReference.SetSourcePackageId(sourcePackageId);
+                extensionReference = new TaskItem(name)
+                {
+                    Version = version,
+                    IsImplicitlyDefined = true,
+                    SourcePackageId = sourcePackageId,
+                };
 
                 return true;
             }

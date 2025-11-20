@@ -68,7 +68,7 @@ internal static class MSBuildExtensions
     {
         public ProjectCreator WriteSourceFile(string filePath, string text)
         {
-            return WriteSourceFile(project, filePath, SourceText.From(text));
+            return project.WriteSourceFile(filePath, SourceText.From(text));
         }
 
         public ProjectCreator WriteSourceFile(string filePath, SourceText text)

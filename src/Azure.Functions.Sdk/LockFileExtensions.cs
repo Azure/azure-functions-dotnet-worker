@@ -12,7 +12,7 @@ namespace Azure.Functions.Sdk;
 /// </summary>
 public static class LockFileExtensions
 {
-    extension(LockFile lockFile)
+    extension(LockFile)
     {
         /// <summary>
         /// Reads a lock file from the given path.
@@ -42,7 +42,10 @@ public static class LockFileExtensions
             LockFileFormat format = new();
             return logger is null ? format.Read(stream, path) : format.Read(stream, logger, path);
         }
+    }
 
+    extension(LockFile lockFile)
+    {
         /// <summary>
         /// Gets a package path resolver for the given lock file.
         /// </summary>

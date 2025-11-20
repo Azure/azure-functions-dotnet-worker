@@ -16,7 +16,7 @@ internal static class MSBuildLogExtensions
         /// </summary>
         /// <param name="message">The message to log.</param>
         public void LogMessage(LogMessage message)
-            => LogMessage(log, message, []);
+            => log.LogMessage(message, []);
 
         /// <summary>
         /// Logs a <see cref="LogMessage"/> to the MSBuild log.

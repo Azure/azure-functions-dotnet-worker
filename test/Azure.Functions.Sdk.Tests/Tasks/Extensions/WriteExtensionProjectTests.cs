@@ -179,16 +179,14 @@ public sealed class WriteExtensionProjectTests
         foreach (XmlElement node in nodes)
         {
             node.Should().HaveAttribute("Include", packages[i].ItemSpec);
-            node.Should().HaveAttribute("Version", packages[i].GetVersion());
+            node.Should().HaveAttribute("Version", packages[i].Version);
             i++;
         }
     }
 
     private static TaskItem CreatePackage(string id, string version)
     {
-        TaskItem item = new(id);
-        item.SetVersion(version);
-        return item;
+        return new(id) { Version = version };
     }
 
     private WriteExtensionProject CreateTask(

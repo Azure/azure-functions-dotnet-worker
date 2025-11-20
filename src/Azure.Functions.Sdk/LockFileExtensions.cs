@@ -46,8 +46,7 @@ public static class LockFileExtensions
         /// <summary>
         /// Gets a package path resolver for the given lock file.
         /// </summary>
-        /// <param name="lockFile">The lock file.</param>
-        /// <returns></returns>
+        /// <returns>A package path resolver.</returns>
         public FallbackPackagePathResolver GetPathResolver()
         {
             Throw.IfNull(lockFile);

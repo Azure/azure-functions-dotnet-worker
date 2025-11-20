@@ -11,9 +11,18 @@ internal static class MSBuildLogExtensions
 {
     extension(TaskLoggingHelper log)
     {
+        /// <summary>
+        /// Logs a <see cref="LogMessage"/> to the MSBuild log.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
         public void LogMessage(LogMessage message)
             => LogMessage(log, message, []);
 
+        /// <summary>
+        /// Logs a <see cref="LogMessage"/> to the MSBuild log.
+        /// </summary>
+        /// <param name="message">The message to log.</param>
+        /// <param name="args">The formatting arguments for the message.</param>
         public void LogMessage(LogMessage message, params string[] args)
         {
             if (message.Code is null)
@@ -99,13 +108,22 @@ internal static class MSBuildLogExtensions
         }
     }
 
-    public static MessageImportance ToMessageImportance(this LogLevel level)
-        => level switch
+    extension(LogLevel level)
+    {
+        /// <summary>
+        /// Converts the <see cref="LogLevel"/> to a corresponding <see cref="MessageImportance"/>.
+        /// </summary>
+        /// <returns>The <see cref="MessageImportance" />.</returns>
+        public MessageImportance ToMessageImportance()
         {
-            LogLevel.Error or LogLevel.Warning or LogLevel.Minimal => MessageImportance.High,
-            LogLevel.Information => MessageImportance.Normal,
-            LogLevel.Debug or LogLevel.Verbose => MessageImportance.Low,
-            _ => throw new ArgumentOutOfRangeException(
-                nameof(level), level, "Unsupported log level for message importance"),
-        };
+            return level switch
+            {
+                LogLevel.Error or LogLevel.Warning or LogLevel.Minimal => MessageImportance.High,
+                LogLevel.Information => MessageImportance.Normal,
+                LogLevel.Debug or LogLevel.Verbose => MessageImportance.Low,
+                _ => throw new ArgumentOutOfRangeException(
+                    nameof(level), level, "Unsupported log level for message importance"),
+            };
+        }
+    }
 }

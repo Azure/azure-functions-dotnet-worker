@@ -13,8 +13,7 @@ internal static class ExceptionExtensions
         /// <summary>
         /// Determines whether the exception is considered fatal and should not be caught.
         /// </summary>
-        /// <param name="exception">The exception to check.</param>
-        /// <returns></returns>
+        /// <returns><c>true</c> if the exception is fatal; <c>false</c> otherwise.</returns>
         public bool IsFatal()
         {
             while (exception is not null)

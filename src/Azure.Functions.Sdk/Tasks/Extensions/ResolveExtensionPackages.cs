@@ -145,7 +145,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
                     MessageImportance.Low,
                     "Extension {0}/{1} referenced by {2}/{3}",
                     ext.ItemSpec,
-                    ext.GetVersion(),
+                    ext.Version,
                     library.Name,
                     library.Version);
 

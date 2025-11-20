@@ -2,13 +2,14 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using Azure.Functions.Sdk.Tests;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.Build.Utilities.ProjectCreation;
 
-internal static class MSBuildExtensions
+internal static class ProjectCreatorExtensions
 {
     private static readonly ImmutableDictionary<string, string> DefaultGlobalProperties =
         ImmutableDictionary.CreateRange(
@@ -66,6 +67,11 @@ internal static class MSBuildExtensions
 
     extension(ProjectCreator project)
     {
+        public ProjectCreator ItemPackageReference(NugetPackage package)
+        {
+            return project.ItemPackageReference(package.Name, package.Version);
+        }
+
         public ProjectCreator WriteSourceFile(string filePath, string text)
         {
             return project.WriteSourceFile(filePath, SourceText.From(text));

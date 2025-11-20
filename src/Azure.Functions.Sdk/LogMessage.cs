@@ -32,9 +32,6 @@ internal readonly struct LogMessage
     public static readonly LogMessage Warning_UnsupportedTargetFramework
         = new(nameof(Strings.AZFW0107_Warning_UnsupportedTargetFramework));
 
-    public static readonly LogMessage Error_CustomFunctionPackageReferencesNotAllowed
-        = new(nameof(Strings.AZFW0108_Error_CustomFunctionPackageReferencesNotAllowed));
-
     /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.
     /// Parses the <see cref="Level"/> and <see cref="Code"/> properties from the given <paramref name="id"/>.
@@ -88,7 +85,6 @@ internal readonly struct LogMessage
             nameof(Error_UsingLegacyFunctionsSdk) => Error_UsingLegacyFunctionsSdk,
             nameof(Error_UnknownFunctionsVersion) => Error_UnknownFunctionsVersion,
             nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
-            nameof(Error_CustomFunctionPackageReferencesNotAllowed) => Error_CustomFunctionPackageReferencesNotAllowed,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
     }

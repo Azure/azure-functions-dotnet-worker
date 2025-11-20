@@ -29,7 +29,7 @@
     <PackageReference Include="NuGet.ProjectModel" Version="6.14.0" ExcludeAssets="Runtime" />
   </ItemGroup>
 
-  <!-- Dev Dependencies -->
+  <!-- Dev dependencies -->
   <ItemGroup>
     <PackageReference Include="PolySharp" Version="1.15.0" PrivateAssets="all" />
     <PackageReference Include="Microsoft.CodeAnalysis.ResxSourceGenerator" Version="5.0.0-1.25277.114" PrivateAssets="all" />

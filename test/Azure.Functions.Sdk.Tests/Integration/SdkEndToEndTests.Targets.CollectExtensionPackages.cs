@@ -1,7 +1,6 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using AwesomeAssertions;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities.ProjectCreation;
@@ -34,7 +33,7 @@ public partial class SdkEndToEndTests
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj())
-            .ItemPackageReference("System.Text.Json", "8.0.6")
+            .ItemPackageReference(NugetPackage.SystemTextJson)
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
         // Act
@@ -53,8 +52,8 @@ public partial class SdkEndToEndTests
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj())
-            .ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.ServiceBus", "5.23.0")
-            .ItemPackageReference("Microsoft.Azure.Functions.Worker.Extensions.Storage", "6.8.0")
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage)
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
         // Act
@@ -66,31 +65,17 @@ public partial class SdkEndToEndTests
         result.ResultCode.Should().Be(TargetResultCode.Success);
         result.Items.Should().HaveCount(3);
 
-        ValidatePackage(
-            result.Items[0],
-            "Microsoft.Azure.WebJobs.Extensions.ServiceBus",
-            "5.17.0",
-            "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus");
-
-        ValidatePackage(
-            result.Items[1],
-            "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs",
-            "5.3.6",
-            "Microsoft.Azure.Functions.Worker.Extensions.Storage.Blobs");
-
-        ValidatePackage(
-            result.Items[2],
-            "Microsoft.Azure.WebJobs.Extensions.Storage.Queues",
-            "5.3.6",
-            "Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues");
+        ValidatePackage(result.Items[0], NugetPackage.ServiceBus);
+        ValidatePackage(result.Items[1], NugetPackage.StorageBlobs);
+        ValidatePackage(result.Items[2], NugetPackage.StorageQueues);
     }
 
-    private static void ValidatePackage(
-        ITaskItem package, string expectedId, string expectedVersion, string expectedSourceId)
+    private static void ValidatePackage(ITaskItem package, WorkerPackage worker)
     {
-        package.Should().HaveItemSpec(expectedId)
-            .And.HaveMetadata("Version", expectedVersion)
-            .And.HaveMetadata("SourcePackageId", expectedSourceId)
+        NugetPackage webJobs = worker.WebJobsPackages.Should().ContainSingle().Which;
+        package.Should().HaveItemSpec(webJobs.Name)
+            .And.HaveMetadata("Version", webJobs.Version)
+            .And.HaveMetadata("SourcePackageId", worker.Name)
             .And.HaveMetadata("IsImplicitlyDefined", "true");
     }
 }

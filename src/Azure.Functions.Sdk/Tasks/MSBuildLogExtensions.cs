@@ -9,6 +9,26 @@ namespace Azure.Functions.Sdk.Tasks;
 
 internal static class MSBuildLogExtensions
 {
+    // https://github.com/dotnet/roslyn/issues/80024
+    // Using old extension method style to avoid incorrect analyzer warning.
+    /// <summary>
+    /// Logs a <see cref="LogMessage"/> to the MSBuild log.
+    /// </summary>
+    /// <param name="log">The MSBuild logger.</param>
+    /// <param name="message">The message to log.</param>
+    /// <param name="args">The formatting arguments for the message.</param>
+    public static void LogMessage(this TaskLoggingHelper log, LogMessage message, params string[] args)
+    {
+        if (message.Code is null)
+        {
+            log.LogNoCode(message, args);
+        }
+        else
+        {
+            log.LogWithCode(message, args);
+        }
+    }
+
     extension(TaskLoggingHelper log)
     {
         /// <summary>
@@ -17,23 +37,6 @@ internal static class MSBuildLogExtensions
         /// <param name="message">The message to log.</param>
         public void LogMessage(LogMessage message)
             => log.LogMessage(message, []);
-
-        /// <summary>
-        /// Logs a <see cref="LogMessage"/> to the MSBuild log.
-        /// </summary>
-        /// <param name="message">The message to log.</param>
-        /// <param name="args">The formatting arguments for the message.</param>
-        public void LogMessage(LogMessage message, params string[] args)
-        {
-            if (message.Code is null)
-            {
-                log.LogNoCode(message, args);
-            }
-            else
-            {
-                log.LogWithCode(message, args);
-            }
-        }
 
         private void LogWithCode(LogMessage message, params string[] args)
         {

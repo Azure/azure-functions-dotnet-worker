@@ -8,42 +8,44 @@ namespace System;
 /// </summary>
 internal static class ExceptionExtensions
 {
-    /// <summary>
-    /// Determines whether the exception is considered fatal and should not be caught.
-    /// </summary>
-    /// <param name="exception">The exception to check.</param>
-    /// <returns></returns>
-    public static bool IsFatal(this Exception? exception)
+    extension(Exception? exception)
     {
-        while (exception is not null)
+        /// <summary>
+        /// Determines whether the exception is considered fatal and should not be caught.
+        /// </summary>
+        /// <returns><c>true</c> if the exception is fatal; <c>false</c> otherwise.</returns>
+        public bool IsFatal()
         {
-            if (exception
-                is (OutOfMemoryException and not InsufficientMemoryException)
-                or AppDomainUnloadedException
-                or BadImageFormatException
-                or CannotUnloadAppDomainException
-                or InvalidProgramException
-                or AccessViolationException)
+            while (exception is not null)
             {
-                return true;
-            }
-
-            if (exception is AggregateException aggregate)
-            {
-                foreach (Exception inner in aggregate.InnerExceptions)
+                if (exception
+                    is (OutOfMemoryException and not InsufficientMemoryException)
+                    or AppDomainUnloadedException
+                    or BadImageFormatException
+                    or CannotUnloadAppDomainException
+                    or InvalidProgramException
+                    or AccessViolationException)
                 {
-                    if (inner.IsFatal())
+                    return true;
+                }
+
+                if (exception is AggregateException aggregate)
+                {
+                    foreach (Exception inner in aggregate.InnerExceptions)
                     {
-                        return true;
+                        if (inner.IsFatal())
+                        {
+                            return true;
+                        }
                     }
                 }
+                else
+                {
+                    exception = exception.InnerException;
+                }
             }
-            else
-            {
-                exception = exception.InnerException;
-            }
-        }
 
-        return false;
+            return false;
+        }
     }
 }

@@ -77,7 +77,7 @@ public class WriteExtensionProject(IFileSystem fileSystem, TimeProvider time)
             {
                 writer.WriteStartElement("PackageReference");
                 writer.WriteAttributeString("Include", package.ItemSpec);
-                writer.WriteAttributeString("Version", package.GetVersion());
+                writer.WriteAttributeString("Version", package.Version);
                 writer.WriteEndElement();
             }
 

@@ -15,21 +15,6 @@ internal sealed class TempDirectory : IDisposable
 
     public string Path { get; }
 
-    public void WriteNugetConfig()
-    {
-        File.WriteAllText(
-            IOPath.Combine(Path, "nuget.config"),
-            """
-            <?xml version="1.0" encoding="utf-8"?>
-            <configuration>
-            <packageSources>
-                <clear />
-                <add key="nuget" value="https://api.nuget.org/v3/index.json" />
-            </packageSources>
-            </configuration>
-            """);
-    }
-
     public string GetRandomFile(string? ext = null)
     {
         string path = IOPath.Combine(Path, IOPath.GetRandomFileName());

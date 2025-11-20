@@ -16,14 +16,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionProject" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
-    <_FunctionsPackageHashPath>$(AzureFunctionsExtensionProjectDirectory)azure_functions.package.hash</_FunctionsPackageHashPath>
+    <_FunctionsPackageHashPath>$(_AzureFunctionsExtensionProjectDirectory)azure_functions.package.hash</_FunctionsPackageHashPath>
     <_FunctionsIntermediateExtensionJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
-    <_FunctionsUnusedPackagesCachePath>$(AzureFunctionsExtensionProjectDirectory)azure_functions.unused_packages.cache</_FunctionsUnusedPackagesCachePath>
+    <_FunctionsUnusedPackagesCachePath>$(_AzureFunctionsExtensionProjectDirectory)azure_functions.unused_packages.cache</_FunctionsUnusedPackagesCachePath>
   </PropertyGroup>
 
-  <Target Name="GenerateFunctionsExtensionProject" DependsOnTargets="CollectExtensionPackages;WriteExtensionProject"
-    AfterTargets="Restore"
-    Condition="'$(DesignTimeBuild)' != 'true'" />
+  <Target Name="GenerateFunctionsExtensionProject" Condition="'$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="CollectExtensionPackages;WriteExtensionProject;RestoreExtensionProject"
+    AfterTargets="Restore" />
 
   <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
     <ResolveExtensionPackages ProjectAssetsFile="$(ProjectAssetsFile)">
@@ -36,9 +36,14 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ValidateExtensionPackages ExtensionPackages="@(_AzureFunctionPackageReference)">
       <Output TaskParameter="FilteredPackages" ItemName="_ValidatedAzureFunctionPackageReference" />
     </ValidateExtensionPackages>
-    <MakeDir Directories="$(AzureFunctionsExtensionProjectDirectory)" Condition="!Exists('$(AzureFunctionsExtensionProjectDirectory)')" />
-    <WriteExtensionProject ExtensionPackages="@(_ValidatedAzureFunctionPackageReference)" ProjectPath="$(AzureFunctionsExtensionProjectPath)"
+    <MakeDir Directories="$(_AzureFunctionsExtensionProjectDirectory)" Condition="!Exists('$(_AzureFunctionsExtensionProjectDirectory)')" />
+    <WriteExtensionProject ExtensionPackages="@(_ValidatedAzureFunctionPackageReference)" ProjectPath="$(_AzureFunctionsExtensionProjectPath)"
       HashFilePath="$(_FunctionsPackageHashPath)" />
+  </Target>
+
+  <Target Name="RestoreExtensionProject">
+    <MSBuild Projects="$(_AzureFunctionsExtensionProjectPath)" Targets="Restore"
+      RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources)" />
   </Target>
 
 </Project>

@@ -21,4 +21,22 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <Error Condition="'$(TargetFramework)' != 'net8.0'" Text="The target framework '$(TargetFramework)' must be 'net8.0'. Verify if target framework has been overridden by a global property." />
   </Target>
 
+  <Target Name="ResolveFunctionsExtensionFiles"
+    DependsOnTargets="_ResolveUsedExtensionPackages;ResolveReferences;GenerateBuildDependencyFile;GetCopyToOutputDirectoryItems"
+    Returns="@(FunctionsExtensionFiles)">
+    <ResolveExtensionCopyLocal RuntimeAssemblies="@(_FunctionsRuntimeAssembly)" RuntimePackages="@(_FunctionsRuntimePackage)"
+      CopyLocalFiles="@(ReferenceCopyLocalPaths)">
+      <Output TaskParameter="ExtensionsCopyLocal" ItemName="FunctionsExtensionFiles" />
+    </ResolveExtensionCopyLocal>
+
+    <ItemGroup>
+      <FunctionsExtensionFiles Include="@(AllItemsFullPathWithTargetPath)">
+        <TargetPath>.azurefunctions/%(AllItemsFullPathWithTargetPath.TargetPath)</TargetPath>
+      </FunctionsExtensionFiles>
+      <FunctionsExtensionFiles Include="$(ProjectDepsFilePath)">
+        <TargetPath>.azurefunctions/function.deps.json</TargetPath>
+      </FunctionsExtensionFiles>
+    </ItemGroup>
+  </Target>
+
 </Project>

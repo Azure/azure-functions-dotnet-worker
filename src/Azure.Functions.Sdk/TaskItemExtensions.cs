@@ -40,4 +40,17 @@ public static class TaskItemExtensions
             set => taskItem.SetMetadata("SourcePackageId", value);
         }
     }
+
+    /// <summary>
+    /// Gets the "NuGetPackageId" metadata from the task item.
+    /// </summary>
+    /// <param name="taskItem">The task item.</param>
+    /// <param name="packageId">The package ID, if found.</param>
+    /// <returns><c>true</c> if "NuGetPackageId" is found, <c>false</c> if not found.</returns>
+    public static bool TryGetNuGetPackageId(
+        this ITaskItem taskItem, [NotNullWhen(true)] out string? packageId)
+    {
+        packageId = taskItem.GetMetadata("NuGetPackageId");
+        return !string.IsNullOrEmpty(packageId);
+    }
 }

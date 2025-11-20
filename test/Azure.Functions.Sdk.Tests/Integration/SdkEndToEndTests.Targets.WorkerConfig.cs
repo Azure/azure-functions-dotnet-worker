@@ -84,7 +84,6 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
         // Act
         // We want partial IntermediateOutputPath.
-        project.TryGetPropertyValue("IntermediateOutputPath", out string? intermediateOutputPath);
         project.Restore().Should().BeSuccessful();
         TargetResult? result = project.RunTarget("_PreGenerateWorkerConfig");
 
@@ -94,7 +93,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         result.Items.Should().ContainSingle()
             .Which.Should().Satisfy<ITaskItem>(item =>
             {
-                item.ItemSpec.Should().Be($"{intermediateOutputPath}worker.config.json");
+                item.ItemSpec.Should().Be($"{project.GetRelativeIntermediateOutputPath()}worker.config.json");
                 item.GetMetadata("TargetPath").Should().Be("worker.config.json");
             });
     }

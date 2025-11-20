@@ -96,10 +96,8 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
             return false;
         }
 
-        IFileInfo info = _fileSystem.FileInfo.New(ProjectAssetsFile);
-        using FileSystemStream stream = info.OpenRead();
-        LockFileFormat format = new();
-        lockFile = format.Read(stream, new MSBuildNugetLogger(Log), ProjectAssetsFile);
+        using FileSystemStream stream = _fileSystem.File.OpenRead(ProjectAssetsFile);
+        lockFile = LockFile.Read(ProjectAssetsFile, stream, new MSBuildNugetLogger(Log));
         return true;
     }
 
@@ -147,7 +145,7 @@ public class ResolveExtensionPackages(IFileSystem fileSystem)
                     MessageImportance.Low,
                     "Extension {0}/{1} referenced by {2}/{3}",
                     ext.ItemSpec,
-                    ext.GetVersion(),
+                    ext.Version,
                     library.Name,
                     library.Version);
 

@@ -92,9 +92,7 @@ public sealed class ValidateExtensionPackagesTests
 
     private static TaskItem CreatePackage(string id, string version)
     {
-        TaskItem item = new(id);
-        item.SetVersion(version);
-        return item;
+        return new(id) { Version = version };
     }
 
     private ValidateExtensionPackages CreateTask(params ITaskItem[] packages)

@@ -28,11 +28,9 @@ public partial class SdkEndToEndTests
             "MyFunctionApp.dll");
     }
 
-    [SkippableFact]
+    [Fact]
     public void Build_NetFx()
     {
-        Skip.IfNot(OperatingSystem.IsWindows(), "NET Framework builds are only supported on Windows.");
-
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
             GetTempCsproj(), targetFramework: "net481")

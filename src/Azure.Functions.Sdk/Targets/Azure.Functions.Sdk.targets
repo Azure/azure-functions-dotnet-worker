@@ -13,6 +13,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Import Sdk="Microsoft.NET.Sdk.Worker" Project="Sdk.targets" />
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).FuncSdkLog" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).GenerateWorkerConfig" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
 
   <PropertyGroup>
@@ -43,7 +44,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Resource="Warning_UnsupportedTargetFramework" Arguments="$(TargetFramework)" />
   </Target>
 
-  <Target Name="_FunctionAppValidation" BeforeTargets="Restore;Build" DependsOnTargets="_ValidateFunctionsVersion">
+  <Target Name="_FunctionAppValidation" DependsOnTargets="_ValidateFunctionsVersion" BeforeTargets="Restore;Build" >
     <FuncSdkLog Condition="'$(_IsFunctionsSdkBuild)' == 'true'" Resource="Error_UsingLegacyFunctionsSdk" />
   </Target>
 
@@ -55,20 +56,53 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <FuncSdkLog Condition="'$(_FuncCliExitCode)' != '0'" Resource="Error_CannotRunFuncCli" />
   </Target>
 
-  <Target Name="_FunctionsComputeRunArguments" BeforeTargets="ComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools">
+  <Target Name="_FunctionsComputeRunArguments" DependsOnTargets="_FunctionsCheckForCoreTools" BeforeTargets="ComputeRunArguments" >
     <!-- Windows Configuration -->
     <PropertyGroup Condition="'$(OS)' == 'Windows_NT'">
-        <RunCommand>cmd</RunCommand>
-        <RunArguments>/C func start $(RunArguments)</RunArguments>
-        <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+      <RunCommand>cmd</RunCommand>
+      <RunArguments>/C func start $(RunArguments)</RunArguments>
+      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
     </PropertyGroup>
 
     <!-- Unix/Linux/macOS Configuration -->
     <PropertyGroup Condition="'$(OS)' != 'Windows_NT'">
-        <RunCommand>func</RunCommand>
-        <RunArguments>start $(RunArguments)</RunArguments>
-        <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
+      <RunCommand>func</RunCommand>
+      <RunArguments>start $(RunArguments)</RunArguments>
+      <RunWorkingDirectory>$(OutDir)</RunWorkingDirectory>
     </PropertyGroup>
+  </Target>
+
+  <Target Name="_GenerateWorkerConfig" Condition="'$(NoBuild)' != 'true' AND '$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="_PrepareWorkerConfig;_CoreGenerateWorkerConfig"
+    BeforeTargets="GetCopyToOutputDirectoryItems;GetCopyToPublishDirectoryItems" />
+
+  <Target Name="_PrepareWorkerConfig" Condition="'$(DesignTimeBuild)' != 'true'"
+    DependsOnTargets="_ResolveFunctionExecutable;_PreGenerateWorkerConfig"
+    BeforeTargets="GetCopyToOutputDirectoryItems;GetCopyToPublishDirectoryItems" />
+
+  <Target Name="_ResolveFunctionExecutable" Returns="$(_FunctionsExecutable)">
+    <PropertyGroup>
+      <_FunctionsExecutable>dotnet</_FunctionsExecutable>
+      <!-- If self-contained, get the name of the .exe to run. This also covers PublishAot scenarios. -->
+      <_FunctionsExecutable Condition="'$(SelfContained)' == 'true'">{WorkerRoot}$(AssemblyName)$(_NativeExecutableExtension)</_FunctionsExecutable>
+      <_FunctionsExecutable Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">{WorkerRoot}$(TargetName)$(TargetExt)</_FunctionsExecutable>
+    </PropertyGroup>
+  </Target>
+
+  <Target Name="_PreGenerateWorkerConfig" Returns="@(_WorkerConfig)">
+    <PropertyGroup>
+      <_WorkerConfigFileName>worker.config.json</_WorkerConfigFileName>
+      <_WorkerConfigOutputPath>$(IntermediateOutputPath)$(_WorkerConfigFileName)</_WorkerConfigOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_WorkerConfig Include="$(_WorkerConfigOutputPath)" TargetPath="$(_WorkerConfigFileName)" />
+      <ContentWithTargetPath Include="@(_WorkerConfig)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_CoreGenerateWorkerConfig" Inputs="@(IntermediateAssembly)" Outputs="$(_WorkerConfigOutputPath)">
+    <GenerateWorkerConfig Executable="$(_FunctionsExecutable)" EntryPoint="$(TargetFileName)" OutputPath="$(_WorkerConfigOutputPath)" />
   </Target>
 
 </Project>

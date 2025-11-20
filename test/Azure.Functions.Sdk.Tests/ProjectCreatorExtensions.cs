@@ -30,6 +30,19 @@ internal static class ProjectCreatorExtensions
         return DefaultGlobalProperties.SetItems(overrides);
     }
 
+    private static string NormalizeSeparators(string path)
+    {
+        // MSBuild uses backslashes even on non-Windows platforms. Normalize to the current platform.
+        if (OperatingSystem.IsWindows())
+        {
+            return path.Replace(Path.AltDirectorySeparatorChar, Path.DirectorySeparatorChar);
+        }
+        else
+        {
+            return path.Replace('\\', Path.DirectorySeparatorChar);
+        }
+    }
+
     extension(ProjectCreatorTemplates _)
     {
         public ProjectCreator AzureFunctionsProject(
@@ -84,6 +97,35 @@ internal static class ProjectCreatorExtensions
                 : Path.Combine(Path.GetDirectoryName(project.RootElement.FullPath)!, filePath);
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, text.ToString());
+            return project;
+        }
+
+        public string GetOutputPath(string? subPath = null)
+        {
+            project.TryGetPropertyValue("OutputPath", out string? outputPath);
+            outputPath = NormalizeSeparators(outputPath!);
+            string root = Path.GetDirectoryName(project.FullPath)!;
+            return Path.Combine(root, outputPath, subPath ?? string.Empty);
+        }
+
+        public string GetIntermediateOutputPath(string? subPath = null)
+        {
+            project.TryGetPropertyValue("IntermediateOutputPath", out string? intermediateOutputPath);
+            intermediateOutputPath = NormalizeSeparators(intermediateOutputPath!);
+            string root = Path.GetDirectoryName(project.FullPath)!;
+            return Path.Combine(root, intermediateOutputPath, subPath ?? string.Empty);
+        }
+
+        public string GetRelativeIntermediateOutputPath(string? subPath = null)
+        {
+            project.TryGetPropertyValue("IntermediateOutputPath", out string? intermediateOutputPath);
+            intermediateOutputPath = NormalizeSeparators(intermediateOutputPath!);
+            return Path.Combine(intermediateOutputPath, subPath ?? string.Empty);
+        }
+
+        public ProjectCreator CreateIntermediateOutputPath(string? subPath = null)
+        {
+            Directory.CreateDirectory(project.GetIntermediateOutputPath(subPath));
             return project;
         }
 

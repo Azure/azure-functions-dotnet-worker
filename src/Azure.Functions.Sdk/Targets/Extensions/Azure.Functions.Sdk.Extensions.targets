@@ -25,14 +25,15 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     DependsOnTargets="CollectExtensionPackages;WriteExtensionProject;RestoreExtensionProject"
     AfterTargets="Restore" />
 
-  <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">
+  <Target Name="CollectExtensionPackages" DependsOnTargets="Restore"
+    Returns="@(_AzureFunctionPackageReference)">
     <ResolveExtensionPackages ProjectAssetsFile="$(ProjectAssetsFile)">
       <Output TaskParameter="ExtensionPackages" ItemName="_AzureFunctionPackageReference" />
     </ResolveExtensionPackages>
   </Target>
 
   <!-- The WriteExtensionProject task will perform its own incremental build checks. -->
-  <Target Name="WriteExtensionProject">
+  <Target Name="WriteExtensionProject" DependsOnTargets="CollectExtensionPackages">
     <ValidateExtensionPackages ExtensionPackages="@(_AzureFunctionPackageReference)">
       <Output TaskParameter="FilteredPackages" ItemName="_ValidatedAzureFunctionPackageReference" />
     </ValidateExtensionPackages>
@@ -41,7 +42,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       HashFilePath="$(_FunctionsPackageHashPath)" />
   </Target>
 
-  <Target Name="RestoreExtensionProject">
+  <Target Name="RestoreExtensionProject" DependsOnTargets="WriteExtensionProject">
     <MSBuild Projects="$(_AzureFunctionsExtensionProjectPath)" Targets="Restore"
       RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources)" />
   </Target>

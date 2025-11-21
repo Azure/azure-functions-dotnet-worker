@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk;
@@ -39,18 +40,25 @@ public static class TaskItemExtensions
             get => taskItem.GetMetadata("SourcePackageId") ?? string.Empty;
             set => taskItem.SetMetadata("SourcePackageId", value);
         }
-    }
 
-    /// <summary>
-    /// Gets the "NuGetPackageId" metadata from the task item.
-    /// </summary>
-    /// <param name="taskItem">The task item.</param>
-    /// <param name="packageId">The package ID, if found.</param>
-    /// <returns><c>true</c> if "NuGetPackageId" is found, <c>false</c> if not found.</returns>
-    public static bool TryGetNuGetPackageId(
-        this ITaskItem taskItem, [NotNullWhen(true)] out string? packageId)
-    {
-        packageId = taskItem.GetMetadata("NuGetPackageId");
-        return !string.IsNullOrEmpty(packageId);
+        /// <summary>
+        /// Gets or sets the "NuGetPackageId" metadata on the task item.
+        /// </summary>
+        public string NuGetPackageId
+        {
+            get => taskItem.GetMetadata("NuGetPackageId") ?? string.Empty;
+            set => taskItem.SetMetadata("NuGetPackageId", value);
+        }
+
+        /// <summary>
+        /// Tries to get the NuGet package ID from the task item.
+        /// </summary>
+        /// <param name="packageId">The package ID, if found.</param>
+        /// <returns><c>true</c> if nuget package ID is found; <c>false</c> otherwise.</returns>
+        public bool TryGetNuGetPackageId([NotNullWhen(true)] out string? packageId)
+        {
+            packageId = taskItem.NuGetPackageId;
+            return !string.IsNullOrEmpty(packageId);
+        }
     }
 }

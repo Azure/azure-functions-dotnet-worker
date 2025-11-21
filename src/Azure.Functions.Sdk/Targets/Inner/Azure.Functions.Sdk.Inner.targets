@@ -11,6 +11,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
 <Project>
 
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Inner.ResolveExtensionCopyLocal" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
 
   <!--
@@ -22,19 +24,18 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </Target>
 
   <Target Name="ResolveFunctionsExtensionFiles"
-    DependsOnTargets="_ResolveUsedExtensionPackages;ResolveReferences;GenerateBuildDependencyFile;GetCopyToOutputDirectoryItems"
+    DependsOnTargets="ResolveReferences;GenerateBuildDependencyFile;GetCopyToOutputDirectoryItems"
     Returns="@(FunctionsExtensionFiles)">
-    <ResolveExtensionCopyLocal RuntimeAssemblies="@(_FunctionsRuntimeAssembly)" RuntimePackages="@(_FunctionsRuntimePackage)"
-      CopyLocalFiles="@(ReferenceCopyLocalPaths)">
+    <ResolveExtensionCopyLocal RuntimeAssemblies="@(_FunctionsRuntimeAssembly)" RuntimePackages="@(_FunctionsRuntimePackage)" CopyLocalFiles="@(ReferenceCopyLocalPaths)">
       <Output TaskParameter="ExtensionsCopyLocal" ItemName="FunctionsExtensionFiles" />
     </ResolveExtensionCopyLocal>
 
     <ItemGroup>
       <FunctionsExtensionFiles Include="@(AllItemsFullPathWithTargetPath)">
-        <TargetPath>.azurefunctions/%(AllItemsFullPathWithTargetPath.TargetPath)</TargetPath>
+        <TargetPath>$([System.IO.Path]::Combine(.azurefunctions, %(AllItemsFullPathWithTargetPath.TargetPath)))</TargetPath>
       </FunctionsExtensionFiles>
       <FunctionsExtensionFiles Include="$(ProjectDepsFilePath)">
-        <TargetPath>.azurefunctions/function.deps.json</TargetPath>
+        <TargetPath>$([System.IO.Path]::Combine(.azurefunctions, function.deps.json))</TargetPath>
       </FunctionsExtensionFiles>
     </ItemGroup>
   </Target>

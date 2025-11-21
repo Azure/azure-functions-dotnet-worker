@@ -3,13 +3,16 @@
 
 using System.Xml;
 using Microsoft.Build.Utilities.ProjectCreation;
+using NuGet.ProjectModel;
 
 namespace Azure.Functions.Sdk.Tests.Integration;
 
 public partial class SdkEndToEndTests : MSBuildSdkTestBase
 {
-    private string GeneratedProjectPath => TestRootPath + "/obj/azure_functions/azure_functions.g.csproj";
-    private string GeneratedHashPath => TestRootPath + "/obj/azure_functions/azure_functions.package.hash";
+    private string GeneratedProjectDirectory => TestRootPath + "/obj/azure_functions";
+    private string GeneratedProjectPath => GeneratedProjectDirectory + "/azure_functions.g.csproj";
+    private string GeneratedHashPath => GeneratedProjectDirectory + "/azure_functions.package.hash";
+    private string GeneratedProjectLockFile => GeneratedProjectDirectory + "/obj/project.assets.json";
 
     [Fact]
     public void Restore_Success()
@@ -110,6 +113,12 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
     private void ValidateProject(params NugetPackage[] packages)
     {
+        ValidateProjectContents(packages);
+        ValidateProjectRestored();
+    }
+
+    private void ValidateProjectContents(params NugetPackage[] packages)
+    {
         FileInfo hashFile = new(GeneratedHashPath);
         hashFile.Exists.Should().BeTrue();
 
@@ -135,5 +144,11 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             node.Should().HaveAttribute("Version", packages[i].Version);
             i++;
         }
+    }
+
+    private void ValidateProjectRestored()
+    {
+        Action read = () => LockFile.Read(GeneratedProjectLockFile);
+        read.Should().NotThrow();
     }
 }

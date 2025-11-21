@@ -1,0 +1,24 @@
+<!--
+***********************************************************************************************
+Azure.Functions.Sdk.Inner.targets
+
+WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and have
+          created a backup copy.  Incorrect changes to this file will make it
+          impossible to load or build your projects from the command-line or the IDE.
+
+***********************************************************************************************
+-->
+
+<Project>
+
+  <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.targets" />
+
+  <!--
+    This target is a safeguard to ensure that the target framework is not overridden by a global property.
+    This projects TFM is intended to match the Azure Functions Host TFM, and NOT the TFM of the csproj which generated this file.
+  -->
+  <Target Name="_VerifyTargetFramework" BeforeTargets="Restore;Build">
+    <Error Condition="'$(TargetFramework)' != 'net8.0'" Text="The target framework '$(TargetFramework)' must be 'net8.0'. Verify if target framework has been overridden by a global property." />
+  </Target>
+
+</Project>

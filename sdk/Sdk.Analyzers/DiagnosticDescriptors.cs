@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
 {
-    internal class DiagnosticDescriptors
+    internal static class DiagnosticDescriptors
     {
         private static DiagnosticDescriptor Create(string id, string title,string messageFormat, string category, DiagnosticSeverity severity)
         {
@@ -32,5 +32,9 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Analyzers
         public static DiagnosticDescriptor IterableBindingTypeExpectedForBlobContainer { get; }
             = Create(id: "AZFW0011", title: "Invalid binding type", messageFormat: "The binding type '{0}' must be iterable for container path.",
                 category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Error);
+        
+        public static DiagnosticDescriptor LocalSettingsJsonNotAllowedAsConfiguration { get; }
+            = Create(id: "AZFW0017", title: "local.settings.json should not be used as a configuration file", messageFormat: "There is no need to use local.settings.json as a configuration file. During development, it's automatically loaded by Functions Core Tools; in production scenarios, configuration should be handled via App Settings in Azure.",
+                category: Constants.DiagnosticsCategories.Usage, severity: DiagnosticSeverity.Warning);
     }
 }

@@ -20,8 +20,8 @@ jobs:
     image: $(imageName)
     os: $(osName)
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
-        demands:
-        - Priority -equals Low
+      demands:
+      - Priority -equals Low
 
   steps:
 

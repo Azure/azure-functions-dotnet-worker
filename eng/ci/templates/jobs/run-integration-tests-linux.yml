@@ -11,8 +11,8 @@ jobs:
     image: 1es-ubuntu-22.04
     os: linux
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
-        demands:
-        - Priority -equals Low
+      demands:
+      - Priority -equals Low
 
   steps:
 

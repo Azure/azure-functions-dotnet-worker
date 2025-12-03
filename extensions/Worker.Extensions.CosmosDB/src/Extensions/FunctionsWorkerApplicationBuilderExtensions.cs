@@ -33,8 +33,7 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.AddOptions<CosmosDBExtensionOptions>()
                 .PostConfigure<IOptions<WorkerOptions>>((cosmos, worker) =>
                 {
-                    cosmos.Serializer ??= worker.Value.Serializer;
-                    ObjectSerializer? serializer = cosmos.Serializer;
+                    ObjectSerializer? serializer = cosmos.Serializer ?? worker.Value.Serializer;
                     if (serializer is not null && cosmos.ClientOptions.Serializer is null)
                     {
                         cosmos.ClientOptions.Serializer = new WorkerCosmosSerializer(serializer);
@@ -57,6 +56,22 @@ namespace Microsoft.Azure.Functions.Worker
             this IFunctionsWorkerApplicationBuilder builder, Action<CosmosDBExtensionOptions> options)
         {
             builder.Services.Configure(options);
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the CosmosDBExtensionOptions for the Functions Worker Cosmos extension.
+        /// </summary>
+        /// <param name="builder">The IFunctionsWorkerApplicationBuilder to add the configuration to.</param>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder UseCosmosDBWorkerSerializer(this IFunctionsWorkerApplicationBuilder builder)
+        {
+            builder.Services.AddOptions<CosmosDBExtensionOptions>()
+                .Configure<IOptions<WorkerOptions>>((cosmos, worker) =>
+                {
+                    cosmos.Serializer ??= worker.Value.Serializer;
+                });
+
             return builder;
         }
     }

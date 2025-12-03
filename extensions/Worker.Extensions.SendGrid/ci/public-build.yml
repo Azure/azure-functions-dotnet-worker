@@ -11,7 +11,7 @@ trigger:
     include:
     - eng/
     - extensions/Worker.Extensions.SendGrid/
-    - test/Worker.Extensions.Tests/
+    - test/extensions/Worker.Extensions.Tests/
 
 pr:
   branches:
@@ -23,7 +23,7 @@ pr:
     include:
     - eng/
     - extensions/Worker.Extensions.SendGrid/
-    - test/Worker.Extensions.Tests/
+    - test/extensions/Worker.Extensions.Tests/
 
 resources:
   repositories:
@@ -44,6 +44,9 @@ extends:
       name: 1es-pool-azfunc-public
       image: 1es-windows-2022
       os: windows
+      ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
+        demands:
+        - Priority -equals Low
     sdl:
       sourceAnalysisPool:
         name: 1es-pool-azfunc-public

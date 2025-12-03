@@ -16,8 +16,6 @@
     <FileVersion  Condition="$(FileVersion) == ''">$(AssemblyVersion)</FileVersion>
     <LangVersion>preview</LangVersion>
     <Nullable Condition="$(Nullable) == ''">enable</Nullable>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>$(MSBuildThisFileDirectory)/../key.snk</AssemblyOriginatorKeyFile>
     <DebugType>embedded</DebugType>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true</ContinuousIntegrationBuild>

@@ -1,13 +1,16 @@
 <Project>
 
   <PropertyGroup>
-    <!-- TODO: remove when updating away from .NET5.0 -->
-    <SuppressTfmSupportBuildWarnings Condition="'$(TargetFramework)' == 'net5.0'">true</SuppressTfmSupportBuildWarnings>
+    <!-- We still include the net6.0/net7.0 TFMs to avoid breaking changes for customers. -->
+    <SuppressTfmSupportBuildWarnings>true</SuppressTfmSupportBuildWarnings>
   </PropertyGroup>
 
   <PropertyGroup>
     <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
     <EngRoot>$(RepoRoot)eng/</EngRoot>
+    <ExtensionsRoot>$(RepoRoot)extensions/</ExtensionsRoot>
+    <SourceRoot>$(RepoRoot)src/</SourceRoot>
+    <TestRoot>$(RepoRoot)test/</TestRoot>
     <TargetsRoot>$(EngRoot)build/</TargetsRoot>
   </PropertyGroup>
 
@@ -15,6 +18,8 @@
     <ContinuousIntegrationBuild>false</ContinuousIntegrationBuild>
     <ContinuousIntegrationBuild Condition="'$(TF_BUILD)' == 'true'">true</ContinuousIntegrationBuild>
     <CI>$(ContinuousIntegrationBuild)</CI>
+    <AssemblyOriginatorKeyFile>$(RepoRoot)key.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
   </PropertyGroup>
 
   <PropertyGroup>

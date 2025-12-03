@@ -19,6 +19,9 @@ jobs:
     name: ${{ parameters.PoolName }}
     image: 1es-ubuntu-20.04
     os: linux
+    ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
+      demands:
+      - Priority -equals Low
 
   steps:
   - task: UseDotNet@2

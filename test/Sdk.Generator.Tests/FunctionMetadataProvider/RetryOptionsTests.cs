@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Reflection;
@@ -27,7 +27,6 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                 var diExtension = typeof(DefaultServiceProviderFactory).Assembly;
                 var hostingAbExtension = typeof(IHost).Assembly;
                 var diAbExtension = typeof(IServiceCollection).Assembly;
-                var cosmosDBExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.CosmosDB.dll");
                 var timerExtension = Assembly.LoadFrom("Microsoft.Azure.Functions.Worker.Extensions.Timer.dll");
 
 
@@ -39,8 +38,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionMetadataProvider.Tests
                     hostingAbExtension,
                     diExtension,
                     diAbExtension,
-                    timerExtension, 
-                    cosmosDBExtension
+                    timerExtension 
                 };
             }
 

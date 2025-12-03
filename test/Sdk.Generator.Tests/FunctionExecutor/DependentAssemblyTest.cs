@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Reflection;
@@ -79,9 +79,9 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
                                                private readonly Dictionary<string, Type> types = new Dictionary<string, Type>()
                                                {
                                                    { "MyCompany.MyHttpTriggers", Type.GetType("MyCompany.MyHttpTriggers, TestProject, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null") },
-                                                   { "DependentAssemblyWithFunctions.DependencyFunction", Type.GetType("DependentAssemblyWithFunctions.DependencyFunction, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null") },
-                                                   { "MyCompany.MyProduct.MyApp.HttpFunctions", Type.GetType("MyCompany.MyProduct.MyApp.HttpFunctions, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null") },
-                                                   { "MyCompany.MyProduct.MyApp.Foo.Bar", Type.GetType("MyCompany.MyProduct.MyApp.Foo.Bar, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null") }
+                                                   { "DependentAssemblyWithFunctions.DependencyFunction", Type.GetType("DependentAssemblyWithFunctions.DependencyFunction, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c") },
+                                                   { "MyCompany.MyProduct.MyApp.HttpFunctions", Type.GetType("MyCompany.MyProduct.MyApp.HttpFunctions, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c") },
+                                                   { "MyCompany.MyProduct.MyApp.Foo.Bar", Type.GetType("MyCompany.MyProduct.MyApp.Foo.Bar, DependentAssemblyWithFunctions, Version=1.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c") }
                                                };
                                        
                                                public DirectFunctionExecutor(global::Microsoft.Azure.Functions.Worker.IFunctionActivator functionActivator)
@@ -139,7 +139,7 @@ namespace Microsoft.Azure.Functions.Sdk.Generator.FunctionExecutor.Tests
                                        
                                                private global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor CreateDefaultExecutorInstance(global::Microsoft.Azure.Functions.Worker.FunctionContext context)
                                                {
-                                                   var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=2.0.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
+                                                   var defaultExecutorFullName = "Microsoft.Azure.Functions.Worker.Invocation.DefaultFunctionExecutor, Microsoft.Azure.Functions.Worker.Core, Version=2.51.0.0, Culture=neutral, PublicKeyToken=551316b6919f366c";
                                                    var defaultExecutorType = global::System.Type.GetType(defaultExecutorFullName);
 
                                                    return ActivatorUtilities.CreateInstance(context.InstanceServices, defaultExecutorType) as global::Microsoft.Azure.Functions.Worker.Invocation.IFunctionExecutor;

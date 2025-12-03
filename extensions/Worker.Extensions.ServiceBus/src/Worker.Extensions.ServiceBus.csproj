@@ -6,7 +6,7 @@
     <Description>Azure Service Bus extensions for .NET isolated functions</Description>
 
     <!--Version information-->
-    <VersionPrefix>5.23.0</VersionPrefix>
+    <VersionPrefix>5.24.0</VersionPrefix>
 
     <!--Temporarily opting out of documentation. Pending documentation-->
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
@@ -15,11 +15,11 @@
   <Import Project="..\..\..\build\Extensions.props" />
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.13.1" />
-    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.1" />
-    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.0" />
-    <PackageReference Include="Google.Protobuf" Version="3.27.1" />
-    <PackageReference Include="Grpc.Tools" Version="2.64.0" PrivateAssets="All" />
+    <PackageReference Include="Azure.Identity" Version="1.16.0" />
+    <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.1" />
+    <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.32.1" />
+    <PackageReference Include="Grpc.Tools" Version="2.72.0" PrivateAssets="All" />
   </ItemGroup>
 
   <ItemGroup>

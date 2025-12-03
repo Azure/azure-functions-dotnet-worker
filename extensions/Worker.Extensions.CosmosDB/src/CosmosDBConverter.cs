@@ -78,8 +78,7 @@ namespace Microsoft.Azure.Functions.Worker
             return bindingData.ContentType switch
             {
                 Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>()
-                    ?? throw new InvalidOperationException(
-                        "The binding data content could not be converted to a CosmosDBInputAttribute."),
+                    ?? throw new InvalidOperationException("CosmosDB binding data content could not be retrieved."),
                 _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }

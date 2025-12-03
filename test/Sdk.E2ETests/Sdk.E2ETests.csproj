@@ -4,8 +4,6 @@
     <TargetFramework>net8.0</TargetFramework>
     <AssemblyName>Microsoft.Azure.Functions.Sdk.E2ETests</AssemblyName>
     <RootNamespace>Microsoft.Azure.Functions.Sdk.E2ETests</RootNamespace>
-    <SignAssembly>true</SignAssembly>
-    <AssemblyOriginatorKeyFile>..\..\key.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -21,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.4" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.11.48" />
     <PackageReference Include="SharpZipLib" Version="1.4.2" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="xunit" Version="2.9.0" />
@@ -36,9 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="xunit.runner.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
+    <None Update="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

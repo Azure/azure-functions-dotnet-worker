@@ -26,8 +26,6 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 
         public string? ExtensionsCsProjFilePath { get; set; }
 
-        public bool WriteMetadataFile { get; set; } = true;
-
         [Required]
         public ITaskItem[]? ReferencePaths { get; set; }
 
@@ -69,18 +67,11 @@ namespace Microsoft.Azure.Functions.Worker.Sdk.Tasks
 
         private void WriteMetadataWithRetry(IEnumerable<SdkFunctionMetadata> functions)
         {
-            if (!WriteMetadataFile)
-            {
-                Log.LogMessage("Skipping writing function metadata file.");
-                return;
-            }
-
             int attempt = 0;
             while (attempt < 10)
             {
                 try
                 {
-                    Log.LogMessage($"Writing function metadata to {OutputPath} directory.");
                     FunctionMetadataJsonWriter.WriteMetadata(functions, OutputPath!);
                     break;
                 }

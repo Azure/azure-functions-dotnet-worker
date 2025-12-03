@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -10,13 +10,13 @@ using Microsoft.Azure.Functions.Worker.Configuration;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Converters;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Core.FunctionMetadata;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Invocation;
 using Microsoft.Azure.Functions.Worker.Logging;
 using Microsoft.Azure.Functions.Worker.OutputBindings;
 using Microsoft.Azure.Functions.Worker.Pipeline;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -71,6 +71,9 @@ namespace Microsoft.Extensions.DependencyInjection
             // Worker initialization service
             services.AddHostedService<WorkerHostedService>();
 
+            // Worker metadata management
+            services.TryAddSingleton<IFunctionMetadataManager, DefaultFunctionMetadataManager>();
+
             // Default serializer settings
             services.AddOptions();
             services.TryAddEnumerable(ServiceDescriptor.Transient<IPostConfigureOptions<WorkerOptions>, WorkerOptionsSetup>());
@@ -81,8 +84,7 @@ namespace Microsoft.Extensions.DependencyInjection
             services.TryAddSingleton<IUserLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.TryAddSingleton<ISystemLogWriter>(s => s.GetRequiredService<NullLogWriter>());
             services.TryAddSingleton<IUserMetricWriter>(s => s.GetRequiredService<NullLogWriter>());
-            services.TryAddSingleton<FunctionActivitySourceFactory>();
-
+            
             if (configure != null)
             {
                 services.Configure(configure);
@@ -111,6 +113,8 @@ namespace Microsoft.Extensions.DependencyInjection
                 RunExtensionStartupCode(builder);
             }
 
+            services.AddFunctionTelemetry();
+
             return builder;
         }
 
@@ -120,6 +124,29 @@ namespace Microsoft.Extensions.DependencyInjection
         internal static IServiceCollection AddDefaultInputConvertersToWorkerOptions(this IServiceCollection services)
         {
             services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<WorkerOptions>, DefaultInputConverterInitializer>());
+            return services;
+        }
+
+        /// <summary>
+        /// Adds function telemetry services to the specified <see cref="IServiceCollection"/>.
+        /// </summary>
+        /// <remarks>This method registers a singleton <see cref="IFunctionTelemetryProvider"/>
+        /// implementation based on the OpenTelemetry schema version specified in the worker options. The schema version is determined
+        /// from the "WorkerOpenTelemetrySchemaVersion" capability. If the schema version is unsupported, an <see
+        /// cref="InvalidOperationException"/> is thrown.</remarks>
+        /// <param name="services">The <see cref="IServiceCollection"/> to which the telemetry services are added.</param>
+        /// <returns>The modified <see cref="IServiceCollection"/> with telemetry services registered.</returns>
+        /// <exception cref="InvalidOperationException">Thrown if the specified OpenTelemetry schema version is unsupported.</exception>
+        internal static IServiceCollection AddFunctionTelemetry(this IServiceCollection services)
+        {
+            services.TryAddSingleton<IFunctionTelemetryProvider>(sp =>
+            {
+                WorkerOptions options = sp.GetRequiredService<IOptions<WorkerOptions>>().Value;
+
+                options.Capabilities.TryGetValue(TraceConstants.CapabilityFlags.WorkerOTelSchemaVersion, out var schemaVersion);
+                return TelemetryProvider.Create(schemaVersion);
+            });
+
             return services;
         }
 

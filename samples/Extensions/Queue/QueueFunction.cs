@@ -20,9 +20,9 @@ namespace SampleApp
 
         //<docsnippet_queue_output_binding>
         //<docsnippet_queue_trigger>
-        [Function(nameof(QueueFunction))]
+        [Function(nameof(QueueInputOutputFunction))]
         [QueueOutput("output-queue")]
-        public string[] Run([QueueTrigger("input-queue")] Album myQueueItem, FunctionContext context)
+        public string[] QueueInputOutputFunction([QueueTrigger("input-queue")] Album myQueueItem, FunctionContext context)
         //</docsnippet_queue_trigger>
         {
             // Use a string array to return more than one message.

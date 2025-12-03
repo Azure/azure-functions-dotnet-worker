@@ -1,4 +1,7 @@
-﻿using Xunit;
+﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using Xunit;
 using AnalyzerTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using AnalyzerVerifier = Microsoft.CodeAnalysis.CSharp.Testing.CSharpAnalyzerVerifier<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;
 using CodeFixTest = Microsoft.CodeAnalysis.CSharp.Testing.CSharpCodeFixTest<Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidAnalyzer, Microsoft.Azure.Functions.Worker.Sdk.Analyzers.AsyncVoidCodeFixProvider, Microsoft.CodeAnalysis.Testing.DefaultVerifier>;

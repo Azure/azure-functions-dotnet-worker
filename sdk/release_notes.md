@@ -4,10 +4,9 @@
 - My change description (#PR/#issue)
 -->
 
-### Microsoft.Azure.Functions.Worker.Sdk <version>
+### Microsoft.Azure.Functions.Worker.Sdk 2.0.7
 
-- Build no longer generates `functions.metadata` if source-generated metadata provider is enabled. (#2974)
-- Fixing `dotnet run` to work on Windows when core tools is installed from NPM (#3127)
+- Reversal of change to suppress generation of functions.metadata file
 
 ### Microsoft.Azure.Functions.Worker.Sdk.Generators <version>
 

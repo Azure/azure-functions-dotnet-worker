@@ -37,10 +37,10 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             await TestUtility.RetryAsync(() =>
             {
                 invocationStartLog = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executing 'Functions.{functionName}'"));
-                return Task.FromResult(invocationStartLog.Any());
+                return Task.FromResult(invocationStartLog.Count() >= 1);
             });
 
-            // The task should be cancelled before it completes, mimicking a client closing the connection.
+            // The task should be cancelled before it completes, mimicing a client closing the connection.
             // This should lead to the worker getting an InvocationCancel request from the functions host
             cts.Cancel();
             await Assert.ThrowsAsync<TaskCanceledException>(async () => await task);
@@ -49,7 +49,7 @@ namespace Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore
             await TestUtility.RetryAsync(() =>
             {
                 invocationEndLog = _fixture.TestLogs.CoreToolsLogs.Where(p => p.Contains($"Executed 'Functions.{functionName}'"));
-                return Task.FromResult(invocationEndLog.Any());
+                return Task.FromResult(invocationEndLog.Count() >= 1);
             });
 
             Assert.Contains(_fixture.TestLogs.CoreToolsLogs, log => log.Contains(expectedMessage, StringComparison.OrdinalIgnoreCase));

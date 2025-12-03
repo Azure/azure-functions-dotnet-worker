@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
@@ -17,7 +17,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
         private const string HostJsonFileName = "host.json";
         private const string DefaultRoutePrefix = "api";
 
-        private readonly IFunctionMetadataProvider _functionMetadataProvider;
+        private readonly IFunctionMetadataManager _functionMetadataManager;
         private readonly object _lock = new();
 
         private static readonly JsonSerializerOptions _jsonSerializerOptions = new()
@@ -30,9 +30,9 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
 
         private List<Endpoint>? _endpoints;
 
-        public FunctionsEndpointDataSource(IFunctionMetadataProvider functionMetadataProvider)
+        public FunctionsEndpointDataSource(IFunctionMetadataManager functionMetadataManager)
         {
-            _functionMetadataProvider = functionMetadataProvider ?? throw new ArgumentNullException(nameof(functionMetadataProvider));
+            _functionMetadataManager = functionMetadataManager ?? throw new ArgumentNullException(nameof(functionMetadataManager));
         }
 
         public override IReadOnlyList<Endpoint> Endpoints
@@ -58,7 +58,7 @@ namespace Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore.AspNetMidd
             string scriptRoot = Environment.GetEnvironmentVariable(FunctionsApplicationDirectoryKey) ??
                            throw new InvalidOperationException("Cannot determine script root directory.");
 
-            var metadata = _functionMetadataProvider.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
+            var metadata = _functionMetadataManager.GetFunctionMetadataAsync(scriptRoot).GetAwaiter().GetResult();
 
             string routePrefix = GetRoutePrefixFromHostJson(scriptRoot) ?? DefaultRoutePrefix;
 

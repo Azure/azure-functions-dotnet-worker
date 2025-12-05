@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -62,6 +62,8 @@ public class ApplicationInsightsConfigurationTests
 
         builder.Build();
         Assert.Contains(typeof(FunctionsTelemetryInitializer), initializers);
+        Assert.Equal(6, initializers.Count());
         Assert.Contains(typeof(FunctionsTelemetryModule), modules);
+        Assert.Equal(8, modules.Count());
     }
 }

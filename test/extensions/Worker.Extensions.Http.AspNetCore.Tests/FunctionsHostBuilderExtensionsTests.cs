@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using Microsoft.Azure.Functions.Worker;
@@ -56,6 +56,44 @@ namespace Worker.Extensions.Http.AspNetCore.Tests
             Assert.Equal(expectedConfigValue, actualConfigValue);
             VerifyRegistrationOfCustomMiddleware(host);
             VerifyRegistrationOfAspNetCoreIntegrationServices(host);
+        }
+
+        [Fact]
+        public void ConfigureFunctionsWebApplication_CalledTwice_ShouldBeIdempotent()
+        {
+            var builder = new HostBuilder();
+
+            int callbackCount = 0;
+
+            // Call ConfigureFunctionsWebApplication twice but should call callbacks each time
+            builder.ConfigureFunctionsWebApplication((_, _) => callbackCount++);
+            builder.ConfigureFunctionsWebApplication((_, _) => callbackCount++);
+
+            IServiceCollection serviceCollection = default!;
+            builder.ConfigureServices(services =>
+            {
+                serviceCollection = services;
+            });
+
+            var host = builder.Build();
+
+            // Verify services are registered
+            VerifyRegistrationOfAspNetCoreIntegrationServices(host);
+
+            Assert.Equal(2, callbackCount);
+
+            ValidateSingleServiceType(serviceCollection, typeof(FunctionsHttpProxyingMiddleware));
+            ValidateSingleServiceType(serviceCollection, typeof(IHttpCoordinator));
+            ValidateSingleServiceType(serviceCollection, typeof(FunctionsEndpointDataSource));
+
+            static void ValidateSingleServiceType(IServiceCollection services, Type type)
+            {
+                Assert.NotNull(services);
+                var coordinatorDescriptors = services
+                    .Where(d => d.ServiceType == type)
+                    .ToList();
+                Assert.Single(coordinatorDescriptors);
+            }
         }
 
         private static void VerifyRegistrationOfCustomMiddleware(IHost host)

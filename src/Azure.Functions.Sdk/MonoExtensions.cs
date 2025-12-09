@@ -29,4 +29,42 @@ public static class MonoExtensions
             second = (TSecond)attribute.ConstructorArguments[1].Value;
         }
     }
+
+    /// <summary>
+    /// Walks the inheritance chain of the type and checks if any type in the chain matches the provided check.
+    /// </summary>
+    /// <param name="type">The type reference to check.</param>
+    /// <param name="check">The predicate to check with.</param>
+    /// <returns>
+    /// <c>true</c> if <paramref name="check"/> succeeds on any type in the inheritance chain, <c>false</c> otherwise.
+    /// </returns>
+    public static bool CheckTypeInheritance(this TypeReference type, Func<TypeReference, bool> check)
+    {
+        Throw.IfNull(type);
+        Throw.IfNull(check);
+
+        TypeReference? currentType = type;
+        while (currentType != null)
+        {
+            if (check(currentType))
+            {
+                return true;
+            }
+
+            currentType = currentType.Resolve()?.BaseType;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Gets the full name of the type reference suitable for reflection use.
+    /// </summary>
+    /// <param name="type">The type reference.</param>
+    /// <returns>The formatted name of the type.</returns>
+    public static string GetReflectionFullName(this TypeReference type)
+    {
+        Throw.IfNull(type);
+        return type.FullName.Replace("/", "+");
+    }
 }

@@ -183,7 +183,25 @@
   <data name="ExtensionProject_HashUpToDate" xml:space="preserve">
     <value>Existing hash '{0}' matches current hash. No changes detected, skipping project generation.</value>
   </data>
+  <data name="ExtensionMetadata_DoesNotExist" xml:space="preserve">
+    <value>Hash file does not exist or extension metadata file does not exist. Regenerating extension metadata.</value>
+  </data>
+  <data name="ExtensionMetadata_FinishedGenerating" xml:space="preserve">
+    <value>Finished generating extension metadata. Updated cache file with hash '{0}'.</value>
+  </data>
+  <data name="ExtensionMetadata_HashOutOfDate" xml:space="preserve">
+    <value>Existing hash '{0}' does not match current hash '{1}'. Regenerating extension metadata.</value>
+  </data>
+  <data name="ExtensionMetadata_HashUpToDate" xml:space="preserve">
+    <value>Existing hash '{0}' matches current hash. No changes detected, skipping extension metadata generation.</value>
+  </data>
+  <data name="ExtensionMetadata_ScanningError" xml:space="preserve">
+    <value>Error scanning assembly '{0}'.</value>
+  </data>
   <data name="MissingProjectAssetsFile" xml:space="preserve">
     <value>Assets file '{0}' does not exist. Please ensure restore successfully ran.</value>
+  </data>
+  <data name="ExtensionMetadata_SkippingExcludedAssembly" xml:space="preserve">
+    <value>Skipping extension assembly '{0}' as it is explicitly excluded.</value>
   </data>
 </root>

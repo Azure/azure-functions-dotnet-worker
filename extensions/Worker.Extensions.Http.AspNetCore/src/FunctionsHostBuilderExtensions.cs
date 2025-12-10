@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -18,6 +18,8 @@ namespace Microsoft.Extensions.Hosting
     /// </summary>
     public static class FunctionsHostBuilderExtensions
     {
+        private const string AspNetCoreIntegrationConfiguredKey = "__FunctionsAspNetCoreConfigured";
+
         /// <summary>
         /// Configures the worker to use the ASP.NET Core integration, enabling advanced HTTP features.
         /// </summary>
@@ -63,6 +65,16 @@ namespace Microsoft.Extensions.Hosting
 
         internal static IHostBuilder ConfigureAspNetCoreIntegration(this IHostBuilder builder)
         {
+            if (builder.Properties.TryGetValue(AspNetCoreIntegrationConfiguredKey, out var alreadyConfiguredObj) &&
+                alreadyConfiguredObj is bool alreadyConfigured &&
+                alreadyConfigured)
+            {
+                // Already configured, don't do it twice
+                return builder;
+            }
+
+            builder.Properties[AspNetCoreIntegrationConfiguredKey] = true;
+
             builder.ConfigureServices(services =>
             {
                 services.AddSingleton<FunctionsEndpointDataSource>();

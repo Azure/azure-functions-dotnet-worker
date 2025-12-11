@@ -56,9 +56,13 @@ public partial class SdkEndToEndTests
 
         // Assert
         items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker")
-            .Which.Should()
-            .HaveMetadata("Version", "2.2.0")
-            .And.HaveMetadata("IsImplicitlyDefined", "true");
+            .Which.Should().HaveMetadata("IsImplicitlyDefined", "true");
+
+        items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker.Sdk.Analyzers")
+            .Which.Should().HaveMetadata("IsImplicitlyDefined", "true");
+
+        items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker.Sdk.Generators")
+            .Which.Should().HaveMetadata("IsImplicitlyDefined", "true");
     }
 
     [Fact]

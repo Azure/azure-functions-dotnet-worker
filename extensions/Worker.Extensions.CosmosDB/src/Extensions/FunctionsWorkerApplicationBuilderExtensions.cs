@@ -2,7 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
-using Microsoft.Azure.Cosmos;
+using Azure.Core.Serialization;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -20,25 +20,28 @@ namespace Microsoft.Azure.Functions.Worker
         /// </summary>
         /// <param name="builder">The <see cref="IFunctionsWorkerApplicationBuilder"/> to configure.</param>
         /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
-        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtension(this IFunctionsWorkerApplicationBuilder builder)
+        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtension(
+            this IFunctionsWorkerApplicationBuilder builder)
         {
             if (builder is null)
             {
-                throw new System.ArgumentNullException(nameof(builder));
+                throw new ArgumentNullException(nameof(builder));
             }
 
             builder.Services.AddAzureClientsCore(); // Adds AzureComponentFactory
             builder.Services.AddOptions<CosmosDBBindingOptions>();
             builder.Services.AddOptions<CosmosDBExtensionOptions>()
-                            .Configure<IOptions<WorkerOptions>>((cosmos, worker) =>
-                            {
-                                if (cosmos.ClientOptions.Serializer is null)
-                                {
-                                    cosmos.ClientOptions.Serializer = new WorkerCosmosSerializer(worker.Value.Serializer);
-                                }
-                            });
+                .PostConfigure<IOptions<WorkerOptions>>((cosmos, worker) =>
+                {
+                    ObjectSerializer? serializer = cosmos.Serializer ?? worker.Value.Serializer;
+                    if (serializer is not null && cosmos.ClientOptions.Serializer is null)
+                    {
+                        cosmos.ClientOptions.Serializer = new WorkerCosmosSerializer(serializer);
+                    }
+                });
 
-            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IConfigureOptions<CosmosDBBindingOptions>, CosmosDBBindingOptionsSetup>());
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<
+                IConfigureOptions<CosmosDBBindingOptions>, CosmosDBBindingOptionsSetup>());
 
             return builder;
         }
@@ -49,9 +52,26 @@ namespace Microsoft.Azure.Functions.Worker
         /// <param name="builder">The IFunctionsWorkerApplicationBuilder to add the configuration to.</param>
         /// <param name="options">An Action to configure the CosmosDBExtensionOptions.</param>
         /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
-        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtensionOptions(this IFunctionsWorkerApplicationBuilder builder, Action<CosmosDBExtensionOptions> options)
+        public static IFunctionsWorkerApplicationBuilder ConfigureCosmosDBExtensionOptions(
+            this IFunctionsWorkerApplicationBuilder builder, Action<CosmosDBExtensionOptions> options)
         {
             builder.Services.Configure(options);
+            return builder;
+        }
+
+        /// <summary>
+        /// Configures the CosmosDBExtensionOptions for the Functions Worker Cosmos extension.
+        /// </summary>
+        /// <param name="builder">The IFunctionsWorkerApplicationBuilder to add the configuration to.</param>
+        /// <returns>The same instance of the <see cref="IFunctionsWorkerApplicationBuilder"/> for chaining.</returns>
+        public static IFunctionsWorkerApplicationBuilder UseCosmosDBWorkerSerializer(this IFunctionsWorkerApplicationBuilder builder)
+        {
+            builder.Services.AddOptions<CosmosDBExtensionOptions>()
+                .Configure<IOptions<WorkerOptions>>((cosmos, worker) =>
+                {
+                    cosmos.Serializer ??= worker.Value.Serializer;
+                });
+
             return builder;
         }
     }

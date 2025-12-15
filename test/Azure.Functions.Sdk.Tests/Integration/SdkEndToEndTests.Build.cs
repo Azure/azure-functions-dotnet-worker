@@ -161,9 +161,6 @@ public partial class SdkEndToEndTests
         string outputPath = project.GetOutputPath();
 
         string configPath = Path.Combine(outputPath, "worker.config.json");
-        ValidateConfig(configPath, "dotnet", "MyFunctionApp.dll");
-        ValidateExtensionsPayload(outputPath, "function.deps.json");
-        ValidateExtensionJson(outputPath, []);
 
         FileInfo config = new(configPath);
         DateTime configWriteTime = config.LastWriteTimeUtc;
@@ -178,6 +175,60 @@ public partial class SdkEndToEndTests
         BuildOutput output2 = project.Build();
 
         // Assert 2: Verify no changes were made
+        ValidateConfig(configPath, "dotnet", "MyFunctionApp.dll");
+        ValidateExtensionsPayload(outputPath, "function.deps.json");
+        ValidateExtensionJson(outputPath, []);
+
+        output2.Should().BeSuccessful().And.HaveNoIssues();
+        config.Refresh();
+        config.LastWriteTimeUtc.Should().Be(configWriteTime);
+
+        deps.Refresh();
+        deps.LastWriteTimeUtc.Should().Be(depsWriteTime);
+
+        extJson.Refresh();
+        extJson.LastWriteTimeUtc.Should().Be(extJsonWriteTime);
+    }
+
+    [Fact]
+    public void Build_Incremental_WithExtensions_NoOp()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        string outputPath = project.GetOutputPath();
+
+        string configPath = Path.Combine(outputPath, "worker.config.json");
+
+        FileInfo config = new(configPath);
+        DateTime configWriteTime = config.LastWriteTimeUtc;
+
+        FileInfo deps = new(Path.Combine(outputPath, "function.deps.json"));
+        DateTime depsWriteTime = deps.LastWriteTimeUtc;
+
+        FileInfo extJson = new(Path.Combine(outputPath, "extensions.json"));
+        DateTime extJsonWriteTime = extJson.LastWriteTimeUtc;
+
+        // Act 2: Incremental build
+        BuildOutput output2 = project.Build();
+
+        // Assert 2: Verify no changes were made
+        ValidateConfig(configPath, "dotnet", "MyFunctionApp.dll");
+        ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
+        ValidateExtensionJson(
+            outputPath,
+            [..NugetPackage.ServiceBus.WebJobsPackages, ..NugetPackage.Storage.WebJobsPackages]);
+
         output2.Should().BeSuccessful().And.HaveNoIssues();
         config.Refresh();
         config.LastWriteTimeUtc.Should().Be(configWriteTime);
@@ -215,7 +266,10 @@ public partial class SdkEndToEndTests
         foreach (WebJobsPackage pkg in expectedPackages)
         {
             metadata.Extensions.Should().ContainSingle(e =>
-                string.Equals(e.Name, pkg.ExtensionName, StringComparison.OrdinalIgnoreCase));
+                string.Equals(e.Name, pkg.ExtensionName, StringComparison.OrdinalIgnoreCase))
+                .Which.HintPath.Should().Be(
+                    $"./{Constants.ExtensionsOutputFolder}/{pkg.Name}.dll",
+                    "Hint path should point to correct location.");
         }
     }
 
@@ -228,6 +282,9 @@ public partial class SdkEndToEndTests
         {
             [JsonPropertyName("name")]
             public string Name { get; set; } = string.Empty;
+
+            [JsonPropertyName("hintPath")]
+            public string HintPath { get; set; } = string.Empty;
         }
     }
 }

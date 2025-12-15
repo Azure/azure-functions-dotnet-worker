@@ -43,7 +43,7 @@ public partial class WebJobsReference
             string assemblyQualifiedName = Assembly.CreateQualifiedName(
                 typeDef.Module.Assembly.FullName, typeDef.GetReflectionFullName());
             string fileName = Path.GetFileName(assembly.MainModule.FileName);
-            string hintPath = $@"{ExtensionsBinaryDirectoryPath}/{Path.GetFileName(fileName)}";
+            string hintPath = $@"{ExtensionsBinaryDirectoryPath}/{fileName}";
             yield return new WebJobsReference(name, assemblyQualifiedName, hintPath);
         }
     }

@@ -17,6 +17,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <AzureFunctionsTaskNamespace>Azure.Functions.Sdk.Tasks</AzureFunctionsTaskNamespace>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../targets/Azure.Functions.Sdk.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)../targets/Azure.Functions.Sdk.targets" Condition="'$(_IsExtensionProject)' != 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)../targets/inner/Azure.Functions.Sdk.Inner.targets" Condition="'$(_IsExtensionProject)' == 'true'" />
 
 </Project>

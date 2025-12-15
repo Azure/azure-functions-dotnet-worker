@@ -13,8 +13,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <PropertyGroup>
     <UsingAzureFunctionsSdk>true</UsingAzureFunctionsSdk>
+    <_AzureFunctionsExtensionProjectName>azure_functions.g.csproj</_AzureFunctionsExtensionProjectName>
+    <_IsExtensionProject Condition="'$(MSBuildProjectFile)' == '$(_AzureFunctionsExtensionProjectName)'">true</_IsExtensionProject>
   </PropertyGroup>
 
-  <Import Project="$(MSBuildThisFileDirectory)../targets/Azure.Functions.Sdk.props" />
+  <!-- We use the same SDK for the outer and inner build, but import an entirely different set of targets. -->
+  <Import Project="$(MSBuildThisFileDirectory)../targets/Azure.Functions.Sdk.props" Condition="'$(_IsExtensionProject)' != 'true'" />
+  <Import Project="$(MSBuildThisFileDirectory)../targets/inner/Azure.Functions.Sdk.Inner.props" Condition="'$(_IsExtensionProject)' == 'true'" />
 
 </Project>

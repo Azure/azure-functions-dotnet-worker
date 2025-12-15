@@ -14,7 +14,15 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <VersionPrefix>0.1.0</VersionPrefix>
     <PolySharpExcludeGeneratedTypes>System.Runtime.CompilerServices.ModuleInitializerAttribute;System.Diagnostics.CodeAnalysis.MaybeNullWhenAttribute</PolySharpExcludeGeneratedTypes>
+
+    <!-- For some reason Pack target doesn't get this to false when collecting build output and NoBuild=true. -->
+    <BuildProjectReferences Condition="'$(NoBuild)' == 'true'">false</BuildProjectReferences>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="$(RepoRoot)sdk/FunctionMetadataLoaderExtension/FunctionMetadataLoaderExtension.csproj"
+      ReferenceOutputAssembly="false" Pack="true" PackagePath="/tools/loader" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Bcl.HashCode" Version="6.0.0" />

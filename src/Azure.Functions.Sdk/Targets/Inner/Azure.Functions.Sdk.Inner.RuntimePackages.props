@@ -271,7 +271,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsRuntimeAssembly Include="WindowsBase.dll" />
   </ItemGroup>
 
-  <!-- The list of packages to exclude contain assemblies from extensions payload. -->
+  <!-- The list of packages whose assemblies should be excluded from extensions payload. -->
   <ItemGroup>
     <_FunctionsRuntimePackage Include="Microsoft.ApplicationInsights" />
     <_FunctionsRuntimePackage Include="Microsoft.AspNetCore" />

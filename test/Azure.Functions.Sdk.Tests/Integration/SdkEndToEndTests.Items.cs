@@ -8,6 +8,17 @@ namespace Azure.Functions.Sdk.Tests.Integration;
 
 public partial class SdkEndToEndTests
 {
+    private static readonly string[] CompilerVisiblePropertiesExpected =
+    [
+        "FunctionsEnableMetadataSourceGen",
+        "FunctionsAutoRegisterGeneratedMetadataProvider",
+        "FunctionsEnableExecutorSourceGen",
+        "FunctionsAutoRegisterGeneratedFunctionsExecutor",
+        "FunctionsGeneratedCodeNamespace",
+        "TargetFrameworkIdentifier",
+        "FunctionsExecutionModel",
+    ];
+
     [Fact]
     public void Item_LocalSettingsJson_ExpectedMetadata()
     {
@@ -45,7 +56,7 @@ public partial class SdkEndToEndTests
     }
 
     [Fact]
-    public void Item_WorkerPackage_IsIncluded()
+    public void Item_ImplicitPackages_AreIncluded()
     {
         // Arrange
         ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
@@ -56,9 +67,32 @@ public partial class SdkEndToEndTests
 
         // Assert
         items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker")
-            .Which.Should()
-            .HaveMetadata("Version", "2.2.0")
-            .And.HaveMetadata("IsImplicitlyDefined", "true");
+            .Which.Should().HaveMetadata("IsImplicitlyDefined", "true");
+
+        items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker.Sdk.Analyzers")
+            .Which.Should().HaveMetadata("IsImplicitlyDefined", "true")
+            .And.HaveMetadata("PrivateAssets", "all");
+
+        items.Should().ContainSingle(x => x.EvaluatedInclude == "Microsoft.Azure.Functions.Worker.Sdk.Generators")
+            .Which.Should().HaveMetadata("IsImplicitlyDefined", "true")
+            .And.HaveMetadata("PrivateAssets", "all");
+    }
+
+    [Fact]
+    public void Item_CompilerVisibleProperty_AreIncluded()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj());
+
+        // Act
+        project.TryGetItems("CompilerVisibleProperty", out IReadOnlyCollection<ProjectItem>? items);
+
+        // Assert
+        foreach (string expected in CompilerVisiblePropertiesExpected)
+        {
+            items.Should().ContainSingle(x => x.EvaluatedInclude == expected);
+        }
     }
 
     [Fact]

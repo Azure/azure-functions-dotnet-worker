@@ -12,9 +12,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <PropertyGroup>
-    <AzureFunctionsExtensionProjectName>azure_functions.g.csproj</AzureFunctionsExtensionProjectName>
-    <AzureFunctionsExtensionProjectDirectory Condition="'$(AzureFunctionsExtensionProjectDirectory)' == ''">$(BaseIntermediateOutputPath)azure_functions/</AzureFunctionsExtensionProjectDirectory>
-    <AzureFunctionsExtensionProjectPath Condition="'$(AzureFunctionsExtensionProjectPath)' == ''">$(AzureFunctionsExtensionProjectDirectory)$(AzureFunctionsExtensionProjectName)</AzureFunctionsExtensionProjectPath>
+    <_AzureFunctionsExtensionProjectDirectory>$(BaseIntermediateOutputPath)azure_functions/</_AzureFunctionsExtensionProjectDirectory>
+    <_AzureFunctionsExtensionProjectPath>$(_AzureFunctionsExtensionProjectDirectory)$(_AzureFunctionsExtensionProjectName)</_AzureFunctionsExtensionProjectPath>
+    <_AzureFunctionsExtensionRemoveProps>TargetFramework;RuntimeIdentifier;SelfContained;PublishSingleFile;PublishReadyToRun;UseCurrentRuntimeIdentifier;WebPublishMethod;PublishProfile;DeployOnBuild;PublishDir;OutDir;OutputPath;ManagePackageVersionsCentrally;</_AzureFunctionsExtensionRemoveProps>
   </PropertyGroup>
 
   <ItemDefinitionGroup>

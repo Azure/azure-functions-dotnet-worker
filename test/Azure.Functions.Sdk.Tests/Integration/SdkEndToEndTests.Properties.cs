@@ -58,4 +58,19 @@ public partial class SdkEndToEndTests
         // Assert
         toolingSuffix.Should().Be("netfx-isolated");
     }
+
+    [Fact]
+    public void Property_AnalyzerProperties_ArePresent()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj());
+
+        // Act & Assert
+        foreach (string property in CompilerVisiblePropertiesExpected)
+        {
+            project.TryGetPropertyValue(property, out string? value);
+            value.Should().NotBeNullOrEmpty($"Property '{property}' should have a value.");
+        }
+    }
 }

@@ -54,7 +54,7 @@ public abstract class MSBuildSdkTestBase : MSBuildTestBase, IDisposable
     }
 
     // Ensure this starts with a non-numeric character to be a valid csproj name.
-    protected string GetTempCsproj() => "azfunc.test." + _temp.GetRandomFile(ext: ".csproj");
+    protected string GetTempCsproj() => _temp.GetRandomCsproj();
 
     private static string GetArtifactsPath()
     {

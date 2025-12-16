@@ -156,7 +156,7 @@ public sealed class ResolveExtensionPackagesTests : IDisposable
     private string RestoreProject(Action<ProjectCreator>? configure = null)
     {
         ProjectCreator project = ProjectCreator.Templates.NetCoreProject(
-            path: _temp.GetRandomFile(ext: ".csproj"), targetFramework: "net8.0", configure: configure);
+            path: _temp.GetRandomCsproj(), targetFramework: "net8.0", configure: configure);
 
         project.Restore().Should().BeSuccessful(); // use assertion to throw on failure.
         project.TryGetPropertyValue("ProjectAssetsFile", out string? value);

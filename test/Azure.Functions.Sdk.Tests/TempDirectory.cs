@@ -15,6 +15,14 @@ internal sealed class TempDirectory : IDisposable
 
     public string Path { get; }
 
+    public string GetRandomCsproj()
+    {
+        // This will become RootNamespace. Ensure it is a valid root namespace. GetRandomFileName()
+        // can return invalid namespaces.
+        string name = "azfunc.test_" + IOPath.GetRandomFileName().Replace('.', '_') + ".csproj";
+        return IOPath.Combine(Path, name);
+    }
+
     public string GetRandomFile(string? ext = null)
     {
         string path = IOPath.Combine(Path, IOPath.GetRandomFileName());

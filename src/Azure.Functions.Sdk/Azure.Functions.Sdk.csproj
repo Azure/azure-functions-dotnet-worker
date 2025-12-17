@@ -21,7 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="$(RepoRoot)sdk/FunctionMetadataLoaderExtension/FunctionMetadataLoaderExtension.csproj"
-      ReferenceOutputAssembly="false" Pack="true" PackagePath="/tools/loader" />
+      ReferenceOutputAssembly="false" Pack="true" PackagePath="/tools/extensions" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,9 +44,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Build/**" Pack="true" CamelCasePath="true" PackagePath="build/" SdkFile="true" />
-    <None Include="Sdk/**" Pack="true" CamelCasePath="true" PackagePath="sdk/" SdkFile="true" />
-    <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" SdkFile="true" />
+    <None Include="Build/**" Pack="true" CamelCasePath="true" PackagePath="build/" />
+    <None Include="Sdk/**" Pack="true" CamelCasePath="true" PackagePath="sdk/" />
+    <None Include="Targets/**" Pack="true" CamelCasePath="true" PackagePath="targets/" />
   </ItemGroup>
 
   <Target Name="_AddPackagePath" BeforeTargets="_GetPackageFiles">
@@ -75,10 +75,10 @@
 
   <!-- Test project calls this to scaffold out this SDK in its expected structure. -->
   <Target Name="GetSdkFiles"
-    DependsOnTargets="_AddPackagePath;IncludeReferenceCopyLocalPathsInBuildOutputInPackage;_GetBuildOutputFilesWithTfm"
+    DependsOnTargets="_AddPackagePath;IncludeReferenceCopyLocalPathsInBuildOutputInPackage;_GetBuildOutputFilesWithTfm;_GetPackageFiles"
     Returns="@(_SdkFiles)">
     <ItemGroup>
-      <_SdkFilesTemp Include="@(None->WithMetadataValue('SdkFile', 'true'))" />
+      <_SdkFilesTemp Include="@(_PackageFiles)" />
       <_SdkFilesTemp Include="@(BuildOutputInPackage)" PackagePath="tools/netstandard2.0/%(BuildOutputInPackage.TargetPath)" />
     </ItemGroup>
 

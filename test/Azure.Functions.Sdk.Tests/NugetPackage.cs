@@ -57,5 +57,14 @@ public record WorkerPackage(string Name, string Version, ImmutableArray<WebJobsP
 
 public record WebJobsPackage(string Name, string Version) : NugetPackage(Name, Version)
 {
+    public static implicit operator WebJobsExtension(WebJobsPackage package)
+        => new(Assembly: $"{package.Name}.dll", Name: package.ExtensionName ?? package.Name);
+
     public string? ExtensionName { get; init; }
+}
+
+public record WebJobsExtension(string Assembly, string Name)
+{
+    public static WebJobsExtension MetadataLoader
+        => new(Assembly: "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll", Name: "Startup");
 }

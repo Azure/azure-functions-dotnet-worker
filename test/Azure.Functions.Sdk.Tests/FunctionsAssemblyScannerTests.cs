@@ -29,6 +29,7 @@ public class FunctionsAssemblyScannerTests
             "Azure.CoreOther",
             "SystemSomethingElse",
             "Microsoft.BclOther",
+            "Microsoft.Azure.WebJobs.Host.Storage",
             "Microsoft.Azure.Functions.Worker.Extensions",
             "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus",
             "Some.Custom.Package",

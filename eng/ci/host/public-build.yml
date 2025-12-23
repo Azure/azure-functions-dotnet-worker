@@ -27,6 +27,11 @@ resources:
     type: git
     name: 1ESPipelineTemplates/1ESPipelineTemplates
     ref: refs/tags/release
+  - repository: host
+    type: git
+    name: azure.azure-functions-host-tests
+    ref: surgupta/compatibility-tests
+    alias: host
 
 variables:
   - template: /eng/ci/templates/variables/build.yml@self
@@ -41,6 +46,10 @@ extends:
       ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
         demands:
         - Priority -equals Low
+    sdl:
+      sourceRepositoriesToScan:
+        include:
+          - repository: host
 
     stages:
     - stage: Build
@@ -53,3 +62,5 @@ extends:
       # Temp pipeline to just build the net-host (see issue #2521)
       - template: /eng/ci/templates/jobs/build-net-host.yml@self
       # - template: /eng/ci/templates/official/jobs/build-host-artifacts-windows.yml@self
+
+    - template: /eng/ci/integration-tests.yml@host

@@ -155,6 +155,29 @@ public partial class SdkEndToEndTests
     }
 
     [Fact]
+    public void Build_NoRestoreHook_Warning()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        string outputPath = project.GetOutputPath();
+        ValidateConfig(
+            Path.Combine(outputPath, "worker.config.json"),
+            "dotnet",
+            "MyFunctionApp.dll");
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
+    }
+
+    [Fact]
     public void Build_Incremental_NoOp()
     {
         // Arrange

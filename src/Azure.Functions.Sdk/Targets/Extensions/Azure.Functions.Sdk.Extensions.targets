@@ -52,6 +52,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Target Name="RestoreExtensionProject">
     <MSBuild Projects="$(_AzureFunctionsExtensionProjectPath)" Targets="Restore"
       RemoveProperties="$(_AzureFunctionsExtensionRemoveProps)" Properties="IsRestoring=true;RestoreSources=$(_OutputSources)" />
+    <Touch Files="$(_AzureFunctionsExtensionRestoredMarker)" AlwaysCreate="True" />
   </Target>
 
   <Target Name="GetFunctionsExtensionFiles" Returns="@(_FunctionsExtensionsOutputItems)">
@@ -82,6 +83,18 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
         CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
       <EmbedInBinlog Include="$(_FunctionsIntermediateExtensionJsonPath)" />
     </ItemGroup>
+  </Target>
+
+  <!--
+    Until there is a consistent post-restore hook which gives a guarantee to run our targets after restore,
+    _VerifyRestoredFunctionsExtensions will verify the restore hook ran. If extension restore hook has not
+    ran, this will emit a warning and try to perform the restore during build.
+  -->
+  <Target Name="_VerifyRestoredFunctionsExtensions" Condition="'$(DesignTimeBuild)' != 'true'"
+    BeforeTargets="Build"
+    Inputs="$(_AzureFunctionsExtensionProjectPath)" Outputs="$(_AzureFunctionsExtensionRestoredMarker)">
+    <FuncSdkLog Resource="Warning_ExtensionsNotRestored" />
+    <CallTarget Targets="GenerateFunctionsExtensionProject"/>
   </Target>
 
 </Project>

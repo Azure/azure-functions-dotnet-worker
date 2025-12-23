@@ -13,6 +13,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
     private string GeneratedProjectPath => GeneratedProjectDirectory + "/azure_functions.g.csproj";
     private string GeneratedHashPath => GeneratedProjectDirectory + "/azure_functions.package.hash";
     private string GeneratedProjectLockFile => GeneratedProjectDirectory + "/obj/project.assets.json";
+    private string RestoreMarker => GeneratedProjectDirectory + "/restored.marker";
 
     [Fact]
     public void Restore_Success()
@@ -97,18 +98,22 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
         FileInfo generated = new(GeneratedProjectPath);
         FileInfo hash = new(GeneratedHashPath);
+        FileInfo marker = new(RestoreMarker);
 
         DateTime generatedWrite = generated.LastWriteTimeUtc;
         DateTime hashWrite = hash.LastWriteTimeUtc;
+        DateTime markerWrite = marker.LastWriteTimeUtc;
 
         // Act 2
         BuildOutput output2 = project.Restore();
         output2.Should().BeSuccessful().And.HaveNoIssues();
         generated.Refresh();
         hash.Refresh();
+        marker.Refresh();
 
         generated.LastWriteTimeUtc.Should().Be(generatedWrite);
         hash.LastWriteTimeUtc.Should().Be(hashWrite);
+        marker.LastWriteTimeUtc.Should().BeAfter(markerWrite); // always updated.
     }
 
     private void ValidateProject(params NugetPackage[] packages)
@@ -119,9 +124,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
 
     private void ValidateProjectContents(params NugetPackage[] packages)
     {
-        FileInfo hashFile = new(GeneratedHashPath);
-        hashFile.Exists.Should().BeTrue();
-
+        File.Exists(GeneratedHashPath).Should().BeTrue();
         FileInfo file = new(GeneratedProjectPath);
         file.Exists.Should().BeTrue();
 
@@ -150,5 +153,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
     {
         Action read = () => LockFile.Read(GeneratedProjectLockFile);
         read.Should().NotThrow();
+
+        File.Exists(RestoreMarker).Should().BeTrue();
     }
 }

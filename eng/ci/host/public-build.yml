@@ -32,6 +32,7 @@ resources:
     name: azure.azure-functions-host-tests
     ref: surgupta/compatibility-tests
     alias: host
+    endpoint: azfunc-internal-code-mirror
 
 variables:
   - template: /eng/ci/templates/variables/build.yml@self

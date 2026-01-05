@@ -22,6 +22,11 @@ resources:
     type: git
     name: engineering
     ref: refs/tags/release
+  - repository: host
+    type: git
+    name: azure.azure-functions-host-tests
+    ref: surgupta/compatibility-tests
+    alias: host
 
 variables:
   - template: ci/variables/build.yml@eng
@@ -38,6 +43,10 @@ extends:
       ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
         demands:
         - Priority -equals Low
+    sdl:
+      sourceRepositoriesToScan:
+        include:
+          - repository: host
 
     stages:
     - stage: Build
@@ -54,3 +63,7 @@ extends:
 
       jobs:
       - template: /eng/ci/templates/official/jobs/pack-host-artifacts.yml@self
+
+    - template: /eng/ci/integration-tests.yml@host
+      parameters:
+        TriggerSource: 'build'

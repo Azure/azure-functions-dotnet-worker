@@ -21,5 +21,6 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   </PropertyGroup>
 
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
+  <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Inner.RuntimePackages.props" />
 
 </Project>

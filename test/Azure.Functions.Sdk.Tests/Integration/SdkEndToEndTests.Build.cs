@@ -7,6 +7,37 @@ namespace Azure.Functions.Sdk.Tests.Integration;
 
 public partial class SdkEndToEndTests
 {
+    private static readonly string[] ExpectedExtensionFiles =
+    [
+        "Azure.Core.Amqp.dll",
+        "Azure.Core.dll",
+        "Azure.Identity.dll",
+        "Azure.Messaging.ServiceBus.dll",
+        "Azure.Storage.Blobs.dll",
+        "Azure.Storage.Common.dll",
+        "Azure.Storage.Queues.dll",
+        "function.deps.json",
+        "Google.Protobuf.dll",
+        "Grpc.AspNetCore.Server.ClientFactory.dll",
+        "Grpc.AspNetCore.Server.dll",
+        "Grpc.Core.Api.dll",
+        "Grpc.Net.Client.dll",
+        "Grpc.Net.ClientFactory.dll",
+        "Grpc.Net.Common.dll",
+        "Microsoft.Azure.Amqp.dll",
+        "Microsoft.Azure.WebJobs.Extensions.Rpc.dll",
+        "Microsoft.Azure.WebJobs.Extensions.ServiceBus.dll",
+        "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs.dll",
+        "Microsoft.Azure.WebJobs.Extensions.Storage.Queues.dll",
+        "Microsoft.Bcl.AsyncInterfaces.dll",
+        "Microsoft.Extensions.Azure.dll",
+        "Microsoft.Identity.Client.dll",
+        "Microsoft.Identity.Client.Extensions.Msal.dll",
+        "Microsoft.IdentityModel.Abstractions.dll",
+        "System.ClientModel.dll",
+        "System.IO.Hashing.dll",
+    ];
+
     [Fact]
     public void Build_NetCore()
     {
@@ -26,6 +57,7 @@ public partial class SdkEndToEndTests
             Path.Combine(outputPath, "worker.config.json"),
             "dotnet",
             "MyFunctionApp.dll");
+        ValidateExtensionsPayload(outputPath, "function.deps.json");
     }
 
     [Fact]
@@ -48,6 +80,58 @@ public partial class SdkEndToEndTests
             Path.Combine(outputPath, "worker.config.json"),
             "{WorkerRoot}MyFunctionApp.exe",
             "MyFunctionApp.exe");
+        ValidateExtensionsPayload(outputPath, "function.deps.json");
+    }
+
+    [Fact]
+    public void Build_NetCore_WithExtensions()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        string outputPath = project.GetOutputPath();
+        ValidateConfig(
+            Path.Combine(outputPath, "worker.config.json"),
+            "dotnet",
+            "MyFunctionApp.dll");
+
+        ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
+    }
+
+    [Fact]
+    public void Build_NetFx_WithExtensions()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net481")
+            .Property("AssemblyName", "MyFunctionApp")
+            .Property("LangVersion", "latest")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs)
+            .ItemPackageReference(NugetPackage.ServiceBus)
+            .ItemPackageReference(NugetPackage.Storage);
+
+        // Act
+        BuildOutput output = project.Build(restore: true);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveNoIssues();
+        string outputPath = project.GetOutputPath();
+        ValidateConfig(
+            Path.Combine(outputPath, "worker.config.json"),
+            "{WorkerRoot}MyFunctionApp.exe",
+            "MyFunctionApp.exe");
+
+        ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
     }
 
     [Fact]
@@ -68,9 +152,13 @@ public partial class SdkEndToEndTests
 
         string configPath = Path.Combine(outputPath, "worker.config.json");
         ValidateConfig(configPath, "dotnet", "MyFunctionApp.dll");
+        ValidateExtensionsPayload(outputPath, "function.deps.json");
 
         FileInfo config = new(configPath);
-        DateTime lastWriteTime = config.LastWriteTimeUtc;
+        DateTime configWriteTime = config.LastWriteTimeUtc;
+
+        FileInfo deps = new(Path.Combine(outputPath, "function.deps.json"));
+        DateTime depsWriteTime = deps.LastWriteTimeUtc;
 
         // Act 2: Incremental build
         BuildOutput output2 = project.Build();
@@ -78,6 +166,21 @@ public partial class SdkEndToEndTests
         // Assert 2: Verify no changes were made
         output2.Should().BeSuccessful().And.HaveNoIssues();
         config.Refresh();
-        config.LastWriteTimeUtc.Should().Be(lastWriteTime);
+        config.LastWriteTimeUtc.Should().Be(configWriteTime);
+
+        deps.Refresh();
+        deps.LastWriteTimeUtc.Should().Be(depsWriteTime);
+    }
+
+    private static void ValidateExtensionsPayload(string outputPath, params string[] expectedFiles)
+    {
+        string extensionsFolder = Path.Combine(outputPath, Constants.ExtensionsOutputFolder);
+        Directory.Exists(extensionsFolder).Should().BeTrue("Extensions folder should exist.");
+
+        HashSet<string> actualFiles = Directory.GetFiles(extensionsFolder, "*", SearchOption.AllDirectories)
+            .Select(f => Path.GetRelativePath(extensionsFolder, f))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        actualFiles.Should().BeEquivalentTo(expectedFiles);
     }
 }

@@ -63,7 +63,7 @@ public class WriteExtensionMetadataTests
         _fileSystem.File.WriteAllText(ExtensionJsonPath, "invalid hash");
         DateTime time = _fileSystem.File.GetLastWriteTimeUtc(ExtensionJsonPath);
 
-        bool result = task.Execute(); // run again, should skip
+        bool result = task.Execute(); // run again, should regenerate
         result.Should().BeTrue();
         _fileSystem.File.GetLastWriteTimeUtc(ExtensionJsonPath).Should().BeAfter(time);
     }

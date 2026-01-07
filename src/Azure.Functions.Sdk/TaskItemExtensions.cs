@@ -75,7 +75,7 @@ public static class TaskItemExtensions
         /// </summary>
         /// <param name="packageVersion">The package version, if found.</param>
         /// <returns><c>true</c> if nuget package version is found; <c>false</c> otherwise.</returns>
-        public bool TryGetNugetPackageVersion([NotNullWhen(true)] out string? packageVersion)
+        public bool TryGetNuGetPackageVersion([NotNullWhen(true)] out string? packageVersion)
         {
             packageVersion = taskItem.NuGetPackageVersion;
             return !string.IsNullOrEmpty(packageVersion);

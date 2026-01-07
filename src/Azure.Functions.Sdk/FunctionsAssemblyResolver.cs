@@ -16,7 +16,15 @@ public class FunctionsAssemblyResolver : DefaultAssemblyResolver
 
     private static ImmutableHashSet<string> GetTrustedPlatformAssemblies()
     {
-        var data = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES");
+        object? data = AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES");
+        if (data is null)
+        {
+#pragma warning disable IDE0301 // Simplify collection initialization
+            // Collection expression '[]' fails at runtime.
+            return ImmutableHashSet<string>.Empty;
+#pragma warning restore IDE0301 // Simplify collection initialization
+        }
+
         return data.ToString().Split(Path.PathSeparator)
             .ToImmutableHashSet(StringComparer.OrdinalIgnoreCase);
     }

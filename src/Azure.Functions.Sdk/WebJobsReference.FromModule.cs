@@ -13,7 +13,7 @@ public partial class WebJobsReference
     private const string WebJobsStartupAttributeType = "Microsoft.Azure.WebJobs.Hosting.WebJobsStartupAttribute";
 
     /// <summary>
-    /// Gets the root path of the Azure Functions SDK module.
+    /// Gets any WebJobs references from the specified module path.
     /// </summary>
     public static IEnumerable<WebJobsReference> FromModule(string path, ILogger? logger = null)
     {
@@ -25,7 +25,7 @@ public partial class WebJobsReference
     }
 
     /// <summary>
-    /// Gets the root path of the Azure Functions SDK module.
+    /// Gets any WebJobs references from the specified assembly.
     /// </summary>
     public static IEnumerable<WebJobsReference> FromModule(AssemblyDefinition assembly, ILogger? logger = null)
     {

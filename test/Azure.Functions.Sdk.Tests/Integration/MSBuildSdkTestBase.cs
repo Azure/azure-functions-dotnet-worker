@@ -53,7 +53,8 @@ public abstract class MSBuildSdkTestBase : MSBuildTestBase, IDisposable
         }
     }
 
-    protected string GetTempCsproj() => _temp.GetRandomFile(ext: ".csproj");
+    // Ensure this starts with a non-numeric character to be a valid csproj name.
+    protected string GetTempCsproj() => _temp.GetRandomCsproj();
 
     private static string GetArtifactsPath()
     {

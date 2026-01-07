@@ -56,6 +56,15 @@ internal class TaskItemAssertions(ITaskItem subject, AssertionChain assertionCha
     }
 
     [CustomAssertion]
+    public AndConstraint<TaskItemAssertions> HaveMetadataLike(
+        string name, string value, string because = "", params object[] becauseArgs)
+    {
+        string actual = Subject.GetMetadata(name);
+        actual.Should().Match(value, because, becauseArgs);
+        return new AndConstraint<TaskItemAssertions>(this);
+    }
+
+    [CustomAssertion]
     public AndConstraint<TaskItemAssertions> HaveMetadata(
         string name,
         string value,

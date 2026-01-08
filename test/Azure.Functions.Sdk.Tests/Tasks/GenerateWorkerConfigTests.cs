@@ -27,7 +27,7 @@ public sealed class GenerateWorkerConfigTests
         // assert
         result.Should().BeTrue();
         fileSystem.FileExists("worker.config.json").Should().BeTrue();
-        string expectedJson = WorkerConfigHelper.GetExpectedJson("dotnet", "MyFunctionApp.dll");
+        string expectedJson = ExpectedFilesHelper.GetWorkerConfig("dotnet", "MyFunctionApp.dll");
         fileSystem.GetFile("worker.config.json").TextContents.Should().Be(expectedJson);
     }
 }

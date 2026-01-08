@@ -59,7 +59,7 @@ public partial class GenerateWorkerConfig(IFileSystem fileSystem)
     public override bool Execute()
     {
         Config config = new(Executable, EntryPoint);
-        string json = JsonSerializer.Serialize(config, JsonContext.Default.Config);
+        string json = JsonSerializer.Serialize(config, WorkerConfigContext.Default.Config);
         _fileSystem.File.WriteAllText(OutputPath, json);
         return true;
     }
@@ -89,7 +89,7 @@ public partial class GenerateWorkerConfig(IFileSystem fileSystem)
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
         WriteIndented = true)]
     [JsonSerializable(typeof(Config))]
-    private partial class JsonContext : JsonSerializerContext
+    private partial class WorkerConfigContext : JsonSerializerContext
     {
     }
 }

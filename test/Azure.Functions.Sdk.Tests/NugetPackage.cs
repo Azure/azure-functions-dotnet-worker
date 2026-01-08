@@ -8,7 +8,7 @@ namespace Azure.Functions.Sdk.Tests;
 public record NugetPackage(string Name, string Version)
 {
     public static readonly NugetPackage SystemTextJson = new(
-        Name: "System.Text.Json", Version: "8.0.6");
+        Name: "System.Text.Json", Version: "10.0.1");
 
     public static readonly WorkerPackage ServiceBus = new(
         Name: "Microsoft.Azure.Functions.Worker.Extensions.ServiceBus",

@@ -30,7 +30,8 @@ jobs:
       useGlobalJson: true
 
   - script: |
-      sudo apt-get install clang zlib1g-dev
+      sudo apt-get update
+      sudo apt-get install -y clang zlib1g-dev
     displayName: Install dependencies
 
   - task: DotnetCoreCLI@2

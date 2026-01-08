@@ -82,7 +82,7 @@ extends:
   parameters:
     pool:
       name: 1es-pool-azfunc
-      image: 1es-ubuntu-22.04
+      image: 1es-ubuntu-24.04-min
       os: linux
       ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
         demands:

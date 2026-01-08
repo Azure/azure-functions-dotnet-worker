@@ -9,7 +9,7 @@ jobs:
   strategy:
     matrix:
       linux:
-        imageName: '1es-ubuntu-22.04'
+        image: '1es-ubuntu-24.04-min'
         osName: 'linux'
       windows:
         imageName: '1es-windows-2022'

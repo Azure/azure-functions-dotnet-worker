@@ -1,0 +1,58 @@
+parameters:
+- name: project
+  type: string
+- name: configuration
+  type: string
+  default: release
+- name: sign
+  type: string
+  default: ''
+
+steps:
+- template: /eng/ci/templates/steps/install-dotnet.yml@self
+
+- task: DotNetCoreCLI@2
+  displayName: Restore
+  inputs:
+    command: custom
+    custom: restore
+    projects: ${{ parameters.project }}
+    arguments: -v m
+
+- task: DotNetCoreCLI@2
+  displayName: Build
+  inputs:
+    command: build
+    projects: ${{ parameters.project }}
+    arguments: -v m -c ${{ parameters.configuration }} --no-restore
+
+- ${{ if ne(parameters.sign, '') }}:
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign assemblies
+      minimatch: true
+      signType: dll
+      folderPath: out/bin/src
+      pattern: ${{ parameters.sign }}
+
+- task: DotNetCoreCLI@2
+  displayName: Pack
+  inputs:
+    command: custom
+    custom: pack
+    arguments: -v m -c ${{ parameters.configuration }} --no-build -o $(Build.ArtifactStagingDirectory)/nuget
+    projects: ${{ parameters.projects }}
+
+- ${{ if ne(parameters.sign, '') }}:
+  - template: ci/sign-files.yml@eng
+    parameters:
+      displayName: Sign assemblies
+      minimatch: true
+      signType: nuget
+      folderPath: $(Build.ArtifactStagingDirectory)/nuget
+      pattern: '*.nupkg'
+
+  - task: DeleteFiles@1
+    displayName: Delete CodeSignSummary files
+    inputs:
+      contents: $(Build.ArtifactStagingDirectory)/nuget/CodeSignSummary-*.md

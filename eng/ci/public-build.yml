@@ -63,15 +63,24 @@ extends:
       skipBuildTagsForGitHubPullRequests: ${{ variables['System.PullRequest.IsFork'] }}
 
     stages:
-    - stage: Test
+    - stage: Core
 
       jobs:
       - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc-public
+          poolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc-public
+          poolName: 1es-pool-azfunc-public
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc-public
+          poolName: 1es-pool-azfunc-public
+
+    - stage: Extensions
+
+      jobs:
+      - job: Build
+        steps:
+        - template: /eng/ci/templates/steps/build.yml@self
+          parameters:
+            project: DotNetWorker.Extensions.sln

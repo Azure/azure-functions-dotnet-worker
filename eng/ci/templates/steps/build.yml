@@ -46,7 +46,7 @@ steps:
 - ${{ if ne(parameters.sign, '') }}:
   - template: ci/sign-files.yml@eng
     parameters:
-      displayName: Sign assemblies
+      displayName: Sign packages
       minimatch: true
       signType: nuget
       folderPath: $(Build.ArtifactStagingDirectory)/nuget

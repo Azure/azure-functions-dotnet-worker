@@ -26,6 +26,13 @@ steps:
     projects: ${{ parameters.projects }}
     arguments: -v m -c ${{ parameters.configuration }} --no-restore
 
+- task: DotNetCoreCLI@2
+  displayName: Test
+  inputs:
+    command: test
+    arguments: -c $(configuration) --no-build
+    projects: ${{ parameters.projects }}
+
 - ${{ if ne(parameters.sign, '') }}:
   - template: ci/sign-files.yml@eng
     parameters:
@@ -56,3 +63,5 @@ steps:
     displayName: Delete CodeSignSummary files
     inputs:
       contents: $(Build.ArtifactStagingDirectory)/nuget/CodeSignSummary-*.md
+
+

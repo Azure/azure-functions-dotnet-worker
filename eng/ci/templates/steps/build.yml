@@ -1,5 +1,5 @@
 parameters:
-- name: project
+- name: projects
   type: string
 - name: configuration
   type: string
@@ -16,14 +16,14 @@ steps:
   inputs:
     command: custom
     custom: restore
-    projects: ${{ parameters.project }}
+    projects: ${{ parameters.projects }}
     arguments: -v m
 
 - task: DotNetCoreCLI@2
   displayName: Build
   inputs:
     command: build
-    projects: ${{ parameters.project }}
+    projects: ${{ parameters.projects }}
     arguments: -v m -c ${{ parameters.configuration }} --no-restore
 
 - ${{ if ne(parameters.sign, '') }}:

@@ -83,4 +83,4 @@ extends:
         steps:
         - template: /eng/ci/templates/steps/build.yml@self
           parameters:
-            project: DotNetWorker.Extensions.sln
+            projects: DotNetWorker.Extensions.sln

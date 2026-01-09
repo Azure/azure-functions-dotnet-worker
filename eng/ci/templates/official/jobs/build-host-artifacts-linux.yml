@@ -17,7 +17,7 @@ jobs:
 
   pool:
     name: ${{ parameters.PoolName }}
-    image: 1es-ubuntu-20.04
+    image: 1es-ubuntu-24.04-min
     os: linux
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
       demands:
@@ -30,7 +30,8 @@ jobs:
       useGlobalJson: true
 
   - script: |
-      sudo apt-get install clang zlib1g-dev
+      sudo apt-get update
+      sudo apt-get install -y clang zlib1g-dev
     displayName: Install dependencies
 
   - task: DotnetCoreCLI@2

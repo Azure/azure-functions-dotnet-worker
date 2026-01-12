@@ -16,10 +16,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public static Process GetFuncHostProcess(bool enableAuth = false, string testAppName = null)
         {
             Process funcProcess = new();
-            string e2eAppBinPath = Path.Combine(TestUtility.RepoRoot, "test", "E2ETests", "E2EApps", testAppName, "bin");
-            string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault()
-                ?? throw new InvalidOperationException($"Could not find a built worker app under '{e2eAppBinPath}'");
-            string? e2eAppPath = Path.GetDirectoryName(e2eHostJson);
+            string? e2eAppPath = Path.Combine(TestUtility.RepoRoot, "test", "E2ETests", "E2EApps", testAppName);
 
             funcProcess.StartInfo.UseShellExecute = false;
             funcProcess.StartInfo.RedirectStandardError = true;
@@ -33,7 +30,8 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
             if (enableAuth)
             {
                 // '--' to pass args to func host
-                funcProcess.StartInfo.ArgumentList.Add("-- --enableAuth");
+                funcProcess.StartInfo.ArgumentList.Add("--");
+                funcProcess.StartInfo.ArgumentList.Add("--enableAuth");
             }
 
             return funcProcess;

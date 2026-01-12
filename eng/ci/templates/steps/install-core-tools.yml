@@ -28,7 +28,7 @@ steps:
       exit 1
     }
 
-    $coreToolsURL = $asset.browser_download_url
+    $coreToolsUrl = $asset.browser_download_url
     Write-Host "Downloading Azure Functions Core Tools from $coreToolsUrl"
 
     $zipPath = "$(Agent.TempDirectory)/Azure.Functions.Cli.zip"
@@ -45,7 +45,8 @@ steps:
       & "chmod" "a+x" "$installPath/func"
     }
 
-    # Add to PATH for current session
-    $env:PATH = "$installPath;$env:PATH"
     Write-Host "Azure Functions Core Tools installed to $installPath"
+
+    # Make Core Tools available on PATH for subsequent steps
+    Write-Host "##vso[task.prependpath]$installPath"
   displayName: 'Install Azure Functions Core Tools'

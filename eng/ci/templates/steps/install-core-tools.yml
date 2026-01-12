@@ -1,0 +1,51 @@
+steps:
+- pwsh: |
+    $ErrorActionPreference = 'Stop'
+    $arch = [System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture.ToString().ToLowerInvariant()
+
+    if ($IsWindows) {
+      $os = "win"
+    }
+    elseif ($IsMacOS) {
+      $os = "osx"
+    }
+    else {
+      $os = "linux"
+    }
+
+    # GitHub API call for latest release
+    $releaseInfo = Invoke-RestMethod -Uri "https://api.github.com/repos/Azure/azure-functions-core-tools/releases/latest" -Headers @{ "User-Agent" = "PowerShell" }
+
+    $version = $releaseInfo.tag_name
+    Write-Host "Latest Core Tools version: $version"
+
+    # Look for zip file matching os and arch
+    $pattern = "Azure\.Functions\.Cli\.$os-$arch\..*\.zip$"
+    $asset = $releaseInfo.assets | Where-Object { $_.name -match $pattern }
+
+    if (-not $asset) {
+      Write-Error "Could not find a Core Tools .zip for OS '$os' and arch '$arch'"
+      exit 1
+    }
+
+    $coreToolsURL = $asset.browser_download_url
+    Write-Host "Downloading Azure Functions Core Tools from $coreToolsUrl"
+
+    $zipPath = "$(Agent.TempDirectory)/Azure.Functions.Cli.zip"
+    Invoke-WebRequest -Uri $coreToolsUrl -OutFile $zipPath
+
+    $installPath = "$(Agent.ToolsDirectory)/Azure.Functions.Cli/$version"
+    New-Item -ItemType Directory -Path $installPath -Force | Out-Null
+
+    Write-Host "Extracting to $installPath"
+    Expand-Archive -Path $zipPath -DestinationPath $installPath -Force
+
+    if ($IsMacOS -or $IsLinux)
+    {
+      & "chmod" "a+x" "$installPath/func"
+    }
+
+    # Add to PATH for current session
+    $env:PATH = "$installPath;$env:PATH"
+    Write-Host "Azure Functions Core Tools installed to $installPath"
+  displayName: 'Install Azure Functions Core Tools'

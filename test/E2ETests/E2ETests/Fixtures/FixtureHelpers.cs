@@ -15,42 +15,25 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
     {
         public static Process GetFuncHostProcess(bool enableAuth = false, string testAppName = null)
         {
-            var funcProcess = new Process();
-            var rootDir = Path.GetFullPath(@"../../../../../..");
-            var e2eAppBinPath = Path.Combine(rootDir, "test", "E2ETests", "E2EApps", testAppName, "bin");
-            string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault();
-
-            if (e2eHostJson == null)
-            {
-                throw new InvalidOperationException($"Could not find a built worker app under '{e2eAppBinPath}'");
-            }
-
-            var e2eAppPath = Path.GetDirectoryName(e2eHostJson);
-
-            var cliPath = Path.Combine(rootDir, "Azure.Functions.Cli", "func");
-
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                cliPath += ".exe";
-            }
-
-            if (!File.Exists(cliPath))
-            {
-                throw new InvalidOperationException($"Could not find '{cliPath}'. Try running '{Path.Combine(rootDir, "setup-e2e-tests.ps1")}' to install it.");
-            }
+            Process funcProcess = new();
+            string e2eAppBinPath = Path.Combine(TestUtility.RepoRoot, "test", "E2ETests", "E2EApps", testAppName, "bin");
+            string e2eHostJson = Directory.GetFiles(e2eAppBinPath, "host.json", SearchOption.AllDirectories).FirstOrDefault()
+                ?? throw new InvalidOperationException($"Could not find a built worker app under '{e2eAppBinPath}'");
+            string? e2eAppPath = Path.GetDirectoryName(e2eHostJson);
 
             funcProcess.StartInfo.UseShellExecute = false;
             funcProcess.StartInfo.RedirectStandardError = true;
             funcProcess.StartInfo.RedirectStandardOutput = true;
             funcProcess.StartInfo.CreateNoWindow = true;
             funcProcess.StartInfo.WorkingDirectory = e2eAppPath;
-            funcProcess.StartInfo.FileName = cliPath;
-            funcProcess.StartInfo.ArgumentList.Add("start");
-            funcProcess.StartInfo.ArgumentList.Add("--verbose");
+            funcProcess.StartInfo.FileName = "dotnet";
+            funcProcess.StartInfo.ArgumentList.Add("run");
+            funcProcess.StartInfo.ArgumentList.Add("--no-build");
 
             if (enableAuth)
             {
-                funcProcess.StartInfo.ArgumentList.Add("--enableAuth");
+                // '--' to pass args to func host
+                funcProcess.StartInfo.ArgumentList.Add("-- --enableAuth");
             }
 
             return funcProcess;

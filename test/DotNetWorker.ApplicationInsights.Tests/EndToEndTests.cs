@@ -1,3 +1,6 @@
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -16,13 +19,15 @@ using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
+using Microsoft.Azure.Functions.Worker.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using CoreTaceConstants = Microsoft.Azure.Functions.Worker.Diagnostics.TraceConstants;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests;
 
 public class EndToEndTests
 {
@@ -205,11 +210,11 @@ public class EndToEndTests
     {
         Assert.Equal("CustomValue", dependency.Properties["CustomKey"]);
 
-        Assert.Equal(TraceConstants.ActivityAttributes.InvokeActivityName, dependency.Name);
+        Assert.Equal(CoreTaceConstants.ActivityAttributes.InvokeActivityName, dependency.Name);
         Assert.Equal(activity.RootId, dependency.Context.Operation.Id);
 
-        Assert.Equal(context.InvocationId, dependency.Properties[TraceConstants.OTelAttributes_1_17_0.InvocationId]);
-        Assert.Contains(TraceConstants.OTelAttributes_1_17_0.SchemaUrl, dependency.Properties.Keys);
+        Assert.Equal(context.InvocationId, dependency.Properties[CoreTaceConstants.OTelAttributes_1_17_0.InvocationId]);
+        Assert.Contains(CoreTaceConstants.OTelAttributes_1_17_0.SchemaUrl, dependency.Properties.Keys);
 
         ValidateCommonTelemetry(dependency);
     }
@@ -220,8 +225,8 @@ public class EndToEndTests
         Assert.Equal(SeverityLevel.Warning, trace.SeverityLevel);
 
         // Check that scopes show up by default                
-        Assert.Equal("TestName", trace.Properties[TraceConstants.InternalKeys.FunctionName]);
-        Assert.Equal(context.InvocationId, trace.Properties[TraceConstants.InternalKeys.FunctionInvocationId]);
+        Assert.Equal("TestName", trace.Properties[CoreTaceConstants.InternalKeys.FunctionName]);
+        Assert.Equal(context.InvocationId, trace.Properties[CoreTaceConstants.InternalKeys.FunctionInvocationId]);
 
         Assert.Equal(activity.RootId, trace.Context.Operation.Id);
 

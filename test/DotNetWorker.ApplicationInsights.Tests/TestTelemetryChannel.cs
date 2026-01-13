@@ -1,10 +1,10 @@
-﻿//// Copyright (c) .NET Foundation. All rights reserved.
-//// Licensed under the MIT License. See License.txt in the project root for license information.
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Concurrent;
 using Microsoft.ApplicationInsights.Channel;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests;
 
 internal class TestTelemetryChannel : ITelemetryChannel
 {

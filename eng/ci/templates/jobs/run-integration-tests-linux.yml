@@ -14,6 +14,10 @@ jobs:
       demands:
       - Priority -equals Low
 
+  variables:
+    test_projects: |
+      **/E2ETests.csproj
+
   steps:
 
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
@@ -23,9 +27,7 @@ jobs:
     inputs:
       command: build
       arguments: '-c Release'
-      projects: |
-        DotNetWorker.sln
-        DotNetWorker.Extensions.sln
+      projects: $(test_projects)
 
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
@@ -39,5 +41,4 @@ jobs:
     inputs:
       command: 'test'
       arguments: '--no-build -c Release --filter "FullyQualifiedName~HttpTrigger"' # only run http tests to avoid emulators on Linux
-      projects: |
-        test/**/*Tests.csproj
+      projects: $(test_projects)

@@ -12,7 +12,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Worker.E2ETests
 {
     internal static class StorageHelpers
     {

@@ -4,7 +4,7 @@
 using System;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Worker.E2ETests
 {
     public sealed class IgnoreOnNetFxTestRunTheory : TheoryAttribute
     {

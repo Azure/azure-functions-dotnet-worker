@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
+namespace Microsoft.Azure.Functions.Worker.E2ETests.Cosmos
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class CosmosDBEndToEndTests : IDisposable

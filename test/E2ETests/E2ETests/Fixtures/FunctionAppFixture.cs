@@ -13,7 +13,7 @@ using Microsoft.Extensions.Logging;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Worker.E2ETests
 {
     public class FunctionAppFixture : IAsyncLifetime
     {

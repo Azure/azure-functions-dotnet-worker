@@ -9,7 +9,7 @@ using Microsoft.Azure.Functions.Worker.E2ETests.Helpers;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests.Tables
+namespace Microsoft.Azure.Functions.Worker.E2ETests.Tables
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class TablesEndToEndTests : IDisposable

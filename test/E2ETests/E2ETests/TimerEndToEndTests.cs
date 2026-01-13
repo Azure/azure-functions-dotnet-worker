@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Worker.E2ETests
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class TimerEndToEndTests : IDisposable

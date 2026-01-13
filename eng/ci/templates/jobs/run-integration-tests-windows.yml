@@ -21,6 +21,11 @@ jobs:
       demands:
       - Priority -equals Low
 
+  variables:
+    test_projects: |
+      **/E2ETests.csproj
+      **/Sdk.E2ETests.csproj
+
   steps:
 
   - pwsh: . "tools/start-emulators.ps1" -NoWait
@@ -33,9 +38,7 @@ jobs:
     inputs:
       command: build
       arguments: '-c Release'
-      projects: |
-        DotNetWorker.sln
-        DotNetWorker.Extensions.sln
+      projects: $(test_projects)
 
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
@@ -47,20 +50,7 @@ jobs:
     displayName: 'Run E2E Tests'
     inputs:
       command: test
-      arguments: -v n --no-build -c Release --filter "FullyQualifiedName!~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # skip AspNetCore tests
-      projects: |
-        **/E2ETests.csproj
-        **/Sdk.E2ETests.csproj
-    env:
-      DOTNET_VERSION: $(dotnetVersion)
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Run E2E AspNetCore Tests'
-    condition: ne(variables['dotnetVersion'], 'netfx')  # Skip if dotnetVersion is netfx
-    inputs:
-      command: test
-      arguments: -v n --no-build -c Release --filter "FullyQualifiedName~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # only AspNetCore tests
-      projects: |
-        **/E2ETests.csproj
+      arguments: -v n --no-build -c Release
+      projects: $(test_projects)
     env:
       DOTNET_VERSION: $(dotnetVersion)

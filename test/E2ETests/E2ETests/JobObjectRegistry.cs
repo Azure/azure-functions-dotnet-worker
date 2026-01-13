@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Worker.E2ETests
 {
     // Taken from: https://github.com/Azure/azure-functions-host/blob/69111926ee920d4ba10829c8fa34303bb8165a42/src/WebJobs.Script/Workers/ProcessManagement/JobObjectRegistry.cs
     // This kills child func.exe even if tests are killed from VS mid-run.

@@ -11,6 +11,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Queues;
 using Azure.Storage.Queues.Models;
+using Microsoft.Azure.Functions.Tests;
 
 namespace Microsoft.Azure.Functions.Worker.E2ETests
 {

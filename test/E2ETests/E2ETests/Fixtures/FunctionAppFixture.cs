@@ -1,13 +1,13 @@
 ﻿// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.IO;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Tests;
 using Microsoft.Azure.Functions.Worker.E2ETests.Helpers;
 using Microsoft.Extensions.Logging;
 using Xunit;

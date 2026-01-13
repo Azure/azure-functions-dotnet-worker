@@ -21,11 +21,6 @@ jobs:
       demands:
       - Priority -equals Low
 
-  variables:
-    test_projects: |
-      **/E2ETests.csproj
-      **/Sdk.E2ETests.csproj
-
   steps:
 
   - pwsh: . "tools/start-emulators.ps1" -NoWait
@@ -38,7 +33,9 @@ jobs:
     inputs:
       command: build
       arguments: '-c Release'
-      projects: $(test_projects)
+      projects: |
+        DotNetWorker.sln
+        DotNetWorker.Extensions.sln
 
   - template: /eng/ci/templates/steps/setup-e2e-tests.yml@self
     parameters:
@@ -51,6 +48,8 @@ jobs:
     inputs:
       command: test
       arguments: -v n --no-build -c Release
-      projects: $(test_projects)
+      projects: |
+        **/E2ETests.csproj
+        **/Sdk.E2ETests.csproj
     env:
       DOTNET_VERSION: $(dotnetVersion)

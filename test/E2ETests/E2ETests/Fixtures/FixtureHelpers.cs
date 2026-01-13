@@ -1,11 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
-using System;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.Azure.Functions.Tests.E2ETests
@@ -16,7 +13,7 @@ namespace Microsoft.Azure.Functions.Tests.E2ETests
         public static Process GetFuncHostProcess(bool enableAuth = false, string testAppName = null)
         {
             Process funcProcess = new();
-            string? e2eAppPath = Path.Combine(TestUtility.RepoRoot, "test", "E2ETests", "E2EApps", testAppName);
+            string e2eAppPath = Path.Combine(TestUtility.RepoRoot, "test", "E2ETests", "E2EApps", testAppName);
 
             funcProcess.StartInfo.UseShellExecute = false;
             funcProcess.StartInfo.RedirectStandardError = true;

@@ -31,7 +31,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.11.0" />
+    <WebJobsExtension Include="Microsoft.Azure.WebJobs.Extensions.CosmosDB" Version="4.12.101-dev" />
   </ItemGroup>
 
 </Project>

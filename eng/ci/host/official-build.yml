@@ -46,7 +46,7 @@ extends:
       - template: /eng/ci/templates/official/jobs/build-host-prelaunch-artifacts.yml@self
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-linux.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc
+          poolName: 1es-pool-azfunc
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-windows.yml@self
 
     - stage: Pack

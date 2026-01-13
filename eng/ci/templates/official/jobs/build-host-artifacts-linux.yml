@@ -1,5 +1,5 @@
 parameters:
-  name: PoolName
+  name: poolName
   type: string
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
       artifact: _functionsNetHostPackagesLinux
 
   pool:
-    name: ${{ parameters.PoolName }}
+    name: ${{ parameters.poolName }}
     image: 1es-ubuntu-24.04-min
     os: linux
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:

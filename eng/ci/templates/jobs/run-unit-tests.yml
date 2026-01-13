@@ -1,5 +1,5 @@
 parameters:
-- name: PoolName
+- name: poolName
   type: string
 
 jobs:
@@ -16,7 +16,7 @@ jobs:
         osName: 'windows'
 
   pool:
-    name: ${{ parameters.PoolName }}
+    name: ${{ parameters.poolName }}
     image: $(imageName)
     os: $(osName)
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:

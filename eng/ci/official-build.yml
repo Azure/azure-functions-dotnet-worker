@@ -68,10 +68,10 @@ extends:
       jobs:
       - template: /eng/ci/templates/jobs/run-unit-tests.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc
+          poolName: 1es-pool-azfunc
       - template: /eng/ci/templates/jobs/run-integration-tests-windows.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc
+          poolName: 1es-pool-azfunc
       - template: /eng/ci/templates/jobs/run-integration-tests-linux.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc
+          poolName: 1es-pool-azfunc

@@ -10,7 +10,8 @@
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
-    <AzureFunctionsSdkProject>$(SrcRoot)Azure.Functions.Sdk/Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
+    <AzureFunctionsSdkProjectRoot>$(SrcRoot)Azure.Functions.Sdk/</AzureFunctionsSdkProjectRoot>
+    <AzureFunctionsSdkProject>$(AzureFunctionsSdkProjectRoot)/Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,6 +20,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Framework" Version="17.11.48" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Watch Include="$(AzureFunctionsSdkProjectRoot)Build/**;$(AzureFunctionsSdkProjectRoot)Sdk/**;$(AzureFunctionsSdkProjectRoot)Targets/**" />
   </ItemGroup>
 
   <Target Name="_IncludeSdkFilesForBuild"

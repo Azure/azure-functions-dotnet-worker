@@ -28,36 +28,16 @@ jobs:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2
-    displayName: Worker Tests
+    displayName: Run Tests
     inputs:
       command: test
       arguments: -v n
       projects: |
-        **/DotNetWorkerTests.csproj
-
-  - task: DotNetCoreCLI@2
-    displayName: OpenTelemetry Tests
-    inputs:
-      command: test
-      arguments: -v n
-      projects: |
+        **/DotNetWorker.Tests.csproj
+        **/DotNetWorker.ApplicationInsights.Tests.csproj
         **/DotNetWorker.OpenTelemetry.Tests.csproj
-
-  - task: DotNetCoreCLI@2
-    displayName: Sdk Tests
-    inputs:
-      command: test
-      arguments: -v n
-      projects: |
         **/Sdk.Analyzers.Tests.csproj
         **/Sdk.Generator.Tests.csproj
-
-  - task: DotNetCoreCLI@2
-    displayName: Extension Tests
-    inputs:
-      command: test
-      arguments: -v n
-      projects: |
         **/Worker.Extensions.Http.AspNetCore.Tests.csproj
         **/Worker.Extensions.Rpc.Tests.csproj
         **/Worker.Extensions.Shared.Tests.csproj

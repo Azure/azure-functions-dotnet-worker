@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Security.Authentication;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests
 {
     public class TokenCredentialOptionsTests
     {

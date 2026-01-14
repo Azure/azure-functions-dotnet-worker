@@ -11,7 +11,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotNetWorker.ApplicationInsights\DotNetWorker.ApplicationInsights.csproj" />
     <ProjectReference Include="..\..\src\DotNetWorker\DotNetWorker.csproj" />
-    <ProjectReference Include="..\DotNetWorkerTests\DotNetWorkerTests.csproj" />
+    <ProjectReference Include="..\DotNetWorker.Tests\DotNetWorker.Tests.csproj" />
   </ItemGroup>
 
   <ItemGroup>

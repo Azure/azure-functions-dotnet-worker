@@ -13,3 +13,9 @@ steps:
   inputs:
     packageType: 'sdk'
     useGlobalJson: true
+
+- task: UseDotNet@2
+  displayName: 'Install .NET10 SDK'
+  inputs:
+    packageType: 'sdk'
+    version: "10.x"

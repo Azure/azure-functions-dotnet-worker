@@ -28,6 +28,8 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 
+  <Target Name="_FunctionAppValidation" DependsOnTargets="_ValidateFunctionsVersion;_CheckForConflictingFunctionSdk" BeforeTargets="CollectPackageReferences;Build" />
+
   <Target Name="_ValidateFunctionsVersion">
     <ItemGroup>
       <_AllowedFunctionVersion Include="v4" InSupport="true" />
@@ -44,9 +46,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
       Resource="Warning_UnsupportedTargetFramework" Arguments="$(TargetFramework)" />
   </Target>
 
-  <Target Name="_CheckForConflictingFunctionSdk" BeforeTargets="CollectPackageReferences;Build">
-    <FuncSdkLog Condition="'%(PackageReference.Identity)' == 'Microsoft.Azure.Functions.Worker.Sdk'" Resource="Error_UsingIncompatibleSdk" Arguments="Microsoft.Azure.Functions.Worker.Sdk" />
-    <FuncSdkLog Condition="'%(PackageReference.Identity)' == 'Microsoft.NET.Sdk.Functions'" Resource="Error_UsingIncompatibleSdk" Arguments="Microsoft.NET.Sdk.Functions" />
+  <Target Name="_CheckForConflictingFunctionSdk">
+    <FuncSdkLog Condition="@(PackageReference->AnyHaveMetadataValue('Identity', 'Microsoft.Azure.Functions.Worker.Sdk'))"
+      Resource="Error_UsingIncompatibleSdk" Arguments="Microsoft.Azure.Functions.Worker.Sdk" />
+    <FuncSdkLog Condition="@(PackageReference->AnyHaveMetadataValue('Identity', 'Microsoft.NET.Sdk.Functions'))"
+      Resource="Error_UsingIncompatibleSdk" Arguments="Microsoft.NET.Sdk.Functions" />
   </Target>
 
   <Target Name="_FunctionsCheckForCoreTools">

@@ -133,7 +133,7 @@
     <value>Azure Functions '{0}' is out of support and will not receive security updates in the future. Please refer to https://aka.ms/azure-functions-retired-versions for more information on the support policy.</value>
   </data>
   <data name="AZFW0105_Error_UsingIncompatibleSdk" xml:space="preserve">
-    <value>{0} package is incompatible with Azure.Functions.Sdk. Please remove the reference to this package.</value>
+    <value>'{0}'' package is incompatible with Azure.Functions.Sdk. Please remove the '{0}' package reference.</value>
   </data>
   <data name="AZFW0106_Error_UnknownFunctionsVersion" xml:space="preserve">
     <value>The AzureFunctionsVersion '{0}' is unknown or not supported.</value>

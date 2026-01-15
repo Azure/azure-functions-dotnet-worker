@@ -41,7 +41,7 @@ if (-not [System.IO.Path]::IsPathRooted($publishDir)) {
     $publishDir = [System.IO.Path]::GetFullPath($publishDir, [System.IO.Path]::Combine($root, "test", "Azure.Functions.Sdk.Resolver"))
 }
 
-Write-Host "Publishing Azure.Functions.Sdk for local development. Reference via 'Azure.Functions.Sdk/99.99.99 in your project file."
+Write-Host "Publishing Azure.Functions.Sdk for local development. Reference via 'Azure.Functions.Sdk/99.99.99' in your project file."
 Write-Host "Can be only referenced from this environment session."
 Write-Host "To use in another environment, set the MSBUILDADDITIONALSDKRESOLVERSFOLDER environment variable to '$publishDir'."
 

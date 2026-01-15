@@ -111,6 +111,28 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         hash.LastWriteTimeUtc.Should().Be(hashWrite);
     }
 
+    [Theory]
+    [InlineData("Microsoft.NET.Sdk.Functions")]
+    [InlineData("Microsoft.Azure.Functions.Worker.Sdk")]
+    public void Restore_IncompatibleSdk_Fails(string package)
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj())
+            .ItemPackageReference(package, "1.0.0");
+
+        // Act
+        BuildOutput output = project.Restore();
+
+        // Assert
+        output.Should().BeFailed()
+            .And.HaveNoWarnings()
+            .And.HaveSingleError()
+            .Which.Should().BeSdkMessage(
+                (LogMessage.Error_UsingIncompatibleSdk, package))
+            .And.HaveSender("FuncSdkLog");
+    }
+
     private void ValidateProject(params NugetPackage[] packages)
     {
         ValidateProjectContents(packages);

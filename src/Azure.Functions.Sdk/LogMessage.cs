@@ -23,8 +23,8 @@ internal readonly struct LogMessage
     public static readonly LogMessage Warning_EndOfLifeFunctionsVersion
         = new(nameof(Strings.AZFW0104_Warning_EndOfLifeFunctionsVersion));
 
-    public static readonly LogMessage Error_UsingLegacyFunctionsSdk
-        = new(nameof(Strings.AZFW0105_Error_UsingLegacyFunctionsSdk));
+    public static readonly LogMessage Error_UsingIncompatibleSdk
+        = new(nameof(Strings.AZFW0105_Error_UsingIncompatibleSdk));
 
     public static readonly LogMessage Error_UnknownFunctionsVersion
         = new(nameof(Strings.AZFW0106_Error_UnknownFunctionsVersion));
@@ -82,7 +82,7 @@ internal readonly struct LogMessage
             nameof(Warning_ExtensionPackageDuplicate) => Warning_ExtensionPackageDuplicate,
             nameof(Error_InvalidExtensionPackageVersion) => Error_InvalidExtensionPackageVersion,
             nameof(Warning_EndOfLifeFunctionsVersion) => Warning_EndOfLifeFunctionsVersion,
-            nameof(Error_UsingLegacyFunctionsSdk) => Error_UsingLegacyFunctionsSdk,
+            nameof(Error_UsingIncompatibleSdk) => Error_UsingIncompatibleSdk,
             nameof(Error_UnknownFunctionsVersion) => Error_UnknownFunctionsVersion,
             nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),

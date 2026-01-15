@@ -11,7 +11,7 @@
     <CopyBuildOutputToPublishDirectory>false</CopyBuildOutputToPublishDirectory>
     <CopyOutputSymbolsToPublishDirectory>false</CopyOutputSymbolsToPublishDirectory>
     <AzureFunctionsSdkProjectRoot>$(SrcRoot)Azure.Functions.Sdk/</AzureFunctionsSdkProjectRoot>
-    <AzureFunctionsSdkProject>$(AzureFunctionsSdkProjectRoot)/Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
+    <AzureFunctionsSdkProject>$(AzureFunctionsSdkProjectRoot)Azure.Functions.Sdk.csproj</AzureFunctionsSdkProject>
   </PropertyGroup>
 
   <ItemGroup>

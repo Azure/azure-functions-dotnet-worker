@@ -12,7 +12,7 @@ jobs:
       artifact: _preLaunchAppPackages
 
   variables:
-    dotnetVersions: 'net10.0,net9.0,net8.0,net6.0'
+    dotnetVersions: 'net10.0,net9.0,net8.0'
 
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self

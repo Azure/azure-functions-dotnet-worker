@@ -1,16 +1,16 @@
-# AZFW0000: Rule title
+# AZFW0100: Rule title
 
-| | Value |
-|-|-|
-| **Rule ID** |AZFW0000|
-| **Category** |Sdk|
-| **Severity** |Hidden/Info/Warning/Error|
+| Item | Value |
+| - | - |
+| **Rule ID** | AZFW0000 |
+| **Category** | Sdk |
+| **Severity** | Hidden/Info/Warning/Error |
 
 ## Cause
 
 Cause
 
-## Rule description
+## Rule Description
 
 Description
 

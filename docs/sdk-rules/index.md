@@ -1,1 +1,1 @@
-Azure Functions .NET Worker SDK Rules
+# Azure Functions .NET Worker SDK Rules

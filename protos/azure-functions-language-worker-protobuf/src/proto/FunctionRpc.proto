@@ -140,6 +140,8 @@ message WorkerInitResponse {
 
   // Worker metadata captured for telemetry purposes
   WorkerMetadata worker_metadata = 4;
+
+  map<string,string> app_capabilities = 5;
 }
 
 message WorkerMetadata {

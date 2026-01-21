@@ -148,7 +148,7 @@ internal readonly struct LogMessage
     /// Formats the log message with the given culture and arguments.
     /// </summary>
     /// <param name="culture">The culture info to use.</param>
-    /// <param name="args"></param>
+    /// <param name="args">The arguments to use, if any.</param>
     /// <returns>The formatted message.</returns>
     public string Format(CultureInfo culture, params object[] args)
     {

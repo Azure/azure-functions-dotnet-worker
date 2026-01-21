@@ -1,0 +1,25 @@
+parameters:
+- name: azurite
+  type: boolean
+  default: true
+- name: cosmos
+  type: boolean
+  default: true
+
+steps:
+- ${{ if eq(parameters.azurite, true) }}:
+  - pwsh: |
+      npm install -g azurite
+      Start-Process azurite.cmd -ArgumentList "--silent --inMemoryPersistence"
+      Write-Host "##vso[task.setvariable variable=Storage]UseDevelopmentStorage=true"
+    displayName: Start Azurite Emulator
+
+- ${{ if eq(parameters.cosmos, true) }}:
+  - pwsh: |
+      Import-Module "$env:ProgramFiles\Azure Cosmos DB Emulator\PSModules\Microsoft.Azure.CosmosDB.Emulator"
+      Start-CosmosDbEmulator -NoFirewall -NoUI
+
+      # [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="public emulator key, not confidential")]
+      Write-Host "##vso[task.setvariable variable=CosmosDB]AccountEndpoint=https://localhost:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==;"
+    displayName: Start Cosmos DB Emulator
+    condition: and(succeeded(), eq(variables['Agent.OS'], 'Windows_NT')) # Skip step if not on windows. Using condition to show this as skipped in logs.

@@ -23,9 +23,6 @@ jobs:
 
   steps:
 
-  - pwsh: . "tools/start-emulators.ps1" -NoWait
-    displayName: "Start emulators (NoWait)"
-
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
 
   - task: DotNetCoreCLI@2

@@ -1,7 +1,7 @@
 parameters:
   - name: DotnetVersion
     type: string
-    default: 'net7'
+    default: 'net8'
   - name: UseCoreToolsBuild
     type: string
     default: 'False'
@@ -20,6 +20,11 @@ parameters:
 
 steps:
 
+- template: /eng/ci/templates/steps/start-emulators.yml@self
+  parameters:
+    azurite: ${{ not(parameters.SkipStorageEmulator) }}
+    cosmos: ${{ not(parameters.SkipCosmosDBEmulator) }}
+
 - task: PowerShell@2
   displayName: 'Setup E2E tests'
   inputs:
@@ -27,8 +32,8 @@ steps:
     filePath: setup-e2e-tests.ps1
     arguments: >
       -DotnetVersion ${{ parameters.DotnetVersion }}
-      -SkipStorageEmulator:$${{ parameters.SkipStorageEmulator }}
-      -SkipCosmosDBEmulator:$${{ parameters.SkipCosmosDBEmulator }}
+      -SkipStorageEmulator:true
+      -SkipCosmosDBEmulator:true
       -SkipCoreTools:$${{ parameters.SkipCoreTools }}
       -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuild }}
       -SkipBuildOnPack:$${{ parameters.SkipBuildOnPack }}

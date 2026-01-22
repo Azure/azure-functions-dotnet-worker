@@ -51,6 +51,15 @@ public static class TaskItemExtensions
         }
 
         /// <summary>
+        /// Gets or sets the "NuGetPackageVersion" metadata on the task item.
+        /// </summary>
+        public string NuGetPackageVersion
+        {
+            get => taskItem.GetMetadata("NuGetPackageVersion") ?? string.Empty;
+            set => taskItem.SetMetadata("NuGetPackageVersion", value);
+        }
+
+        /// <summary>
         /// Tries to get the NuGet package ID from the task item.
         /// </summary>
         /// <param name="packageId">The package ID, if found.</param>
@@ -59,6 +68,17 @@ public static class TaskItemExtensions
         {
             packageId = taskItem.NuGetPackageId;
             return !string.IsNullOrEmpty(packageId);
+        }
+
+        /// <summary>
+        /// Tries to get the NuGet package version from the task item.
+        /// </summary>
+        /// <param name="packageVersion">The package version, if found.</param>
+        /// <returns><c>true</c> if nuget package version is found; <c>false</c> otherwise.</returns>
+        public bool TryGetNuGetPackageVersion([NotNullWhen(true)] out string? packageVersion)
+        {
+            packageVersion = taskItem.NuGetPackageVersion;
+            return !string.IsNullOrEmpty(packageVersion);
         }
     }
 }

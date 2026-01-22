@@ -101,6 +101,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsRuntimeAssembly Include="Microsoft.VisualBasic.Core.dll" />
     <_FunctionsRuntimeAssembly Include="mscorlib.dll" />
     <_FunctionsRuntimeAssembly Include="netstandard.dll" />
+    <_FunctionsRuntimeAssembly Include="OpenTelemetry.dll" />
+    <_FunctionsRuntimeAssembly Include="OpenTelemetry.Api.dll" />
+    <_FunctionsRuntimeAssembly Include="OpenTelemetry.Api.ProviderBuilderExtensions.dll" />
     <_FunctionsRuntimeAssembly Include="System.dll" />
     <_FunctionsRuntimeAssembly Include="System.AppContext.dll" />
     <_FunctionsRuntimeAssembly Include="System.Buffers.dll" />
@@ -432,6 +435,9 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <_FunctionsRuntimePackage Include="netstandard" />
     <_FunctionsRuntimePackage Include="Newtonsoft.Json" />
     <_FunctionsRuntimePackage Include="Newtonsoft.Json.Bson" />
+    <_FunctionsRuntimePackage Include="OpenTelemetry" />
+    <_FunctionsRuntimePackage Include="OpenTelemetry.Api" />
+    <_FunctionsRuntimePackage Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
     <_FunctionsRuntimePackage Include="System" />
     <_FunctionsRuntimePackage Include="System.AppContext" />
     <_FunctionsRuntimePackage Include="System.Buffers" />

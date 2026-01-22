@@ -142,7 +142,7 @@
     <value>Target framework '{0}' is not supported by Azure Functions. Please see https://learn.microsoft.com/azure/azure-functions/functions-versions?tabs=isolated-process%2Cv4&amp;pivots=programming-language-csharp#languages for in-support versions.</value>
   </data>
   <data name="AZFW0108_Warning_ExtensionsNotRestored" xml:space="preserve">
-    <value>The extension bundle was not restored prior to build. Falling back to restore-during-build. This may cause issues in some build environments. See https://aka.ms/azfunc/AZFW0108 for more information.</value>
+    <value>The extension bundle was not restored prior to build. Falling back to restore-during-build. This may cause issues in some build environments.</value>
   </data>
   <data name="Deploy_AsyncDeployment" xml:space="preserve">
     <value>Asynchronous deployment. Polling status at {0}</value>

@@ -1,0 +1,41 @@
+<Project>
+
+  <PropertyGroup>
+    <!-- For some reason Pack target doesn't get this to false when collecting build output and NoBuild=true. -->
+    <BuildProjectReferences Condition="'$(NoBuild)' == 'true'">false</BuildProjectReferences>
+  </PropertyGroup>
+
+  <!--
+    Adds a set of targets to allow adding metadata 'Pack' and 'PackagePath' to a 'ProjectReference' to directly
+    embed the output of that project into the nuget package produced by this project.
+  -->
+  <Target Name="IncludeReferencedProjectsInPackage" Condition="'@(ProjectReference)' != '' and @(ProjectReference-&gt;AnyHaveMetadataValue('Pack', 'true'))"
+    BeforeTargets="_GetPackageFiles"
+    DependsOnTargets="ResolveProjectReferences">
+
+    <MSBuild Projects="@(ProjectReference-&gt;WithMetadataValue('Pack', 'true'))"
+      Targets="_GetBuildPackFiles" RemoveProperties="SetTargetFramework">
+      <Output TaskParameter="TargetOutputs" ItemName="_ReferencedProjectPackFile" />
+    </MSBuild>
+
+    <ItemGroup>
+      <Content Include="@(_ReferencedProjectPackFile)" Condition="!%(_ReferencedProjectPackFile.IsSymbol)"
+        Pack="True" PackagePath="%(_ReferencedProjectPackFile.PackagePath)/%(_ReferencedProjectPackFile.TargetPath)"/>
+
+      <!-- Symbols don't honor PackagePath.  By default they are placed in lib/%(TargetFramework).
+           Pack does honor TargetPath and does Path.Combine("lib/%(TargetFramework)", "%(TargetPath)"),
+           so a rooted path value for TargetPath will override lib.
+           https://github.com/NuGet/Home/issues/10860 -->
+      <_TargetPathsToSymbols Include="@(_ReferencedProjectPackFile)" Condition="%(_ReferencedProjectPackFile.IsSymbol)"
+        TargetPath="%(_ReferencedProjectPackFile.PackagePath)/%(_ReferencedProjectPackFile.TargetPath)" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_GetBuildPackFiles" DependsOnTargets="$(GenerateNuspecDependsOn)" Returns="@(_BuildPackFile)">
+    <ItemGroup>
+      <_BuildPackFile Include="@(_BuildOutputInPackage)" IsSymbol="false" />
+      <_BuildPackFile Include="@(_TargetPathsToSymbols)" IsSymbol="true" />
+    </ItemGroup>
+  </Target>
+
+</Project>

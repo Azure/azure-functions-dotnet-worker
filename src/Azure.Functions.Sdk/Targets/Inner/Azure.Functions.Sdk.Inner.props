@@ -23,4 +23,10 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Sdk="Microsoft.NET.Sdk" Project="Sdk.props" />
   <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Inner.RuntimePackages.props" />
 
+  <ItemGroup>
+    <!-- Always include extensions bundled with this SDK. -->
+    <Reference Include="$(MSBuildThisFileDirectory)../../tools/extensions/*.dll"
+      DestinationSubPath="%(Filename)%(Extension)" AssetType="runtime" />
+  </ItemGroup>
+
 </Project>

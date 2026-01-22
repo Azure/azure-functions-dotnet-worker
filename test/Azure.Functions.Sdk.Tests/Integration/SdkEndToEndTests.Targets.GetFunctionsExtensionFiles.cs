@@ -23,9 +23,13 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         // Assert
         result.Should().NotBeNull();
         result.ResultCode.Should().Be(TargetResultCode.Success);
-        result.Items.Should().ContainSingle()
-            .Which.Should().HaveMetadata(
-                "TargetPath", Path.Combine(Constants.ExtensionsOutputFolder, "function.deps.json"));
+        result.Items.Should().HaveCount(MinExpectedExtensionFiles.Length);
+        foreach (string file in MinExpectedExtensionFiles)
+        {
+            string expectedPath = Path.Combine(Constants.ExtensionsOutputFolder, file);
+            result.Items.Should().ContainSingle(
+                i => i.GetMetadata("TargetPath").Equals(expectedPath));
+        }
     }
 
     [Fact]
@@ -45,7 +49,8 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
         result.Should().NotBeNull();
         result.ResultCode.Should().Be(TargetResultCode.Success);
         result.Items.Should().NotBeEmpty();
-        result.Items.Should().Contain(i => i.ItemSpec.EndsWith("Microsoft.Azure.WebJobs.Extensions.ServiceBus.dll"));
+        result.Items.Should().ContainSingle(i => i.ItemSpec.EndsWith("Microsoft.Azure.WebJobs.Extensions.ServiceBus.dll"));
+        result.Items.Should().ContainSingle(i => i.ItemSpec.EndsWith("Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll"));
         result.Items.Should().AllSatisfy(i =>
         {
             if (i.ItemSpec.EndsWith("deps.json"))

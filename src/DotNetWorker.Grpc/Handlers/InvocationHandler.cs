@@ -1,12 +1,17 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Core;
+using Google.Protobuf.Collections;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
+using Microsoft.Azure.Functions.Worker.Diagnostics;
 using Microsoft.Azure.Functions.Worker.Grpc;
 using Microsoft.Azure.Functions.Worker.Grpc.Features;
 using Microsoft.Azure.Functions.Worker.Grpc.Messages;
@@ -112,6 +117,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                     response.ReturnValue = returnVal;
                 }
 
+                RpcTraceContext traceContext = AddTraceContextTags(request, context);
+                response.TraceContext = traceContext;
+
                 response.Result.Status = StatusResult.Types.Status.Success;
             }
             catch (Exception ex) when (!ex.IsFatal())
@@ -162,6 +170,33 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
 
             return false;
+        }
+
+        private RpcTraceContext AddTraceContextTags(InvocationRequest request, FunctionContext context)
+        {
+            RpcTraceContext traceContext = new RpcTraceContext
+            {
+                TraceParent = request.TraceContext.TraceParent,
+                TraceState = request.TraceContext.TraceState,
+                Attributes = { }
+            };
+
+            var invocationTags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
+                ? tagsObj as System.Collections.Generic.IDictionary<string, string>
+                : null;
+
+            if (invocationTags is not null)
+            {
+                foreach (var tag in invocationTags)
+                {
+                    if (!TraceConstants.KnownAttributes.All.Contains(tag.Key))
+                    {
+                        traceContext.Attributes[tag.Key] = tag.Value;
+                    }
+                }
+            }
+
+            return traceContext;
         }
     }
 }

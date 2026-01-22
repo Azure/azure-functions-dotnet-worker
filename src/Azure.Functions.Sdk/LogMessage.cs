@@ -6,36 +6,63 @@ using NuGet.Common;
 
 namespace Azure.Functions.Sdk;
 
+/// <summary>
+/// A helper struct representing a log message for MSBuild tasks.
+/// </summary>
 internal readonly struct LogMessage
 {
+    /// <summary>
+    /// Log message for when the Func CLI cannot be run.
+    /// </summary>
     public static readonly LogMessage Error_CannotRunFuncCli
         = new(nameof(Strings.AZFW0100_Error_CannotRunFuncCli));
 
+    /// <summary>
+    /// Log message for when there is a conflict between extension packages.
+    /// </summary>
     public static readonly LogMessage Error_ExtensionPackageConflict
         = new(nameof(Strings.AZFW0101_Error_ExtensionPackageConflict));
 
+    /// <summary>
+    /// Log message for when there is a duplicate extension package.
+    /// </summary>
     public static readonly LogMessage Warning_ExtensionPackageDuplicate
         = new(nameof(Strings.AZFW0102_Warning_ExtensionPackageDuplicate));
 
+    /// <summary>
+    /// Log message for when an extension package version is invalid.
+    /// </summary>
     public static readonly LogMessage Error_InvalidExtensionPackageVersion
         = new(nameof(Strings.AZFW0103_Error_InvalidExtensionPackageVersion));
 
+    /// <summary>
+    /// Log message for when an end-of-life Functions version is used.
+    /// </summary>
     public static readonly LogMessage Warning_EndOfLifeFunctionsVersion
         = new(nameof(Strings.AZFW0104_Warning_EndOfLifeFunctionsVersion));
 
-    public static readonly LogMessage Error_UsingLegacyFunctionsSdk
-        = new(nameof(Strings.AZFW0105_Error_UsingLegacyFunctionsSdk));
+    /// <summary>
+    /// Log message for when an incompatible Functions SDK is used.
+    /// </summary>
+    public static readonly LogMessage Error_UsingIncompatibleSdk
+        = new(nameof(Strings.AZFW0105_Error_UsingIncompatibleSdk));
 
+    /// <summary>
+    /// Log message for when an unknown Functions version is specified.
+    /// </summary>
     public static readonly LogMessage Error_UnknownFunctionsVersion
         = new(nameof(Strings.AZFW0106_Error_UnknownFunctionsVersion));
 
+    /// <summary>
+    /// Log message for when an unsupported target framework is used.
+    /// </summary>
     public static readonly LogMessage Warning_UnsupportedTargetFramework
         = new(nameof(Strings.AZFW0107_Warning_UnsupportedTargetFramework));
 
     /// <summary>
     /// Initializes a new instance of the <see cref="LogMessage"/> struct.
     /// Parses the <see cref="Level"/> and <see cref="Code"/> properties from the given <paramref name="id"/>.
-    /// LogCodes must:
+    /// LogMessages must:
     /// - Be defined in the 'Strings.resx' file with the identifier <paramref name="id"/>.
     /// - Follow the format: (?:<LogCode>_)(?<LogLevel>_).*
     /// </summary>
@@ -59,12 +86,33 @@ internal readonly struct LogMessage
         Code = code;
     }
 
+    /// <summary>
+    /// Gets the level of the log message.
+    /// </summary>
     public LogLevel Level { get; }
 
+    /// <summary>
+    /// Gets the identifier of the log message.
+    /// </summary>
+    /// <remarks>
+    /// This identifier must correspond to a resource string in the <see cref="Strings"/> resource file.
+    /// </remarks>
     public string Id { get; }
 
+    /// <summary>
+    /// Gets the code of the log message, if available.
+    /// </summary>
     public string? Code { get; }
 
+    /// <summary>
+    /// Gets the help keyword for the log message.
+    /// </summary>
+    /// <remarks>
+    /// The help keyword is derived from the <see cref="Code"/> property.
+    /// If the <see cref="Code"/> is null, the help keyword will also be null.
+    /// A help keyword will emit a help link of "https://go.microsoft.com/fwlink/?LinkId=AzureFunctions.{Code}"
+    /// as part of the msbuild log.
+    /// </remarks>
     public string? HelpKeyword => Code is null ? null : $"AzureFunctions.{Code}";
 
     /// <summary>
@@ -82,15 +130,26 @@ internal readonly struct LogMessage
             nameof(Warning_ExtensionPackageDuplicate) => Warning_ExtensionPackageDuplicate,
             nameof(Error_InvalidExtensionPackageVersion) => Error_InvalidExtensionPackageVersion,
             nameof(Warning_EndOfLifeFunctionsVersion) => Warning_EndOfLifeFunctionsVersion,
-            nameof(Error_UsingLegacyFunctionsSdk) => Error_UsingLegacyFunctionsSdk,
+            nameof(Error_UsingIncompatibleSdk) => Error_UsingIncompatibleSdk,
             nameof(Error_UnknownFunctionsVersion) => Error_UnknownFunctionsVersion,
             nameof(Warning_UnsupportedTargetFramework) => Warning_UnsupportedTargetFramework,
             _ => throw new ArgumentException($"Log message with id '{id}' not found.", nameof(id)),
         };
     }
 
+    /// <summary>
+    /// Formats the log message with the given arguments and <see cref="CultureInfo.CurrentUICulture" />.
+    /// </summary>
+    /// <param name="args">The arguments to use, if any.</param>
+    /// <returns>The formatted message.</returns>
     public string Format(params object[] args) => Format(CultureInfo.CurrentUICulture, args);
 
+    /// <summary>
+    /// Formats the log message with the given culture and arguments.
+    /// </summary>
+    /// <param name="culture">The culture info to use.</param>
+    /// <param name="args">The arguments to use, if any.</param>
+    /// <returns>The formatted message.</returns>
     public string Format(CultureInfo culture, params object[] args)
     {
         string resource = Strings.GetResourceString(Id)

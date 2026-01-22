@@ -9,7 +9,7 @@ namespace Azure.Functions.Sdk;
 /// <param name="name">The name of the WebJobs extension.</param>
 /// <param name="version">The assembly-qualified name of the WebJobs extension type.</param>
 /// <param name="hintPath">An optional hint path to the WebJobs extension assembly.</param>
-public partial class WebJobsReference(string name, string version, string hintPath)
+public sealed partial class WebJobsReference(string name, string version, string hintPath)
 {
     public string Name { get; } = name ?? string.Empty;
 

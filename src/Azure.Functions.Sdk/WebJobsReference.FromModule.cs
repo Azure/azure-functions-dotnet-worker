@@ -7,22 +7,10 @@ using NuGet.Common;
 
 namespace Azure.Functions.Sdk;
 
-public partial class WebJobsReference
+public sealed partial class WebJobsReference
 {
     private const string ExtensionsBinaryDirectoryPath = $@"./{Constants.ExtensionsOutputFolder}";
     private const string WebJobsStartupAttributeType = "Microsoft.Azure.WebJobs.Hosting.WebJobsStartupAttribute";
-
-    /// <summary>
-    /// Gets any WebJobs references from the specified module path.
-    /// </summary>
-    public static IEnumerable<WebJobsReference> FromModule(string path, ILogger? logger = null)
-    {
-        Throw.IfNullOrEmpty(path);
-        FunctionsAssemblyResolver resolver = new();
-        ReaderParameters readerParameters = new() { AssemblyResolver = resolver };
-        AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(path, readerParameters);
-        return FromModule(assembly, logger);
-    }
 
     /// <summary>
     /// Gets any WebJobs references from the specified assembly.

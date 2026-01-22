@@ -1,6 +1,7 @@
 // Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
+using System.Globalization;
 using System.IO.Abstractions;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -125,7 +126,9 @@ public partial class WriteExtensionMetadata(IFileSystem fileSystem)
         {
             hash.WriteObjectStart();
             hash.WriteNameValue("path", item.ItemSpec);
-            hash.WriteNameValue("lastWriteTimeUtc", _fileSystem.File.GetLastWriteTimeUtc(item.ItemSpec).ToString());
+            hash.WriteNameValue(
+                "lastWriteTimeUtc",
+                _fileSystem.File.GetLastWriteTimeUtc(item.ItemSpec).ToString(CultureInfo.InvariantCulture));
             hash.WriteObjectEnd();
         }
 

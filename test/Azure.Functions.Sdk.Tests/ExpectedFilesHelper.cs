@@ -28,14 +28,4 @@ internal static class ExpectedFilesHelper
             },
             _jsonOptions);
     }
-
-    public static string GetExtensionsJson(string[] expectedExtensions)
-    {
-        return JsonSerializer.Serialize(
-            new
-            {
-                extensions = expectedExtensions,
-            },
-            _jsonOptions);
-    }
 }

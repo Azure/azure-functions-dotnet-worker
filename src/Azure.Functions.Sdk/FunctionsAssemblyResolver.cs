@@ -9,7 +9,7 @@ namespace Azure.Functions.Sdk;
 /// <summary>
 /// An assembly resolver that skips trusted platform assemblies.
 /// </summary>
-public class FunctionsAssemblyResolver : DefaultAssemblyResolver
+public sealed class FunctionsAssemblyResolver : DefaultAssemblyResolver
 {
     private static readonly ImmutableHashSet<string> TrustedPlatformAssemblies
         = GetTrustedPlatformAssemblies();

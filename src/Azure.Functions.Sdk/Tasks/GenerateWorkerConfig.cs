@@ -89,7 +89,5 @@ public partial class GenerateWorkerConfig(IFileSystem fileSystem)
         PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase,
         WriteIndented = true)]
     [JsonSerializable(typeof(Config))]
-    private partial class WorkerConfigContext : JsonSerializerContext
-    {
-    }
+    private partial class WorkerConfigContext : JsonSerializerContext;
 }

@@ -20,6 +20,23 @@ internal static class ProjectCreatorExtensions
             KeyValuePair.Create("RestoreSources", "https://api.nuget.org/v3/index.json" )
         ]);
 
+    private static IDictionary<string, string>? CombineProperties(
+        IDictionary<string, string>? left, ReadOnlySpan<KeyValuePair<string, string>> right)
+    {
+        if (left is null || left.Count == 0)
+        {
+            return ImmutableDictionary.CreateRange(right);
+        }
+
+        if (right.Length == 0)
+        {
+            return left;
+        }
+
+        // SetItems will not throw on duplicates; right-hand side wins.
+        return ImmutableDictionary.CreateRange(left).SetItems(right);
+    }
+
     private static ImmutableDictionary<string, string> GetGlobalProperties(IDictionary<string, string>? overrides)
     {
         if (overrides is null || overrides.Count == 0)
@@ -152,6 +169,22 @@ internal static class ProjectCreatorExtensions
         public BuildOutput Build(bool restore = false, IDictionary<string, string>? globalProperties = null)
         {
             project.TryBuild(restore, globalProperties, out _, out BuildOutput output);
+            return output;
+        }
+
+        public BuildOutput Publish(bool build = false, bool restore = false, IDictionary<string, string>? globalProperties = null)
+        {
+            if (restore && !build)
+            {
+                throw new ArgumentException("Cannot restore without building.");
+            }
+
+            if (!build)
+            {
+                globalProperties = CombineProperties(globalProperties, [KeyValuePair.Create("NoBuild", "true")]);
+            }
+
+            project.TryBuild(restore, "Publish", globalProperties, out _, out BuildOutput output);
             return output;
         }
 

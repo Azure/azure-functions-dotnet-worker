@@ -14,8 +14,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Publish.$(PublishProtocol).targets"
           Condition="Exists('$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Publish.$(PublishProtocol).targets')" />
 
-  <Target Name="AssignFunctionsBaseImage" DependsOnTargets="_FunctionsPreBuild"
-    BeforeTargets="ComputeContainerBaseImage">
+  <Target Name="AssignFunctionsBaseImage" BeforeTargets="ComputeContainerBaseImage">
     <PropertyGroup>
       <ContainerBaseImage Condition="'$(ContainerBaseImage)' == ''">mcr.microsoft.com/azure-functions/dotnet-isolated:$(_FunctionsRuntimeMajorVersion)-dotnet-isolated$(TargetFrameworkVersion.TrimStart('vV'))</ContainerBaseImage>
       <ContainerWorkingDirectory Condition="'$(ContainerWorkingDirectory)' == ''">/home/site/wwwroot</ContainerWorkingDirectory>

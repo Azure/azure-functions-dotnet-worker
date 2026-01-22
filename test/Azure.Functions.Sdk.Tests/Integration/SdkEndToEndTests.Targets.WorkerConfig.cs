@@ -195,7 +195,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
     private static void ValidateConfig(string file, string expectedExecutable, string expectedEntryPoint)
     {
         File.Exists(file).Should().BeTrue();
-        string expectedJson = WorkerConfigHelper.GetExpectedJson(expectedExecutable, expectedEntryPoint);
+        string expectedJson = ExpectedFilesHelper.GetWorkerConfig(expectedExecutable, expectedEntryPoint);
         File.ReadAllText(file).Should().Be(expectedJson);
     }
 }

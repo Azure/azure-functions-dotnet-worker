@@ -9,6 +9,12 @@ namespace Azure.Functions.Sdk.Tests.Integration;
 
 public partial class SdkEndToEndTests
 {
+    private static readonly string[] MinExpectedExtensionFiles =
+    [
+        "function.deps.json",
+        "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll",
+    ];
+
     private static readonly string[] ExpectedExtensionFiles =
     [
         "Azure.Core.Amqp.dll",
@@ -27,6 +33,7 @@ public partial class SdkEndToEndTests
         "Grpc.Net.ClientFactory.dll",
         "Grpc.Net.Common.dll",
         "Microsoft.Azure.Amqp.dll",
+        "Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll",
         "Microsoft.Azure.WebJobs.Extensions.Rpc.dll",
         "Microsoft.Azure.WebJobs.Extensions.ServiceBus.dll",
         "Microsoft.Azure.WebJobs.Extensions.Storage.Blobs.dll",
@@ -38,6 +45,13 @@ public partial class SdkEndToEndTests
         "Microsoft.IdentityModel.Abstractions.dll",
         "System.ClientModel.dll",
         "System.IO.Hashing.dll",
+    ];
+
+    private static readonly WebJobsExtension[] ExpectedExtensions =
+    [
+        WebJobsExtension.MetadataLoader,
+        ..NugetPackage.ServiceBus.WebJobsPackages,
+        ..NugetPackage.Storage.WebJobsPackages,
     ];
 
     [Fact]
@@ -59,8 +73,8 @@ public partial class SdkEndToEndTests
             Path.Combine(outputPath, "worker.config.json"),
             "dotnet",
             "MyFunctionApp.dll");
-        ValidateExtensionsPayload(outputPath, "function.deps.json");
-        ValidateExtensionJson(outputPath, []);
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
 
     [Fact]
@@ -83,8 +97,8 @@ public partial class SdkEndToEndTests
             Path.Combine(outputPath, "worker.config.json"),
             "{WorkerRoot}MyFunctionApp.exe",
             "MyFunctionApp.exe");
-        ValidateExtensionsPayload(outputPath, "function.deps.json");
-        ValidateExtensionJson(outputPath, []);
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
 
     [Fact]
@@ -110,9 +124,7 @@ public partial class SdkEndToEndTests
             "MyFunctionApp.dll");
 
         ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
-        ValidateExtensionJson(
-            outputPath,
-            [..NugetPackage.ServiceBus.WebJobsPackages, ..NugetPackage.Storage.WebJobsPackages]);
+        ValidateExtensionJson(outputPath, ExpectedExtensions);
     }
 
     [Fact]
@@ -139,9 +151,7 @@ public partial class SdkEndToEndTests
             "MyFunctionApp.exe");
 
         ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
-        ValidateExtensionJson(
-            outputPath,
-            [..NugetPackage.ServiceBus.WebJobsPackages, ..NugetPackage.Storage.WebJobsPackages]);
+        ValidateExtensionJson(outputPath, ExpectedExtensions);
     }
 
     [Fact]
@@ -176,8 +186,8 @@ public partial class SdkEndToEndTests
 
         // Assert 2: Verify no changes were made
         ValidateConfig(configPath, "dotnet", "MyFunctionApp.dll");
-        ValidateExtensionsPayload(outputPath, "function.deps.json");
-        ValidateExtensionJson(outputPath, []);
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
 
         output2.Should().BeSuccessful().And.HaveNoIssues();
         config.Refresh();
@@ -225,9 +235,7 @@ public partial class SdkEndToEndTests
         // Assert 2: Verify no changes were made
         ValidateConfig(configPath, "dotnet", "MyFunctionApp.dll");
         ValidateExtensionsPayload(outputPath, ExpectedExtensionFiles);
-        ValidateExtensionJson(
-            outputPath,
-            [..NugetPackage.ServiceBus.WebJobsPackages, ..NugetPackage.Storage.WebJobsPackages]);
+        ValidateExtensionJson(outputPath, ExpectedExtensions);
 
         output2.Should().BeSuccessful().And.HaveNoIssues();
         config.Refresh();
@@ -253,7 +261,7 @@ public partial class SdkEndToEndTests
         actualFiles.Should().BeEquivalentTo(expectedFiles);
     }
 
-    private static void ValidateExtensionJson(string outputPath, params WebJobsPackage[] expectedPackages)
+    private static void ValidateExtensionJson(string outputPath, params WebJobsExtension[] expectedPackages)
     {
         string extensionsJsonPath = Path.Combine(outputPath, "extensions.json");
         File.Exists(extensionsJsonPath).Should().BeTrue("extensions.json should exist.");
@@ -263,12 +271,12 @@ public partial class SdkEndToEndTests
         metadata.Should().NotBeNull("extensions.json should deserialize correctly.");
 
         metadata!.Extensions.Should().HaveCount(expectedPackages.Length);
-        foreach (WebJobsPackage pkg in expectedPackages)
+        foreach (WebJobsExtension ext in expectedPackages)
         {
             metadata.Extensions.Should().ContainSingle(e =>
-                string.Equals(e.Name, pkg.ExtensionName, StringComparison.OrdinalIgnoreCase))
+                string.Equals(e.Name, ext.Name, StringComparison.OrdinalIgnoreCase))
                 .Which.HintPath.Should().Be(
-                    $"./{Constants.ExtensionsOutputFolder}/{pkg.Name}.dll",
+                    $"./{Constants.ExtensionsOutputFolder}/{ext.Assembly}",
                     "Hint path should point to correct location.");
         }
     }

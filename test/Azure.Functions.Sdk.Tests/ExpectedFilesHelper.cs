@@ -5,13 +5,13 @@ using System.Text.Json;
 
 namespace Azure.Functions.Sdk;
 
-internal static class WorkerConfigHelper
+internal static class ExpectedFilesHelper
 {
     private static readonly string[] _extensions = [".dll"];
 
     private static readonly JsonSerializerOptions _jsonOptions = new() { WriteIndented = true, };
 
-    public static string GetExpectedJson(string expectedExecutable, string expectedEntryPoint)
+    public static string GetWorkerConfig(string expectedExecutable, string expectedEntryPoint)
     {
         return JsonSerializer.Serialize(
             new

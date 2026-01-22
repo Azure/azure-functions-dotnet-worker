@@ -14,11 +14,11 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ResolveExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.ValidateExtensionPackages" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionProject" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
+  <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Extensions.WriteExtensionMetadata" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
   <PropertyGroup>
     <_FunctionsPackageHashPath>$(_AzureFunctionsExtensionProjectDirectory)azure_functions.package.hash</_FunctionsPackageHashPath>
     <_FunctionsIntermediateExtensionJsonPath>$(IntermediateOutputPath)$(_FunctionsExtensionsJsonName)</_FunctionsIntermediateExtensionJsonPath>
-    <_FunctionsUnusedPackagesCachePath>$(_AzureFunctionsExtensionProjectDirectory)azure_functions.unused_packages.cache</_FunctionsUnusedPackagesCachePath>
   </PropertyGroup>
 
   <Target Name="GenerateFunctionsExtensionProject" Condition="'$(DesignTimeBuild)' != 'true'"
@@ -26,7 +26,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     AfterTargets="Restore" />
 
   <Target Name="PrepareFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
-    DependsOnTargets="GetFunctionsExtensionFiles"
+    DependsOnTargets="GetFunctionsExtensionFiles;GenerateExtensionMetadata;AssignFunctionsTargetPaths"
     AfterTargets="CoreCompile" BeforeTargets="GetCopyToOutputDirectoryItems" />
 
   <Target Name="PublishFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
@@ -63,6 +63,24 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     <ItemGroup>
       <_NoneWithTargetPath Include="@(_FunctionsExtensionsOutputItems)"
         CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="_CalculateFunctionsExtensionAssemblies">
+    <ItemGroup>
+      <_FunctionsExtensionAssemblies Include="@(_FunctionsExtensionsOutputItems->WithMetadataValue('AssetType', 'runtime'))" />
+    </ItemGroup>
+  </Target>
+
+  <Target Name="GenerateExtensionMetadata" DependsOnTargets="_CalculateFunctionsExtensionAssemblies">
+    <WriteExtensionMetadata OutputPath="$(_FunctionsIntermediateExtensionJsonPath)" ExtensionReferences="@(_FunctionsExtensionAssemblies)" />
+  </Target>
+
+  <Target Name="AssignFunctionsTargetPaths">
+    <ItemGroup>
+      <_NoneWithTargetPath Include="$(_FunctionsIntermediateExtensionJsonPath)" TargetPath="$(_FunctionsExtensionsJsonName)"
+        CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest"/>
+      <EmbedInBinlog Include="$(_FunctionsIntermediateExtensionJsonPath)" />
     </ItemGroup>
   </Target>
 

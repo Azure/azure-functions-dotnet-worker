@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
@@ -119,18 +119,17 @@ internal static class ProjectCreatorExtensions
 
         public string GetOutputPath(string? subPath = null)
         {
-            project.TryGetPropertyValue("OutputPath", out string? outputPath);
-            outputPath = NormalizeSeparators(outputPath!);
-            string root = Path.GetDirectoryName(project.FullPath)!;
-            return Path.Combine(root, outputPath, subPath ?? string.Empty);
+            return project.GetPathProperty("OutputPath", subPath);
+        }
+
+        public string GetPublishPath(string? subPath = null)
+        {
+            return project.GetPathProperty("PublishDir", subPath);
         }
 
         public string GetIntermediateOutputPath(string? subPath = null)
         {
-            project.TryGetPropertyValue("IntermediateOutputPath", out string? intermediateOutputPath);
-            intermediateOutputPath = NormalizeSeparators(intermediateOutputPath!);
-            string root = Path.GetDirectoryName(project.FullPath)!;
-            return Path.Combine(root, intermediateOutputPath, subPath ?? string.Empty);
+            return project.GetPathProperty("IntermediateOutputPath", subPath);
         }
 
         public string GetRelativeIntermediateOutputPath(string? subPath = null)
@@ -198,6 +197,14 @@ internal static class ProjectCreatorExtensions
             }
 
             return result;
+        }
+
+        private string GetPathProperty(string property, string? subPath)
+        {
+            project.TryGetPropertyValue(property, out string? path);
+            path = NormalizeSeparators(path!);
+            string root = Path.GetDirectoryName(project.FullPath)!;
+            return Path.Combine(root, path, subPath ?? string.Empty);
         }
     }
 }

@@ -42,7 +42,7 @@ public partial class SdkEndToEndTests : MSBuildSdkTestBase
             Path.Combine(outputPath, "worker.config.json"),
             "dotnet",
             "MyFunctionApp.dll");
-        ValidateExtensionsPayload(outputPath, "function.deps.json");
-        ValidateExtensionJson(outputPath, []);
+        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
+        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
     }
 }

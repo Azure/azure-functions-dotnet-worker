@@ -14,7 +14,7 @@ namespace Azure.Functions.Sdk;
 public sealed partial class FunctionsAssemblyScanner
 {
     private static readonly Regex ExcludedPackagesRegex = new(
-        @"^(System|Azure\.Core|Azure\.Identity|Microsoft\.Bcl|Microsoft\.Extensions|Microsoft\.Identity|Microsoft\.NETCore|Microsoft\.NETStandard|Microsoft\.Win32|Grpc)(\..*|$)",
+        @"^(System|Azure\.Core|Azure\.Identity|Microsoft\.Bcl|Microsoft\.Extensions|Microsoft\.Identity|Microsoft\.NETCore|Microsoft\.NETStandard|Microsoft\.Win32|Grpc|OpenTelemetry)(\..*|$)",
         RegexOptions.Compiled);
 
     private readonly FunctionsAssemblyResolver _resolver;

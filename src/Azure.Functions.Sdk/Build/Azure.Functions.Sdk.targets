@@ -12,7 +12,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
 
   <!-- Fail the build if we are referenced via PackageReference and not Sdk element. -->
-  <Target Name="_AzureFunctionsIncorrectImport" BeforeTargets="Build">
+  <Target Name="_AzureFunctionsIncorrectImport" BeforeTargets="BeforeBuild">
     <Error Text="Azure.Functions.Sdk must be imported through an 'Sdk' element and not a 'PackageReference'." />
   </Target>
 

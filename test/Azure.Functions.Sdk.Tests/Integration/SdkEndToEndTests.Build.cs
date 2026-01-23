@@ -155,6 +155,28 @@ public partial class SdkEndToEndTests
     }
 
     [Fact]
+    public void Build_NoRestoreHook_Warning()
+    {
+        // Arrange
+        ProjectCreator project = ProjectCreator.Templates.AzureFunctionsProject(
+            GetTempCsproj(), targetFramework: "net8.0")
+            .Property("AssemblyName", "MyFunctionApp")
+            .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
+
+        // restore, then delete the project to simulate no restore hook having run
+        project.Restore().Should().BeSuccessful().And.HaveNoIssues();
+        Directory.Delete(project.GetFunctionsExtensionProjectDirectory(), recursive: true);
+
+        // Act
+        BuildOutput output = project.Build(restore: false);
+
+        // Assert
+        output.Should().BeSuccessful().And.HaveSingleWarning()
+            .Which.Should().BeSdkMessage(LogMessage.Warning_ExtensionsNotRestored)
+            .And.HaveSender("FuncSdkLog");
+    }
+
+    [Fact]
     public void Build_Incremental_NoOp()
     {
         // Arrange

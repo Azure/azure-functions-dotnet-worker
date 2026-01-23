@@ -30,7 +30,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     AfterTargets="CoreCompile" BeforeTargets="GetCopyToOutputDirectoryItems" />
 
   <Target Name="PublishFunctionsExtensionPayload" Condition="'$(DesignTimeBuild)' != 'true'"
-    DependsOnTargets="GetFunctionsExtensionFiles"
+    DependsOnTargets="GetFunctionsExtensionFiles;AssignFunctionsTargetPaths"
     BeforeTargets="GetCopyToPublishDirectoryItems" />
 
   <Target Name="CollectExtensionPackages" Returns="@(_AzureFunctionPackageReference)">

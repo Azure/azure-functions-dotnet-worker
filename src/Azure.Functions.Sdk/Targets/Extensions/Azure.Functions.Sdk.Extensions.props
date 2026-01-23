@@ -14,6 +14,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
   <PropertyGroup>
     <_AzureFunctionsExtensionProjectDirectory>$(BaseIntermediateOutputPath)azure_functions/</_AzureFunctionsExtensionProjectDirectory>
     <_AzureFunctionsExtensionProjectPath>$(_AzureFunctionsExtensionProjectDirectory)$(_AzureFunctionsExtensionProjectName)</_AzureFunctionsExtensionProjectPath>
+    <_AzureFunctionsExtensionRestoredMarker>$(_AzureFunctionsExtensionProjectDirectory)restored.marker</_AzureFunctionsExtensionRestoredMarker>
     <_AzureFunctionsExtensionRemoveProps>TargetFramework;RuntimeIdentifier;SelfContained;PublishSingleFile;PublishReadyToRun;UseCurrentRuntimeIdentifier;WebPublishMethod;PublishProfile;DeployOnBuild;PublishDir;OutDir;OutputPath;ManagePackageVersionsCentrally;</_AzureFunctionsExtensionRemoveProps>
     <_FunctionsExtensionsJsonName>extensions.json</_FunctionsExtensionsJsonName>
   </PropertyGroup>

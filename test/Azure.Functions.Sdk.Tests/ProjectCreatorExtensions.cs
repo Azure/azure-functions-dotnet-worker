@@ -123,6 +123,14 @@ internal static class ProjectCreatorExtensions
             return Path.Combine(intermediateOutputPath, subPath ?? string.Empty);
         }
 
+        public string GetFunctionsExtensionProjectDirectory()
+        {
+            project.TryGetPropertyValue("_AzureFunctionsExtensionProjectDirectory", out string? path);
+            path = NormalizeSeparators(path!);
+            string root = Path.GetDirectoryName(project.FullPath)!;
+            return Path.Combine(root, path);
+        }
+
         public ProjectCreator CreateIntermediateOutputPath(string? subPath = null)
         {
             Directory.CreateDirectory(project.GetIntermediateOutputPath(subPath));

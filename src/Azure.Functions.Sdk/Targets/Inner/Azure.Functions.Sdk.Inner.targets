@@ -19,7 +19,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
     This target is a safeguard to ensure that the target framework is not overridden by a global property.
     This projects TFM is intended to match the Azure Functions Host TFM, and NOT the TFM of the csproj which generated this file.
   -->
-  <Target Name="_VerifyTargetFramework" BeforeTargets="Restore;Build">
+  <Target Name="_VerifyTargetFramework" BeforeTargets="Restore;BeforeBuild">
     <Error Condition="'$(TargetFramework)' != 'net8.0'" Text="The target framework '$(TargetFramework)' must be 'net8.0'. Verify if target framework has been overridden by a global property." />
   </Target>
 

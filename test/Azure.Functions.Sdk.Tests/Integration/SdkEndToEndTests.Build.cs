@@ -163,18 +163,17 @@ public partial class SdkEndToEndTests
             .Property("AssemblyName", "MyFunctionApp")
             .WriteSourceFile("Program.cs", Resources.Program_Minimal_cs);
 
+        // restore, then delete the project to simulate no restore hook having run
+        project.Restore().Should().BeSuccessful().And.HaveNoIssues();
+        Directory.Delete(project.GetFunctionsExtensionProjectDirectory(), recursive: true);
+
         // Act
-        BuildOutput output = project.Build(restore: true);
+        BuildOutput output = project.Build(restore: false);
 
         // Assert
-        output.Should().BeSuccessful().And.HaveNoIssues();
-        string outputPath = project.GetOutputPath();
-        ValidateConfig(
-            Path.Combine(outputPath, "worker.config.json"),
-            "dotnet",
-            "MyFunctionApp.dll");
-        ValidateExtensionsPayload(outputPath, MinExpectedExtensionFiles);
-        ValidateExtensionJson(outputPath, WebJobsExtension.MetadataLoader);
+        output.Should().BeSuccessful().And.HaveSingleWarning()
+            .Which.Should().BeSdkMessage(LogMessage.Warning_ExtensionsNotRestored)
+            .And.HaveSender("FuncSdkLog");
     }
 
     [Fact]

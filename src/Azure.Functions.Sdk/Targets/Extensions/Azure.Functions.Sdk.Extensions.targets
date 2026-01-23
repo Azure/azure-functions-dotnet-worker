@@ -87,12 +87,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <!--
     Until there is a consistent post-restore hook which gives a guarantee to run our targets after restore,
-    _VerifyRestoredFunctionsExtensions will verify the restore hook ran. If extension restore hook has not
-    ran, this will emit a warning and try to perform the restore during build.
+    _VerifyRestoredFunctionsExtensions will verify the restore hook has run. If extension restore hook has not
+    run, this will emit a warning and try to perform the restore hook during build.
   -->
   <Target Name="_VerifyRestoredFunctionsExtensions" Condition="'$(DesignTimeBuild)' != 'true'"
-    BeforeTargets="Build"
-    Inputs="$(_AzureFunctionsExtensionProjectPath)" Outputs="$(_AzureFunctionsExtensionRestoredMarker)">
+    BeforeTargets="BeforeBuild"
+    Inputs="$(_AzureFunctionsExtensionProjectPath);$(ProjectAssetsFile)" Outputs="$(_AzureFunctionsExtensionRestoredMarker)">
     <FuncSdkLog Resource="Warning_ExtensionsNotRestored" />
     <CallTarget Targets="GenerateFunctionsExtensionProject"/>
   </Target>

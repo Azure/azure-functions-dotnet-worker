@@ -44,6 +44,13 @@ internal class BuildEventArgsAssertions(BuildEventArgs subject, AssertionChain a
 
     [CustomAssertion]
     public AndConstraint<BuildEventArgsAssertions> BeSdkMessage(
+        LogMessage log, string because = "", params object[] becauseArgs)
+    {
+        return BeSdkMessage((log, []), because, becauseArgs);
+    }
+
+    [CustomAssertion]
+    public AndConstraint<BuildEventArgsAssertions> BeSdkMessage(
         (LogMessage Log, string Arg) log, string because = "", params object[] becauseArgs)
     {
         return BeSdkMessage((log.Log, [log.Arg]), because, becauseArgs);

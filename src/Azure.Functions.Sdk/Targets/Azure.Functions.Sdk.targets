@@ -25,6 +25,7 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 
   <Import Project="$(MSBuildThisFileDirectory)Azure.Functions.Sdk.Analyzers.targets" />
   <Import Project="$(MSBuildThisFileDirectory)extensions/Azure.Functions.Sdk.Extensions.targets" />
+  <Import Project="$(MSBuildThisFileDirectory)publish/Azure.Functions.Sdk.Publish.targets" />
   <Import Project="$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets"
           Condition="Exists('$(MSBuildFunctionsTargetsPath)Microsoft.Azure.Functions.Designtime.targets')" />
 

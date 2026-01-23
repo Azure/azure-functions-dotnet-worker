@@ -177,6 +177,7 @@ DocProject/Help/html
 
 # Click-Once directory
 publish/
+!src/Azure.Functions.Sdk/Targets/Publish/
 
 # Publish Web Output
 *.[Pp]ublish.xml

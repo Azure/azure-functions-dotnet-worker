@@ -20,6 +20,7 @@ jobs:
     ${{ if and( not(startsWith(variables['Build.SourceBranch'], 'refs/heads/release/')),  not(startsWith(variables['Build.SourceBranch'], 'refs/tags')) ) }}:
       buildNumberTemp: $(Build.BuildNumber)
     buildNumber: $[variables.buildNumberTemp]
+    pack_dir: $(Build.ArtifactStagingDirectory)/NugetPackages
 
   steps:
   - template: /eng/ci/templates/steps/install-dotnet.yml@self
@@ -35,22 +36,14 @@ jobs:
 
   - template: ci/sign-files.yml@eng
     parameters:
-      displayName: Sign SDK assemblies
-      folderPath: sdk
-      pattern: Microsoft.Azure.Functions.Worker.Sdk*.dll
-      signType: dll
-
-  - task: DeleteFiles@1
-    displayName: Delete CodeSignSummary files
-    inputs:
-      sourceFolder: sdk
-      contents: '**/CodeSignSummary-*.md'
-
-  - template: ci/sign-files.yml@eng
-    parameters:
-      displayName: Sign DotNetWorker assemblies
-      folderPath: src
-      pattern: Microsoft.Azure.Functions.Worker*.dll
+      displayName: Sign assemblies
+      minimatch: true
+      folderPath: ""
+      pattern: |
+        sdk/**/bin/**/Microsoft.Azure.Functions.Worker.Sdk*.dll
+        sdk/**/bin/**/Microsoft.Azure.WebJobs.Extensions.FunctionMetadataLoader.dll
+        src/**/bin/**/Microsoft.Azure.Functions.Worker*.dll
+        src/**/bin/**/Azure.Functions.*.dll
       signType: dll
 
   - task: DeleteFiles@1
@@ -60,32 +53,28 @@ jobs:
       contents: '**/CodeSignSummary-*.md'
 
   - task: DotNetCoreCLI@2
-    displayName: Pack SDK
+    displayName: Pack Projects
     inputs:
       command: custom
       custom: pack
-      arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
+      arguments: '--no-build -c release -o $(pack_dir) -p:BuildNumber=$(buildNumber)'
       projects: |
         sdk/**/Sdk*.csproj
-
-  - task: DotNetCoreCLI@2
-    displayName: Pack DotNetWorker
-    inputs:
-      command: custom
-      custom: pack
-      arguments: '--no-build -c release -o $(Build.ArtifactStagingDirectory)/NugetPackages -p:BuildNumber=$(buildNumber)'
-      projects: |
         src/**/DotNetWorker*.csproj
+        src/**/Azure.Functions.*.csproj
 
   - template: ci/sign-files.yml@eng
     parameters:
       displayName: Sign nuget packages
-      folderPath: $(Build.ArtifactStagingDirectory)/NugetPackages
-      pattern: Microsoft.Azure.Functions.Worker*.nupkg
+      folderPath: $(pack_dir)
+      minimatch: true
+      pattern: |
+        Microsoft.Azure.Functions.Worker*.nupkg
+        Azure.Functions.*.nupkg
       signType: nuget
 
   - task: DeleteFiles@1
     displayName: Delete CodeSignSummary files
     inputs:
-      sourceFolder: $(Build.ArtifactStagingDirectory)/NugetPackages
+      sourceFolder: $(pack_dir)
       contents: '**/CodeSignSummary-*.md'

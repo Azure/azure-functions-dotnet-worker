@@ -23,7 +23,7 @@ function Find-Root
 $root = Find-Root
 $resolver = Join-Path -Path $root -ChildPath "test/Azure.Functions.Sdk.Resolver/Azure.Functions.Sdk.Resolver.csproj"
 
-$command = "dotnet publish $resolver"
+$command = "dotnet publish '$resolver'"
 $config = "-c debug"
 if ($Release)
 {
@@ -33,7 +33,7 @@ if ($Release)
 $command += " $config"
 
 # Use IEX to split '$config' into separate switch and arg.
-$publishDir = Invoke-Expression "dotnet build $resolver $config -getproperty:PublishDir"
+$publishDir = Invoke-Expression "dotnet build '$resolver' $config -getproperty:PublishDir"
 $publishDir = $publishDir.Trim()
 
 # Make path absolute if relative

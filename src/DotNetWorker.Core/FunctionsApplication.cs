@@ -77,7 +77,7 @@ namespace Microsoft.Azure.Functions.Worker
                 var tags = invokeActivity?.Tags.ToDictionary(kv => kv.Key, kv => kv.Value);
                 if (tags is not null)
                 {
-                    context.Items.Add(TraceConstants.InternalKeys.FunctionContextItemsKey, tags);
+                    context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
                 }
             }
             catch (Exception ex)

@@ -186,12 +186,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
             if (invocationTags is not null)
             {
-                foreach (var tag in invocationTags)
+                foreach (var tag in invocationTags.Where(tag => !TraceConstants.KnownAttributes.All.Contains(tag.Key)))
                 {
-                    if (!TraceConstants.KnownAttributes.All.Contains(tag.Key))
-                    {
-                        traceContext.Attributes[tag.Key] = tag.Value;
-                    }
+                    traceContext.Attributes[tag.Key] = tag.Value;
                 }
             }
 

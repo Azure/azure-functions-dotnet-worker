@@ -79,7 +79,7 @@ namespace Microsoft.Azure.Functions.Worker
                     .ToDictionary(g => g.Key, g => g.Last().Value);
                 if (tags is not null)
                 {
-                    context.Items.Add(TraceConstants.InternalKeys.FunctionContextItemsKey, tags);
+                    context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
                 }
             }
             catch (Exception ex)

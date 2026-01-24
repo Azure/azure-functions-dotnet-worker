@@ -7,7 +7,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Azure.Core;
 using Google.Protobuf.Collections;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
@@ -187,12 +186,9 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
 
             if (invocationTags is not null)
             {
-                foreach (var tag in invocationTags)
+                foreach (var tag in invocationTags.Where(tag => !TraceConstants.KnownAttributes.All.Contains(tag.Key)))
                 {
-                    if (!TraceConstants.KnownAttributes.All.Contains(tag.Key))
-                    {
-                        traceContext.Attributes[tag.Key] = tag.Value;
-                    }
+                    traceContext.Attributes[tag.Key] = tag.Value;
                 }
             }
 

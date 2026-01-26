@@ -13,7 +13,7 @@ namespace Azure.Functions.Sdk.Tasks.Publish;
 /// <summary>
 /// Creates a zip file for a folder.
 /// </summary>
-public class CreateZipFile : Microsoft.Build.Utilities.Task
+public sealed class CreateZipFile : Microsoft.Build.Utilities.Task
 {
     /***
     * This class does not use IFileSystem abstraction because it does not support ZipArchive creation.

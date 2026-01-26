@@ -1,11 +1,13 @@
-﻿using System;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility.Implementation;
-using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests;
 
 public class FunctionsTelemetryInitializerTests : IDisposable
 {

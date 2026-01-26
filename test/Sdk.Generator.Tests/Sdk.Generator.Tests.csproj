@@ -56,10 +56,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\sdk\Sdk.Generators\Sdk.Generators.csproj" />
     <ProjectReference Include="..\..\sdk\Sdk\Sdk.csproj" />
-    <ProjectReference Include="..\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj" />
-    <ProjectReference Include="..\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj" />
-    <ProjectReference Include="..\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
-    <ProjectReference Include="..\DependentAssemblyWithFunctions\DependentAssemblyWithFunctions.csproj" />
+    <ProjectReference Include="..\Resources\Extensions\Worker.Extensions.Sample-IncorrectImplementation\Worker.Extensions.Sample-IncorrectImplementation.csproj" />
+    <ProjectReference Include="..\Resources\Extensions\Worker.Extensions.Sample\Worker.Extensions.Sample.csproj" />
+    <ProjectReference Include="..\Resources\Projects\DependentAssemblyWithFunctions.NetStandard\DependentAssemblyWithFunctions.NetStandard.csproj" />
+    <ProjectReference Include="..\Resources\Projects\DependentAssemblyWithFunctions\DependentAssemblyWithFunctions.csproj" />
     <ProjectReference Include="..\TestUtility\TestUtility.csproj" />
   </ItemGroup>
 

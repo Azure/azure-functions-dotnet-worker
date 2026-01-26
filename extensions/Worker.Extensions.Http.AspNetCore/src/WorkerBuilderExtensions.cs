@@ -1,7 +1,8 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,9 +23,12 @@ namespace Microsoft.Azure.Functions.Worker
         /// <exception cref="ArgumentNullException"></exception>
         internal static IFunctionsWorkerApplicationBuilder UseAspNetCoreIntegration(this IFunctionsWorkerApplicationBuilder builder)
         {
-            if (builder is null)
+            ArgumentNullException.ThrowIfNull(builder, nameof(builder));
+
+            // Check if already configured by looking for our middleware
+            if (builder.Services.Any(d => d.ImplementationType == typeof(FunctionsHttpProxyingMiddleware)))
             {
-                throw new ArgumentNullException(nameof(builder));
+                return builder;
             }
 
             builder.UseMiddleware<FunctionsHttpProxyingMiddleware>();
@@ -36,7 +40,7 @@ namespace Microsoft.Azure.Functions.Worker
             builder.Services.Configure<WorkerOptions>((workerOption) =>
             {
                 workerOption.InputConverters.RegisterAt<HttpContextConverter>(0);
-                workerOption.Capabilities.Add(Constants.HttpUriCapability, HttpUriProvider.HttpUriString);
+                workerOption.Capabilities[Constants.HttpUriCapability] = HttpUriProvider.HttpUriString;
             });
 
             return builder;

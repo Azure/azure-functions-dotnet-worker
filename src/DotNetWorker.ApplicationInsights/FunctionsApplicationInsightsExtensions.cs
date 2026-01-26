@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
@@ -24,6 +24,12 @@ namespace Microsoft.Azure.Functions.Worker
             if (services == null)
             {
                 throw new ArgumentNullException(nameof(services));
+            }
+
+            // Check if already configured by looking for our validation service
+            if (services.Any(d => d.ImplementationType == typeof(ApplicationInsightsValidationService)))
+            {
+                return services;
             }
 
             services.ConfigureOptions<TelemetryConfigurationSetup>();

@@ -38,13 +38,6 @@ jobs:
         **/DotNetWorker.OpenTelemetry.Tests.csproj
         **/Sdk.Analyzers.Tests.csproj
         **/Sdk.Generator.Tests.csproj
-
-  - task: DotNetCoreCLI@2
-    displayName: MSbuild Sdk Tests
-    inputs:
-      command: test
-      arguments: -v n
-      projects: |
         **/Azure.Functions.Sdk.Tests.csproj
 
   - task: DotNetCoreCLI@2

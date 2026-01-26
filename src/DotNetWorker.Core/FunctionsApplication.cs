@@ -74,9 +74,11 @@ namespace Microsoft.Azure.Functions.Worker
             try
             {
                 await _functionExecutionDelegate(context);
+
                 var tags = invokeActivity?.Tags
                     .GroupBy(kv => kv.Key)
                     .ToDictionary(g => g.Key, g => g.Last().Value);
+
                 if (tags is not null)
                 {
                     context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;

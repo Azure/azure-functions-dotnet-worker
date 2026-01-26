@@ -184,18 +184,16 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 ? tagsObj as System.Collections.Generic.IDictionary<string, string>
                 : null;
 
-            if (tags is null)
+            if (tags is not null)
             {
-                return traceContext;
-            }
+                var known = TraceConstants.KnownAttributes.All;
 
-            var known = TraceConstants.KnownAttributes.All;
-
-            foreach (var (key, value) in tags)
-            {
-                if (!known.Contains(key))
+                foreach (var (key, value) in tags)
                 {
-                    traceContext.Attributes[key] = value;
+                    if (!known.Contains(key))
+                    {
+                        traceContext.Attributes[key] = value;
+                    }
                 }
             }
 

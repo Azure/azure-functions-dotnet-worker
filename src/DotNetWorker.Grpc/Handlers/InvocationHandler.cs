@@ -180,15 +180,22 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 Attributes = { }
             };
 
-            var invocationTags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
+            var tags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
                 ? tagsObj as System.Collections.Generic.IDictionary<string, string>
                 : null;
 
-            if (invocationTags is not null)
+            if (tags is null)
             {
-                foreach (var tag in invocationTags.Where(tag => !TraceConstants.KnownAttributes.All.Contains(tag.Key)))
+                return traceContext;
+            }
+
+            var known = TraceConstants.KnownAttributes.All;
+
+            foreach (var (key, value) in tags)
+            {
+                if (!known.Contains(key))
                 {
-                    traceContext.Attributes[tag.Key] = tag.Value;
+                    traceContext.Attributes[key] = value;
                 }
             }
 

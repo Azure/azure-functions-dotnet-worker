@@ -103,13 +103,14 @@ public sealed class CreateZipFileTests : IDisposable
         VerifyZipFile(task.CreatedZipPath, exe);
     }
 
-    [Fact]
-    public void CreatesZipFile_Exe_PermissionsChange()
+    [Theory]
+    [InlineData("myapp.exe")]
+    [InlineData("myapp")]
+    public void CreatesZipFile_PermissionsChange(string name)
     {
         // arrange
-        const string exe = "myapp.exe";
         SetupZipFolder();
-        File.WriteAllText(Path.Combine(FolderToZip, exe), string.Empty);
+        File.WriteAllText(Path.Combine(FolderToZip, name), string.Empty);
 
         CreateZipFile task = CreateTask($"{{WorkerRoot}}myapp");
 
@@ -118,7 +119,7 @@ public sealed class CreateZipFileTests : IDisposable
 
         // assert
         result.Should().BeTrue();
-        VerifyZipFile(task.CreatedZipPath, exe);
+        VerifyZipFile(task.CreatedZipPath, name);
     }
 
     private CreateZipFile CreateTask(string? executable  = null)

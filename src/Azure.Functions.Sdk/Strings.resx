@@ -207,4 +207,7 @@
   <data name="ExtensionMetadata_SkippingExcludedAssembly" xml:space="preserve">
     <value>Skipping extension assembly '{0}' as it is explicitly excluded.</value>
   </data>
+  <data name="Zip_PathNotRooted" xml:space="preserve">
+    <value>The path '{0}' is not rooted. Please provide an absolute path for {1}.</value>
+  </data>
 </root>

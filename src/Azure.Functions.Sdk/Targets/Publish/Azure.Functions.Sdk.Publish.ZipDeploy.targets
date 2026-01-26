@@ -12,6 +12,12 @@ WARNING:  DO NOT MODIFY this file unless you are knowledgeable about MSBuild and
 <Project>
   <UsingTask TaskName="$(AzureFunctionsTaskNamespace).Publish.CreateZipFile" AssemblyFile="$(AzureFunctionsSdkTasksAssembly)" />
 
+  <PropertyGroup>
+    <_DotNetPublishFiles>
+      ZipDeploy;
+    </_DotNetPublishFiles>
+  </PropertyGroup>
+
   <Target Name="CreateZipFile" DependsOnTargets="_ResolveFunctionExecutable">
     <CreateZipFile SourceFolder="$(PublishIntermediateOutputPath)" ZipName="$(MSBuildProjectName)"
       PublishIntermediateTempPath="$(PublishIntermediateTempPath)" Executable="$(_FunctionsExecutable)">

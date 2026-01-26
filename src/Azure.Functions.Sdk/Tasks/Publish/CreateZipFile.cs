@@ -1,4 +1,4 @@
-﻿// Copyright (c) .NET Foundation. All rights reserved.
+// Copyright (c) .NET Foundation. All rights reserved.
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System.IO.Compression;
@@ -64,10 +64,7 @@ public class CreateZipFile : Microsoft.Build.Utilities.Task
     {
         using ZipArchive archive = ZipFile.Open(zipFilePath, ZipArchiveMode.Update);
         ZipArchiveEntry? entry = archive.GetEntry(entryName) ?? archive.GetEntry(entryName + ".exe");
-        if (entry != null)
-        {
-            entry.SetUnixFilePermissions(UnixExecutablePermissions);
-        }
+        entry?.SetUnixFilePermissions(UnixExecutablePermissions);
     }
 
     internal string CreateZipFileFromDirectory()

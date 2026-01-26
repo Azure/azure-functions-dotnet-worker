@@ -94,7 +94,7 @@ public sealed class CreateZipFileTests : IDisposable
         SetupZipFolder();
         File.WriteAllText(Path.Combine(FolderToZip, name), string.Empty);
 
-        CreateZipFile task = CreateTask($"{{WorkerRoot}}myapp");
+        CreateZipFile task = CreateTask($"{{WorkerRoot}}{Path.GetFileNameWithoutExtension(name)}");
 
         // act
         bool result = task.Execute();

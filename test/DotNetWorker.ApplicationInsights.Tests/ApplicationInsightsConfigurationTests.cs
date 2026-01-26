@@ -1,15 +1,17 @@
-﻿using System;
+// Copyright (c) .NET Foundation. All rights reserved.
+// Licensed under the MIT License. See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.Azure.Functions.Worker.ApplicationInsights;
 using Microsoft.Azure.Functions.Worker.ApplicationInsights.Initializers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Worker.Tests.ApplicationInsights;
+namespace Microsoft.Azure.Functions.Worker.ApplicationInsights.Tests;
 
 public class ApplicationInsightsConfigurationTests
 {
@@ -62,6 +64,8 @@ public class ApplicationInsightsConfigurationTests
 
         builder.Build();
         Assert.Contains(typeof(FunctionsTelemetryInitializer), initializers);
+        Assert.Equal(6, initializers.Count());
         Assert.Contains(typeof(FunctionsTelemetryModule), modules);
+        Assert.Equal(8, modules.Count());
     }
 }

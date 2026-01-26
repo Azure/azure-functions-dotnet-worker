@@ -11,10 +11,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
-using Microsoft.Azure.Functions.Worker.OpenTelemetry;
 using Microsoft.Azure.Functions.Worker.Tests;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -24,7 +22,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Xunit;
 
-namespace DotNetWorker.OpenTelemetry.Tests;
+namespace Microsoft.Azure.Functions.Worker.OpenTelemetry.Tests;
 
 public class EndToEndTests
 {

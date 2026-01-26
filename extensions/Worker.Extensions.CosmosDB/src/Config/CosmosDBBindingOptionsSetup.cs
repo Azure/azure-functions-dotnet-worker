@@ -31,8 +31,10 @@ namespace Microsoft.Azure.Functions.Worker
             Configure(Options.DefaultName, options);
         }
 
-        public void Configure(string connectionName, CosmosDBBindingOptions options)
+        public void Configure(string? connectionName, CosmosDBBindingOptions options)
         {
+            // TODO: evaluate defaulting to CosmosDB connection name.
+            connectionName ??= Options.DefaultName;
             IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(connectionName);
 
             if (!connectionSection.Exists())

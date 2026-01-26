@@ -29,14 +29,14 @@ namespace Microsoft.Azure.Functions.Worker
             Configure(Options.DefaultName, options);
         }
 
-        public void Configure(string name, BlobStorageBindingOptions options)
+        public void Configure(string? name, BlobStorageBindingOptions options)
         {
             if (string.IsNullOrWhiteSpace(name))
             {
                 name = Constants.Storage; // default
             }
 
-            IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(name);
+            IConfigurationSection connectionSection = _configuration.GetWebJobsConnectionStringSection(name!);
 
             if (!connectionSection.Exists())
             {

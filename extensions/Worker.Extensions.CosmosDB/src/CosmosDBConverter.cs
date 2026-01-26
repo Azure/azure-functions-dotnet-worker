@@ -53,7 +53,7 @@ namespace Microsoft.Azure.Functions.Worker
                     throw new InvalidBindingSourceException(modelBindingData.Source, Constants.CosmosExtensionName);
                 }
 
-                var cosmosAttribute = GetBindingDataContent(modelBindingData);
+                CosmosDBInputAttribute cosmosAttribute = GetBindingDataContent(modelBindingData);
                 object result = await ToTargetTypeAsync(context.TargetType, cosmosAttribute);
 
                 return ConversionResult.Success(result);
@@ -77,7 +77,8 @@ namespace Microsoft.Azure.Functions.Worker
 
             return bindingData.ContentType switch
             {
-                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>(),
+                Constants.JsonContentType => bindingData.Content.ToObjectFromJson<CosmosDBInputAttribute>()
+                    ?? throw new InvalidOperationException("CosmosDB binding data content could not be retrieved."),
                 _ => throw new InvalidContentTypeException(bindingData.ContentType, Constants.JsonContentType)
             };
         }

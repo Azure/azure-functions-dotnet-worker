@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\DotNetWorker.Core\DotNetWorker.Core.csproj" />
+    <ProjectReference Include="$(SourceRoot)DotNetWorker.Core/DotNetWorker.Core.csproj" />
   </ItemGroup>
 
 </Project>

@@ -85,24 +85,6 @@ public sealed class CreateZipFileTests : IDisposable
         VerifyZipFile(task.CreatedZipPath);
     }
 
-    [Fact]
-    public void CreatesZipFile_NoExe_PermissionsChange()
-    {
-        // arrange
-        const string exe = "myapp";
-        SetupZipFolder();
-        File.WriteAllText(Path.Combine(FolderToZip, exe), string.Empty);
-
-        CreateZipFile task = CreateTask($"{{WorkerRoot}}{exe}");
-
-        // act
-        bool result = task.Execute();
-
-        // assert
-        result.Should().BeTrue();
-        VerifyZipFile(task.CreatedZipPath, exe);
-    }
-
     [Theory]
     [InlineData("myapp.exe")]
     [InlineData("myapp")]

@@ -14,7 +14,7 @@ using Microsoft.Build.Framework;
 
 namespace Azure.Functions.Sdk.Tasks.Publish;
 
-public class ZipDeployTask(IFileSystem fileSystem)
+public sealed class ZipDeployTask(IFileSystem fileSystem)
     : Microsoft.Build.Utilities.Task, ICancelableTask, IDisposable
 {
     private static readonly TimeSpan DeployTimeout = TimeSpan.FromMinutes(3);

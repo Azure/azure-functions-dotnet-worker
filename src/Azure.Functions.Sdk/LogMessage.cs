@@ -113,10 +113,22 @@ internal readonly struct LogMessage
     /// <remarks>
     /// The help keyword is derived from the <see cref="Code"/> property.
     /// If the <see cref="Code"/> is null, the help keyword will also be null.
-    /// A help keyword will emit a help link of "https://go.microsoft.com/fwlink/?LinkId=AzureFunctions.{Code}"
-    /// as part of the msbuild log.
     /// </remarks>
     public string? HelpKeyword => Code is null ? null : $"AzureFunctions.{Code}";
+
+    /// <summary>
+    /// Gets the help link for the log message.
+    /// </summary>
+    /// <remarks>
+    /// The help link is derived from the <see cref="Code"/> property.
+    /// If the <see cref="Code"/> is null, the help link will also be null.
+    /// </remarks>
+    public string? HelpLink => Code is null ? null : $"https://aka.ms/azure-functions/{Code}";
+
+    /// <summary>
+    /// Gets the raw resource string value for the log message.
+    /// </summary>
+    public string? RawValue => Strings.GetResourceString(Id);
 
     /// <summary>
     /// Gets a <see cref="LogMessage"/> from its identifier.

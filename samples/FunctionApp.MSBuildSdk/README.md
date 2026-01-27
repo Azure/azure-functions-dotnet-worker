@@ -4,6 +4,22 @@ This sample shows a function app using the new MSBuild SDK. This SDK is a succes
 
 Instead of being included via `PackageReference`, this new sdk uses the `Sdk` element.
 
+1. Add pre-release nuget feed:
+
+
+``` diff
+<?xml version="1.0" encoding="utf-8"?>
+<configuration>
+  <packageSources>
+    <clear />
+    <add key="nuget" value="https://api.nuget.org/v3/index.json" />
++   <add key="pre-release" value="https://pkgs.dev.azure.com/azfunc/public/_packaging/pre-release/nuget/v3/index.json" />
+  </packageSources>
+</configuration>
+```
+
+2. Use the new SDK.
+
 Minimal getting-started project:
 ``` xml
 <Project Sdk="Azure.Functions.Sdk/[VERSION]">

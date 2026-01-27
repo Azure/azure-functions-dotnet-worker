@@ -10,7 +10,7 @@ namespace FunctionApp;
 public class Hello(ILogger<Hello> logger)
 {
     [Function("hello")]
-    public async Task<IActionResult> HelloAsync([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
+    public IActionResult HelloImpl([HttpTrigger(AuthorizationLevel.Anonymous, "get")] HttpRequest req)
     {
         logger.LogInformation("C# HTTP trigger function processed a request.");
         return new OkObjectResult("Welcome to Azure Functions!");

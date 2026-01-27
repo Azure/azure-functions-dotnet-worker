@@ -72,7 +72,6 @@ internal static class MSBuildLogExtensions
                         args);
                     break;
                 case LogLevel.Minimal or LogLevel.Information or LogLevel.Verbose or LogLevel.Debug:
-                    message.Level.ToMessageImportance();
                     log.LogMessage(
                         null,
                         message.Code!,

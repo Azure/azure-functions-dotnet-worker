@@ -180,6 +180,11 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 Attributes = { }
             };
 
+            if (context.Items is null)
+            {
+              return traceContext;
+            }
+
             var tags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
                 ? tagsObj as System.Collections.Generic.IDictionary<string, string>
                 : null;

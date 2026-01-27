@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Builder;
+﻿using Microsoft.Azure.Functions.Worker.Builder;
 
 FunctionsApplicationBuilder builder = FunctionsApplication.CreateBuilder(args);
 builder.ConfigureFunctionsWebApplication();

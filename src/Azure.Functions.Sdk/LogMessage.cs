@@ -128,7 +128,8 @@ internal readonly struct LogMessage
     /// <summary>
     /// Gets the raw resource string value for the log message.
     /// </summary>
-    public string? RawValue => Strings.GetResourceString(Id);
+    public string RawValue => Strings.GetResourceString(Id)
+        ?? throw new InvalidOperationException($"Resource string for id '{Id}' not found.");
 
     /// <summary>
     /// Gets a <see cref="LogMessage"/> from its identifier.

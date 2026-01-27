@@ -3,6 +3,7 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -81,6 +82,7 @@ namespace Microsoft.Azure.Functions.Worker
 
                 if (tags is not null)
                 {
+                    context.Items ??= new ConcurrentDictionary<object, object>();
                     context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
                 }
             }

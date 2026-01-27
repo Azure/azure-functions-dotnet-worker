@@ -6,7 +6,6 @@ Instead of being included via `PackageReference`, this new sdk uses the `Sdk` el
 
 1. Add pre-release nuget feed:
 
-
 ``` diff
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
@@ -45,3 +44,11 @@ The biggest difference with this new SDK is how the extension bundle is created.
 ## What is the same?
 
 Your code! No changes to function app code -- only to the csproj.
+
+## Publish/Deploy
+
+ZipDeploy has not been added yet. To deploy a dotnet app using this SDK, follow these steps:
+
+1. `dotnet publish -c release`
+2. Zip up the published contents (zip the contents, not the folder itself)
+3. `az functionapp deployment source config-zip -g <resource-group> -n <function-app-name> --src <zip>`

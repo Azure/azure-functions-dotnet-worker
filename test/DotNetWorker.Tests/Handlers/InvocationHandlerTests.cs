@@ -2,6 +2,7 @@
 // Licensed under the MIT License. See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -288,7 +289,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 .Callback<FunctionContext>(ctx =>
                 {
                     // Ensure Items is initialized before use
-                    ctx.Items ??= new System.Collections.Generic.Dictionary<object, object>();
+                    ctx.Items ??= new ConcurrentDictionary<object, object>();
 
                     // Simulate tags being set in the Items dictionary
                     ctx.Items[Worker.Diagnostics.TraceConstants.InternalKeys.FunctionContextItemsKey] =

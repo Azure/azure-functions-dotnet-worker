@@ -42,7 +42,7 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
             MethodInfo? methodInfo = methods?.Length switch
             {
                 1 => methods[0],
-                > 1 => methods.SingleOrDefault(m => m.GetCustomAttribute<FunctionAttribute>() is not null),
+                > 1 => methods.FirstOrDefault(m => m.GetCustomAttribute<FunctionAttribute>() is not null),
                 _ => null
             };
 

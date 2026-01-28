@@ -106,12 +106,12 @@ else
     & "chmod" "a+x" "$FUNC_CLI_DIRECTORY/func"
   }
 
-  Write-Host "------"
-}
+  if (Test-Path $output)
+  {
+    Remove-Item $output -Recurse -Force -ErrorAction Ignore
+  }
 
-if (Test-Path $output)
-{
-  Remove-Item $output -Recurse -Force -ErrorAction Ignore
+  Write-Host "------"
 }
 
 Write-Host "----- Executing tests for Dotnet version $DotnetVersion -----"

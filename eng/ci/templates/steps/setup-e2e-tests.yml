@@ -20,6 +20,9 @@ parameters:
 
 steps:
 
+- ${{ if not(parameters.SkipCoreTools) }}:
+  - template: /eng/ci/templates/steps/install-core-tools.yml@self
+
 - task: PowerShell@2
   displayName: 'Setup E2E tests'
   inputs:
@@ -29,7 +32,7 @@ steps:
       -DotnetVersion ${{ parameters.DotnetVersion }}
       -SkipStorageEmulator:$${{ parameters.SkipStorageEmulator }}
       -SkipCosmosDBEmulator:$${{ parameters.SkipCosmosDBEmulator }}
-      -SkipCoreTools:$${{ parameters.SkipCoreTools }}
       -UseCoreToolsBuildFromIntegrationTests:$${{ parameters.UseCoreToolsBuild }}
       -SkipBuildOnPack:$${{ parameters.SkipBuildOnPack }}
+      -SkipCoreTools
     pwsh: true

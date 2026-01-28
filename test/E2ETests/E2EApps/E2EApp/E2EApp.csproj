@@ -45,8 +45,8 @@
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="2.2.0" Condition="'$(TargetFramework)' == 'net48'" />
     <!-- Use version 8.0.1 for .NET Core or other target frameworks -->
     <PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.8" Condition="'$(TargetFramework)' != 'net48'" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="1.17.4" />
-    <PackageReference Condition="$(TestBuild) != 'true'" Include="Microsoft.Azure.Functions.Worker" Version="1.23.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
+    <PackageReference Condition="$(TestBuild) != 'true'" Include="Microsoft.Azure.Functions.Worker" Version="2.1.0" />
     <PackageReference Include="System.Text.Json" Version="10.0.0" />
   </ItemGroup>
 </Project>

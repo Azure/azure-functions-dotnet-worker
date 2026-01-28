@@ -6,7 +6,7 @@
 
 ### Microsoft.Azure.Functions.Worker (metapackage) <version>
 
-- <entry>
+- Update `Microsoft.Azure.Functions.Worker.Grpc` to <version>
 
 ### Microsoft.Azure.Functions.Worker.Core <version>
 
@@ -14,4 +14,4 @@
 
 ### Microsoft.Azure.Functions.Worker.Grpc <version>
 
-- <entry>
+- Update protobuf version to <version> and add support for propagating tags from the worker to the functions host (#3303).

@@ -3,11 +3,10 @@
 
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Google.Protobuf.Collections;
 using Microsoft.Azure.Functions.Worker.Context.Features;
 using Microsoft.Azure.Functions.Worker.Core;
 using Microsoft.Azure.Functions.Worker.Diagnostics;
@@ -178,7 +177,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             }
 
             var tags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
-                ? tagsObj as System.Collections.Generic.IDictionary<string, string>
+                ? tagsObj as IEnumerable<KeyValuePair<string, string>>
                 : null;
 
             if (tags is not null)
@@ -189,6 +188,14 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 {
                     if (!known.Contains(key))
                     {
+                        // Duplicate tags can exist for an Activity, but the gRPC message type
+                        // Map<string, string>  does not allow for duplicate keys.
+                        // Log and overwrite in this scenario.
+                        if (response.TraceContextAttributes.ContainsKey(key))
+                        {
+                            _logger.LogDebug("Trace context attribute '{key}' already exists on the invocation response. Overwriting value.", key);
+                        }
+
                         response.TraceContextAttributes[key] = value;
                     }
                 }

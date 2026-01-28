@@ -443,7 +443,8 @@ message InvocationResponse {
   // Status of the invocation (success/failure/canceled)
   StatusResult result = 3;
 
-  RpcTraceContext trace_context = 5;
+  // Enables propagation of tags from worker -> host.
+  map<string, string> trace_context_attributes = 5;
 }
 
 message WorkerWarmupRequest {

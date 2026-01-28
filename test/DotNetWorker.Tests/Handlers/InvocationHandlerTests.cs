@@ -306,7 +306,7 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             Assert.Equal(StatusResult.Types.Status.Success, response.Result.Status);
 
             // Extract tags from the response
-            var tags = response.TraceContext?.Attributes;
+            var tags = response.TraceContextAttributes;
             Assert.NotNull(tags);
             foreach (var expectedTag in expectedTags)
             {

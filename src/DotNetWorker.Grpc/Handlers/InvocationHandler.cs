@@ -116,8 +116,7 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                     response.ReturnValue = returnVal;
                 }
 
-                RpcTraceContext traceContext = AddTraceContextTags(request, context);
-                response.TraceContext = traceContext;
+                AddTraceContextTags(response, context);
 
                 response.Result.Status = StatusResult.Types.Status.Success;
             }
@@ -171,18 +170,11 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
             return false;
         }
 
-        private RpcTraceContext AddTraceContextTags(InvocationRequest request, FunctionContext context)
+        private void AddTraceContextTags(InvocationResponse response, FunctionContext context)
         {
-            RpcTraceContext traceContext = new RpcTraceContext
-            {
-                TraceParent = request.TraceContext.TraceParent,
-                TraceState = request.TraceContext.TraceState,
-                Attributes = { }
-            };
-
             if (context.Items is null)
             {
-              return traceContext;
+                return;
             }
 
             var tags = context.Items.TryGetValue(TraceConstants.InternalKeys.FunctionContextItemsKey, out var tagsObj)
@@ -197,12 +189,10 @@ namespace Microsoft.Azure.Functions.Worker.Handlers
                 {
                     if (!known.Contains(key))
                     {
-                        traceContext.Attributes[key] = value;
+                        response.TraceContextAttributes[key] = value;
                     }
                 }
             }
-
-            return traceContext;
         }
     }
 }

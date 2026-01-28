@@ -44,20 +44,35 @@ internal static class MSBuildLogExtensions
             switch (message.Level)
             {
                 case LogLevel.Error:
-                    log.LogErrorFromResources(
+                    log.LogError(
                         null,
                         message.Code!,
                         message.HelpKeyword,
+                        message.HelpLink,
                         null,
                         0,
                         0,
                         0,
                         0,
-                        message.Id,
+                        message.RawValue,
                         args);
                     break;
                 case LogLevel.Warning:
-                    log.LogWarningFromResources(
+                    log.LogWarning(
+                        null,
+                        message.Code!,
+                        message.HelpKeyword,
+                        message.HelpLink,
+                        null,
+                        0,
+                        0,
+                        0,
+                        0,
+                        message.RawValue,
+                        args);
+                    break;
+                case LogLevel.Minimal or LogLevel.Information or LogLevel.Verbose or LogLevel.Debug:
+                    log.LogMessage(
                         null,
                         message.Code!,
                         message.HelpKeyword,
@@ -66,17 +81,9 @@ internal static class MSBuildLogExtensions
                         0,
                         0,
                         0,
-                        message.Id,
+                        message.Level.ToMessageImportance(),
+                        message.RawValue,
                         args);
-                    break;
-                case LogLevel.Minimal:
-                    log.LogMessageFromResources(MessageImportance.High, message.Id, args);
-                    break;
-                case LogLevel.Information:
-                    log.LogMessageFromResources(MessageImportance.Normal, message.Id, args);
-                    break;
-                case LogLevel.Debug or LogLevel.Verbose:
-                    log.LogMessageFromResources(MessageImportance.Low, message.Id, args);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(
@@ -90,19 +97,13 @@ internal static class MSBuildLogExtensions
             switch (message.Level)
             {
                 case LogLevel.Error:
-                    log.LogErrorFromResources(message.Id, args);
+                    log.LogError(message.RawValue, args);
                     break;
                 case LogLevel.Warning:
-                    log.LogWarningFromResources(message.Id, args);
+                    log.LogWarning(message.RawValue, args);
                     break;
-                case LogLevel.Minimal:
-                    log.LogMessageFromResources(MessageImportance.High, message.Id, args);
-                    break;
-                case LogLevel.Information:
-                    log.LogMessageFromResources(MessageImportance.Normal, message.Id, args);
-                    break;
-                case LogLevel.Debug or LogLevel.Verbose:
-                    log.LogMessageFromResources(MessageImportance.Low, message.Id, args);
+                case LogLevel.Minimal or LogLevel.Information or LogLevel.Verbose or LogLevel.Debug:
+                    log.LogMessage(message.Level.ToMessageImportance(), message.RawValue, args);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(

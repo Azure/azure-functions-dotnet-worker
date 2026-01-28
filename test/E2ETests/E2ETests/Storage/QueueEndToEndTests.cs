@@ -9,7 +9,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Xunit;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests.Storage
+namespace Microsoft.Azure.Functions.Worker.E2ETests.Storage
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class QueueEndToEndTests

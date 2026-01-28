@@ -1,5 +1,5 @@
 parameters:
-- name: PoolName
+- name: poolName
   type: string
 
 jobs:
@@ -14,7 +14,7 @@ jobs:
         dotnetVersion: 'netfx'
 
   pool:
-    name: ${{ parameters.PoolName }}
+    name: ${{ parameters.poolName }}
     image: 1es-windows-2022
     os: windows
     ${{ if eq( variables['Build.Reason'], 'Schedule' ) }}:
@@ -47,20 +47,9 @@ jobs:
     displayName: 'Run E2E Tests'
     inputs:
       command: test
-      arguments: -v n --no-build -c Release --filter "FullyQualifiedName!~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # skip AspNetCore tests
+      arguments: -v n --no-build -c Release
       projects: |
         **/E2ETests.csproj
         **/Sdk.E2ETests.csproj
-    env:
-      DOTNET_VERSION: $(dotnetVersion)
-
-  - task: DotNetCoreCLI@2
-    displayName: 'Run E2E AspNetCore Tests'
-    condition: ne(variables['dotnetVersion'], 'netfx')  # Skip if dotnetVersion is netfx
-    inputs:
-      command: test
-      arguments: -v n --no-build -c Release --filter "FullyQualifiedName~Microsoft.Azure.Functions.Worker.E2ETests.AspNetCore" # only AspNetCore tests
-      projects: |
-        **/E2ETests.csproj
     env:
       DOTNET_VERSION: $(dotnetVersion)

@@ -5,10 +5,11 @@ using System;
 using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests.Cosmos
+namespace Microsoft.Azure.Functions.Worker.E2ETests.Cosmos
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class CosmosDBEndToEndTests : IDisposable

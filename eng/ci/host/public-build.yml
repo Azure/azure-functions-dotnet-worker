@@ -49,7 +49,7 @@ extends:
       - template: /eng/ci/templates/official/jobs/build-host-prelaunch-artifacts.yml@self
       - template: /eng/ci/templates/official/jobs/build-host-artifacts-linux.yml@self
         parameters:
-          PoolName: 1es-pool-azfunc-public
+          poolName: 1es-pool-azfunc-public
       # Temp pipeline to just build the net-host (see issue #2521)
       - template: /eng/ci/templates/jobs/build-net-host.yml@self
       # - template: /eng/ci/templates/official/jobs/build-host-artifacts-windows.yml@self

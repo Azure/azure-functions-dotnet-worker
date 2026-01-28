@@ -1,6 +1,5 @@
 ﻿using System.Threading.Tasks;
 using Azure.Data.Tables;
-using Microsoft.Azure.Functions.Tests.E2ETests;
 
 namespace Microsoft.Azure.Functions.Worker.E2ETests.Helpers
 {

@@ -6,10 +6,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.Azure.Functions.Tests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.Azure.Functions.Tests.E2ETests
+namespace Microsoft.Azure.Functions.Worker.E2ETests
 {
     [Collection(Constants.FunctionAppCollectionName)]
     public class TimerEndToEndTests : IDisposable

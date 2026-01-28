@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.Functions.Tests;
-using Microsoft.Azure.Functions.Tests.E2ETests;
+using Microsoft.Azure.Functions.Worker.E2ETests;
 using Xunit;
 using Xunit.Abstractions;
 

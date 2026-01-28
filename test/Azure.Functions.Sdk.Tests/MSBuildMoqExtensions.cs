@@ -35,7 +35,7 @@ internal static class MSBuildMoqExtensions
                 && message.Level == LogLevel.Error
                 && e.Code == message.Code
                 && e.HelpKeyword == message.HelpKeyword
-                && e.HelpLink == null
+                && e.HelpLink == message.HelpLink
                 && e.Subcategory == null
                 && e.LineNumber == 0
                 && e.ColumnNumber == 0
@@ -53,7 +53,7 @@ internal static class MSBuildMoqExtensions
                 && message.Level == LogLevel.Warning
                 && e.Code == message.Code
                 && e.HelpKeyword == message.HelpKeyword
-                && e.HelpLink == null
+                && e.HelpLink == message.HelpLink
                 && e.Subcategory == null
                 && e.LineNumber == 0
                 && e.ColumnNumber == 0

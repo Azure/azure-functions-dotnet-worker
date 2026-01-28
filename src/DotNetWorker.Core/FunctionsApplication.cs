@@ -3,7 +3,6 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -80,9 +79,8 @@ namespace Microsoft.Azure.Functions.Worker
                     .GroupBy(kv => kv.Key)
                     .ToDictionary(g => g.Key, g => g.Last().Value);
 
-                if (tags is not null)
+                if (tags is not null && context.Items is not null)
                 {
-                    context.Items ??= new ConcurrentDictionary<object, object>();
                     context.Items[TraceConstants.InternalKeys.FunctionContextItemsKey] = tags;
                 }
             }

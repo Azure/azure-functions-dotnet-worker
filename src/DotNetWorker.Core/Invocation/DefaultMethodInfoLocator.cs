@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Linq;
 using System.Reflection;
 #if NET6_0_OR_GREATER
 using System.Runtime.Loader;
 #endif
 using System.Text.RegularExpressions;
+using Microsoft.Azure.Functions.Worker;
 
 namespace Microsoft.Azure.Functions.Worker.Invocation
 {
@@ -36,7 +38,13 @@ namespace Microsoft.Azure.Functions.Worker.Invocation
 
             Type? functionType = assembly.GetType(typeName);
 
-            MethodInfo? methodInfo = functionType?.GetMethod(methodName);
+            var methods = functionType?.GetMethods().Where(m => m.Name == methodName).ToArray();
+            MethodInfo? methodInfo = methods?.Length switch
+            {
+                1 => methods[0],
+                > 1 => methods.SingleOrDefault(m => m.GetCustomAttribute<FunctionAttribute>() is not null),
+                _ => null
+            };
 
             if (methodInfo == null)
             {

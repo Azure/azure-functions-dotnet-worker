@@ -254,6 +254,64 @@ namespace Microsoft.Azure.Functions.Worker.Tests
                 });
         }
 
+        [Fact]
+        public void GrpcFunctionDefinition_OverloadedMethod_Creates()
+        {
+            using var testVariables = new TestScopedEnvironmentVariable("FUNCTIONS_WORKER_DIRECTORY", ".");
+
+            var bindingInfoProvider = new DefaultOutputBindingsInfoProvider();
+            var methodInfoLocator = new DefaultMethodInfoLocator();
+
+            string fullPathToThisAssembly = GetType().Assembly.Location;
+            var functionLoadRequest = new FunctionLoadRequest
+            {
+                FunctionId = "abc",
+                Metadata = new RpcFunctionMetadata
+                {
+                    EntryPoint = $"Microsoft.Azure.Functions.Worker.Tests.{nameof(GrpcFunctionDefinitionTests)}+{nameof(MyOverloadedFunctionClass)}.{nameof(MyOverloadedFunctionClass.Run)}",
+                    ScriptFile = Path.GetFileName(fullPathToThisAssembly),
+                    Name = "myfunction"
+                }
+            };
+
+            // We base this on the request exclusively, not the binding attributes.
+            functionLoadRequest.Metadata.Bindings.Add("req", new BindingInfo { Type = "HttpTrigger", Direction = Direction.In });
+            functionLoadRequest.Metadata.Bindings.Add("$return", new BindingInfo { Type = "Http", Direction = Direction.Out });
+
+            FunctionDefinition definition = functionLoadRequest.ToFunctionDefinition(methodInfoLocator);
+
+            Assert.Equal(functionLoadRequest.FunctionId, definition.Id);
+            Assert.Equal(functionLoadRequest.Metadata.EntryPoint, definition.EntryPoint);
+            Assert.Equal(functionLoadRequest.Metadata.Name, definition.Name);
+            Assert.Equal(fullPathToThisAssembly, definition.PathToAssembly);
+
+            // Parameters - should match the overload with [Function] attribute
+            Assert.Collection(definition.Parameters,
+                p =>
+                {
+                    Assert.Equal("req", p.Name);
+                    Assert.Equal(typeof(HttpRequestData), p.Type);
+                });
+
+            // InputBindings
+            Assert.Collection(definition.InputBindings,
+                p =>
+                {
+                    Assert.Equal("req", p.Key);
+                    Assert.Equal(BindingDirection.In, p.Value.Direction);
+                    Assert.Equal("HttpTrigger", p.Value.Type);
+                });
+
+            // OutputBindings
+            Assert.Collection(definition.OutputBindings,
+                p =>
+                {
+                    Assert.Equal("$return", p.Key);
+                    Assert.Equal(BindingDirection.Out, p.Value.Direction);
+                    Assert.Equal("Http", p.Value.Type);
+                });
+        }
+
         private class MyFunctionClass
         {
             public HttpResponseData Run(HttpRequestData req)
@@ -293,6 +351,19 @@ namespace Microsoft.Azure.Functions.Worker.Tests
             public HttpResponseData Run(
                 [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
                 [TableInput("tableName")] TableClient tableInput)
+            {
+                return req.CreateResponse();
+            }
+        }
+
+        private class MyOverloadedFunctionClass
+        {
+            // Helper overload - no Function attribute
+            public void Run(string message) { }
+
+            // Actual function - has Function attribute
+            [Function("MyFunction")]
+            public HttpResponseData Run(HttpRequestData req)
             {
                 return req.CreateResponse();
             }
